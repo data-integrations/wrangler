@@ -1,2 +1,2 @@
-# wrangler
+# Wrangler Plugin
 Hydrator Wrangler Plugin
