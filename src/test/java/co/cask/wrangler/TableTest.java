@@ -1,9 +1,9 @@
 package co.cask.wrangler;
 
-import co.cask.wrangler.Stages.CsvParser;
-import co.cask.wrangler.Stages.Lower;
-import co.cask.wrangler.Stages.Name;
-import co.cask.wrangler.Stages.Types;
+import co.cask.wrangler.steps.CsvParser;
+import co.cask.wrangler.steps.Lower;
+import co.cask.wrangler.steps.Name;
+import co.cask.wrangler.steps.Types;
 import org.junit.Test;
 
 import java.util.ArrayList;

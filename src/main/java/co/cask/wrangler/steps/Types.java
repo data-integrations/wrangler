@@ -1,7 +1,8 @@
-package co.cask.wrangler.Stages;
+package co.cask.wrangler.steps;
 
 import co.cask.wrangler.WrangleStep;
 import co.cask.wrangler.Row;
+import co.cask.wrangler.WrangleStepException;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public class Types implements WrangleStep {
   }
 
   @Override
-  public Row execute(Row row) {
+  public List<Row> execute(List<Row> rows) throws WrangleStepException {
     return null;
   }
 }

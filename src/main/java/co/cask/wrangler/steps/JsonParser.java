@@ -1,4 +1,4 @@
-package co.cask.wrangler.Stages;
+package co.cask.wrangler.steps;
 
 import co.cask.wrangler.WrangleStep;
 import co.cask.wrangler.Row;
