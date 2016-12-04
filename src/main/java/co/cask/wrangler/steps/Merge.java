@@ -1,8 +1,10 @@
-package co.cask.wrangler.Stages;
+package co.cask.wrangler.steps;
 
 import co.cask.wrangler.WrangleStep;
 import co.cask.wrangler.Row;
 import co.cask.wrangler.WrangleStepException;
+
+import java.util.List;
 
 /**
  * Created by nitin on 12/3/16.
@@ -20,8 +22,9 @@ public class Merge implements WrangleStep {
     this.delimiter = delimiter;
   }
 
+
   @Override
-  public Row execute(Row row) throws WrangleStepException {
+  public List<Row> execute(List<Row> rows) throws WrangleStepException {
     return null;
   }
 }

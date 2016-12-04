@@ -24,9 +24,8 @@ import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.Row;
-import co.cask.wrangler.Stages.CsvParser;
-import co.cask.wrangler.Stages.Lower;
-import co.cask.wrangler.Stages.Types;
+import co.cask.wrangler.steps.Lower;
+import co.cask.wrangler.steps.Types;
 import co.cask.wrangler.WrangleStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +55,7 @@ public class WranglerPlugin<StructuredRecord> extends Transform<StructuredRecord
 
     // Setup the stages as per the frontend configuration.
     //stages.add(new CsvParser(',', "col", null));
-    stages.add(new co.cask.wrangler.Stages.Name(new ArrayList<String>()));
+    stages.add(new co.cask.wrangler.steps.Name(new ArrayList<String>()));
     stages.add(new Types(new ArrayList<String>()));
     stages.add(new Lower("col1"));
   }
@@ -68,8 +67,6 @@ public class WranglerPlugin<StructuredRecord> extends Transform<StructuredRecord
       row = stage.execute(row);
     }
   }
-
-
 
   @Override
   public void configurePipeline(PipelineConfigurer pipelineConfigurer) throws IllegalArgumentException {

@@ -16,6 +16,8 @@
 
 package co.cask.wrangler;
 
+import java.util.List;
+
 /**
  * A interface defining the wrangle step in the wrangling pipeline.
  */
@@ -23,10 +25,10 @@ public interface WrangleStep {
   /**
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param row Input {@link Row} to be wrangled by this step.
-   * @return Array of wrangled {@link Row}.
+   * @param rows Input {@link Row} to be wrangled by this step.
+   * @return Wrangled {@link Row}.
    * @throws WrangleStepException In case of any issue this exception is thrown.
    */
-  Row[] execute(Row row) throws WrangleStepException;
+  List<Row> execute(List<Row> rows) throws WrangleStepException;
 }
 

@@ -1,4 +1,4 @@
-package co.cask.wrangler.Stages;
+package co.cask.wrangler.steps;
 
 import co.cask.wrangler.WrangleStep;
 import co.cask.wrangler.Row;
@@ -14,8 +14,9 @@ public class Name implements WrangleStep {
     super();
   }
 
+
   @Override
-  public Row execute(Row row) throws WrangleStepException {
+  public List<Row> execute(List<Row> rows) throws WrangleStepException {
     return null;
   }
 }

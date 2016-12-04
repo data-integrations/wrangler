@@ -16,8 +16,11 @@
 package co.cask.wrangler;
 
 /**
- * Created by nitin on 12/3/16.
+ * A WrangleStep specific exception used for communicating issues with execution of pipeline in that step.
  */
 public class WrangleStepException extends Exception {
+  public WrangleStepException(Exception e) {
+    super(e);
+  }
 }
 
