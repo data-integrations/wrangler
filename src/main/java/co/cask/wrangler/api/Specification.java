@@ -16,16 +16,19 @@
 
 package co.cask.wrangler.api;
 
+import java.text.ParseException;
 import java.util.List;
 
 /**
  * A specification for how {@link Pipeline} will process.
  */
 public interface Specification {
+  public static final String STARTING_COLUMN = "__col";
+
   /**
    * Generates a configured set of {@link Step} to be executed.
    *
    * @return List of {@link Step}.
    */
-  List<Step> getSteps();
+  List<Step> getSteps() throws ParseException;
 }

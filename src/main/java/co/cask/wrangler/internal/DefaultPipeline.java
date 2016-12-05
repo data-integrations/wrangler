@@ -28,10 +28,13 @@ import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
+import java.util.List;
+
 /**
  * Wrangle Pipeline executes steps in the order they are specified.
  */
-public final class DefaultPipeline implements Pipeline<String, Row> {
+public final class DefaultPipeline implements Pipeline<String, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultPipeline.class);
 
   private Specification specification;
@@ -47,9 +50,9 @@ public final class DefaultPipeline implements Pipeline<String, Row> {
   }
 
   @Override
-  public Row execute(String input, Schema schema) throws PipelineException {
+  public StructuredRecord execute(String input, Schema schema) throws PipelineException {
     // Creates a row as starting point for input to the pipeline.
-    Row row = new Row("__col", ColumnType.STRING, input);
+    Row row = new Row(Specification.STARTING_COLUMN, ColumnType.STRING, input);
 
     // Iterate through steps
     try {
@@ -58,13 +61,31 @@ public final class DefaultPipeline implements Pipeline<String, Row> {
       }
     } catch (StepException e) {
       throw new PipelineException(e);
+    } catch (ParseException e) {
+      throw new PipelineException(e);
     }
 
-    return row;
+    return toStructuredRecord(row, schema);
   }
 
+  /**
+   * Converts a {@link Row} to a {@link StructuredRecord}.
+   *
+   * @param row {@link Row} to be converted
+   * @param schema Schema of the {@link StructuredRecord} to be created.
+   * @return A {@link StructuredRecord} from row.
+   */
   private StructuredRecord toStructuredRecord(Row row, Schema schema) {
-    return null;
+    StructuredRecord.Builder builder = StructuredRecord.builder(schema);
+    List<Schema.Field> fields = schema.getFields();
+    for (Schema.Field field : fields) {
+      String name = field.getName();
+      Object value = row.get(name);
+      if (value != null) {
+        builder.set(name, value);
+      }
+    }
+    return builder.build();
   }
 }
 

@@ -16,8 +16,9 @@
 
 package co.cask.wrangler.internal;
 
+import co.cask.cdap.api.data.format.StructuredRecord;
+import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Pipeline;
-import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Specification;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
@@ -37,11 +38,30 @@ public class DefaultPipelineTest {
 
   @Test
   public void testPipeline() throws Exception {
+
+    // Output schema
+    Schema schema = Schema.recordOf(
+      "output",
+      Schema.Field.of("first", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("c", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("d", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("e", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("f", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("g", Schema.of(Schema.Type.STRING))
+    );
+
     Specification specification =
-      new SimpleSpecification(StringUtils.join("\n", commands));
+      new TextSpecification(StringUtils.join("\n", commands));
     Pipeline pipeline = new DefaultPipeline();
     pipeline.configure(specification);
-    Row row = (Row)pipeline.execute("a,b,c,d,e,f,g", null);
-    Assert.assertTrue(true);
+    StructuredRecord record = (StructuredRecord) pipeline.execute("a,b,c,d,e,f,g", schema);
+
+    // Validate the {@link StructuredRecord}
+    Assert.assertEquals("a", record.get("first"));
+    Assert.assertEquals("c", record.get("c"));
+    Assert.assertEquals("d", record.get("d"));
+    Assert.assertEquals("e", record.get("e"));
+    Assert.assertEquals("f", record.get("f"));
+    Assert.assertEquals("g", record.get("g"));
   }
 }

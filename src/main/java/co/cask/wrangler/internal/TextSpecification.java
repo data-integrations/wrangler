@@ -21,7 +21,9 @@ import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
+import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.Lower;
+import co.cask.wrangler.steps.Merge;
 import co.cask.wrangler.steps.Rename;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
@@ -36,7 +38,7 @@ import java.util.List;
 /**
  * Parses the DSL into specification containing steps for wrangling.
  *
- * Following are some of the commands and format that {@link SimpleSpecification}
+ * Following are some of the commands and format that {@link TextSpecification}
  * will handle.
  *
  * <ul>
@@ -51,77 +53,97 @@ import java.util.List;
  *   <li>indexsplit h 1 4 splitcol</li>
  * </ul>
  */
-public class SimpleSpecification implements Specification {
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleSpecification.class);
+public class TextSpecification implements Specification {
+  private static final Logger LOG = LoggerFactory.getLogger(TextSpecification.class);
 
-  private List<Step> steps = new ArrayList<>();
+  // DSL for wrangling.
   private String dsl;
 
-  public SimpleSpecification(String dsl) {
+  public TextSpecification(String dsl) {
     this.dsl = dsl;
-    try {
-      parse();
-    } catch (ParseException e) {
-      e.printStackTrace();
-    }
   }
 
-  private void parse() throws ParseException {
+  /**
+   * Parses the DSL to generate a sequence of steps to be executed by {@link co.cask.wrangler.api.Pipeline}.
+   *
+   * @return List of steps to be executed.
+   * @throws ParseException
+   */
+  private List<Step> parse() throws ParseException {
+    List<Step> steps = new ArrayList<>();
+
+    // Split command by EOL
     String[] lines = dsl.split("\n");
     int lineno = 1;
+
+    // Iterate through each command and create necessary steps.
     for (String line : lines) {
       line = line.trim().replaceAll(" +"," ");
-      String[] cmds = line.split(" ",0);
-      switch (cmds[0]) {
+      String[] options = line.split(" ",0);
+      String command = options[0];
+      String qualifier = options[1];
+
+      switch (command) {
         case "set":
-          switch (cmds[1]) {
+          switch (qualifier) {
+            // set format [csv|json] <delimiter> <skip empty lines>
             case "format":
-              if (cmds[2].equalsIgnoreCase("csv")) {
+              if (options[2].equalsIgnoreCase("csv")) {
                 boolean ignoreEmptyLines = false;
-                if (cmds[3].equalsIgnoreCase("true")) {
+                if (options[3].equalsIgnoreCase("true")) {
                   ignoreEmptyLines = true;
                 }
-                CsvParser.Options options = new CsvParser.Options(cmds[3].charAt(0), ignoreEmptyLines);
-                steps.add(new CsvParser(options, "__col", false));
-                steps.add(new Drop("__col"));
+                CsvParser.Options opt = new CsvParser.Options(options[3].charAt(0), ignoreEmptyLines);
+                //
+                steps.add(new CsvParser(opt, STARTING_COLUMN, false));
+                steps.add(new Drop(STARTING_COLUMN));
               } else {
-                throw new ParseException("Unknown format " + cmds[3], lineno);
+                throw new ParseException("Unknown format " + options[3], lineno);
               }
               break;
 
+            // set columns <name1, name2, ...>
             case "columns":
-              String cols[] = cmds[2].split(",");
+              String cols[] = options[2].split(",");
               steps.add(new Columns(Arrays.asList(cols)));
               break;
           }
           break;
 
+        // rename <source> <destination>
         case "rename":
-          steps.add(new Rename(cmds[1], cmds[2]));
+          steps.add(new Rename(qualifier, options[2]));
           break;
 
+        // drop <column-name>
         case "drop":
-          steps.add(new Drop(cmds[1]));
+          steps.add(new Drop(qualifier));
           break;
 
+        // merge <col1> <col2> <destination-column-name> <delimiter>
         case "merge":
-          LOG.info("Merge command");
+          steps.add(new Merge(qualifier, options[1], options[2], options[3]));
           break;
 
+        // uppercase <col>
         case "uppercase":
-          steps.add(new Upper(cmds[2]));
+          steps.add(new Upper(qualifier));
           break;
 
+        // lowercase <col>
         case "lowercase":
-          steps.add(new Lower(cmds[2]));
+          steps.add(new Lower(options[2]));
           break;
 
+        // titlecase <col>
         case "titlecase":
-          steps.add(new TitleCase(cmds[2]));
+          steps.add(new TitleCase(options[2]));
           break;
 
+        // indexsplit <source-column-name> <start> <end> <destination-column-name>
         case "indexsplit":
-          LOG.info("IndexSplit command");
+          steps.add(new IndexSplit(qualifier, Integer.valueOf(options[2]),
+                                   Integer.valueOf(options[3]), options[4]));
           break;
 
         default:
@@ -129,10 +151,17 @@ public class SimpleSpecification implements Specification {
       }
       lineno++;
     }
-  }
-
-  @Override
-  public List<Step> getSteps() {
     return steps;
   }
+
+  /**
+   *
+   * @return
+   * @throws ParseException
+   */
+  @Override
+  public List<Step> getSteps() throws ParseException {
+    return parse();
+  }
 }
+

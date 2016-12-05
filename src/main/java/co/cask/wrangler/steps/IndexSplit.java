@@ -46,7 +46,7 @@ public class IndexSplit implements Step {
   }
 
   /**
-   * Splits a column based on the start and end index to create new column dest.
+   * Splits column based on the start and end index.
    *
    * @param row Input {@link Row} to be wrangled by this step.
    * @return Transformed {@link Row} in which the 'col' value is lower cased.
