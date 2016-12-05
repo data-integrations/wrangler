@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.hydrator;
+package co.cask.wrangler;
 
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
@@ -75,7 +75,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     } catch (IOException e) {
       throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
     }
-    
+
     configurer.getStageConfigurer().setOutputSchema(oSchema);
   }
 
