@@ -1,3 +1,57 @@
+Wrangler
+--------
+Wrangler plugin is processing the steps defined by the wrangler frontend. On the frontend it's a interactive tool for data cleansing and transformation.
+
+Steps
+-----
+Following are the steps currently implemented
+
+* Parser record as CSV
+* Upper, Lower and Title case
+* Index Split
+* Drop a column
+* Rename a column
+* Set column names
+* Set column types
+
+Add New Step
+************
+
+**Step 1 : In order to add a new step for Wrangler plugin, implement the interface 'Step'.**
+```
+/**
+ * A interface defining the wrangle step in the wrangling pipeline.
+ */
+public interface Step {
+  /**
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   *
+   * @param row Input {@link Row} to be wrangled by this step.
+   * @return Wrangled {@link Row}.
+   * @throws StepException In case of any issue this exception is thrown.
+   */
+  Row execute(Row row) throws StepException;
+}
+```
+
+**Step 2: Modify the specification to parse the specification and create the implementation of Step you have created above.**
+
+Specification
+-------------
+Current implementation available in the plugin is a simple specification format. Following are some of the commands that can be specified. 
+
+```
+  set format csv , true
+  set columns fname,lname,emailid,address,city,state,country,zip
+  rename fname first_name
+  rename lname last_name
+  drop city
+  drop country
+  merge first_name last_name full_name ,
+  upper state
+  lower email_id
+```
+
 Build
 -----
 To build your plugins:
@@ -32,3 +86,41 @@ You can deploy your plugins using the CDAP CLI:
 For example, if your artifact is named 'my-plugins-1.0.0':
 
     > load artifact target/my-plugins-1.0.0.jar config-file target/my-plugins-1.0.0.json
+
+Mailing Lists
+-------------
+CDAP User Group and Development Discussions:
+
+- `cdap-user@googlegroups.com <https://groups.google.com/d/forum/cdap-user>`__
+
+The *cdap-user* mailing list is primarily for users using the product to develop
+applications or building plugins for appplications. You can expect questions from 
+users, release announcements, and any other discussions that we think will be helpful 
+to the users.
+
+IRC Channel
+-----------
+CDAP IRC Channel: #cdap on irc.freenode.net
+
+
+License and Trademarks
+======================
+
+Copyright © 2015-2016 Cask Data, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the 
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+either express or implied. See the License for the specific language governing permissions 
+and limitations under the License.
+
+Cask is a trademark of Cask Data, Inc. All rights reserved.
+
+Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
+permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+.. |(Hydrator)| image:: http://cask.co/wp-content/uploads/hydrator_logo_cdap1.png
