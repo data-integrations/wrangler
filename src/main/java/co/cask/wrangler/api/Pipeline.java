@@ -14,21 +14,28 @@
  * the License.
  */
 
-package co.cask.wrangler;
+package co.cask.wrangler.api;
 
-import java.util.List;
+import co.cask.cdap.api.data.schema.Schema;
 
 /**
- * A interface defining the wrangle step in the wrangling pipeline.
+ * Wrangle Pipeline executes steps in the order they are specified.
  */
-public interface WrangleStep {
+public interface Pipeline<I,O> {
   /**
-   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   * Configures the wrangle pipeline using the specification.
    *
-   * @param rows Input {@link Row} to be wrangled by this step.
-   * @return Wrangled {@link Row}.
-   * @throws WrangleStepException In case of any issue this exception is thrown.
+   * @param specification Wrangle specification.
    */
-  List<Row> execute(List<Row> rows) throws WrangleStepException;
+  public void configure(Specification specification);
+
+  /**
+   * Executes the pipeline on the input.
+   *
+   * @param input Input record of type I
+   * @param schema Schema to which the output should be mapped.
+   * @return Parsed output record of type O
+   */
+  public O execute(I input, Schema schema) throws PipelineException;
 }
 

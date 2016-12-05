@@ -13,14 +13,20 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package co.cask.wrangler;
+
+package co.cask.wrangler.api;
 
 /**
- * A WrangleStep specific exception used for communicating issues with execution of pipeline in that step.
+ * A interface defining the wrangle step in the wrangling pipeline.
  */
-public class WrangleStepException extends Exception {
-  public WrangleStepException(Exception e) {
-    super(e);
-  }
+public interface Step {
+  /**
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   *
+   * @param row Input {@link Row} to be wrangled by this step.
+   * @return Wrangled {@link Row}.
+   * @throws StepException In case of any issue this exception is thrown.
+   */
+  Row execute(Row row) throws StepException;
 }
 

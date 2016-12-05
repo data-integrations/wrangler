@@ -24,23 +24,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Wrangler step for upper casing the 'col' value of type String.
+ * A Wrangler step for title casing the 'col' value of type String.
  */
-public class Upper implements Step {
+public class TitleCase implements Step {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
-  // Columns of the column to be upper cased.
+  // Columns of the column to be lower cased.
   private String col;
 
-  public Upper(String col) {
+  public TitleCase(String col) {
     this.col = col;
   }
 
   /**
-   * Transforms a column value from any case to upper case.
+   * Transforms a column value from any case to title case.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @return Transformed {@link Row} in which the 'col' value is lower cased.
+   * @return Transformed {@link Row} in which the 'col' value is title cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
@@ -50,13 +50,31 @@ public class Upper implements Step {
     if (idx != -1 && row.getType(idx) == ColumnType.STRING) {
       String value = row.getString(idx);
       if (value != null) {
-        row.setValue(idx, value.toUpperCase());
+        row.setValue(idx, toTitleCase(value));
       }
     } else {
       throw new StepException(
-        col + " was not found or is not of type string. Please check the wrangle configuration."
+        col + " is not of type string. Please check the wrangle configuration."
       );
     }
     return row;
+  }
+
+  private static String toTitleCase(String input) {
+    StringBuilder titleCase = new StringBuilder();
+    boolean nextTitleCase = true;
+
+    for (char c : input.toCharArray()) {
+      if (Character.isSpaceChar(c)) {
+        nextTitleCase = true;
+      } else if (nextTitleCase) {
+        c = Character.toTitleCase(c);
+        nextTitleCase = false;
+      }
+
+      titleCase.append(c);
+    }
+
+    return titleCase.toString();
   }
 }

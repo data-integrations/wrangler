@@ -23,10 +23,12 @@ import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
-import co.cask.wrangler.Row;
+import co.cask.wrangler.api.ColumnType;
+import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Types;
-import co.cask.wrangler.WrangleStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,7 @@ public class WranglerPlugin<StructuredRecord> extends Transform<StructuredRecord
   private static final Logger LOG = LoggerFactory.getLogger(WranglerPlugin.class);
 
   // Stores a list of preconfigured wrangle stage objects to execute during transformation.
-  private List<WrangleStep> stages = new ArrayList<>();
+  private List<Step> stages = new ArrayList<>();
 
   @Override
   public void initialize(TransformContext context) throws Exception {
@@ -55,15 +57,15 @@ public class WranglerPlugin<StructuredRecord> extends Transform<StructuredRecord
 
     // Setup the stages as per the frontend configuration.
     //stages.add(new CsvParser(',', "col", null));
-    stages.add(new co.cask.wrangler.steps.Name(new ArrayList<String>()));
-    stages.add(new Types(new ArrayList<String>()));
+    stages.add(new Columns(new ArrayList<String>()));
+    stages.add(new Types(new ArrayList<ColumnType>()));
     stages.add(new Lower("col1"));
   }
 
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
     Row row = new Row();
-    for (WrangleStep stage : stages) {
+    for (Step stage : stages) {
       row = stage.execute(row);
     }
   }
