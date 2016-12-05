@@ -14,6 +14,28 @@ Following are the steps currently implemented
 * Set column names
 * Set column types
 
+Add New Step
+************
+
+**Step 1 : In order to add a new step for Wrangler plugin, implement the interface 'Step'.**
+```
+/**
+ * A interface defining the wrangle step in the wrangling pipeline.
+ */
+public interface Step {
+  /**
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   *
+   * @param row Input {@link Row} to be wrangled by this step.
+   * @return Wrangled {@link Row}.
+   * @throws StepException In case of any issue this exception is thrown.
+   */
+  Row execute(Row row) throws StepException;
+}
+```
+
+**Step 2: Modify the specification to parse the specification and create the implementation of Step you have created above.**
+
 Build
 -----
 To build your plugins:
