@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A Wrangle step for setting the columns obtained form wrangling.
+ * A Wrangle step for dropping the columns obtained form wrangling.
  *
  * This step will create a copy of the input {@link Row} and clears
  * all previous column names and add new column names.

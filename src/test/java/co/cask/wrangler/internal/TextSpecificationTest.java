@@ -29,9 +29,9 @@ import org.junit.Test;
 import java.util.List;
 
 /**
- * Tests {@link SimpleSpecification} class.
+ * Tests {@link TextSpecification} class.
  */
-public class SimpleSpecificationTest {
+public class TextSpecificationTest {
 
   private static final String[] commands = new String[] {
     "set format csv ,    true",
@@ -43,7 +43,7 @@ public class SimpleSpecificationTest {
   @Test
   public void testBasicSpecification() throws Exception {
     Specification specification =
-      new SimpleSpecification(StringUtils.join("\n", commands));
+      new TextSpecification(StringUtils.join("\n", commands));
     List<Step> steps = specification.getSteps();
     Assert.assertEquals(5, steps.size());
     Assert.assertEquals(CsvParser.class, steps.get(0).getClass());

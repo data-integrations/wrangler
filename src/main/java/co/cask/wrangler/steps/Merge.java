@@ -48,6 +48,13 @@ public class Merge implements Step {
     this.delimiter = delimiter;
   }
 
+  /**
+   * Merges two columns using the delimiter into a third column.
+   *
+   * @param row Input {@link Row} to be wrangled by this step.
+   * @return A modified {@link Row} with merged column.
+   * @throws StepException
+   */
   @Override
   public Row execute(Row row) throws StepException {
     int idx1 = row.find(col1);
