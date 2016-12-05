@@ -16,9 +16,9 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Wrangle Step that merges two columns and creates a third column.
  */
-public class Merge implements Step {
+public class Merge extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
   // Source column1
@@ -41,7 +41,8 @@ public class Merge implements Step {
   // Delimiter to be used to merge column.
   private String delimiter;
 
-  public Merge(String col1, String col2, String dest, String delimiter) {
+  public Merge(int lineno, String detail, String col1, String col2, String dest, String delimiter) {
+    super(lineno, detail);
     this.col1 = col1;
     this.col2 = col2;
     this.dest = dest;

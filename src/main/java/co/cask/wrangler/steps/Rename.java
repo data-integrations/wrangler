@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Wrangle Step for renaming a column.
  */
-public class Rename implements Step {
+public class Rename extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
   // Columns of the columns that needs to be renamed.
@@ -34,7 +34,8 @@ public class Rename implements Step {
   // Columns of the column to be renamed to.
   private String destination;
 
-  public Rename(String source, String destination) {
+  public Rename(int lineno, String detail, String source, String destination) {
+    super(lineno, detail);
     this.source = source;
     this.destination = destination;
   }
@@ -53,7 +54,7 @@ public class Rename implements Step {
     if (idx != -1) {
       row.setName(idx, destination);
     } else {
-      throw new StepException(
+      throw new StepException(toString() + " : " +
         source + " column is not defined. Please check the wrangling steps."
       );
     }

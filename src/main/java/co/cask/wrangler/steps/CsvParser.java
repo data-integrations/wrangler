@@ -16,9 +16,9 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
-public class CsvParser implements Step {
+public class CsvParser extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(CsvParser.class);
 
   // Column within the input row that needs to be parsed as CSV
@@ -44,7 +44,8 @@ public class CsvParser implements Step {
   // Replaces the input {@link Row} columns.
   boolean replaceColumns;
 
-  public CsvParser(Options options, String col, boolean replaceColumns) {
+  public CsvParser(int lineno, String detail, Options options, String col, boolean replaceColumns) {
+    super(lineno, detail);
     this.col = col;
     this.format = CSVFormat.newFormat(options.delimiter);
     this.format.withIgnoreEmptyLines(options.ignoreEmptyLines)
@@ -65,19 +66,19 @@ public class CsvParser implements Step {
   public Row execute(Row row) throws StepException {
     String line = row.getString(col);
     if (line == null) {
-      throw new StepException("Did not find " + col + " in the row");
+      throw new StepException(toString() + " : Did not find " + col + " in the row");
     }
     CSVParser parser = null;
     try {
       parser = CSVParser.parse(line, format);
       List<CSVRecord> records = parser.getRecords();
       if (records.size() > 1) {
-        throw new StepException(this.getClass().getSimpleName() +
+        throw new StepException(toString() + " : " + this.getClass().getSimpleName() +
                                          "generated more that 1 record as output. Interface doesn't support");
       }
       return toRow(records.get(0), row);
     } catch (IOException e) {
-      throw new StepException(e);
+      throw new StepException(toString(), e);
     }
   }
 

@@ -57,7 +57,7 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
     // Iterate through steps
     try {
       for (Step step : specification.getSteps()) {
-        row = step.execute(row);
+        row = (Row) step.execute(row);
       }
     } catch (StepException e) {
       throw new PipelineException(e);

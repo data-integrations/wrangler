@@ -16,9 +16,9 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A Wrangler step for lower casing the 'col' value of type String.
  */
-public class IndexSplit implements Step {
+public class IndexSplit extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
   // Name of the column to be split
@@ -38,7 +38,8 @@ public class IndexSplit implements Step {
   // Destination column
   private String dest;
 
-  public IndexSplit(String col, int start, int end, String dest) {
+  public IndexSplit(int lineno, String detail, String col, int start, int end, String dest) {
+    super(lineno, detail);
     this.col = col;
     this.start = start - 1; // Assumes the wrangle configuration starts @ 1
     this.end = end - 1;

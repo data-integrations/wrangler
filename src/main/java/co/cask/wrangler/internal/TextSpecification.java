@@ -95,8 +95,8 @@ public class TextSpecification implements Specification {
                 }
                 CsvParser.Options opt = new CsvParser.Options(options[3].charAt(0), ignoreEmptyLines);
                 //
-                steps.add(new CsvParser(opt, STARTING_COLUMN, false));
-                steps.add(new Drop(STARTING_COLUMN));
+                steps.add(new CsvParser(lineno, line, opt, STARTING_COLUMN, false));
+                steps.add(new Drop(lineno, line, STARTING_COLUMN));
               } else {
                 throw new ParseException("Unknown format " + options[3], lineno);
               }
@@ -105,44 +105,44 @@ public class TextSpecification implements Specification {
             // set columns <name1, name2, ...>
             case "columns":
               String cols[] = options[2].split(",");
-              steps.add(new Columns(Arrays.asList(cols)));
+              steps.add(new Columns(lineno, line, Arrays.asList(cols)));
               break;
           }
           break;
 
         // rename <source> <destination>
         case "rename":
-          steps.add(new Rename(qualifier, options[2]));
+          steps.add(new Rename(lineno, line, qualifier, options[2]));
           break;
 
         // drop <column-name>
         case "drop":
-          steps.add(new Drop(qualifier));
+          steps.add(new Drop(lineno, line, qualifier));
           break;
 
         // merge <col1> <col2> <destination-column-name> <delimiter>
         case "merge":
-          steps.add(new Merge(qualifier, options[1], options[2], options[3]));
+          steps.add(new Merge(lineno, line, qualifier, options[1], options[2], options[3]));
           break;
 
         // uppercase <col>
         case "uppercase":
-          steps.add(new Upper(qualifier));
+          steps.add(new Upper(lineno, line, qualifier));
           break;
 
         // lowercase <col>
         case "lowercase":
-          steps.add(new Lower(options[2]));
+          steps.add(new Lower(lineno, line, options[2]));
           break;
 
         // titlecase <col>
         case "titlecase":
-          steps.add(new TitleCase(options[2]));
+          steps.add(new TitleCase(lineno, line, options[2]));
           break;
 
         // indexsplit <source-column-name> <start> <end> <destination-column-name>
         case "indexsplit":
-          steps.add(new IndexSplit(qualifier, Integer.valueOf(options[2]),
+          steps.add(new IndexSplit(lineno, line, qualifier, Integer.valueOf(options[2]),
                                    Integer.valueOf(options[3]), options[4]));
           break;
 
