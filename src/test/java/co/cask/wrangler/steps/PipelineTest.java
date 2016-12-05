@@ -37,24 +37,24 @@ public class PipelineTest {
     Row row = new Row("col", ColumnType.STRING, "1,2,a,A,one name|p2|p3");
 
     // Define all the steps in the wrangler.
-    steps.add(new CsvParser(new CsvParser.Options(), "col", true));
-    steps.add(new Columns(Arrays.asList("first", "second", "third", "fourth", "fifth")));
-    steps.add(new Types(Arrays.asList(ColumnType.STRING, ColumnType.STRING,
+    steps.add(new CsvParser(0, "", new CsvParser.Options(), "col", true));
+    steps.add(new Columns(0, "", Arrays.asList("first", "second", "third", "fourth", "fifth")));
+    steps.add(new Types(0, "", Arrays.asList(ColumnType.STRING, ColumnType.STRING,
                                       ColumnType.STRING, ColumnType.STRING,
                                       ColumnType.STRING)));
-    steps.add(new Rename("first", "one"));
-    steps.add(new Lower("fourth"));
-    steps.add(new Upper("third"));
-    steps.add(new CsvParser(new CsvParser.Options('|'), "fifth", false));
-    steps.add(new Drop("fifth"));
-    steps.add(new Merge("one", "second", "merged", "%"));
-    steps.add(new Rename("col5", "test"));
-    steps.add(new TitleCase("test"));
-    steps.add(new IndexSplit("test", 1, 4, "substr"));
+    steps.add(new Rename(0, "", "first", "one"));
+    steps.add(new Lower(0, "", "fourth"));
+    steps.add(new Upper(0, "", "third"));
+    steps.add(new CsvParser(0, "", new CsvParser.Options('|'), "fifth", false));
+    steps.add(new Drop(0, "", "fifth"));
+    steps.add(new Merge(0, "", "one", "second", "merged", "%"));
+    steps.add(new Rename(0, "", "col5", "test"));
+    steps.add(new TitleCase(0, "", "test"));
+    steps.add(new IndexSplit(0, "", "test", 1, 4, "substr"));
 
     // Run through the wrangling steps.
     for (Step step : steps) {
-      row = step.execute(row);
+      row = (Row) step.execute(row);
     }
 
     Assert.assertEquals("one", row.getName(0));

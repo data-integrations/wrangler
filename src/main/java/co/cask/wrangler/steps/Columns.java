@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import java.util.List;
  * This step will create a copy of the input {@link Row} and clears
  * all previous column names and add new column names.
  */
-public class Columns implements Step {
+public class Columns extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
   // Name of the columns represented in a {@link Row}
@@ -39,12 +39,12 @@ public class Columns implements Step {
   // Replaces the input {@link Row} column names.
   boolean replaceColumnNames;
 
-  public Columns(List<String> columns) {
-    this(columns, true);
+  public Columns(int lineno, String detail, List<String> columns) {
+    this(lineno, detail, columns, true);
   }
 
-  public Columns(List<String> columns, boolean replaceColumnTypes) {
-    super();
+  public Columns(int lineno, String detail, List<String> columns, boolean replaceColumnTypes) {
+    super(lineno, detail);
     this.replaceColumnNames = replaceColumnTypes;
     this.columns = columns;
   }

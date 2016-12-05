@@ -16,9 +16,9 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +26,14 @@ import org.slf4j.LoggerFactory;
 /**
  * A Wrangler step for upper casing the 'col' value of type String.
  */
-public class Upper implements Step {
+public class Upper extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
   // Columns of the column to be upper cased.
   private String col;
 
-  public Upper(String col) {
+  public Upper(int lineno, String detail, String col) {
+    super(lineno, detail);
     this.col = col;
   }
 
@@ -53,7 +54,7 @@ public class Upper implements Step {
         row.setValue(idx, value.toUpperCase());
       }
     } else {
-      throw new StepException(
+      throw new StepException(toString() + " : " +
         col + " was not found or is not of type string. Please check the wrangle configuration."
       );
     }

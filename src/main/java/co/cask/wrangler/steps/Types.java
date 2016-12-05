@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ColumnType;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * A Wrangle step that sets the {@link ColumnType} of {@link Row} columns.
  */
-public class Types implements Step {
+public class Types extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
   // List of types associated with columns in a {@link Row}.
@@ -38,12 +38,12 @@ public class Types implements Step {
   // Replaces the input {@link Row} column types.
   boolean replaceColumnTypes;
 
-  public Types(List<ColumnType> types) {
-    this(types, true);
+  public Types(int lineno, String detail, List<ColumnType> types) {
+    this(lineno, detail, types, true);
   }
 
-  public Types(List<ColumnType> types, boolean replaceColumnTypes) {
-    super();
+  public Types(int lineno, String detail, List<ColumnType> types, boolean replaceColumnTypes) {
+    super(lineno, detail);
     this.replaceColumnTypes = true;
     this.types = types;
   }

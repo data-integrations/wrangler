@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,17 +31,18 @@ import java.util.List;
  * This step will create a copy of the input {@link Row} and clears
  * all previous column names and add new column names.
  */
-public class Drop implements Step {
+public class Drop extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Drop.class);
 
   // Columns to be dropped.
   private List<String> columns;
 
-  public Drop(String column) {
-    this(Arrays.asList(column));
+  public Drop(int lineno, String detail, String column) {
+    this(lineno, detail, Arrays.asList(column));
   }
 
-  public Drop(List<String> columns) {
+  public Drop(int lineno, String detail, List<String> columns) {
+    super(lineno, detail);
     this.columns = columns;
   }
 

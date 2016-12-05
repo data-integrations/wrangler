@@ -17,19 +17,28 @@
 package co.cask.wrangler.api;
 
 /**
- * A Step specific exception used for communicating issues with execution of pipeline in that step.
+ * A interface defining the wrangle step in the wrangling pipeline.
  */
-public class StepException extends Exception {
-  public StepException(Exception e) {
-    super(e);
+public abstract class AbstractStep implements Step<Row, Row> {
+  private int lineno;
+  private String detail;
+
+  public AbstractStep(int lineno, String detail) {
+    this.lineno = lineno;
+    this.detail = detail;
   }
 
-  public StepException(String message) {
-    super(message);
+  public int getLineNo() {
+    return lineno;
   }
 
-  public StepException(String s, Exception e) {
-    super(s,e);
+  public String getDetail() {
+    return detail;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("[Step %d] - %s", lineno, detail);
   }
 }
 

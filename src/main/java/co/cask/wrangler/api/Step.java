@@ -19,7 +19,7 @@ package co.cask.wrangler.api;
 /**
  * A interface defining the wrangle step in the wrangling pipeline.
  */
-public interface Step {
+public interface Step<I,O> {
   /**
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
@@ -27,6 +27,6 @@ public interface Step {
    * @return Wrangled {@link Row}.
    * @throws StepException In case of any issue this exception is thrown.
    */
-  Row execute(Row row) throws StepException;
+  O execute(I row) throws StepException;
 }
 
