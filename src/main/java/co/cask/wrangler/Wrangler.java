@@ -67,8 +67,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   public void configurePipeline(PipelineConfigurer configurer) throws IllegalArgumentException {
     super.configurePipeline(configurer);
 
-    Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-    validateInputSchema(inputSchema);
+    Schema iSchema = configurer.getStageConfigurer().getInputSchema();
+    validateInputSchema(iSchema);
 
     // Validate the DSL by parsing DSL.
     Specification specification = new TextSpecification(config.specification);
@@ -127,7 +127,22 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
-    emitter.emit((StructuredRecord)pipeline.execute(config.field, oSchema));
+    // Run through the wrangle pipeline.
+    StructuredRecord record = (StructuredRecord)pipeline.execute(config.field, oSchema);
+    StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
+
+    // Iterate through output schema, if the 'record' doesn't have it, then
+    // attempt to take if from 'input'.
+    for (Schema.Field field : oSchema.getFields()) {
+      Object rObject = record.get(field.getName());
+      Object iObject = input.get(field.getName());
+      if (rObject == null) {
+        builder.set(field.getName(), iObject);
+      } else if (iObject != null) {
+        builder.set(field.getName(), iObject);
+      }
+    }
+    emitter.emit(builder.build());
   }
 
   /**
