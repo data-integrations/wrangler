@@ -36,6 +36,22 @@ public interface Step {
 
 **Step 2: Modify the specification to parse the specification and create the implementation of Step you have created above.**
 
+Specification
+-------------
+Current implementation available in the plugin is a simple specification format. Following are some of the commands that can be specified. 
+
+```
+  set format csv , true
+  set columns fname,lname,emailid,address,city,state,country,zip
+  rename fname first_name
+  rename lname last_name
+  drop city
+  drop country
+  merge first_name last_name full_name ,
+  upper state
+  lower email_id
+```
+
 Build
 -----
 To build your plugins:
