@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "spec-version": "1.0"
+  },
+  "configuration-groups": [
+    {
+      "label": "Wrangler",
+      "properties": [
+        {
+          "widget-type": "textbox",
+          "label": "Input field to be wrangled",
+          "name": "field",
+          "widget-attributes": {
+            "width": "large"
+          }
+        },
+        {
+          "widget-type": "textarea",
+          "label": "Wrangler Specification",
+          "name": "specification"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "schema",
+      "label": "schema",
+      "widget-type": "schema",
+      "widget-attributes": {
+        "schema-types": [
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "schema-default-type": "string",
+        "property-watch": "format"
+      }
+    }
+  ]
+}
