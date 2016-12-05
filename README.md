@@ -1,3 +1,19 @@
+Wrangler
+--------
+Wrangler plugin is processing the steps defined by the wrangler frontend. On the frontend it's a interactive tool for data cleansing and transformation.
+
+Steps
+-----
+Following are the steps currently implemented
+
+* Parser record as CSV
+* Upper, Lower and Title case
+* Index Split
+* Drop a column
+* Rename a column
+* Set column names
+* Set column types
+
 Build
 -----
 To build your plugins:
