@@ -17,7 +17,6 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
@@ -48,8 +47,8 @@ public class TitleCase extends AbstractStep {
   public Row execute(Row row) throws StepException {
     int idx = row.find(col);
 
-    if (idx != -1 && row.getType(idx) == ColumnType.STRING) {
-      String value = row.getString(idx);
+    if (idx != -1) {
+      String value = (String) row.getValue(idx);
       if (value != null) {
         row.setValue(idx, toTitleCase(value));
       }

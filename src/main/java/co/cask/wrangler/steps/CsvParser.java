@@ -17,7 +17,6 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.StepException;
 import org.apache.commons.csv.CSVFormat;
@@ -64,7 +63,7 @@ public class CsvParser extends AbstractStep {
    */
   @Override
   public Row execute(Row row) throws StepException {
-    String line = row.getString(col);
+    String line = (String) row.getValue(col);
     if (line == null) {
       throw new StepException(toString() + " : Did not find " + col + " in the row");
     }
@@ -95,8 +94,7 @@ public class CsvParser extends AbstractStep {
 
     int start = row.length();
     for ( int i = 0; i < record.size(); i++) {
-      row.addName("col" + (start + i));
-      row.addType(ColumnType.STRING);
+      row.addColumn("col" + (start + i));
       row.addValue(record.get(i));
     }
     return row;

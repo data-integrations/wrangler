@@ -63,7 +63,7 @@ public class Columns extends AbstractStep {
       r.clearColumns();
     }
     for (String name : columns) {
-      r.addName(name);
+      r.addColumn(name);
     }
     return r;
   }

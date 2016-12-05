@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Step;
 import org.junit.Assert;
@@ -34,14 +33,11 @@ public class PipelineTest {
   @Test
   public void testBasicPipelineWorking() throws Exception {
     List<Step> steps = new ArrayList<>();
-    Row row = new Row("col", ColumnType.STRING, "1,2,a,A,one name|p2|p3");
+    Row row = new Row("col", "1,2,a,A,one name|p2|p3");
 
     // Define all the steps in the wrangler.
     steps.add(new CsvParser(0, "", new CsvParser.Options(), "col", true));
     steps.add(new Columns(0, "", Arrays.asList("first", "second", "third", "fourth", "fifth")));
-    steps.add(new Types(0, "", Arrays.asList(ColumnType.STRING, ColumnType.STRING,
-                                      ColumnType.STRING, ColumnType.STRING,
-                                      ColumnType.STRING)));
     steps.add(new Rename(0, "", "first", "one"));
     steps.add(new Lower(0, "", "fourth"));
     steps.add(new Upper(0, "", "third"));
@@ -57,10 +53,10 @@ public class PipelineTest {
       row = (Row) step.execute(row);
     }
 
-    Assert.assertEquals("one", row.getName(0));
-    Assert.assertEquals("A", row.getString(2));
-    Assert.assertEquals("a", row.getString(3));
-    Assert.assertEquals("One", row.get("substr"));
+    Assert.assertEquals("one", row.getColumn(0));
+    Assert.assertEquals("A", row.getValue(2));
+    Assert.assertEquals("a", row.getValue(3));
+    Assert.assertEquals("One", row.getValue("substr"));
 
   }
 }

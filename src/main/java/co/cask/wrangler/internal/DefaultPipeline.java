@@ -18,7 +18,6 @@ package co.cask.wrangler.internal;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Row;
@@ -52,7 +51,7 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
   @Override
   public StructuredRecord execute(String input, Schema schema) throws PipelineException {
     // Creates a row as starting point for input to the pipeline.
-    Row row = new Row(Specification.STARTING_COLUMN, ColumnType.STRING, input);
+    Row row = new Row(Specification.STARTING_COLUMN, input);
 
     // Iterate through steps
     try {
@@ -80,7 +79,7 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
     List<Schema.Field> fields = schema.getFields();
     for (Schema.Field field : fields) {
       String name = field.getName();
-      Object value = row.get(name);
+      Object value = row.getValue(name);
       if (value != null) {
         builder.set(name, value);
       }
