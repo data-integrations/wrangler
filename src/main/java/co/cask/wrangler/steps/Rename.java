@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
@@ -24,37 +23,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Wrangler step for upper casing the 'col' value of type String.
+ * Wrangle Step for renaming a column.
  */
-public class Upper implements Step {
+public class Rename implements Step {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
-  // Columns of the column to be upper cased.
-  private String col;
+  // Columns of the columns that needs to be renamed.
+  private String source;
 
-  public Upper(String col) {
-    this.col = col;
+  // Columns of the column to be renamed to.
+  private String destination;
+
+  public Rename(String source, String destination) {
+    this.source = source;
+    this.destination = destination;
   }
 
   /**
-   * Transforms a column value from any case to upper case.
+   * Renames the column from 'source' to 'destination'.
+   * If the source column doesn't exist, then it will return the row as it.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @return Transformed {@link Row} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @return Transformed {@link Row} with column name modified.
+   * @throws StepException Thrown when there is no 'source' column in the row.
    */
   @Override
   public Row execute(Row row) throws StepException {
-    int idx = row.find(col);
-
-    if (idx != -1 && row.getType(idx) == ColumnType.STRING) {
-      String value = row.getString(idx);
-      if (value != null) {
-        row.setValue(idx, value.toUpperCase());
-      }
+    int idx = row.find(source);
+    if (idx != -1) {
+      row.setName(idx, destination);
     } else {
       throw new StepException(
-        col + " was not found or is not of type string. Please check the wrangle configuration."
+        source + " column is not defined. Please check the wrangling steps."
       );
     }
     return row;

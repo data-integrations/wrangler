@@ -16,47 +16,49 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
- * A Wrangler step for upper casing the 'col' value of type String.
+ * A Wrangle step for setting the columns obtained form wrangling.
+ *
+ * This step will create a copy of the input {@link Row} and clears
+ * all previous column names and add new column names.
  */
-public class Upper implements Step {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
+public class Drop implements Step {
+  private static final Logger LOG = LoggerFactory.getLogger(Drop.class);
 
-  // Columns of the column to be upper cased.
-  private String col;
+  // Columns to be dropped.
+  private List<String> columns;
 
-  public Upper(String col) {
-    this.col = col;
+  public Drop(String column) {
+    this(Arrays.asList(column));
+  }
+
+  public Drop(List<String> columns) {
+    this.columns = columns;
   }
 
   /**
-   * Transforms a column value from any case to upper case.
+   * Drops the columns specified.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @return Transformed {@link Row} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @return A newly transformed {@link Row}.
+   * @throws StepException
    */
   @Override
   public Row execute(Row row) throws StepException {
-    int idx = row.find(col);
-
-    if (idx != -1 && row.getType(idx) == ColumnType.STRING) {
-      String value = row.getString(idx);
-      if (value != null) {
-        row.setValue(idx, value.toUpperCase());
-      }
-    } else {
-      throw new StepException(
-        col + " was not found or is not of type string. Please check the wrangle configuration."
-      );
+    for(String column : columns) {
+      int idx = row.find(column);
+      row.remove(idx);
     }
     return row;
   }
 }
+

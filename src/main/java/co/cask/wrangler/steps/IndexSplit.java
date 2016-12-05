@@ -24,20 +24,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Wrangler step for upper casing the 'col' value of type String.
+ * A Wrangler step for lower casing the 'col' value of type String.
  */
-public class Upper implements Step {
+public class IndexSplit implements Step {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
-  // Columns of the column to be upper cased.
+  // Name of the column to be split
   private String col;
 
-  public Upper(String col) {
+  // Start and end index of the split
+  private int start, end;
+
+  // Destination column
+  private String dest;
+
+  public IndexSplit(String col, int start, int end, String dest) {
     this.col = col;
+    this.start = start - 1; // Assumes the wrangle configuration starts @ 1
+    this.end = end - 1;
+    this.dest = dest;
   }
 
   /**
-   * Transforms a column value from any case to upper case.
+   * Splits a column based on the start and end index to create new column dest.
    *
    * @param row Input {@link Row} to be wrangled by this step.
    * @return Transformed {@link Row} in which the 'col' value is lower cased.
@@ -48,13 +57,14 @@ public class Upper implements Step {
     int idx = row.find(col);
 
     if (idx != -1 && row.getType(idx) == ColumnType.STRING) {
-      String value = row.getString(idx);
-      if (value != null) {
-        row.setValue(idx, value.toUpperCase());
+      String val = row.getString(idx);
+      if (end < val.length()) {
+        val = val.substring(start, end);
       }
+      row.add(dest, ColumnType.STRING, val);
     } else {
       throw new StepException(
-        col + " was not found or is not of type string. Please check the wrangle configuration."
+        col + " is not of type string. Please check the wrangle configuration."
       );
     }
     return row;
