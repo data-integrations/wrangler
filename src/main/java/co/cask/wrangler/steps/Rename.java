@@ -52,7 +52,7 @@ public class Rename extends AbstractStep {
   public Row execute(Row row) throws StepException {
     int idx = row.find(source);
     if (idx != -1) {
-      row.setName(idx, destination);
+      row.setColumn(idx, destination);
     } else {
       throw new StepException(toString() + " : " +
         source + " column is not defined. Please check the wrangling steps."

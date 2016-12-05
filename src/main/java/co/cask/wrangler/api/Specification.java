@@ -23,6 +23,7 @@ import java.util.List;
  * A specification for how {@link Pipeline} will process.
  */
 public interface Specification {
+  // Column definition for the start of processing.
   public static final String STARTING_COLUMN = "__col";
 
   /**

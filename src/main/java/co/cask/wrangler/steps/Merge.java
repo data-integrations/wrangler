@@ -17,7 +17,6 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.ColumnType;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
@@ -65,7 +64,7 @@ public class Merge extends AbstractStep {
       builder.append(row.getValue(idx1));
       builder.append(delimiter);
       builder.append(row.getValue(idx2));
-      row.add(dest, ColumnType.STRING, builder.toString());
+      row.add(dest, builder.toString());
     }
     return row;
   }

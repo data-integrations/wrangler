@@ -17,7 +17,7 @@
 package co.cask.wrangler.api;
 
 /**
- * A interface defining the wrangle step in the wrangling pipeline.
+ * An abstract class for {@link Step} with added debugging capabilities.
  */
 public abstract class AbstractStep implements Step<Row, Row> {
   private int lineno;
@@ -26,14 +26,6 @@ public abstract class AbstractStep implements Step<Row, Row> {
   public AbstractStep(int lineno, String detail) {
     this.lineno = lineno;
     this.detail = detail;
-  }
-
-  public int getLineNo() {
-    return lineno;
-  }
-
-  public String getDetail() {
-    return detail;
   }
 
   @Override

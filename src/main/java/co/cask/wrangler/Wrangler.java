@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -69,6 +70,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
     validateInputSchema(inputSchema);
 
+    // Validate the DSL by parsing DSL.
+    Specification specification = new TextSpecification(config.specification);
+    try {
+      specification.getSteps();
+    } catch (ParseException e) {
+      throw new IllegalArgumentException(e);
+    }
+
     // Based on the configuration create output schema.
     try {
       oSchema = Schema.parseJson(config.schema);
@@ -76,6 +85,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
     }
 
+    // Set the output schema.
     configurer.getStageConfigurer().setOutputSchema(oSchema);
   }
 
