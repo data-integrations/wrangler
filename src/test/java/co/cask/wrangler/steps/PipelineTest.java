@@ -59,4 +59,38 @@ public class PipelineTest {
     Assert.assertEquals("One", row.getValue("substr"));
 
   }
+
+  @Test
+  public void testSplit() throws Exception {
+    List<Step> steps = new ArrayList<>();
+    Row row = new Row("col", "1,2,a,A");
+
+    // Define all the steps in the wrangler.
+    steps.add(new Split(0,"","col",",","firstCol","secondCol"));
+
+    // Run through the wrangling steps.
+    for (Step step : steps) {
+      row = (Row) step.execute(row);
+    }
+
+    Assert.assertEquals("1", row.getValue("firstCol"));
+    Assert.assertEquals("2,a,A", row.getValue("secondCol"));
+  }
+
+  @Test
+  public void testSplitWithNull() throws Exception {
+    List<Step> steps = new ArrayList<>();
+    Row row = new Row("col", "1,2,a,A");
+
+    // Define all the steps in the wrangler.
+    steps.add(new Split(0,"","col","|","firstCol","secondCol"));
+
+    // Run through the wrangling steps.
+    for (Step step : steps) {
+      row = (Row) step.execute(row);
+    }
+
+    Assert.assertEquals("1,2,a,A", row.getValue("firstCol"));
+    Assert.assertNull(row.getValue("secondCol"));
+  }
 }
