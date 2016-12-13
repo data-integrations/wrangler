@@ -25,6 +25,7 @@ import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Merge;
 import co.cask.wrangler.steps.Rename;
+import co.cask.wrangler.steps.Split;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
 import org.slf4j.Logger;
@@ -145,7 +146,9 @@ public class TextSpecification implements Specification {
           steps.add(new IndexSplit(lineno, line, qualifier, Integer.valueOf(options[2]),
                                    Integer.valueOf(options[3]), options[4]));
           break;
-
+        case "split":
+          steps.add(new Split(lineno, line, qualifier, options[2], options[3], options[4]));
+          break;
         default:
           throw new ParseException("Unknown command found in dsl", lineno);
       }

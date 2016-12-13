@@ -19,37 +19,38 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.StepException;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Wrangler step for splitting a col into two additional columns based on a start and end.
+ * A Wrangler step for splitting a col into two additional columns based on a delimiter.
  */
-public class IndexSplit extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
+public class Split extends AbstractStep {
+  private static final Logger LOG = LoggerFactory.getLogger(Split.class);
 
   // Name of the column to be split
   private String col;
 
-  // Start and end index of the split
-  private int start, end;
+  private String delimiter;
 
-  // Destination column
-  private String dest;
+  // Destination column names
+  private String firstColumnName, secondColumnName;
 
-  public IndexSplit(int lineno, String detail, String col, int start, int end, String dest) {
+  public Split(int lineno, String detail, String col,
+               String delimiter, String firstColumnName, String secondColumnName) {
     super(lineno, detail);
     this.col = col;
-    this.start = start - 1; // Assumes the wrangle configuration starts @ 1
-    this.end = end - 1;
-    this.dest = dest;
+    this.delimiter = delimiter;
+    this.firstColumnName = firstColumnName;
+    this.secondColumnName = secondColumnName;
   }
 
   /**
-   * Splits column based on the start and end index.
+   * Splits column based on the delimiter into two columns.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @return Transformed {@link Row} in which the 'col' value is lower cased.
+   * @return Transformed {@link Row} which contains two additional columns based on the split
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
@@ -58,10 +59,19 @@ public class IndexSplit extends AbstractStep {
 
     if (idx != -1) {
       String val = (String) row.getValue(idx);
-      if (end < val.length()) {
-        val = val.substring(start, end);
+      if (val != null) {
+        String[] parts = val.split(delimiter, 2);
+        if (Strings.isNullOrEmpty(parts[0])) {
+          row.add(firstColumnName, parts[1]);
+          row.add(secondColumnName, null);
+        } else {
+          row.add(firstColumnName, parts[0]);
+          row.add(secondColumnName, parts[1]);
+        }
+      } else {
+        row.add(firstColumnName, null);
+        row.add(secondColumnName, null);
       }
-      row.add(dest, val);
     } else {
       throw new StepException(
         col + " is not of type string. Please check the wrangle configuration."
