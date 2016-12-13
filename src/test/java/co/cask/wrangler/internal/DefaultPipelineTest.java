@@ -29,16 +29,15 @@ import org.junit.Test;
  */
 public class DefaultPipelineTest {
 
-  private static final String[] commands = new String[] {
-    "set format csv , true",
-    "set columns a,b,c,d,e,f,g",
-    "rename a first",
-    "drop b"
-  };
-
   @Test
   public void testPipeline() throws Exception {
 
+    String[] commands = new String[] {
+      "set format csv , true",
+      "set columns a,b,c,d,e,f,g",
+      "rename a first",
+      "drop b"
+    };
     // Output schema
     Schema schema = Schema.recordOf(
       "output",
@@ -64,4 +63,40 @@ public class DefaultPipelineTest {
     Assert.assertEquals("f", record.get("f"));
     Assert.assertEquals("g", record.get("g"));
   }
+
+
+  @Test
+  public void testPipelineWithMoreSimpleTypes() throws Exception {
+
+    String[] commands = new String[] {
+      "set format csv , true",
+      "set columns first,last,email,timestamp,weight"
+    };
+    // Output schema
+    Schema schema = Schema.recordOf(
+      "output",
+      Schema.Field.of("first", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("last", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("email", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("timestamp", Schema.of(Schema.Type.LONG)),
+      Schema.Field.of("weight", Schema.of(Schema.Type.FLOAT))
+    );
+
+    Specification specification =
+      new TextSpecification(StringUtils.join("\n", commands));
+    Pipeline pipeline = new DefaultPipeline();
+    pipeline.configure(specification);
+    StructuredRecord record = (StructuredRecord) pipeline.execute("Larry,Perez,lperezqt@umn.edu,1481666448,186.66",
+                                                                  schema);
+
+    // Validate the {@link StructuredRecord}
+    Assert.assertEquals("Larry", record.get("first"));
+    Assert.assertEquals("Perez", record.get("last"));
+    Assert.assertEquals("lperezqt@umn.edu", record.get("email"));
+    Assert.assertEquals("1481666448", record.get("timestamp"));
+    Assert.assertEquals("186.66", record.get("weight"));
+  }
+
+
+
 }
