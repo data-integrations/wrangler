@@ -45,9 +45,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:https://github.com/caskdata/hydrator-plugins.git</connection>
-    <developerConnection>scm:git:git@github.com:caskdata/hydrator-plugins.git</developerConnection>
-    <url>https://github.com/caskdata/hydrator-plugins.git</url>
+    <connection>scm:git:https://github.com/hydrator/wrangler-transform.git</connection>
+    <developerConnection>scm:git:git@github.com:hydrator/wrangler-transform.git</developerConnection>
+    <url>https://github.com/hydrator/wrangler-transform.git</url>
     <tag>HEAD</tag>
   </scm>
 
