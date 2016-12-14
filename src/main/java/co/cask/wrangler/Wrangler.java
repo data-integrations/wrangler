@@ -128,7 +128,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
     // Run through the wrangle pipeline.
-    StructuredRecord record = (StructuredRecord)pipeline.execute(config.field, oSchema);
+    StructuredRecord record = (StructuredRecord)pipeline.execute(input.get(config.field), oSchema);
     StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
 
     // Iterate through output schema, if the 'record' doesn't have it, then
@@ -137,10 +137,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       Object rObject = record.get(field.getName());
       Object iObject = input.get(field.getName());
       if (rObject == null) {
-        builder.set(field.getName(), iObject);
-      } else if (iObject != null) {
-        builder.set(field.getName(), iObject);
+        builder.convertAndSet(field.getName(), (String) iObject);
+      } else {
+        builder.convertAndSet(field.getName(), (String) rObject);
       }
+
     }
     emitter.emit(builder.build());
   }
