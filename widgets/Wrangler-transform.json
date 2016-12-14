@@ -7,12 +7,9 @@
       "label": "Wrangler",
       "properties": [
         {
-          "widget-type": "textbox",
+          "widget-type": "input-field-selector",
           "label": "Input field to be wrangled",
-          "name": "field",
-          "widget-attributes": {
-            "width": "large"
-          }
+          "name": "field"
         },
         {
           "widget-type": "textarea",
