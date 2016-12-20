@@ -24,7 +24,7 @@
   <packaging>jar</packaging>
 
   <name>Wrangler Plugin</name>
-  <description>A interative tool for data cleansing and transformation.</description>
+  <description>A interactive tool for data cleansing and transformation.</description>
 
   <licenses>
     <license>
@@ -74,6 +74,7 @@
     <cdap.version>4.0.0-SNAPSHOT</cdap.version>
     <commons-csv.version>1.4</commons-csv.version>
     <guava.version>19.0</guava.version>
+    <commons-lang.version>2.6</commons-lang.version>
     <!-- properties for script build step that creates the config files for the artifacts -->
     <widgets.dir>widgets</widgets.dir>
     <docs.dir>docs</docs.dir>
@@ -121,6 +122,11 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${commons-lang.version}</version>
     </dependency>
   </dependencies>
 
