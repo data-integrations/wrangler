@@ -27,6 +27,7 @@ import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextSpecification;
@@ -127,10 +128,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
-    // Run through the wrangle pipeline.
-    StructuredRecord record = (StructuredRecord)pipeline.execute(input.get(config.field), oSchema);
-    StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
+    // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
+    // but just return without emitting any record out.
+    StructuredRecord record;
+    try {
+      record = (StructuredRecord)pipeline.execute(input.get(config.field), oSchema);
+    } catch (SkipRowException e) {
+      return; // Skips the row.
+    }
 
+    StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
     // Iterate through output schema, if the 'record' doesn't have it, then
     // attempt to take if from 'input'.
     for (Schema.Field field : oSchema.getFields()) {

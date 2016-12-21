@@ -23,31 +23,22 @@ import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.regex.Pattern;
 
 /**
- * A Wrangle step for setting the columns obtained form wrangling.
- *
- * This step will create a copy of the input {@link Row} and clears
- * all previous column names and add new column names.
+ * A Wrangle step for filtering rows that match the pattern specified on the column.
  */
-public class Columns extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
+public class RowRegexFilter extends AbstractStep {
+  private static final Logger LOG = LoggerFactory.getLogger(RowRegexFilter.class);
+  private final String pattern;
+  private final String column;
+  private Pattern matcher;
 
-  // Name of the columns represented in a {@link Row}
-  private List<String> columns;
-
-  // Replaces the input {@link Row} column names.
-  boolean replaceColumnNames;
-
-  public Columns(int lineno, String detail, List<String> columns) {
-    this(lineno, detail, columns, true);
-  }
-
-  public Columns(int lineno, String detail, List<String> columns, boolean replaceColumnTypes) {
+  public RowRegexFilter(int lineno, String detail, String column, String pattern) {
     super(lineno, detail);
-    this.replaceColumnNames = replaceColumnTypes;
-    this.columns = columns;
+    this.pattern = pattern;
+    this.column = column;
+    matcher = Pattern.compile(pattern);
   }
 
   /**
@@ -59,14 +50,17 @@ public class Columns extends AbstractStep {
    */
   @Override
   public Row execute(Row row) throws StepException, SkipRowException {
-    Row r = new Row(row);
-    if (replaceColumnNames) {
-      r.clearColumns();
+    int idx = row.find(column);
+    if (idx != -1) {
+      if (matcher.matcher((String)row.getValue(idx)).find()) {
+        throw new SkipRowException();
+      }
+    } else {
+      throw new StepException(toString() + " : '" +
+                                column + "' column is not defined. Please check the wrangling step."
+      );
     }
-    for (String name : columns) {
-      r.addColumn(name);
-    }
-    return r;
+    return row;
   }
 }
 

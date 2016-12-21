@@ -18,6 +18,7 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class Merge extends AbstractStep {
    * @throws StepException
    */
   @Override
-  public Row execute(Row row) throws StepException {
+  public Row execute(Row row) throws StepException, SkipRowException {
     int idx1 = row.find(col1);
     int idx2 = row.find(col2);
     if (idx1 != -1 && idx2 != -1) {

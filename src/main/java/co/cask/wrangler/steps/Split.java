@@ -18,6 +18,7 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class Split extends AbstractStep {
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Row execute(Row row) throws StepException {
+  public Row execute(Row row) throws StepException, SkipRowException {
     int idx = row.find(col);
 
     if (idx != -1) {
