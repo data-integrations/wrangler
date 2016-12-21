@@ -20,7 +20,7 @@
 
   <groupId>co.cask.hydrator</groupId>
   <artifactId>wrangler</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Wrangler Plugin</name>
@@ -71,7 +71,7 @@
   </issueManagement>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <cdap.version>4.0.0</cdap.version>
+    <cdap.version>4.0.0-SNAPSHOT</cdap.version>
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang.version>2.6</commons-lang.version>
     <guava.version>19.0</guava.version>
