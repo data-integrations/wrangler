@@ -23,8 +23,10 @@ import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.Lower;
+import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
 import co.cask.wrangler.steps.Rename;
+import co.cask.wrangler.steps.RowRegexFilter;
 import co.cask.wrangler.steps.Split;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
@@ -146,9 +148,27 @@ public class TextSpecification implements Specification {
           steps.add(new IndexSplit(lineno, line, qualifier, Integer.valueOf(options[2]),
                                    Integer.valueOf(options[3]), options[4]));
           break;
+
+        // split <source-column-name> <delimiter> <new-column-1> <new-column-2>
         case "split":
           steps.add(new Split(lineno, line, qualifier, options[2], options[3], options[4]));
           break;
+
+        // filter-row-by-regex <column> <regex>
+        case "filter-row-by-regex":
+          steps.add(new RowRegexFilter(lineno, line, qualifier, options[2]));
+          break;
+
+        // mask-number <column> <mask-pattern>
+        case "mask-number":
+          steps.add(new Mask(lineno, line, qualifier, options[2], Mask.MASK_NUMBER));
+          break;
+
+        // mask-shuffle <column>
+        case "mask-shuffle":
+          steps.add(new Mask(lineno, line, qualifier, null, Mask.MASK_SHUFFLE));
+          break;
+
         default:
           throw new ParseException("Unknown command found in dsl", lineno);
       }

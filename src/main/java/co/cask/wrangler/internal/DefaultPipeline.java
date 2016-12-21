@@ -21,6 +21,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
@@ -49,7 +50,7 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
   }
 
   @Override
-  public StructuredRecord execute(String input, Schema schema) throws PipelineException {
+  public StructuredRecord execute(String input, Schema schema) throws PipelineException, SkipRowException {
     // Creates a row as starting point for input to the pipeline.
     Row row = new Row(Specification.STARTING_COLUMN, input);
 
