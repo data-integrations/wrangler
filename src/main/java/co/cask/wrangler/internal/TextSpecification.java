@@ -28,6 +28,7 @@ import co.cask.wrangler.steps.Rename;
 import co.cask.wrangler.steps.Split;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,7 @@ import java.util.List;
  */
 public class TextSpecification implements Specification {
   private static final Logger LOG = LoggerFactory.getLogger(TextSpecification.class);
+  static final char TAB = '\t';
 
   // DSL for wrangling.
   private String dsl;
@@ -94,8 +96,15 @@ public class TextSpecification implements Specification {
                 if (options[3].equalsIgnoreCase("true")) {
                   ignoreEmptyLines = true;
                 }
-                CsvParser.Options opt = new CsvParser.Options(options[3].charAt(0), ignoreEmptyLines);
-                //
+                char delimiter = options[3].charAt(0);
+                if (options[3].startsWith("\\")) {
+                  String unescapedStr = StringEscapeUtils.unescapeJava(options[3]);
+                  if (unescapedStr == null) {
+                    throw new IllegalArgumentException("Invalid delimiter for CSV Parser: " + options[3]);
+                  }
+                  delimiter = unescapedStr.charAt(0);
+                }
+                CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
                 steps.add(new CsvParser(lineno, line, opt, STARTING_COLUMN, false));
                 steps.add(new Drop(lineno, line, STARTING_COLUMN));
               } else {
