@@ -93,4 +93,25 @@ public class PipelineTest {
     Assert.assertEquals("1,2,a,A", row.getValue("firstCol"));
     Assert.assertNull(row.getValue("secondCol"));
   }
+
+  @Test
+  public void testMaskingSubstitution() throws Exception {
+    // Check valid status.
+    Row row = new Row("ssn", "888990000");
+    Step step = new Mask(0, "", "ssn", "xxx-xx-####", 1);
+    Row actual = (Row) step.execute(row);
+    Assert.assertEquals("xxx-xx-0000", actual.getValue("ssn"));
+    step = new Mask(0, "", "ssn", "x-####", 1);
+    actual = (Row) step.execute(row);
+    Assert.assertEquals("x-8899", actual.getValue("ssn"));
+  }
+
+  @Test
+  public void testMaskSuffle() throws Exception {
+    Row row = new Row("address", "150 Mars Street, Mar City, MAR, 783735");
+    Step step = new Mask(0, "", "address", "", 2);
+    Row actual = (Row) step.execute(row);
+    Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
+  }
+
 }
