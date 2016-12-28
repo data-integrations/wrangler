@@ -26,8 +26,37 @@ import org.slf4j.LoggerFactory;
 import java.util.Random;
 
 /**
- * A Wrangle step for masking column.
+ * A Wrangler plugin that applies substitution and shuffling masking on the column.
  *
+ * <p>
+ *  Substitution masking us generally used for masking credit card or SSN numbers.
+ *  This type of masking is fixed masking, where the pattern is applied on the
+ *  fixed length string.
+ *
+ *  <ul>
+ *    <li>Use of # will include the digit from the position.</li>
+ *    <li>Use x to mask the digit at that position</li>
+ *    <li>Any other characters will be inserted as-is.</li>
+ *  </ul>
+ *
+ *  <blockquote>
+ *    <pre>
+ *        Step step = new Mask(lineno, line, "ssn", "XXX-XX-####", 1);
+ *        Step step = new Mask(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
+ *    </pre>
+ *  </blockquote>
+ * </p>
+ *
+ * <p>
+ *   Fixed length shuffle masking performs obfuscation by using random character
+ *   substitution method. The data is randomly shuffled in the column.
+ *
+ *   <blockquote>
+ *     <pre>
+ *       Step step = new Mask(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
+ *     </pre>
+ *   </blockquote>
+ * </p>
  */
 public class Mask extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Mask.class);
@@ -45,6 +74,13 @@ public class Mask extends AbstractStep {
   // Type of mask.
   private final int maskType;
 
+  public Mask(int lineno, String detail, String column, int maskType) {
+    super(lineno, detail);
+    this.mask = "";
+    this.column = column;
+    this.maskType = maskType;
+  }
+
   public Mask(int lineno, String detail, String column, String mask, int maskType) {
     super(lineno, detail);
     this.mask = mask;
@@ -53,57 +89,33 @@ public class Mask extends AbstractStep {
   }
 
   /**
-   * Applies substitution and shuffling masking on column.
-   *
-   * <p>
-   *  Substitution masking us generally used for masking credit card or SSN numbers.
-   *  This type of masking is fixed masking, where the pattern is applied on the
-   *  fixed length string.
-   *
-   *  <ul>
-   *    <li>Use of # will include the digit from the position.</li>
-   *    <li>Use x to mask the digit at that position</li>
-   *    <li>Any other characters will be inserted as-is.</li>
-   *  </ul>
-   *
-   *  <blockquote>
-   *    <pre>
-   *        Step step = new Mask(lineno, line, "ssn", "XXX-XX-####", 1);
-   *        Step step = new Mask(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
-   *    </pre>
-   *  </blockquote>
-   * </p>
-   *
-   * <p>
-   *   Fixed length shuffle masking performs obfuscation by using random character
-   *   substitution method. The data is randomly shuffled in the column.
-   *
-   *   <blockquote>
-   *     <pre>
-   *       Step step = new Mask(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
-   *     </pre>
-   *   </blockquote>
-   * </p>
+   * Masks the column specified using either substitution method or shuffling.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @return A newly transformed {@link Row}.
-   * @throws StepException
+   * @return A newly transformed {@link Row} with masked column.
+   * @throws StepException thrown when there is issue with masking
+   * @throws SkipRowException thrown when the row needs to be skipped
    */
   @Override
   public Row execute(Row row) throws StepException, SkipRowException {
+    Row masked = new Row(row);
     int idx = row.find(column);
     if (idx != -1) {
       if (maskType == MASK_NUMBER) {
-        row.setValue(idx, maskNumber(row.getColumn(idx), mask));
+        try {
+          masked.setValue(idx, maskNumber((String)row.getValue(idx), mask));
+        } catch (Exception e) {
+          System.out.println(e.getMessage());
+        }
       } else if (maskType == MASK_SHUFFLE) {
-        row.setValue(idx, maskShuffle(row.getColumn(idx), 0));
+        masked.setValue(idx, maskShuffle((String)row.getValue(idx), 0));
       }
     } else {
       throw new StepException(toString() + " : '" +
                                 column + "' column is not defined. Please check the wrangling step."
       );
     }
-    return row;
+    return masked;
   }
 
   private String maskNumber(String number, String mask) {
@@ -143,7 +155,7 @@ public class Mask extends AbstractStep {
     }
     return new String(data);
   }
-  
+
   private char randomChar(Random r, String cs, boolean uppercase) {
     char c = cs.charAt(r.nextInt(cs.length()));
     return uppercase ? Character.toUpperCase(c) : c;
