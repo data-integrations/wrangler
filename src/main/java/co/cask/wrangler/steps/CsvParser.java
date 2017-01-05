@@ -46,7 +46,7 @@ public class CsvParser extends AbstractStep {
   public CsvParser(int lineno, String detail, Options options, String col, boolean replaceColumns) {
     super(lineno, detail);
     this.col = col;
-    this.format = CSVFormat.newFormat(options.delimiter);
+    this.format = CSVFormat.DEFAULT.withDelimiter(options.delimiter);
     this.format.withIgnoreEmptyLines(options.ignoreEmptyLines)
       .withAllowMissingColumnNames(options.allowMissingColumnNames)
       .withIgnoreSurroundingSpaces(options.ignoreSurroundingSpaces)
