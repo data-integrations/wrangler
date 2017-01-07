@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,26 +23,38 @@ import co.cask.wrangler.api.StepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.regex.Pattern;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
- * A Wrangle step for filtering rows that match the pattern specified on the column.
+ * A Wrangle step for managing date formats.
+ *
  */
 public class FormatDate extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(FormatDate.class);
-  private final String pattern;
+  private final String source;
+  private final String destination;
   private final String column;
-  private Pattern matcher;
+  private final DateFormat sourceFmt;
+  private final DateFormat destinationFmt;
 
-  public FormatDate(int lineno, String detail, String column, String pattern) {
+  public FormatDate(int lineno, String detail, String column, String source, String destination) {
     super(lineno, detail);
-    this.pattern = pattern;
     this.column = column;
-    matcher = Pattern.compile(pattern);
+    this.source = source;
+    this.destination = destination;
+    this.sourceFmt = new SimpleDateFormat(source);
+    this.destinationFmt = new SimpleDateFormat(destination);
+  }
+
+  public FormatDate(int lineno, String detail, String column, String destination) {
+    this(lineno, detail, column, "", destination);
   }
 
   /**
-   * Sets the new column names for the {@link Row}.
+   * Formats the date and sets the column.
    *
    * @param row Input {@link Row} to be wrangled by this step.
    * @return A newly transformed {@link Row}.
@@ -50,17 +62,30 @@ public class FormatDate extends AbstractStep {
    */
   @Override
   public Row execute(Row row) throws StepException, SkipRowException {
-    int idx = row.find(column);
+    Row dt = new Row(row);
+    int idx = dt.find(column);
     if (idx != -1) {
-      if (matcher.matcher((String)row.getValue(idx)).find()) {
-        throw new SkipRowException();
+      try {
+        Date date;
+        String datetimestamp = (String) row.getValue(idx);
+        if (datetimestamp.matches("[1-9][0-9]{9}")) {
+          date = new Date(Long.parseLong(datetimestamp) * 1000);
+        } else if (datetimestamp.matches("[1-9][0-9]{12}")) {
+          date = new Date(Long.parseLong(datetimestamp));
+        } else {
+          date = sourceFmt.parse((String) row.getValue(idx));
+        }
+        dt.setValue(idx, destinationFmt.format(date));
+      } catch (ParseException e) {
+        throw new StepException(toString() + " : '" +
+                                  column + ", " + e.getMessage());
       }
     } else {
       throw new StepException(toString() + " : '" +
                                 column + "' column is not defined. Please check the wrangling step."
       );
     }
-    return row;
+    return dt;
   }
 }
 
