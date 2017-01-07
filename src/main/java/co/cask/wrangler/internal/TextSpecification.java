@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016, 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
+import co.cask.wrangler.steps.FormatDate;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
@@ -168,6 +169,15 @@ public class TextSpecification implements Specification {
         case "mask-shuffle":
           steps.add(new Mask(lineno, line, qualifier, null, Mask.MASK_SHUFFLE));
           break;
+
+        // format-date <column> <source-format> <destination-format>
+        case "format-date":
+          steps.add(new FormatDate(lineno, line, qualifier, options[2], options[3]));
+          break;
+
+        // format-unixtimestamp <column> <destination-format>
+        case "format-unixtimestamp":
+          steps.add(new FormatDate(lineno, line, qualifier, options[2]));
 
         default:
           throw new ParseException("Unknown command found in dsl", lineno);

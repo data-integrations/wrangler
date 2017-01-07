@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016, 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -79,19 +79,16 @@ public class PipelineTest {
 
   @Test
   public void testSplitWithNull() throws Exception {
-    List<Step> steps = new ArrayList<>();
     Row row = new Row("col", "1,2,a,A");
 
     // Define all the steps in the wrangler.
-    steps.add(new Split(0,"","col","|","firstCol","secondCol"));
+    Step step = new Split(0,"","col","|","firstCol","secondCol");
 
     // Run through the wrangling steps.
-    for (Step step : steps) {
-      row = (Row) step.execute(row);
-    }
+    Row actual = (Row) step.execute(row);
 
-    Assert.assertEquals("1,2,a,A", row.getValue("firstCol"));
-    Assert.assertNull(row.getValue("secondCol"));
+    Assert.assertEquals("1,2,a,A", actual.getValue("firstCol"));
+    Assert.assertNull(actual.getValue("secondCol"));
   }
 
   @Test
@@ -112,6 +109,28 @@ public class PipelineTest {
     Step step = new Mask(0, "", "address", "", 2);
     Row actual = (Row) step.execute(row);
     Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
+  }
+
+  @Test
+  public void testDateFormat() throws Exception {
+    Row row = new Row("date", "01/06/2017");
+
+    Step step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, MMM d, ''yy");
+    Row actual = (Row) step.execute(row);
+    Assert.assertEquals("Fri, Jan 6, '17", actual.getValue("date"));
+
+    step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, d MMM yyyy HH:mm:ss Z");
+    actual = (Row) step.execute(row);
+    Assert.assertEquals("Fri, 6 Jan 2017 00:00:00 -0800", actual.getValue("date"));
+
+    step = new FormatDate(0, "", "date", "MM/dd/yyyy", "yyyy.MM.dd G 'at' HH:mm:ss z");
+    actual = (Row) step.execute(row);
+    Assert.assertEquals("2017.01.06 AD at 00:00:00 PST", actual.getValue("date"));
+
+    row = new Row("unixtimestamp", "1483803222");
+    step = new FormatDate(0, "", "unixtimestamp", "EEE, MMM d, ''yy");
+    actual = (Row) step.execute(row);
+    Assert.assertEquals("", actual.getValue("unixtimestamp"));
   }
 
 }
