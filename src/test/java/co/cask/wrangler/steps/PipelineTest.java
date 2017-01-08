@@ -162,17 +162,18 @@ public class PipelineTest {
   @Test
   public void testApplyExpr() throws Exception {
     List<Step> steps = new ArrayList<>();
-    Row row = new Row("__col", "1098,Root,Joltie,root@jolite.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826");
+    Row row = new Row("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826");
     TextSpecification ts = new TextSpecification(
         "set format csv , false\n" +
-        "set columns id,first,last,email,age,hrlywage,address,city,state,country,zip\n" +
-        "set-column name concat(last, \", \", first)\n" +
-        "set-column isteen age < 15\n" +
-        "set-column salary hrlywage*40*4\n" +
+        "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip\n" +
+        "set column name concat(last, \", \", first)\n" +
+        "set column isteen age < 15 ? 'yes' : 'no'\n" +
+        "set column salary hrlywage*40*4\n" +
         "drop first\n" +
         "drop last\n" +
-        "set-column email string:reverse(email)\n" +
-        "set-column hrlywage math:ceil(toFloat(hrlywage))\n"
+        "set column email string:reverse(email)\n" +
+        "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1\n" +
+        "format-date dob MM/dd/YYYY EEE, d MMM yyyy HH:mm:ss Z\n"
     );
     // Define all the steps in the wrangler.
     steps.addAll(ts.getSteps());
@@ -184,9 +185,9 @@ public class PipelineTest {
 
     Assert.assertEquals("Joltie, Root", row.getValue("name"));
     Assert.assertEquals("1886.3999999999999", row.getValue("salary"));
-    Assert.assertEquals("false", row.getValue("isteen"));
+    Assert.assertEquals("no", row.getValue("isteen"));
     Assert.assertEquals("oi.etiloj@toor", row.getValue("email"));
-    Assert.assertEquals("12.0", row.getValue("hrlywage"));
+    Assert.assertEquals("13.0", row.getValue("hrlywage"));
   }
 
 }

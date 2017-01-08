@@ -70,10 +70,6 @@ public class Expression extends AbstractStep {
     public static String concat(String a, String delim, String b) {
       return a.concat(delim).concat(b);
     }
-    public static String trim(String a) {
-      return a.trim();
-    }
-
   }
 
   public Expression(int lineno, String detail, String column, String expression) {
@@ -85,7 +81,7 @@ public class Expression extends AbstractStep {
     functions.put(null, Convertors.class);
     functions.put("math", Math.class);
     functions.put("string", StringUtils.class);
-    engine = new JexlBuilder().namespaces(functions).silent(false).cache(512).strict(true).create();
+    engine = new JexlBuilder().namespaces(functions).silent(false).cache(10).strict(true).create();
     script = engine.createScript(expression);
   }
 
