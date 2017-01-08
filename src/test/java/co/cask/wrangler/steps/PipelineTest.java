@@ -18,6 +18,8 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.internal.TextSpecification;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -112,6 +114,7 @@ public class PipelineTest {
   }
 
   @Test
+<<<<<<< HEAD
   public void testDateFormat() throws Exception {
     Row row = new Row("date", "01/06/2017");
 
@@ -131,6 +134,27 @@ public class PipelineTest {
     step = new FormatDate(0, "", "unixtimestamp", "EEE, MMM d, ''yy");
     actual = (Row) step.execute(row);
     Assert.assertEquals("", actual.getValue("unixtimestamp"));
+  }
+
+  public void testEscapedStrings() throws Exception {
+    List<Step> steps = new ArrayList<>();
+    Row row = new Row("__col", StringEscapeUtils.unescapeJava("1\\ta"));
+
+    TextSpecification ts = new TextSpecification("set format csv \\t false\n" +
+                                                   "set columns column1,column2\n" +
+                                                   "rename column1 id\n" +
+                                                   "rename column2 useragent\n" +
+                                                   "uppercase useragent");
+    // Define all the steps in the wrangler.
+    steps.addAll(ts.getSteps());
+
+    // Run through the wrangling steps.
+    for (Step step : steps) {
+      row = (Row) step.execute(row);
+    }
+
+    Assert.assertEquals("1", row.getValue("id"));
+    Assert.assertEquals("A", row.getValue("useragent"));
   }
 
 }
