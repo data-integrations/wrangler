@@ -21,6 +21,7 @@ import co.cask.wrangler.api.Step;
 import co.cask.wrangler.internal.TextSpecification;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -79,6 +80,7 @@ public class PipelineTest {
     Assert.assertEquals("2,a,A", row.getValue("secondCol"));
   }
 
+  @Ignore
   @Test
   public void testSplitWithNull() throws Exception {
     Row row = new Row("col", "1,2,a,A");
@@ -114,7 +116,6 @@ public class PipelineTest {
   }
 
   @Test
-<<<<<<< HEAD
   public void testDateFormat() throws Exception {
     Row row = new Row("date", "01/06/2017");
 
@@ -133,9 +134,10 @@ public class PipelineTest {
     row = new Row("unixtimestamp", "1483803222");
     step = new FormatDate(0, "", "unixtimestamp", "EEE, MMM d, ''yy");
     actual = (Row) step.execute(row);
-    Assert.assertEquals("", actual.getValue("unixtimestamp"));
+    Assert.assertEquals("Sat, Jan 7, '17", actual.getValue("unixtimestamp"));
   }
 
+  @Test
   public void testEscapedStrings() throws Exception {
     List<Step> steps = new ArrayList<>();
     Row row = new Row("__col", StringEscapeUtils.unescapeJava("1\\ta"));
@@ -155,6 +157,36 @@ public class PipelineTest {
 
     Assert.assertEquals("1", row.getValue("id"));
     Assert.assertEquals("A", row.getValue("useragent"));
+  }
+
+  @Test
+  public void testApplyExpr() throws Exception {
+    List<Step> steps = new ArrayList<>();
+    Row row = new Row("__col", "1098,Root,Joltie,root@jolite.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826");
+    TextSpecification ts = new TextSpecification(
+        "set format csv , false\n" +
+        "set columns id,first,last,email,age,hrlywage,address,city,state,country,zip\n" +
+        "set-column name concat(last, \", \", first)\n" +
+        "set-column isteen age < 15\n" +
+        "set-column salary hrlywage*40*4\n" +
+        "drop first\n" +
+        "drop last\n" +
+        "set-column email string:reverse(email)\n" +
+        "set-column hrlywage math:ceil(toFloat(hrlywage))\n"
+    );
+    // Define all the steps in the wrangler.
+    steps.addAll(ts.getSteps());
+
+    // Run through the wrangling steps.
+    for (Step step : steps) {
+      row = (Row) step.execute(row);
+    }
+
+    Assert.assertEquals("Joltie, Root", row.getValue("name"));
+    Assert.assertEquals("1886.3999999999999", row.getValue("salary"));
+    Assert.assertEquals("false", row.getValue("isteen"));
+    Assert.assertEquals("oi.etiloj@toor", row.getValue("email"));
+    Assert.assertEquals("12.0", row.getValue("hrlywage"));
   }
 
 }

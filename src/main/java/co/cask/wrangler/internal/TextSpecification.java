@@ -18,6 +18,7 @@ package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.Expression;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
@@ -39,6 +40,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Parses the DSL into specification containing steps for wrangling.
@@ -84,109 +86,157 @@ public class TextSpecification implements Specification {
 
     // Iterate through each command and create necessary steps.
     for (String line : lines) {
-      line = line.trim().replaceAll(" +"," ");
-      String[] options = line.split(" ",0);
-      String command = options[0];
-      String qualifier = options[1];
+      StringTokenizer tokenizer = new StringTokenizer(line, " ");
+      String command = tokenizer.nextToken();
 
       switch (command) {
-        case "set":
-          switch (qualifier) {
+        case "set": {
+          switch (tokenizer.nextToken()) {
             // set format [csv|json] <delimiter> <skip empty lines>
-            case "format":
-              if (options[2].equalsIgnoreCase("csv")) {
-                boolean ignoreEmptyLines = false;
-                if (options[3].equalsIgnoreCase("true")) {
-                  ignoreEmptyLines = true;
-                }
-                char delimiter = options[3].charAt(0);
-                if (options[3].startsWith("\\")) {
-                  String unescapedStr = StringEscapeUtils.unescapeJava(options[3]);
+            case "format": {
+              if (tokenizer.nextToken().equalsIgnoreCase("csv")) {
+                String delimStr = tokenizer.nextToken();
+                char delimiter = delimStr.charAt(0);
+                if (delimStr.startsWith("\\")) {
+                  String unescapedStr = StringEscapeUtils.unescapeJava(delimStr);
                   if (unescapedStr == null) {
-                    throw new IllegalArgumentException("Invalid delimiter for CSV Parser: " + options[3]);
+                    throw new IllegalArgumentException("Invalid delimiter for CSV Parser: " + delimStr);
                   }
                   delimiter = unescapedStr.charAt(0);
+                }
+                boolean ignoreEmptyLines = false;
+                if (tokenizer.nextToken().equalsIgnoreCase("true")) {
+                  ignoreEmptyLines = true;
                 }
                 CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
                 steps.add(new CsvParser(lineno, line, opt, STARTING_COLUMN, false));
                 steps.add(new Drop(lineno, line, STARTING_COLUMN));
               } else {
-                throw new ParseException("Unknown format " + options[3], lineno);
+                throw new ParseException("Unknown format ", lineno);
               }
-              break;
+            }
+            break;
 
             // set columns <name1, name2, ...>
-            case "columns":
-              String cols[] = options[2].split(",");
+            case "columns": {
+              String cols[] = tokenizer.nextToken().split(",");
               steps.add(new Columns(lineno, line, Arrays.asList(cols)));
-              break;
+
+            }
+            break;
           }
-          break;
+        }
+        break;
 
         // rename <source> <destination>
-        case "rename":
-          steps.add(new Rename(lineno, line, qualifier, options[2]));
-          break;
+        case "rename": {
+          String source = tokenizer.nextToken();
+          String destination = tokenizer.nextToken();
+          steps.add(new Rename(lineno, line, source, destination));
+        }
+        break;
 
         // drop <column-name>
-        case "drop":
-          steps.add(new Drop(lineno, line, qualifier));
-          break;
+        case "drop": {
+          steps.add(new Drop(lineno, line, tokenizer.nextToken()));
+        }
+        break;
 
         // merge <col1> <col2> <destination-column-name> <delimiter>
-        case "merge":
-          steps.add(new Merge(lineno, line, qualifier, options[1], options[2], options[3]));
-          break;
+        case "merge": {
+          String col1 = tokenizer.nextToken();
+          String col2 = tokenizer.nextToken();
+          String dest = tokenizer.nextToken();
+          String delimiter = tokenizer.nextToken();
+          steps.add(new Merge(lineno, line, col1, col2, dest, delimiter));
+        }
+        break;
 
         // uppercase <col>
-        case "uppercase":
-          steps.add(new Upper(lineno, line, qualifier));
-          break;
+        case "uppercase": {
+          steps.add(new Upper(lineno, line, tokenizer.nextToken()));
+        }
+        break;
 
         // lowercase <col>
-        case "lowercase":
-          steps.add(new Lower(lineno, line, options[2]));
-          break;
+        case "lowercase": {
+          steps.add(new Lower(lineno, line, tokenizer.nextToken()));
+        }
+        break;
 
         // titlecase <col>
-        case "titlecase":
-          steps.add(new TitleCase(lineno, line, options[2]));
-          break;
+        case "titlecase": {
+          steps.add(new TitleCase(lineno, line, tokenizer.nextToken()));
+        }
+        break;
 
         // indexsplit <source-column-name> <start> <end> <destination-column-name>
-        case "indexsplit":
-          steps.add(new IndexSplit(lineno, line, qualifier, Integer.valueOf(options[2]),
-                                   Integer.valueOf(options[3]), options[4]));
-          break;
+        case "indexsplit": {
+          String source = tokenizer.nextToken();
+          int start = Integer.parseInt(tokenizer.nextToken());
+          int end = Integer.parseInt(tokenizer.nextToken());
+          String destination = tokenizer.nextToken();
+          steps.add(new IndexSplit(lineno, line, source, start, end, destination));
+        }
+        break;
 
         // split <source-column-name> <delimiter> <new-column-1> <new-column-2>
-        case "split":
-          steps.add(new Split(lineno, line, qualifier, options[2], options[3], options[4]));
-          break;
+        case "split": {
+          String source = tokenizer.nextToken();
+          String delimiter = tokenizer.nextToken();
+          String firstCol = tokenizer.nextToken();
+          String secondCol = tokenizer.nextToken();
+          steps.add(new Split(lineno, line, source, delimiter, firstCol, secondCol));
+        }
+        break;
 
         // filter-row-by-regex <column> <regex>
-        case "filter-row-by-regex":
-          steps.add(new RowRegexFilter(lineno, line, qualifier, options[2]));
-          break;
+        case "filter-row-by-regex": {
+          String column = tokenizer.nextToken();
+          String pattern = tokenizer.nextToken();
+          steps.add(new RowRegexFilter(lineno, line, column, pattern));
+        }
+        break;
 
         // mask-number <column> <mask-pattern>
-        case "mask-number":
-          steps.add(new Mask(lineno, line, qualifier, options[2], Mask.MASK_NUMBER));
-          break;
+        case "mask-number": {
+          String column = tokenizer.nextToken();
+          String mask = tokenizer.nextToken();
+          steps.add(new Mask(lineno, line, column, mask, Mask.MASK_NUMBER));
+        }
+        break;
 
         // mask-shuffle <column>
-        case "mask-shuffle":
-          steps.add(new Mask(lineno, line, qualifier, null, Mask.MASK_SHUFFLE));
-          break;
+        case "mask-shuffle": {
+          String column = tokenizer.nextToken();
+          steps.add(new Mask(lineno, line, column, Mask.MASK_SHUFFLE));
+        }
+        break;
 
         // format-date <column> <source-format> <destination-format>
-        case "format-date":
-          steps.add(new FormatDate(lineno, line, qualifier, options[2], options[3]));
-          break;
+        case "format-date": {
+          String column = tokenizer.nextToken();
+          String srcDatePattern = tokenizer.nextToken();
+          String dstDatePattern = tokenizer.nextToken();
+          steps.add(new FormatDate(lineno, line, column, srcDatePattern, dstDatePattern));
+        }
+        break;
 
         // format-unixtimestamp <column> <destination-format>
-        case "format-unixtimestamp":
-          steps.add(new FormatDate(lineno, line, qualifier, options[2]));
+        case "format-unixtimestamp": {
+          String column = tokenizer.nextToken();
+          String dstDatePattern = tokenizer.nextToken();
+          steps.add(new FormatDate(lineno, line, column, dstDatePattern));
+        }
+        break;
+
+        // apply-expr <column> <expression>
+        case "set-column": {
+          String column = tokenizer.nextToken();
+          String expr = tokenizer.nextToken("\n");
+          steps.add(new Expression(lineno, line, column, expr));
+        }
+        break;
 
         default:
           throw new ParseException("Unknown command found in dsl", lineno);
