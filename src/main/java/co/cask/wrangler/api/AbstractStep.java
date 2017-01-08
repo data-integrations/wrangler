@@ -30,7 +30,7 @@ public abstract class AbstractStep implements Step<Row, Row> {
 
   @Override
   public String toString() {
-    return String.format("[Step %d] - %s", lineno, detail);
+    return String.format("[Step %d] - <%s>", lineno, detail);
   }
 }
 

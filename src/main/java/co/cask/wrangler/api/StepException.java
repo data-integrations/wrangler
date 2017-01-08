@@ -31,5 +31,9 @@ public class StepException extends Exception {
   public StepException(String s, Exception e) {
     super(s,e);
   }
+
+  public StepException(Throwable e) {
+    super(e);
+  }
 }
 
