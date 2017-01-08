@@ -18,10 +18,10 @@ package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.steps.Expression;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
+import co.cask.wrangler.steps.Expression;
 import co.cask.wrangler.steps.FormatDate;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.Lower;
@@ -114,6 +114,14 @@ public class TextSpecification implements Specification {
               } else {
                 throw new ParseException("Unknown format ", lineno);
               }
+            }
+            break;
+
+            // set column <column-name> <jexl-expression>
+            case "column": {
+              String column = tokenizer.nextToken();
+              String expr = tokenizer.nextToken("\n");
+              steps.add(new Expression(lineno, line, column, expr));
             }
             break;
 
@@ -217,7 +225,7 @@ public class TextSpecification implements Specification {
         case "format-date": {
           String column = tokenizer.nextToken();
           String srcDatePattern = tokenizer.nextToken();
-          String dstDatePattern = tokenizer.nextToken();
+          String dstDatePattern = tokenizer.nextToken("\n");
           steps.add(new FormatDate(lineno, line, column, srcDatePattern, dstDatePattern));
         }
         break;
@@ -225,16 +233,8 @@ public class TextSpecification implements Specification {
         // format-unixtimestamp <column> <destination-format>
         case "format-unixtimestamp": {
           String column = tokenizer.nextToken();
-          String dstDatePattern = tokenizer.nextToken();
+          String dstDatePattern = tokenizer.nextToken("\n");
           steps.add(new FormatDate(lineno, line, column, dstDatePattern));
-        }
-        break;
-
-        // apply-expr <column> <expression>
-        case "set-column": {
-          String column = tokenizer.nextToken();
-          String expr = tokenizer.nextToken("\n");
-          steps.add(new Expression(lineno, line, column, expr));
         }
         break;
 
