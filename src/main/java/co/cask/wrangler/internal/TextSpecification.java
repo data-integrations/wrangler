@@ -142,12 +142,12 @@ public class TextSpecification implements Specification {
 
         // lowercase <col>
         case "lowercase":
-          steps.add(new Lower(lineno, line, options[2]));
+          steps.add(new Lower(lineno, line, qualifier));
           break;
 
         // titlecase <col>
         case "titlecase":
-          steps.add(new TitleCase(lineno, line, options[2]));
+          steps.add(new TitleCase(lineno, line, qualifier));
           break;
 
         // indexsplit <source-column-name> <start> <end> <destination-column-name>
