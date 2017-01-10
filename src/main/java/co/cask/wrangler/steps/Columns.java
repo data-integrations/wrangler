@@ -20,8 +20,6 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -32,8 +30,6 @@ import java.util.List;
  * all previous column names and add new column names.
  */
 public class Columns extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
-
   // Name of the columns represented in a {@link Row}
   private List<String> columns;
 

@@ -31,8 +31,6 @@ import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextSpecification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -48,8 +46,6 @@ import java.text.ParseException;
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
-  private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
-
   // Plugin configuration.
   private final Config config;
 

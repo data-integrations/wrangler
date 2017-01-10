@@ -21,15 +21,11 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
 import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Wrangler step for splitting a col into two additional columns based on a delimiter.
  */
 public class Split extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Split.class);
-
   // Name of the column to be split
   private String col;
 

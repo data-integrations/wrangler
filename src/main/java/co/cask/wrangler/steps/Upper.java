@@ -20,15 +20,11 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Wrangler step for upper casing the 'col' value of type String.
  */
 public class Upper extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
-
   // Columns of the column to be upper cased.
   private String col;
 

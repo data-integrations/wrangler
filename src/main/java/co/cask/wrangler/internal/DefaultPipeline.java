@@ -25,8 +25,6 @@ import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.util.List;
@@ -35,8 +33,6 @@ import java.util.List;
  * Wrangle Pipeline executes steps in the order they are specified.
  */
 public final class DefaultPipeline implements Pipeline<String, StructuredRecord> {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultPipeline.class);
-
   private Specification specification;
 
   /**
