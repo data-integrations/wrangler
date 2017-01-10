@@ -44,9 +44,9 @@ public class Columns extends AbstractStep {
     this(lineno, detail, columns, true);
   }
 
-  public Columns(int lineno, String detail, List<String> columns, boolean replaceColumnTypes) {
+  public Columns(int lineno, String detail, List<String> columns, boolean replaceColumnNames) {
     super(lineno, detail);
-    this.replaceColumnNames = replaceColumnTypes;
+    this.replaceColumnNames = replaceColumnNames;
     this.columns = columns;
   }
 
