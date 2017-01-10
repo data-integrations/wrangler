@@ -99,8 +99,18 @@ public class PipelineTest {
   public void testMaskingSubstitution() throws Exception {
     // Check valid status.
     Row row = new Row("ssn", "888990000");
-    Step step = new Mask(0, "", "ssn", "xxx-xx-####", 1);
+
+    // More characters in mask, but not enough in the input.
+    Step step = new Mask(0, "", "ssn", "xxx-xx-#####", 1);
     Row actual = (Row) step.execute(row);
+    Assert.assertEquals("xxx-xx-0000", actual.getValue("ssn"));
+
+    step = new Mask(0, "", "ssn", "xxx-xx-####-0", 1);
+    actual = (Row) step.execute(row);
+    Assert.assertEquals("xxx-xx-0000-0", actual.getValue("ssn"));
+
+    step = new Mask(0, "", "ssn", "xxx-xx-####", 1);
+    actual = (Row) step.execute(row);
     Assert.assertEquals("xxx-xx-0000", actual.getValue("ssn"));
     step = new Mask(0, "", "ssn", "x-####", 1);
     actual = (Row) step.execute(row);

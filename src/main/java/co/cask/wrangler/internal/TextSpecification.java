@@ -94,7 +94,8 @@ public class TextSpecification implements Specification {
           switch (tokenizer.nextToken()) {
             // set format [csv|json] <delimiter> <skip empty lines>
             case "format": {
-              if (tokenizer.nextToken().equalsIgnoreCase("csv")) {
+              String format = tokenizer.nextToken();
+              if (format.equalsIgnoreCase("csv")) {
                 String delimStr = tokenizer.nextToken();
                 char delimiter = delimStr.charAt(0);
                 if (delimStr.startsWith("\\")) {
@@ -104,15 +105,12 @@ public class TextSpecification implements Specification {
                   }
                   delimiter = unescapedStr.charAt(0);
                 }
-                boolean ignoreEmptyLines = false;
-                if (tokenizer.nextToken().equalsIgnoreCase("true")) {
-                  ignoreEmptyLines = true;
-                }
+                boolean ignoreEmptyLines = tokenizer.nextToken().equalsIgnoreCase("true");
                 CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
                 steps.add(new CsvParser(lineno, line, opt, STARTING_COLUMN, false));
                 steps.add(new Drop(lineno, line, STARTING_COLUMN));
               } else {
-                throw new ParseException("Unknown format ", lineno);
+                throw new ParseException("Unknown format '" + format + "'", lineno);
               }
             }
             break;
