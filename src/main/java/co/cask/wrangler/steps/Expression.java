@@ -34,20 +34,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A Wrangler step for apply expression results to a column.
+ * A Wrangler step for apply an expression to store the result in a column.
+ *
+ * The expressions are specified in JEXL format (http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
+ * Step is response for executing only one expression for each {@link Row} record that is
+ * being passed. The result of expression either adds a new column or replaces the value of
+ * the existing column.
+ *
+ * <p>
+ *   Step step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
+ * </p>
  */
 public class Expression extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
 
-  // Columns of the column to be upper cased.
+  // Column to which the result of experience is applied to.
   private final String column;
 
+  // The actual expression
   private final String expression;
 
+  // Handler to Jexl Engine.
   private final JexlEngine engine;
 
+  // Parsed / Compiled expression.
   private final JexlScript script;
 
+  /**
+   * Helper for performing basic house keeping operations.
+   */
   public static class Convertors {
     public static double toDouble(String value) {
       return Double.parseDouble(value);
@@ -77,10 +92,13 @@ public class Expression extends AbstractStep {
     this.column = column;
     this.expression = expression;
 
+    // Load the functions that should be accessible in the script.
     Map<String, Object> functions = new HashMap<>();
     functions.put(null, Convertors.class);
     functions.put("math", Math.class);
     functions.put("string", StringUtils.class);
+
+    // Create and build the script.
     engine = new JexlBuilder().namespaces(functions).silent(false).cache(10).strict(true).create();
     script = engine.createScript(expression);
   }
@@ -94,25 +112,35 @@ public class Expression extends AbstractStep {
    */
   @Override
   public Row execute(Row row) throws StepException, SkipRowException {
-    Row r = new Row(row);
+    Row modified = new Row(row);
 
+    // Move the fields from the row into the context.
     JexlContext context = new MapContext();
     for (int i = 0; i < row.length(); ++i) {
       context.set(row.getColumn(i), row.getValue(i));
     }
-
+    
+    // Execution of the script / expression based on the row data
+    // mapped into context.
     try {
       Object result = script.execute(context);
-      int idx = r.find(this.column);
+      int idx = modified.find(this.column);
       if (idx == -1) {
-        r.add(this.column, result.toString());
+        modified.add(this.column, result.toString());
       } else {
-        r.setValue(idx, result.toString());
+        modified.setValue(idx, result.toString());
       }
     } catch (JexlException e) {
-      throw new StepException(toString() + " : '" + e.getMessage());
+      // Generally JexlException wraps the original exception, so it's good idea
+      // to check if there is a inner exception, if there is wrap it in 'StepException'
+      // else just print the error message.
+      if (e.getCause() != null) {
+        throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
+      } else {
+        throw new StepException(toString() + " : " + e.getMessage());
+      }
     }
-    return r;
+    return modified;
   }
 }
 
