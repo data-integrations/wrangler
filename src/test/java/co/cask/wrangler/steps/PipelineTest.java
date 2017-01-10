@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016, 2017 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,7 +17,9 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.internal.TextSpecification;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
@@ -29,7 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Wrangler Pipeline Testing.
+ * Tests different directives that are available within wrangling.
  */
 public class PipelineTest {
 
@@ -171,24 +173,28 @@ public class PipelineTest {
 
   @Test
   public void testApplyExpr() throws Exception {
-    List<Step> steps = new ArrayList<>();
-    Row row = new Row("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826");
-    TextSpecification ts = new TextSpecification(
-        "set format csv , false\n" +
-        "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip\n" +
-        "set column name concat(last, \", \", first)\n" +
-        "set column isteen age < 15 ? 'yes' : 'no'\n" +
-        "set column salary hrlywage*40*4\n" +
-        "drop first\n" +
-        "drop last\n" +
-        "set column email string:reverse(email)\n" +
-        "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1\n" +
-        "format-date dob MM/dd/YYYY EEE, d MMM yyyy HH:mm:ss Z\n"
-    );
+    String[] directives = new String[] {
+      "set format csv , false",
+      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
+      "set column name concat(last, \", \", first)",
+      "set column isteen age < 15 ? 'yes' : 'no'",
+      "set column salary hrlywage*40*4",
+      "drop first",
+      "drop last",
+      "set column email string:reverse(email)",
+      "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1",
+      "format-date dob MM/dd/YYYY EEE, d MMM yyyy HH:mm:ss Z"
+    };
+    TextSpecification specification = new TextSpecification(directives);
+
     // Define all the steps in the wrangler.
-    steps.addAll(ts.getSteps());
+    List<Step> steps = new ArrayList<>(specification.getSteps());
 
     // Run through the wrangling steps.
+    Row row = new Row("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
+      "150 Mars Ave,Palo Alto,CA,USA,32826");
+
+    // Iterate through steps.
     for (Step step : steps) {
       row = (Row) step.execute(row);
     }
@@ -198,6 +204,66 @@ public class PipelineTest {
     Assert.assertEquals("no", row.getValue("isteen"));
     Assert.assertEquals("oi.etiloj@toor", row.getValue("email"));
     Assert.assertEquals("13.0", row.getValue("hrlywage"));
+  }
+
+  @Test(expected = StepException.class)
+  public void testNegativeConditionApply() throws Exception {
+    String[] directives = new String[] {
+      "set format csv , false",
+      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
+      "set column email string:reverse(email1)"
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+
+    Row row = new Row("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79,150 Mars Ave," +
+      "Palo Alto,CA,USA,32826");
+
+    // Define all the steps in the wrangler.
+    List<Step> steps = new ArrayList<>(specification.getSteps());
+
+    // Run through the wrangling steps.
+    for (Step step : steps) {
+      row = (Row) step.execute(row);
+    }
+  }
+
+  @Test
+  public void testRowFilterRegex() throws Exception {
+    String[] directives = new String[] {
+      "set format csv , false",
+      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
+      "filter-row-by-regex email .*@joltie.io",
+      "filter-row-by-condition id > 1092"
+    };
+
+    Row[] rows = new Row[] {
+      new Row("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+
+    List<Row> actuals = new ArrayList<>();
+    for (Row row : rows) {
+      Row r = row;
+      try {
+        for (Step step : steps) {
+          r = (Row) step.execute(r);
+        }
+      } catch (SkipRowException e) {
+        continue;
+      }
+      actuals.add(r);
+    }
+
+    // Filters all the rows that don't match the pattern .*@joltie.io
+    Assert.assertTrue(actuals.size() == 1);
   }
 
 }

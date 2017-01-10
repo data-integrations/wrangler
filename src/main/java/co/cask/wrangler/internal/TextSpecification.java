@@ -28,6 +28,7 @@ import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
 import co.cask.wrangler.steps.Rename;
+import co.cask.wrangler.steps.RowConditionFilter;
 import co.cask.wrangler.steps.RowRegexFilter;
 import co.cask.wrangler.steps.Split;
 import co.cask.wrangler.steps.TitleCase;
@@ -64,11 +65,15 @@ public class TextSpecification implements Specification {
   private static final Logger LOG = LoggerFactory.getLogger(TextSpecification.class);
   static final char TAB = '\t';
 
-  // DSL for wrangling.
-  private String dsl;
+  // directives for wrangling.
+  private String[] directives;
 
-  public TextSpecification(String dsl) {
-    this.dsl = dsl;
+  public TextSpecification(String[] directives) {
+    this.directives = directives;
+  }
+
+  public TextSpecification(String directives) {
+    this(directives.split("\n"));
   }
 
   /**
@@ -81,12 +86,11 @@ public class TextSpecification implements Specification {
     List<Step> steps = new ArrayList<>();
 
     // Split command by EOL
-    String[] lines = dsl.split("\n");
     int lineno = 1;
 
     // Iterate through each command and create necessary steps.
-    for (String line : lines) {
-      StringTokenizer tokenizer = new StringTokenizer(line, " ");
+    for (String directive : directives) {
+      StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
 
       switch (command) {
@@ -107,8 +111,8 @@ public class TextSpecification implements Specification {
                 }
                 boolean ignoreEmptyLines = tokenizer.nextToken().equalsIgnoreCase("true");
                 CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
-                steps.add(new CsvParser(lineno, line, opt, STARTING_COLUMN, false));
-                steps.add(new Drop(lineno, line, STARTING_COLUMN));
+                steps.add(new CsvParser(lineno, directive, opt, STARTING_COLUMN, false));
+                steps.add(new Drop(lineno, directive, STARTING_COLUMN));
               } else {
                 throw new ParseException("Unknown format '" + format + "'", lineno);
               }
@@ -119,14 +123,14 @@ public class TextSpecification implements Specification {
             case "column": {
               String column = tokenizer.nextToken();
               String expr = tokenizer.nextToken("\n");
-              steps.add(new Expression(lineno, line, column, expr));
+              steps.add(new Expression(lineno, directive, column, expr));
             }
             break;
 
             // set columns <name1, name2, ...>
             case "columns": {
               String cols[] = tokenizer.nextToken().split(",");
-              steps.add(new Columns(lineno, line, Arrays.asList(cols)));
+              steps.add(new Columns(lineno, directive, Arrays.asList(cols)));
 
             }
             break;
@@ -138,13 +142,13 @@ public class TextSpecification implements Specification {
         case "rename": {
           String source = tokenizer.nextToken();
           String destination = tokenizer.nextToken();
-          steps.add(new Rename(lineno, line, source, destination));
+          steps.add(new Rename(lineno, directive, source, destination));
         }
         break;
 
         // drop <column-name>
         case "drop": {
-          steps.add(new Drop(lineno, line, tokenizer.nextToken()));
+          steps.add(new Drop(lineno, directive, tokenizer.nextToken()));
         }
         break;
 
@@ -154,25 +158,25 @@ public class TextSpecification implements Specification {
           String col2 = tokenizer.nextToken();
           String dest = tokenizer.nextToken();
           String delimiter = tokenizer.nextToken();
-          steps.add(new Merge(lineno, line, col1, col2, dest, delimiter));
+          steps.add(new Merge(lineno, directive, col1, col2, dest, delimiter));
         }
         break;
 
         // uppercase <col>
         case "uppercase": {
-          steps.add(new Upper(lineno, line, tokenizer.nextToken()));
+          steps.add(new Upper(lineno, directive, tokenizer.nextToken()));
         }
         break;
 
         // lowercase <col>
         case "lowercase": {
-          steps.add(new Lower(lineno, line, tokenizer.nextToken()));
+          steps.add(new Lower(lineno, directive, tokenizer.nextToken()));
         }
         break;
 
         // titlecase <col>
         case "titlecase": {
-          steps.add(new TitleCase(lineno, line, tokenizer.nextToken()));
+          steps.add(new TitleCase(lineno, directive, tokenizer.nextToken()));
         }
         break;
 
@@ -182,7 +186,7 @@ public class TextSpecification implements Specification {
           int start = Integer.parseInt(tokenizer.nextToken());
           int end = Integer.parseInt(tokenizer.nextToken());
           String destination = tokenizer.nextToken();
-          steps.add(new IndexSplit(lineno, line, source, start, end, destination));
+          steps.add(new IndexSplit(lineno, directive, source, start, end, destination));
         }
         break;
 
@@ -192,15 +196,22 @@ public class TextSpecification implements Specification {
           String delimiter = tokenizer.nextToken();
           String firstCol = tokenizer.nextToken();
           String secondCol = tokenizer.nextToken();
-          steps.add(new Split(lineno, line, source, delimiter, firstCol, secondCol));
+          steps.add(new Split(lineno, directive, source, delimiter, firstCol, secondCol));
         }
         break;
 
         // filter-row-by-regex <column> <regex>
         case "filter-row-by-regex": {
           String column = tokenizer.nextToken();
-          String pattern = tokenizer.nextToken();
-          steps.add(new RowRegexFilter(lineno, line, column, pattern));
+          String pattern = tokenizer.nextToken("\n");
+          steps.add(new RowRegexFilter(lineno, directive, column, pattern));
+        }
+        break;
+
+        // filter-row-by-condition <column> <condition>
+        case "filter-row-by-condition": {
+          String condition = tokenizer.nextToken("\n");
+          steps.add(new RowConditionFilter(lineno, directive, condition));
         }
         break;
 
@@ -208,14 +219,14 @@ public class TextSpecification implements Specification {
         case "mask-number": {
           String column = tokenizer.nextToken();
           String mask = tokenizer.nextToken();
-          steps.add(new Mask(lineno, line, column, mask, Mask.MASK_NUMBER));
+          steps.add(new Mask(lineno, directive, column, mask, Mask.MASK_NUMBER));
         }
         break;
 
         // mask-shuffle <column>
         case "mask-shuffle": {
           String column = tokenizer.nextToken();
-          steps.add(new Mask(lineno, line, column, Mask.MASK_SHUFFLE));
+          steps.add(new Mask(lineno, directive, column, Mask.MASK_SHUFFLE));
         }
         break;
 
@@ -224,7 +235,7 @@ public class TextSpecification implements Specification {
           String column = tokenizer.nextToken();
           String srcDatePattern = tokenizer.nextToken();
           String dstDatePattern = tokenizer.nextToken("\n");
-          steps.add(new FormatDate(lineno, line, column, srcDatePattern, dstDatePattern));
+          steps.add(new FormatDate(lineno, directive, column, srcDatePattern, dstDatePattern));
         }
         break;
 
@@ -232,7 +243,7 @@ public class TextSpecification implements Specification {
         case "format-unixtimestamp": {
           String column = tokenizer.nextToken();
           String dstDatePattern = tokenizer.nextToken("\n");
-          steps.add(new FormatDate(lineno, line, column, dstDatePattern));
+          steps.add(new FormatDate(lineno, directive, column, dstDatePattern));
         }
         break;
 

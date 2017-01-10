@@ -78,7 +78,7 @@ public class FormatDate extends AbstractStep {
         dt.setValue(idx, destinationFmt.format(date));
       } catch (ParseException e) {
         throw new StepException(toString() + " : '" +
-                                  column + ", " + e.getMessage());
+                                  column + ", " + e.getMessage(), e);
       }
     } else {
       throw new StepException(toString() + " : '" +

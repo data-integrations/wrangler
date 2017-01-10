@@ -30,15 +30,15 @@ import java.util.regex.Pattern;
  */
 public class RowRegexFilter extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(RowRegexFilter.class);
-  private final String pattern;
+  private final String regex;
   private final String column;
-  private Pattern matcher;
+  private Pattern pattern;
 
-  public RowRegexFilter(int lineno, String detail, String column, String pattern) {
+  public RowRegexFilter(int lineno, String detail, String column, String regex) {
     super(lineno, detail);
-    this.pattern = pattern;
+    this.regex = regex.trim();
     this.column = column;
-    matcher = Pattern.compile(pattern);
+    pattern = Pattern.compile(this.regex);
   }
 
   /**
@@ -52,7 +52,9 @@ public class RowRegexFilter extends AbstractStep {
   public Row execute(Row row) throws StepException, SkipRowException {
     int idx = row.find(column);
     if (idx != -1) {
-      if (matcher.matcher((String)row.getValue(idx)).find()) {
+      String value = (String) row.getValue(idx);
+      boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+      if (status) {
         throw new SkipRowException();
       }
     } else {

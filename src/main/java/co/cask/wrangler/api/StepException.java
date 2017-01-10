@@ -28,7 +28,7 @@ public class StepException extends Exception {
     super(message);
   }
 
-  public StepException(String s, Exception e) {
+  public StepException(String s, Throwable e) {
     super(s,e);
   }
 
