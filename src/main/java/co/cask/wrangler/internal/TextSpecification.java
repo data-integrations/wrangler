@@ -34,8 +34,6 @@ import co.cask.wrangler.steps.Split;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -62,7 +60,6 @@ import java.util.StringTokenizer;
  * </ul>
  */
 public class TextSpecification implements Specification {
-  private static final Logger LOG = LoggerFactory.getLogger(TextSpecification.class);
   static final char TAB = '\t';
 
   // directives for wrangling.

@@ -27,8 +27,6 @@ import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,8 +44,6 @@ import java.util.Map;
  * </p>
  */
 public class Expression extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
-
   // Column to which the result of experience is applied to.
   private final String column;
 

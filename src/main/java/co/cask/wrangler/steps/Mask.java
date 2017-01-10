@@ -20,8 +20,6 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
@@ -59,8 +57,6 @@ import java.util.Random;
  * </p>
  */
 public class Mask extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Mask.class);
-
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;
   public static final int MASK_SHUFFLE = 2;

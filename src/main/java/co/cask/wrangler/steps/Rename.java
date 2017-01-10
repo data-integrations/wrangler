@@ -20,15 +20,11 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Wrangle Step for renaming a column.
  */
 public class Rename extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
-
   // Columns of the columns that needs to be renamed.
   private String source;
 

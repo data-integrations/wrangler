@@ -23,8 +23,6 @@ import co.cask.wrangler.api.StepException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,8 +31,6 @@ import java.util.List;
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
 public class CsvParser extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(CsvParser.class);
-
   // Column within the input row that needs to be parsed as CSV
   private String col;
 

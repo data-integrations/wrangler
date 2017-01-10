@@ -26,8 +26,6 @@ import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -39,7 +37,6 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 public class RowConditionFilter extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(RowConditionFilter.class);
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
