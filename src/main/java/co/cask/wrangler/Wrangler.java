@@ -31,6 +31,8 @@ import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextSpecification;
+import com.google.common.base.Strings;
+
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -142,7 +144,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       if (rObject == null) {
         builder.convertAndSet(field.getName(), (String) iObject);
       } else {
-        builder.convertAndSet(field.getName(), (String) rObject);
+        if (Strings.isNullOrEmpty((String) rObject)) {
+          builder.set(field.getName(), null);
+        } else {
+          builder.convertAndSet(field.getName(), (String) rObject);
+        }
       }
 
     }
