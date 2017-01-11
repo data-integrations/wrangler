@@ -296,7 +296,7 @@ public interface Step {
    * @return Wrangled {@link Row}.
    * @throws StepException In case of any issue this exception is thrown.
    */
-  Row execute(Row row) throws StepException;
+  Row execute(Row row) throws StepException, SkipRowException;
 }
 ```
 
