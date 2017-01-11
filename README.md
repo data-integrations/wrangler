@@ -131,8 +131,72 @@ directive.
 * regex - Standard regular expression.
 
 ### Set Column with expression
+Set column directive allows you assign the result of a expression specified in JEXL format to a column.
+JEXL implements an Expression Language for expressing not so complex expressions. Syntax support JEXL are
+available [here](http://commons.apache.org/proper/commons-jexl/reference/syntax.html).
+
+**Specification**
+```
+  set column {column-name} {expression}
+```
+
+* column-name - Name of the column to which the result of expression is saved to.
+* expression - Expression to be evaluated specified in Jexl syntax.
+
 ### Mask Column
+Data masking (also known as data scrambling and data anonymization) is the process of replacing sensitive
+information with realistic, but scrubbed, data based on masking rules. This plugin supports two types of
+ masking method
+
+* Substitution based &
+* Shuffle based
+
+Substitution based masking allows you to mask data based on a masking pattern. The patterns are specified using
+two main literals namely '#' (Pound) and 'x'. '#' specifies that input should be passed on to output, 'x' would replace
+the input charater with it. Any other characters will be passed as it to the output.
+This directive is mainly used for masking SSN, customer id, credit card numbers, etc.
+
+**Specification**
+
+```
+  mask-number {column-name} {masking-pattern}
+```
+* column-name - Name of the column to which the masking pattern needs to be applied
+* masking-pattern - Defines the pattern to be used for masking the column.
+
+Shuffle based masking allows one to replace the input with the same size random data. It replaces
+numbers with random numbers and string of characters with random characters.
+
+**Specificagtion**
+```
+  mask-shuffle {column-name}
+```
+
+* column-name - Name of the column to be shuffle masked.
+
 ### Date Transformation
+
+Directive for transforming a date from one format to another, or for transforming from unix timetsamp to
+a format of date.
+
+To convert a date string from one format to another use the following directive.
+
+**Specification**
+```
+  format-date {column-name} {source-date-format} {destination-date-format}
+```
+* column-name - Name of the column to convert from source to destination format.
+* source-date-format - Specifies the format of date pattern.
+* destination-date-format - Specifies the format of date pattern.
+
+To convert from unix timestamp to a date format use the following directive
+**Specificaton**
+
+```
+  format-unixtimestamp {column-name} {date-format}
+```
+* column-name - Name of the column that contains unix timestamp that needs to be converted to date-format
+* date-format - Format to convert from unix timestamp.
 
 ## How to add a new Directive
 
