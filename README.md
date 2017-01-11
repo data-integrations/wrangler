@@ -26,6 +26,11 @@ delimiter like a tab, then you specify it as '\\t'.
 * configuration - Specifies configuration based on type, for CSV, ability to skip empty lines is specifiable.
 The value can be either 'true' or 'false'.
 
+**Example**
+```
+  set format csv , false
+```
+
 ### Changing Case
 
 Directive that provides the ability to change the case of a column value. One can change the column value
@@ -39,6 +44,12 @@ Directive that provides the ability to change the case of a column value. One ca
 ```
 * column-name - Specifies the name of the column to which the changing case directives are applied.
 
+**Example**
+```
+  uppercase state
+  lowercase email
+  titlecase name
+```
 ### Drop a column
 
 Drop a column directive will remove a column from the input record. The resulting output record will not
@@ -51,16 +62,26 @@ include the column specified in the directive.
 
 * column-name - name of the column to be dropped. If the column name doesn't exist, the processing is stopped.
 
+**Example**
+```
+  drop zipcode
+```
+
 ### Rename a column
 
 Renames the name of the column.
 
 **Specification**
 ```
-  rename {column-name}
+  rename {source-column-name} {destination-column-name}
 ```
-* column-name - name of the column to be renamed. If the column name doesn't exist, the processing is stopped.
+* source-column-name - Name of the column to be renamed. If the column name doesn't exist, the processing is stopped.
+* destination-column-name - Name of the column to be set to.
 
+**Example**
+```
+  rename email emailid
+```
 ### Splitting Column
 
 Often times there is need to split a column based on fixed indexes or based on a delimiter. The Wrangler
@@ -82,6 +103,11 @@ Index based split will take a source input column value and extract substring fr
 * destination-column-name - Name of the column into which the value between start,end value from
 source-column-name is stored.
 
+**Example**
+```
+  indexsplit ssn 7 11 last4ssn
+```
+
 Delimiter based splitter would split the source column value based on delimiter into two columns.
 First column will include the value to the left of the delimiter (excluding delimiter) and the
 second column will hold the value to the right of the delimiter.
@@ -92,8 +118,15 @@ second column will hold the value to the right of the delimiter.
 **Specification**
 * source-column-name - Name of the source column that needs to be split
 * delimiter - Delimiter to be used to split the source-column-name
-* new-column-1 - Name of the new column that contains the substring left of delimiter
-* new-column-2 - Name of the new column that contains the substring right of delimiter
+* new-column-1 - Name of the new column that contains the substring left of delimiter. If the column doesn't
+exist then it will be added. If it exists, it will replace.
+* new-column-2 - Name of the new column that contains the substring right of delimiter. If the column doesn't
+exist then it will be added. If it exists, it will replace.
+
+**Example**
+```
+  split email @ name domain
+```
 
 ### Specify column names
 
@@ -106,6 +139,11 @@ directives should use the new names of the columns specified by this directive.
 ```
 * {column-name-x} Specifies a list of column names to be assigned to column.
 
+**Example**
+```
+  set columns id,fname,lname,email,address,city,state,zip
+```
+
 ### Filter Row
 
 Directive for filtering rows either based on a condition or based on regular expression. Upon execution of
@@ -113,12 +151,20 @@ this directive, the following directives would be excluded of the rows that were
 
 Condition based filtering allows one to specify an expression that if results in 'true' would filter the row else
 would pass the row as-is to the next directive.
+
+
+**Specification**
 ```
   filter-row-by-condition {condition}
 ```
 
-**Specification**
 * condition - A JEXL expression.
+
+**Example**
+```
+  set columns id,fname,lname,email,address,city,state,zip
+  filter-row-by-condition id > 200
+```
 
 Regular expression based filtering applies an regular expression on the value of a column specified in the
 directive.
@@ -129,6 +175,12 @@ directive.
 **Specification**
 * column-name - Name of the column on which regex is applied. The regex is actually applied on the value of the column.
 * regex - Standard regular expression.
+
+**Example**
+```
+  set columns id,fname,lname,email,address,city,state,zip
+  filter-row-by-condition email .*@joltie.io
+```
 
 ### Set Column with expression
 Set column directive allows you assign the result of a expression specified in JEXL format to a column.
@@ -142,6 +194,12 @@ available [here](http://commons.apache.org/proper/commons-jexl/reference/syntax.
 
 * column-name - Name of the column to which the result of expression is saved to.
 * expression - Expression to be evaluated specified in Jexl syntax.
+
+**Example**
+```
+  set column salary hrlywage * 160
+  set column hrlywage Math:abs(toDouble(hrlywage))
+```
 
 ### Mask Column
 Data masking (also known as data scrambling and data anonymization) is the process of replacing sensitive
@@ -164,6 +222,12 @@ This directive is mainly used for masking SSN, customer id, credit card numbers,
 * column-name - Name of the column to which the masking pattern needs to be applied
 * masking-pattern - Defines the pattern to be used for masking the column.
 
+**Example**
+```
+  mask-number ssn xxx-xx-####
+  mask-number credircard xxxx-xxxxxx-x####
+```
+
 Shuffle based masking allows one to replace the input with the same size random data. It replaces
 numbers with random numbers and string of characters with random characters.
 
@@ -173,6 +237,11 @@ numbers with random numbers and string of characters with random characters.
 ```
 
 * column-name - Name of the column to be shuffle masked.
+
+**Example**
+```
+  mask-shuffle address
+```
 
 ### Date Transformation
 
@@ -189,6 +258,11 @@ To convert a date string from one format to another use the following directive.
 * source-date-format - Specifies the format of date pattern.
 * destination-date-format - Specifies the format of date pattern.
 
+**Example**
+```
+  format-date date MM/dd/yyyy EEE, MMM d, ''yy
+```
+
 To convert from unix timestamp to a date format use the following directive
 **Specificaton**
 
@@ -197,6 +271,11 @@ To convert from unix timestamp to a date format use the following directive
 ```
 * column-name - Name of the column that contains unix timestamp that needs to be converted to date-format
 * date-format - Format to convert from unix timestamp.
+
+**Example**
+```
+  format-unixtimestamp timestamp MM/dd/yyyy
+```
 
 ## How to add a new Directive
 
