@@ -1,23 +1,146 @@
-Wrangler
---------
-Wrangler plugin is processing the steps defined by the wrangler frontend. On the frontend it's a interactive tool for data cleansing and transformation.
+# Wrangler Transform
 
-Steps
------
-Following are the steps currently implemented
+A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin. 
 
-* Parser record as CSV
-* Upper, Lower and Title case
-* Index Split
-* Drop a column
-* Rename a column
-* Set column names
-* Set column types
+## Directives
+Wrangler plugin supports an easy way to specify data transformation using directives. Directives are
+instructions that tell plugin how to transform the incoming record. All of the directives are transformational
+and they operate on the input row to generate a new row. The directives are applied on the input record in
+the order they are specified.
 
-Add New Step
-************
+## Types of Directives
+Following are different types of directives that are supported by the Wrangler plugin.
 
-**Step 1 : In order to add a new step for Wrangler plugin, implement the interface 'Step'.**
+### Parser
+
+This directive specifies how the input needs to be parsed. Currently Wrangler supports parsing of CSV feed.
+The input is parsed as CSV with delimiter specified.
+
+**Specification**
+```
+  set format {type} {delimiter} {configuration}
+```
+* type - Currently the only type supported is CSV.
+* delimiter - When type is CSV, the delimiter to be used for splitting into columns. If you would like to specify a
+delimiter like a tab, then you specify it as '\\t'.
+* configuration - Specifies configuration based on type, for CSV, ability to skip empty lines is specifiable.
+The value can be either 'true' or 'false'.
+
+### Changing Case
+
+Directive that provides the ability to change the case of a column value. One can change the column value
+ to uppercase, lowercase or titlecase.
+
+**Specification**
+```
+ uppercase {column-name}
+ lowercase {column-name}
+ titlecase {column-name}
+```
+* column-name - Specifies the name of the column to which the changing case directives are applied.
+
+### Drop a column
+
+Drop a column directive will remove a column from the input record. The resulting output record will not
+include the column specified in the directive.
+
+**Specification**
+```
+  drop {column-name}
+```
+
+* column-name - name of the column to be dropped. If the column name doesn't exist, the processing is stopped.
+
+### Rename a column
+
+Renames the name of the column.
+
+**Specification**
+```
+  rename {column-name}
+```
+* column-name - name of the column to be renamed. If the column name doesn't exist, the processing is stopped.
+
+### Splitting Column
+
+Often times there is need to split a column based on fixed indexes or based on a delimiter. The Wrangler
+plugin support two ways to split a string.
+
+* Based on start and end index &
+* Based on delimiter
+
+Index based split will take a source input column value and extract substring from start index to end index into
+ a destination column name. This is mainly used for extracting substring from a source string.
+
+```
+  indexsplit {source-column-name} {start} {end} {destination-column-name}
+```
+**Specification**
+* source-column-name - Name of the source column that needs to be split
+* start - Start index to split. If start is less than 0, then it's defaulted to 0.
+* end - End index to split. If end is greater than length of source-column-name value, it's defaulted to it's length.
+* destination-column-name - Name of the column into which the value between start,end value from
+source-column-name is stored.
+
+Delimiter based splitter would split the source column value based on delimiter into two columns.
+First column will include the value to the left of the delimiter (excluding delimiter) and the
+second column will hold the value to the right of the delimiter.
+
+```
+  split {source-column-name} {delimiter} {new-column-1} {new-column-2}
+```
+**Specification**
+* source-column-name - Name of the source column that needs to be split
+* delimiter - Delimiter to be used to split the source-column-name
+* new-column-1 - Name of the new column that contains the substring left of delimiter
+* new-column-2 - Name of the new column that contains the substring right of delimiter
+
+### Specify column names
+
+This directive specifies the name of the columns. After this directive is specified, the following
+directives should use the new names of the columns specified by this directive.
+
+**Specification**
+```
+  set columns {column-name-1},{column-name-2}, ... {column-name-3}
+```
+* {column-name-x} Specifies a list of column names to be assigned to column.
+
+### Filter Row
+
+Directive for filtering rows either based on a condition or based on regular expression. Upon execution of
+this directive, the following directives would be excluded of the rows that were filtered by this directive.
+
+Condition based filtering allows one to specify an expression that if results in 'true' would filter the row else
+would pass the row as-is to the next directive.
+```
+  filter-row-by-condition {condition}
+```
+
+**Specification**
+* condition - A JEXL expression.
+
+Regular expression based filtering applies an regular expression on the value of a column specified in the
+directive.
+```
+  filter-row-by-regex {column-name} {regex}
+```
+
+**Specification**
+* column-name - Name of the column on which regex is applied. The regex is actually applied on the value of the column.
+* regex - Standard regular expression.
+
+### Set Column with expression
+### Mask Column
+### Date Transformation
+
+## How to add a new Directive
+
+Directives are executed as a step, so it's a simple two step process to actually implement the Step and
+provide the specification for directive.
+
+### Step 1/2
+In order to add a new step for Wrangler plugin, implement the interface 'Step'.
 ```
 /**
  * A interface defining the wrangle step in the wrangling pipeline.
@@ -34,26 +157,36 @@ public interface Step {
 }
 ```
 
-**Step 2: Modify the specification to parse the specification and create the implementation of Step you have created above.**
+### Step 2/2
+Modify the specification to parse the directive specification and create the implementation of
+Step you have created above.
 
-Specification
--------------
-Current implementation available in the plugin is a simple specification format. Following are some of the commands that can be specified. 
+### Directive Specification
+
+Currently directives are specified as simple text. Below is sample of directives specified for transforming
+the feed.
 
 ```
-  set format csv , true
-  set columns fname,lname,emailid,address,city,state,country,zip
-  rename fname first_name
-  rename lname last_name
-  drop city
-  drop country
-  merge first_name last_name full_name ,
-  upper state
-  lower email_id
+  01. set format csv , true
+  02. set columns fname,lname,emailid,address,city,state,country,zip,hourlyrate,ssn,lastupdt
+  03. rename fname first_name
+  04. rename lname last_name
+  05. drop city
+  06. drop country
+  07. merge first_name last_name full_name ,
+  08. upper state
+  09. lower email_id
+  10. filter-row-by-regex emailid .*@gmail.com
+  11. set column name concat(lname, \", \", fname)
+  12. drop lname
+  13. drop fname
+  14. filter-row-by-condition hourlyrate > 12
+  15. set column salary hourlyrate * 40 * 4
+  16. mask-number ssn xxx-xx-####
+  17. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
 ```
 
-Build
------
+## Build
 To build your plugins:
 
     mvn clean package -DskipTests
@@ -61,8 +194,8 @@ To build your plugins:
 The build will create a .jar and .json file under the ``target`` directory.
 These files can be used to deploy your plugins.
 
-UI Integration
---------------
+## UI Integration
+
 The Cask Hydrator UI displays each plugin property as a simple textbox. To customize how the plugin properties
 are displayed in the UI, you can place a configuration file in the ``widgets`` directory.
 The file must be named following a convention of ``[plugin-name]-[plugin-type].json``.
@@ -77,8 +210,7 @@ When the build runs, it will scan the ``widgets`` and ``docs`` directories in or
 formatted .json file under the ``target`` directory. This file is deployed along with your .jar file to add your
 plugins to CDAP.
 
-Deployment
-----------
+## Deployment
 You can deploy your plugins using the CDAP CLI:
 
     > load artifact <target/plugin.jar> config-file <target/plugin.json>
@@ -87,8 +219,8 @@ For example, if your artifact is named 'my-plugins-1.0.0':
 
     > load artifact target/my-plugins-1.0.0.jar config-file target/my-plugins-1.0.0.json
 
-Mailing Lists
--------------
+## Mailing Lists
+
 CDAP User Group and Development Discussions:
 
 - `cdap-user@googlegroups.com <https://groups.google.com/d/forum/cdap-user>`__
@@ -98,13 +230,12 @@ applications or building plugins for appplications. You can expect questions fro
 users, release announcements, and any other discussions that we think will be helpful 
 to the users.
 
-IRC Channel
------------
+## IRC Channel
+
 CDAP IRC Channel: #cdap on irc.freenode.net
 
 
-License and Trademarks
-======================
+## License and Trademarks
 
 Copyright © 2015-2016 Cask Data, Inc.
 
