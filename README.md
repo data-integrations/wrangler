@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=master)](https://travis-ci.org/hydrator/wrangler-transform)
+[![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform)
 
 Wrangler
 --------
