@@ -1,233 +1,278 @@
 # Wrangler Transform
 
-Wrangler Transform allows your to transform data using short-hand directives. This transform can be used
-for cleaning, transforming or filtering data.
+A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin.
 
-#### Format to be parsed
+## Directives
+Wrangler plugin supports an easy way to specify data transformation using directives. Directives are
+instructions that tell plugin how to transform the incoming record. All of the directives are transformational
+and they operate on the input row to generate a new row. The directives are applied on the input record in
+the order they are specified.
 
-Directive specifies the format of the input and how the wrangler transform should parse it.
-Currently this transform supports parsing of Comma Seperated Values (CSV).
+## Types of Directives
+Following are different types of directives that are supported by the Wrangler plugin.
 
-<pre>
-set format {csv} {delimiter} {true, to skip empty lines}
-</pre>
+### Parser
 
-#### Name the column
-This directive allows one to name the columns as per the specification. Upon
-execution of this directive, the following directives should be using the name of
-columns specified by this directive.
+This directive specifies how the input needs to be parsed. Currently Wrangler supports parsing of CSV feed.
+The input is parsed as CSV with delimiter specified.
 
-<pre>
-set columns name1, name2, ...
-</pre>
+**Specification**
+```
+  set format {type} {delimiter} {configuration}
+```
+* type - Currently the only type supported is CSV.
+* delimiter - When type is CSV, the delimiter to be used for splitting into columns. If you would like to specify a
+delimiter like a tab, then you specify it as '\\t'.
+* configuration - Specifies configuration based on type, for CSV, ability to skip empty lines is specifiable.
+The value can be either 'true' or 'false'.
 
-#### Rename a column name
-Directive renames a column. This doesn't change the type of the column, only changes
-the name of the column (only metadata).
+**Example**
+```
+  set format csv , false
+```
 
-<pre>
-rename {source-column-name} {destination-column-name}
-</pre>
+### Changing Case
 
-#### Drop a column
-Dropping a column directive would ensure that the schema generated couldn't include the column
-being droppped.
+Directive that provides the ability to change the case of a column value. One can change the column value
+ to uppercase, lowercase or titlecase.
 
-<pre>
-drop {column-name}
-</pre>
+**Specification**
+```
+ uppercase {column-name}
+ lowercase {column-name}
+ titlecase {column-name}
+```
+* column-name - Specifies the name of the column to which the changing case directives are applied.
 
-#### Merge column values
-<pre>
-merge {column-name-1} {column-name-2} {destination-name} {delimiter}
-</pre>
+**Example**
+```
+  uppercase state
+  lowercase email
+  titlecase name
+```
+### Drop a column
 
-#### Upper case column value
-<pre>
-uppercase {column-name}
-</pre>
+Drop a column directive will remove a column from the input record. The resulting output record will not
+include the column specified in the directive.
 
-#### Lower case column value
-<pre>
-lowercase {column-name}
-</pre>
+**Specification**
+```
+  drop {column-name}
+```
 
-#### Title case column value
-<pre>
-titlecase {column-name}
-</pre>
+* column-name - name of the column to be dropped. If the column name doesn't exist, the processing is stopped.
 
-#### Split column value based on index
-<pre>
-indexsplit {source-column-name} {start} {end} {destination-column-name}
-</pre>
+**Example**
+```
+  drop zipcode
+```
 
-#### Split column value based on delimiter
-<pre>
-split {source-column-name} {delimiter} {dest-column-1} {dest-column-2}
-</pre>
+### Rename a column
 
-#### Filter rows
+Renames the name of the column.
 
-This directive filters a row based on the regular expression specified for a column value.
+**Specification**
+```
+  rename {source-column-name} {destination-column-name}
+```
+* source-column-name - Name of the column to be renamed. If the column name doesn't exist, the processing is stopped.
+* destination-column-name - Name of the column to be set to.
 
-<pre>
-filter-row-by-regex {column-name} {regex-to-filter}
-</pre>
+**Example**
+```
+  rename email emailid
+```
+### Splitting Column
 
-<pre>
-filter-row-by-condition {condition}
-</pre>
+Often times there is need to split a column based on fixed indexes or based on a delimiter. The Wrangler
+plugin support two ways to split a string.
 
-If the column value matches the regular expression pattern then the row is filtered from the output.
+* Based on start and end index &
+* Based on delimiter
 
-##### Regular expression constructs
+Index based split will take a source input column value and extract substring from start index to end index into
+ a destination column name. This is mainly used for extracting substring from a source string.
 
-* x	The character x
-* \\	The backslash character
-* \0n	The character with octal value 0n (0 <= n <= 7)
-* \0nn	The character with octal value 0nn (0 <= n <= 7)
-* \0mnn	The character with octal value 0mnn (0 <= m <= 3, 0 <= n <= 7)
-* \xhh	The character with hexadecimal value 0xhh
-* \uhhhh	The character with hexadecimal value 0xhhhh
-* \x{h...h}	The character with hexadecimal value 0xh...h (Character.MIN_CODE_POINT  <= 0xh...h <=  Character.MAX_CODE_POINT)
-* \t	The tab character ('\u0009')
-* \n	The newline (line feed) character ('\u000A')
-* \r	The carriage-return character ('\u000D')
-* \f	The form-feed character ('\u000C')
-* \a	The alert (bell) character ('\u0007')
-* \e	The escape character ('\u001B')
-* \cx	The control character corresponding to x
+```
+  indexsplit {source-column-name} {start} {end} {destination-column-name}
+```
+**Specification**
+* source-column-name - Name of the source column that needs to be split
+* start - Start index to split. If start is less than 0, then it's defaulted to 0.
+* end - End index to split. If end is greater than length of source-column-name value, it's defaulted to it's length.
+* destination-column-name - Name of the column into which the value between start,end value from
+source-column-name is stored.
 
-###### Character classes
-* [abc]	a, b, or c (simple class)
-* [^abc]	Any character except a, b, or c (negation)
-* [a-zA-Z]	a through z or A through Z, inclusive (range)
-* [a-d[m-p]]	a through d, or m through p: [a-dm-p] (union)
-* [a-z&&[def]]	d, e, or f (intersection)
-* [a-z&&[^bc]]	a through z, except for b and c: [ad-z] (subtraction)
-* [a-z&&[^m-p]]	a through z, and not m through p: [a-lq-z](subtraction)
+**Example**
+```
+  indexsplit ssn 7 11 last4ssn
+```
 
-###### Predefined character classes
-* .	Any character (may or may not match line terminators)
-* \d	A digit: [0-9]
-* \D	A non-digit: [^0-9]
-* \s	A whitespace character: [ \t\n\x0B\f\r]
-* \S	A non-whitespace character: [^\s]
-* \w	A word character: [a-zA-Z_0-9]
-* \W	A non-word character: [^\w]
+Delimiter based splitter would split the source column value based on delimiter into two columns.
+First column will include the value to the left of the delimiter (excluding delimiter) and the
+second column will hold the value to the right of the delimiter.
 
-###### POSIX character classes (US-ASCII only)
-* \p{Lower}	A lower-case alphabetic character: [a-z]
-* \p{Upper}	An upper-case alphabetic character:[A-Z]
-* \p{ASCII}	All ASCII:[\x00-\x7F]
-* \p{Alpha}	An alphabetic character:[\p{Lower}\p{Upper}]
-* \p{Digit}	A decimal digit: [0-9]
-* \p{Alnum}	An alphanumeric character:[\p{Alpha}\p{Digit}]
-* \p{Punct}	Punctuation: One of !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
-* \p{Graph}	A visible character: [\p{Alnum}\p{Punct}]
-* \p{Print}	A printable character: [\p{Graph}\x20]
-* \p{Blank}	A space or a tab: [ \t]
-* \p{Cntrl}	A control character: [\x00-\x1F\x7F]
-* \p{XDigit}	A hexadecimal digit: [0-9a-fA-F]
-* \p{Space}	A whitespace character: [ \t\n\x0B\f\r]
+```
+  split {source-column-name} {delimiter} {new-column-1} {new-column-2}
+```
+**Specification**
+* source-column-name - Name of the source column that needs to be split
+* delimiter - Delimiter to be used to split the source-column-name
+* new-column-1 - Name of the new column that contains the substring left of delimiter. If the column doesn't
+exist then it will be added. If it exists, it will replace.
+* new-column-2 - Name of the new column that contains the substring right of delimiter. If the column doesn't
+exist then it will be added. If it exists, it will replace.
 
-###### java.lang.Character classes (simple java character type)
-* \p{javaLowerCase}	Equivalent to java.lang.Character.isLowerCase()
-* \p{javaUpperCase}	Equivalent to java.lang.Character.isUpperCase()
-* \p{javaWhitespace}	Equivalent to java.lang.Character.isWhitespace()
-* \p{javaMirrored}	Equivalent to java.lang.Character.isMirrored()
+**Example**
+```
+  split email @ name domain
+```
 
-###### Classes for Unicode scripts, blocks, categories and binary properties
-* \p{IsLatin}	A Latin script character (script)
-* \p{InGreek}	A character in the Greek block (block)
-* \p{Lu}	An uppercase letter (category)
-* \p{IsAlphabetic}	An alphabetic character (binary property)
-* \p{Sc}	A currency symbol
-* \P{InGreek}	Any character except one in the Greek block (negation)
-* [\p{L}&&[^\p{Lu}]] 	Any letter except an uppercase letter (subtraction)
+### Specify column names
 
-###### Boundary matchers
-* ^	The beginning of a line
-* $	The end of a line
-* \b	A word boundary
-* \B	A non-word boundary
-* \A	The beginning of the input
-* \G	The end of the previous match
-* \Z	The end of the input but for the final terminator, if any
-* \z	The end of the input
+This directive specifies the name of the columns. After this directive is specified, the following
+directives should use the new names of the columns specified by this directive.
 
-###### Greedy quantifiers
-* X?	X, once or not at all
-* X*	X, zero or more times
-* X+	X, one or more times
-* X{n}	X, exactly n times
-* X{n,}	X, at least n times
-* X{n,m}	X, at least n but not more than m times
+**Specification**
+```
+  set columns {column-name-1},{column-name-2}, ... {column-name-3}
+```
+* {column-name-x} Specifies a list of column names to be assigned to column.
 
-###### Reluctant quantifiers
-* X??	X, once or not at all
-* X*?	X, zero or more times
-* X+?	X, one or more times
-* X{n}?	X, exactly n times
-* X{n,}?	X, at least n times
-* X{n,m}?	X, at least n but not more than m times
+**Example**
+```
+  set columns id,fname,lname,email,address,city,state,zip
+```
 
-###### Possessive quantifiers
-* X?+	X, once or not at all
-* X*+	X, zero or more times
-* X++	X, one or more times
-* X{n}+	X, exactly n times
-* X{n,}+	X, at least n times
-* X{n,m}+	X, at least n but not more than m times
+### Filter Row
 
-###### Logical operators
-* XY	X followed by Y
-* X|Y	Either X or Y
-* (X)	X, as a capturing group
+Directive for filtering rows either based on a condition or based on regular expression. Upon execution of
+this directive, the following directives would be excluded of the rows that were filtered by this directive.
 
-###### Back references
-* \n	Whatever the nth capturing group matched
-* \k<name>	Whatever the named-capturing group "name" matched
-
-###### Quotation
-* \	Nothing, but quotes the following character
-* \Q	Nothing, but quotes all characters until \E
-* \E	Nothing, but ends quoting started by \Q
-
-###### Special constructs (named-capturing and non-capturing)
-* (?<name>X)	X, as a named-capturing group
-* (?:X)	X, as a non-capturing group
-* (?idmsuxU-idmsuxU) 	Nothing, but turns match flags i d m s u x U on - off
-* (?idmsux-idmsux:X)  	X, as a non-capturing group with the given flags i d m s u x on - off
-* (?=X)	X, via zero-width positive lookahead
-* (?!X)	X, via zero-width negative lookahead
-* (?<=X)	X, via zero-width positive lookbehind
-* (?<!X)	X, via zero-width negative lookbehind
-* (?>X)	X, as an independent, non-capturing group
-
-#### Masking
-
-##### Substitution Masking
-<pre>
-mask-number {column-name} {masking-patter}
-</pre>
-
-##### Shuffle Masking
-<pre>
-mask-shuffle {column-name}
-</pre>
-
-#### Format Date and Unix timestamps
-
-<pre>
-format-date {column-name} {source-date-format} {destination-date-format}
-</pre>
-
-<pre>
-format-unixtimestamp {column-name} {destination-date-format}
-</pre>
+Condition based filtering allows one to specify an expression that if results in 'true' would filter the row else
+would pass the row as-is to the next directive.
 
 
-For examples of plugin documentation, see the
-[Hydrator documentation](https://github.com/caskdata/hydrator-plugins/tree/develop/core-plugins/docs).
+**Specification**
+```
+  filter-row-by-condition {condition}
+```
+
+* condition - A JEXL expression.
+
+**Example**
+```
+  set columns id,fname,lname,email,address,city,state,zip
+  filter-row-by-condition id > 200
+```
+
+Regular expression based filtering applies an regular expression on the value of a column specified in the
+directive.
+```
+  filter-row-by-regex {column-name} {regex}
+```
+
+**Specification**
+* column-name - Name of the column on which regex is applied. The regex is actually applied on the value of the column.
+* regex - Standard regular expression.
+
+**Example**
+```
+  set columns id,fname,lname,email,address,city,state,zip
+  filter-row-by-condition email .*@joltie.io
+```
+
+### Set Column with expression
+Set column directive allows you assign the result of a expression specified in JEXL format to a column.
+JEXL implements an Expression Language for expressing not so complex expressions. Syntax support JEXL are
+available [here](http://commons.apache.org/proper/commons-jexl/reference/syntax.html).
+
+**Specification**
+```
+  set column {column-name} {expression}
+```
+
+* column-name - Name of the column to which the result of expression is saved to.
+* expression - Expression to be evaluated specified in Jexl syntax.
+
+**Example**
+```
+  set column salary hrlywage * 160
+  set column hrlywage Math:abs(toDouble(hrlywage))
+```
+
+### Mask Column
+Data masking (also known as data scrambling and data anonymization) is the process of replacing sensitive
+information with realistic, but scrubbed, data based on masking rules. This plugin supports two types of
+ masking method
+
+* Substitution based &
+* Shuffle based
+
+Substitution based masking allows you to mask data based on a masking pattern. The patterns are specified using
+two main literals namely '#' (Pound) and 'x'. '#' specifies that input should be passed on to output, 'x' would replace
+the input charater with it. Any other characters will be passed as it to the output.
+This directive is mainly used for masking SSN, customer id, credit card numbers, etc.
+
+**Specification**
+
+```
+  mask-number {column-name} {masking-pattern}
+```
+* column-name - Name of the column to which the masking pattern needs to be applied
+* masking-pattern - Defines the pattern to be used for masking the column.
+
+**Example**
+```
+  mask-number ssn xxx-xx-####
+  mask-number credircard xxxx-xxxxxx-x####
+```
+
+Shuffle based masking allows one to replace the input with the same size random data. It replaces
+numbers with random numbers and string of characters with random characters.
+
+**Specificagtion**
+```
+  mask-shuffle {column-name}
+```
+
+* column-name - Name of the column to be shuffle masked.
+
+**Example**
+```
+  mask-shuffle address
+```
+
+### Date Transformation
+
+Directive for transforming a date from one format to another, or for transforming from unix timetsamp to
+a format of date.
+
+To convert a date string from one format to another use the following directive.
+
+**Specification**
+```
+  format-date {column-name} {source-date-format} {destination-date-format}
+```
+* column-name - Name of the column to convert from source to destination format.
+* source-date-format - Specifies the format of date pattern.
+* destination-date-format - Specifies the format of date pattern.
+
+**Example**
+```
+  format-date date MM/dd/yyyy EEE, MMM d, ''yy
+```
+
+To convert from unix timestamp to a date format use the following directive
+**Specificaton**
+
+```
+  format-unixtimestamp {column-name} {date-format}
+```
+* column-name - Name of the column that contains unix timestamp that needs to be converted to date-format
+* date-format - Format to convert from unix timestamp.
+
+**Example**
+```
+  format-unixtimestamp timestamp MM/dd/yyyy
+```
