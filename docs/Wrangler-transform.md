@@ -67,12 +67,16 @@ indexsplit {source-column-name} {start} {end} {destination-column-name}
 split {source-column-name} {delimiter} {dest-column-1} {dest-column-2}
 </pre>
 
-#### Filter row based on column value
+#### Filter rows
 
 This directive filters a row based on the regular expression specified for a column value.
 
 <pre>
 filter-row-by-regex {column-name} {regex-to-filter}
+</pre>
+
+<pre>
+filter-row-by-condition {condition}
 </pre>
 
 If the column value matches the regular expression pattern then the row is filtered from the output.

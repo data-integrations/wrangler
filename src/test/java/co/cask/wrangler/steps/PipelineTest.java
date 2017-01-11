@@ -135,9 +135,9 @@ public class PipelineTest {
     Row actual = (Row) step.execute(row);
     Assert.assertEquals("Fri, Jan 6, '17", actual.getValue("date"));
 
-    step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, d MMM yyyy HH:mm:ss Z");
+    step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, d MMM yyyy HH:mm:ss");
     actual = (Row) step.execute(row);
-    Assert.assertEquals("Fri, 6 Jan 2017 00:00:00 -0800", actual.getValue("date"));
+    Assert.assertEquals("Fri, 6 Jan 2017 00:00:00", actual.getValue("date"));
 
     step = new FormatDate(0, "", "date", "MM/dd/yyyy", "yyyy.MM.dd G 'at' HH:mm:ss z");
     actual = (Row) step.execute(row);
