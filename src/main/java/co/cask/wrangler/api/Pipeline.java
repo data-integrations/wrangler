@@ -36,6 +36,6 @@ public interface Pipeline<I,O> {
    * @param schema Schema to which the output should be mapped.
    * @return Parsed output record of type O
    */
-  public O execute(I input, Schema schema) throws PipelineException;
+  public O execute(I input, Schema schema) throws PipelineException, SkipRowException;
 }
 

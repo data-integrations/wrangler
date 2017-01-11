@@ -18,12 +18,11 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,8 +31,6 @@ import java.util.List;
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
 public class CsvParser extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(CsvParser.class);
-
   // Column within the input row that needs to be parsed as CSV
   private String col;
 
@@ -62,7 +59,7 @@ public class CsvParser extends AbstractStep {
    * @throws StepException In case CSV parsing generates more record.
    */
   @Override
-  public Row execute(Row row) throws StepException {
+  public Row execute(Row row) throws StepException, SkipRowException {
     String line = (String) row.getValue(col);
     if (line == null) {
       throw new StepException(toString() + " : Did not find " + col + " in the row");

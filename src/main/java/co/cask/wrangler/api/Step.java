@@ -27,6 +27,6 @@ public interface Step<I,O> {
    * @return Wrangled {@link Row}.
    * @throws StepException In case of any issue this exception is thrown.
    */
-  O execute(I row) throws StepException;
+  O execute(I row) throws StepException, SkipRowException;
 }
 

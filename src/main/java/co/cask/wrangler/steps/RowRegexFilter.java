@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,40 +21,45 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
 
+import java.util.regex.Pattern;
+
 /**
- * Wrangle Step for renaming a column.
+ * A Wrangle step for filtering rows that match the pattern specified on the column.
  */
-public class Rename extends AbstractStep {
-  // Columns of the columns that needs to be renamed.
-  private String source;
+public class RowRegexFilter extends AbstractStep {
+  private final String regex;
+  private final String column;
+  private Pattern pattern;
 
-  // Columns of the column to be renamed to.
-  private String destination;
-
-  public Rename(int lineno, String detail, String source, String destination) {
+  public RowRegexFilter(int lineno, String detail, String column, String regex) {
     super(lineno, detail);
-    this.source = source;
-    this.destination = destination;
+    this.regex = regex.trim();
+    this.column = column;
+    pattern = Pattern.compile(this.regex);
   }
 
   /**
-   * Renames the column from 'source' to 'destination'.
-   * If the source column doesn't exist, then it will return the row as it.
+   * Sets the new column names for the {@link Row}.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @return Transformed {@link Row} with column name modified.
-   * @throws StepException Thrown when there is no 'source' column in the row.
+   * @return A newly transformed {@link Row}.
+   * @throws StepException
    */
   @Override
   public Row execute(Row row) throws StepException, SkipRowException {
-    int idx = row.find(source);
+    int idx = row.find(column);
     if (idx != -1) {
-      row.setColumn(idx, destination);
+      String value = (String) row.getValue(idx);
+      boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+      if (status) {
+        throw new SkipRowException();
+      }
     } else {
-      throw new StepException(toString() + " : " +
-        source + " column is not defined. Please check the wrangling steps."
+      throw new StepException(toString() + " : '" +
+                                column + "' column is not defined. Please check the wrangling step."
       );
     }
     return row;
   }
 }
+

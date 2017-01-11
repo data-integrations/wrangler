@@ -21,11 +21,10 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.util.List;
@@ -34,8 +33,6 @@ import java.util.List;
  * Wrangle Pipeline executes steps in the order they are specified.
  */
 public final class DefaultPipeline implements Pipeline<String, StructuredRecord> {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultPipeline.class);
-
   private Specification specification;
 
   /**
@@ -49,7 +46,7 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
   }
 
   @Override
-  public StructuredRecord execute(String input, Schema schema) throws PipelineException {
+  public StructuredRecord execute(String input, Schema schema) throws PipelineException, SkipRowException {
     // Creates a row as starting point for input to the pipeline.
     Row row = new Row(Specification.STARTING_COLUMN, input);
 
