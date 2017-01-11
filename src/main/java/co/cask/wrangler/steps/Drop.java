@@ -54,7 +54,12 @@ public class Drop extends AbstractStep {
   public Row execute(Row row) throws StepException, SkipRowException {
     for(String column : columns) {
       int idx = row.find(column);
-      row.remove(idx);
+      if (idx != -1) {
+        row.remove(idx);
+      } else {
+        throw new StepException(toString() + " : " +
+                                  column + " column is not defined. Please check the wrangling steps.");
+      }
     }
     return row;
   }
