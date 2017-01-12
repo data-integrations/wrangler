@@ -55,9 +55,13 @@ public class IndexSplit extends AbstractStep {
 
     if (idx != -1) {
       String val = (String) row.getValue(idx);
-      if (end < val.length()) {
-        val = val.substring(start, end);
+      if (end > val.length() - 1) {
+        end = val.length() - 1;
       }
+      if (start < 0) {
+        start = 0;
+      }
+      val = val.substring(start, end);
       row.add(dest, val);
     } else {
       throw new StepException(
