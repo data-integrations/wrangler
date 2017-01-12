@@ -97,6 +97,7 @@ Index based split will take a source input column value and extract substring fr
   indexsplit {source-column-name} {start} {end} {destination-column-name}
 ```
 **Specification**
+
 * source-column-name - Name of the source column that needs to be split
 * start - Start index to split. If start is less than 0, then it's defaulted to 0.
 * end - End index to split. If end is greater than length of source-column-name value, it's defaulted to it's length.
@@ -116,6 +117,7 @@ second column will hold the value to the right of the delimiter.
   split {source-column-name} {delimiter} {new-column-1} {new-column-2}
 ```
 **Specification**
+
 * source-column-name - Name of the source column that needs to be split
 * delimiter - Delimiter to be used to split the source-column-name
 * new-column-1 - Name of the new column that contains the substring left of delimiter. If the column doesn't
@@ -231,7 +233,7 @@ This directive is mainly used for masking SSN, customer id, credit card numbers,
 Shuffle based masking allows one to replace the input with the same size random data. It replaces
 numbers with random numbers and string of characters with random characters.
 
-**Specificagtion**
+**Specification**
 ```
   mask-shuffle {column-name}
 ```
