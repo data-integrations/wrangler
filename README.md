@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 # Wrangler Transform
+=======
+[![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform)
+
+Wrangler
+--------
+Wrangler plugin is processing the steps defined by the wrangler frontend. On the frontend it's a interactive tool for data cleansing and transformation.
+>>>>>>> develop
 
 A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin. 
 
