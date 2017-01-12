@@ -1,5 +1,4 @@
 # Wrangler Transform
-
 [![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform)  [![Code Advisor On Demand Status](https://badges.ondemand.coverity.com/jobs/m61o1f34qt265e075g5uk5v4m8)](https://ondemand.coverity.com/jobs/m61o1f34qt265e075g5uk5v4m8/results)
 
 A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin. 
