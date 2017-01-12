@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform)
+[![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform)  [![Code Advisor On Demand Status](https://badges.ondemand.coverity.com/jobs/m61o1f34qt265e075g5uk5v4m8)](https://ondemand.coverity.com/jobs/m61o1f34qt265e075g5uk5v4m8/results) copy to clipboard
+
 
 Wrangler
 --------
