@@ -48,7 +48,7 @@ public class Drop extends AbstractStep {
    * Drops the columns specified.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Row}.
    * @throws StepException
    */

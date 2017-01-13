@@ -50,7 +50,7 @@ public class Merge extends AbstractStep {
    * Merges two columns using the delimiter into a third column.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return A modified {@link Row} with merged column.
    * @throws StepException
    */

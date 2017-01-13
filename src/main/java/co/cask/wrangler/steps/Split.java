@@ -48,7 +48,7 @@ public class Split extends AbstractStep {
    * Splits column based on the delimiter into two columns.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} which contains two additional columns based on the split
    * @throws StepException thrown when type of 'col' is not STRING.
    */

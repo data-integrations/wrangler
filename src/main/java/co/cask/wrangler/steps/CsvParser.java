@@ -56,7 +56,7 @@ public class CsvParser extends AbstractStep {
    * Parses a give column in a {@link Row} as a CSV Record.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws StepException In case CSV parsing generates more record.
    */
