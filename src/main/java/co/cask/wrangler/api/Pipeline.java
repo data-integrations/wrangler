@@ -27,7 +27,7 @@ public interface Pipeline<I,O> {
    *
    * @param specification Wrangle specification.
    */
-  public void configure(Specification specification);
+  public void configure(Specification specification, PipelineContext context);
 
   /**
    * Executes the pipeline on the input.
