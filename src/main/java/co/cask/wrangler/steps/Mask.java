@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
@@ -88,12 +89,13 @@ public class Mask extends AbstractStep {
    * Masks the column specified using either substitution method or shuffling.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifes the context of the pipeline.
    * @return A newly transformed {@link Row} with masked column.
    * @throws StepException thrown when there is issue with masking
    * @throws SkipRowException thrown when the row needs to be skipped
    */
   @Override
-  public Row execute(Row row) throws StepException, SkipRowException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     Row masked = new Row(row);
     int idx = row.find(column);
     if (idx != -1) {

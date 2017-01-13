@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
@@ -34,6 +35,7 @@ import java.util.List;
  */
 public final class DefaultPipeline implements Pipeline<String, StructuredRecord> {
   private Specification specification;
+  private PipelineContext context;
 
   /**
    * Configures the pipeline based on the specification.
@@ -41,8 +43,9 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
    * @param specification Wrangle specification.
    */
   @Override
-  public void configure(Specification specification) {
+  public void configure(Specification specification, PipelineContext context) {
     this.specification = specification;
+    this.context = context;
   }
 
   @Override
@@ -53,7 +56,7 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
     // Iterate through steps
     try {
       for (Step step : specification.getSteps()) {
-        row = (Row) step.execute(row);
+        row = (Row) step.execute(row, context);
       }
     } catch (StepException e) {
       throw new PipelineException(e);

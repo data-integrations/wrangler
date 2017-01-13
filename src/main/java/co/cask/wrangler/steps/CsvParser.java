@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
@@ -55,11 +56,12 @@ public class CsvParser extends AbstractStep {
    * Parses a give column in a {@link Row} as a CSV Record.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifes the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws StepException In case CSV parsing generates more record.
    */
   @Override
-  public Row execute(Row row) throws StepException, SkipRowException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     String line = (String) row.getValue(col);
     if (line == null) {
       throw new StepException(toString() + " : Did not find " + col + " in the row");

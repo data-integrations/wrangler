@@ -24,15 +24,16 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginConfig;
 import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.PipelineConfigurer;
+import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextSpecification;
 import com.google.common.base.Strings;
-
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -60,6 +61,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
     this.config = config;
+  }
+
+  private class WranglerPipelineContext implements PipelineContext {
+    private StageMetrics metrics;
+    public WranglerPipelineContext(StageMetrics metrics) {
+      this.metrics = metrics;
+    }
+
+    @Override
+    public StageMetrics getMetrics() {
+      return metrics;
+    }
   }
 
   @Override
@@ -114,7 +127,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Parse DSL and initialize the wrangle pipeline.
     Specification specification = new TextSpecification(config.specification);
     pipeline = new DefaultPipeline();
-    pipeline.configure(specification);
+    pipeline.configure(specification, new WranglerPipelineContext(context.getMetrics()));
 
     // Based on the configuration create output schema.
     try {

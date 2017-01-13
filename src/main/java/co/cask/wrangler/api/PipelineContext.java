@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,21 +13,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package co.cask.wrangler.api;
 
-/**
- * A interface defining the wrangle step in the wrangling pipeline.
- */
-public interface Step<I,O> {
-  /**
-   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
-   *
-   * @param row Input {@link Row} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
-   * @return Wrangled {@link Row}.
-   * @throws StepException In case of any issue this exception is thrown.
-   */
-  O execute(I row, PipelineContext context) throws StepException, SkipRowException;
-}
+import co.cask.cdap.etl.api.StageMetrics;
 
+/**
+ * Pipeline Context for passing contextual information to the pipeline being executed.
+ */
+public interface PipelineContext {
+  /**
+   * @return Metrics handler.
+   */
+  public StageMetrics getMetrics();
+}
