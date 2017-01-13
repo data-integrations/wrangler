@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
@@ -37,11 +38,12 @@ public class TitleCase extends AbstractStep {
    * Transforms a column value from any case to title case.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} in which the 'col' value is title cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Row execute(Row row) throws StepException, SkipRowException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     int idx = row.find(col);
 
     if (idx != -1) {

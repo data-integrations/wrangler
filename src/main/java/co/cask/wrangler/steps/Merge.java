@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
@@ -49,11 +50,12 @@ public class Merge extends AbstractStep {
    * Merges two columns using the delimiter into a third column.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
    * @return A modified {@link Row} with merged column.
    * @throws StepException
    */
   @Override
-  public Row execute(Row row) throws StepException, SkipRowException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     int idx1 = row.find(col1);
     int idx2 = row.find(col2);
     if (idx1 != -1 && idx2 != -1) {

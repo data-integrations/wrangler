@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
@@ -42,11 +43,12 @@ public class Rename extends AbstractStep {
    * If the source column doesn't exist, then it will return the row as it.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} with column name modified.
    * @throws StepException Thrown when there is no 'source' column in the row.
    */
   @Override
-  public Row execute(Row row) throws StepException, SkipRowException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     int idx = row.find(source);
     if (idx != -1) {
       row.setColumn(idx, destination);

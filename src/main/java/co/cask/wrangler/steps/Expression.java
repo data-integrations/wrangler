@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
@@ -103,23 +104,24 @@ public class Expression extends AbstractStep {
    * Transforms a column value from any case to upper case.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} in which the 'col' value is lower cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Row execute(Row row) throws StepException, SkipRowException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     Row modified = new Row(row);
 
     // Move the fields from the row into the context.
-    JexlContext context = new MapContext();
+    JexlContext ctx = new MapContext();
     for (int i = 0; i < row.length(); ++i) {
-      context.set(row.getColumn(i), row.getValue(i));
+      ctx.set(row.getColumn(i), row.getValue(i));
     }
     
     // Execution of the script / expression based on the row data
     // mapped into context.
     try {
-      Object result = script.execute(context);
+      Object result = script.execute(ctx);
       int idx = modified.find(this.column);
       if (idx == -1) {
         modified.add(this.column, result.toString());
