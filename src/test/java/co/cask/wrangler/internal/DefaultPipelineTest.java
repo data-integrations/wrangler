@@ -52,7 +52,7 @@ public class DefaultPipelineTest {
     Specification specification =
       new TextSpecification(StringUtils.join("\n", commands));
     Pipeline pipeline = new DefaultPipeline();
-    pipeline.configure(specification);
+    pipeline.configure(specification, null);
     StructuredRecord record = (StructuredRecord) pipeline.execute("a,b,c,d,e,f,g", schema);
 
     // Validate the {@link StructuredRecord}
@@ -85,7 +85,7 @@ public class DefaultPipelineTest {
     Specification specification =
       new TextSpecification(StringUtils.join("\n", commands));
     Pipeline pipeline = new DefaultPipeline();
-    pipeline.configure(specification);
+    pipeline.configure(specification, null);
     StructuredRecord record = (StructuredRecord) pipeline.execute("Larry,Perez,lperezqt@umn.edu,1481666448,186.66",
                                                                   schema);
 

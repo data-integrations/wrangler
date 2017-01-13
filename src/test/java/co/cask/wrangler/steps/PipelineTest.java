@@ -55,7 +55,7 @@ public class PipelineTest {
 
     // Run through the wrangling steps.
     for (Step step : steps) {
-      row = (Row) step.execute(row);
+      row = (Row) step.execute(row,null);
     }
 
     Assert.assertEquals("one", row.getColumn(0));
@@ -75,7 +75,7 @@ public class PipelineTest {
 
     // Run through the wrangling steps.
     for (Step step : steps) {
-      row = (Row) step.execute(row);
+      row = (Row) step.execute(row,null);
     }
 
     Assert.assertEquals("1", row.getValue("firstCol"));
@@ -91,7 +91,7 @@ public class PipelineTest {
     Step step = new Split(0,"","col","|","firstCol","secondCol");
 
     // Run through the wrangling steps.
-    Row actual = (Row) step.execute(row);
+    Row actual = (Row) step.execute(row,null);
 
     Assert.assertEquals("1,2,a,A", actual.getValue("firstCol"));
     Assert.assertNull(actual.getValue("secondCol"));
@@ -104,18 +104,18 @@ public class PipelineTest {
 
     // More characters in mask, but not enough in the input.
     Step step = new Mask(0, "", "ssn", "xxx-xx-#####", 1);
-    Row actual = (Row) step.execute(row);
+    Row actual = (Row) step.execute(row,null);
     Assert.assertEquals("xxx-xx-0000", actual.getValue("ssn"));
 
     step = new Mask(0, "", "ssn", "xxx-xx-####-0", 1);
-    actual = (Row) step.execute(row);
+    actual = (Row) step.execute(row,null);
     Assert.assertEquals("xxx-xx-0000-0", actual.getValue("ssn"));
 
     step = new Mask(0, "", "ssn", "xxx-xx-####", 1);
-    actual = (Row) step.execute(row);
+    actual = (Row) step.execute(row,null);
     Assert.assertEquals("xxx-xx-0000", actual.getValue("ssn"));
     step = new Mask(0, "", "ssn", "x-####", 1);
-    actual = (Row) step.execute(row);
+    actual = (Row) step.execute(row,null);
     Assert.assertEquals("x-8899", actual.getValue("ssn"));
   }
 
@@ -123,7 +123,7 @@ public class PipelineTest {
   public void testMaskSuffle() throws Exception {
     Row row = new Row("address", "150 Mars Street, Mar City, MAR, 783735");
     Step step = new Mask(0, "", "address", "", 2);
-    Row actual = (Row) step.execute(row);
+    Row actual = (Row) step.execute(row,null);
     Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
   }
 
@@ -132,20 +132,20 @@ public class PipelineTest {
     Row row = new Row("date", "01/06/2017");
 
     Step step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, MMM d, ''yy");
-    Row actual = (Row) step.execute(row);
+    Row actual = (Row) step.execute(row,null);
     Assert.assertEquals("Fri, Jan 6, '17", actual.getValue("date"));
 
     step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, d MMM yyyy HH:mm:ss");
-    actual = (Row) step.execute(row);
+    actual = (Row) step.execute(row,null);
     Assert.assertEquals("Fri, 6 Jan 2017 00:00:00", actual.getValue("date"));
 
     step = new FormatDate(0, "", "date", "MM/dd/yyyy", "yyyy.MM.dd G 'at' HH:mm:ss");
-    actual = (Row) step.execute(row);
+    actual = (Row) step.execute(row,null);
     Assert.assertEquals("2017.01.06 AD at 00:00:00", actual.getValue("date"));
 
     row = new Row("unixtimestamp", "1483803222");
     step = new FormatDate(0, "", "unixtimestamp", "EEE, MMM d, ''yy");
-    actual = (Row) step.execute(row);
+    actual = (Row) step.execute(row,null);
     Assert.assertEquals("Sat, Jan 7, '17", actual.getValue("unixtimestamp"));
   }
 
@@ -164,7 +164,7 @@ public class PipelineTest {
 
     // Run through the wrangling steps.
     for (Step step : steps) {
-      row = (Row) step.execute(row);
+      row = (Row) step.execute(row, null);
     }
 
     Assert.assertEquals("1", row.getValue("id"));
@@ -196,7 +196,7 @@ public class PipelineTest {
 
     // Iterate through steps.
     for (Step step : steps) {
-      row = (Row) step.execute(row);
+      row = (Row) step.execute(row, null);
     }
 
     Assert.assertEquals("Joltie, Root", row.getValue("name"));
@@ -224,7 +224,7 @@ public class PipelineTest {
 
     // Run through the wrangling steps.
     for (Step step : steps) {
-      row = (Row) step.execute(row);
+      row = (Row) step.execute(row, null);
     }
   }
 
@@ -254,7 +254,7 @@ public class PipelineTest {
       Row r = row;
       try {
         for (Step step : steps) {
-          r = (Row) step.execute(r);
+          r = (Row) step.execute(r, null);
         }
       } catch (SkipRowException e) {
         continue;
