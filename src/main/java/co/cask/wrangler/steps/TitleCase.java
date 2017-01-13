@@ -38,7 +38,7 @@ public class TitleCase extends AbstractStep {
    * Transforms a column value from any case to title case.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} in which the 'col' value is title cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */

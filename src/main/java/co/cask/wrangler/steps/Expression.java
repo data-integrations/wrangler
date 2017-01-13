@@ -104,7 +104,7 @@ public class Expression extends AbstractStep {
    * Transforms a column value from any case to upper case.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} in which the 'col' value is lower cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */

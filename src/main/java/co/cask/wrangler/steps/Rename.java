@@ -43,7 +43,7 @@ public class Rename extends AbstractStep {
    * If the source column doesn't exist, then it will return the row as it.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} with column name modified.
    * @throws StepException Thrown when there is no 'source' column in the row.
    */

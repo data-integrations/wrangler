@@ -54,7 +54,7 @@ public class RowConditionFilter extends AbstractStep {
    * Filters a row based on the condition.
    *
    * @param row Input {@link Row} to be wrangled by this step.
-   * @param context Specifes the context of the pipeline.
+   * @param context Specifies the context of the pipeline.
    * @return the input {@link Row}, if condition is false, else throw {@link SkipRowException}
    * @throws StepException if there are any issues with processing the condition
    * @throws SkipRowException if condition evaluates to true.
