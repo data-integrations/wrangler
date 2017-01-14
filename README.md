@@ -4,6 +4,8 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/11434/badge.svg"/>
 </a>
+[![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin. 
 
@@ -55,6 +57,7 @@ Directive that provides the ability to change the case of a column value. One ca
   lowercase email
   titlecase name
 ```
+
 ### Drop a column
 
 Drop a column directive will remove a column from the input record. The resulting output record will not
@@ -208,6 +211,29 @@ available [here](http://commons.apache.org/proper/commons-jexl/reference/syntax.
   set column hrlywage Math:abs(toDouble(hrlywage))
 ```
 
+## Quantize
+This directive quantizes a continous value of a column through a range table
+specified. The quantization ranges are all real numbers, with low specifying the low end of the
+ range and high specifying the high end of the range. Associated with the range is the
+ value that if the incoming value falls in the range it would be assigned that value.
+ The range is a closed range - [low:high] = {x | low <= x <= high}. Also, the high endpoint
+ should be greater than low endpoint and all the ranges specified are mutually exclusive.
+
+**Specification**
+```
+  quantize {source-column} {destination-column} {quantization-table}
+```
+
+* source-column : Name of the column which has to be quantized
+* destination-column : Name of the column to which the quantized value should be added.
+* quantization-table : Specifies the quantization table in the following format low:high=value[,low:high=value]*
+the range specified in the quantization table is a closed range.
+
+**Example**
+```
+  quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
+```
+
 ### Mask Column
 Data masking (also known as data scrambling and data anonymization) is the process of replacing sensitive
 information with realistic, but scrubbed, data based on masking rules. This plugin supports two types of
@@ -334,6 +360,7 @@ the feed.
   15. set column salary hourlyrate * 40 * 4
   16. mask-number ssn xxx-xx-####
   17. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
+  18. quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
 ```
 
 ## Build
