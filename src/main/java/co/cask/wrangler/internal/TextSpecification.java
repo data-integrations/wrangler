@@ -263,7 +263,6 @@ public class TextSpecification implements Specification {
   }
 
   /**
-   *
    * @return
    * @throws ParseException
    */

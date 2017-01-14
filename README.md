@@ -4,6 +4,8 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/11434/badge.svg"/>
 </a>
+[![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin. 
 
