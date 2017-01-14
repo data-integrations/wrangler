@@ -360,6 +360,7 @@ the feed.
   15. set column salary hourlyrate * 40 * 4
   16. mask-number ssn xxx-xx-####
   17. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
+  18. quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
 ```
 
 ## Build
