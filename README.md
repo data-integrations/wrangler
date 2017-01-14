@@ -55,6 +55,7 @@ Directive that provides the ability to change the case of a column value. One ca
   lowercase email
   titlecase name
 ```
+
 ### Drop a column
 
 Drop a column directive will remove a column from the input record. The resulting output record will not
