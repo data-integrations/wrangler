@@ -27,6 +27,7 @@ import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
+import co.cask.wrangler.steps.Quantization;
 import co.cask.wrangler.steps.Rename;
 import co.cask.wrangler.steps.RowConditionFilter;
 import co.cask.wrangler.steps.RowRegexFilter;
@@ -244,6 +245,15 @@ public class TextSpecification implements Specification {
         }
         break;
 
+        // quantize <source-column> <destination-column> <[range1:range2)=value>,[<range1:range2=value>]*
+        case "quantize": {
+          String column1 = tokenizer.nextToken();
+          String column2 = tokenizer.nextToken();
+          String ranges = tokenizer.nextToken("\n");
+          steps.add(new Quantization(lineno, directive, column1, column2, ranges));
+        }
+        break;
+
         default:
           throw new ParseException("Unknown command found in dsl", lineno);
       }
@@ -253,7 +263,6 @@ public class TextSpecification implements Specification {
   }
 
   /**
-   *
    * @return
    * @throws ParseException
    */

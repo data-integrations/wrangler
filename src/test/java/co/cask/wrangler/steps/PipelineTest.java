@@ -21,6 +21,9 @@ import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.internal.TextSpecification;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.TreeRangeMap;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -29,6 +32,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tests different directives that are available within wrangling.
@@ -264,6 +269,83 @@ public class PipelineTest {
 
     // Filters all the rows that don't match the pattern .*@joltie.io
     Assert.assertTrue(actuals.size() == 1);
+  }
+
+  @Test
+  public void testQuantizationRangeAndPattern() throws Exception {
+    RangeMap<Double, String> rangeMap = TreeRangeMap.create();
+    rangeMap.put(Range.closed(0.1, 0.9), "A");
+    rangeMap.put(Range.closed(2.0, 3.9), "B");
+    rangeMap.put(Range.closed(4.0, 5.9), "C");
+    String s = rangeMap.get(2.2);
+    Assert.assertEquals("B", s);
+
+    Matcher m = Pattern.compile("([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)").matcher("0.9:2.1=Foo,2.2:3.4=9.2");
+    RangeMap<String, String> rm = TreeRangeMap.create();
+    while(m.find()) {
+      String lower = m.group(1);
+      String upper = m.group(2);
+      String value = m.group(3);
+      rm.put(Range.closed(lower, upper), value);
+    }
+    Assert.assertEquals("[[0.9‥2.1]=Foo, [2.2‥3.4]=9.2]", rm.toString());
+  }
+
+  @Test
+  public void testQuanitization() throws Exception {
+    String[] directives = new String[] {
+      "set format csv , false",
+      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
+      "quantize hrlywage wagerange 0.0:20.0=LOW,21.0:75.0=MEDIUM,75.1:200.0=HIGH",
+      "set column wagerange (wagerange == null) ? \"NOT FOUND\" : wagerange"
+    };
+
+    Row[] rows = new Row[] {
+      new Row("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,129.13,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,9.54,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,7.89,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,45.67,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,20.7,150 Mars Ave,Palo Alto,CA,USA,32826")
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+
+    List<Row> actuals = new ArrayList<>();
+    for (Row row : rows) {
+      Row r = row;
+      try {
+        for (Step step : steps) {
+          r = (Row) step.execute(r, null);
+        }
+      } catch (SkipRowException e) {
+        continue;
+      }
+      actuals.add(r);
+    }
+
+    Assert.assertTrue(actuals.size() == 6);
+
+    int low = 0, medium = 0, high = 0, notfound = 0;
+    for (Row actual : actuals) {
+      String v = (String) actual.getValue("wagerange");
+      if (v.equalsIgnoreCase("NOT FOUND")) {
+        notfound++;
+      } else if (v.equals("LOW")) {
+        low++;
+      } else if (v.equals("MEDIUM")) {
+        medium++;
+      } else if (v.equals("HIGH")) {
+        high++;
+      }
+    }
+
+    Assert.assertEquals(3, low);
+    Assert.assertEquals(1, medium);
+    Assert.assertEquals(1, high);
+    Assert.assertEquals(1, notfound);
   }
 
 }
