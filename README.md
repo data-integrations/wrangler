@@ -217,7 +217,7 @@ specified. The quantization ranges are all real numbers, with low specifying the
  range and high specifying the high end of the range. Associated with the range is the
  value that if the incoming value falls in the range it would be assigned that value.
  The range is a closed range - [low:high] = {x | low <= x <= high}. Also, the high endpoint
- should be greater than low endpoint.
+ should be greater than low endpoint and all the ranges specified are mutually exclusive.
 
 **Specification**
 ```
