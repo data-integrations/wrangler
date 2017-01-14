@@ -217,7 +217,7 @@ specified. The quantization ranges are all real numbers, with low specifying the
 * source-column : Name of the column which has to be quantized
 * destination-column : Name of the column to which the quantized value should be added.
 * quantization-table : Specifies the quantization table in the following format low:high=value[,low:high=value]*
-the range specified in the quantization table is a closed range.
+the range specified in the quantization table is a closed range  and all the ranges specified are mutually exclusive.
 
 **Example**
 ```
