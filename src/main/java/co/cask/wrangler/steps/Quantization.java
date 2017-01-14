@@ -68,7 +68,12 @@ public class Quantization extends AbstractStep {
       try {
         double d = Double.parseDouble((String) r.getValue(idx));
         String value = rangeMap.get(d);
-        r.add(col2, value);
+        int destIdx = r.find(col2);
+        if (destIdx == -1) {
+          r.add(col2, value);
+        } else {
+          r.setValue(destIdx, value);
+        }
       } catch (NumberFormatException e) {
         throw new StepException(toString(), e);
       }

@@ -297,6 +297,7 @@ public class PipelineTest {
       "set format csv , false",
       "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
       "quantize hrlywage wagerange 0.0:20.0=LOW,21.0:75.0=MEDIUM,75.1:200.0=HIGH",
+      "set column wagerange (wagerange == null) ? \"NOT FOUND\" : wagerange"
     };
 
     Row[] rows = new Row[] {
@@ -304,7 +305,8 @@ public class PipelineTest {
       new Row("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,129.13,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Row("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,9.54,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Row("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,7.89,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Row("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,45.67,150 Mars Ave,Palo Alto,CA,USA,32826")
+      new Row("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,45.67,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,20.7,150 Mars Ave,Palo Alto,CA,USA,32826")
     };
 
     TextSpecification specification = new TextSpecification(directives);
@@ -324,15 +326,18 @@ public class PipelineTest {
       actuals.add(r);
     }
 
-    Assert.assertTrue(actuals.size() == 5);
+    Assert.assertTrue(actuals.size() == 6);
 
-    int low = 0, medium = 0, high = 0;
+    int low = 0, medium = 0, high = 0, notfound = 0;
     for (Row actual : actuals) {
-      if (actual.getValue("wagerange").equals("LOW")) {
+      String v = (String) actual.getValue("wagerange");
+      if (v.equalsIgnoreCase("NOT FOUND")) {
+        notfound++;
+      } else if (v.equals("LOW")) {
         low++;
-      } else if (actual.getValue("wagerange").equals("MEDIUM")) {
+      } else if (v.equals("MEDIUM")) {
         medium++;
-      } else if (actual.getValue("wagerange").equals("HIGH")) {
+      } else if (v.equals("HIGH")) {
         high++;
       }
     }
@@ -340,6 +345,7 @@ public class PipelineTest {
     Assert.assertEquals(3, low);
     Assert.assertEquals(1, medium);
     Assert.assertEquals(1, high);
+    Assert.assertEquals(1, notfound);
   }
 
 }
