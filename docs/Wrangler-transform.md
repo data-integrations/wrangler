@@ -201,6 +201,29 @@ available [here](http://commons.apache.org/proper/commons-jexl/reference/syntax.
   set column hrlywage Math:abs(toDouble(hrlywage))
 ```
 
+## Quantize
+This directive quantizes a continous value of a column through a range table
+specified. The quantization ranges are all real numbers, with low specifying the low end of the
+ range and high specifying the high end of the range. Associated with the range is the
+ value that if the incoming value falls in the range it would be assigned that value.
+ The range is a closed range - [low:high] = {x | low <= x <= high}. Also, the high endpoint
+ should be greater than low endpoint.
+
+**Specification**
+```
+  quantize {source-column} {destination-column} {quantization-table}
+```
+
+* source-column : Name of the column which has to be quantized
+* destination-column : Name of the column to which the quantized value should be added.
+* quantization-table : Specifies the quantization table in the following format low:high=value[,low:high=value]*
+the range specified in the quantization table is a closed range.
+
+**Example**
+```
+  quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
+```
+
 ### Mask Column
 Data masking (also known as data scrambling and data anonymization) is the process of replacing sensitive
 information with realistic, but scrubbed, data based on masking rules. This plugin supports two types of
