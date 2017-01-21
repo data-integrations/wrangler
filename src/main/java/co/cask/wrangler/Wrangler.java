@@ -24,14 +24,16 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginConfig;
 import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.PipelineConfigurer;
+import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextSpecification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.base.Strings;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -47,8 +49,6 @@ import java.text.ParseException;
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
-  private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
-
   // Plugin configuration.
   private final Config config;
 
@@ -61,6 +61,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
     this.config = config;
+  }
+
+  private class WranglerPipelineContext implements PipelineContext {
+    private StageMetrics metrics;
+    public WranglerPipelineContext(StageMetrics metrics) {
+      this.metrics = metrics;
+    }
+
+    @Override
+    public StageMetrics getMetrics() {
+      return metrics;
+    }
   }
 
   @Override
@@ -115,7 +127,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Parse DSL and initialize the wrangle pipeline.
     Specification specification = new TextSpecification(config.specification);
     pipeline = new DefaultPipeline();
-    pipeline.configure(specification);
+    pipeline.configure(specification, new WranglerPipelineContext(context.getMetrics()));
 
     // Based on the configuration create output schema.
     try {
@@ -127,10 +139,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
-    // Run through the wrangle pipeline.
-    StructuredRecord record = (StructuredRecord)pipeline.execute(input.get(config.field), oSchema);
-    StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
+    // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
+    // but just return without emitting any record out.
+    StructuredRecord record;
+    try {
+      record = (StructuredRecord)pipeline.execute(input.get(config.field), oSchema);
+    } catch (SkipRowException e) {
+      return; // Skips the row.
+    }
 
+    StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
     // Iterate through output schema, if the 'record' doesn't have it, then
     // attempt to take if from 'input'.
     for (Schema.Field field : oSchema.getFields()) {
@@ -139,7 +157,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       if (rObject == null) {
         builder.convertAndSet(field.getName(), (String) iObject);
       } else {
-        builder.convertAndSet(field.getName(), (String) rObject);
+        if (Strings.isNullOrEmpty((String) rObject)) {
+          builder.set(field.getName(), null);
+        } else {
+          builder.convertAndSet(field.getName(), (String) rObject);
+        }
       }
 
     }

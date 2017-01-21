@@ -29,12 +29,15 @@ public class Row {
   private static final Logger LOG = LoggerFactory.getLogger(Row.class);
 
   // Values held by the row.
-  private List<Object> values = new ArrayList<>();
+  private List<Object> values;
 
   // Name of the columns held by the row.
-  private List<String> columns = new ArrayList<>();
+  private List<String> columns;
 
-  public Row() {}
+  public Row() {
+    this.values = new ArrayList<>();
+    this.columns = new ArrayList<>();
+  }
 
   /**
    * Makes a copy of the row.
@@ -42,8 +45,8 @@ public class Row {
    * @param row to be copied to 'this' object.
    */
   public Row(Row row) {
-    this.values = row.values;
-    this.columns = row.columns;
+    this.values = new ArrayList<>(row.values);
+    this.columns = new ArrayList<>(row.columns);
   }
 
   /**
@@ -52,7 +55,7 @@ public class Row {
    * @param columns to set in the row.
    */
   public Row(List<String> columns) {
-    this.columns = columns;
+    this.columns = new ArrayList<>(columns);
   }
 
   /**
@@ -62,6 +65,8 @@ public class Row {
    * @param value for the column defined above.
    */
   public Row(String name, Object value) {
+    this.columns = new ArrayList<>();
+    this.values = new ArrayList<>();
     this.columns.add(name);
     this.values.add(value);
   }

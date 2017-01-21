@@ -72,6 +72,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <cdap.version>4.0.0</cdap.version>
+    <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang.version>2.6</commons-lang.version>
     <guava.version>19.0</guava.version>
@@ -99,6 +100,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
       <version>${commons-csv.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-jexl3</artifactId>
+      <version>${commons-jexl.version}</version>
     </dependency>
     <dependency>
       <groupId>co.cask.cdap</groupId>

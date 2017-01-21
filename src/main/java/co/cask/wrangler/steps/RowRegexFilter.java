@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,54 +22,46 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
 
+import java.util.regex.Pattern;
+
 /**
- * A Wrangler step for splitting a col into two additional columns based on a start and end.
+ * A Wrangle step for filtering rows that match the pattern specified on the column.
  */
-public class IndexSplit extends AbstractStep {
-  // Name of the column to be split
-  private String col;
+public class RowRegexFilter extends AbstractStep {
+  private final String regex;
+  private final String column;
+  private Pattern pattern;
 
-  // Start and end index of the split
-  private int start, end;
-
-  // Destination column
-  private String dest;
-
-  public IndexSplit(int lineno, String detail, String col, int start, int end, String dest) {
+  public RowRegexFilter(int lineno, String detail, String column, String regex) {
     super(lineno, detail);
-    this.col = col;
-    this.start = start - 1; // Assumes the wrangle configuration starts @ 1
-    this.end = end - 1;
-    this.dest = dest;
+    this.regex = regex.trim();
+    this.column = column;
+    pattern = Pattern.compile(this.regex);
   }
 
   /**
-   * Splits column based on the start and end index.
+   * Sets the new column names for the {@link Row}.
    *
    * @param row Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Row} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @return A newly transformed {@link Row}.
+   * @throws StepException
    */
   @Override
   public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
-    int idx = row.find(col);
-
+    int idx = row.find(column);
     if (idx != -1) {
-      String val = (String) row.getValue(idx);
-      if (end > val.length() - 1) {
-        end = val.length() - 1;
+      String value = (String) row.getValue(idx);
+      boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+      if (status) {
+        throw new SkipRowException();
       }
-      if (start < 0) {
-        start = 0;
-      }
-      val = val.substring(start, end);
-      row.add(dest, val);
     } else {
-      throw new StepException(
-        col + " is not of type string. Please check the wrangle configuration."
+      throw new StepException(toString() + " : '" +
+                                column + "' column is not defined. Please check the wrangling step."
       );
     }
     return row;
   }
 }
+

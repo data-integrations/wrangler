@@ -24,9 +24,10 @@ public interface Step<I,O> {
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context {@link PipelineContext} passed to each step.
    * @return Wrangled {@link Row}.
    * @throws StepException In case of any issue this exception is thrown.
    */
-  O execute(I row) throws StepException;
+  O execute(I row, PipelineContext context) throws StepException, SkipRowException;
 }
 

@@ -17,10 +17,10 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,8 +32,6 @@ import java.util.List;
  * all previous column names and add new column names.
  */
 public class Drop extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Drop.class);
-
   // Columns to be dropped.
   private List<String> columns;
 
@@ -50,14 +48,20 @@ public class Drop extends AbstractStep {
    * Drops the columns specified.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Row}.
    * @throws StepException
    */
   @Override
-  public Row execute(Row row) throws StepException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     for(String column : columns) {
       int idx = row.find(column);
-      row.remove(idx);
+      if (idx != -1) {
+        row.remove(idx);
+      } else {
+        throw new StepException(toString() + " : " +
+                                  column + " column is not defined. Please check the wrangling steps.");
+      }
     }
     return row;
   }

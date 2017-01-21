@@ -17,18 +17,16 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
 import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Wrangler step for splitting a col into two additional columns based on a delimiter.
  */
 public class Split extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Split.class);
-
   // Name of the column to be split
   private String col;
 
@@ -50,11 +48,12 @@ public class Split extends AbstractStep {
    * Splits column based on the delimiter into two columns.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} which contains two additional columns based on the split
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Row execute(Row row) throws StepException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     int idx = row.find(col);
 
     if (idx != -1) {

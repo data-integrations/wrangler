@@ -17,17 +17,15 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.StepException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Wrangle Step for renaming a column.
  */
 public class Rename extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(Columns.class);
-
   // Columns of the columns that needs to be renamed.
   private String source;
 
@@ -45,11 +43,12 @@ public class Rename extends AbstractStep {
    * If the source column doesn't exist, then it will return the row as it.
    *
    * @param row Input {@link Row} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Row} with column name modified.
    * @throws StepException Thrown when there is no 'source' column in the row.
    */
   @Override
-  public Row execute(Row row) throws StepException {
+  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     int idx = row.find(source);
     if (idx != -1) {
       row.setColumn(idx, destination);

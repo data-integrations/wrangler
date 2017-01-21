@@ -1,13 +1,6 @@
 # Wrangler Transform
-[![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform) 
-<a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/11434/badge.svg"/>
-</a>
-[![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin. 
+A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin.
 
 ## Directives
 Wrangler plugin supports an easy way to specify data transformation using directives. Directives are
@@ -57,7 +50,6 @@ Directive that provides the ability to change the case of a column value. One ca
   lowercase email
   titlecase name
 ```
-
 ### Drop a column
 
 Drop a column directive will remove a column from the input record. The resulting output record will not
@@ -105,7 +97,6 @@ Index based split will take a source input column value and extract substring fr
   indexsplit {source-column-name} {start} {end} {destination-column-name}
 ```
 **Specification**
-
 * source-column-name - Name of the source column that needs to be split
 * start - Start index to split. If start is less than 0, then it's defaulted to 0.
 * end - End index to split. If end is greater than length of source-column-name value, it's defaulted to it's length.
@@ -125,7 +116,6 @@ second column will hold the value to the right of the delimiter.
   split {source-column-name} {delimiter} {new-column-1} {new-column-2}
 ```
 **Specification**
-
 * source-column-name - Name of the source column that needs to be split
 * delimiter - Delimiter to be used to split the source-column-name
 * new-column-1 - Name of the new column that contains the substring left of delimiter. If the column doesn't
@@ -217,7 +207,7 @@ specified. The quantization ranges are all real numbers, with low specifying the
  range and high specifying the high end of the range. Associated with the range is the
  value that if the incoming value falls in the range it would be assigned that value.
  The range is a closed range - [low:high] = {x | low <= x <= high}. Also, the high endpoint
- should be greater than low endpoint and all the ranges specified are mutually exclusive.
+ should be greater than low endpoint.
 
 **Specification**
 ```
@@ -227,7 +217,7 @@ specified. The quantization ranges are all real numbers, with low specifying the
 * source-column : Name of the column which has to be quantized
 * destination-column : Name of the column to which the quantized value should be added.
 * quantization-table : Specifies the quantization table in the following format low:high=value[,low:high=value]*
-the range specified in the quantization table is a closed range.
+the range specified in the quantization table is a closed range  and all the ranges specified are mutually exclusive.
 
 **Example**
 ```
@@ -264,7 +254,7 @@ This directive is mainly used for masking SSN, customer id, credit card numbers,
 Shuffle based masking allows one to replace the input with the same size random data. It replaces
 numbers with random numbers and string of characters with random characters.
 
-**Specification**
+**Specificagtion**
 ```
   mask-shuffle {column-name}
 ```
@@ -309,126 +299,3 @@ To convert from unix timestamp to a date format use the following directive
 ```
   format-unixtimestamp timestamp MM/dd/yyyy
 ```
-
-## How to add a new Directive
-
-Directives are executed as a step, so it's a simple two step process to actually implement the Step and
-provide the specification for directive.
-
-### Step 1/2
-In order to add a new step for Wrangler plugin, implement the interface 'Step'.
-```
-/**
- * A interface defining the wrangle step in the wrangling pipeline.
- */
-public interface Step {
-  /**
-   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
-   *
-   * @param row Input {@link Row} to be wrangled by this step.
-   * @return Wrangled {@link Row}.
-   * @throws StepException In case of any issue this exception is thrown.
-   */
-  Row execute(Row row) throws StepException, SkipRowException;
-}
-```
-
-### Step 2/2
-Modify the specification to parse the directive specification and create the implementation of
-Step you have created above.
-
-### Directive Specification
-
-Currently directives are specified as simple text. Below is sample of directives specified for transforming
-the feed.
-
-```
-  01. set format csv , true
-  02. set columns fname,lname,emailid,address,city,state,country,zip,hourlyrate,ssn,lastupdt
-  03. rename fname first_name
-  04. rename lname last_name
-  05. drop city
-  06. drop country
-  07. merge first_name last_name full_name ,
-  08. upper state
-  09. lower email_id
-  10. filter-row-by-regex emailid .*@gmail.com
-  11. set column name concat(lname, \", \", fname)
-  12. drop lname
-  13. drop fname
-  14. filter-row-by-condition hourlyrate > 12
-  15. set column salary hourlyrate * 40 * 4
-  16. mask-number ssn xxx-xx-####
-  17. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
-  18. quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
-```
-
-## Build
-To build your plugins:
-
-    mvn clean package -DskipTests
-
-The build will create a .jar and .json file under the ``target`` directory.
-These files can be used to deploy your plugins.
-
-## UI Integration
-
-The Cask Hydrator UI displays each plugin property as a simple textbox. To customize how the plugin properties
-are displayed in the UI, you can place a configuration file in the ``widgets`` directory.
-The file must be named following a convention of ``[plugin-name]-[plugin-type].json``.
-
-See [Plugin Widget Configuration](http://docs.cdap.io/cdap/current/en/hydrator-manual/developing-plugins/packaging-plugins.html#plugin-widget-json)
-for details on the configuration file.
-
-The UI will also display a reference doc for your plugin if you place a file in the ``docs`` directory
-that follows the convention of ``[plugin-name]-[plugin-type].md``.
-
-When the build runs, it will scan the ``widgets`` and ``docs`` directories in order to build an appropriately
-formatted .json file under the ``target`` directory. This file is deployed along with your .jar file to add your
-plugins to CDAP.
-
-## Deployment
-You can deploy your plugins using the CDAP CLI:
-
-    > load artifact <target/plugin.jar> config-file <target/plugin.json>
-
-For example, if your artifact is named 'my-plugins-1.0.0':
-
-    > load artifact target/my-plugins-1.0.0.jar config-file target/my-plugins-1.0.0.json
-
-## Mailing Lists
-
-CDAP User Group and Development Discussions:
-
-- `cdap-user@googlegroups.com <https://groups.google.com/d/forum/cdap-user>`__
-
-The *cdap-user* mailing list is primarily for users using the product to develop
-applications or building plugins for appplications. You can expect questions from 
-users, release announcements, and any other discussions that we think will be helpful 
-to the users.
-
-## IRC Channel
-
-CDAP IRC Channel: #cdap on irc.freenode.net
-
-
-## License and Trademarks
-
-Copyright © 2016-2017 Cask Data, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-in compliance with the License. You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software distributed under the 
-License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
-either express or implied. See the License for the specific language governing permissions 
-and limitations under the License.
-
-Cask is a trademark of Cask Data, Inc. All rights reserved.
-
-Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
-permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
-
-.. |(Hydrator)| image:: http://cask.co/wp-content/uploads/hydrator_logo_cdap1.png
