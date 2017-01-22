@@ -65,16 +65,28 @@ public class FormatDate extends AbstractStep {
     int idx = dt.find(column);
     if (idx != -1) {
       try {
-        Date date;
-        String datetimestamp = (String) row.getValue(idx);
-        if (datetimestamp.matches("[1-9][0-9]{9}")) {
-          date = new Date(Long.parseLong(datetimestamp) * 1000);
-        } else if (datetimestamp.matches("[1-9][0-9]{12}")) {
-          date = new Date(Long.parseLong(datetimestamp));
-        } else {
-          date = sourceFmt.parse((String) row.getValue(idx));
+        Date date = null;
+        Object value = row.getValue(idx);
+        if (value instanceof String) {
+          String datetimestamp = (String) row.getValue(idx);
+          if (datetimestamp.matches("[1-9][0-9]{9}")) {
+            date = new Date(Long.parseLong(datetimestamp) * 1000);
+          } else if (datetimestamp.matches("[1-9][0-9]{12}")) {
+            date = new Date(Long.parseLong(datetimestamp));
+          } else {
+            date = sourceFmt.parse((String) row.getValue(idx));
+          }
+        } else if (value instanceof Long) {
+          date = new Date((Long) value);
+        } else if (value instanceof Integer) {
+          date = new Date((Integer) value);
         }
-        dt.setValue(idx, destinationFmt.format(date));
+
+        // In-case the object doesn't match the condition above, then date object is
+        // null, in that case, we don't apply the date transformation.
+        if (date != null) {
+          dt.setValue(idx, destinationFmt.format(date));
+        }
       } catch (ParseException e) {
         throw new StepException(toString() + " : '" +
                                   column + ", " + e.getMessage(), e);

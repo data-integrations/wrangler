@@ -15,6 +15,14 @@
           "widget-type": "textarea",
           "label": "Wrangler Specification",
           "name": "specification"
+        },
+        {
+          "widget-type": "textbox",
+          "label" : "Max number of errored events before stopping pipeline",
+          "name": "threshold",
+          "widget-attributes": {
+            "default": "5"
+          }
         }
       ]
     }

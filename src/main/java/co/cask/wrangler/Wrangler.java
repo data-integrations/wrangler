@@ -29,15 +29,16 @@ import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
+import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextSpecification;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
-import java.text.ParseException;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -58,6 +59,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   // Output Schema associated with transform output.
   private Schema oSchema;
+
+  // Error counter.
+  private long errorCounter;
 
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
@@ -90,7 +94,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     Specification specification = new TextSpecification(config.specification);
     try {
       specification.getSteps();
-    } catch (ParseException e) {
+    } catch (SpecificationParseException e) {
       throw new IllegalArgumentException(e);
     }
 
@@ -139,6 +143,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     } catch (IOException e) {
       throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
     }
+
+    // Initialize the error counter.
+    errorCounter = 0;
   }
 
   @Override
@@ -158,9 +165,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // but just return without emitting any record out.
     StructuredRecord record;
     try {
-      record = (StructuredRecord)pipeline.execute(row, oSchema);
+      record = (StructuredRecord) pipeline.execute(row, oSchema);
     } catch (SkipRowException e) {
       return; // Skips the row.
+    } catch (PipelineException e) {
+      getContext().getMetrics().count("wrangler.pipeline.failures", 1);
+      errorCounter++;
+      return;
+    }
+
+    // If error threshold is reached, then terminate processing.
+    if (errorCounter > config.threshold) {
+      throw new Exception(String.format("Error threshold reached %ld", config.threshold));
     }
 
     StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
@@ -195,13 +211,19 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Description("Name of the input field to be wrangled or 'all' or 'ALL' to wrangle all the fields.")
     private final String field;
 
+    @Name("threshold")
+    @Description("Max number of event failures in wrangling after which to stop the pipeline of processing." +
+      "Threshold is not aggregate across all instance, but is applied for each running instances")
+    private final int threshold;
+
     @Name("schema")
     @Description("Specifies the schema that has to be output.")
     private final String schema;
 
-    public Config(String specification, String field, String schema) {
+    public Config(String specification, String field, int threshold, String schema) {
       this.specification = specification;
       this.field = field;
+      this.threshold = threshold;
       this.schema = schema;
     }
   }
