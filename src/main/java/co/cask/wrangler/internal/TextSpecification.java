@@ -294,7 +294,7 @@ public class TextSpecification implements Specification {
 
         default:
           throw new SpecificationParseException(
-            String.format("Unknown command '%s' found in specification at line %d", command, lineno)
+            String.format("Unknown directive '%s' found in the specification at line %d", command, lineno)
           );
       }
       lineno++;
