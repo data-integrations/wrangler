@@ -28,7 +28,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * Tests {@link TextSpecification} class.
@@ -53,19 +52,6 @@ public class TextSpecificationTest {
     Assert.assertEquals(Columns.class, steps.get(2).getClass());
     Assert.assertEquals(Rename.class, steps.get(3).getClass());
     Assert.assertEquals(Drop.class, steps.get(4).getClass());
-  }
-
-  @Test
-  public void testParsingOfDateFormat() throws Exception {
-    String str = "format-date datetime yyyy/MM/dd HH:mm:ss to MM/dd/YY";
-    StringTokenizer tokenizer = new StringTokenizer(str, " ");
-    String command = tokenizer.nextToken();
-    String col = tokenizer.nextToken();
-    String all = tokenizer.nextToken("\n");
-    StringTokenizer t = new StringTokenizer(all, " to ");
-    String srcFmt = t.nextToken();
-    String destFmt = t.nextToken();
-    Assert.assertEquals("format-date", command);
   }
 
   @Test
