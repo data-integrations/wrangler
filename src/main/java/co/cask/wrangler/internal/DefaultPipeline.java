@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Wrangle Pipeline executes steps in the order they are specified.
  */
-public final class DefaultPipeline implements Pipeline<String, StructuredRecord> {
+public final class DefaultPipeline implements Pipeline<Row, StructuredRecord> {
   private Specification specification;
   private PipelineContext context;
 
@@ -49,10 +49,7 @@ public final class DefaultPipeline implements Pipeline<String, StructuredRecord>
   }
 
   @Override
-  public StructuredRecord execute(String input, Schema schema) throws PipelineException, SkipRowException {
-    // Creates a row as starting point for input to the pipeline.
-    Row row = new Row(Specification.STARTING_COLUMN, input);
-
+  public StructuredRecord execute(Row row, Schema schema) throws PipelineException, SkipRowException {
     // Iterate through steps
     try {
       for (Step step : specification.getSteps()) {

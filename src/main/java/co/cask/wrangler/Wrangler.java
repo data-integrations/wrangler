@@ -29,6 +29,7 @@ import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.internal.DefaultPipeline;
@@ -80,7 +81,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     super.configurePipeline(configurer);
 
     Schema iSchema = configurer.getStageConfigurer().getInputSchema();
-    validateInputSchema(iSchema);
+
+    if (!config.field.equalsIgnoreCase("all")) {
+      validateInputSchema(iSchema);
+    }
 
     // Validate the DSL by parsing DSL.
     Specification specification = new TextSpecification(config.specification);
@@ -139,11 +143,22 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
+    // Creates a row as starting point for input to the pipeline.
+    Row row;
+    if (config.field.equalsIgnoreCase("all")) {
+      row = new Row();
+      for (Schema.Field field : input.getSchema().getFields()) {
+        row.add(field.getName(), input.get(field.getName()));
+      }
+    } else {
+      row = new Row(Specification.STARTING_COLUMN, input.get(config.field));
+    }
+
     // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
     // but just return without emitting any record out.
     StructuredRecord record;
     try {
-      record = (StructuredRecord)pipeline.execute(input.get(config.field), oSchema);
+      record = (StructuredRecord)pipeline.execute(row, oSchema);
     } catch (SkipRowException e) {
       return; // Skips the row.
     }
@@ -157,10 +172,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       if (rObject == null) {
         builder.convertAndSet(field.getName(), (String) iObject);
       } else {
-        if (Strings.isNullOrEmpty((String) rObject)) {
+        if (rObject instanceof String && Strings.isNullOrEmpty((String) rObject)) {
           builder.set(field.getName(), null);
         } else {
-          builder.convertAndSet(field.getName(), (String) rObject);
+          builder.set(field.getName(), rObject);
         }
       }
 
@@ -177,7 +192,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     private String specification;
 
     @Name("field")
-    @Description("Specifies the field to wrangled.")
+    @Description("Name of the input field to be wrangled or 'all' or 'ALL' to wrangle all the fields.")
     private final String field;
 
     @Name("schema")

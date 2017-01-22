@@ -167,7 +167,7 @@ would pass the row as-is to the next directive.
 ```
 
 Regular expression based filtering applies an regular expression on the value of a column specified in the
-directive.
+directive. If the {condition} is true, the row will be skipped else it will be passed down to next step.
 ```
   filter-row-by-regex {column-name} {regex}
 ```
