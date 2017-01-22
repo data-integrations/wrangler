@@ -17,6 +17,7 @@
 package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.Specification;
+import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
@@ -53,4 +54,37 @@ public class TextSpecificationTest {
     Assert.assertEquals(Drop.class, steps.get(4).getClass());
   }
 
+  @Test
+  public void testParsingFailures() throws Exception {
+    int errorcount = 0;
+    String[] errors = new String[] {
+      "set format",
+      "set format csv",
+      "rename a",
+      "rename a b", // good
+      "drop",
+      "drop col2", // good
+      "uppercase",
+      "titlecase",
+      "indexsplit",
+      "indexsplit col1",
+      "indexsplit col1 1",
+      "indexsplit col1 1 2",
+      "indexsplit col1 1 2 dest1", // good
+      "filter-row-if-true",
+      "format-unix-timestamp col"
+    };
+
+    for (final String error : errors) {
+      String[] err = { error };
+      Specification specification =
+        new TextSpecification(StringUtils.join("\n", err));
+      try {
+        List<Step> steps = specification.getSteps();
+      } catch (SpecificationParseException e) {
+        errorcount++;
+      }
+    }
+    Assert.assertEquals(12, errorcount);
+  }
 }

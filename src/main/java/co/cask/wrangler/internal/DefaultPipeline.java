@@ -24,10 +24,10 @@ import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
 import co.cask.wrangler.api.Specification;
+import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 
-import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -57,7 +57,7 @@ public final class DefaultPipeline implements Pipeline<Row, StructuredRecord> {
       }
     } catch (StepException e) {
       throw new PipelineException(e);
-    } catch (ParseException e) {
+    } catch (SpecificationParseException e) {
       throw new PipelineException(e);
     }
 
