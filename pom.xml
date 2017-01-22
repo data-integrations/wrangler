@@ -25,6 +25,12 @@
 
   <name>Wrangler Plugin</name>
   <description>An interactive tool for data cleansing and transformation.</description>
+  <url>https://github.com/hydrator/wrangler-transform</url>
+
+  <organization>
+    <name>Cask Data, Inc.</name>
+    <url>http://cask.co</url>
+  </organization>
 
   <licenses>
     <license>
