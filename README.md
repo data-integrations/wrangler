@@ -352,11 +352,11 @@ the feed.
   07. merge first_name last_name full_name ,
   08. upper state
   09. lower email_id
-  10. filter-row-by-regex emailid .*@gmail.com
+  10. filter-row-if-matched emailid .*@gmail.com
   11. set column name concat(lname, \", \", fname)
   12. drop lname
   13. drop fname
-  14. filter-row-by-condition hourlyrate > 12
+  14. filter-row-if-true hourlyrate > 12
   15. set column salary hourlyrate * 40 * 4
   16. mask-number ssn xxx-xx-####
   17. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
