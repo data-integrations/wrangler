@@ -7,8 +7,8 @@
       "label": "Wrangler",
       "properties": [
         {
-          "widget-type": "input-field-selector",
-          "label": "Input field to be wrangled",
+          "widget-type": "textbox",
+          "label": "Name of the field ('all' to wrangle all fields)",
           "name": "field"
         },
         {

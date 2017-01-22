@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Specification;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
@@ -53,7 +54,8 @@ public class DefaultPipelineTest {
       new TextSpecification(StringUtils.join("\n", commands));
     Pipeline pipeline = new DefaultPipeline();
     pipeline.configure(specification, null);
-    StructuredRecord record = (StructuredRecord) pipeline.execute("a,b,c,d,e,f,g", schema);
+    Row row = new Row(Specification.STARTING_COLUMN, new String("a,b,c,d,e,f,g"));
+    StructuredRecord record = (StructuredRecord) pipeline.execute(row, schema);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("a", record.get("first"));
@@ -86,8 +88,8 @@ public class DefaultPipelineTest {
       new TextSpecification(StringUtils.join("\n", commands));
     Pipeline pipeline = new DefaultPipeline();
     pipeline.configure(specification, null);
-    StructuredRecord record = (StructuredRecord) pipeline.execute("Larry,Perez,lperezqt@umn.edu,1481666448,186.66",
-                                                                  schema);
+    Row row = new Row(Specification.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
+    StructuredRecord record = (StructuredRecord) pipeline.execute(row, schema);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("Larry", record.get("first"));
