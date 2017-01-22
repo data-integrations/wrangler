@@ -87,5 +87,4 @@ public class TextSpecificationTest {
     }
     Assert.assertEquals(12, errorcount);
   }
-
 }
