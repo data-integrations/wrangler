@@ -133,9 +133,9 @@ public class Expression extends AbstractStep {
       // to check if there is a inner exception, if there is wrap it in 'StepException'
       // else just print the error message.
       if (e.getCause() != null) {
-        throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
+        throw new StepException(toString() + " : " + e.getLocalizedMessage(), e.getCause());
       } else {
-        throw new StepException(toString() + " : " + e.getMessage());
+        throw new StepException(toString() + " : " + e.getLocalizedMessage());
       }
     }
     return modified;

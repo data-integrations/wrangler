@@ -165,7 +165,7 @@ would pass the row as-is to the next directive.
 
 **Specification**
 ```
-  filter-row-by-condition {condition}
+  filter-row-if-true {condition}
 ```
 
 * condition - A JEXL expression.
@@ -173,13 +173,13 @@ would pass the row as-is to the next directive.
 **Example**
 ```
   set columns id,fname,lname,email,address,city,state,zip
-  filter-row-by-condition id > 200
+  filter-row-if-true id > 200
 ```
 
 Regular expression based filtering applies an regular expression on the value of a column specified in the
 directive.
 ```
-  filter-row-by-regex {column-name} {regex}
+  filter-row-if-matched {column-name} {regex}
 ```
 
 **Specification**
@@ -189,7 +189,7 @@ directive.
 **Example**
 ```
   set columns id,fname,lname,email,address,city,state,zip
-  filter-row-by-condition email .*@joltie.io
+  filter-row-if-matched email .*@joltie.io
 ```
 
 ### Set Column with expression
@@ -300,14 +300,14 @@ To convert from unix timestamp to a date format use the following directive
 **Specificaton**
 
 ```
-  format-unixtimestamp {column-name} {date-format}
+  format-unix-timestamp {column-name} {date-format}
 ```
 * column-name - Name of the column that contains unix timestamp that needs to be converted to date-format
 * date-format - Format to convert from unix timestamp.
 
 **Example**
 ```
-  format-unixtimestamp timestamp MM/dd/yyyy
+  format-unix-timestamp timestamp MM/dd/yyyy
 ```
 
 ## How to add a new Directive
