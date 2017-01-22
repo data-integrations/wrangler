@@ -17,6 +17,7 @@
 package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.Specification;
+import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
@@ -27,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Tests {@link TextSpecification} class.
@@ -51,6 +53,53 @@ public class TextSpecificationTest {
     Assert.assertEquals(Columns.class, steps.get(2).getClass());
     Assert.assertEquals(Rename.class, steps.get(3).getClass());
     Assert.assertEquals(Drop.class, steps.get(4).getClass());
+  }
+
+  @Test
+  public void testParsingOfDateFormat() throws Exception {
+    String str = "format-date datetime yyyy/MM/dd HH:mm:ss to MM/dd/YY";
+    StringTokenizer tokenizer = new StringTokenizer(str, " ");
+    String command = tokenizer.nextToken();
+    String col = tokenizer.nextToken();
+    String all = tokenizer.nextToken("\n");
+    StringTokenizer t = new StringTokenizer(all, " to ");
+    String srcFmt = t.nextToken();
+    String destFmt = t.nextToken();
+    Assert.assertEquals("format-date", command);
+  }
+
+  @Test
+  public void testParsingFailures() throws Exception {
+    int errorcount = 0;
+    String[] errors = new String[] {
+      "set format",
+      "set format csv",
+      "rename a",
+      "rename a b", // good
+      "drop",
+      "drop col2", // good
+      "uppercase",
+      "titlecase",
+      "indexsplit",
+      "indexsplit col1",
+      "indexsplit col1 1",
+      "indexsplit col1 1 2",
+      "indexsplit col1 1 2 dest1", // good
+      "filter-row-if-true",
+      "format-unix-timestamp col"
+    };
+
+    for (final String error : errors) {
+      String[] err = { error };
+      Specification specification =
+        new TextSpecification(StringUtils.join("\n", err));
+      try {
+        List<Step> steps = specification.getSteps();
+      } catch (SpecificationParseException e) {
+        errorcount++;
+      }
+    }
+    Assert.assertEquals(12, errorcount);
   }
 
 }
