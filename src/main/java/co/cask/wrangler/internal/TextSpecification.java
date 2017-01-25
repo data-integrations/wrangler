@@ -24,7 +24,6 @@ import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
 import co.cask.wrangler.steps.Expression;
 import co.cask.wrangler.steps.FormatDate;
-import co.cask.wrangler.steps.Grep;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
@@ -300,14 +299,6 @@ public class TextSpecification implements Specification {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
           steps.add(new Sed(lineno, directive, column, expression));
-        }
-        break;
-
-        // grep <column> <pattern>
-        case "grep" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String expression = getNextToken(tokenizer, "\n", command, "pattern", lineno);
-          steps.add(new Grep(lineno, directive, column, expression));
         }
         break;
 

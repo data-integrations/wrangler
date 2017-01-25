@@ -41,22 +41,7 @@ column string to which it is applied.
 ```
 
 * column-name Specifies the name of the column on which the sed script is applied.
-
-**Example**
-```
-  sed body s/"//g
-```
-
-### Grep
-A stream editor directive that can be used for performing basic text operations on the
-column string to which it is applied.
-
-**Specification**
-```
-  sed <column-name> <sed-script>
-```
-
-* column-name Specifies the name of the column on which the sed script is applied.
+* sed-script Specifies the sed script to be applied to the column.
 
 **Example**
 ```

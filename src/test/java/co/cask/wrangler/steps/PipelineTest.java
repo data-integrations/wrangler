@@ -349,7 +349,7 @@ public class PipelineTest {
   }
 
   @Test
-  public void testSed() throws Exception {
+  public void testSedGrep() throws Exception {
     String[] directives = new String[] {
       "set columns body",
       "sed body s/\"//g"
@@ -381,6 +381,10 @@ public class PipelineTest {
     }
 
     Assert.assertTrue(actuals.size() == 2);
+    Assert.assertEquals("07/29/2013,Debt collection,Other (i.e. phone, health club, etc.),Cont'd " +
+                          "attempts collect debt not owed,Debt is not mine,,,NRA Group, LLC,VA,20147,,N/A," +
+                          "Web,08/07/2013,Closed with non-monetary relief,Yes,No,467801",
+                        actuals.get(0).getValue("body"));
   }
 }
 
