@@ -347,5 +347,40 @@ public class PipelineTest {
     Assert.assertEquals(1, high);
     Assert.assertEquals(1, notfound);
   }
+
+  @Test
+  public void testSed() throws Exception {
+    String[] directives = new String[] {
+      "set columns body",
+      "sed body s/\"//g"
+    };
+
+    Row[] rows = new Row[] {
+      new Row("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
+        "debt not owed,Debt is not mine,,,\"NRA Group, LLC\",VA,20147,,N/A,Web,08/07/2013,Closed with non-monetary " +
+        "relief,Yes,No,467801"),
+      new Row("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
+        ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+
+    List<Row> actuals = new ArrayList<>();
+    for (Row row : rows) {
+      Row r = row;
+      try {
+        for (Step step : steps) {
+          r = (Row) step.execute(r, null);
+        }
+      } catch (SkipRowException e) {
+        continue;
+      }
+      actuals.add(r);
+    }
+
+    Assert.assertTrue(actuals.size() == 2);
+  }
 }
 

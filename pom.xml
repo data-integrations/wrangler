@@ -82,6 +82,7 @@
     <etl.versionRange>[4.0.0,10.0.0-SNAPSHOT)</etl.versionRange>
     <!-- this is here because project.basedir evaluates to null in the script build step -->
     <main.basedir>${project.basedir}</main.basedir>
+    <unix4j.version>0.4</unix4j.version>
   </properties>
 
   <repositories>
@@ -100,6 +101,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
       <version>${commons-csv.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.unix4j</groupId>
+      <artifactId>unix4j-command</artifactId>
+      <version>${unix4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
