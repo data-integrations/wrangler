@@ -31,6 +31,38 @@ The value can be either 'true' or 'false'.
   set format csv , false
 ```
 
+### Sed
+A stream editor directive that can be used for performing basic text operations on the
+column string to which it is applied.
+
+**Specification**
+```
+  sed <column-name> <sed-script>
+```
+
+* column-name Specifies the name of the column on which the sed script is applied.
+
+**Example**
+```
+  sed body s/"//g
+```
+
+### Grep
+A stream editor directive that can be used for performing basic text operations on the
+column string to which it is applied.
+
+**Specification**
+```
+  sed <column-name> <sed-script>
+```
+
+* column-name Specifies the name of the column on which the sed script is applied.
+
+**Example**
+```
+  sed body s/"//g
+```
+
 ### Changing Case
 
 Directive that provides the ability to change the case of a column value. One can change the column value
