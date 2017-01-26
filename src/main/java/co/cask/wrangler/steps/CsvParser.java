@@ -90,8 +90,6 @@ public class CsvParser extends AbstractStep {
     if (replaceColumns) {
       row = new Row();
     }
-
-    int start = row.length();
     for ( int i = 0; i < record.size(); i++) {
       row.addColumn(col + "_col" + (i + 1));
       row.addValue(record.get(i));

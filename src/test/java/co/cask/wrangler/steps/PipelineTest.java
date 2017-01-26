@@ -442,7 +442,6 @@ public class PipelineTest {
       "rename body.deviceReference.screenSize_col4 size4",
       "json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']",
       "json-path signal_lost signal_lost $.[0]",
-      "json-path signal_lost signal_lost $.[10]",
       "drop body",
       "drop body.deviceReference.OS",
       "drop body.deviceReference",
