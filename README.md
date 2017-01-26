@@ -38,6 +38,23 @@ The value can be either 'true' or 'false'.
   set format csv , false
 ```
 
+### Sed
+A stream editor directive that can be used for performing basic text operations on the
+column string to which it is applied.
+
+**Specification**
+```
+  sed <column-name> <sed-script>
+```
+
+* column-name Specifies the name of the column on which the sed script is applied.
+* sed-script Specifies the sed script to be applied to the column.
+
+**Example**
+```
+  sed body s/"//g
+```
+
 ### Changing Case
 
 Directive that provides the ability to change the case of a column value. One can change the column value
@@ -361,6 +378,7 @@ the feed.
   16. mask-number ssn xxx-xx-####
   17. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
   18. quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
+  20. sed email s/gmail.com/googlemail.com/g
 ```
 
 ## Build
