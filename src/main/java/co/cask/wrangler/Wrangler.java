@@ -70,13 +70,27 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   private class WranglerPipelineContext implements PipelineContext {
     private StageMetrics metrics;
-    public WranglerPipelineContext(StageMetrics metrics) {
+    private String name;
+
+    public WranglerPipelineContext(StageMetrics metrics, String name) {
       this.metrics = metrics;
+      this.name = name;
     }
 
+    /**
+     * @return Metrics context.
+     */
     @Override
     public StageMetrics getMetrics() {
       return metrics;
+    }
+
+    /**
+     * @return Context name.
+     */
+    @Override
+    public String getContextName() {
+      return name;
     }
   }
 
@@ -86,7 +100,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     Schema iSchema = configurer.getStageConfigurer().getInputSchema();
 
-    if (!config.field.equalsIgnoreCase("all")) {
+    if (!config.field.equalsIgnoreCase("*")) {
       validateInputSchema(iSchema);
     }
 
@@ -135,7 +149,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Parse DSL and initialize the wrangle pipeline.
     Specification specification = new TextSpecification(config.specification);
     pipeline = new DefaultPipeline();
-    pipeline.configure(specification, new WranglerPipelineContext(context.getMetrics()));
+    pipeline.configure(specification, new WranglerPipelineContext(context.getMetrics(), context.getStageName()));
 
     // Based on the configuration create output schema.
     try {
@@ -152,7 +166,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
     // Creates a row as starting point for input to the pipeline.
     Row row;
-    if (config.field.equalsIgnoreCase("all")) {
+    if (config.field.equalsIgnoreCase("*")) {
       row = new Row();
       for (Schema.Field field : input.getSchema().getFields()) {
         row.add(field.getName(), input.get(field.getName()));
@@ -164,14 +178,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
     // but just return without emitting any record out.
     StructuredRecord record;
+    long start = System.nanoTime();
     try {
       record = (StructuredRecord) pipeline.execute(row, oSchema);
     } catch (SkipRowException e) {
+      getContext().getMetrics().count("pipeline.records.skip", 1);
       return; // Skips the row.
     } catch (PipelineException e) {
-      getContext().getMetrics().count("wrangler.pipeline.failures", 1);
+      getContext().getMetrics().count("pipeline.records.failures", 1);
       errorCounter++;
       return;
+    } finally {
+      getContext().getMetrics().gauge("pipeline.record.processingtime", System.nanoTime() - start);
     }
 
     // If error threshold is reached, then terminate processing.
@@ -208,7 +226,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     private String specification;
 
     @Name("field")
-    @Description("Name of the input field to be wrangled or 'all' or 'ALL' to wrangle all the fields.")
+    @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
     private final String field;
 
     @Name("threshold")

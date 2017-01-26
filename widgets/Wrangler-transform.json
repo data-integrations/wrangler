@@ -8,8 +8,11 @@
       "properties": [
         {
           "widget-type": "textbox",
-          "label": "Name of the field ('all' to wrangle all fields)",
-          "name": "field"
+          "label": "Name of the field ('*' to wrangle all fields)",
+          "name": "field",
+          "widget-attributes" : {
+            "default": "*"
+          }
         },
         {
           "widget-type": "textarea",
