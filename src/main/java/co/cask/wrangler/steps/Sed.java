@@ -43,28 +43,31 @@ public class Sed extends AbstractStep {
    * @param row Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Row}.
-   * @throws StepException
+   * @throws StepException throw when there is issue executing the grep.
    */
   @Override
   public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
-    Row r = new Row(row);
     int idx = row.find(column);
     if (idx != -1) {
       Object v = row.getValue(idx);
       // Operates only on String types.
-      if (v instanceof String) {
-        String value = (String) v; // Safely converts to String.
-        Unix4jCommandBuilder builder = Unix4j.echo(value).sed(pattern);
-        if (builder.toExitValue() == 0) {
-          r.setValue(idx, builder.toStringResult());
+      try {
+        if (v instanceof String) {
+          String value = (String) v; // Safely converts to String.
+          Unix4jCommandBuilder builder = Unix4j.echo(value).sed(pattern);
+          if (builder.toExitValue() == 0) {
+            row.setValue(idx, builder.toStringResult());
+          }
         }
+      } catch (Exception e) {
+        // If there is any issue, we pass it on without any transformation.
       }
     } else {
       throw new StepException(toString() + " : '" +
                                 column + "' column is not defined. Please check the wrangling step."
       );
     }
-    return r;
+    return row;
   }
 }
 
