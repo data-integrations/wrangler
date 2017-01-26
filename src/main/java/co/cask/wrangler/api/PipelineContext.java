@@ -25,4 +25,9 @@ public interface PipelineContext {
    * @return Metrics handler.
    */
   public StageMetrics getMetrics();
+
+  /**
+   * @return Context name.
+   */
+  public String getContextName();
 }

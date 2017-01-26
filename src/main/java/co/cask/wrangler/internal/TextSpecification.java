@@ -32,6 +32,7 @@ import co.cask.wrangler.steps.Quantization;
 import co.cask.wrangler.steps.Rename;
 import co.cask.wrangler.steps.RowConditionFilter;
 import co.cask.wrangler.steps.RowRegexFilter;
+import co.cask.wrangler.steps.Sed;
 import co.cask.wrangler.steps.Split;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
@@ -95,7 +96,8 @@ public class TextSpecification implements Specification {
     formats.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
     formats.put("quantize", "quantize <source-column> <destination-column> " +
       "<[range1:range2)=value>,[<range1:range2=value>]*");
-
+    formats.put("sed", "sed <column> <expression>");
+    formats.put("grep", "grep <column> <pattern>");
   }
 
   public TextSpecification(String directives) {
@@ -289,6 +291,14 @@ public class TextSpecification implements Specification {
           String column2 = getNextToken(tokenizer, command, "destination-column", lineno);
           String ranges = getNextToken(tokenizer, "\n", command, "destination-column", lineno);
           steps.add(new Quantization(lineno, directive, column1, column2, ranges));
+        }
+        break;
+
+        // sed <column> <expression>
+        case "sed" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
+          steps.add(new Sed(lineno, directive, column, expression));
         }
         break;
 
