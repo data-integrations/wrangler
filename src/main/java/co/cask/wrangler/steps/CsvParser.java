@@ -64,7 +64,7 @@ public class CsvParser extends AbstractStep {
   public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     String line = (String) row.getValue(col);
     if (line == null) {
-      throw new StepException(toString() + " : Did not find " + col + " in the row");
+      throw new StepException(toString() + " : Did not find " + col + " in the record");
     }
     CSVParser parser = null;
     try {
@@ -93,7 +93,7 @@ public class CsvParser extends AbstractStep {
 
     int start = row.length();
     for ( int i = 0; i < record.size(); i++) {
-      row.addColumn("col" + (start + i));
+      row.addColumn(col + "_col" + (i + 1));
       row.addValue(record.get(i));
     }
     return row;
