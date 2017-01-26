@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -53,7 +53,7 @@ public class JsPath extends AbstractStep {
   public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
     Object value = row.getValue(src);
     if (value == null) {
-      throw new StepException(toString() + " : Could not find field '" + src + "' in the record.");
+      throw new StepException(toString() + " : Did not find field '" + src + "' in the record.");
     }
 
     // Detect the type of the object, convert it to String before apply JsonPath
@@ -89,5 +89,5 @@ public class JsPath extends AbstractStep {
 
     return row;
   }
-
 }
+
