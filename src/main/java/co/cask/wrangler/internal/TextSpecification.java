@@ -23,8 +23,11 @@ import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
 import co.cask.wrangler.steps.Expression;
+import co.cask.wrangler.steps.FixedLengthParser;
 import co.cask.wrangler.steps.FormatDate;
 import co.cask.wrangler.steps.IndexSplit;
+import co.cask.wrangler.steps.JsPath;
+import co.cask.wrangler.steps.JsonParser;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
@@ -45,6 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Parses the DSL into specification containing steps for wrangling.
@@ -98,6 +103,11 @@ public class TextSpecification implements Specification {
       "<[range1:range2)=value>,[<range1:range2=value>]*");
     formats.put("sed", "sed <column> <expression>");
     formats.put("grep", "grep <column> <pattern>");
+    formats.put("parse-as-csv", "parse-as-csv <column> <delimiter> <skip-if-empty - true or false> " +
+      "<name1, name2, name3 ...>");
+    formats.put("parse-as-json", "parse-as-json <column>");
+    formats.put("parse-as-fixed-length", "parse-as-fixed-length <source> <field ranges>");
+    formats.put("json-path", "json-path <source> <destination> <json path>");
   }
 
   public TextSpecification(String directives) {
@@ -163,7 +173,6 @@ public class TextSpecification implements Specification {
               String columns = getNextToken(tokenizer, "set columns", "name1, name2, ...", lineno);
               String cols[] = columns.split(",");
               steps.add(new Columns(lineno, directive, Arrays.asList(cols)));
-
             }
             break;
           }
@@ -302,6 +311,55 @@ public class TextSpecification implements Specification {
         }
         break;
 
+        // parse-as-csv <column> <delimiter> <skip-if-empty - true or false>
+        case "parse-as-csv" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String delimStr = getNextToken(tokenizer, command, "delimiter", lineno);
+          char delimiter = delimStr.charAt(0);
+          if (delimStr.startsWith("\\")) {
+            String unescapedStr = StringEscapeUtils.unescapeJava(delimStr);
+            if (unescapedStr == null) {
+              throw new IllegalArgumentException("Invalid delimiter for CSV Parser: " + delimStr);
+            }
+            delimiter = unescapedStr.charAt(0);
+          }
+          boolean ignoreEmptyLines =
+            getNextToken(tokenizer, command, "true|false", lineno).equalsIgnoreCase("true");
+          CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
+          steps.add(new CsvParser(lineno, directive, opt, column, false));
+        }
+        break;
+
+        // parse-as-json <column>
+        case "parse-as-json" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new JsonParser(lineno, directive, column));
+        }
+        break;
+
+        // json-path <source> <destination> <json path>
+        case "json-path" : {
+          String src = getNextToken(tokenizer, command, "source", lineno);
+          String dest = getNextToken(tokenizer, command, "dest", lineno);
+          String path = getNextToken(tokenizer, "\n", command, "json-path", lineno);
+          steps.add(new JsPath(lineno, directive, src, dest, path));
+        }
+        break;
+
+        // parse-as-fixed-length <column> <parse ranges>
+        case "parse-as-fixed-length" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String ranges = getNextToken(tokenizer, "\n", command, "ranges", lineno);
+          if (!isValidRangeExpression(ranges)) {
+            throw new SpecificationParseException(
+              String.format("Closed range format [%s] is incorrect. Specify format as s1-e1[,s2-e2,[e3]*]*",
+                            ranges)
+            );
+          }
+          steps.add(new FixedLengthParser(lineno, directive, column, ranges));
+        }
+        break;
+
         default:
           throw new SpecificationParseException(
             String.format("Unknown directive '%s' found in the specification at line %d", command, lineno)
@@ -312,26 +370,65 @@ public class TextSpecification implements Specification {
     return steps;
   }
 
+  private boolean isValidRangeExpression(String text) {
+    if (text == null || text.isEmpty()) {
+      return false;
+    }
+    Pattern re_valid = Pattern.compile(
+      "# Validate comma separated integers/integer ranges.\n" +
+        "^             # Anchor to start of string.         \n" +
+        "[0-9]+        # Integer of 1st value (required).   \n" +
+        "(?:           # Range for 1st value (optional).    \n" +
+        "  -           # Dash separates range integer.      \n" +
+        "  [0-9]+      # Range integer of 1st value.        \n" +
+        ")?            # Range for 1st value (optional).    \n" +
+        "(?:           # Zero or more additional values.    \n" +
+        "  ,           # Comma separates additional values. \n" +
+        "  [0-9]+      # Integer of extra value (required). \n" +
+        "  (?:         # Range for extra value (optional).  \n" +
+        "    -         # Dash separates range integer.      \n" +
+        "    [0-9]+    # Range integer of extra value.      \n" +
+        "  )?          # Range for extra value (optional).  \n" +
+        ")*            # Zero or more additional values.    \n" +
+        "$             # Anchor to end of string.           ",
+      Pattern.COMMENTS);
+    Matcher m = re_valid.matcher(text);
+    if (m.matches()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   // If there are more tokens, then it proceeds with parsing, else throws exception.
   private String getNextToken(StringTokenizer tokenizer, String directive,
                           String field, int lineno) throws SpecificationParseException {
-    return getNextToken(tokenizer, null, directive, field, lineno);
+    return getNextToken(tokenizer, null, directive, field, lineno, false);
   }
 
   private String getNextToken(StringTokenizer tokenizer, String delimiter,
-                          String directive, String field, int lineno) throws SpecificationParseException {
-    String value;
+                              String directive, String field, int lineno) throws SpecificationParseException {
+    return getNextToken(tokenizer, delimiter, directive, field, lineno, false);
+  }
+
+  private String getNextToken(StringTokenizer tokenizer, String delimiter,
+                          String directive, String field, int lineno, boolean optional)
+    throws SpecificationParseException {
+    String value = null;
     if (tokenizer.hasMoreTokens()) {
       if (delimiter == null) {
-        value = tokenizer.nextToken();
+        value = tokenizer.nextToken().trim();
       } else {
-        value = tokenizer.nextToken(delimiter);
+        value = tokenizer.nextToken(delimiter).trim();
       }
     } else {
-      String d = formats.get(directive);
-      throw new SpecificationParseException(
-        String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)", field, lineno, directive, d)
-      );
+      if (!optional) {
+        String d = formats.get(directive);
+        throw new SpecificationParseException(
+          String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)",
+                        field, lineno, directive, d)
+        );
+      }
     }
     return value;
   }

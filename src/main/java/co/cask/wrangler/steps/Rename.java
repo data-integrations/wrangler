@@ -53,8 +53,8 @@ public class Rename extends AbstractStep {
     if (idx != -1) {
       row.setColumn(idx, destination);
     } else {
-      throw new StepException(toString() + " : " +
-        source + " column is not defined. Please check the wrangling steps."
+      throw new StepException(toString() + " : '" +
+        source + "' column is not defined in the record. Please check the wrangling steps."
       );
     }
     return row;
