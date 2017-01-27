@@ -20,6 +20,75 @@ Following are different types of directives that are supported by the Wrangler p
 
 ### Parser
 
+#### CSV Parser
+
+Parses a column a comma separated value (CSV).
+
+**Specification**
+```
+  parse-as-csv {column-name} {delimiter} {true or false to indicate skip empty lines}
+```
+* column-name - Name of the column to parsed as CSV
+* delimiter - Specifies the delimiter to be used for parsing as CSV record.
+* Skip empty lines - true, if you want to skip empty lines, false otherwise (default: false)
+
+**Example**
+```
+  parse-as-csv body , true,
+  drop body,
+  rename body_col1 date,
+  parse-as-csv date / true,
+  rename date_col1 month,
+  rename date_col2 day,
+  rename date_col3 year
+```
+
+#### JSON Parser
+
+Parses a column as a JSON.
+
+**Specification**
+```
+  parse-as-json {column-name}
+```
+
+**Example**
+```
+  parse-as-json body,
+  parse-as-json body.deviceReference,
+  parse-as-json body.deviceReference.OS,
+  parse-as-csv  body.deviceReference.screenSize | true,
+  drop body.deviceReference.screenSize,
+  rename body.deviceReference.screenSize_col1 size1,
+  rename body.deviceReference.screenSize_col2 size2,
+  rename body.deviceReference.screenSize_col3 size3,
+  rename body.deviceReference.screenSize_col4 size4,
+  json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost'],
+  json-path signal_lost signal_lost $.[0],
+  drop body,
+  drop body.deviceReference.OS,
+  drop body.deviceReference,
+  rename body.deviceReference.timestamp timestamp,
+  set column timestamp timestamp / 1000000,
+  drop body.deviceReference.alerts,
+  set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal
+```
+
+#### Fixed Length Parser
+
+Parses a column as fixed length record with range specifications specified.
+
+**Specification**
+```
+  parse-as-fixed-length {column-name} s1-e1[[,[s2]*],[s3-e3]*]*
+```
+
+**Example**
+```
+  parse-as-fixed-length body 1-2,3-4,5,6-9
+```
+
+#### (Deprecated) set format
 This directive specifies how the input needs to be parsed. Currently Wrangler supports parsing of CSV feed.
 The input is parsed as CSV with delimiter specified.
 
