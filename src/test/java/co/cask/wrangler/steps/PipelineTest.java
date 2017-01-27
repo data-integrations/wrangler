@@ -527,8 +527,6 @@ public class PipelineTest {
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
   }
-
-
-
+  
 }
 

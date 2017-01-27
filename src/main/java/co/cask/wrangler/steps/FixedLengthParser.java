@@ -70,6 +70,11 @@ public final class FixedLengthParser extends AbstractStep {
             i++;
           }
         }
+      } else {
+        throw new StepException(
+          String.format("%s : Invalid type of column '%s'. Should be of type String.", toString(),
+                        col)
+        );
       }
     }
     return row;
