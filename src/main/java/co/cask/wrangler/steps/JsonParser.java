@@ -59,7 +59,14 @@ public class JsonParser extends AbstractStep {
         object = new JSONObject((String) value);
       } else if (value instanceof JSONObject) {
         object = (JSONObject) value;
+      } else {
+        throw new StepException(
+          String.format("%s : Invalid type '%s' of column '%s'. Should be of type JSONObject or String.", toString(),
+                        col, value.getClass().getName())
+        );
       }
+
+      // Iterate through keys.
       Iterator<String> keysItr = object.keys();
       while(keysItr.hasNext()) {
         String key = keysItr.next();

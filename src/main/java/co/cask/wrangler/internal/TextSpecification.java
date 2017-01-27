@@ -337,7 +337,7 @@ public class TextSpecification implements Specification {
         }
         break;
 
-        // json-path <source> <destination> <json path>
+        // json-path <source> <destination> <json-path>
         case "json-path" : {
           String src = getNextToken(tokenizer, command, "source", lineno);
           String dest = getNextToken(tokenizer, command, "dest", lineno);
@@ -370,6 +370,7 @@ public class TextSpecification implements Specification {
     return steps;
   }
 
+  // Validates the range.
   private boolean isValidRangeExpression(String text) {
     if (text == null || text.isEmpty()) {
       return false;
@@ -432,7 +433,6 @@ public class TextSpecification implements Specification {
     }
     return value;
   }
-
 
   /**
    * @return List of steps to executed in the order they are specified.
