@@ -25,11 +25,11 @@ import java.util.List;
  */
 public interface Pipeline<I,O> {
   /**
-   * Configures the wrangle pipeline using the specification.
+   * Configures the wrangle pipeline using the directives.
    *
-   * @param specification Wrangle specification.
+   * @param directives Wrangle directives.
    */
-  public void configure(Specification specification, PipelineContext context);
+  public void configure(Directives directives, PipelineContext context);
 
   /**
    * Executes the pipeline on the input.

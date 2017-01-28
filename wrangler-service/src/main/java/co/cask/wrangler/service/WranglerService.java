@@ -27,13 +27,12 @@ import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
+import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
-import co.cask.wrangler.api.Specification;
-import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.internal.TextSpecification;
+import co.cask.wrangler.internal.TextDirectives;
 import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -204,8 +203,8 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
   // Application Platform System - Big Data Appliance
   private List<Record>  execute (List<Record> records, String[] directives, int limit)
-    throws SpecificationParseException, StepException, SkipRecordException {
-    Specification specification = new TextSpecification(directives);
+    throws DirectiveParseException, StepException {
+    Directives specification = new TextDirectives(directives);
     List<Step> steps = specification.getSteps();
 
     for (Step step : steps) {

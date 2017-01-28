@@ -20,27 +20,23 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.TreeRangeSet;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A Fixed length Parser Stage for parsing the {@link Record} provided based on configuration.
  */
 public final class FixedLengthParser extends AbstractStep {
-  private final RangeSet<Integer> ranges;
+  private final int[] widths;
   private final String col;
+  private final String padding;
 
-  public FixedLengthParser(int lineno, String detail, String col, String rangeText) {
+  public FixedLengthParser(int lineno, String detail, String col, int[] widths, String padding) {
     super(lineno, detail);
     this.col = col;
-    ranges = getRanges(rangeText);
+    this.padding = padding;
+    this.widths = widths;
   }
 
   /**
@@ -60,23 +56,16 @@ public final class FixedLengthParser extends AbstractStep {
         Object v = record.getValue(idx);
         if (v instanceof String) {
           String value = (String) v;
-          Set<Range<Integer>> ls = ranges.asRanges();
-          int i = 1;
-          for (Range<Integer> l : ls) {
-            int start = l.lowerEndpoint() - 1;
-            int end = l.upperEndpoint();
-            if (end - start == 0 ) {
-              end = end + 1;
-            }
-            if (end < value.length() + 1) {
-              record.add(String.format("%s_col%d", col, i), value.substring(start, end));
-              i++;
-            }
+          int offset = 0;
+          for (int i = 0; i < widths.length; ++i) {
+            String val = value.substring(offset, offset + widths[i]);
+            val = val.replaceAll(padding, "");
+            record.add(String.format("%s_%d", col, i+1), val);
+            offset = offset + widths[i];
           }
         } else {
           throw new StepException(
-            String.format("%s : Invalid type of column '%s'. Should be of type String.", toString(),
-                          col)
+            String.format("%s : Invalid type of column '%s'. Should be of type String.", toString(), col)
           );
         }
       }
@@ -84,28 +73,4 @@ public final class FixedLengthParser extends AbstractStep {
     }
     return results;
   }
-
-  private RangeSet<Integer> getRanges(String text) {
-    RangeSet<Integer> ranges = TreeRangeSet.create();
-    Pattern re_next_val = Pattern.compile(
-      "# extract next integers/integer range value.    \n" +
-        "([0-9]+)      # $1: 1st integer (Base).         \n" +
-        "(?:           # Range for value (optional).     \n" +
-        "  -           # Dash separates range integer.   \n" +
-        "  ([0-9]+)    # $2: 2nd integer (Range)         \n" +
-        ")?            # Range for value (optional). \n" +
-        "(?:,|$)       # End on comma or string end.",
-      Pattern.COMMENTS);
-    Matcher m = re_next_val.matcher(text);
-    while (m.find()) {
-      int start = Integer.parseInt(m.group(1));
-      int end = start;
-      if (m.group(2) != null) {
-        end = Integer.parseInt(m.group(2));
-      }
-      ranges.add(Range.closed(start, end));
-    }
-    return ranges;
-  }
-
 }

@@ -19,7 +19,6 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 
 import java.util.ArrayList;
@@ -48,7 +47,6 @@ public class SplitToColumns extends AbstractStep {
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record} with masked column.
    * @throws StepException thrown when there is issue with masking
-   * @throws SkipRecordException thrown when the record needs to be skipped
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {

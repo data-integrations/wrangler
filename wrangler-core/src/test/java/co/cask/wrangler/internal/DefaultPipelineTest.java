@@ -18,9 +18,9 @@ package co.cask.wrangler.internal;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
+import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Specification;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,11 +52,11 @@ public class DefaultPipelineTest {
       Schema.Field.of("g", Schema.of(Schema.Type.STRING))
     );
 
-    Specification specification =
-      new TextSpecification(StringUtils.join("\n", commands));
+    Directives directives =
+      new TextDirectives(StringUtils.join("\n", commands));
     Pipeline pipeline = new DefaultPipeline();
-    pipeline.configure(specification, null);
-    Record row = new Record(Specification.STARTING_COLUMN, new String("a,b,c,d,e,f,g"));
+    pipeline.configure(directives, null);
+    Record row = new Record(Directives.STARTING_COLUMN, new String("a,b,c,d,e,f,g"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
@@ -86,11 +86,11 @@ public class DefaultPipelineTest {
       Schema.Field.of("weight", Schema.of(Schema.Type.FLOAT))
     );
 
-    Specification specification =
-      new TextSpecification(StringUtils.join("\n", commands));
+    Directives directives =
+      new TextDirectives(StringUtils.join("\n", commands));
     Pipeline pipeline = new DefaultPipeline();
-    pipeline.configure(specification, null);
-    Record row = new Record(Specification.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
+    pipeline.configure(directives, null);
+    Record row = new Record(Directives.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
