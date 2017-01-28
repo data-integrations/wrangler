@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2016 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,13 +16,19 @@
 
 package co.cask.wrangler.api;
 
+import java.util.List;
+
 /**
- * An exception thrown when there is error in parsing specification.
+ * A specification for how {@link Pipeline} will process.
  */
-public class SpecificationParseException extends Exception {
+public interface Directives {
+  // Column definition for the start of processing.
+  public static final String STARTING_COLUMN = "__col";
 
-  public SpecificationParseException(String message) {
-    super(message);
-  }
+  /**
+   * Generates a configured set of {@link Step} to be executed.
+   *
+   * @return List of {@link Step}.
+   */
+  List<Step> getSteps() throws DirectiveParseException;
 }
-

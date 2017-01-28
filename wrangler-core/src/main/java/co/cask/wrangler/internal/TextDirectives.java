@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.internal;
 
-import co.cask.wrangler.api.Specification;
-import co.cask.wrangler.api.SpecificationParseException;
+import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
@@ -56,7 +56,7 @@ import java.util.regex.Pattern;
 /**
  * Parses the DSL into specification containing steps for wrangling.
  *
- * Following are some of the commands and format that {@link TextSpecification}
+ * Following are some of the commands and format that {@link TextDirectives}
  * will handle.
  *
  * <ul>
@@ -71,7 +71,7 @@ import java.util.regex.Pattern;
  *   <li>indexsplit h 1 4 splitcol</li>
  * </ul>
  */
-public class TextSpecification implements Specification {
+public class TextDirectives implements Directives {
   static final char TAB = '\t';
 
   // directives for wrangling.
@@ -80,7 +80,7 @@ public class TextSpecification implements Specification {
   // Mapping of specification formats.
   Map<String, String> formats = new HashMap<>();
 
-  public TextSpecification(String[] directives) {
+  public TextDirectives(String[] directives) {
     this.directives = directives;
 
     // Add all the usages.
@@ -114,7 +114,7 @@ public class TextSpecification implements Specification {
     formats.put("split-to-columns","split-to-columns <column> <regex>");
   }
 
-  public TextSpecification(String directives) {
+  public TextDirectives(String directives) {
     this(directives.split("\n"));
   }
 
@@ -124,7 +124,7 @@ public class TextSpecification implements Specification {
    * @return List of steps to be executed.
    * @throws ParseException
    */
-  private List<Step> parse() throws SpecificationParseException {
+  private List<Step> parse() throws DirectiveParseException {
     List<Step> steps = new ArrayList<>();
 
     // Split command by EOL
@@ -157,7 +157,7 @@ public class TextSpecification implements Specification {
                 steps.add(new CsvParser(lineno, directive, opt, STARTING_COLUMN, false));
                 steps.add(new Drop(lineno, directive, STARTING_COLUMN));
               } else {
-                throw new SpecificationParseException(
+                throw new DirectiveParseException(
                   String.format("Unknown format '%s' specified at line %d", format, lineno)
                 );
               }
@@ -350,17 +350,27 @@ public class TextSpecification implements Specification {
         }
         break;
 
-        // parse-as-fixed-length <column> <parse ranges>
+        // parse-as-fixed-length <column> <widths> [<padding>]
         case "parse-as-fixed-length" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String ranges = getNextToken(tokenizer, "\n", command, "ranges", lineno);
-          if (!isValidRangeExpression(ranges)) {
-            throw new SpecificationParseException(
-              String.format("Closed range format [%s] is incorrect. Specify format as s1-e1[,s2-e2,[e3]*]*",
-                            ranges)
-            );
+          String widthStr = getNextToken(tokenizer, command, "widths", lineno);
+          String padding = getNextToken(tokenizer, "\n", column, "padding", lineno, true);
+          if (padding == null || padding.isEmpty()) {
+            padding = " "; // Add space as padding.
           }
-          steps.add(new FixedLengthParser(lineno, directive, column, ranges));
+          String[] widthsStr = widthStr.split(",");
+          int[] widths = new int[widthsStr.length];
+          int i = 0;
+          for (String w : widthsStr) {
+            try {
+              widths[i] = Integer.parseInt(w);
+            } catch (NumberFormatException e) {
+              throw new DirectiveParseException(
+              );
+            }
+            ++i;
+          }
+          steps.add(new FixedLengthParser(lineno, directive, column, widths, padding));
         }
         break;
 
@@ -381,7 +391,7 @@ public class TextSpecification implements Specification {
         break;
 
         default:
-          throw new SpecificationParseException(
+          throw new DirectiveParseException(
             String.format("Unknown directive '%s' found in the specification at line %d", command, lineno)
           );
       }
@@ -423,18 +433,18 @@ public class TextSpecification implements Specification {
 
   // If there are more tokens, then it proceeds with parsing, else throws exception.
   private String getNextToken(StringTokenizer tokenizer, String directive,
-                          String field, int lineno) throws SpecificationParseException {
+                          String field, int lineno) throws DirectiveParseException {
     return getNextToken(tokenizer, null, directive, field, lineno, false);
   }
 
   private String getNextToken(StringTokenizer tokenizer, String delimiter,
-                              String directive, String field, int lineno) throws SpecificationParseException {
+                              String directive, String field, int lineno) throws DirectiveParseException {
     return getNextToken(tokenizer, delimiter, directive, field, lineno, false);
   }
 
   private String getNextToken(StringTokenizer tokenizer, String delimiter,
                           String directive, String field, int lineno, boolean optional)
-    throws SpecificationParseException {
+    throws DirectiveParseException {
     String value = null;
     if (tokenizer.hasMoreTokens()) {
       if (delimiter == null) {
@@ -445,7 +455,7 @@ public class TextSpecification implements Specification {
     } else {
       if (!optional) {
         String d = formats.get(directive);
-        throw new SpecificationParseException(
+        throw new DirectiveParseException(
           String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)",
                         field, lineno, directive, d)
         );
@@ -459,7 +469,7 @@ public class TextSpecification implements Specification {
    * @throws ParseException throw in case of parsing exception of specification.
    */
   @Override
-  public List<Step> getSteps() throws SpecificationParseException {
+  public List<Step> getSteps() throws DirectiveParseException {
     return parse();
   }
 }
