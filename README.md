@@ -7,21 +7,64 @@
 [![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A pipeline plugin or a service for performing data transformation using a set of instructions. The instruction are
-generated either through an interactive user interface or manual entered into the plugin. Each record or an event
-is passed through a series of instructions to either to transformed or filtered.
+Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
+
+## Example
+
+Following is a example for transforming a text file using the wrangler directives. 
+
+```
+  01. split-to-rows body \n
+  02. parse-to-csv body , true
+  03. set columns id,first,last,emailid,gender,address,city,state,zipcode,dob,age,hrlywage,ssn
+  04. filter-row-if-matched emailid .*@gmail.com
+  05. set column name concat(last, \", \", first)
+  06. drop last
+  07. drop first
+  08. set column salary hrlywage * 40 * 4
+  09. filter-row-if-true age > 12
+  10. uppercase gender
+  11. mask-number ssn xxx-xx-####
+  12. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
+  13. quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
+  14. split-on-column address |
+  15. rename address_1 houseno
+  16. drop address_2
+```
 
 ## Concepts
 
-### Directive
+This implementation of wrangler defines the following concepts. Please familiarize yourself with these concepts. 
+
 ### Record
+
+A Record is a collection of field names and field values. 
+
+### Directive
+
+A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into zero or more records. A directive can produce one or more Steps to be executed by the Pipeline. 
+
+### Step
+
+A Step is a implementation of a data transformation function operating on a Record or set of records. A step can generate zero or more Records from the application of a function. 
+
 ### Pipeline
 
-## Directives
-Wrangler plugin supports an easy way to specify data transformation using directives. Directives are
-instructions that tell plugin how to transform the incoming record. All of the directives are transformational
-and they operate on the input row to generate a new row. The directives are applied on the input record in
-the order they are specified.
+A Pipeline is a collection of Steps to be applied on a Record. Record(s) outputed from each Step is passed to the next Step in the pipeline. 
+
+## Available Directives
+
+Following are different directives currently available.
+
+* [CSV Parsing](docs/csv-parser.md)
+* [JSON Parsing](docs/json-parser.md)
+* [Fixed Length Parsing](docs/fixed-length-parser.md)
+* [Text Transformations](docs/text-transformation.md)
+* [Quantization](docs/quantize.md)
+* [Date Transformations](docs/date-time.md)
+* [Masking](docs/masking.md)
+* [Row Filtering](docs/row-filtering.md)
+* [Column Operations](docs/column-operations.md)
 
 ## Types of Directives
 Following are different types of directives that are supported by the Wrangler plugin.
