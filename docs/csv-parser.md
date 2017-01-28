@@ -6,9 +6,12 @@ Parses a column a comma separated value (CSV).
 ```
   parse-as-csv {column-name} {delimiter} {true or false to indicate skip empty lines}
 ```
-* column-name - Name of the column to parsed as CSV
-* delimiter - Specifies the delimiter to be used for parsing as CSV record.
-* Skip empty lines - true, if you want to skip empty lines, false otherwise (default: false)
+
+| Argument      | Description   |
+| ------------- |:-------------:|
+| column-name   | Name of the column in the record to be parsed as CSV |
+| delimiter     | Specifies a delimiting column seperator character to be used for splitting record into columns. |
+| skip-empty-lines | true, to skip empty lines, false otherwise |
 
 ### Example
 ```
