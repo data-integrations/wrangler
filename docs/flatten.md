@@ -1,6 +1,6 @@
 # Flatten
 
-Flatten directive separates the elements in a repeated field into individual records.
+FLATTEN directive separates the elements in a repeated field into individual records.
 
 ## Syntax 
 
