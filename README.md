@@ -7,21 +7,27 @@
 [![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A pipeline plugin or a service for performing data transformation using a set of instructions. The instruction are
-generated either through an interactive user interface or manual entered into the plugin. Each record or an event
-is passed through a series of instructions to either to transformed or filtered.
+Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
 
 ## Concepts
 
-### Directive
+This implementation of wrangler defines the following concepts. Please familiarize yourself with these concepts. 
+
 ### Record
+
+A Record is a collection of field names and field values. 
+
+### Directive
+
+A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into one or more records. A directive operates on a record at a time to generate one or more transformed records. A directive can produce one or more Steps. 
+
+### Step
+
+A Step is a data transformation function operating on a Record. A step can generate zero or more Records from the application of a function. 
+
 ### Pipeline
 
-## Directives
-Wrangler plugin supports an easy way to specify data transformation using directives. Directives are
-instructions that tell plugin how to transform the incoming record. All of the directives are transformational
-and they operate on the input row to generate a new row. The directives are applied on the input record in
-the order they are specified.
+A Pipeline is a collection of Steps to be applied on a Record. Record(s) outputed from each Step is passed to the next Step in the pipeline. 
 
 ## Types of Directives
 Following are different types of directives that are supported by the Wrangler plugin.
