@@ -57,7 +57,9 @@ A Pipeline is a collection of Steps to be applied on a Record. Record(s) outpute
 Following are different directives currently available.
 
 * [CSV Parsing](docs/csv-parser.md)
-* [JSON Parsing](docs/json-parser.md)
+* [Json Parsing](docs/json-parser.md)
+  * [Json Parser](docs/json-parser.md#parse-json)
+  * [Json Path](docs/json-parser.md#json-path)
 * [Fixed Length Parsing](docs/fixed-length-parser.md)
 * [Text Transformations](docs/text-transformation.md)
 * [Quantization](docs/quantize.md)
