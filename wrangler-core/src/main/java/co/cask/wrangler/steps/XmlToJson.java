@@ -21,28 +21,25 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.XML;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * A Json Parser Stage for parsing the {@link Record} provided based on configuration.
+ * A XML to Json Parser Stage.
  */
-public class JsonParser extends AbstractStep {
+public class XmlToJson extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;
-  private boolean deleteColumn;
 
-  public JsonParser(int lineno, String detail, String col, boolean deleteColumn) {
+  public XmlToJson(int lineno, String detail, String col) {
     super(lineno, detail);
     this.col = col;
-    this.deleteColumn = deleteColumn;
   }
 
   /**
-   * Parses a give column in a {@link Record} as a CSV Record.
+   * Converts an XML into JSON record.
    *
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
@@ -53,43 +50,27 @@ public class JsonParser extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
 
-    // Iterate through all the records.
     for (Record record : records) {
-
       int idx = record.find(col);
       if (idx != -1) {
         Object value = record.getValue(idx);
+        if (value == null) {
+          throw new StepException(toString() + " : Did not find '" + col + "' in the record.");
+        }
 
-        JSONObject object = null;
         try {
           if (value instanceof String) {
-            object = new JSONObject((String) value);
-          } else if (value instanceof JSONObject) {
-            object = (JSONObject) value;
+            record.setValue(idx, XML.toJSONObject((String) value));
           } else {
             throw new StepException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type JSONObject or String.", toString(),
+              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
                             col, value.getClass().getName())
             );
           }
-          // Iterate through keys.
-          Iterator<String> keysItr = object.keys();
-          while(keysItr.hasNext()) {
-            String key = keysItr.next();
-            Object v = object.get(key);
-            record.add(String.format("%s.%s", col, key), v);
-          }
-
-          // Delete the original column.
-          if (deleteColumn) {
-            record.remove(idx);
-          }
-          results.add(record);
         } catch (JSONException e) {
           throw new StepException(toString() + " : " + e.getMessage());
         }
-      } else {
-        throw new StepException(toString() + " : Did not find '" + col + "' in the record.");
+        results.add(record);
       }
     }
     return results;

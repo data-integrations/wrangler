@@ -154,7 +154,7 @@ public class PipelineTest {
     Assert.assertEquals("Sat, Jan 7, '17", actual.getValue("unixtimestamp"));
   }
 
-  private List<Record> execute(List<Step> steps, List<Record> records) throws StepException {
+  public static List<Record> execute(List<Step> steps, List<Record> records) throws StepException {
     for (Step step : steps) {
       records = step.execute(records, null);
     }

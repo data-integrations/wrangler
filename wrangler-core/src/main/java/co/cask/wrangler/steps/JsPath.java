@@ -83,6 +83,18 @@ public class JsPath extends AbstractStep {
       // Apply JSON path expression to it.
       Object e = Configuration.defaultConfiguration().jsonProvider().parse(v);
       Object x = JsonPath.read(e, path);
+      List<Object> objects = new ArrayList<>();
+      if (x instanceof net.minidev.json.JSONArray) {
+        for(int i = 0; i < ((net.minidev.json.JSONArray) x).size(); ++i) {
+          objects.add(((net.minidev.json.JSONArray) x).get(i));
+        }
+        x = objects;
+      } else if (x instanceof JSONArray) {
+        for(int i = 0; i < ((JSONArray) x).length(); ++i) {
+          objects.add(((JSONArray) x).get(i));
+        }
+        x = objects;
+      }
 
       int pos = record.find(dest);
       if (pos == -1) {
