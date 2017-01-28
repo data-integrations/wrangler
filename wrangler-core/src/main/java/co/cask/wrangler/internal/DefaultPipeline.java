@@ -18,12 +18,12 @@ package co.cask.wrangler.internal;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
+import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Specification;
-import co.cask.wrangler.api.SpecificationParseException;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 
@@ -34,17 +34,17 @@ import java.util.List;
  * Wrangle Pipeline executes steps in the order they are specified.
  */
 public final class DefaultPipeline implements Pipeline<Record, StructuredRecord> {
-  private Specification specification;
+  private Directives directives;
   private PipelineContext context;
 
   /**
-   * Configures the pipeline based on the specification.
+   * Configures the pipeline based on the directives.
    *
-   * @param specification Wrangle specification.
+   * @param directives Wrangle directives.
    */
   @Override
-  public void configure(Specification specification, PipelineContext context) {
-    this.specification = specification;
+  public void configure(Directives directives, PipelineContext context) {
+    this.directives = directives;
     this.context = context;
   }
 
@@ -52,12 +52,12 @@ public final class DefaultPipeline implements Pipeline<Record, StructuredRecord>
   public List<StructuredRecord> execute(List<Record> records, Schema schema) throws PipelineException {
     // Iterate through steps
     try {
-      for (Step step : specification.getSteps()) {
+      for (Step step : directives.getSteps()) {
         records = step.execute(records, context);
       }
     } catch (StepException e) {
       throw new PipelineException(e);
-    } catch (SpecificationParseException e) {
+    } catch (DirectiveParseException e) {
       throw new PipelineException(e);
     }
 

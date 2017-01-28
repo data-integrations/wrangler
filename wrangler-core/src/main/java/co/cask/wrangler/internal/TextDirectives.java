@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.internal;
 
-import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
@@ -50,8 +50,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Parses the DSL into specification containing steps for wrangling.
@@ -323,7 +321,7 @@ public class TextDirectives implements Directives {
           if (delimStr.startsWith("\\")) {
             String unescapedStr = StringEscapeUtils.unescapeJava(delimStr);
             if (unescapedStr == null) {
-              throw new IllegalArgumentException("Invalid delimiter for CSV Parser: " + delimStr);
+              throw new DirectiveParseException("Invalid delimiter for CSV Parser: " + delimStr);
             }
             delimiter = unescapedStr.charAt(0);
           }
@@ -366,6 +364,7 @@ public class TextDirectives implements Directives {
               widths[i] = Integer.parseInt(w);
             } catch (NumberFormatException e) {
               throw new DirectiveParseException(
+                String.format("Width '%s' specified at location %d is not a number.", w, i)
               );
             }
             ++i;
@@ -392,43 +391,12 @@ public class TextDirectives implements Directives {
 
         default:
           throw new DirectiveParseException(
-            String.format("Unknown directive '%s' found in the specification at line %d", command, lineno)
+            String.format("Unknown directive '%s' found in the directive at line %d", command, lineno)
           );
       }
       lineno++;
     }
     return steps;
-  }
-
-  // Validates the range.
-  private boolean isValidRangeExpression(String text) {
-    if (text == null || text.isEmpty()) {
-      return false;
-    }
-    Pattern re_valid = Pattern.compile(
-      "# Validate comma separated integers/integer ranges.\n" +
-        "^             # Anchor to start of string.         \n" +
-        "[0-9]+        # Integer of 1st value (required).   \n" +
-        "(?:           # Range for 1st value (optional).    \n" +
-        "  -           # Dash separates range integer.      \n" +
-        "  [0-9]+      # Range integer of 1st value.        \n" +
-        ")?            # Range for 1st value (optional).    \n" +
-        "(?:           # Zero or more additional values.    \n" +
-        "  ,           # Comma separates additional values. \n" +
-        "  [0-9]+      # Integer of extra value (required). \n" +
-        "  (?:         # Range for extra value (optional).  \n" +
-        "    -         # Dash separates range integer.      \n" +
-        "    [0-9]+    # Range integer of extra value.      \n" +
-        "  )?          # Range for extra value (optional).  \n" +
-        ")*            # Zero or more additional values.    \n" +
-        "$             # Anchor to end of string.           ",
-      Pattern.COMMENTS);
-    Matcher m = re_valid.matcher(text);
-    if (m.matches()) {
-      return true;
-    } else {
-      return false;
-    }
   }
 
   // If there are more tokens, then it proceeds with parsing, else throws exception.

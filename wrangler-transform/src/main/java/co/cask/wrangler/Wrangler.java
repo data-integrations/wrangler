@@ -27,14 +27,14 @@ import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
+import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Specification;
-import co.cask.wrangler.api.SpecificationParseException;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.internal.DefaultPipeline;
-import co.cask.wrangler.internal.TextSpecification;
+import co.cask.wrangler.internal.TextDirectives;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
@@ -107,10 +107,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Validate the DSL by parsing DSL.
-    Specification specification = new TextSpecification(config.specification);
+    Directives directives = new TextDirectives(config.specification);
     try {
-      specification.getSteps();
-    } catch (SpecificationParseException e) {
+      directives.getSteps();
+    } catch (DirectiveParseException e) {
       throw new IllegalArgumentException(e);
     }
 
@@ -149,9 +149,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     super.initialize(context);
 
     // Parse DSL and initialize the wrangle pipeline.
-    Specification specification = new TextSpecification(config.specification);
+    Directives directives = new TextDirectives(config.specification);
     pipeline = new DefaultPipeline();
-    pipeline.configure(specification, new WranglerPipelineContext(context.getMetrics(), context.getStageName()));
+    pipeline.configure(directives, new WranglerPipelineContext(context.getMetrics(), context.getStageName()));
 
     // Based on the configuration create output schema.
     try {
@@ -174,7 +174,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         row.add(field.getName(), input.get(field.getName()));
       }
     } else {
-      row = new Record(Specification.STARTING_COLUMN, input.get(config.field));
+      row = new Record(Directives.STARTING_COLUMN, input.get(config.field));
     }
 
     // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
@@ -223,7 +223,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    */
   public static class Config extends PluginConfig {
     @Name("specification")
-    @Description("Specification for wrangling the input records")
+    @Description("Directives for wrangling the input records")
     private String specification;
 
     @Name("field")

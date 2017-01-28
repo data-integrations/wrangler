@@ -94,7 +94,7 @@ public class CsvParser extends AbstractStep {
       row = new Record();
     }
     for ( int i = 0; i < record.size(); i++) {
-      row.addColumn(col + "_col" + (i + 1));
+      row.addColumn(col + "_" + (i + 1));
       row.addValue(record.get(i));
     }
     return row;

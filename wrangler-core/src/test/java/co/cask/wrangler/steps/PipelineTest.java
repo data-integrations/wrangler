@@ -16,12 +16,11 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
-import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.internal.TextSpecification;
+import co.cask.wrangler.internal.TextDirectives;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -155,7 +154,7 @@ public class PipelineTest {
     Assert.assertEquals("Sat, Jan 7, '17", actual.getValue("unixtimestamp"));
   }
 
-  private List<Record> execute(List<Step> steps, List<Record> records) throws SkipRecordException, StepException {
+  private List<Record> execute(List<Step> steps, List<Record> records) throws StepException {
     for (Step step : steps) {
       records = step.execute(records, null);
     }
@@ -167,7 +166,7 @@ public class PipelineTest {
     List<Step> steps = new ArrayList<>();
     List<Record> records = Arrays.asList(new Record("__col", StringEscapeUtils.unescapeJava("1\\ta")));
 
-    TextSpecification ts = new TextSpecification("set format csv \\t false\n" +
+    TextDirectives ts = new TextDirectives("set format csv \\t false\n" +
                                                    "set columns column1,column2\n" +
                                                    "rename column1 id\n" +
                                                    "rename column2 useragent\n" +
@@ -196,7 +195,7 @@ public class PipelineTest {
       "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1",
       "format-date dob MM/dd/YYYY EEE, d MMM yyyy HH:mm:ss Z"
     };
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
 
     // Define all the steps in the wrangler.
     List<Step> steps = new ArrayList<>(specification.getSteps());
@@ -223,7 +222,7 @@ public class PipelineTest {
       "set column email string:reverse(email1)"
     };
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
 
     List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io," +
       "32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"));
@@ -252,7 +251,7 @@ public class PipelineTest {
       new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
     );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
@@ -299,7 +298,7 @@ public class PipelineTest {
       new Record("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,20.7,150 Mars Ave,Palo Alto,CA,USA,32826")
     );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
@@ -339,7 +338,7 @@ public class PipelineTest {
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
@@ -356,11 +355,11 @@ public class PipelineTest {
     String[] directives = new String[] {
       "parse-as-csv body , true",
       "drop body",
-      "rename body_col1 date",
+      "rename body_1 date",
       "parse-as-csv date / true",
-      "rename date_col1 month",
-      "rename date_col2 day",
-      "rename date_col3 year"
+      "rename date_1 month",
+      "rename date_2 day",
+      "rename date_3 year"
     };
 
     List<Record> records = Arrays.asList(
@@ -371,7 +370,7 @@ public class PipelineTest {
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
@@ -387,10 +386,10 @@ public class PipelineTest {
       "parse-as-json body.deviceReference.OS",
       "parse-as-csv  body.deviceReference.screenSize | true",
       "drop body.deviceReference.screenSize",
-      "rename body.deviceReference.screenSize_col1 size1",
-      "rename body.deviceReference.screenSize_col2 size2",
-      "rename body.deviceReference.screenSize_col3 size3",
-      "rename body.deviceReference.screenSize_col4 size4",
+      "rename body.deviceReference.screenSize_1 size1",
+      "rename body.deviceReference.screenSize_2 size2",
+      "rename body.deviceReference.screenSize_3 size3",
+      "rename body.deviceReference.screenSize_4 size4",
       "json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']",
       "json-path signal_lost signal_lost $.[0]",
       "drop body",
@@ -411,7 +410,7 @@ public class PipelineTest {
         "\"It is an AT&T samung wearable device.\" } }")
       );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
@@ -428,7 +427,7 @@ public class PipelineTest {
       new Record("body", "AABBCDE\nEEFFFF")
     );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
@@ -448,7 +447,7 @@ public class PipelineTest {
       new Record("body", "AABBCDE\nEEFFFF")
     );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
@@ -461,44 +460,60 @@ public class PipelineTest {
   @Test
   public void testFixedLengthParser() throws Exception {
     String[] directives = new String[] {
-      "parse-as-fixed-length body 1-2,3-4,5,6,7-9,10-13",
+      "parse-as-fixed-length body 2,2,1,1,3,4",
     };
 
     List<Record> records = Arrays.asList(
       new Record("body", "AABBCDEEEFFFF")
     );
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
     records = execute(steps, records);
 
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("AA", records.get(0).getValue("body_col1"));
-    Assert.assertEquals("BB", records.get(0).getValue("body_col2"));
-    Assert.assertEquals("C", records.get(0).getValue("body_col3"));
-    Assert.assertEquals("D", records.get(0).getValue("body_col4"));
-    Assert.assertEquals("EEE", records.get(0).getValue("body_col5"));
-    Assert.assertEquals("FFFF", records.get(0).getValue("body_col6"));
+    Assert.assertEquals("AA", records.get(0).getValue("body_1"));
+    Assert.assertEquals("BB", records.get(0).getValue("body_2"));
+    Assert.assertEquals("C", records.get(0).getValue("body_3"));
+    Assert.assertEquals("D", records.get(0).getValue("body_4"));
+    Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
+    Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
   }
 
-  @Test(expected = SpecificationParseException.class)
+  @Test(expected = DirectiveParseException.class)
   public void testFixedLengthParserBadRangeSpecification() throws Exception {
     String[] directives = new String[] {
       "parse-as-fixed-length body A-B,C-D,12",
     };
 
-    TextSpecification specification = new TextSpecification(directives);
+    TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
   }
 
   @Test
-  public void testSplitOnRegex() throws Exception {
-    String s = "a,b,c\nd,e,f\n";
-    String[] x = s.split("\n");
-    Assert.assertTrue(x.length == 2);
+  public void testFixedLengthWidthPadding() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-fixed-length body 4,4,4,4,4,4 _" ,
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "AA__BB__C___D___EEE_FFFF")
+    );
+
+    TextDirectives specification = new TextDirectives(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+    records = execute(steps, records);
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals("AA", records.get(0).getValue("body_1"));
+    Assert.assertEquals("BB", records.get(0).getValue("body_2"));
+    Assert.assertEquals("C", records.get(0).getValue("body_3"));
+    Assert.assertEquals("D", records.get(0).getValue("body_4"));
+    Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
+    Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
   }
-  
 }
 

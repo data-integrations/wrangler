@@ -19,7 +19,6 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
@@ -58,9 +57,8 @@ public class RecordConditionFilter extends AbstractStep {
    *
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return the input {@link Record}, if condition is false, else throw {@link SkipRecordException}
+   * @return the input {@link Record}, if condition is false
    * @throws StepException if there are any issues with processing the condition
-   * @throws SkipRecordException if condition evaluates to true.
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
