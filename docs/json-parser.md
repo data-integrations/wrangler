@@ -1,13 +1,18 @@
-#### JSON Parser
+## JSON Parser
 
-Parses a column as a JSON.
+Directive for parsing a column value as JSON. 
 
-**Specification**
+### Specification
+
 ```
-  parse-as-json {column-name}
+parse-as-json {column-name}
 ```
 
-**Example**
+| Argument      | Description |
+| ------------- | ------------- |
+| column-name   | Name of the column in the record to be parsed as JSON. |
+
+### Example
 ```
   parse-as-json body,
   parse-as-json body.deviceReference,
