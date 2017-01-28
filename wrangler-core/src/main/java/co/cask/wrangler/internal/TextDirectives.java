@@ -112,8 +112,10 @@ public class TextDirectives implements Directives {
     formats.put("json-path", "json-path <source> <destination> <json path>");
     formats.put("split-to-rows","split-to-rows <column> <regex>");
     formats.put("split-to-columns","split-to-columns <column> <regex>");
-    formats.put("xml-to-json", "xml-to-json <column>");
+    formats.put("parse-as-xml", "parse-as-xml <column>");
+    formats.put("xml-path", "xml-path <source> <destination> <path>");
     formats.put("flatten", "flatten <column>[,<column>,<column>,...]");
+    formats.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
   }
 
   public TextDirectives(String directives) {
@@ -337,6 +339,7 @@ public class TextDirectives implements Directives {
         break;
 
         // parse-as-json <column> <delete-column, true|false>
+        case "parse-xml-element":
         case "parse-as-json" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String deleteCol = getNextToken(tokenizer, "\n", command, "delete-column", lineno, true);
@@ -349,6 +352,7 @@ public class TextDirectives implements Directives {
         break;
 
         // json-path <source> <destination> <json-path>
+        case "xml-path" :
         case "json-path" : {
           String src = getNextToken(tokenizer, command, "source", lineno);
           String dest = getNextToken(tokenizer, command, "dest", lineno);
@@ -398,8 +402,8 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // xml-to-json <column>
-        case "xml-to-json" : {
+        // parse-as-xml <column>
+        case "parse-as-xml" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new XmlToJson(lineno, directive, column));
         }

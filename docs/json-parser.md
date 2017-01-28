@@ -55,12 +55,13 @@ Applying the same directive on field ```body.name``` generates the following res
 ### Specification
 
 ```
-parse-as-json {column-name}
+parse-as-json {column-name} {delete-column}
 ```
 
 | Argument      | Description |
 | ------------- | ------------- |
 | column-name   | Name of the column in the record to be parsed as JSON. |
+| delete-column   | Deletes the column name from the record. |
 
 ### Example
 ```
