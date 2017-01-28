@@ -1,4 +1,4 @@
-# CSV Parser
+# CSV Parse
 
 PARSE-AS-CSV is a directive for parsing an input record as comma-seperated value. 
 
