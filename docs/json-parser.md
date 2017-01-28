@@ -99,6 +99,22 @@ or the bracket–notation
 $['name']['first']
 ```
 
+### Specification
+
+```
+json-path {column-name} {path-expression}
+```
+
+| Argument      | Description |
+| ------------- | ------------- |
+| column-name   | Name of the column in the record to be parsed as JSON. |
+| path-expression | Specifies the DSL for reading Json records. Expression is relative to the object it's being operated on. |
+
+### Example
+```
+json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']
+```
+
 Operators
 ---------
 
