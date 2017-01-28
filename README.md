@@ -42,17 +42,20 @@ A Record is a collection of field names and field values.
 
 ### Directive
 
-A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into one or more records. A directive operates on a record at a time to generate one or more transformed records. A directive can produce one or more Steps. 
+A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into zero or more records. A directive can produce one or more Steps to be executed by the Pipeline. 
 
 ### Step
 
-A Step is a data transformation function operating on a Record. A step can generate zero or more Records from the application of a function. 
+A Step is a implementation of a data transformation function operating on a Record or set of records. A step can generate zero or more Records from the application of a function. 
 
 ### Pipeline
 
 A Pipeline is a collection of Steps to be applied on a Record. Record(s) outputed from each Step is passed to the next Step in the pipeline. 
 
 ## Available Directives
+
+Following are different directives currently available.
+
 * [CSV Parsing](docs/csv-parser.md)
 * [JSON Parsing](docs/json-parser.md)
 * [Fixed Length Parsing](docs/fixed-length-parser.md)
