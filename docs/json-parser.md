@@ -2,8 +2,8 @@
 
 There are two directives for parsing and accessing different attributes of a JSON event. 
 
-* [Parse Json](parse-json)
-* [Json Path](json-path)
+* [Parse Json](#parse-json)
+* [Json Path](#json-path)
 
 ## Parse Json.
 
