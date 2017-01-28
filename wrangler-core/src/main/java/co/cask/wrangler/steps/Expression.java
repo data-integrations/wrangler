@@ -19,7 +19,6 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
@@ -29,7 +28,9 @@ import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -103,42 +104,48 @@ public class Expression extends AbstractStep {
   /**
    * Transforms a column value from any case to upper case.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    Record modified = new Record(record);
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
 
-    // Move the fields from the record into the context.
-    JexlContext ctx = new MapContext();
-    for (int i = 0; i < record.length(); ++i) {
-      ctx.set(record.getColumn(i), record.getValue(i));
-    }
-    
-    // Execution of the script / expression based on the record data
-    // mapped into context.
-    try {
-      Object result = script.execute(ctx);
-      int idx = modified.find(this.column);
-      if (idx == -1) {
-        modified.add(this.column, result.toString());
-      } else {
-        modified.setValue(idx, result.toString());
+    for (Record record : records) {
+      Record modified = new Record(record);
+
+      // Move the fields from the record into the context.
+      JexlContext ctx = new MapContext();
+      for (int i = 0; i < record.length(); ++i) {
+        ctx.set(record.getColumn(i), record.getValue(i));
       }
-    } catch (JexlException e) {
-      // Generally JexlException wraps the original exception, so it's good idea
-      // to check if there is a inner exception, if there is wrap it in 'StepException'
-      // else just print the error message.
-      if (e.getCause() != null) {
-        throw new StepException(toString() + " : " + e.getLocalizedMessage(), e.getCause());
-      } else {
-        throw new StepException(toString() + " : " + e.getLocalizedMessage());
+
+      // Execution of the script / expression based on the record data
+      // mapped into context.
+      try {
+        Object result = script.execute(ctx);
+        int idx = modified.find(this.column);
+        if (idx == -1) {
+          modified.add(this.column, result.toString());
+        } else {
+          modified.setValue(idx, result.toString());
+        }
+      } catch (JexlException e) {
+        // Generally JexlException wraps the original exception, so it's good idea
+        // to check if there is a inner exception, if there is wrap it in 'StepException'
+        // else just print the error message.
+        if (e.getCause() != null) {
+          throw new StepException(toString() + " : " + e.getLocalizedMessage(), e.getCause());
+        } else {
+          throw new StepException(toString() + " : " + e.getLocalizedMessage());
+        }
       }
+      results.add(modified);
     }
-    return modified;
+
+    return results;
   }
 }
 

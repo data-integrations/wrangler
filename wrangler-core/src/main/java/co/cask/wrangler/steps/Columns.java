@@ -19,9 +19,9 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,21 +50,26 @@ public class Columns extends AbstractStep {
   /**
    * Sets the new column names for the {@link Record}.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
    * @throws StepException
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    Record r = new Record(record);
-    if (replaceColumnNames) {
-      r.clearColumns();
+  public List<Record> execute(List<Record> records, PipelineContext context)
+    throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      Record r = new Record(record);
+      if (replaceColumnNames) {
+        r.clearColumns();
+      }
+      for (String name : columns) {
+        r.addColumn(name);
+      }
+      results.add(r);
     }
-    for (String name : columns) {
-      r.addColumn(name);
-    }
-    return r;
+    return results;
   }
 }
 

@@ -19,13 +19,14 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * A Wrangle step for managing date formats.
@@ -54,49 +55,53 @@ public class FormatDate extends AbstractStep {
   /**
    * Formats the date and sets the column.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
    * @throws StepException
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    Record dt = new Record(record);
-    int idx = dt.find(column);
-    if (idx != -1) {
-      try {
-        Date date = null;
-        Object value = record.getValue(idx);
-        if (value instanceof String) {
-          String datetimestamp = (String) record.getValue(idx);
-          if (datetimestamp.matches("[1-9][0-9]{9}")) {
-            date = new Date(Long.parseLong(datetimestamp) * 1000);
-          } else if (datetimestamp.matches("[1-9][0-9]{12}")) {
-            date = new Date(Long.parseLong(datetimestamp));
-          } else {
-            date = sourceFmt.parse((String) record.getValue(idx));
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      Record dt = new Record(record);
+      int idx = dt.find(column);
+      if (idx != -1) {
+        try {
+          Date date = null;
+          Object value = record.getValue(idx);
+          if (value instanceof String) {
+            String datetimestamp = (String) record.getValue(idx);
+            if (datetimestamp.matches("[1-9][0-9]{9}")) {
+              date = new Date(Long.parseLong(datetimestamp) * 1000);
+            } else if (datetimestamp.matches("[1-9][0-9]{12}")) {
+              date = new Date(Long.parseLong(datetimestamp));
+            } else {
+              date = sourceFmt.parse((String) record.getValue(idx));
+            }
+          } else if (value instanceof Long) {
+            date = new Date((Long) value);
+          } else if (value instanceof Integer) {
+            date = new Date((Integer) value);
           }
-        } else if (value instanceof Long) {
-          date = new Date((Long) value);
-        } else if (value instanceof Integer) {
-          date = new Date((Integer) value);
-        }
 
-        // In-case the object doesn't match the condition above, then date object is
-        // null, in that case, we don't apply the date transformation.
-        if (date != null) {
-          dt.setValue(idx, destinationFmt.format(date));
+          // In-case the object doesn't match the condition above, then date object is
+          // null, in that case, we don't apply the date transformation.
+          if (date != null) {
+            dt.setValue(idx, destinationFmt.format(date));
+          }
+        } catch (ParseException e) {
+          throw new StepException(toString() + " : '" +
+                                    column + ", " + e.getMessage(), e);
         }
-      } catch (ParseException e) {
+      } else {
         throw new StepException(toString() + " : '" +
-                                  column + ", " + e.getMessage(), e);
+                                  column + "' column is not defined in the record. Please check the wrangling step."
+        );
       }
-    } else {
-      throw new StepException(toString() + " : '" +
-                                column + "' column is not defined in the record. Please check the wrangling step."
-      );
+      results.add(dt);
     }
-    return dt;
+    return results;
   }
 }
 

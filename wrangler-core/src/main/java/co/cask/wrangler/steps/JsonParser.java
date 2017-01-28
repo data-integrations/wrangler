@@ -19,12 +19,13 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * A Json Parser Stage for parsing the {@link Record} provided based on configuration.
@@ -41,43 +42,46 @@ public class JsonParser extends AbstractStep {
   /**
    * Parses a give column in a {@link Record} as a CSV Record.
    *
-   * @param row Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws StepException In case CSV parsing generates more record.
    */
   @Override
-  public Record execute(Record row, PipelineContext context) throws StepException, SkipRecordException {
-    Object value = row.getValue(col);
-    if (value == null) {
-      throw new StepException(toString() + " : Did not find '" + col + "' in the record.");
-    }
-
-    JSONObject object = null;
-    try {
-      if (value instanceof String) {
-        object = new JSONObject((String) value);
-      } else if (value instanceof JSONObject) {
-        object = (JSONObject) value;
-      } else {
-        throw new StepException(
-          String.format("%s : Invalid type '%s' of column '%s'. Should be of type JSONObject or String.", toString(),
-                        col, value.getClass().getName())
-        );
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      Object value = record.getValue(col);
+      if (value == null) {
+        throw new StepException(toString() + " : Did not find '" + col + "' in the record.");
       }
 
-      // Iterate through keys.
-      Iterator<String> keysItr = object.keys();
-      while(keysItr.hasNext()) {
-        String key = keysItr.next();
-        Object v = object.get(key);
-        row.add(String.format("%s.%s", col, key), v);
-      }
-    } catch (JSONException e) {
-      throw new StepException(toString() + " : " + e.getMessage());
-    }
+      JSONObject object = null;
+      try {
+        if (value instanceof String) {
+          object = new JSONObject((String) value);
+        } else if (value instanceof JSONObject) {
+          object = (JSONObject) value;
+        } else {
+          throw new StepException(
+            String.format("%s : Invalid type '%s' of column '%s'. Should be of type JSONObject or String.", toString(),
+                          col, value.getClass().getName())
+          );
+        }
 
-    return row;
+        // Iterate through keys.
+        Iterator<String> keysItr = object.keys();
+        while(keysItr.hasNext()) {
+          String key = keysItr.next();
+          Object v = object.get(key);
+          record.add(String.format("%s.%s", col, key), v);
+        }
+      } catch (JSONException e) {
+        throw new StepException(toString() + " : " + e.getMessage());
+      }
+      results.add(record);
+    }
+    return results;
   }
 
 }

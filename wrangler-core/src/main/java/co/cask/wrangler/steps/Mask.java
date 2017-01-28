@@ -22,6 +22,8 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -88,32 +90,37 @@ public class Mask extends AbstractStep {
   /**
    * Masks the column specified using either substitution method or shuffling.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record} with masked column.
    * @throws StepException thrown when there is issue with masking
    * @throws SkipRecordException thrown when the record needs to be skipped
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    Record masked = new Record(record);
-    int idx = record.find(column);
-    if (idx != -1) {
-      if (maskType == MASK_NUMBER) {
-        try {
-          masked.setValue(idx, maskNumber((String) record.getValue(idx), mask));
-        } catch (Exception e) {
-          System.out.println(e.getMessage());
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      Record masked = new Record(record);
+      int idx = record.find(column);
+      if (idx != -1) {
+        if (maskType == MASK_NUMBER) {
+          try {
+            masked.setValue(idx, maskNumber((String) record.getValue(idx), mask));
+          } catch (Exception e) {
+            throw new StepException(toString() + " : '" + column + "' column cannot be masked.");
+          }
+        } else if (maskType == MASK_SHUFFLE) {
+          masked.setValue(idx, maskShuffle((String) record.getValue(idx), 0));
         }
-      } else if (maskType == MASK_SHUFFLE) {
-        masked.setValue(idx, maskShuffle((String) record.getValue(idx), 0));
+      } else {
+        throw new StepException(toString() + " : '" +
+                                  column + "' column is not defined. Please check the wrangling step."
+        );
       }
-    } else {
-      throw new StepException(toString() + " : '" +
-                                column + "' column is not defined. Please check the wrangling step."
-      );
+      results.add(masked);
     }
-    return masked;
+
+    return results;
   }
 
   private String maskNumber(String number, String mask) {

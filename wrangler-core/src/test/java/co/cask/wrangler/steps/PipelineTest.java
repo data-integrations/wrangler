@@ -44,7 +44,7 @@ public class PipelineTest {
   @Test
   public void testBasicPipelineWorking() throws Exception {
     List<Step> steps = new ArrayList<>();
-    Record record = new Record("col", "1,2,a,A,one name|p2|p3");
+    List<Record> records = Arrays.asList(new Record("col", "1,2,a,A,one name|p2|p3"));
 
     // Define all the steps in the wrangler.
     steps.add(new CsvParser(0, "", new CsvParser.Options(), "col", true));
@@ -61,104 +61,111 @@ public class PipelineTest {
 
     // Run through the wrangling steps.
     for (Step step : steps) {
-      record = (Record) step.execute(record, null);
+      records = step.execute(new ArrayList<Record>(records), null);
     }
 
-    Assert.assertEquals("one", record.getColumn(0));
-    Assert.assertEquals("A", record.getValue(2));
-    Assert.assertEquals("a", record.getValue(3));
-    Assert.assertEquals("One", record.getValue("substr"));
+    Assert.assertEquals("one", records.get(0).getColumn(0));
+    Assert.assertEquals("A", records.get(0).getValue(2));
+    Assert.assertEquals("a", records.get(0).getValue(3));
+    Assert.assertEquals("One", records.get(0).getValue("substr"));
 
   }
 
   @Test
   public void testSplit() throws Exception {
     List<Step> steps = new ArrayList<>();
-    Record record = new Record("col", "1,2,a,A");
+    List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
 
     // Define all the steps in the wrangler.
     steps.add(new Split(0,"","col",",","firstCol","secondCol"));
 
     // Run through the wrangling steps.
     for (Step step : steps) {
-      record = (Record) step.execute(record, null);
+      records = step.execute(records, null);
     }
 
-    Assert.assertEquals("1", record.getValue("firstCol"));
-    Assert.assertEquals("2,a,A", record.getValue("secondCol"));
+    Assert.assertEquals("1", records.get(0).getValue("firstCol"));
+    Assert.assertEquals("2,a,A", records.get(0).getValue("secondCol"));
   }
 
   @Ignore
   @Test
   public void testSplitWithNull() throws Exception {
-    Record record = new Record("col", "1,2,a,A");
+    List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
 
     // Define all the steps in the wrangler.
     Step step = new Split(0,"","col","|","firstCol","secondCol");
 
     // Run through the wrangling steps.
-    Record actual = (Record) step.execute(record, null);
+    List<Record> actual = step.execute(records, null);
 
-    Assert.assertEquals("1,2,a,A", actual.getValue("firstCol"));
-    Assert.assertNull(actual.getValue("secondCol"));
+    Assert.assertEquals("1,2,a,A", actual.get(0).getValue("firstCol"));
+    Assert.assertNull(actual.get(0).getValue("secondCol"));
   }
 
   @Test
   public void testMaskingSubstitution() throws Exception {
     // Check valid status.
-    Record record = new Record("ssn", "888990000");
+    List<Record> record = Arrays.asList(new Record("ssn", "888990000"));
 
     // More characters in mask, but not enough in the input.
     Step step = new Mask(0, "", "ssn", "xxx-xx-#####", 1);
-    Record actual = (Record) step.execute(record, null);
-    Assert.assertEquals("xxx-xx-0000", actual.getValue("ssn"));
+    List<Record> actual = step.execute(record, null);
+    Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
 
     step = new Mask(0, "", "ssn", "xxx-xx-####-0", 1);
-    actual = (Record) step.execute(record, null);
-    Assert.assertEquals("xxx-xx-0000-0", actual.getValue("ssn"));
+    actual = step.execute(record, null);
+    Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
 
     step = new Mask(0, "", "ssn", "xxx-xx-####", 1);
-    actual = (Record) step.execute(record, null);
-    Assert.assertEquals("xxx-xx-0000", actual.getValue("ssn"));
+    actual = step.execute(record, null);
+    Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
     step = new Mask(0, "", "ssn", "x-####", 1);
-    actual = (Record) step.execute(record, null);
-    Assert.assertEquals("x-8899", actual.getValue("ssn"));
+    actual = step.execute(record, null);
+    Assert.assertEquals("x-8899", actual.get(0).getValue("ssn"));
   }
 
   @Test
   public void testMaskSuffle() throws Exception {
-    Record record = new Record("address", "150 Mars Street, Mar City, MAR, 783735");
+    List<Record> records = Arrays.asList(new Record("address", "150 Mars Street, Mar City, MAR, 783735"));
     Step step = new Mask(0, "", "address", "", 2);
-    Record actual = (Record) step.execute(record, null);
+    Record actual = (Record) step.execute(records, null).get(0);
     Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
   }
 
   @Test
   public void testDateFormat() throws Exception {
-    Record record = new Record("date", "01/06/2017");
+    List<Record> record = Arrays.asList(new Record("date", "01/06/2017"));
 
     Step step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, MMM d, ''yy");
-    Record actual = (Record) step.execute(record, null);
+    Record actual = (Record) step.execute(record, null).get(0);
     Assert.assertEquals("Fri, Jan 6, '17", actual.getValue("date"));
 
     step = new FormatDate(0, "", "date", "MM/dd/yyyy", "EEE, d MMM yyyy HH:mm:ss");
-    actual = (Record) step.execute(record, null);
+    actual = (Record) step.execute(record, null).get(0);
     Assert.assertEquals("Fri, 6 Jan 2017 00:00:00", actual.getValue("date"));
 
     step = new FormatDate(0, "", "date", "MM/dd/yyyy", "yyyy.MM.dd G 'at' HH:mm:ss");
-    actual = (Record) step.execute(record, null);
+    actual = (Record) step.execute(record, null).get(0);
     Assert.assertEquals("2017.01.06 AD at 00:00:00", actual.getValue("date"));
 
-    record = new Record("unixtimestamp", "1483803222");
+    record = Arrays.asList(new Record("unixtimestamp", "1483803222"));
     step = new FormatDate(0, "", "unixtimestamp", "EEE, MMM d, ''yy");
-    actual = (Record) step.execute(record, null);
+    actual = (Record) step.execute(record, null).get(0);
     Assert.assertEquals("Sat, Jan 7, '17", actual.getValue("unixtimestamp"));
+  }
+
+  private List<Record> execute(List<Step> steps, List<Record> records) throws SkipRecordException, StepException {
+    for (Step step : steps) {
+      records = step.execute(records, null);
+    }
+    return records;
   }
 
   @Test
   public void testEscapedStrings() throws Exception {
     List<Step> steps = new ArrayList<>();
-    Record record = new Record("__col", StringEscapeUtils.unescapeJava("1\\ta"));
+    List<Record> records = Arrays.asList(new Record("__col", StringEscapeUtils.unescapeJava("1\\ta")));
 
     TextSpecification ts = new TextSpecification("set format csv \\t false\n" +
                                                    "set columns column1,column2\n" +
@@ -169,12 +176,10 @@ public class PipelineTest {
     steps.addAll(ts.getSteps());
 
     // Run through the wrangling steps.
-    for (Step step : steps) {
-      record = (Record) step.execute(record, null);
-    }
+    records = execute(steps, records);
 
-    Assert.assertEquals("1", record.getValue("id"));
-    Assert.assertEquals("A", record.getValue("useragent"));
+    Assert.assertEquals("1", records.get(0).getValue("id"));
+    Assert.assertEquals("A", records.get(0).getValue("useragent"));
   }
 
   @Test
@@ -197,19 +202,17 @@ public class PipelineTest {
     List<Step> steps = new ArrayList<>(specification.getSteps());
 
     // Run through the wrangling steps.
-    Record record = new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
-      "150 Mars Ave,Palo Alto,CA,USA,32826");
+    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
+      "150 Mars Ave,Palo Alto,CA,USA,32826"));
 
     // Iterate through steps.
-    for (Step step : steps) {
-      record = (Record) step.execute(record, null);
-    }
+    records = execute(steps, records);
 
-    Assert.assertEquals("Joltie, Root", record.getValue("name"));
-    Assert.assertEquals("1886.3999999999999", record.getValue("salary"));
-    Assert.assertEquals("no", record.getValue("isteen"));
-    Assert.assertEquals("oi.etiloj@toor", record.getValue("email"));
-    Assert.assertEquals("13.0", record.getValue("hrlywage"));
+    Assert.assertEquals("Joltie, Root", records.get(0).getValue("name"));
+    Assert.assertEquals("1886.3999999999999", records.get(0).getValue("salary"));
+    Assert.assertEquals("no", records.get(0).getValue("isteen"));
+    Assert.assertEquals("oi.etiloj@toor", records.get(0).getValue("email"));
+    Assert.assertEquals("13.0", records.get(0).getValue("hrlywage"));
   }
 
   @Test(expected = StepException.class)
@@ -222,16 +225,14 @@ public class PipelineTest {
 
     TextSpecification specification = new TextSpecification(directives);
 
-    Record record = new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79,150 Mars Ave," +
-      "Palo Alto,CA,USA,32826");
+    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io," +
+      "32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"));
 
     // Define all the steps in the wrangler.
     List<Step> steps = new ArrayList<>(specification.getSteps());
 
     // Run through the wrangling steps.
-    for (Step step : steps) {
-      record = (Record) step.execute(record, null);
-    }
+    records = execute(steps, records);
   }
 
   @Test
@@ -243,33 +244,21 @@ public class PipelineTest {
       "filter-row-if-true id > 1092"
     };
 
-    Record[] records = new Record[] {
+    List<Record> records = Arrays.asList(
       new Record("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
-    };
+    );
 
     TextSpecification specification = new TextSpecification(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
-
-    List<Record> actuals = new ArrayList<>();
-    for (Record record : records) {
-      Record r = record;
-      try {
-        for (Step step : steps) {
-          r = (Record) step.execute(r, null);
-        }
-      } catch (SkipRecordException e) {
-        continue;
-      }
-      actuals.add(r);
-    }
+    records = execute(steps, records);
 
     // Filters all the records that don't match the pattern .*@joltie.io
-    Assert.assertTrue(actuals.size() == 1);
+    Assert.assertTrue(records.size() == 1);
   }
 
   @Test
@@ -301,37 +290,24 @@ public class PipelineTest {
       "set column wagerange (wagerange == null) ? \"NOT FOUND\" : wagerange"
     };
 
-    Record[] records = new Record[] {
+    List<Record> records = Arrays.asList(
       new Record("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,129.13,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,9.54,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,7.89,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,45.67,150 Mars Ave,Palo Alto,CA,USA,32826"),
       new Record("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,20.7,150 Mars Ave,Palo Alto,CA,USA,32826")
-    };
+    );
 
     TextSpecification specification = new TextSpecification(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
+    records = execute(steps, records);
 
-    List<Record> actuals = new ArrayList<>();
-    for (Record record : records) {
-      Record r = record;
-      try {
-        for (Step step : steps) {
-          r = (Record) step.execute(r, null);
-        }
-      } catch (SkipRecordException e) {
-        continue;
-      }
-      actuals.add(r);
-    }
-
-    Assert.assertTrue(actuals.size() == 6);
-
+    Assert.assertTrue(records.size() == 6);
     int low = 0, medium = 0, high = 0, notfound = 0;
-    for (Record actual : actuals) {
-      String v = (String) actual.getValue("wagerange");
+    for (Record record : records) {
+      String v = (String) record.getValue("wagerange");
       if (v.equalsIgnoreCase("NOT FOUND")) {
         notfound++;
       } else if (v.equals("LOW")) {
@@ -355,36 +331,24 @@ public class PipelineTest {
       "sed body s/\"//g"
     };
 
-    Record[] records = new Record[] {
+    List<Record> records = Arrays.asList(
       new Record("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
         "debt not owed,Debt is not mine,,,\"NRA Group, LLC\",VA,20147,,N/A,Web,08/07/2013,Closed with non-monetary " +
         "relief,Yes,No,467801"),
       new Record("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
-    };
+    );
 
     TextSpecification specification = new TextSpecification(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
+    records = execute(steps, records);
 
-    List<Record> actuals = new ArrayList<>();
-    for (Record record : records) {
-      Record r = record;
-      try {
-        for (Step step : steps) {
-          r = (Record) step.execute(r, null);
-        }
-      } catch (SkipRecordException e) {
-        continue;
-      }
-      actuals.add(r);
-    }
-
-    Assert.assertTrue(actuals.size() == 2);
+    Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("07/29/2013,Debt collection,Other (i.e. phone, health club, etc.),Cont'd " +
                           "attempts collect debt not owed,Debt is not mine,,,NRA Group, LLC,VA,20147,,N/A," +
                           "Web,08/07/2013,Closed with non-monetary relief,Yes,No,467801",
-                        actuals.get(0).getValue("body"));
+                        records.get(0).getValue("body"));
   }
 
   @Test
@@ -399,33 +363,20 @@ public class PipelineTest {
       "rename date_col3 year"
     };
 
-    Record[] rows = new Record[] {
+    List<Record> records = Arrays.asList(
       new Record("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
         "debt not owed,Debt is not mine,,,\"NRA Group, LLC\",VA,20147,,N/A,Web,08/07/2013,Closed with non-monetary " +
         "relief,Yes,No,467801"),
       new Record("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
-    };
+    );
 
     TextSpecification specification = new TextSpecification(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
-
-    List<Record> actuals = new ArrayList<>();
-    for (Record row : rows) {
-      Record r = row;
-      try {
-        for (Step step : steps) {
-          r = (Record) step.execute(r, null);
-        }
-      } catch (SkipRecordException e) {
-        continue;
-      }
-      actuals.add(r);
-    }
-
-    Assert.assertTrue(actuals.size() == 2);
-    Assert.assertEquals("07/29/2013", actuals.get(0).getValue("date"));
+    records = execute(steps, records);
+    Assert.assertTrue(records.size() == 2);
+    Assert.assertEquals("07/29/2013", records.get(0).getValue("date"));
   }
 
   @Test
@@ -451,35 +402,61 @@ public class PipelineTest {
       "set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
     };
 
-    Record[] rows = new Record[] {
+    List<Record> records = Arrays.asList(
       new Record("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
         "\"deviceId\": \"SM-R760NDAAXAR\", \"timestamp\": 122121212341231, \"OS\": { \"name\": \"Tizen OS\", " +
         "\"version\": \"2.3.1\" }, \"alerts\": [ { \"Signal lost\": true }, { \"Emergency call\": true }, " +
         "{ \"Wifi connection lost\": true }, { \"Battery low\": true }, { \"Calories\": 354 } ], \"screenSize\": " +
         "\"extra-small|small|medium|large\", \"battery\": \"22%\", \"telephoneNumber\": \"+14099594986\", \"comments\": " +
-        "\"It is an AT&T samung wearable device.\" } }"),
-    };
+        "\"It is an AT&T samung wearable device.\" } }")
+      );
 
     TextSpecification specification = new TextSpecification(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
-
-    List<Record> actuals = new ArrayList<>();
-    for (Record row : rows) {
-      Record r = row;
-      try {
-        for (Step step : steps) {
-          r = (Record) step.execute(r, null);
-        }
-      } catch (SkipRecordException e) {
-        continue;
-      }
-      actuals.add(r);
-    }
-
-    Assert.assertTrue(actuals.size() == 1);
+    records = execute(steps, records);
+    Assert.assertTrue(records.size() == 1);
   }
 
+  @Test
+  public void testSplitToRow() throws Exception {
+    String[] directives = new String[] {
+      "split-to-rows body \\n",
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "AABBCDE\nEEFFFF")
+    );
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+    records = execute(steps, records);
+
+    Assert.assertTrue(records.size() == 2);
+    Assert.assertEquals("AABBCDE", records.get(0).getValue("body"));
+    Assert.assertEquals("EEFFFF", records.get(1).getValue("body"));
+  }
+
+  @Test
+  public void testSplitToColumns() throws Exception {
+    String[] directives = new String[] {
+      "split-to-columns body \\n",
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "AABBCDE\nEEFFFF")
+    );
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+    records = execute(steps, records);
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals("AABBCDE", records.get(0).getValue("body_1"));
+    Assert.assertEquals("EEFFFF", records.get(0).getValue("body_2"));
+  }
 
   @Test
   public void testFixedLengthParser() throws Exception {
@@ -487,34 +464,22 @@ public class PipelineTest {
       "parse-as-fixed-length body 1-2,3-4,5,6,7-9,10-13",
     };
 
-    Record[] rows = new Record[] {
-      new Record("body", "AABBCDEEEFFFF"),
-    };
+    List<Record> records = Arrays.asList(
+      new Record("body", "AABBCDEEEFFFF")
+    );
 
     TextSpecification specification = new TextSpecification(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
+    records = execute(steps, records);
 
-    List<Record> actuals = new ArrayList<>();
-    for (Record row : rows) {
-      Record r = row;
-      try {
-        for (Step step : steps) {
-          r = (Record) step.execute(r, null);
-        }
-      } catch (SkipRecordException e) {
-        continue;
-      }
-      actuals.add(r);
-    }
-
-    Assert.assertTrue(actuals.size() == 1);
-    Assert.assertEquals("AA", actuals.get(0).getValue("body_col1"));
-    Assert.assertEquals("BB", actuals.get(0).getValue("body_col2"));
-    Assert.assertEquals("C", actuals.get(0).getValue("body_col3"));
-    Assert.assertEquals("D", actuals.get(0).getValue("body_col4"));
-    Assert.assertEquals("EEE", actuals.get(0).getValue("body_col5"));
-    Assert.assertEquals("FFFF", actuals.get(0).getValue("body_col6"));
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals("AA", records.get(0).getValue("body_col1"));
+    Assert.assertEquals("BB", records.get(0).getValue("body_col2"));
+    Assert.assertEquals("C", records.get(0).getValue("body_col3"));
+    Assert.assertEquals("D", records.get(0).getValue("body_col4"));
+    Assert.assertEquals("EEE", records.get(0).getValue("body_col5"));
+    Assert.assertEquals("FFFF", records.get(0).getValue("body_col6"));
   }
 
   @Test(expected = SpecificationParseException.class)
@@ -526,6 +491,13 @@ public class PipelineTest {
     TextSpecification specification = new TextSpecification(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());
+  }
+
+  @Test
+  public void testSplitOnRegex() throws Exception {
+    String s = "a,b,c\nd,e,f\n";
+    String[] x = s.split("\n");
+    Assert.assertTrue(x.length == 2);
   }
   
 }

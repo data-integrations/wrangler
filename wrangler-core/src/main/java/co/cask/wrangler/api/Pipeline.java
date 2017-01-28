@@ -18,6 +18,8 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.api.data.schema.Schema;
 
+import java.util.List;
+
 /**
  * Wrangle Pipeline executes steps in the order they are specified.
  */
@@ -32,10 +34,10 @@ public interface Pipeline<I,O> {
   /**
    * Executes the pipeline on the input.
    *
-   * @param input Input record of type I
+   * @param input LIst of Input record of type I
    * @param schema Schema to which the output should be mapped.
-   * @return Parsed output record of type O
+   * @return Parsed output list of record of type O
    */
-  public O execute(I input, Schema schema) throws PipelineException, SkipRecordException;
+  public List<O> execute(List<I> input, Schema schema) throws PipelineException;
 }
 

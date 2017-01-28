@@ -19,13 +19,13 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -55,29 +55,32 @@ public class CsvParser extends AbstractStep {
   /**
    * Parses a give column in a {@link Record} as a CSV Record.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Record containing multiple columns based on CSV parsing.
-   * @throws StepException In case CSV parsing generates more record.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    String line = (String) record.getValue(col);
-    if (line == null) {
-      throw new StepException(toString() + " : Did not find " + col + " in the record");
-    }
-    CSVParser parser = null;
-    try {
-      parser = CSVParser.parse(line, format);
-      List<CSVRecord> records = parser.getRecords();
-      if (records.size() > 1) {
-        throw new StepException(toString() + " : " + this.getClass().getSimpleName() +
-                                         "generated more that 1 record as output. Interface doesn't support");
+  public List<Record> execute(List<Record> records, PipelineContext context)
+    throws StepException {
+
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      String line = (String) record.getValue(col);
+      if (line == null) {
+        throw new StepException(toString() + " : Did not find " + col + " in the record");
       }
-      return toRow(records.get(0), record);
-    } catch (IOException e) {
-      throw new StepException(toString(), e);
+      CSVParser parser = null;
+      try {
+        parser = CSVParser.parse(line, format);
+        List<CSVRecord> csvRecords = parser.getRecords();
+        for (CSVRecord csvRecord : csvRecords) {
+          results.add(toRow(csvRecord, record));
+        }
+      } catch (IOException e) {
+        throw new StepException(toString(), e);
+      }
     }
+    return results;
   }
 
   /**

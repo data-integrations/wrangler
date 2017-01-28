@@ -21,11 +21,11 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Specification;
-import co.cask.wrangler.internal.DefaultPipeline;
-import co.cask.wrangler.internal.TextSpecification;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 /**
  * Tests {@link DefaultPipeline}.
@@ -57,7 +57,7 @@ public class DefaultPipelineTest {
     Pipeline pipeline = new DefaultPipeline();
     pipeline.configure(specification, null);
     Record row = new Record(Specification.STARTING_COLUMN, new String("a,b,c,d,e,f,g"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(row, schema);
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("a", record.get("first"));
@@ -91,7 +91,7 @@ public class DefaultPipelineTest {
     Pipeline pipeline = new DefaultPipeline();
     pipeline.configure(specification, null);
     Record row = new Record(Specification.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(row, schema);
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("Larry", record.get("first"));

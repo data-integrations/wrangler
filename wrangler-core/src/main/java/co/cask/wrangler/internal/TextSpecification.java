@@ -32,11 +32,13 @@ import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
 import co.cask.wrangler.steps.Quantization;
-import co.cask.wrangler.steps.Rename;
 import co.cask.wrangler.steps.RecordConditionFilter;
 import co.cask.wrangler.steps.RecordRegexFilter;
+import co.cask.wrangler.steps.Rename;
 import co.cask.wrangler.steps.Sed;
 import co.cask.wrangler.steps.Split;
+import co.cask.wrangler.steps.SplitToColumns;
+import co.cask.wrangler.steps.SplitToRows;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -108,6 +110,8 @@ public class TextSpecification implements Specification {
     formats.put("parse-as-json", "parse-as-json <column>");
     formats.put("parse-as-fixed-length", "parse-as-fixed-length <source> <field ranges>");
     formats.put("json-path", "json-path <source> <destination> <json path>");
+    formats.put("split-to-rows","split-to-rows <column> <regex>");
+    formats.put("split-to-columns","split-to-columns <column> <regex>");
   }
 
   public TextSpecification(String directives) {
@@ -357,6 +361,22 @@ public class TextSpecification implements Specification {
             );
           }
           steps.add(new FixedLengthParser(lineno, directive, column, ranges));
+        }
+        break;
+
+        // split-to-rows <column> <regex>
+        case "split-to-rows" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String regex = getNextToken(tokenizer, "\n", "regex", lineno);
+          steps.add(new SplitToRows(lineno, directive, column, regex));
+        }
+        break;
+
+        // split-to-columns <column> <regex>
+        case "split-to-columns" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String regex = getNextToken(tokenizer, "\n", "regex", lineno);
+          steps.add(new SplitToColumns(lineno, directive, column, regex));
         }
         break;
 

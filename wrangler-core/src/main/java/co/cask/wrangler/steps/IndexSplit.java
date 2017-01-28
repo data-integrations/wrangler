@@ -19,8 +19,10 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Wrangler step for splitting a col into two additional columns based on a start and end.
@@ -46,30 +48,34 @@ public class IndexSplit extends AbstractStep {
   /**
    * Splits column based on the start and end index.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    int idx = record.find(col);
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx = record.find(col);
 
-    if (idx != -1) {
-      String val = (String) record.getValue(idx);
-      if (end > val.length() - 1) {
-        end = val.length() - 1;
+      if (idx != -1) {
+        String val = (String) record.getValue(idx);
+        if (end > val.length() - 1) {
+          end = val.length() - 1;
+        }
+        if (start < 0) {
+          start = 0;
+        }
+        val = val.substring(start, end);
+        record.add(dest, val);
+      } else {
+        throw new StepException(
+          col + " is not of type string in the record. Please check the wrangle configuration."
+        );
       }
-      if (start < 0) {
-        start = 0;
-      }
-      val = val.substring(start, end);
-      record.add(dest, val);
-    } else {
-      throw new StepException(
-        col + " is not of type string in the record. Please check the wrangle configuration."
-      );
+      results.add(record);
     }
-    return record;
+    return results;
   }
 }
