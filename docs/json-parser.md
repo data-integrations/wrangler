@@ -31,24 +31,26 @@ parse-as-json body
 Would generate following field names and field values
 
 | Field Name | Field Values | Field Type |
-| body | ```{ ... }``` | String |
-| body.id | 1 | Integer |
-| body.name | ```{ "first" : "Root", "last" : "Joltie" }``` | JSONObject |
-| body.age | 22 | Integer |
-| body.weight | 184 | Integer |
-| body.height | 5.8 | Double |
+| ------------- | ------------- | ----------------- |
+| **body** | ```{ ... }``` | String |
+| **body.id** | 1 | Integer |
+| **body.name** | ```{ "first" : "Root", "last" : "Joltie" }``` | JSONObject |
+| **body.age** | 22 | Integer |
+| **body.weight** | 184 | Integer |
+| **body.height** | 5.8 | Double |
 
 Applying the same directive on field ```body.name``` generates the following results
 
 | Field Name | Field Values | Field Type |
-| body | ```{ ... }``` | String |
-| body.id | 1 | Integer |
-| body.name | ```{ "first" : "Root", "last" : "Joltie" }``` | JSONObject |
-| body.age | 22 | Integer |
-| body.weight | 184 | Integer |
-| body.height | 5.8 | Double |
-| body.name.first | "Root" | String |
-| body.name.last | "Joltie" | String |
+| ------------- | ------------- | ----------------- |
+| **body** | ```{ ... }``` | String |
+| **body.id** | 1 | Integer |
+| **body.name** | ```{ "first" : "Root", "last" : "Joltie" }``` | JSONObject |
+| **body.age** | 22 | Integer |
+| **body.weight** | 184 | Integer |
+| **body.height** | 5.8 | Double |
+| **body.name.first** | "Root" | String |
+| **body.name.last** | "Joltie" | String |
 
 ### Specification
 
