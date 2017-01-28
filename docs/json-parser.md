@@ -1,6 +1,13 @@
-## JSON Parser
+## Json
 
-Directive for parsing a column value as JSON. 
+There are two directives for parsing and accessing different attributes of a JSON event. 
+
+* [Parse Json](json-parser.md)
+* [Json Path](json-parser.md)
+
+## Parse Json.
+
+Directive for parsing a column value as Json. 
 
 ### Specification
 
