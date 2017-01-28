@@ -25,3 +25,17 @@ A very simple example would turn this data (one record):
   "z" : [ 1,2,3]
 }
 ```
+
+into three distinct records:
+
+| x           | y              | z         |
++-------------+----------------+-----------+
+| 5           | "a string"     | 1         |
+| 5           | "a string"     | 2         |
+| 5           | "a string"     | 3         |
+
+The function takes a single argument, which must be an array (the z column in this example). Using the all (*) wildcard as the argument to flatten is not supported and returns an error.
+
+## Examples
+
+For a more interesting example, consider the JSON data in the publicly available Yelp data set. 
