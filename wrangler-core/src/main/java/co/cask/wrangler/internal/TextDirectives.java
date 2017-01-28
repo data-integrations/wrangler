@@ -24,6 +24,7 @@ import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
 import co.cask.wrangler.steps.Expression;
 import co.cask.wrangler.steps.FixedLengthParser;
+import co.cask.wrangler.steps.Flatten;
 import co.cask.wrangler.steps.FormatDate;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.JsPath;
@@ -41,6 +42,7 @@ import co.cask.wrangler.steps.SplitToColumns;
 import co.cask.wrangler.steps.SplitToRows;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
+import co.cask.wrangler.steps.XmlToJson;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import java.text.ParseException;
@@ -105,11 +107,13 @@ public class TextDirectives implements Directives {
     formats.put("grep", "grep <column> <pattern>");
     formats.put("parse-as-csv", "parse-as-csv <column> <delimiter> <skip-if-empty - true or false> " +
       "<name1, name2, name3 ...>");
-    formats.put("parse-as-json", "parse-as-json <column>");
+    formats.put("parse-as-json", "parse-as-json <column> <delete-column>");
     formats.put("parse-as-fixed-length", "parse-as-fixed-length <source> <field ranges>");
     formats.put("json-path", "json-path <source> <destination> <json path>");
     formats.put("split-to-rows","split-to-rows <column> <regex>");
     formats.put("split-to-columns","split-to-columns <column> <regex>");
+    formats.put("xml-to-json", "xml-to-json <column>");
+    formats.put("flatten", "flatten <column>[,<column>,<column>,...]");
   }
 
   public TextDirectives(String directives) {
@@ -332,10 +336,15 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-json <column>
+        // parse-as-json <column> <delete-column, true|false>
         case "parse-as-json" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new JsonParser(lineno, directive, column));
+          String deleteCol = getNextToken(tokenizer, "\n", command, "delete-column", lineno, true);
+          boolean delete = false;
+          if (deleteCol.equalsIgnoreCase("true")) {
+            delete = true;
+          }
+          steps.add(new JsonParser(lineno, directive, column, delete));
         }
         break;
 
@@ -386,6 +395,20 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String regex = getNextToken(tokenizer, "\n", "regex", lineno);
           steps.add(new SplitToColumns(lineno, directive, column, regex));
+        }
+        break;
+
+        // xml-to-json <column>
+        case "xml-to-json" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new XmlToJson(lineno, directive, column));
+        }
+        break;
+
+        // flatten <column>[,<column>,<column>,...]
+        case "flatten" : {
+          String columns = getNextToken(tokenizer, command, "columns", lineno);
+          steps.add(new Flatten(lineno, directive, columns.split(",")));
         }
         break;
 
