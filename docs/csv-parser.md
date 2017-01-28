@@ -1,14 +1,14 @@
 ## CSV Parser
 
-Parses a column a comma separated value (CSV).
+Directive for parsing a record as Comma-seperated value (CSV). Directive handles the quoted (```"```) values. 
 
 ### Specification
 ```
-  parse-as-csv {column-name} {delimiter} {true or false to indicate skip empty lines}
+parse-as-csv {column-name} {delimiter} {true or false to indicate skip empty lines}
 ```
 
-| Argument      | Description   |
-| ------------- |:-------------:|
+| Argument      | Description |
+| ------------- | ------------- |
 | column-name   | Name of the column in the record to be parsed as CSV |
 | delimiter     | Specifies a delimiting column seperator character to be used for splitting record into columns. |
 | skip-empty-lines | true, to skip empty lines, false otherwise |
