@@ -19,12 +19,14 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
@@ -44,50 +46,54 @@ public class JsPath extends AbstractStep {
   /**
    * Parses a give column in a {@link Record} as a CSV Record.
    *
-   * @param row Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws StepException In case CSV parsing generates more record.
    */
   @Override
-  public Record execute(Record row, PipelineContext context) throws StepException, SkipRecordException {
-    Object value = row.getValue(src);
-    if (value == null) {
-      throw new StepException(toString() + " : Did not find field '" + src + "' in the record.");
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      Object value = record.getValue(src);
+      if (value == null) {
+        throw new StepException(toString() + " : Did not find field '" + src + "' in the record.");
+      }
+
+      // Detect the type of the object, convert it to String before apply JsonPath
+      // expression to it.
+      String v = null;
+      if (value instanceof String) {
+        v = (String) value;
+      } else if (value instanceof JSONArray) {
+        v = ((JSONArray) value).toString();
+      } else if (value instanceof net.minidev.json.JSONArray) {
+        v = ((net.minidev.json.JSONArray) value).toString();
+      } else if (value instanceof net.minidev.json.JSONObject) {
+        v = ((net.minidev.json.JSONObject) value).toString();
+      } else if (value instanceof JSONObject) {
+        v = ((JSONObject) value).toString();
+      } else {
+        throw new StepException(
+          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JSONArray, JSONObject or String.",
+                        toString(), src, value.getClass().getName())
+        );
+      }
+
+      // Apply JSON path expression to it.
+      Object e = Configuration.defaultConfiguration().jsonProvider().parse(v);
+      Object x = JsonPath.read(e, path);
+
+      int pos = record.find(dest);
+      if (pos == -1) {
+        record.add(dest, x);
+      } else {
+        record.setValue(pos, x);
+      }
+      results.add(record);
     }
 
-    // Detect the type of the object, convert it to String before apply JsonPath
-    // expression to it.
-    String v = null;
-    if (value instanceof String) {
-      v = (String) value;
-    } else if (value instanceof JSONArray) {
-      v = ((JSONArray) value).toString();
-    } else if (value instanceof net.minidev.json.JSONArray) {
-      v = ((net.minidev.json.JSONArray) value).toString();
-    } else if (value instanceof net.minidev.json.JSONObject) {
-      v = ((net.minidev.json.JSONObject) value).toString();
-    } else if (value instanceof JSONObject) {
-      v = ((JSONObject) value).toString();
-    } else {
-      throw new StepException(
-        String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JSONArray, JSONObject or String.",
-                      toString(), src, value.getClass().getName())
-      );
-    }
-
-    // Apply JSON path expression to it.
-    Object e = Configuration.defaultConfiguration().jsonProvider().parse(v);
-    Object x = JsonPath.read(e, path);
-
-    int pos = row.find(dest);
-    if (pos == -1) {
-      row.add(dest, x);
-    } else {
-      row.setValue(pos, x);
-    }
-
-    return row;
+    return results;
   }
 }
 

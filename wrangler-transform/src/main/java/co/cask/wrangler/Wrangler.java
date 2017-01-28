@@ -31,7 +31,6 @@ import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.internal.DefaultPipeline;
@@ -39,6 +38,9 @@ import co.cask.wrangler.internal.TextSpecification;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -177,13 +179,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
     // but just return without emitting any record out.
-    StructuredRecord record;
+    List<StructuredRecord> records = new ArrayList<>();
     long start = System.nanoTime();
     try {
-      record = (StructuredRecord) pipeline.execute(row, oSchema);
-    } catch (SkipRecordException e) {
-      getContext().getMetrics().count("pipeline.records.skip", 1);
-      return; // Skips the row.
+      records = pipeline.execute(Arrays.asList(row), oSchema);
     } catch (PipelineException e) {
       getContext().getMetrics().count("pipeline.records.failures", 1);
       errorCounter++;
@@ -197,24 +196,26 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       throw new Exception(String.format("Error threshold reached %ld", config.threshold));
     }
 
-    StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
-    // Iterate through output schema, if the 'record' doesn't have it, then
-    // attempt to take if from 'input'.
-    for (Schema.Field field : oSchema.getFields()) {
-      Object rObject = record.get(field.getName());
-      Object iObject = input.get(field.getName());
-      if (rObject == null) {
-        builder.convertAndSet(field.getName(), (String) iObject);
-      } else {
-        if (rObject instanceof String && Strings.isNullOrEmpty((String) rObject)) {
-          builder.set(field.getName(), null);
+    for (StructuredRecord record : records) {
+      StructuredRecord.Builder builder = StructuredRecord.builder(oSchema);
+      // Iterate through output schema, if the 'record' doesn't have it, then
+      // attempt to take if from 'input'.
+      for (Schema.Field field : oSchema.getFields()) {
+        Object rObject = record.get(field.getName());
+        Object iObject = input.get(field.getName());
+        if (rObject == null) {
+          builder.convertAndSet(field.getName(), (String) iObject);
         } else {
-          builder.set(field.getName(), rObject);
+          if (rObject instanceof String && Strings.isNullOrEmpty((String) rObject)) {
+            builder.set(field.getName(), null);
+          } else {
+            builder.set(field.getName(), rObject);
+          }
         }
-      }
 
+      }
+      emitter.emit(builder.build());
     }
-    emitter.emit(builder.build());
   }
 
   /**

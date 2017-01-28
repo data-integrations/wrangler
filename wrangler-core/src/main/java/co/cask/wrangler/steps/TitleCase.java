@@ -19,8 +19,10 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Wrangler step for title casing the 'col' value of type String.
@@ -37,26 +39,30 @@ public class TitleCase extends AbstractStep {
   /**
    * Transforms a column value from any case to title case.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is title cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    int idx = record.find(col);
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx = record.find(col);
 
-    if (idx != -1) {
-      String value = (String) record.getValue(idx);
-      if (value != null) {
-        record.setValue(idx, toTitleCase(value));
+      if (idx != -1) {
+        String value = (String) record.getValue(idx);
+        if (value != null) {
+          record.setValue(idx, toTitleCase(value));
+        }
+      } else {
+        throw new StepException(toString() + " : " +
+                                  col + " is not of type string. Please check the wrangle configuration."
+        );
       }
-    } else {
-      throw new StepException(toString() + " : " +
-        col + " is not of type string. Please check the wrangle configuration."
-      );
+      results.add(record);
     }
-    return record;
+    return results;
   }
 
   private static String toTitleCase(String input) {

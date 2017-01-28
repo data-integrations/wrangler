@@ -19,8 +19,10 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wrangle Step for renaming a column.
@@ -42,21 +44,25 @@ public class Rename extends AbstractStep {
    * Renames the column from 'source' to 'destination'.
    * If the source column doesn't exist, then it will return the record as it.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} with column name modified.
    * @throws StepException Thrown when there is no 'source' column in the record.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    int idx = record.find(source);
-    if (idx != -1) {
-      record.setColumn(idx, destination);
-    } else {
-      throw new StepException(toString() + " : '" +
-        source + "' column is not defined in the record. Please check the wrangling steps."
-      );
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx = record.find(source);
+      if (idx != -1) {
+        record.setColumn(idx, destination);
+      } else {
+        throw new StepException(toString() + " : '" +
+                                  source + "' column is not defined in the record. Please check the wrangling steps."
+        );
+      }
+      results.add(record);
     }
-    return record;
+    return results;
   }
 }

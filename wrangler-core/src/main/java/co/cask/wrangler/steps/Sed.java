@@ -19,10 +19,12 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Wrangle step for 'Sed' like transformations on the column.
@@ -40,34 +42,38 @@ public class Sed extends AbstractStep {
   /**
    * Sets the new column names for the {@link Record}.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
    * @throws StepException throw when there is issue executing the grep.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    int idx = record.find(column);
-    if (idx != -1) {
-      Object v = record.getValue(idx);
-      // Operates only on String types.
-      try {
-        if (v instanceof String) {
-          String value = (String) v; // Safely converts to String.
-          Unix4jCommandBuilder builder = Unix4j.echo(value).sed(pattern);
-          if (builder.toExitValue() == 0) {
-            record.setValue(idx, builder.toStringResult());
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx = record.find(column);
+      if (idx != -1) {
+        Object v = record.getValue(idx);
+        // Operates only on String types.
+        try {
+          if (v instanceof String) {
+            String value = (String) v; // Safely converts to String.
+            Unix4jCommandBuilder builder = Unix4j.echo(value).sed(pattern);
+            if (builder.toExitValue() == 0) {
+              record.setValue(idx, builder.toStringResult());
+            }
           }
+        } catch (Exception e) {
+          // If there is any issue, we pass it on without any transformation.
         }
-      } catch (Exception e) {
-        // If there is any issue, we pass it on without any transformation.
+      } else {
+        throw new StepException(toString() + " : '" +
+                                  column + "' column is not defined. Please check the wrangling step."
+        );
       }
-    } else {
-      throw new StepException(toString() + " : '" +
-                                column + "' column is not defined. Please check the wrangling step."
-      );
+      results.add(record);
     }
-    return record;
+    return results;
   }
 }
 

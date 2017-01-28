@@ -28,6 +28,9 @@ import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A Wrangle step for filtering rows based on the condition.
  *
@@ -53,39 +56,42 @@ public class RecordConditionFilter extends AbstractStep {
   /**
    * Filters a record based on the condition.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return the input {@link Record}, if condition is false, else throw {@link SkipRecordException}
    * @throws StepException if there are any issues with processing the condition
    * @throws SkipRecordException if condition evaluates to true.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    // Move the fields from the record into the context.
-    JexlContext ctx = new MapContext();
-    for (int i = 0; i < record.length(); ++i) {
-      ctx.set(record.getColumn(i), record.getValue(i));
-    }
-
-    // Execution of the script / expression based on the record data
-    // mapped into context.
-    try {
-      boolean result = (Boolean) script.execute(ctx);
-      if (result) {
-        throw new SkipRecordException();
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      // Move the fields from the record into the context.
+      JexlContext ctx = new MapContext();
+      for (int i = 0; i < record.length(); ++i) {
+        ctx.set(record.getColumn(i), record.getValue(i));
       }
-    } catch (JexlException e) {
-      // Generally JexlException wraps the original exception, so it's good idea
-      // to check if there is a inner exception, if there is wrap it in 'StepException'
-      // else just print the error message.
-      if (e.getCause() != null) {
-        throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
-      } else {
-        throw new StepException(toString() + " : " + e.getMessage());
-      }
-    }
 
-    return record;
+      // Execution of the script / expression based on the record data
+      // mapped into context.
+      try {
+        boolean result = (Boolean) script.execute(ctx);
+        if (result) {
+          continue;
+        }
+      } catch (JexlException e) {
+        // Generally JexlException wraps the original exception, so it's good idea
+        // to check if there is a inner exception, if there is wrap it in 'StepException'
+        // else just print the error message.
+        if (e.getCause() != null) {
+          throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
+        } else {
+          throw new StepException(toString() + " : " + e.getMessage());
+        }
+      }
+      results.add(record);
+    }
+    return results;
   }
 }
 

@@ -19,12 +19,13 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,34 +55,51 @@ public class Quantization extends AbstractStep {
   /**
    * Quantizes a column based on the range specified.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    Record r = new Record(record);
-    int idx = r.find(col1);
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx = record.find(col1);
 
-    if (idx != -1) {
-      try {
-        double d = Double.parseDouble((String) r.getValue(idx));
-        String value = rangeMap.get(d);
-        int destIdx = r.find(col2);
-        if (destIdx == -1) {
-          r.add(col2, value);
-        } else {
-          r.setValue(destIdx, value);
+      if (idx != -1) {
+        try {
+          Object v = record.getValue(idx);
+          Double d = null;
+          if (v instanceof String) {
+            d = Double.parseDouble((String) v);
+          } else if (v instanceof Double) {
+            d = (Double) v;
+          } else if (v instanceof Float) {
+            d = (Double) v;
+          } else {
+            throw new StepException(
+              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, Float or Double.",
+                            toString(), col1, v.getClass().getName())
+            );
+          }
+          String value = rangeMap.get(d);
+          int destIdx = record.find(col2);
+          if (destIdx == -1) {
+            record.add(col2, value);
+          } else {
+            record.setValue(destIdx, value);
+          }
+        } catch (NumberFormatException e) {
+          throw new StepException(toString(), e);
         }
-      } catch (NumberFormatException e) {
-        throw new StepException(toString(), e);
+      } else {
+        throw new StepException(toString() + " : " +
+                                  col1 + " was not found or is not of type string. Please check the wrangle configuration."
+        );
       }
-    } else {
-      throw new StepException(toString() + " : " +
-                                col1 + " was not found or is not of type string. Please check the wrangle configuration."
-      );
+      results.add(record);
     }
-    return r;
+
+    return results;
   }
 }

@@ -19,9 +19,10 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -42,26 +43,31 @@ public class RecordRegexFilter extends AbstractStep {
   /**
    * Sets the new column names for the {@link Record}.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
    * @throws StepException
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    int idx = record.find(column);
-    if (idx != -1) {
-      String value = (String) record.getValue(idx);
-      boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
-      if (status) {
-        throw new SkipRecordException();
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx = record.find(column);
+      if (idx != -1) {
+        String value = (String) record.getValue(idx);
+        boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+        if (status) {
+          continue;
+        }
+      } else {
+        throw new StepException(toString() + " : '" +
+                                  column + "' column is not defined. Please check the wrangling step."
+        );
       }
-    } else {
-      throw new StepException(toString() + " : '" +
-                                column + "' column is not defined. Please check the wrangling step."
-      );
+      results.add(record);
     }
-    return record;
+
+    return results;
   }
 }
 

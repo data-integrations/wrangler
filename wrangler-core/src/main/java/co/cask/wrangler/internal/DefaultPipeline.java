@@ -22,12 +22,12 @@ import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.Specification;
 import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,11 +49,11 @@ public final class DefaultPipeline implements Pipeline<Record, StructuredRecord>
   }
 
   @Override
-  public StructuredRecord execute(Record record, Schema schema) throws PipelineException, SkipRecordException {
+  public List<StructuredRecord> execute(List<Record> records, Schema schema) throws PipelineException {
     // Iterate through steps
     try {
       for (Step step : specification.getSteps()) {
-        record = (Record) step.execute(record, context);
+        records = step.execute(records, context);
       }
     } catch (StepException e) {
       throw new PipelineException(e);
@@ -61,27 +61,31 @@ public final class DefaultPipeline implements Pipeline<Record, StructuredRecord>
       throw new PipelineException(e);
     }
 
-    return toStructuredRecord(record, schema);
+    return toStructuredRecord(records, schema);
   }
 
   /**
    * Converts a {@link Record} to a {@link StructuredRecord}.
    *
-   * @param record {@link Record} to be converted
+   * @param records {@link Record} to be converted
    * @param schema Schema of the {@link StructuredRecord} to be created.
    * @return A {@link StructuredRecord} from record.
    */
-  private StructuredRecord toStructuredRecord(Record record, Schema schema) {
-    StructuredRecord.Builder builder = StructuredRecord.builder(schema);
-    List<Schema.Field> fields = schema.getFields();
-    for (Schema.Field field : fields) {
-      String name = field.getName();
-      Object value = record.getValue(name);
-      if (value != null) {
-        builder.set(name, value);
+  private List<StructuredRecord> toStructuredRecord(List<Record> records, Schema schema) {
+    List<StructuredRecord> results = new ArrayList<>();
+    for (Record record : records) {
+      StructuredRecord.Builder builder = StructuredRecord.builder(schema);
+      List<Schema.Field> fields = schema.getFields();
+      for (Schema.Field field : fields) {
+        String name = field.getName();
+        Object value = record.getValue(name);
+        if (value != null) {
+          builder.set(name, value);
+        }
       }
+      results.add(builder.build());
     }
-    return builder.build();
+    return results;
   }
 }
 

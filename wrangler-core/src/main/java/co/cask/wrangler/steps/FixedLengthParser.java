@@ -19,12 +19,13 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,39 +46,43 @@ public final class FixedLengthParser extends AbstractStep {
   /**
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
-   * @param row     Input {@link Record} to be wrangled by this step.
+   * @param records     Input {@link Record} to be wrangled by this step.
    * @param context {@link PipelineContext} passed to each step.
    * @return Wrangled {@link Record}.
    * @throws StepException In case of any issue this exception is thrown.
    */
   @Override
-  public Record execute(Record row, PipelineContext context) throws StepException, SkipRecordException {
-    int idx = row.find(col);
-    if (idx != -1) {
-      Object v = row.getValue(idx);
-      if (v instanceof String) {
-        String value = (String) v;
-        Set<Range<Integer>> ls = ranges.asRanges();
-        int i = 1;
-        for (Range<Integer> l : ls) {
-          int start = l.lowerEndpoint() - 1;
-          int end = l.upperEndpoint();
-          if (end - start == 0 ) {
-             end = end + 1;
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx = record.find(col);
+      if (idx != -1) {
+        Object v = record.getValue(idx);
+        if (v instanceof String) {
+          String value = (String) v;
+          Set<Range<Integer>> ls = ranges.asRanges();
+          int i = 1;
+          for (Range<Integer> l : ls) {
+            int start = l.lowerEndpoint() - 1;
+            int end = l.upperEndpoint();
+            if (end - start == 0 ) {
+              end = end + 1;
+            }
+            if (end < value.length() + 1) {
+              record.add(String.format("%s_col%d", col, i), value.substring(start, end));
+              i++;
+            }
           }
-          if (end < value.length() + 1) {
-            row.add(String.format("%s_col%d", col, i), value.substring(start, end));
-            i++;
-          }
+        } else {
+          throw new StepException(
+            String.format("%s : Invalid type of column '%s'. Should be of type String.", toString(),
+                          col)
+          );
         }
-      } else {
-        throw new StepException(
-          String.format("%s : Invalid type of column '%s'. Should be of type String.", toString(),
-                        col)
-        );
       }
+      results.add(record);
     }
-    return row;
+    return results;
   }
 
   private RangeSet<Integer> getRanges(String text) {

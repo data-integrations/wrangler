@@ -19,8 +19,10 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wrangle Step that merges two columns and creates a third column.
@@ -49,22 +51,27 @@ public class Merge extends AbstractStep {
   /**
    * Merges two columns using the delimiter into a third column.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A modified {@link Record} with merged column.
    * @throws StepException
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    int idx1 = record.find(col1);
-    int idx2 = record.find(col2);
-    if (idx1 != -1 && idx2 != -1) {
-      StringBuilder builder = new StringBuilder();
-      builder.append(record.getValue(idx1));
-      builder.append(delimiter);
-      builder.append(record.getValue(idx2));
-      record.add(dest, builder.toString());
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    List<Record> results = new ArrayList<>();
+    for (Record record : records) {
+      int idx1 = record.find(col1);
+      int idx2 = record.find(col2);
+      if (idx1 != -1 && idx2 != -1) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(record.getValue(idx1));
+        builder.append(delimiter);
+        builder.append(record.getValue(idx2));
+        record.add(dest, builder.toString());
+      }
+      results.add(record);
     }
-    return record;
+
+    return results;
   }
 }

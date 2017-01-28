@@ -19,9 +19,9 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,23 +47,28 @@ public class Drop extends AbstractStep {
   /**
    * Drops the columns specified.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
    * @throws StepException
    */
   @Override
-  public Record execute(Record record, PipelineContext context) throws StepException, SkipRecordException {
-    for(String column : columns) {
-      int idx = record.find(column);
-      if (idx != -1) {
-        record.remove(idx);
-      } else {
-        throw new StepException(toString() + " : '" +
-                                  column + "' column is not defined in the record. Please check the wrangling steps.");
+  public List<Record> execute(List<Record> records, PipelineContext context)
+    throws StepException {
+    List<Record> result = new ArrayList<>();
+    for (Record record : records) {
+      for(String column : columns) {
+        int idx = record.find(column);
+        if (idx != -1) {
+          record.remove(idx);
+        } else {
+          throw new StepException(toString() + " : '" +
+                                    column + "' column is not defined in the record. Please check the wrangling steps.");
+        }
       }
+      result.add(record);
     }
-    return record;
+    return result;
   }
 }
 

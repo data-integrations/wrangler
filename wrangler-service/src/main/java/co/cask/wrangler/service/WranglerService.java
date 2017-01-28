@@ -106,6 +106,9 @@ public class WranglerService extends AbstractHttpServiceHandler {
   @Path("v1/workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws ) {
+
+    String contentType = request.getHeader("Content");
+    
     String body = null;
     ByteBuffer content = request.getContent();
     if (content != null && content.hasRemaining()) {
@@ -173,6 +176,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       Row rawRows = workspace.get(Bytes.toBytes(ws));
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
+
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
       JSONArray values = new JSONArray();
       for (Record record : newRecords) {
@@ -200,28 +204,15 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
   // Application Platform System - Big Data Appliance
   private List<Record>  execute (List<Record> records, String[] directives, int limit)
-      throws SpecificationParseException, StepException {
+    throws SpecificationParseException, StepException, SkipRecordException {
     Specification specification = new TextSpecification(directives);
     List<Step> steps = specification.getSteps();
 
-    List<Record> results = new ArrayList<>();
-    int count = 0;
-    for (Record record : records) {
-      Record r = record;
-      if (count > limit) {
-        break;
-      }
-      try {
-        for (Step step : steps) {
-          r = (Record) step.execute(r, null);
-        }
-      } catch (SkipRecordException e) {
-        continue;
-      }
-      count++;
-      results.add(r);
+    for (Step step : steps) {
+      records = step.execute(records, null);
     }
-    return results;
+
+    return records;
   }
 
 
