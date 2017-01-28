@@ -9,6 +9,29 @@
 
 Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
 
+## Example
+
+Following is a example for transforming a text file using the wrangler directives. 
+
+```
+  01. split-to-rows body \n
+  02. parse-to-csv body , true
+  03. set columns id,first,last,emailid,gender,address,city,state,zipcode,dob,age,hrlywage,ssn
+  04. filter-row-if-matched emailid .*@gmail.com
+  05. set column name concat(last, \", \", first)
+  06. drop last
+  07. drop first
+  08. set column salary hrlywage * 40 * 4
+  09. filter-row-if-true age > 12
+  10. uppercase gender
+  11. mask-number ssn xxx-xx-####
+  12. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
+  13. quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
+  14. split-on-column address |
+  15. rename address_1 houseno
+  16. drop address_2
+```
+
 ## Concepts
 
 This implementation of wrangler defines the following concepts. Please familiarize yourself with these concepts. 
@@ -28,6 +51,17 @@ A Step is a data transformation function operating on a Record. A step can gener
 ### Pipeline
 
 A Pipeline is a collection of Steps to be applied on a Record. Record(s) outputed from each Step is passed to the next Step in the pipeline. 
+
+## Available Directives
+* [CSV Parsing](docs/csv-parser.md)
+* [JSON Parsing](docs/json-parser.md)
+* [Fixed Length Parsing](docs/fixed-length-parser.md)
+* [Text Transformations](docs/text-transformation.md)
+* [Quantization](docs/quantize.md)
+* [Date Transformations](docs/date-time.md)
+* [Masking](docs/masking.md)
+* [Row Filtering](docs/row-filtering.md)
+* [Column Operations](docs/column-operations.md)
 
 ## Types of Directives
 Following are different types of directives that are supported by the Wrangler plugin.
