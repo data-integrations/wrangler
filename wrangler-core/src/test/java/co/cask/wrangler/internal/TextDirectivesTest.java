@@ -16,10 +16,9 @@
 
 package co.cask.wrangler.internal;
 
-import co.cask.wrangler.api.Specification;
-import co.cask.wrangler.api.SpecificationParseException;
+import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.internal.TextSpecification;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
@@ -31,9 +30,9 @@ import org.junit.Test;
 import java.util.List;
 
 /**
- * Tests {@link TextSpecification} class.
+ * Tests {@link TextDirectives} class.
  */
-public class TextSpecificationTest {
+public class TextDirectivesTest {
 
   private static final String[] commands = new String[] {
     "set format csv ,    true",
@@ -44,9 +43,9 @@ public class TextSpecificationTest {
 
   @Test
   public void testBasicSpecification() throws Exception {
-    Specification specification =
-      new TextSpecification(StringUtils.join("\n", commands));
-    List<Step> steps = specification.getSteps();
+    Directives directives =
+      new TextDirectives(StringUtils.join("\n", commands));
+    List<Step> steps = directives.getSteps();
     Assert.assertEquals(5, steps.size());
     Assert.assertEquals(CsvParser.class, steps.get(0).getClass());
     Assert.assertEquals(Drop.class, steps.get(1).getClass());
@@ -78,11 +77,11 @@ public class TextSpecificationTest {
 
     for (final String error : errors) {
       String[] err = { error };
-      Specification specification =
-        new TextSpecification(StringUtils.join("\n", err));
+      Directives directives =
+        new TextDirectives(StringUtils.join("\n", err));
       try {
-        List<Step> steps = specification.getSteps();
-      } catch (SpecificationParseException e) {
+        List<Step> steps = directives.getSteps();
+      } catch (DirectiveParseException e) {
         errorcount++;
       }
     }
