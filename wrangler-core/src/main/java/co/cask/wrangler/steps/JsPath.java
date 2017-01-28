@@ -18,8 +18,8 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
-import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.SkipRowException;
+import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
@@ -27,7 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * A Json Path Extractor Stage for parsing the {@link Row} provided based on configuration.
+ * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
  */
 public class JsPath extends AbstractStep {
   private String src;
@@ -42,15 +42,15 @@ public class JsPath extends AbstractStep {
   }
 
   /**
-   * Parses a give column in a {@link Row} as a CSV Record.
+   * Parses a give column in a {@link Record} as a CSV Record.
    *
-   * @param row Input {@link Row} to be wrangled by this step.
+   * @param row Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws StepException In case CSV parsing generates more record.
    */
   @Override
-  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
+  public Record execute(Record row, PipelineContext context) throws StepException, SkipRecordException {
     Object value = row.getValue(src);
     if (value == null) {
       throw new StepException(toString() + " : Did not find field '" + src + "' in the record.");

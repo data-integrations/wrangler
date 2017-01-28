@@ -77,12 +77,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
     try {
       Put created
         = new Put (Bytes.toBytes(ws), Bytes.toBytes("created"), Bytes.toBytes((long)System.currentTimeMillis()/1000));
-      Put data = new Put (Bytes.toBytes(ws), Bytes.toBytes("data"), Bytes.toBytes(""));
-      Put directives = new Put (Bytes.toBytes(ws), Bytes.toBytes("directives"), Bytes.toBytes(""));
-
       workspace.put(created);
-      workspace.put(data);
-      workspace.put(directives);
       success(responder, String.format("Successfully created workspace '%s'", ws));
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -108,7 +103,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
 
   @POST
-  @Path("v1/workspaces/{workspace}/data")
+  @Path("v1/workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws ) {
     String body = null;
@@ -138,22 +133,17 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
 
   @GET
-  @Path("v1/workspaces/{workspace}/directive")
-  public void directive(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("workspace") String ws, @QueryParam("directives") String directives) {
+  @Path("v1/workspaces/{workspace}/download")
+  public void download(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("workspace") String ws ) {
 
     try {
-      Row rawRows = workspace.get(Bytes.toBytes(ws));
-      List<Record> records = new Gson().fromJson(rawRows.getString("data"),
+      Row row = workspace.get(Bytes.toBytes(ws));
+      List<Record> records = new Gson().fromJson(row.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
-      List<Record> newRecords = execute(records, directives);
-      JSONObject response = new JSONObject();
-      response.put("status", HttpURLConnection.HTTP_OK);
-      response.put("message", "Success");
-      response.put("items", newRecords.size());
-
       JSONArray values = new JSONArray();
-      for (Record record : newRecords) {
+      for (Record record : records) {
+        LOG.info(record.toString());
         List<KeyValue<String, Object>> fields = record.getRecord();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
@@ -161,6 +151,43 @@ public class WranglerService extends AbstractHttpServiceHandler {
         }
         values.put(r);
       }
+      JSONObject response = new JSONObject();
+      response.put("status", HttpURLConnection.HTTP_OK);
+      response.put("message", "Success");
+      response.put("items", records.size());
+      response.put("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (DataSetException e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  @GET
+  @Path("v1/workspaces/{workspace}/execute")
+  public void directive(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("workspace") String ws,
+                        @QueryParam("directive") List<String> directives,
+                        @QueryParam("limit") int limit) {
+
+    try {
+      Row rawRows = workspace.get(Bytes.toBytes(ws));
+      List<Record> records = new Gson().fromJson(rawRows.getString("data"),
+                                                 new TypeToken<List<Record>>(){}.getType());
+      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
+      JSONArray values = new JSONArray();
+      for (Record record : newRecords) {
+        List<KeyValue<String, Object>> fields = record.getRecord();
+        JSONObject r = new JSONObject();
+        for (KeyValue<String, Object> field : fields) {
+          r.put(field.getKey(), field.getValue().toString());
+        }
+        values.put(r);
+      }
+
+      JSONObject response = new JSONObject();
+      response.put("status", HttpURLConnection.HTTP_OK);
+      response.put("message", "Success");
+      response.put("items", newRecords.size());
       response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
@@ -172,14 +199,18 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
 
   // Application Platform System - Big Data Appliance
-  private List<Record>  execute (List<Record> records, String directives)
+  private List<Record>  execute (List<Record> records, String[] directives, int limit)
       throws SpecificationParseException, StepException {
     Specification specification = new TextSpecification(directives);
     List<Step> steps = specification.getSteps();
 
     List<Record> results = new ArrayList<>();
+    int count = 0;
     for (Record record : records) {
       Record r = record;
+      if (count > limit) {
+        break;
+      }
       try {
         for (Step step : steps) {
           r = (Record) step.execute(r, null);
@@ -187,6 +218,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       } catch (SkipRecordException e) {
         continue;
       }
+      count++;
       results.add(r);
     }
     return results;

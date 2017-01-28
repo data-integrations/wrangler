@@ -17,6 +17,7 @@
 package co.cask.wrangler.api;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
+import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,14 +31,12 @@ public class Record {
   private static final Logger LOG = LoggerFactory.getLogger(Record.class);
 
   // Values held by the row.
-  private List<Object> values;
+  private List<Object> values = new ArrayList<>();
 
   // Name of the columns held by the row.
-  private List<String> columns;
+  private List<String> columns = new ArrayList<>();
 
   public Record() {
-    this.values = new ArrayList<>();
-    this.columns = new ArrayList<>();
   }
 
   /**
@@ -139,7 +138,7 @@ public class Record {
    *
    * @param value to be added to the row.
    */
-  public Row addValue(Object value) {
+  public Record addValue(Object value) {
     values.add(value);
     return this;
   }
@@ -150,7 +149,7 @@ public class Record {
    * @param idx index at which the value needs to be updated.
    * @param value value to be updated at index (idx).
    */
-  public Row setValue(int idx, Object value) {
+  public Record setValue(int idx, Object value) {
     values.set(idx, value);
     return this;
   }
@@ -161,7 +160,7 @@ public class Record {
    * @param name of the value to be added to row.
    * @param value to be added to row.
    */
-  public Row add(String name, Object value) {
+  public Record add(String name, Object value) {
     columns.add(name);
     values.add(value);
     return this;
@@ -172,7 +171,7 @@ public class Record {
    *
    * @param idx for which the value and column are removed.
    */
-  public Row remove(int idx) {
+  public Record remove(int idx) {
     columns.remove(idx);
     values.remove(idx);
     return this;
@@ -206,11 +205,23 @@ public class Record {
    * @return List of fields of record.
    */
   public List<KeyValue<String, Object>> getRecord() {
-    List<KeyValue<String, Object>> values = new ArrayList<>();
-    for (int i = 0; i < columns.size(); ++i) {
-      values.add(new KeyValue<String, Object>(columns.get(i), values.get(i)));
+    List<KeyValue<String, Object>> v = new ArrayList<>();
+    int i = 0;
+    for (String column : columns) {
+      v.add(new KeyValue(column, values.get(i)));
+      ++i;
     }
-    return values;
+    return v;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(getClass())
+      .add("column-size", columns.size())
+      .add("values-size", values.size())
+      .add("columns", columns)
+      .add("values", values)
+      .toString();
   }
 
 
