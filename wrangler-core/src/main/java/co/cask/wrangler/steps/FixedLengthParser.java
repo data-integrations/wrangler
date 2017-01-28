@@ -18,8 +18,8 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
-import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.SkipRowException;
+import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.SkipRecordException;
 import co.cask.wrangler.api.StepException;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A Fixed length Parser Stage for parsing the {@link Row} provided based on configuration.
+ * A Fixed length Parser Stage for parsing the {@link Record} provided based on configuration.
  */
 public final class FixedLengthParser extends AbstractStep {
   private final RangeSet<Integer> ranges;
@@ -43,15 +43,15 @@ public final class FixedLengthParser extends AbstractStep {
   }
 
   /**
-   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
-   * @param row     Input {@link Row} to be wrangled by this step.
+   * @param row     Input {@link Record} to be wrangled by this step.
    * @param context {@link PipelineContext} passed to each step.
-   * @return Wrangled {@link Row}.
+   * @return Wrangled {@link Record}.
    * @throws StepException In case of any issue this exception is thrown.
    */
   @Override
-  public Row execute(Row row, PipelineContext context) throws StepException, SkipRowException {
+  public Record execute(Record row, PipelineContext context) throws StepException, SkipRecordException {
     int idx = row.find(col);
     if (idx != -1) {
       Object v = row.getValue(idx);
