@@ -29,23 +29,23 @@ import java.util.List;
 /**
  * Tests implementation of {@link XmlToJson}
  */
-public class XmlToJsonTest {
+public class XMLTest {
 
   @Test
-  public void testXMLToJsonCorrectness() throws Exception {
+  public void testXMLParsing() throws Exception {
     String[] directives = new String[] {
-      "xml-to-json body",
-      "parse-as-json body true",
-      "parse-as-json body.catalog true",
-      "json-path body.catalog.book author $.[*].author",
-      "json-path body.catalog.book title $.[*].title",
-      "json-path body.catalog.book genre $.[*].genre",
-      "json-path body.catalog.book price $.[*].price",
-      "json-path body.catalog.book publish_date $.[*].publish_date",
-      "json-path body.catalog.book description $.[*].description",
+      "parse-as-xml body",
+      "parse-xml-element body true",
+      "parse-xml-element body.catalog true",
+      "xml-path body.catalog.book author $.[*].author",
+      "xml-path body.catalog.book title $.[*].title",
+      "xml-path body.catalog.book genre $.[*].genre",
+      "xml-path body.catalog.book price $.[*].price",
+      "xml-path body.catalog.book publish_date $.[*].publish_date",
+      "xml-path body.catalog.book description $.[*].description",
       "flatten title,author,genre,price,publish_date,description",
       "drop body.catalog.book",
-      "parse-as-json body.catalog.name true"
+      "parse-xml-element body.catalog.name true"
     };
 
     List<Record> records = Arrays.asList(
@@ -180,6 +180,73 @@ public class XmlToJsonTest {
     Assert.assertTrue(records.size() == 12);
     Assert.assertEquals("Gambardella, Matthew", records.get(0).getValue("author"));
     Assert.assertEquals("Galos, Mike", records.get(11).getValue("author"));
+  }
+
+  @Test
+  public void testComplexXMLExample() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-xml body",
+      "parse-xml-element body true",
+      "parse-xml-element body.catalog true",
+      "parse-xml-element body.catalog.product true",
+      "xml-path body.catalog.product.catalog_item gender $.[*].gender",
+      "xml-path body.catalog.product.catalog_item item_number $.[*].item_number",
+      "xml-path body.catalog.product.catalog_item price $.[*].price",
+      "flatten gender,item_number,price"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "<?xml version=\"1.0\"?>\n" +
+        "<?xml-stylesheet href=\"catalog.xsl\" type=\"text/xsl\"?>\n" +
+        "<!DOCTYPE catalog SYSTEM \"catalog.dtd\">\n" +
+        "<catalog>\n" +
+        "   <product description=\"Cardigan Sweater\" product_image=\"cardigan.jpg\">\n" +
+        "      <catalog_item gender=\"Men's\">\n" +
+        "         <item_number>QWZ5671</item_number>\n" +
+        "         <price>39.95</price>\n" +
+        "         <size description=\"Medium\">\n" +
+        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+        "         </size>\n" +
+        "         <size description=\"Large\">\n" +
+        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+        "         </size>\n" +
+        "      </catalog_item>\n" +
+        "      <catalog_item gender=\"Women's\">\n" +
+        "         <item_number>RRX9856</item_number>\n" +
+        "         <price>42.50</price>\n" +
+        "         <size description=\"Small\">\n" +
+        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+        "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
+        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+        "         </size>\n" +
+        "         <size description=\"Medium\">\n" +
+        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+        "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
+        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+        "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
+        "         </size>\n" +
+        "         <size description=\"Large\">\n" +
+        "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
+        "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
+        "         </size>\n" +
+        "         <size description=\"Extra Large\">\n" +
+        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+        "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
+        "         </size>\n" +
+        "      </catalog_item>\n" +
+        "   </product>\n" +
+        "</catalog>\n")
+    );
+
+    TextDirectives specification = new TextDirectives(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+    records = PipelineTest.execute(steps, records);
+
+    Assert.assertTrue(records.size() == 2);
+    Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body.catalog.product.description"));
   }
 
 }

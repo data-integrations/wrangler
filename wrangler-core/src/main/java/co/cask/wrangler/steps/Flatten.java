@@ -30,6 +30,8 @@ import java.util.List;
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;
+  private int[] locations = null;
+  private int count = 0;
 
   public Flatten(int lineno, String detail, String[] columns) {
     super(lineno, detail);
@@ -48,15 +50,23 @@ public class Flatten extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
 
-    int[] locations = new int[columns.length];
-    int count = 0;
-    for (String column : columns) {
-      locations[count] = records.get(0).find(column);
-      ++count;
+    // Only once find the location of the columns to be flatten within
+    // the record. It's assumed that all records to passed to this
+    // instance are same.
+    if (locations == null) {
+      locations = new int[columns.length];
+      for (String column : columns) {
+        locations[count] = records.get(0).find(column);
+        ++count;
+      }
     }
 
-
+    // Iterate through the records.
     for (Record record : records) {
+
+      // For each record we find the maximum number of
+      // values in each of the columns specified to be
+      // flattened.
       int max = Integer.MIN_VALUE;
       for (int i =0; i < count; ++i) {
         Object value = record.getValue(locations[i]);
@@ -66,14 +76,27 @@ public class Flatten extends AbstractStep {
         }
       }
 
+      // We iterate through the arrays and populate
+      // all the columns.
       for(int k = 0; k < max; ++k) {
         Record r = new Record(record);
         for (int i = 0; i < count; ++i) {
           Object value = record.getValue(locations[i]);
-          if (value instanceof List) {
-            r.setValue(locations[i], ((List) value).get(k));
+          // Record might not have the column itself.
+          // So, we add 'null' to that column.
+          if (value == null) {
+            r.add(columns[i], null);
+          } else {
+            if (value instanceof List) {
+              if (((List) value).get(k) == null) {
+                r.add(columns[i], null);
+              } else {
+                r.setValue(locations[i], ((List) value).get(k));
+              }
+            }
           }
         }
+
         results.add(r);
       }
     }

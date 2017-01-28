@@ -33,12 +33,12 @@ import java.util.List;
 public class JsonParser extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;
-  private boolean deleteColumn;
+  private boolean delete;
 
-  public JsonParser(int lineno, String detail, String col, boolean deleteColumn) {
+  public JsonParser(int lineno, String detail, String col, boolean delete) {
     super(lineno, detail);
     this.col = col;
-    this.deleteColumn = deleteColumn;
+    this.delete = delete;
   }
 
   /**
@@ -81,7 +81,7 @@ public class JsonParser extends AbstractStep {
           }
 
           // Delete the original column.
-          if (deleteColumn) {
+          if (delete) {
             record.remove(idx);
           }
           results.add(record);

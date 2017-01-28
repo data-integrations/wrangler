@@ -82,25 +82,28 @@ public class JsPath extends AbstractStep {
 
       // Apply JSON path expression to it.
       Object e = Configuration.defaultConfiguration().jsonProvider().parse(v);
-      Object x = JsonPath.read(e, path);
+      Object object = JsonPath.read(e, path);
+
+      // Check if the objects are arrays, if so convert it to List<Object>
       List<Object> objects = new ArrayList<>();
-      if (x instanceof net.minidev.json.JSONArray) {
-        for(int i = 0; i < ((net.minidev.json.JSONArray) x).size(); ++i) {
-          objects.add(((net.minidev.json.JSONArray) x).get(i));
+      if (object instanceof net.minidev.json.JSONArray) {
+        for(int i = 0; i < ((net.minidev.json.JSONArray) object).size(); ++i) {
+          objects.add(((net.minidev.json.JSONArray) object).get(i));
         }
-        x = objects;
-      } else if (x instanceof JSONArray) {
-        for(int i = 0; i < ((JSONArray) x).length(); ++i) {
-          objects.add(((JSONArray) x).get(i));
+        object = objects;
+      } else if (object instanceof JSONArray) {
+        for(int i = 0; i < ((JSONArray) object).length(); ++i) {
+          objects.add(((JSONArray) object).get(i));
         }
-        x = objects;
+        object = objects;
       }
 
+      // If destination is already present add it, else set the value.
       int pos = record.find(dest);
       if (pos == -1) {
-        record.add(dest, x);
+        record.add(dest, object);
       } else {
-        record.setValue(pos, x);
+        record.setValue(pos, object);
       }
       results.add(record);
     }
