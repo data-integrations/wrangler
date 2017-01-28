@@ -89,11 +89,15 @@ Directive that uses a DSL for reading Json records. The expressions always refer
 
 Expressions can use the dot–notation
 
+```
 $.name.first
+```
 
 or the bracket–notation
 
+```
 $['name']['first']
+```
 
 Operators
 ---------
@@ -124,6 +128,25 @@ The function output is dictated by the function itself.
 | avg()                    | Provides the average value of an array of numbers                   | Double    |
 | stddev()                 | Provides the standard deviation value of an array of numbers        | Double    |
 | length()                 | Provides the length of an array                                     | Integer   |
+
+Filter Operators
+-----------------
+
+Filters are logical expressions used to filter arrays. A typical filter would be `[?(@.age > 18)]` where `@` represents the current item being processed. More complex filters can be created with logical operators `&&` and `||`. String literals must be enclosed by single or double quotes (`[?(@.color == 'blue')]` or `[?(@.color == "blue")]`).   
+
+| Operator                 | Description                                                       |
+| :----------------------- | :---------------------------------------------------------------- |
+| ==                       | left is equal to right (note that 1 is not equal to '1')          |
+| !=                       | left is not equal to right                                        |
+| <                        | left is less than right                                           |
+| <=                       | left is less or equal to right                                    |
+| >                        | left is greater than right                                        |
+| >=                       | left is greater than or equal to right                            |
+| =~                       | left matches regular expression  [?(@.name =~ /foo.*?/i)]         |
+| in                       | left exists in right [?(@.size in ['S', 'M'])]                    |
+| nin                      | left does not exists in right                                     |
+| size                     | size of left (array or string) should match right                 |
+| empty                    | left (array or string) should be empty                            |
 
 Path Examples
 -------------
@@ -189,21 +212,3 @@ Given the json
 | <a href="http://jsonpath.herokuapp.com/?path=$..*" target="_blank">$..*</a>                        | Give me every thing   
 | <a href="http://jsonpath.herokuapp.com/?path=$..book.length()" target="_blank">$..book.length()</a>                 | The number of books                      |
 
-Filter Operators
------------------
-
-Filters are logical expressions used to filter arrays. A typical filter would be `[?(@.age > 18)]` where `@` represents the current item being processed. More complex filters can be created with logical operators `&&` and `||`. String literals must be enclosed by single or double quotes (`[?(@.color == 'blue')]` or `[?(@.color == "blue")]`).   
-
-| Operator                 | Description                                                       |
-| :----------------------- | :---------------------------------------------------------------- |
-| ==                       | left is equal to right (note that 1 is not equal to '1')          |
-| !=                       | left is not equal to right                                        |
-| <                        | left is less than right                                           |
-| <=                       | left is less or equal to right                                    |
-| >                        | left is greater than right                                        |
-| >=                       | left is greater than or equal to right                            |
-| =~                       | left matches regular expression  [?(@.name =~ /foo.*?/i)]         |
-| in                       | left exists in right [?(@.size in ['S', 'M'])]                    |
-| nin                      | left does not exists in right                                     |
-| size                     | size of left (array or string) should match right                 |
-| empty                    | left (array or string) should be empty                            |
