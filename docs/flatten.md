@@ -5,10 +5,10 @@ FLATTEN directive separates the elements in a repeated field into individual rec
 ## Syntax 
 
 ```
- flatten <column-name>[, <column-name> ]*
+ flatten <column>[, <column> ]*
 ```
 
-```column-name``` name of the column that is a JSON Array.
+```column``` name of the column that is a JSON Array.
 
 ## Usage Notes
 
