@@ -101,9 +101,10 @@ Following are different directives currently available.
 * [Masking](docs/masking.md)
 * [Row Operations]()
   * [Flatten](docs/flatten.md)
-* [Column Operations]
+* [Column Operations]()
   * [Drop Column](docs/drop.md)
   * [Rename Column](docs/rename.md)
+  * [Merge Columns](docs/merge.md)
 
 ## Types of Directives
 Following are different types of directives that are supported by the Wrangler plugin.
