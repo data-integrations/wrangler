@@ -1,4 +1,4 @@
-# Wrangler Transform
+# Wrangler
 [![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform) 
 <a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
   <img alt="Coverity Scan Build Status"
