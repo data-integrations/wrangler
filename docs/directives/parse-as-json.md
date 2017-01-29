@@ -15,7 +15,10 @@ PARSE-AS-JSON is a directive for parsing a as json object. The directive can ope
 
 PARSE-AS-JSON directive helps you break-down a complex json into simple understandable and manageable chunks. When first applied on a json object, it breaks it down into keys and values. The value could in itself be a json object on which you can apply PARSE-AS-JSON directive again to flatten it out. 
 
-The key names in the event object are appeneded to the column that is being applied json parsing. The column names use dot notations. To review the process of parsing let's review it with an example. Let's say you have a simple json in record with field name ```body```
+The key names in the event object are appeneded to the column that is being applied json parsing. The column names use dot notations. 
+
+## Examples
+To review the process of parsing let's review it with an example. Let's say you have a simple json in record with field name ```body```
 
 ```
   {
@@ -59,6 +62,4 @@ Applying the same directive on field ```body.name``` generates the following res
 | **body.height** | 5.8 | Double |
 | **body.name.first** | "Root" | String |
 | **body.name.last** | "Joltie" | String |
-
-## Examples
 
