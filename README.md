@@ -76,6 +76,7 @@ Following are different directives currently available.
   * [Change Text case](docs/change-case.md)
   * [Index Split](docs/index-split.md)
   * [Split by Seperator](docs/split-by-seperator.md)
+  * [Fill Null or Empty](docs/fill-null-or-empty.md)
   * [Sed](docs/sed.md)
   * [Grep](docs/grep.md)
   * [Cut](docs/cut.md)
