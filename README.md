@@ -71,6 +71,8 @@ Following are different directives currently available.
   * [CSV Parser](docs/csv-parser.md)
   * [Json Parser](docs/parse-as-json.md)
   * [Json Path](docs/json-path.md)
+  * [XML Parser](docs/parse-as-xml.md)
+  * [XML Path](docs/xml-path.md)
   * [Fixed Length Parser](docs/fixed-length-parser.md)
 * [Text Transformations](docs/text-transformation.md)
   * [Change Text case](docs/change-case.md)
