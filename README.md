@@ -92,6 +92,7 @@ Following are different directives currently available.
 * [Column Operations]()
   * [Drop Column](docs/drop.md)
   * [Rename Column](docs/rename.md)
+  * [Copy Column](docs/copy.md)
   * [Merge Columns](docs/merge.md)
   * [Split To Columns](docs/split-to-columns.md)
 
