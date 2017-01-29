@@ -88,7 +88,7 @@ Following are different directives currently available.
   * [Number Masking](docs/mask-number.md)
 * [Row Operations]()
   * [Flatten](docs/flatten.md)
-  * [Split To Row](docs/split-to-rows.md)
+  * [Split To Rows](docs/split-to-rows.md)
 * [Column Operations]()
   * [Drop Column](docs/drop.md)
   * [Rename Column](docs/rename.md)
