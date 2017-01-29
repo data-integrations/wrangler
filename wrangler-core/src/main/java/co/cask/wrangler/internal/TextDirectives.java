@@ -20,6 +20,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.Columns;
+import co.cask.wrangler.steps.Copy;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
 import co.cask.wrangler.steps.Expression;
@@ -116,6 +117,7 @@ public class TextDirectives implements Directives {
     formats.put("xml-path", "xml-path <source> <destination> <path>");
     formats.put("flatten", "flatten <column>[,<column>,<column>,...]");
     formats.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
+    formats.put("copy", "copy <source> <destination> [force]");
   }
 
   public TextDirectives(String directives) {
@@ -427,6 +429,63 @@ public class TextDirectives implements Directives {
             }
           }
           steps.add(new Flatten(lineno, directive, columns));
+        }
+        break;
+
+        // copy <source> <destination> [force]
+        case "copy" : {
+          String source = getNextToken(tokenizer, command, "source", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          String forceOpt = getNextToken(tokenizer, "\n", command, "force", lineno, true);
+
+          boolean force = false;
+          if (forceOpt != null && forceOpt.equalsIgnoreCase("true")) {
+            force = true;
+          }
+          steps.add(new Copy(lineno, directive, source, destination, force));
+        }
+        break;
+
+        // extract-date-elements <column>
+        case "extract-date-elements" : {
+
+        }
+        break;
+
+        // date-diff <column> [<another column> | current time | another date]
+        case "date-diff" : {
+
+        }
+        break;
+
+        // split email into parts
+        case "split-email-address" : {
+
+        }
+        break;
+
+        // word-ngram <column> [JSON|Rows|Columns]
+        case "word-ngram" : {
+
+        }
+        break;
+
+        // extract-number <column>
+        case "extract-number" : {
+          // It can auto-detect decimal separators, and automatically
+          // expands notations like ‘10K’ and ‘200M’.
+        }
+        break;
+
+        // fill-empty <column> <value>
+        case "fill-empty" : {
+
+        }
+        break;
+
+        // filter-date-range <column> <lower-end> <upper-end>
+        case "filter-date-row-by-date-range" : {
+
         }
         break;
 

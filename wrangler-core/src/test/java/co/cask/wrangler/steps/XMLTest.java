@@ -17,12 +17,9 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Step;
-import co.cask.wrangler.internal.TextDirectives;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -172,10 +169,7 @@ public class XMLTest {
         "</catalog>")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = PipelineTest.execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 12);
     Assert.assertEquals("Gambardella, Matthew", records.get(0).getValue("author"));
@@ -240,10 +234,7 @@ public class XMLTest {
         "</catalog>\n")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = PipelineTest.execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body.catalog.product.description"));
