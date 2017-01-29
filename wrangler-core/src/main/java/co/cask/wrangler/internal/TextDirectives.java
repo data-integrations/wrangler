@@ -111,7 +111,7 @@ public class TextDirectives implements Directives {
     formats.put("parse-as-json", "parse-as-json <column> <delete-column>");
     formats.put("parse-as-fixed-length", "parse-as-fixed-length <source> <field ranges>");
     formats.put("json-path", "json-path <source> <destination> <json path>");
-    formats.put("split-to-rows","split-to-rows <column> <regex>");
+    formats.put("split-to-rows","split-to-rows <column> <separator>");
     formats.put("split-to-columns","split-to-columns <column> <regex>");
     formats.put("parse-as-xml", "parse-as-xml <column>");
     formats.put("xml-path", "xml-path <source> <destination> <path>");
