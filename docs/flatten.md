@@ -29,7 +29,7 @@ A very simple example would turn this data (one record):
 into three distinct records:
 
 | x           | y              | z         |
-+-------------+----------------+-----------+
+|-------------|----------------|-----------|
 | 5           | "a string"     | 1         |
 | 5           | "a string"     | 2         |
 | 5           | "a string"     | 3         |
