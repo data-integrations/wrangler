@@ -81,8 +81,6 @@ Following are different directives currently available.
   * [Split by Seperator](docs/split-by-seperator.md)
   * [Fill Null or Empty](docs/fill-null-or-empty.md)
   * [Sed](docs/sed.md)
-  * [Grep](docs/grep.md)
-  * [Cut](docs/cut.md)
 * [Quantization](docs/quantize.md)
 * [Date Transformations](docs/date-time.md)
   * [Format date](docs/format-date.md)
