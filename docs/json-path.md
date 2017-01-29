@@ -30,8 +30,7 @@ or the bracket–notation
 $['name']['first']
 ```
 
-Operators
----------
+### Operators
 
 | Operator                  | Description                                                        |
 | :------------------------ | :----------------------------------------------------------------- |
@@ -46,8 +45,7 @@ Operators
 | `[?(<expression>)]`       | Filter expression. Expression must evaluate to a boolean value.    |
 
 
-Functions
----------
+### Functions
 
 Functions can be invoked at the tail end of a path - the input to a function is the output of the path expression.
 The function output is dictated by the function itself.
@@ -60,8 +58,7 @@ The function output is dictated by the function itself.
 | stddev()                 | Provides the standard deviation value of an array of numbers        | Double    |
 | length()                 | Provides the length of an array                                     | Integer   |
 
-Filter Operators
------------------
+### Filter Operators
 
 Filters are logical expressions used to filter arrays. A typical filter would be `[?(@.age > 18)]` where `@` represents the current item being processed. More complex filters can be created with logical operators `&&` and `||`. String literals must be enclosed by single or double quotes (`[?(@.color == 'blue')]` or `[?(@.color == "blue")]`).   
 
