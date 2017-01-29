@@ -44,3 +44,11 @@ You want to operate only on the records where an individual is residing in ```co
 ```
 
 Will result in filtering out records for individuals that are not in US.
+
+Low let's say you want to filter out individual within US who's ```hrlywage``` is greater than 12.
+
+```
+  filter-row-if-true (country !~ US && hrlywage > 12)
+```
+
+Will result in records that have individual who reside in US and who's hourly wage is less than 12.
