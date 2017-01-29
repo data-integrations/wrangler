@@ -28,6 +28,8 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.unix4j.Unix4j;
+import org.unix4j.unix.Cut;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -475,6 +477,15 @@ public class PipelineTest {
     Assert.assertEquals("D", records.get(0).getValue("body_4"));
     Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
     Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
+  }
+
+  @Test
+  public void testCut() throws Exception {
+    // cut column -c1,2,3
+    // cut column -d " " -f1,2,3
+    String s1 = Unix4j.fromString("one two three").cut("-c", "1-3").toStringResult();
+    String s = Unix4j.fromString("some string another").cut(Cut.Options.fields, " ", org.unix4j.util.Range.between(1,2)).toStringResult();
+    Assert.assertNotNull(s);
   }
 }
 

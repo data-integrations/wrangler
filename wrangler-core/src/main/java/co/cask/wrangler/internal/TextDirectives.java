@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.CharacterCut;
 import co.cask.wrangler.steps.Columns;
 import co.cask.wrangler.steps.Copy;
 import co.cask.wrangler.steps.CsvParser;
@@ -95,8 +96,8 @@ public class TextDirectives implements Directives {
     formats.put("uppercase", "uppercase <column>");
     formats.put("lowercase", "lowercase <column>");
     formats.put("titlecase", "titlecase <column>");
-    formats.put("indexsplit", "indexsplit <source-column-name> <start> <end> <destination-column-name>");
-    formats.put("split", "split <source-column-name> <delimiter> <new-column-1> <new-column-2>");
+    formats.put("indexsplit", "indexsplit <source> <start> <end> <destination>");
+    formats.put("split", "split <source> <delimiter> <new-column-1> <new-column-2>");
     formats.put("filter-row-if-matched", "filter-row-if-matched <column> <regex>");
     formats.put("filter-row-if-true", "filter-row-if-true <condition>");
     formats.put("mask-number", "mask-number <column> <mask-pattern>");
@@ -237,14 +238,14 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // indexsplit <source-column-name> <start> <end> <destination-column-name>
+        // indexsplit <source> <start> <end> <destination>
         case "indexsplit": {
-          String source = getNextToken(tokenizer, command, "source-column-name", lineno);
+          String source = getNextToken(tokenizer, command, "source", lineno);
           String startStr = getNextToken(tokenizer, command, "start", lineno);
           String endStr = getNextToken(tokenizer, command, "end", lineno);
           int start = Integer.parseInt(startStr);
           int end = Integer.parseInt(endStr);
-          String destination = getNextToken(tokenizer, command, "destination-column-name", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
           steps.add(new IndexSplit(lineno, directive, source, start, end, destination));
         }
         break;
@@ -461,40 +462,21 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // extract-date-elements <column>
-        case "extract-date-elements" : {
-
-        }
-        break;
-
-        // date-diff <column> [<another column> | current time | another date]
-        case "date-diff" : {
-
-        }
-        break;
-
-        // split email into parts
-        case "split-email-address" : {
-
-        }
-        break;
-
-        // word-ngram <column> [JSON|Rows|Columns]
-        case "word-ngram" : {
-
-        }
-        break;
-
-        // extract-number <column>
-        case "extract-number" : {
-          // It can auto-detect decimal separators, and automatically
-          // expands notations like ‘10K’ and ‘200M’.
-        }
-        break;
-
-        // filter-date-range <column> <lower-end> <upper-end>
-        case "filter-date-row-by-date-range" : {
-
+        // cut <source> <destination> -c <range>
+        // cut <source> <destination> -d <delimiter> -f <index>
+        case "cut" : {
+          String source = getNextToken(tokenizer, command, "source", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          String option = getNextToken(tokenizer, command, "option", lineno);
+          if (!option.equalsIgnoreCase("-c") && !option.equalsIgnoreCase("-d")) {
+            throw new DirectiveParseException(
+              "Unknow option '" + option + "' specified. Only support character (-c) and delimited (-d) types"
+            );
+          }
+          if (option.equalsIgnoreCase("-c")) {
+            String range = getNextToken(tokenizer, command, "range", lineno);
+            steps.add(new CharacterCut(lineno, directive, source, destination, range));
+          }
         }
         break;
 

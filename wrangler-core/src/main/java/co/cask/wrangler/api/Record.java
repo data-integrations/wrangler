@@ -214,6 +214,21 @@ public class Record {
     return v;
   }
 
+  /**
+   * Adds or sets the value.
+   *
+   * @param name of the field to be either set or added to record.
+   * @param value to be added.
+   */
+  public void addOrSet(String name, Object value) {
+    int idx = find(name);
+    if (idx != -1) {
+      setValue(idx, value);
+    } else {
+      add(name, value);
+    }
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(getClass())
@@ -223,6 +238,4 @@ public class Record {
       .add("values", values)
       .toString();
   }
-
-
 }
