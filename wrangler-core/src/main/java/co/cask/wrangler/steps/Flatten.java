@@ -20,12 +20,13 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Flattens a record based on the columns specified.
+ * A directive that Flattens a record
  */
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
@@ -70,7 +71,7 @@ public class Flatten extends AbstractStep {
       int max = Integer.MIN_VALUE;
       for (int i =0; i < count; ++i) {
         Object value = record.getValue(locations[i]);
-        int m = ((List) value).size();
+        int m = ((JSONArray) value).length();
         if (m > max) {
           max = m;
         }
@@ -87,11 +88,11 @@ public class Flatten extends AbstractStep {
           if (value == null) {
             r.add(columns[i], null);
           } else {
-            if (value instanceof List) {
-              if (((List) value).get(k) == null) {
+            if (value instanceof JSONArray) {
+              if (((JSONArray) value).get(k) == null) {
                 r.add(columns[i], null);
               } else {
-                r.setValue(locations[i], ((List) value).get(k));
+                r.setValue(locations[i], ((JSONArray) value).get(k));
               }
             }
           }

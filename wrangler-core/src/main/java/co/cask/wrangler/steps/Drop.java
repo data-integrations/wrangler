@@ -62,8 +62,7 @@ public class Drop extends AbstractStep {
         if (idx != -1) {
           record.remove(idx);
         } else {
-          throw new StepException(toString() + " : '" +
-                                    column + "' column is not defined in the record. Please check the wrangling steps.");
+          throw new StepException(toString() + " : Unable to find column '" + column + "' in the record.");
         }
       }
       result.add(record);

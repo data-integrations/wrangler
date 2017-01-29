@@ -344,7 +344,7 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String deleteCol = getNextToken(tokenizer, "\n", command, "delete-column", lineno, true);
           boolean delete = false;
-          if (deleteCol.equalsIgnoreCase("true")) {
+          if (deleteCol != null && deleteCol.equalsIgnoreCase("true")) {
             delete = true;
           }
           steps.add(new JsonParser(lineno, directive, column, delete));
@@ -411,8 +411,22 @@ public class TextDirectives implements Directives {
 
         // flatten <column>[,<column>,<column>,...]
         case "flatten" : {
-          String columns = getNextToken(tokenizer, command, "columns", lineno);
-          steps.add(new Flatten(lineno, directive, columns.split(",")));
+          String cols = getNextToken(tokenizer, command, "columns", lineno);
+          if (cols.equalsIgnoreCase("*")) {
+            throw new DirectiveParseException(
+              "Flatten does not support wildcard ('*') flattening. Please specify column names"
+            );
+          }
+
+          String[] columns = cols.split(",");
+          for (String column : columns) {
+            if (column.trim().equalsIgnoreCase("*")) {
+              throw new DirectiveParseException(
+                "Flatten does not support wildcard ('*') flattening. Please specify column names"
+              );
+            }
+          }
+          steps.add(new Flatten(lineno, directive, columns));
         }
         break;
 

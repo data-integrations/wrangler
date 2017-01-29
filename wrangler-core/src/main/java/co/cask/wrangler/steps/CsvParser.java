@@ -67,7 +67,7 @@ public class CsvParser extends AbstractStep {
     for (Record record : records) {
       String line = (String) record.getValue(col);
       if (line == null) {
-        throw new StepException(toString() + " : Did not find " + col + " in the record");
+        throw new StepException(toString() + " : Unable to find column '" + col + "' in the record.");
       }
       CSVParser parser = null;
       try {

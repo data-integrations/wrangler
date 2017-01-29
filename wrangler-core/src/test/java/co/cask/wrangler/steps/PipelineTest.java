@@ -54,7 +54,7 @@ public class PipelineTest {
     steps.add(new CsvParser(0, "", new CsvParser.Options('|'), "fifth", false));
     steps.add(new Drop(0, "", "fifth"));
     steps.add(new Merge(0, "", "one", "second", "merged", "%"));
-    steps.add(new Rename(0, "", "fifth_col1", "test"));
+    steps.add(new Rename(0, "", "fifth_1", "test"));
     steps.add(new TitleCase(0, "", "test"));
     steps.add(new IndexSplit(0, "", "test", 1, 4, "substr"));
 
