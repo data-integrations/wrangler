@@ -161,6 +161,15 @@ public class PipelineTest {
     return records;
   }
 
+  public static List<Record> execute(String[] directives, List<Record> records)
+    throws StepException, DirectiveParseException {
+    TextDirectives specification = new TextDirectives(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+    records = PipelineTest.execute(steps, records);
+    return records;
+  }
+
   @Test
   public void testEscapedStrings() throws Exception {
     List<Step> steps = new ArrayList<>();
@@ -195,17 +204,13 @@ public class PipelineTest {
       "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1",
       "format-date dob MM/dd/YYYY EEE, d MMM yyyy HH:mm:ss Z"
     };
-    TextDirectives specification = new TextDirectives(directives);
-
-    // Define all the steps in the wrangler.
-    List<Step> steps = new ArrayList<>(specification.getSteps());
 
     // Run through the wrangling steps.
     List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
       "150 Mars Ave,Palo Alto,CA,USA,32826"));
 
     // Iterate through steps.
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertEquals("Joltie, Root", records.get(0).getValue("name"));
     Assert.assertEquals("1886.3999999999999", records.get(0).getValue("salary"));
@@ -231,7 +236,7 @@ public class PipelineTest {
     List<Step> steps = new ArrayList<>(specification.getSteps());
 
     // Run through the wrangling steps.
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
   }
 
   @Test
@@ -251,10 +256,7 @@ public class PipelineTest {
       new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     // Filters all the records that don't match the pattern .*@joltie.io
     Assert.assertTrue(records.size() == 1);
@@ -298,11 +300,7 @@ public class PipelineTest {
       new Record("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,20.7,150 Mars Ave,Palo Alto,CA,USA,32826")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
-
+    records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 6);
     int low = 0, medium = 0, high = 0, notfound = 0;
     for (Record record : records) {
@@ -338,10 +336,7 @@ public class PipelineTest {
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("07/29/2013,Debt collection,Other (i.e. phone, health club, etc.),Cont'd " +
@@ -370,10 +365,7 @@ public class PipelineTest {
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("07/29/2013", records.get(0).getValue("date"));
   }
@@ -410,10 +402,7 @@ public class PipelineTest {
         "\"It is an AT&T samung wearable device.\" } }")
       );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
 
@@ -427,10 +416,7 @@ public class PipelineTest {
       new Record("body", "AABBCDE\nEEFFFF")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("AABBCDE", records.get(0).getValue("body"));
@@ -447,10 +433,7 @@ public class PipelineTest {
       new Record("body", "AABBCDE\nEEFFFF")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("AABBCDE", records.get(0).getValue("body_1"));
@@ -467,10 +450,7 @@ public class PipelineTest {
       new Record("body", "AABBCDEEEFFFF")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("AA", records.get(0).getValue("body_1"));
@@ -502,10 +482,7 @@ public class PipelineTest {
       new Record("body", "AA__BB__C___D___EEE_FFFF")
     );
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = execute(steps, records);
+    records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("AA", records.get(0).getValue("body_1"));
