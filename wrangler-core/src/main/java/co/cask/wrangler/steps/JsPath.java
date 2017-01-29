@@ -75,8 +75,8 @@ public class JsPath extends AbstractStep {
         v = ((JSONObject) value).toString();
       } else {
         throw new StepException(
-          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JSONArray, JSONObject or String.",
-                        toString(), src, value.getClass().getName())
+          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JSONArray, " +
+                          "JSONObject or String.", toString(), value.getClass().getName(), src)
         );
       }
 
