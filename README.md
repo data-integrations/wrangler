@@ -74,6 +74,7 @@ Following are different directives currently available.
   * [XML Parser](docs/parse-as-xml.md)
   * [XML Path](docs/xml-path.md)
   * [Fixed Length Parser](docs/fixed-length-parser.md)
+* [Apply Expression](docs/expression.md)
 * [Text Transformations](docs/text-transformation.md)
   * [Change Text case](docs/change-case.md)
   * [Index Split](docs/index-split.md)
