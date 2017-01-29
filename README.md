@@ -92,6 +92,8 @@ Following are different directives currently available.
 * [Row Operations]()
   * [Flatten](docs/flatten.md)
   * [Split To Rows](docs/split-to-rows.md)
+  * [Filter Row using Regex](docs/filter-row-if-matched.md)
+  * [Filter Row on Condition](docs/filter-row-if-true.md)  
 * [Column Operations]()
   * [Drop Column](docs/drop.md)
   * [Rename Column](docs/rename.md)
