@@ -99,8 +99,11 @@ Following are different directives currently available.
 * [Quantization](docs/quantize.md)
 * [Date Transformations](docs/date-time.md)
 * [Masking](docs/masking.md)
-* [Row Filtering](docs/row-filtering.md)
-* [Column Operations](docs/column-operations.md)
+* [Row Operations]()
+  * [Flatten](docs/flatten.md)
+* [Column Operations]
+  * [Drop Column](docs/drop.md)
+  * [Rename Column](docs/rename.md)
 
 ## Types of Directives
 Following are different types of directives that are supported by the Wrangler plugin.
