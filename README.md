@@ -58,8 +58,8 @@ Following are different directives currently available.
 
 * [CSV Parsing](docs/csv-parser.md)
 * [Json Parsing](docs/json-parser.md)
-  * [Json Parser](docs/json-parser.md#parse-json)
-  * [Json Path](docs/json-parser.md#json-path)
+  * [Json Parser](docs/parse-as-json.md)
+  * [Json Path](docs/json-path.md)
 * [Fixed Length Parsing](docs/fixed-length-parser.md)
 * [Text Transformations](docs/text-transformation.md)
 * [Quantization](docs/quantize.md)

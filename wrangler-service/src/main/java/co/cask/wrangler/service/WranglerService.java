@@ -70,7 +70,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
    * @param ws
    */
   @PUT
-  @Path("v1/workspaces/{workspace}")
+  @Path("workspaces/{workspace}")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws) {
     try {
@@ -90,7 +90,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
    * @param ws
    */
   @DELETE
-  @Path("v1/workspaces/{workspace}")
+  @Path("workspaces/{workspace}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws) {
     try {
@@ -102,7 +102,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
 
   @POST
-  @Path("v1/workspaces/{workspace}/upload")
+  @Path("workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws ) {
 
@@ -120,10 +120,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
     }
 
     List<Record> records = new ArrayList<>();
-    String[] lines = body.split("\n");
-    for (String line : lines) {
-      records.add(new Record(ws, line));
-    }
+    records.add(new Record(ws, body));
     String d = new Gson().toJson(records);
     try {
       Put data = new Put (Bytes.toBytes(ws), Bytes.toBytes("data"), Bytes.toBytes(d));
@@ -135,17 +132,22 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
 
   @GET
-  @Path("v1/workspaces/{workspace}/download")
+  @Path("workspaces/{workspace}/download")
   public void download(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws ) {
 
     try {
       Row row = workspace.get(Bytes.toBytes(ws));
-      List<Record> records = new Gson().fromJson(row.getString("data"),
-                                                 new TypeToken<List<Record>>(){}.getType());
+
+      String data = row.getString("data");
+      if (data == null || data.isEmpty()) {
+        error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
+        return;
+      }
+
+      List<Record> records = new Gson().fromJson(data, new TypeToken<List<Record>>(){}.getType());
       JSONArray values = new JSONArray();
       for (Record record : records) {
-        LOG.info(record.toString());
         List<KeyValue<String, Object>> fields = record.getRecord();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
@@ -157,7 +159,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
       response.put("items", records.size());
-      response.put("values", values);
+      response.put("value", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -165,7 +167,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
 
   @GET
-  @Path("v1/workspaces/{workspace}/execute")
+  @Path("workspaces/{workspace}/execute")
   public void directive(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("workspace") String ws,
                         @QueryParam("directive") List<String> directives,
@@ -191,7 +193,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
       response.put("items", newRecords.size());
-      response.put("values", values);
+      response.put("value", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());

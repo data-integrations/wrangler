@@ -68,7 +68,8 @@ public class JsonParser extends AbstractStep {
             object = (JSONObject) value;
           } else {
             throw new StepException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type JSONObject or String.", toString(),
+              String.format("%s : Invalid type '%s' of column '%s'. " +
+                              "Should be of type JSONObject or String. Use <xml|json>-path to parser data.", toString(),
                             col, value.getClass().getName())
             );
           }

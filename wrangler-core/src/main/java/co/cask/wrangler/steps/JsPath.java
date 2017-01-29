@@ -85,15 +85,10 @@ public class JsPath extends AbstractStep {
       Object object = JsonPath.read(e, path);
 
       // Check if the objects are arrays, if so convert it to List<Object>
-      List<Object> objects = new ArrayList<>();
+      JSONArray objects = new JSONArray();
       if (object instanceof net.minidev.json.JSONArray) {
         for(int i = 0; i < ((net.minidev.json.JSONArray) object).size(); ++i) {
-          objects.add(((net.minidev.json.JSONArray) object).get(i));
-        }
-        object = objects;
-      } else if (object instanceof JSONArray) {
-        for(int i = 0; i < ((JSONArray) object).length(); ++i) {
-          objects.add(((JSONArray) object).get(i));
+          objects.put(((net.minidev.json.JSONArray) object).get(i));
         }
         object = objects;
       }
