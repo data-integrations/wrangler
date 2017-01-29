@@ -1,4 +1,4 @@
-# Fill Empty
+# Fill Null or Empty Column
 
 FILL-NULL-OR-EMPTY directive fills column value with a fixed value if it's 'null' or empty.
 
