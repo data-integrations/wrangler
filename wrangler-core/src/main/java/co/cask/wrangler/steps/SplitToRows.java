@@ -41,7 +41,7 @@ public class SplitToRows extends AbstractStep {
   }
 
   /**
-   * Splits a record into multiple records based on delimiter.
+   * Splits a record into multiple records based on separator.
    *
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
@@ -56,7 +56,7 @@ public class SplitToRows extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object value = record.getValue(idx);
-        if (value instanceof String) {
+        if (value != null && value instanceof String) {
           String[] lines = ((String) value).split(regex);
           for (String line : lines) {
             Record r = new Record(record);
@@ -65,7 +65,7 @@ public class SplitToRows extends AbstractStep {
           }
         } else {
           throw new StepException(
-            "blah blah blah"
+            toString() + " : Cannot split empty or non-string types"
           );
         }
       }
