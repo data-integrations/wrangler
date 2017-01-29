@@ -484,7 +484,7 @@ public class PipelineTest {
     // cut column -c1,2,3
     // cut column -d " " -f1,2,3
     String s1 = Unix4j.fromString("one two three").cut("-c", "1-3").toStringResult();
-    String s = Unix4j.fromString("some string another").cut(Cut.Options.fields, " ", org.unix4j.util.Range.between(1,2)).toStringResult();
+    String s = Unix4j.fromString("some string another").cut(Cut.Options.fields, " ", 1,2).toStringResult();
     Assert.assertNotNull(s);
   }
 }
