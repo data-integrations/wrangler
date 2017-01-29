@@ -74,7 +74,6 @@ Following are different directives currently available.
   * [XML Parser](docs/directives/parse-as-xml.md)
   * [XML Path](docs/directives/xml-path.md)
   * [Fixed Length Parser](docs/directives/fixed-length-parser.md)
-* [Apply Expression](docs/directives/expression.md)
 * [Text Transformations](docs/directives/text-transformation.md)
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)
@@ -82,6 +81,7 @@ Following are different directives currently available.
   * [Fill Null or Empty](docs/directives/fill-null-or-empty.md)
   * [Sed](docs/directives/sed.md)
   * [Cut](docs/directives/cut.md)
+  * [Expressions](docs/directives/expression.md)
 * [Quantization](docs/directives/quantize.md)
 * [Date Transformations](docs/directives/date-time.md)
   * [Format Date](docs/directives/format-date.md)
@@ -100,8 +100,50 @@ Following are different directives currently available.
   * [Copy Column](docs/directives/copy.md)
   * [Merge Columns](docs/directives/merge.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
+  
+## Wrangler Service
 
+Wrangler is integrated as CDAP Service to support REST based interactive way for wrangling data. The main objective of having this service is to make it easy for interactively generating directives required for parsing data. This service does not support full scale big data processing, but operates on sampled data (~ 1M rows). 
 
+### Service Endpoints
+
+Following are different service points supported by Wrangler. The base endpoint is defined below :
+```
+  http://<hostname>:11015/v3/namespaces/<namespace>/apps/wrangler/services/service/methods
+```
+
+#### Workspace Lifecycle
+
+Workspace is a named area in the service that stores data on which the directives are applied. The service provides the ability to create/delete workspace. 
+
+* Create workspace
+```
+  PUT <base>/workspaces/<workspace-name>
+```
+
+* Delete workspace
+```
+  DELETE <base>/workspaces/<workspace-name>
+```
+
+* Upload data to workspace
+```
+  POST <base>/workspaces/<workspace-name>/upload
+```
+
+* Download data from workspace
+```
+  POST <base>/workspaces/<workspace-name>/download
+```
+
+#### Executing Directives
+
+Wrangling directives are executed in the service on the data stored in the workspace. 
+
+* Executing directives 
+```
+  GET <base>/workspaces/<workspace-name>/execute?directive="<directive>"[&directive="<directive>"]*
+```
 ## Build new directives
 
 Directives are executed as a step, so it's a simple three step process to actually implement the Step and
