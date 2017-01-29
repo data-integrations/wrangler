@@ -87,7 +87,7 @@ public class TextDirectives implements Directives {
     formats.put("set format", "set format [csv|json] <delimiter> <skip empty lines>");
     formats.put("set column", "set column <column-name> <jexl-expression>");
     formats.put("set columns", "set columns <name1, name2, ...>");
-    formats.put("rename", "rename <source> <destination>");
+    formats.put("rename", "rename <old> <new>");
     formats.put("drop", "drop <column-name>");
     formats.put("merge", "merge <col1> <col2> <destination-column-name> <delimiter>");
     formats.put("uppercase", "uppercase <col>");
@@ -187,17 +187,17 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // rename <source> <destination>
+        // rename <old> <new>
         case "rename": {
-          String source = getNextToken(tokenizer,  command, "source", lineno);
-          String destination = getNextToken(tokenizer, command, "destination", lineno);
-          steps.add(new Rename(lineno, directive, source, destination));
+          String oldcol = getNextToken(tokenizer,  command, "old", lineno);
+          String newcol = getNextToken(tokenizer, command, "new", lineno);
+          steps.add(new Rename(lineno, directive, oldcol, newcol));
         }
         break;
 
-        // drop <column-name>
+        // drop <column>
         case "drop": {
-          String col = getNextToken(tokenizer, command, "column-name", lineno);
+          String col = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new Drop(lineno, directive, col));
         }
         break;

@@ -29,19 +29,19 @@ import java.util.List;
  */
 public class Rename extends AbstractStep {
   // Columns of the columns that needs to be renamed.
-  private String source;
+  private String oldcol;
 
   // Columns of the column to be renamed to.
-  private String destination;
+  private String newcol;
 
-  public Rename(int lineno, String detail, String source, String destination) {
+  public Rename(int lineno, String detail, String oldcol, String newcol) {
     super(lineno, detail);
-    this.source = source;
-    this.destination = destination;
+    this.oldcol = oldcol;
+    this.newcol = newcol;
   }
 
   /**
-   * Renames the column from 'source' to 'destination'.
+   * Renames the column from 'old' to 'new'.
    * If the source column doesn't exist, then it will return the record as it.
    *
    * @param records Input {@link Record} to be wrangled by this step.
@@ -53,12 +53,12 @@ public class Rename extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
-      int idx = record.find(source);
+      int idx = record.find(oldcol);
       if (idx != -1) {
-        record.setColumn(idx, destination);
+        record.setColumn(idx, newcol);
       } else {
         throw new StepException(toString() + " : '" +
-                                  source + "' column is not defined in the record. Please check the wrangling steps."
+                                  oldcol + "' column is not defined in the record. Please check the wrangling steps."
         );
       }
       results.add(record);
