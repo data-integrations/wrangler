@@ -85,14 +85,14 @@ public class TextDirectives implements Directives {
 
     // Add all the usages.
     formats.put("set format", "set format [csv|json] <delimiter> <skip empty lines>");
-    formats.put("set column", "set column <column-name> <jexl-expression>");
-    formats.put("set columns", "set columns <name1, name2, ...>");
+    formats.put("set column", "set column <column> <jexl-expression>");
+    formats.put("set columns", "set columns <column-1, column-2, ...>");
     formats.put("rename", "rename <old> <new>");
-    formats.put("drop", "drop <column-name>");
-    formats.put("merge", "merge <col1> <col2> <destination-column-name> <delimiter>");
-    formats.put("uppercase", "uppercase <col>");
-    formats.put("lowercase", "lowercase <col>");
-    formats.put("titlecase", "titlecase <col>");
+    formats.put("drop", "drop <column>");
+    formats.put("merge", "merge <first> <second> <new-column> <seperator>");
+    formats.put("uppercase", "uppercase <column>");
+    formats.put("lowercase", "lowercase <column>");
+    formats.put("titlecase", "titlecase <column>");
     formats.put("indexsplit", "indexsplit <source-column-name> <start> <end> <destination-column-name>");
     formats.put("split", "split <source-column-name> <delimiter> <new-column-1> <new-column-2>");
     formats.put("filter-row-if-matched", "filter-row-if-matched <column> <regex>");
@@ -202,12 +202,12 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // merge <col1> <col2> <destination-column-name> <delimiter>
+        // merge <first> <second> <new-column> <seperator>
         case "merge": {
-          String col1 = getNextToken(tokenizer, command, "col1", lineno);
-          String col2 = getNextToken(tokenizer, command, "col2", lineno);
-          String dest = getNextToken(tokenizer, command, "destination-column-name", lineno);
-          String delimiter = getNextToken(tokenizer, command, "delimiter", lineno);
+          String col1 = getNextToken(tokenizer, command, "first", lineno);
+          String col2 = getNextToken(tokenizer, command, "second", lineno);
+          String dest = getNextToken(tokenizer, command, "new-column", lineno);
+          String delimiter = getNextToken(tokenizer, command, "seperator", lineno);
           steps.add(new Merge(lineno, directive, col1, col2, dest, delimiter));
         }
         break;
