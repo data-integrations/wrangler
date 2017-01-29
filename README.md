@@ -76,6 +76,7 @@ Following are different directives currently available.
   * [Change Text case](docs/change-case.md)
   * [Index Split](docs/index-split.md)
   * [Split by Seperator](docs/split-by-seperator.md)
+  * [Sed](docs/sed.md)
 * [Quantization](docs/quantize.md)
 * [Date Transformations](docs/date-time.md)
   * [Format date](docs/format-date.md)
