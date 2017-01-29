@@ -5,12 +5,10 @@ CUT directive selects parts of the string value.
 ## Syntax
 
 ```
- cut <source> <destination> -c [<range>|<indexes>]
- cut <source> <destination> -d <delimiter> -f [<range>|<indexes>]
+ cut-character <source> <destination> <range>|<indexes>
 ```
 
 ## Usage Notes
-
 
 
 ## Example
@@ -26,13 +24,13 @@ Let's following is the record
 applying following CUT directive
 
 ```
-  cut body one -c 1-3
-  cut body two -c 5-7
-  cut body three -c 9-13
-  cut body four -c 15-
-  cut body five -c 1,2,3
-  cut body six -c -3
-  cut body seven -c 1,2,3-5
+  cut-character body one -c 1-3
+  cut-character body two -c 5-7
+  cut-character body three -c 9-13
+  cut-character body four -c 15-
+  cut-character body five -c 1,2,3
+  cut-character body six -c -3
+  cut-character body seven -c 1,2,3-5
 ```
 
 would result in record as show below

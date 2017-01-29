@@ -121,6 +121,7 @@ public class TextDirectives implements Directives {
     formats.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
     formats.put("copy", "copy <source> <destination> [force]");
     formats.put("fill-null-or-empty", "fill-null-or-empty <column> <fixed-value>");
+    formats.put("cut-character","cut-character <source> <destination> <range|indexes>");
   }
 
   public TextDirectives(String directives) {
@@ -462,21 +463,12 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // cut <source> <destination> -c <range>
-        // cut <source> <destination> -d <delimiter> -f <index>
-        case "cut" : {
+        // cut-character <source> <destination> <range|indexes>
+        case "cut-character" : {
           String source = getNextToken(tokenizer, command, "source", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String option = getNextToken(tokenizer, command, "option", lineno);
-          if (!option.equalsIgnoreCase("-c") && !option.equalsIgnoreCase("-d")) {
-            throw new DirectiveParseException(
-              "Unknow option '" + option + "' specified. Only support character (-c) and delimited (-d) types"
-            );
-          }
-          if (option.equalsIgnoreCase("-c")) {
-            String range = getNextToken(tokenizer, command, "range", lineno);
-            steps.add(new CharacterCut(lineno, directive, source, destination, range));
-          }
+          String range = getNextToken(tokenizer, command, "range", lineno);
+          steps.add(new CharacterCut(lineno, directive, source, destination, range));
         }
         break;
 
