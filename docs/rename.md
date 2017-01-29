@@ -22,60 +22,31 @@ Let's say we record as specified below:
 
 ```
 {
-  "postcode": "OX49 5NU",
-  "quality": 1,
-  "eastings": 464447,
-  "northings": 195647,
-  "country": "England",
-  "parliamentary_constituency": "Henley",
-  "european_electoral_region": "South East",
-  "primary_care_trust": "Oxfordshire",
-  "region": "South East",
-  "lsoa": "South Oxfordshire 011B",
-  "msoa": "South Oxfordshire 011",
-  "incode": "5NU",
-  "outcode": "OX49",
-  "codes": {    
-    "admin_district": "E07000179",
-    "admin_county": "E10000025",
-    "admin_ward": "E05009735",
-    "parish": "E04008109",
-    "ccg": "E38000136",
-    "nuts": "UKJ14" 
-  }             
+  "x" : 6.3,
+  "y" : 187,
+  "codes" : {
+    "a" : "code1",
+    "b" : 2
+  }
 }
 ```
-applying the RENAME directive on basic type like ```parliamentary_constituency``` as follows
+applying the RENAME directive on basic type like ```y``` as follows
 
 ```
-  rename parliamentary_constituency pconstituency
+  rename y weight
+  rename x height
 ```
 
 would generate the following record.
 
 ```
 {
-  "postcode": "OX49 5NU",
-  "quality": 1,
-  "eastings": 464447,
-  "northings": 195647,
-  "country": "England",
-  "pconstituency": "Henley",
-  "european_electoral_region": "South East",
-  "primary_care_trust": "Oxfordshire",
-  "region": "South East",
-  "lsoa": "South Oxfordshire 011B",
-  "msoa": "South Oxfordshire 011",
-  "incode": "5NU",
-  "outcode": "OX49",
-  "codes": {    
-    "admin_district": "E07000179",
-    "admin_county": "E10000025",
-    "admin_ward": "E05009735",
-    "parish": "E04008109",
-    "ccg": "E38000136",
-    "nuts": "UKJ14" 
-  }             
+  "weight" : 6.3,
+  "height" : 187,
+  "codes" : {
+    "a" : "code1",
+    "b" : 2
+  }
 }
 ```
 
