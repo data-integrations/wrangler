@@ -40,6 +40,10 @@ This implementation of wrangler defines the following concepts. Please familiari
 
 A Record is a collection of field names and field values. 
 
+### Column
+
+A Column is a data value of any supported java type, one for each Record.
+
 ### Directive
 
 A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into zero or more records. A directive can produce one or more Steps to be executed by the Pipeline. 
@@ -51,6 +55,36 @@ A Step is a implementation of a data transformation function operating on a Reco
 ### Pipeline
 
 A Pipeline is a collection of Steps to be applied on a Record. Record(s) outputed from each Step is passed to the next Step in the pipeline. 
+
+## Notations
+
+### Directives
+
+A directive is represented as simple text in the format as specified below
+```
+  <command> <argument-1> <argument-2> ... <argument-n>
+```
+
+### Record
+
+A record in this documentation will be representation as json object with object key representing the column names and the value representing the plain representation of the the data without any mention of types. 
+
+E.g.
+```
+{
+  "id" : 1,
+  "fname" : "root",
+  "lname" : "joltie",
+  "address" : {
+    "housenumber" : "678",
+    "street" : "Mars Street",
+    "city" : "Marcity",
+    "state" : "Maregon",
+    "country" : "Mari"
+  }
+  "gender", "M"
+}
+```
 
 ## Available Directives
 

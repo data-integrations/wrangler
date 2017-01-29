@@ -13,7 +13,10 @@ PARSE-AS-JSON is a directive for parsing a as json object. The directive can ope
 
 ## Usage Notes
 
-For example, let's say you have a simple json in record with field name ```body```
+PARSE-AS-JSON directive helps you break-down a complex json into simple understandable and manageable chunks. When first applied on a json object, it breaks it down into keys and values. The value could in itself be a json object on which you can apply PARSE-AS-JSON directive again to flatten it out. 
+
+The key names in the event object are appeneded to the column that is being applied json parsing. The column names use dot notations. To review the process of parsing let's review it with an example. Let's say you have a simple json in record with field name ```body```
+
 ```
   {
     "id" : 1,
@@ -57,24 +60,5 @@ Applying the same directive on field ```body.name``` generates the following res
 | **body.name.first** | "Root" | String |
 | **body.name.last** | "Joltie" | String |
 
+## Examples
 
-## Example
-```
-  parse-as-json body
-  parse-as-json body.deviceReference
-  parse-as-json body.deviceReference.OS
-  parse-as-csv  body.deviceReference.screenSize | true
-  drop body.deviceReference.screenSize
-  rename body.deviceReference.screenSize_col1 size1
-  rename body.deviceReference.screenSize_col2 size2
-  rename body.deviceReference.screenSize_col3 size3
-  rename body.deviceReference.screenSize_col4 size4
-  json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']
-  json-path signal_lost signal_lost $.[0]
-  drop body
-  drop body.deviceReference.OS
-  drop body.deviceReference
-  rename body.deviceReference.timestamp timestamp
-  set column timestamp timestamp / 1000000
-  drop body.deviceReference.alerts
-```
