@@ -49,11 +49,18 @@ public class TitleCase extends AbstractStep {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(col);
-
       if (idx != -1) {
-        String value = (String) record.getValue(idx);
-        if (value != null) {
-          record.setValue(idx, toTitleCase(value));
+        Object object = record.getValue(idx);
+        if (object instanceof String) {
+          if (object != null) {
+            String value = (String) object;
+            record.setValue(idx, toTitleCase(value));
+          }
+        } else {
+          throw new StepException(
+            String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
+                          toString(), object.getClass().getName(), col)
+          );
         }
       } else {
         throw new StepException(toString() + " : " +
@@ -79,7 +86,6 @@ public class TitleCase extends AbstractStep {
 
       titleCase.append(c);
     }
-
     return titleCase.toString();
   }
 }
