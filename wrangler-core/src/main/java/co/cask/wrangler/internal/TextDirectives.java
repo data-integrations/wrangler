@@ -24,6 +24,7 @@ import co.cask.wrangler.steps.Copy;
 import co.cask.wrangler.steps.CsvParser;
 import co.cask.wrangler.steps.Drop;
 import co.cask.wrangler.steps.Expression;
+import co.cask.wrangler.steps.FillNullOrEmpty;
 import co.cask.wrangler.steps.FixedLengthParser;
 import co.cask.wrangler.steps.Flatten;
 import co.cask.wrangler.steps.FormatDate;
@@ -118,6 +119,7 @@ public class TextDirectives implements Directives {
     formats.put("flatten", "flatten <column>[,<column>,<column>,...]");
     formats.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
     formats.put("copy", "copy <source> <destination> [force]");
+    formats.put("fill-null-or-empty", "fill-null-or-empty <column> <fixed-value>");
   }
 
   public TextDirectives(String directives) {
@@ -446,6 +448,19 @@ public class TextDirectives implements Directives {
         }
         break;
 
+        // fill-null-or-empty <column> <fixed value>
+        case "fill-null-or-empty" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String value = getNextToken(tokenizer, command, "fixed-value", lineno);
+          if (value != null && value.isEmpty()) {
+            throw new DirectiveParseException(
+              "Fixed value cannot be a empty string"
+            );
+          }
+          steps.add(new FillNullOrEmpty(lineno, directive, column, value));
+        }
+        break;
+
         // extract-date-elements <column>
         case "extract-date-elements" : {
 
@@ -474,12 +489,6 @@ public class TextDirectives implements Directives {
         case "extract-number" : {
           // It can auto-detect decimal separators, and automatically
           // expands notations like ‘10K’ and ‘200M’.
-        }
-        break;
-
-        // fill-empty <column> <value>
-        case "fill-empty" : {
-
         }
         break;
 

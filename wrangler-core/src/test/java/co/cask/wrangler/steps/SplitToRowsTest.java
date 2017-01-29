@@ -44,4 +44,19 @@ public class SplitToRowsTest {
     Assert.assertTrue(records.size() == 1);
   }
 
+  @Test
+  public void testDocExample() throws Exception {
+    String[] directives = new String[] {
+      "split-to-rows codes \\|",
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("id", "1").add("codes", "USD|AUD|AMD|XCD")
+    );
+
+    records = PipelineTest.execute(directives, records);
+
+    Assert.assertTrue(records.size() == 4);
+  }
+
 }
