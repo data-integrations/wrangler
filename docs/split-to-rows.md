@@ -50,8 +50,9 @@ Let's look at an example that will demostrate the behavior of SPLIT-TO-ROWS dire
 applying following SPLIT-TO-ROWS directive
 
 ```
-  split-to-rows codes |
+  split-to-rows codes \\|
 ```
+> NOTE: The backslashes are to escape the pipe(|) as it's a option separator in regex pattern.
 
 would result in four (4) records being generated with each split value being assigned to the column ```codes```
 
