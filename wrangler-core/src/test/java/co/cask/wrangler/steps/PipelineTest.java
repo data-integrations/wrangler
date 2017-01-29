@@ -49,7 +49,7 @@ public class PipelineTest {
 
     // Define all the steps in the wrangler.
     steps.add(new CsvParser(0, "", new CsvParser.Options(), "col", true));
-    steps.add(new Columns(0, "", Arrays.asList("first", "second", "third", "fourth", "fifth")));
+    steps.add(new Columns(0, "", Arrays.asList("col", "first", "second", "third", "fourth", "fifth")));
     steps.add(new Rename(0, "", "first", "one"));
     steps.add(new Lower(0, "", "fourth"));
     steps.add(new Upper(0, "", "third"));
@@ -65,9 +65,9 @@ public class PipelineTest {
       records = step.execute(new ArrayList<Record>(records), null);
     }
 
-    Assert.assertEquals("one", records.get(0).getColumn(0));
-    Assert.assertEquals("A", records.get(0).getValue(2));
-    Assert.assertEquals("a", records.get(0).getValue(3));
+    Assert.assertEquals("one", records.get(0).getColumn(1));
+    Assert.assertEquals("A", records.get(0).getValue(3));
+    Assert.assertEquals("a", records.get(0).getValue(4));
     Assert.assertEquals("One", records.get(0).getValue("substr"));
 
   }

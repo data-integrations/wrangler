@@ -90,14 +90,11 @@ public class CsvParser extends AbstractStep {
    * @return
    */
   private Record toRow(CSVRecord record, Record row) {
-    if (replaceColumns) {
-      row = new Record();
-    }
+    Record r = new Record(row);
     for ( int i = 0; i < record.size(); i++) {
-      row.addColumn(col + "_" + (i + 1));
-      row.addValue(record.get(i));
+      r.add(col + "_" + (i + 1), record.get(i));
     }
-    return row;
+    return r;
   }
 
   /**
