@@ -91,10 +91,10 @@ E.g.
 Following are different directives currently available.
 
 * [Data Parsing]()
-  * [CSV Parsing](docs/csv-parser.md)
+  * [CSV Parser](docs/csv-parser.md)
   * [Json Parser](docs/parse-as-json.md)
   * [Json Path](docs/json-path.md)
-  * [Fixed Length Parsing](docs/fixed-length-parser.md)
+  * [Fixed Length Parser](docs/fixed-length-parser.md)
 * [Text Transformations](docs/text-transformation.md)
 * [Quantization](docs/quantize.md)
 * [Date Transformations](docs/date-time.md)
