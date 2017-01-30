@@ -24,6 +24,9 @@ import co.cask.wrangler.internal.TextDirectives;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import nl.basjes.parse.core.Field;
+import nl.basjes.parse.core.Parser;
+import nl.basjes.parse.httpdlog.ApacheHttpdLoglineParser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -491,6 +494,179 @@ public class PipelineTest {
     String number = matcher.group(0);
     String unit = matcher.group(1);
     Assert.assertNotNull(p != null);
+  }
+
+  public final class MyRecord {
+    private final Record record;
+
+    public MyRecord(Record record) {
+      this.record = record;
+    }
+
+    @Field({
+      "VARIABLE:server.environment.unique_id",
+      "HTTP.COOKIES:request.cookies.last",
+      "HTTP.COOKIE:request.cookies.last.*",
+      "STRING:request.status.original",
+      "MICROSECONDS:response.server.processing.time",
+      "HTTP.FIRSTLINE:request.firstline.original",
+      "HTTP.METHOD:request.firstline.original.method",
+      "HTTP.URI:request.firstline.original.uri",
+      "HTTP.PROTOCOL:request.firstline.original.uri.protocol",
+      "HTTP.USERINFO:request.firstline.original.uri.userinfo",
+      "HTTP.HOST:request.firstline.original.uri.host",
+      "HTTP.PORT:request.firstline.original.uri.port",
+      "HTTP.PATH:request.firstline.original.uri.path",
+      "HTTP.QUERYSTRING:request.firstline.original.uri.query",
+      "STRING:request.firstline.original.uri.query.*",
+      "HTTP.REF:request.firstline.original.uri.ref",
+      "HTTP.PROTOCOL_VERSION:request.firstline.original.protocol",
+      "HTTP.PROTOCOL:request.firstline.original.protocol",
+      "HTTP.PROTOCOL.VERSION:request.firstline.original.protocol.version",
+      "HTTP.COOKIES:request.cookies",
+      "HTTP.COOKIE:request.cookies.*",
+      "HTTP.USERAGENT:request.user-agent",
+      "NUMBER:connection.client.logname",
+      "MICROSECONDS:server.process.time",
+      "HTTP.URI:request.referer.last",
+      "HTTP.PROTOCOL:request.referer.last.protocol",
+      "HTTP.USERINFO:request.referer.last.userinfo",
+      "HTTP.HOST:request.referer.last.host",
+      "HTTP.PORT:request.referer.last.port",
+      "HTTP.PATH:request.referer.last.path",
+      "HTTP.QUERYSTRING:request.referer.last.query",
+      "STRING:request.referer.last.query.*",
+      "HTTP.REF:request.referer.last.ref",
+      "STRING:connection.client.user.last",
+      "STRING:request.status",
+      "HTTP.HEADER:request.header.host",
+      "TIME.STAMP:request.receive.time",
+      "TIME.DAY:request.receive.time.day",
+      "TIME.MONTHNAME:request.receive.time.monthname",
+      "TIME.MONTH:request.receive.time.month",
+      "TIME.WEEK:request.receive.time.weekofweekyear",
+      "TIME.YEAR:request.receive.time.weekyear",
+      "TIME.YEAR:request.receive.time.year",
+      "TIME.HOUR:request.receive.time.hour",
+      "TIME.MINUTE:request.receive.time.minute",
+      "TIME.SECOND:request.receive.time.second",
+      "TIME.MILLISECOND:request.receive.time.millisecond",
+      "TIME.DATE:request.receive.time.date",
+      "TIME.TIME:request.receive.time.time",
+      "TIME.ZONE:request.receive.time.timezone",
+      "TIME.EPOCH:request.receive.time.epoch",
+      "TIME.DAY:request.receive.time.day_utc",
+      "TIME.MONTHNAME:request.receive.time.monthname_utc",
+      "TIME.MONTH:request.receive.time.month_utc",
+      "TIME.WEEK:request.receive.time.weekofweekyear_utc",
+      "TIME.YEAR:request.receive.time.weekyear_utc",
+      "TIME.YEAR:request.receive.time.year_utc",
+      "TIME.HOUR:request.receive.time.hour_utc",
+      "TIME.MINUTE:request.receive.time.minute_utc",
+      "TIME.SECOND:request.receive.time.second_utc",
+      "TIME.MILLISECOND:request.receive.time.millisecond_utc",
+      "TIME.DATE:request.receive.time.date_utc",
+      "TIME.TIME:request.receive.time.time_utc",
+      "HTTP.HEADER:request.header.true-client-ip",
+      "TIME.STAMP:request.receive.time.last",
+      "TIME.DAY:request.receive.time.last.day",
+      "TIME.MONTHNAME:request.receive.time.last.monthname",
+      "TIME.MONTH:request.receive.time.last.month",
+      "TIME.WEEK:request.receive.time.last.weekofweekyear",
+      "TIME.YEAR:request.receive.time.last.weekyear",
+      "TIME.YEAR:request.receive.time.last.year",
+      "TIME.HOUR:request.receive.time.last.hour",
+      "TIME.MINUTE:request.receive.time.last.minute",
+      "TIME.SECOND:request.receive.time.last.second",
+      "TIME.MILLISECOND:request.receive.time.last.millisecond",
+      "TIME.DATE:request.receive.time.last.date",
+      "TIME.TIME:request.receive.time.last.time",
+      "TIME.ZONE:request.receive.time.last.timezone",
+      "TIME.EPOCH:request.receive.time.last.epoch",
+      "TIME.DAY:request.receive.time.last.day_utc",
+      "TIME.MONTHNAME:request.receive.time.last.monthname_utc",
+      "TIME.MONTH:request.receive.time.last.month_utc",
+      "TIME.WEEK:request.receive.time.last.weekofweekyear_utc",
+      "TIME.YEAR:request.receive.time.last.weekyear_utc",
+      "TIME.YEAR:request.receive.time.last.year_utc",
+      "TIME.HOUR:request.receive.time.last.hour_utc",
+      "TIME.MINUTE:request.receive.time.last.minute_utc",
+      "TIME.SECOND:request.receive.time.last.second_utc",
+      "TIME.MILLISECOND:request.receive.time.last.millisecond_utc",
+      "TIME.DATE:request.receive.time.last.date_utc",
+      "TIME.TIME:request.receive.time.last.time_utc",
+      "IP:connection.client.host",
+      "STRING:connection.client.user",
+      "HTTP.FIRSTLINE:request.firstline",
+      "HTTP.METHOD:request.firstline.method",
+      "HTTP.URI:request.firstline.uri",
+      "HTTP.PROTOCOL:request.firstline.uri.protocol",
+      "HTTP.USERINFO:request.firstline.uri.userinfo",
+      "HTTP.HOST:request.firstline.uri.host",
+      "HTTP.PORT:request.firstline.uri.port",
+      "HTTP.PATH:request.firstline.uri.path",
+      "HTTP.QUERYSTRING:request.firstline.uri.query",
+      "STRING:request.firstline.uri.query.*",
+      "HTTP.REF:request.firstline.uri.ref",
+      "HTTP.PROTOCOL_VERSION:request.firstline.protocol",
+      "HTTP.PROTOCOL:request.firstline.protocol",
+      "HTTP.PROTOCOL.VERSION:request.firstline.protocol.version",
+      "HTTP.URI:request.referer",
+      "HTTP.PROTOCOL:request.referer.protocol",
+      "HTTP.USERINFO:request.referer.userinfo",
+      "HTTP.HOST:request.referer.host",
+      "HTTP.PORT:request.referer.port",
+      "HTTP.PATH:request.referer.path",
+      "HTTP.QUERYSTRING:request.referer.query",
+      "STRING:request.referer.query.*",
+      "HTTP.REF:request.referer.ref",
+      "MICROSECONDS:response.server.processing.time.original",
+      "NUMBER:connection.client.logname.last",
+      "HTTP.USERAGENT:request.user-agent.last",
+      "IP:connection.client.host.last",
+      "BYTES:response.body.bytesclf",
+      "BYTESCLF:response.body.bytesclf",
+      "BYTESCLF:response.body.bytes.last",
+      "BYTES:response.body.bytes.last",
+      "BYTESCLF:response.body.bytes",
+      "BYTES:response.body.bytes"
+    })
+
+    public void setValue(final String name, final String value) {
+      record.addOrSet(name, value);
+    }
+  }
+
+  @Test
+  public void testNattyDateParser() throws Exception {
+//    Parser parser = new Parser();
+//    List<DateGroup> groups = parser.parse("the day before next thursday");
+//    for (DateGroup group : groups) {
+//      List<Date> dates = group.getDates();
+//      for (Date date : dates) {
+//        System.out.println(date.toString());
+//      }
+//    }
+//    Assert.assertNotNull(groups);
+    String logformat = "%t %u [%D %h %{True-Client-IP}i %{UNIQUE_ID}e %r] %{Cookie}i %s \"%{User-Agent}i\" \"%{host}i\" %l %b %{Referer}i";
+    String logline = "[02/Dec/2013:14:10:30 -0000] - [52075 10.102.4.254 177.43.52.210 UpyU1gpmBAwAACfd5W0AAAAW GET /SS14-VTam-ny_019.jpg.rendition.zoomable.jpg HTTP/1.1] hsfirstvisit=http%3A%2F%2Fwww.domain.com%2Fen-us||1372268254000; _opt_vi_3FNG8DZU=F870DCFD-CBA4-4B6E-BB58-4605A78EE71A; __ptca=145721067.0aDxsZlIuM48.1372279055.1379945057.1379950362.9; __ptv_62vY4e=0aDxsZlIuM48; __pti_62vY4e=0aDxsZlIuM48; __ptcz=145721067.1372279055.1.0.ptmcsr=(direct)|ptmcmd=(none)|ptmccn=(direct); __hstc=145721067.b86362bb7a1d257bfa2d1fb77e128a85.1372268254968.1379934256743.1379939561848.9; hubspotutk=b86362bb7a1d257bfa2d1fb77e128a85; USER_GROUP=julinho%3Afalse; has_js=1; WT_FPC=id=177.43.52.210-1491335248.30301337:lv=1385997780893:ss=1385997780893; dtCookie=1F2E0E1037589799D8D503EB8CFA12A1|_default|1; RM=julinho%3A5248423ad3fe062f06c54915e6cde5cb45147977; wcid=UpyKsQpmBAwAABURyNoAAAAS%3A35d8227ba1e8a9a9cebaaf8d019a74777c32b4c8; Carte::KerberosLexicon_getWGSN=82ae3dcd1b956288c3c86bdbed6ebcc0fd040e1e; UserData=Username%3AJULINHO%3AHomepage%3A1%3AReReg%3A0%3ATrialist%3A0%3ALanguage%3Aen%3ACcode%3Abr%3AForceReReg%3A0; UserID=1356673%3A12345%3A1234567890%3A123%3Accode%3Abr; USER_DATA=1356673%3Ajulinho%3AJulio+Jose%3Ada+Silva%3Ajulinho%40tecnoblu.com.br%3A0%3A1%3Aen%3Abr%3A%3AWGSN%3A1385990833.81925%3A82ae3dcd1b956288c3c86bdbed6ebcc0fd040e1e; MODE=FONTIS; SECTION=%2Fcontent%2Fsection%2Fhome.html; edge_auth=ip%3D177.43.52.210~expires%3D1385994522~access%3D%2Fapps%2F%2A%21%2Fbin%2F%2A%21%2Fcontent%2F%2A%21%2Fetc%2F%2A%21%2Fhome%2F%2A%21%2Flibs%2F%2A%21%2Freport%2F%2A%21%2Fsection%2F%2A%21%2Fwgsn%2F%2A~md5%3D90e73ee10161c1afacab12c6ea30b4ef; __utma=94539802.1793276213.1372268248.1385572390.1385990581.16; __utmb=94539802.52.9.1385991739764; __utmc=94539802; __utmz=94539802.1372268248.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); WT_FPC=id=177.43.52.210-1491335248.30301337:lv=1386000374581:ss=1386000374581; dtPC=-; NSC_wtfswfs_xfcgbsn40-41=ffffffff096e1a1d45525d5f4f58455e445a4a423660; akamai-edge=5ac6e5b3d0bbe2ea771bb2916d8bab34ea222a6a 200 \"Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36\" \"www.domain.com\" - 463952 http://www.domain.com/content/report/shows/New_York/KSHK/trip/s_s_14_ny_ww/sheers.html";
+
+    Parser<MyRecord> parser = new ApacheHttpdLoglineParser<>(MyRecord.class, logformat);
+    List<String> s = parser.getPossiblePaths();
+    for (String s1 : s) {
+      System.out.println(s1);
+    }
+    Record log = new Record();
+    MyRecord record = new MyRecord(log);
+
+    try {
+      record = parser.parse(record, logline);
+    } catch (Exception disectionFailure) {
+      disectionFailure.printStackTrace();
+    }
+
+    Assert.assertNotNull(record);
+
   }
 
 }
