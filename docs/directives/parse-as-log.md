@@ -10,7 +10,7 @@ parse-as-log <column> <format>
 
 ## Usage Notes
 
-The PARSE-AS_LOG directive provides a generic log parser that you can construct by specifying the ```format``` of
+The PARSE-AS-LOG directive provides a generic log parser that you can construct by specifying the ```format``` of
 the log line or the format in which the file was written. The format which specifies the configuration options of
  the log line are schema of the access log lines as written by the service.
 
