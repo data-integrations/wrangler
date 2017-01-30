@@ -46,6 +46,7 @@ import co.cask.wrangler.steps.SplitToColumns;
 import co.cask.wrangler.steps.SplitToRows;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
+import co.cask.wrangler.steps.UrlEncode;
 import co.cask.wrangler.steps.XmlToJson;
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -478,6 +479,13 @@ public class TextDirectives implements Directives {
         case "generate-uuid" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new GenerateUUID(lineno, directive, column));
+        }
+        break;
+
+        // url-encode <column>
+        case "url-encode" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new UrlEncode(lineno, directive, column));
         }
         break;
 
