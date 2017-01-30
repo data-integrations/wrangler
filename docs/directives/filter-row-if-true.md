@@ -1,26 +1,24 @@
 # Filter Row based on condition
 
-FILTER-ROW-IF-TRUE directive filters rows that match the condition specified.
+FILTER-ROW-IF-TRUE directive provides support for filters records that match the condition.
 
 ## Syntax
 ```
   filter-row-if-true <condition>
 ```
 
-```condition``` is a valid expression resulting in either ```true``` or ```false```.
+```condition``` is a valid boolean expression resulting in either ```true``` or ```false```.
 
 ## Usage Notes
 
-The FILTER-ROW-IF-TRUE directive applies the condition on each Record and if the condition evaluates to ```true```
-it skips emitting the record. If the condition evaluates to ```false``` it will pass the record as-is to the
-next Step in the pipeline.
+The FILTER-ROW-IF-TRUE directive evaluates the boolean condition for each record. If the result of evaluation is ```true```,
+ it skips the record, else it passes the record as-is to the input of next directive.
 
-The ```condition``` specified should be a valid JEXL expression. The JEXL expression includes the
- ```Math``` library in the namespace 'math' and ```StringUtils``` library in the namespace 'string'. There are
- different convertors available that are included in the default namespace.
+```condition``` is specified in JEXL expression language. The JEXL context is decorated with ```Math``` and
+```StringUtils``` libraries for additional. The additional utility libraries are defined in 'math' and 'string'
+namespace.
 
- For more information on what is available as part of expression for condition please refer
- [here](docs/directive/expression.md).
+For more information on how to write JEXL expression please refer [here](docs/directive/expression.md).
 
 ## Examples
 

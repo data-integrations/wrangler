@@ -83,6 +83,8 @@ Following are different directives currently available.
   * [Cut](docs/directives/cut.md)
   * [Expressions](docs/directives/expression.md)
 * [Quantization](docs/directives/quantize.md)
+* [Unique ID]()
+  * [UUID Generation](docs/directives/generate-uuid.md)
 * [Date Transformations](docs/directives/date-time.md)
   * [Format Date](docs/directives/format-date.md)
   * [Format Unix Timestamp](docs/directives/format-timestamp.md)

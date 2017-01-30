@@ -25,10 +25,10 @@ public interface Step<I,O> {
   /**
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
-   * @param record Input {@link Record} to be wrangled by this step.
+   * @param records List of input {@link Record} to be wrangled by this step.
    * @param context {@link PipelineContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled List of {@link Record}.
    */
-  List<O> execute(List<I> record, PipelineContext context) throws StepException;
+  List<O> execute(List<I> records, PipelineContext context) throws StepException;
 }
 
