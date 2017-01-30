@@ -67,14 +67,15 @@ E.g.
 
 Following are different directives currently available.
 
-* [Data Parsing]()
+* [Parsers]()
   * [CSV Parser](docs/directives/csv-parser.md)
   * [Json Parser](docs/directives/parse-as-json.md)
   * [Json Path](docs/directives/json-path.md)
   * [XML Parser](docs/directives/parse-as-xml.md)
-  * [XML Path](docs/directives/xml-path.md)
+  * [XML Path Parser](docs/directives/xml-path.md)
   * [Fixed Length Parser](docs/directives/fixed-length-parser.md)
-  * [Parse HTTPD and NGNIX Log](docs/directives/parse-log.md)
+  * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
+  * [Date Parser](docs/directives/parse-as-date.md)
 * [Text Transformations](docs/directives/text-transformation.md)
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)

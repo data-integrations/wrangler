@@ -36,6 +36,7 @@ import co.cask.wrangler.steps.JsonParser;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
+import co.cask.wrangler.steps.ParseDate;
 import co.cask.wrangler.steps.ParseLog;
 import co.cask.wrangler.steps.Quantization;
 import co.cask.wrangler.steps.RecordConditionFilter;
@@ -103,9 +104,9 @@ public class TextDirectives implements Directives {
     formats.put("split", "split <source> <delimiter> <new-column-1> <new-column-2>");
     formats.put("filter-row-if-matched", "filter-row-if-matched <column> <regex>");
     formats.put("filter-row-if-true", "filter-row-if-true <condition>");
-    formats.put("mask-number", "mask-number <column> <mask-pattern>");
+    formats.put("mask-number", "mask-number <column> <pattern>");
     formats.put("mask-shuffle", "mask-shuffle <column>");
-    formats.put("format-date", "format-date <column> <source-format> <destination-format>");
+    formats.put("format-date", "format-date <column> <destination>");
     formats.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
     formats.put("quantize", "quantize <source-column> <destination-column> " +
       "<[range1:range2)=value>,[<range1:range2=value>]*");
@@ -283,10 +284,10 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // mask-number <column> <mask-pattern>
+        // mask-number <column> <pattern>
         case "mask-number": {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String mask = getNextToken(tokenizer, command, "mask-pattern", lineno);
+          String mask = getNextToken(tokenizer, command, "pattern", lineno);
           steps.add(new Mask(lineno, directive, column, mask, Mask.MASK_NUMBER));
         }
         break;
@@ -298,12 +299,11 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // format-date <column> <source-format> <destination-format>
+        // format-date <column> <destination>
         case "format-date": {
           String column = getNextToken(tokenizer, command, "column", 1);
-          String srcDatePattern = getNextToken(tokenizer, command, "source-format", lineno);
-          String dstDatePattern = getNextToken(tokenizer, "\n", command, "destination-format", lineno);
-          steps.add(new FormatDate(lineno, directive, column, srcDatePattern, dstDatePattern));
+          String format = getNextToken(tokenizer, "\n", command, "format", lineno);
+          steps.add(new FormatDate(lineno, directive, column, format));
         }
         break;
 
@@ -505,6 +505,14 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String format = getNextToken(tokenizer, "\n", command, "format", lineno);
           steps.add(new ParseLog(lineno, directive, column, format));
+        }
+        break;
+
+        // parse-as-date <column> [<timezone>]
+        case "parse-as-date" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String timezone = getNextToken(tokenizer, "\n", command, "timezone", lineno, true);
+          steps.add(new ParseDate(lineno, directive, column, timezone));
         }
         break;
 
