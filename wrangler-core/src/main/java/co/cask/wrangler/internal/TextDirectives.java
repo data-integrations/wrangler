@@ -36,6 +36,7 @@ import co.cask.wrangler.steps.JsonParser;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
+import co.cask.wrangler.steps.ParseLog;
 import co.cask.wrangler.steps.Quantization;
 import co.cask.wrangler.steps.RecordConditionFilter;
 import co.cask.wrangler.steps.RecordRegexFilter;
@@ -125,6 +126,9 @@ public class TextDirectives implements Directives {
     formats.put("fill-null-or-empty", "fill-null-or-empty <column> <fixed-value>");
     formats.put("cut-character","cut-character <source> <destination> <range|indexes>");
     formats.put("generate-uuid", "generate-uuid <column>");
+    formats.put("url-encode", "url-encode <column>");
+    formats.put("url-decode", "url-decode <column>");
+    formats.put("parse-as-log","parse-as-log <column> <format>");
   }
 
   public TextDirectives(String directives) {
@@ -486,6 +490,21 @@ public class TextDirectives implements Directives {
         case "url-encode" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new UrlEncode(lineno, directive, column));
+        }
+        break;
+
+        // url-decode <column>
+        case "url-decode" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new UrlEncode(lineno, directive, column));
+        }
+        break;
+
+        // parse-as-log <column> <format>
+        case "parse-as-log" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String format = getNextToken(tokenizer, "\n", command, "format", lineno);
+          steps.add(new ParseLog(lineno, directive, column, format));
         }
         break;
 
