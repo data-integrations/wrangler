@@ -24,8 +24,6 @@ import co.cask.wrangler.internal.TextDirectives;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import com.joestelmach.natty.DateGroup;
-import com.joestelmach.natty.Parser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -33,7 +31,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -458,6 +455,6 @@ public class PipelineTest {
     Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
   }
 
-  
+
 }
 
