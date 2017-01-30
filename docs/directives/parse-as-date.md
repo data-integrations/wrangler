@@ -20,3 +20,8 @@ This directive will also search for date components within a larger block of tex
 create dates.
 
 ## Examples
+
+```
+  parse-as-date now
+  parse-as-date June 15th 2017
+```
