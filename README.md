@@ -82,6 +82,7 @@ Following are different directives currently available.
   * [Sed](docs/directives/sed.md)
   * [Cut](docs/directives/cut.md)
   * [Expressions](docs/directives/expression.md)
+  * [URL Encoding](docs/directives/url-encode.md)
 * [Quantization](docs/directives/quantize.md)
 * [Unique ID]()
   * [UUID Generation](docs/directives/generate-uuid.md)
