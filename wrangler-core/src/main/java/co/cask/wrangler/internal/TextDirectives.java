@@ -29,6 +29,7 @@ import co.cask.wrangler.steps.FillNullOrEmpty;
 import co.cask.wrangler.steps.FixedLengthParser;
 import co.cask.wrangler.steps.Flatten;
 import co.cask.wrangler.steps.FormatDate;
+import co.cask.wrangler.steps.GenerateUUID;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.JsonParser;
@@ -122,6 +123,7 @@ public class TextDirectives implements Directives {
     formats.put("copy", "copy <source> <destination> [force]");
     formats.put("fill-null-or-empty", "fill-null-or-empty <column> <fixed-value>");
     formats.put("cut-character","cut-character <source> <destination> <range|indexes>");
+    formats.put("generate-uuid", "generate-uuid <column>");
   }
 
   public TextDirectives(String directives) {
@@ -469,6 +471,13 @@ public class TextDirectives implements Directives {
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String range = getNextToken(tokenizer, command, "range", lineno);
           steps.add(new CharacterCut(lineno, directive, source, destination, range));
+        }
+        break;
+
+        // generate-uuid <column>
+        case "generate-uuid" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new GenerateUUID(lineno, directive, column));
         }
         break;
 

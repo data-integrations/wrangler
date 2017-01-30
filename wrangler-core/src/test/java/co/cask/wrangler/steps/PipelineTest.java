@@ -486,6 +486,12 @@ public class PipelineTest {
     String s1 = Unix4j.fromString("one two three").cut("-c", "1-3").toStringResult();
     String s = Unix4j.fromString("some string another").cut(Cut.Options.fields, " ", 1,2).toStringResult();
     Assert.assertNotNull(s);
+    Pattern p = Pattern.compile("^([0-9\\.,]*)(?:\\s*)?(.*)$");
+    Matcher matcher = p.matcher("10Kb");
+    String number = matcher.group(0);
+    String unit = matcher.group(1);
+    Assert.assertNotNull(p != null);
   }
+
 }
 
