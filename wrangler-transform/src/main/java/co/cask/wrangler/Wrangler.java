@@ -17,6 +17,7 @@
 package co.cask.wrangler;
 
 import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Macro;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.data.format.StructuredRecord;
@@ -27,15 +28,14 @@ import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextDirectives;
-import com.google.common.base.Strings;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -193,7 +193,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // If error threshold is reached, then terminate processing.
     if (errorCounter > config.threshold) {
-      throw new Exception(String.format("Error threshold reached %ld", config.threshold));
+      throw new Exception(String.format("Error threshold reached %d", config.threshold));
     }
 
     for (StructuredRecord record : records) {
@@ -201,18 +201,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // Iterate through output schema, if the 'record' doesn't have it, then
       // attempt to take if from 'input'.
       for (Schema.Field field : oSchema.getFields()) {
-        Object rObject = record.get(field.getName());
-        Object iObject = input.get(field.getName());
-        if (rObject == null) {
-          builder.convertAndSet(field.getName(), (String) iObject);
+        Object wObject = record.get(field.getName()); // wrangled records
+        if(wObject == null) {
+          builder.set(field.getName(), null);
         } else {
-          if (rObject instanceof String && Strings.isNullOrEmpty((String) rObject)) {
-            builder.set(field.getName(), null);
+          if (wObject instanceof String) {
+            builder.convertAndSet(field.getName(), (String) wObject);
           } else {
-            builder.set(field.getName(), rObject);
+            builder.set(field.getName(), wObject);
           }
         }
-
       }
       emitter.emit(builder.build());
     }
@@ -224,15 +222,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   public static class Config extends PluginConfig {
     @Name("specification")
     @Description("Directives for wrangling the input records")
+    @Macro
     private String specification;
 
     @Name("field")
     @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
+    @Macro
     private final String field;
 
     @Name("threshold")
     @Description("Max number of event failures in wrangling after which to stop the pipeline of processing." +
       "Threshold is not aggregate across all instance, but is applied for each running instances")
+    @Macro
     private final int threshold;
 
     @Name("schema")

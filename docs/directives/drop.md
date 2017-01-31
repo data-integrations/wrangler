@@ -5,7 +5,7 @@ DROP directive is used to drop a column from the record.
 ## Syntax
 
 ```
- drop <column>
+ drop <column>[,<column>]*
 ```
 
 ```column``` is the name of the column in the record to be droped. If the ```column``` does not exist in the record, then the directive fails.
@@ -30,7 +30,7 @@ Let's following is the record
 applying following DROP directive 
 
 ```
-  drop isvalid
+  drop isvalid,measurement
 ```
 
 would result in record that no ```isvalid``` field. 
@@ -38,8 +38,7 @@ would result in record that no ```isvalid``` field.
 ```
   {
     "id" : 1,
-    "timestamp" : 1234434343,
-    "measurement" : 10.45
+    "timestamp" : 1234434343
   }
 ```
 

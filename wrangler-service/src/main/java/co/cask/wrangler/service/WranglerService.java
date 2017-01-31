@@ -162,8 +162,55 @@ public class WranglerService extends AbstractHttpServiceHandler {
       response.put("value", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
+      LOG.info("Failed", e);
       error(responder, e.getMessage());
     }
+  }
+
+  @GET
+  @Path("workspaces/{workspace}/schema")
+  public void schema(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("workspace") String ws,
+                        @QueryParam("directive") List<String> directives) {
+    try {
+      Row rawRows = workspace.get(Bytes.toBytes(ws));
+      List<Record> records = new Gson().fromJson(rawRows.getString("data"),
+                                                 new TypeToken<List<Record>>(){}.getType());
+
+      records = records.subList(0, Math.min(2, records.size()));
+      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
+      Record r = newRecords.get(0);
+
+      List<KeyValue<String, Object>> columns = r.getRecord();
+      JSONArray values = new JSONArray();
+      for (KeyValue<String, Object> column : columns) {
+        JSONObject col = new JSONObject();
+        col.put("name", column.getKey());
+        Object v = column.getValue();
+        JSONArray t = new JSONArray();
+        String type = "string";
+        if (v instanceof Integer) {
+          type = "int";
+        } else if (v instanceof Long) {
+          type = "long";
+        } else if (v instanceof Double) {
+          type = "double";
+        } else if (v instanceof Float) {
+          type = "float";
+        }
+        t.put(type);
+        t.put("null");
+        col.put("type", t);
+        values.put(col);
+      }
+
+      sendJson(responder, HttpURLConnection.HTTP_OK, values.toString());
+    } catch (DataSetException e) {
+      error(responder, e.getMessage());
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    }
+
   }
 
   @GET
@@ -178,7 +225,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
 
-      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
+      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
       JSONArray values = new JSONArray();
       for (Record record : newRecords) {
         List<KeyValue<String, Object>> fields = record.getRecord();
@@ -204,7 +251,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
 
   // Application Platform System - Big Data Appliance
-  private List<Record>  execute (List<Record> records, String[] directives, int limit)
+  private List<Record>  execute (List<Record> records, String[] directives)
     throws DirectiveParseException, StepException {
     Directives specification = new TextDirectives(directives);
     List<Step> steps = specification.getSteps();

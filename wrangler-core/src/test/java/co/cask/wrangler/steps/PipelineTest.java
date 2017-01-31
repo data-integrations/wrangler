@@ -454,7 +454,5 @@ public class PipelineTest {
     Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
     Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
   }
-
-
 }
 

@@ -66,6 +66,7 @@ public class ParseDate extends AbstractStep {
             for (Date date : dates) {
               record.add(String.format("%s_%d", column, i), date);
             }
+            i++;
           }
         } else {
           throw new StepException(

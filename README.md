@@ -105,6 +105,7 @@ Following are different directives currently available.
   * [Rename Column](docs/directives/rename.md)
   * [Copy Column](docs/directives/copy.md)
   * [Merge Columns](docs/directives/merge.md)
+  * [Keep Columns](docs/directives/keep.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
   
 ## Wrangler Service
