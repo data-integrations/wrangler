@@ -24,29 +24,24 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link ParseDate}
+ * Tests {@link Keep}
  */
-public class ParseDateTest {
+public class KeepTest {
 
   @Test
-  public void testBasicDateParser() throws Exception {
+  public void testKeep() throws Exception {
     String[] directives = new String[] {
-      "parse-as-date date US/Eastern",
-      "format-date date_1 MM/dd/yyyy HH:mm"
+      "parse-as-csv body , true",
+      "keep body_1,body_2"
     };
 
     List<Record> records = Arrays.asList(
-      new Record("date", "now"),
-      new Record("date", "today"),
-      new Record("date", "12/10/2016"),
-      new Record("date", "12/10/2016 06:45 AM"),
-      new Record("date", "september 7th 2016"),
-      new Record("date", "1485800109")
+      new Record("body", "1,2,3,4,5,6,7,8,9,10")
     );
 
     records = PipelineTest.execute(directives, records);
 
-    Assert.assertTrue(records.size() == 6);
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals(2, records.get(0).length());
   }
-
 }

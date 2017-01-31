@@ -33,6 +33,7 @@ import co.cask.wrangler.steps.GenerateUUID;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.JsonParser;
+import co.cask.wrangler.steps.Keep;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
@@ -513,6 +514,13 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String timezone = getNextToken(tokenizer, "\n", command, "timezone", lineno, true);
           steps.add(new ParseDate(lineno, directive, column, timezone));
+        }
+        break;
+
+        // keep <column>[,<column>]*
+        case "keep" : {
+          String columns = getNextToken(tokenizer, command, "columns", lineno);
+          steps.add(new Keep(lineno, directive, columns.split(",")));
         }
         break;
 
