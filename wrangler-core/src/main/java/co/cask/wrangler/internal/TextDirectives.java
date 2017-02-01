@@ -30,6 +30,7 @@ import co.cask.wrangler.steps.FixedLengthParser;
 import co.cask.wrangler.steps.Flatten;
 import co.cask.wrangler.steps.FormatDate;
 import co.cask.wrangler.steps.GenerateUUID;
+import co.cask.wrangler.steps.HL7Parser;
 import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.JsonParser;
@@ -91,12 +92,13 @@ public class TextDirectives implements Directives {
   public TextDirectives(String[] directives) {
     this.directives = directives;
 
-    // Add all the usages.
+    // Add all the usages
+    // TODO: This needs a complete rewrite, seperate it into different class.
     formats.put("set format", "set format [csv|json] <delimiter> <skip empty lines>");
     formats.put("set column", "set column <column> <jexl-expression>");
     formats.put("set columns", "set columns <column-1, column-2, ...>");
     formats.put("rename", "rename <old> <new>");
-    formats.put("drop", "drop <column>");
+    formats.put("drop", "drop <column>[,<column>]*");
     formats.put("merge", "merge <first> <second> <new-column> <seperator>");
     formats.put("uppercase", "uppercase <column>");
     formats.put("lowercase", "lowercase <column>");
@@ -131,6 +133,8 @@ public class TextDirectives implements Directives {
     formats.put("url-encode", "url-encode <column>");
     formats.put("url-decode", "url-decode <column>");
     formats.put("parse-as-log","parse-as-log <column> <format>");
+    formats.put("keep","keep <column>[,<column>]*");
+    formats.put("parse-as-hl7", "parse-as-hl7 <column>");
   }
 
   public TextDirectives(String directives) {
@@ -139,6 +143,9 @@ public class TextDirectives implements Directives {
 
   /**
    * Parses the DSL to generate a sequence of steps to be executed by {@link co.cask.wrangler.api.Pipeline}.
+   *
+   * The text parsing here needs a better solution. It has many limitations and having different way would
+   * allow us to provide much more advanced semantics for directives.
    *
    * @return List of steps to be executed.
    * @throws ParseException
@@ -210,10 +217,10 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // drop <column>
+        // drop <column>[,<column>]
         case "drop": {
-          String col = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new Drop(lineno, directive, col));
+          String colums = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new Drop(lineno, directive, Arrays.asList(colums.split(","))));
         }
         break;
 
@@ -521,6 +528,13 @@ public class TextDirectives implements Directives {
         case "keep" : {
           String columns = getNextToken(tokenizer, command, "columns", lineno);
           steps.add(new Keep(lineno, directive, columns.split(",")));
+        }
+        break;
+
+        // parse-as-hl7 <column>
+        case "parse-as-hl7" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new HL7Parser(lineno, directive, column));
         }
         break;
 
