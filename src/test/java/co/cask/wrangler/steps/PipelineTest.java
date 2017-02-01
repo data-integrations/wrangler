@@ -18,6 +18,7 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.SkipRowException;
+import co.cask.wrangler.api.SpecificationParseException;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.internal.TextSpecification;
@@ -54,7 +55,7 @@ public class PipelineTest {
     steps.add(new CsvParser(0, "", new CsvParser.Options('|'), "fifth", false));
     steps.add(new Drop(0, "", "fifth"));
     steps.add(new Merge(0, "", "one", "second", "merged", "%"));
-    steps.add(new Rename(0, "", "col5", "test"));
+    steps.add(new Rename(0, "", "fifth_col1", "test"));
     steps.add(new TitleCase(0, "", "test"));
     steps.add(new IndexSplit(0, "", "test", 1, 4, "substr"));
 
@@ -351,7 +352,6 @@ public class PipelineTest {
   @Test
   public void testSedGrep() throws Exception {
     String[] directives = new String[] {
-      "set columns body",
       "sed body s/\"//g"
     };
 
@@ -386,5 +386,147 @@ public class PipelineTest {
                           "Web,08/07/2013,Closed with non-monetary relief,Yes,No,467801",
                         actuals.get(0).getValue("body"));
   }
+
+  @Test
+  public void testParseCSV() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , true",
+      "drop body",
+      "rename body_col1 date",
+      "parse-as-csv date / true",
+      "rename date_col1 month",
+      "rename date_col2 day",
+      "rename date_col3 year"
+    };
+
+    Row[] rows = new Row[] {
+      new Row("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
+        "debt not owed,Debt is not mine,,,\"NRA Group, LLC\",VA,20147,,N/A,Web,08/07/2013,Closed with non-monetary " +
+        "relief,Yes,No,467801"),
+      new Row("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
+        ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+
+    List<Row> actuals = new ArrayList<>();
+    for (Row row : rows) {
+      Row r = row;
+      try {
+        for (Step step : steps) {
+          r = (Row) step.execute(r, null);
+        }
+      } catch (SkipRowException e) {
+        continue;
+      }
+      actuals.add(r);
+    }
+
+    Assert.assertTrue(actuals.size() == 2);
+    Assert.assertEquals("07/29/2013", actuals.get(0).getValue("date"));
+  }
+
+  @Test
+  public void testParseJsonAndJsonPath() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-json body",
+      "parse-as-json body.deviceReference",
+      "parse-as-json body.deviceReference.OS",
+      "parse-as-csv  body.deviceReference.screenSize | true",
+      "drop body.deviceReference.screenSize",
+      "rename body.deviceReference.screenSize_col1 size1",
+      "rename body.deviceReference.screenSize_col2 size2",
+      "rename body.deviceReference.screenSize_col3 size3",
+      "rename body.deviceReference.screenSize_col4 size4",
+      "json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']",
+      "json-path signal_lost signal_lost $.[0]",
+      "drop body",
+      "drop body.deviceReference.OS",
+      "drop body.deviceReference",
+      "rename body.deviceReference.timestamp timestamp",
+      "set column timestamp timestamp / 1000000",
+      "drop body.deviceReference.alerts",
+      "set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
+    };
+
+    Row[] rows = new Row[] {
+      new Row("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
+        "\"deviceId\": \"SM-R760NDAAXAR\", \"timestamp\": 122121212341231, \"OS\": { \"name\": \"Tizen OS\", " +
+        "\"version\": \"2.3.1\" }, \"alerts\": [ { \"Signal lost\": true }, { \"Emergency call\": true }, " +
+        "{ \"Wifi connection lost\": true }, { \"Battery low\": true }, { \"Calories\": 354 } ], \"screenSize\": " +
+        "\"extra-small|small|medium|large\", \"battery\": \"22%\", \"telephoneNumber\": \"+14099594986\", \"comments\": " +
+        "\"It is an AT&T samung wearable device.\" } }"),
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+
+    List<Row> actuals = new ArrayList<>();
+    for (Row row : rows) {
+      Row r = row;
+      try {
+        for (Step step : steps) {
+          r = (Row) step.execute(r, null);
+        }
+      } catch (SkipRowException e) {
+        continue;
+      }
+      actuals.add(r);
+    }
+
+    Assert.assertTrue(actuals.size() == 1);
+  }
+
+
+  @Test
+  public void testFixedLengthParser() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-fixed-length body 1-2,3-4,5,6,7-9,10-13",
+    };
+
+    Row[] rows = new Row[] {
+      new Row("body", "AABBCDEEEFFFF"),
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+
+    List<Row> actuals = new ArrayList<>();
+    for (Row row : rows) {
+      Row r = row;
+      try {
+        for (Step step : steps) {
+          r = (Row) step.execute(r, null);
+        }
+      } catch (SkipRowException e) {
+        continue;
+      }
+      actuals.add(r);
+    }
+
+    Assert.assertTrue(actuals.size() == 1);
+    Assert.assertEquals("AA", actuals.get(0).getValue("body_col1"));
+    Assert.assertEquals("BB", actuals.get(0).getValue("body_col2"));
+    Assert.assertEquals("C", actuals.get(0).getValue("body_col3"));
+    Assert.assertEquals("D", actuals.get(0).getValue("body_col4"));
+    Assert.assertEquals("EEE", actuals.get(0).getValue("body_col5"));
+    Assert.assertEquals("FFFF", actuals.get(0).getValue("body_col6"));
+  }
+
+  @Test(expected = SpecificationParseException.class)
+  public void testFixedLengthParserBadRangeSpecification() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-fixed-length body A-B,C-D,12",
+    };
+
+    TextSpecification specification = new TextSpecification(directives);
+    List<Step> steps = new ArrayList<>();
+    steps.addAll(specification.getSteps());
+  }
+  
 }
 

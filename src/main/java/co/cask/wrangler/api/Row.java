@@ -138,8 +138,9 @@ public class Row {
    *
    * @param value to be added to the row.
    */
-  public void addValue(Object value) {
+  public Row addValue(Object value) {
     values.add(value);
+    return this;
   }
 
   /**
@@ -148,8 +149,9 @@ public class Row {
    * @param idx index at which the value needs to be updated.
    * @param value value to be updated at index (idx).
    */
-  public void setValue(int idx, Object value) {
+  public Row setValue(int idx, Object value) {
     values.set(idx, value);
+    return this;
   }
 
   /**
@@ -158,9 +160,10 @@ public class Row {
    * @param name of the value to be added to row.
    * @param value to be added to row.
    */
-  public void add(String name, Object value) {
+  public Row add(String name, Object value) {
     columns.add(name);
     values.add(value);
+    return this;
   }
 
   /**
@@ -168,9 +171,10 @@ public class Row {
    *
    * @param idx for which the value and column are removed.
    */
-  public void remove(int idx) {
+  public Row remove(int idx) {
     columns.remove(idx);
     values.remove(idx);
+    return this;
   }
 
   /**

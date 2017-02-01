@@ -67,7 +67,7 @@ public class IndexSplit extends AbstractStep {
       row.add(dest, val);
     } else {
       throw new StepException(
-        col + " is not of type string. Please check the wrangle configuration."
+        col + " is not of type string in the record. Please check the wrangle configuration."
       );
     }
     return row;
