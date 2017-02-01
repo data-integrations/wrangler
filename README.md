@@ -87,7 +87,7 @@ Following are different directives currently available.
   * [Expressions](docs/directives/expression.md)
   * [URL Encode](docs/directives/url-encode.md)
   * [URL Decode](docs/directives/url-decode.md)
-  * [Split Email](docs/directives/split-email.md)
+  * [Split Email Address](docs/directives/split-email.md)
 * [Quantization](docs/directives/quantize.md)
 * [Unique ID]()
   * [UUID Generation](docs/directives/generate-uuid.md)
