@@ -27,6 +27,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
@@ -85,10 +86,18 @@ public class JsPath extends AbstractStep {
       Object object = JsonPath.read(e, path);
 
       // Check if the objects are arrays, if so convert it to List<Object>
-      JSONArray objects = new JSONArray();
       if (object instanceof net.minidev.json.JSONArray) {
+        JSONArray objects = new JSONArray();
         for(int i = 0; i < ((net.minidev.json.JSONArray) object).size(); ++i) {
           objects.put(((net.minidev.json.JSONArray) object).get(i));
+        }
+        object = objects;
+      }
+
+      if (object instanceof Map) {
+        JSONObject objects = new JSONObject();
+        for (Map.Entry<String, String> entry : ((Map<String, String>)object).entrySet()) {
+          objects.put(entry.getKey(), entry.getValue());
         }
         object = objects;
       }
