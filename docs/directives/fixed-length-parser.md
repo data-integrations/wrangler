@@ -1,6 +1,6 @@
 # Fixed Length Parser
 
-Parses a column as fixed length record with range specifications specified.
+Parses a column as fixed length record with widths for each field specified.
 
 ## Syntax
 ```
