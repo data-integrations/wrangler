@@ -76,6 +76,7 @@ Following are different directives currently available.
   * [Fixed Length Parser](docs/directives/fixed-length-parser.md)
   * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
   * [Date Parser](docs/directives/parse-as-date.md)
+  * [HL7 Parser](docs/directives/parse-as-hl7)
 * [Text Transformations](docs/directives/text-transformation.md)
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)
