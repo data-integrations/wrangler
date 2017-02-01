@@ -1,8 +1,0 @@
-set delimiter ","
-set column name "a,b,c,d"
-set column type "int,string,int,float"
-rename column "b", "x"
-drop column "d"
-split column delimiter "x", "y", "-"
-merge column "a", "b", "u", "|":w!
-

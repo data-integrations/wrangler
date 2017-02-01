@@ -1,4 +1,4 @@
-# Wrangler Transform
+# Wrangler
 [![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform) 
 <a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
   <img alt="Coverity Scan Build Status"
@@ -7,402 +7,158 @@
 [![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A plugin for performing data transformation based on directives. The directives are generated either by an interactive user interface or manual entered into the plugin. 
+Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
+
+## Concepts
+
+This implementation of wrangler defines the following concepts. Please familiarize yourself with these concepts. 
+
+### Record
 
-## Directives
-Wrangler plugin supports an easy way to specify data transformation using directives. Directives are
-instructions that tell plugin how to transform the incoming record. All of the directives are transformational
-and they operate on the input row to generate a new row. The directives are applied on the input record in
-the order they are specified.
+A Record is a collection of field names and field values. 
 
-## Types of Directives
-Following are different types of directives that are supported by the Wrangler plugin.
+### Column
 
-### Parser
+A Column is a data value of any supported java type, one for each Record.
 
-#### CSV Parser
+### Directive
 
-Parses a column a comma separated value (CSV).
+A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into zero or more records. A directive can produce one or more Steps to be executed by the Pipeline. 
 
-**Specification**
-```
-  parse-as-csv {column-name} {delimiter} {true or false to indicate skip empty lines}
-```
-* column-name - Name of the column to parsed as CSV
-* delimiter - Specifies the delimiter to be used for parsing as CSV record.
-* Skip empty lines - true, if you want to skip empty lines, false otherwise (default: false)
-
-**Example**
-```
-  parse-as-csv body , true,
-  drop body,
-  rename body_col1 date,
-  parse-as-csv date / true,
-  rename date_col1 month,
-  rename date_col2 day,
-  rename date_col3 year
-```
-
-#### JSON Parser
-
-Parses a column as a JSON.
-
-**Specification**
-```
-  parse-as-json {column-name}
-```
-
-**Example**
-```
-  parse-as-json body,
-  parse-as-json body.deviceReference,
-  parse-as-json body.deviceReference.OS,
-  parse-as-csv  body.deviceReference.screenSize | true,
-  drop body.deviceReference.screenSize,
-  rename body.deviceReference.screenSize_col1 size1,
-  rename body.deviceReference.screenSize_col2 size2,
-  rename body.deviceReference.screenSize_col3 size3,
-  rename body.deviceReference.screenSize_col4 size4,
-  json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost'],
-  json-path signal_lost signal_lost $.[0],
-  drop body,
-  drop body.deviceReference.OS,
-  drop body.deviceReference,
-  rename body.deviceReference.timestamp timestamp,
-  set column timestamp timestamp / 1000000,
-  drop body.deviceReference.alerts,
-  set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal
-```
-
-#### Fixed Length Parser
-
-Parses a column as fixed length record with range specifications specified.
-
-**Specification**
-```
-  parse-as-fixed-length {column-name} s1-e1[[,[s2]*],[s3-e3]*]*
-```
-
-**Example**
-```
-  parse-as-fixed-length body 1-2,3-4,5,6-9
-```
-
-#### (Deprecated) set format
-This directive specifies how the input needs to be parsed. Currently Wrangler supports parsing of CSV feed.
-The input is parsed as CSV with delimiter specified.
-
-**Specification**
-```
-  set format {type} {delimiter} {configuration}
-```
-* type - Currently the only type supported is CSV.
-* delimiter - When type is CSV, the delimiter to be used for splitting into columns. If you would like to specify a
-delimiter like a tab, then you specify it as '\\t'.
-* configuration - Specifies configuration based on type, for CSV, ability to skip empty lines is specifiable.
-The value can be either 'true' or 'false'.
-
-**Example**
-```
-  set format csv , false
-```
-
-### Sed
-A stream editor directive that can be used for performing basic text operations on the
-column string to which it is applied.
-
-**Specification**
-```
-  sed <column-name> <sed-script>
-```
-
-* column-name Specifies the name of the column on which the sed script is applied.
-* sed-script Specifies the sed script to be applied to the column.
-
-**Example**
-```
-  sed body s/"//g
-```
-
-### Changing Case
-
-Directive that provides the ability to change the case of a column value. One can change the column value
- to uppercase, lowercase or titlecase.
-
-**Specification**
-```
- uppercase {column-name}
- lowercase {column-name}
- titlecase {column-name}
-```
-* column-name - Specifies the name of the column to which the changing case directives are applied.
-
-**Example**
-```
-  uppercase state
-  lowercase email
-  titlecase name
-```
-
-### Drop a column
-
-Drop a column directive will remove a column from the input record. The resulting output record will not
-include the column specified in the directive.
-
-**Specification**
-```
-  drop {column-name}
-```
-
-* column-name - name of the column to be dropped. If the column name doesn't exist, the processing is stopped.
-
-**Example**
-```
-  drop zipcode
-```
-
-### Rename a column
-
-Renames the name of the column.
-
-**Specification**
-```
-  rename {source-column-name} {destination-column-name}
-```
-* source-column-name - Name of the column to be renamed. If the column name doesn't exist, the processing is stopped.
-* destination-column-name - Name of the column to be set to.
+### Step
 
-**Example**
-```
-  rename email emailid
-```
-### Splitting Column
-
-Often times there is need to split a column based on fixed indexes or based on a delimiter. The Wrangler
-plugin support two ways to split a string.
-
-* Based on start and end index &
-* Based on delimiter
-
-Index based split will take a source input column value and extract substring from start index to end index into
- a destination column name. This is mainly used for extracting substring from a source string.
-
-```
-  indexsplit {source-column-name} {start} {end} {destination-column-name}
-```
-**Specification**
-
-* source-column-name - Name of the source column that needs to be split
-* start - Start index to split. If start is less than 0, then it's defaulted to 0.
-* end - End index to split. If end is greater than length of source-column-name value, it's defaulted to it's length.
-* destination-column-name - Name of the column into which the value between start,end value from
-source-column-name is stored.
-
-**Example**
-```
-  indexsplit ssn 7 11 last4ssn
-```
-
-Delimiter based splitter would split the source column value based on delimiter into two columns.
-First column will include the value to the left of the delimiter (excluding delimiter) and the
-second column will hold the value to the right of the delimiter.
-
-```
-  split {source-column-name} {delimiter} {new-column-1} {new-column-2}
-```
-**Specification**
-
-* source-column-name - Name of the source column that needs to be split
-* delimiter - Delimiter to be used to split the source-column-name
-* new-column-1 - Name of the new column that contains the substring left of delimiter. If the column doesn't
-exist then it will be added. If it exists, it will replace.
-* new-column-2 - Name of the new column that contains the substring right of delimiter. If the column doesn't
-exist then it will be added. If it exists, it will replace.
-
-**Example**
-```
-  split email @ name domain
-```
-
-### Specify column names
-
-This directive specifies the name of the columns. After this directive is specified, the following
-directives should use the new names of the columns specified by this directive.
-
-**Specification**
-```
-  set columns {column-name-1},{column-name-2}, ... {column-name-3}
-```
-* {column-name-x} Specifies a list of column names to be assigned to column.
-
-**Example**
-```
-  set columns id,fname,lname,email,address,city,state,zip
-```
-
-### Filter Row
+A Step is a implementation of a data transformation function operating on a Record or set of records. A step can generate zero or more Records from the application of a function. 
 
-Directive for filtering rows either based on a condition or based on regular expression. Upon execution of
-this directive, the following directives would be excluded of the rows that were filtered by this directive.
+### Pipeline
 
-Condition based filtering allows one to specify an expression that if results in 'true' would filter the row else
-would pass the row as-is to the next directive.
+A Pipeline is a collection of Steps to be applied on a Record. Record(s) outputed from each Step is passed to the next Step in the pipeline. 
 
+## Notations
 
-**Specification**
-```
-  filter-row-if-true {condition}
-```
-
-* condition - A JEXL expression.
-
-**Example**
-```
-  set columns id,fname,lname,email,address,city,state,zip
-  filter-row-if-true id > 200
-```
-
-Regular expression based filtering applies an regular expression on the value of a column specified in the
-directive.
-```
-  filter-row-if-matched {column-name} {regex}
-```
-
-**Specification**
-* column-name - Name of the column on which regex is applied. The regex is actually applied on the value of the column.
-* regex - Standard regular expression.
-
-**Example**
-```
-  set columns id,fname,lname,email,address,city,state,zip
-  filter-row-if-matched email .*@joltie.io
-```
-
-### Set Column with expression
-Set column directive allows you assign the result of a expression specified in JEXL format to a column.
-JEXL implements an Expression Language for expressing not so complex expressions. Syntax support JEXL are
-available [here](http://commons.apache.org/proper/commons-jexl/reference/syntax.html).
+### Directives
 
-**Specification**
+A directive is represented as simple text in the format as specified below
 ```
-  set column {column-name} {expression}
+  <command> <argument-1> <argument-2> ... <argument-n>
 ```
 
-* column-name - Name of the column to which the result of expression is saved to.
-* expression - Expression to be evaluated specified in Jexl syntax.
+### Record
 
-**Example**
-```
-  set column salary hrlywage * 160
-  set column hrlywage Math:abs(toDouble(hrlywage))
-```
-
-## Quantize
-This directive quantizes a continous value of a column through a range table
-specified. The quantization ranges are all real numbers, with low specifying the low end of the
- range and high specifying the high end of the range. Associated with the range is the
- value that if the incoming value falls in the range it would be assigned that value.
- The range is a closed range - [low:high] = {x | low <= x <= high}. Also, the high endpoint
- should be greater than low endpoint and all the ranges specified are mutually exclusive.
+A record in this documentation will be representation as json object with object key representing the column names and the value representing the plain representation of the the data without any mention of types. 
 
-**Specification**
+E.g.
 ```
-  quantize {source-column} {destination-column} {quantization-table}
+{
+  "id" : 1,
+  "fname" : "root",
+  "lname" : "joltie",
+  "address" : {
+    "housenumber" : "678",
+    "street" : "Mars Street",
+    "city" : "Marcity",
+    "state" : "Maregon",
+    "country" : "Mari"
+  }
+  "gender", "M"
+}
 ```
 
-* source-column : Name of the column which has to be quantized
-* destination-column : Name of the column to which the quantized value should be added.
-* quantization-table : Specifies the quantization table in the following format low:high=value[,low:high=value]*
-the range specified in the quantization table is a closed range.
+## Available Directives
 
-**Example**
-```
-  quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
-```
+Following are different directives currently available.
 
-### Mask Column
-Data masking (also known as data scrambling and data anonymization) is the process of replacing sensitive
-information with realistic, but scrubbed, data based on masking rules. This plugin supports two types of
- masking method
+* [Parsers]()
+  * [CSV Parser](docs/directives/csv-parser.md)
+  * [Json Parser](docs/directives/parse-as-json.md)
+  * [Json Path](docs/directives/json-path.md)
+  * [XML Parser](docs/directives/parse-as-xml.md)
+  * [XML Path Parser](docs/directives/xml-path.md)
+  * [Fixed Length Parser](docs/directives/fixed-length-parser.md)
+  * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
+  * [Date Parser](docs/directives/parse-as-date.md)
+  * [HL7 Parser](docs/directives/parse-as-hl7.md)
+* [Text Transformations](docs/directives/text-transformation.md)
+  * [Change Text case](docs/directives/change-case.md)
+  * [Index Split](docs/directives/index-split.md)
+  * [Split by Seperator](docs/directives/split-by-seperator.md)
+  * [Fill Null or Empty](docs/directives/fill-null-or-empty.md)
+  * [Sed](docs/directives/sed.md)
+  * [Cut](docs/directives/cut.md)
+  * [Expressions](docs/directives/expression.md)
+  * [URL Encode](docs/directives/url-encode.md)
+  * [URL Decode](docs/directives/url-decode.md)
+* [Quantization](docs/directives/quantize.md)
+* [Unique ID]()
+  * [UUID Generation](docs/directives/generate-uuid.md)
+* [Date Transformations](docs/directives/date-time.md)
+  * [Format Date](docs/directives/format-date.md)
+  * [Format Unix Timestamp](docs/directives/format-timestamp.md)
+* [Masking](docs/directives/masking.md)
+  * [Substitution Masking](docs/directives/mask-substitution.md)
+  * [Number Masking](docs/directives/mask-number.md)
+* [Row Operations]()
+  * [Flatten](docs/directives/flatten.md)
+  * [Split To Rows](docs/directives/split-to-rows.md)
+  * [Filter Row using Regex](docs/directives/filter-row-if-matched.md)
+  * [Filter Row on Condition](docs/directives/filter-row-if-true.md)
+* [Column Operations]()
+  * [Drop Column](docs/directives/drop.md)
+  * [Rename Column](docs/directives/rename.md)
+  * [Copy Column](docs/directives/copy.md)
+  * [Merge Columns](docs/directives/merge.md)
+  * [Keep Columns](docs/directives/keep.md)
+  * [Split To Columns](docs/directives/split-to-columns.md)
+  
+## Wrangler Service
 
-* Substitution based &
-* Shuffle based
+Wrangler is integrated as CDAP Service to support REST based interactive way for wrangling data. The main objective of having this service is to make it easy for interactively generating directives required for parsing data. This service does not support full scale big data processing, but operates on sampled data (~ 1M rows). 
 
-Substitution based masking allows you to mask data based on a masking pattern. The patterns are specified using
-two main literals namely '#' (Pound) and 'x'. '#' specifies that input should be passed on to output, 'x' would replace
-the input charater with it. Any other characters will be passed as it to the output.
-This directive is mainly used for masking SSN, customer id, credit card numbers, etc.
+### Service Endpoints
 
-**Specification**
-
+Following are different service points supported by Wrangler. The base endpoint is defined below :
 ```
-  mask-number {column-name} {masking-pattern}
+  http://<hostname>:11015/v3/namespaces/<namespace>/apps/wrangler/services/service/methods
 ```
-* column-name - Name of the column to which the masking pattern needs to be applied
-* masking-pattern - Defines the pattern to be used for masking the column.
 
-**Example**
-```
-  mask-number ssn xxx-xx-####
-  mask-number credircard xxxx-xxxxxx-x####
-```
+#### Workspace Lifecycle
 
-Shuffle based masking allows one to replace the input with the same size random data. It replaces
-numbers with random numbers and string of characters with random characters.
+Workspace is a named area in the service that stores data on which the directives are applied. The service provides the ability to create/delete workspace. 
 
-**Specification**
+* Create workspace
 ```
-  mask-shuffle {column-name}
+  PUT <base>/workspaces/<workspace-name>
 ```
-
-* column-name - Name of the column to be shuffle masked.
 
-**Example**
+* Delete workspace
 ```
-  mask-shuffle address
+  DELETE <base>/workspaces/<workspace-name>
 ```
-
-### Date Transformation
-
-Directive for transforming a date from one format to another, or for transforming from unix timetsamp to
-a format of date.
 
-To convert a date string from one format to another use the following directive.
-
-**Specification**
+* Upload data to workspace
 ```
-  format-date {column-name} {source-date-format} {destination-date-format}
+  POST <base>/workspaces/<workspace-name>/upload
 ```
-* column-name - Name of the column to convert from source to destination format.
-* source-date-format - Specifies the format of date pattern.
-* destination-date-format - Specifies the format of date pattern.
 
-**Example**
+* Download data from workspace
 ```
-  format-date date MM/dd/yyyy EEE, MMM d, ''yy
+  POST <base>/workspaces/<workspace-name>/download
 ```
 
-To convert from unix timestamp to a date format use the following directive
-**Specificaton**
+#### Executing Directives
 
-```
-  format-unix-timestamp {column-name} {date-format}
-```
-* column-name - Name of the column that contains unix timestamp that needs to be converted to date-format
-* date-format - Format to convert from unix timestamp.
+Wrangling directives are executed in the service on the data stored in the workspace. 
 
-**Example**
+* Executing directives 
 ```
-  format-unix-timestamp timestamp MM/dd/yyyy
+  GET <base>/workspaces/<workspace-name>/execute?directive="<directive>"[&directive="<directive>"]*
 ```
-
-## How to add a new Directive
+## Build new directives
 
-Directives are executed as a step, so it's a simple two step process to actually implement the Step and
+Directives are executed as a step, so it's a simple three step process to actually implement the Step and
 provide the specification for directive.
 
-### Step 1/2
-In order to add a new step for Wrangler plugin, implement the interface 'Step'.
+### Step 1/3
+In order to add a new step, implement the interface 'Step'.
 ```
 /**
  * A interface defining the wrangle step in the wrangling pipeline.
@@ -411,44 +167,21 @@ public interface Step {
   /**
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param row Input {@link Row} to be wrangled by this step.
-   * @return Wrangled {@link Row}.
+   * @param records List of input {@link Record} to be wrangled by this step.
+   * @return Wrangled list of {@link Record}.
    * @throws StepException In case of any issue this exception is thrown.
    */
-  Row execute(Row row) throws StepException, SkipRowException;
+  List<Record> execute(List<Record> records) throws StepException;
 }
 ```
 
-### Step 2/2
+### Step 2/3
+Add comprehensive test case for testing the directive that has been added. 
+
+### Step 3/3
+
 Modify the specification to parse the directive specification and create the implementation of
 Step you have created above.
-
-### Directive Specification
-
-Currently directives are specified as simple text. Below is sample of directives specified for transforming
-the feed.
-
-```
-  01. set format csv , true
-  02. set columns fname,lname,emailid,address,city,state,country,zip,hourlyrate,ssn,lastupdt
-  03. rename fname first_name
-  04. rename lname last_name
-  05. drop city
-  06. drop country
-  07. merge first_name last_name full_name ,
-  08. upper state
-  09. lower email_id
-  10. filter-row-if-matched emailid .*@gmail.com
-  11. set column name concat(lname, \", \", fname)
-  12. drop lname
-  13. drop fname
-  14. filter-row-if-true hourlyrate > 12
-  15. set column salary hourlyrate * 40 * 4
-  16. mask-number ssn xxx-xx-####
-  17. date-format lastupdt dd-MM-YYYY MM/dd/YYYY
-  18. quantize hrlywage wagecategory 0.0:4.99=LOW,5.0:13.99=NORMAL,14.0:29.99=HIGH,30.0:100.0=VERY HIGH
-  20. sed email s/gmail.com/googlemail.com/g
-```
 
 ## Build
 To build your plugins:
