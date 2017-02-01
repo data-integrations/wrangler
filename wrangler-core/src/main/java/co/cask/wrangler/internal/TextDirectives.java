@@ -136,7 +136,7 @@ public class TextDirectives implements Directives {
     formats.put("parse-as-log","parse-as-log <column> <format>");
     formats.put("keep","keep <column>[,<column>]*");
     formats.put("parse-as-hl7", "parse-as-hl7 <column>");
-    formats.put("swap", "swap <source> <destination>");
+    formats.put("swap", "swap <column1> <column2>");
   }
 
   public TextDirectives(String directives) {
@@ -540,11 +540,11 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // swap <source> <destination>
+        // swap <column1> <column2>
         case "swap" : {
-          String source = getNextToken(tokenizer, command, "source", lineno);
-          String destination = getNextToken(tokenizer, command, "destination", lineno);
-          steps.add(new Swap(lineno, directive, source, destination));
+          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+          steps.add(new Swap(lineno, directive, column1, column2));
         }
         break;
 

@@ -27,13 +27,13 @@ import java.util.List;
  * A step for swapping the column names.
  */
 public class Swap extends AbstractStep {
-  private final String source;
-  private final String destination;
+  private final String column1;
+  private final String column2;
 
-  public Swap(int lineno, String directive, String source, String destination) {
+  public Swap(int lineno, String directive, String column1, String column2) {
     super(lineno, directive);
-    this.source = source;
-    this.destination = destination;
+    this.column1 = column1;
+    this.column2 = column2;
   }
 
   /**
@@ -46,8 +46,8 @@ public class Swap extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
-      int sidx = record.find(source);
-      int didx = record.find(destination);
+      int sidx = record.find(column1);
+      int didx = record.find(column2);
 
       if (sidx == -1) {
         throw new StepException(toString() + " : Source column not found.");
@@ -57,8 +57,8 @@ public class Swap extends AbstractStep {
         throw new StepException(toString() + " : Destination column not found.");
       }
 
-      record.setColumn(sidx, destination);
-      record.setColumn(didx, source);
+      record.setColumn(sidx, column2);
+      record.setColumn(didx, column1);
     }
     return records;
   }
