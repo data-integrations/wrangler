@@ -93,7 +93,7 @@ public class FormatDate extends AbstractStep {
       }
     } else {
       throw new StepException(toString() + " : '" +
-                                column + "' column is not defined. Please check the wrangling step."
+                                column + "' column is not defined in the record. Please check the wrangling step."
       );
     }
     return dt;
