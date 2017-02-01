@@ -59,6 +59,11 @@ public class FillNullOrEmpty extends AbstractStep {
           if (((String) object).isEmpty()) {
             record.setValue(idx, value);
           }
+        } else {
+          throw new StepException(
+            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.",
+                          toString(), object != null ? object.getClass().getName() : "null", column)
+          );
         }
       }
     }

@@ -59,7 +59,7 @@ public class Lower extends AbstractStep {
         } else {
           throw new StepException(
             String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
-                          toString(), object.getClass().getName(), col)
+                          toString(), object != null ? object.getClass().getName() : "null", col)
           );
         }
       } else {

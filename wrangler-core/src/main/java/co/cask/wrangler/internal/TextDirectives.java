@@ -46,6 +46,7 @@ import co.cask.wrangler.steps.RecordRegexFilter;
 import co.cask.wrangler.steps.Rename;
 import co.cask.wrangler.steps.Sed;
 import co.cask.wrangler.steps.Split;
+import co.cask.wrangler.steps.SplitEmail;
 import co.cask.wrangler.steps.SplitToColumns;
 import co.cask.wrangler.steps.SplitToRows;
 import co.cask.wrangler.steps.TitleCase;
@@ -535,6 +536,13 @@ public class TextDirectives implements Directives {
         case "parse-as-hl7" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new HL7Parser(lineno, directive, column));
+        }
+        break;
+
+        // split-email <column>
+        case "split-email" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new SplitEmail(lineno, directive, column));
         }
         break;
 

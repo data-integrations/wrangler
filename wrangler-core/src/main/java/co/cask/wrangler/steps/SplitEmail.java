@@ -20,18 +20,18 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.List;
 
 /**
- * A Step to decodes a column with url encoding.
+ * A Step to split email address into account and domain.
  */
-public class UrlDecode extends AbstractStep {
+public class SplitEmail extends AbstractStep {
   private final String column;
 
-  public UrlDecode(int lineno, String directive, String column) {
+  public SplitEmail(int lineno, String directive, String column) {
     super(lineno, directive);
     this.column = column;
   }
@@ -49,11 +49,22 @@ public class UrlDecode extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
+        if (object == null) {
+          record.add(column + ".account", null);
+          record.add(column + ".domain", null);
+          continue;
+        }
         if (object instanceof String) {
-          try {
-            record.setValue(idx, URLDecoder.decode((String) object, "UTF-8"));
-          } catch (UnsupportedEncodingException e) {
-            // Doesn't affect the record and it doesn't stop processing.
+          String[] parts = ((String) object).split("@");
+          if (parts.length > 1) {
+            record.add(column + ".account", parts[0]);
+            record.add(column + ".domain", StringUtils.join(ArrayUtils.subarray(parts, 1, parts.length), "@"));
+          } else if (parts.length == 1) {
+            record.add(column + ".account", parts[0]);
+            record.add(column + ".domain", null);
+          } else {
+            record.add(column + ".account", null);
+            record.add(column + ".domain", null);
           }
         } else {
           throw new StepException(

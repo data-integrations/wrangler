@@ -71,7 +71,7 @@ public class ParseDate extends AbstractStep {
         } else {
           throw new StepException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object.getClass().getName(), column)
+                          object != null ? object.getClass().getName() : "null", column)
           );
         }
       } else {
