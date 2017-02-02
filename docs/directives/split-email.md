@@ -12,13 +12,7 @@ SPLIT-EMAIL directive splits email id into 'account' and 'domain'.
 
 ## Usage Notes
 
-The SPLIT-EMAIL directive will parse the email into its constituents. It extracts
-domain and the account name from the email id string. It splits the string on '@'
-character. Following is the standard format.
-
-```
-  <account>@<domain>
-```
+The SPLIT-EMAIL directive will parse the email address into its constituents - account and domain.
 
 Upon splitting the email address, the directive will create two new columns
 appending to the original column name.
@@ -27,7 +21,6 @@ appending to the original column name.
 * <column>.domain
 
 to the column name that contains the original email address.
-This directive will split at the first '@' character.
 
 If the email address cannot be parsed correctly, the additional columns will be still
 generated, but they would be set to 'null' appropriately.
@@ -79,3 +72,33 @@ would generate the following record
 ```
 
 In case of any errors parsing.
+
+## Examples
+
+Let's assume a complex records of email ids
+
+```
+[
+  { "email" : 'root@example.org'  },
+  { "email" : 'joltie.xxx@gmail.com'  },
+  { "email" : 'joltie_xxx@hotmail.com'  },
+  { "email" : 'joltie."@."root."@".@yahoo.com'  },
+  { "email" : 'Joltie, Root <joltie.root@hotmail.com>' },
+  { "email" : 'Joltie,Root<joltie.root@hotmail.com>'  },
+  { "email" : 'Joltie,Root<joltie.root@hotmail.com'  },
+]
+```
+
+running the directive would result in the following output records
+
+```
+[
+  { "email" : 'root@example.org', "email.account" : 'root', "email.domain" : 'cask.co'  },
+  { "email" : 'joltie.xxx@gmail.com', "email.account" : 'joltie.xxx', "email.domain" : 'gmail.com' },
+  { "email" : 'joltie_xxx@hotmail.com', "email.account" : 'joltie_xxx', "email.domain" : 'hotmail.com'  },
+  { "email" : 'joltie."@."root."@".@yahoo.com', "email.account" : 'joltie."@."root."@".', "email.domain" : 'yahoo.com'  },
+  { "email" : 'Joltie, Root <joltie.root@hotmail.com>', "email.account" : 'joltie.root', "email.domain" : 'hotmail.com'  },
+  { "email" : 'Joltie,Root<joltie.root@hotmail.com>', "email.account" : 'joltie.root', "email.domain" : 'hotmail.com'  },
+  { "email" : 'Joltie,Root<joltie.root@hotmail.com', "email.account" : null, "email.domain" : null  },
+]
+```

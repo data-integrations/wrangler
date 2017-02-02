@@ -16,12 +16,11 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -55,16 +54,24 @@ public class SplitEmail extends AbstractStep {
           continue;
         }
         if (object instanceof String) {
-          String[] parts = ((String) object).split("@");
-          if (parts.length > 1) {
-            record.add(column + ".account", parts[0]);
-            record.add(column + ".domain", StringUtils.join(ArrayUtils.subarray(parts, 1, parts.length), "@"));
-          } else if (parts.length == 1) {
-            record.add(column + ".account", parts[0]);
-            record.add(column + ".domain", null);
+          String emailAddress = (String) object;
+          int nameIdx = emailAddress.lastIndexOf("<"); // Joltie, Root <joltie.root@yahoo.com>
+          if (nameIdx == -1) {
+            KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
+            record.add(column + ".account", components.getKey());
+            record.add(column + ".domain", components.getValue());
           } else {
-            record.add(column + ".account", null);
-            record.add(column + ".domain", null);
+            String name = emailAddress.substring(0, nameIdx);
+            int endIdx = emailAddress.lastIndexOf(">");
+            if (endIdx == -1) {
+              record.add(column + ".account", null);
+              record.add(column + ".domain", null);
+            } else {
+              emailAddress = emailAddress.substring(nameIdx + 1, endIdx);
+              KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
+              record.add(column + ".account", components.getKey());
+              record.add(column + ".domain", components.getValue());
+            }
           }
         } else {
           throw new StepException(
@@ -77,5 +84,14 @@ public class SplitEmail extends AbstractStep {
       }
     }
     return records;
+  }
+
+  private KeyValue<String, String> extractDomainAndAccount(String emailId) {
+    int lastidx = emailId.lastIndexOf("@");
+    if (lastidx == -1) {
+      return new KeyValue<>(null, null);
+    } else {
+      return new KeyValue<>(emailId.substring(0, lastidx), emailId.substring(lastidx + 1));
+    }
   }
 }
