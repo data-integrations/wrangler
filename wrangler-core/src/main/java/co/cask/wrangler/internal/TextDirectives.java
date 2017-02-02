@@ -48,6 +48,7 @@ import co.cask.wrangler.steps.Sed;
 import co.cask.wrangler.steps.Split;
 import co.cask.wrangler.steps.SplitToColumns;
 import co.cask.wrangler.steps.SplitToRows;
+import co.cask.wrangler.steps.Swap;
 import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
 import co.cask.wrangler.steps.UrlEncode;
@@ -135,6 +136,7 @@ public class TextDirectives implements Directives {
     formats.put("parse-as-log","parse-as-log <column> <format>");
     formats.put("keep","keep <column>[,<column>]*");
     formats.put("parse-as-hl7", "parse-as-hl7 <column>");
+    formats.put("swap", "swap <column1> <column2>");
   }
 
   public TextDirectives(String directives) {
@@ -535,6 +537,14 @@ public class TextDirectives implements Directives {
         case "parse-as-hl7" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new HL7Parser(lineno, directive, column));
+        }
+        break;
+
+        // swap <column1> <column2>
+        case "swap" : {
+          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+          steps.add(new Swap(lineno, directive, column1, column2));
         }
         break;
 
