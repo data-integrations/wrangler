@@ -37,12 +37,16 @@ public class SplitEmailTest {
     List<Record> records = Arrays.asList(
       new Record("email", "root@cask.co"),
       new Record("email", "joltie.xxx@gmail.com"),
-    new Record("email", "joltie_xxx@hotmail.com")
+      new Record("email", "joltie_xxx@hotmail.com"),
+      new Record("email", "joltie.\"@.\"root.\"@\".@yahoo.com"),
+      new Record("email", "Joltie, Root <joltie.root@hotmail.com>"),
+      new Record("email", "Joltie,Root<joltie.root@hotmail.com>"),
+      new Record("email", "Joltie,Root<joltie.root@hotmail.com") // bad email
     );
 
     records = PipelineTest.execute(directives, records);
 
-    Assert.assertTrue(records.size() == 3);
+    Assert.assertTrue(records.size() == 7);
 
     Assert.assertEquals("root", records.get(0).getValue("email.account"));
     Assert.assertEquals("cask.co", records.get(0).getValue("email.domain"));
@@ -52,6 +56,18 @@ public class SplitEmailTest {
 
     Assert.assertEquals("joltie_xxx", records.get(2).getValue("email.account"));
     Assert.assertEquals("hotmail.com", records.get(2).getValue("email.domain"));
+
+    Assert.assertEquals("joltie.\"@.\"root.\"@\".", records.get(3).getValue("email.account"));
+    Assert.assertEquals("yahoo.com", records.get(3).getValue("email.domain"));
+
+    Assert.assertEquals("joltie.root", records.get(4).getValue("email.account"));
+    Assert.assertEquals("hotmail.com", records.get(4).getValue("email.domain"));
+
+    Assert.assertEquals("joltie.root", records.get(5).getValue("email.account"));
+    Assert.assertEquals("hotmail.com", records.get(5).getValue("email.domain"));
+
+    Assert.assertNull(records.get(6).getValue("email.account"));
+    Assert.assertNull(records.get(6).getValue("email.domain"));
   }
 
   @Test(expected = StepException.class)
@@ -85,6 +101,6 @@ public class SplitEmailTest {
 
     Assert.assertNotNull(records.get(0).getValue("email.account"));
     Assert.assertNotNull(records.get(0).getValue("email.domain"));
-    Assert.assertEquals("root.hotmail.com", records.get(1).getValue("email.account"));
+    Assert.assertNull(records.get(1).getValue("email.account"));
   }
 }
