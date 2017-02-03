@@ -33,7 +33,7 @@
 ### Performance Numbers
 
 ```
-count          = 13376053
+count          = 13,376,053
 mean rate      = 64998.50 records/second
 1-minute rate  = 64921.29 records/second
 5-minute rate  = 46866.70 records/second
