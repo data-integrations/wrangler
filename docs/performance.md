@@ -1,16 +1,18 @@
 # Performance Evaluation
 
-## Setup 
+## Experiments 
 
 ### Medium
 
-#### Data Files
+
+
+### Data Files
 
 * Name of the file : resources/Consumer_Compliants_13M.csv
 * Number of records : 13,499,973
 * Number of columns : 18
 
-#### Directives
+### Directives
 
 ```
   parse-as-csv demo , true
@@ -28,13 +30,12 @@
   mask-shuffle demo_4
 ```
 
-####
+### Performance Numbers
 
 ```
-record-measure
-             count = 13376053
-         mean rate = 64998.50 events/second
-     1-minute rate = 64921.29 events/second
-     5-minute rate = 46866.70 events/second
-    15-minute rate = 36149.86 events/second
+count          = 13376053
+mean rate      = 64998.50 records/second
+1-minute rate  = 64921.29 records/second
+5-minute rate  = 46866.70 records/second
+15-minute rate = 36149.86 records/second
 ```
