@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.StepException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,37 +25,38 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link MessageHash}
+ * Tests {@link Swap}
  */
-public class MessageHashTest {
+public class SwapTest {
 
   @Test
-  public void testHashBasic() throws Exception {
+  public void testSwap() throws Exception {
     String[] directives = new String[] {
-      "hash message1 SHA-384 true",
-      "hash message2 SHA-384 false",
+      "swap a b",
     };
 
     List<Record> records = Arrays.asList(
-      new Record("message1", "secret message.")
-          .add("message2", "This is a very secret message and a digest will be created.")
+      new Record("a", 1).add("b", "sample string")
     );
 
     records = PipelineTest.execute(directives, records);
-    Assert.assertEquals(1, records.size());
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals(1, records.get(0).getValue("b"));
+    Assert.assertEquals("sample string", records.get(0).getValue("a"));
   }
 
-  @Test(expected = DirectiveParseException.class)
-  public void testBadAlgorithm() throws Exception {
+  @Test(expected = StepException.class)
+  public void testSwapFeildNotFound() throws Exception {
     String[] directives = new String[] {
-      "hash message1 SHA-385 true",
+      "swap a b",
     };
 
     List<Record> records = Arrays.asList(
-      new Record("message1", "This is a very secret message and a digest will be created.")
+      new Record("a", 1).add("c", "sample string")
     );
 
-    PipelineTest.execute(directives, records);
+    records = PipelineTest.execute(directives, records);
   }
 
 }

@@ -132,18 +132,18 @@ public class Expression extends AbstractStep {
         Object result = script.execute(ctx);
         int idx = modified.find(this.column);
         if (idx == -1) {
-          modified.add(this.column, result.toString());
+          modified.add(this.column, result);
         } else {
-          modified.setValue(idx, result.toString());
+          modified.setValue(idx, result);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
         // to check if there is a inner exception, if there is wrap it in 'StepException'
         // else just print the error message.
         if (e.getCause() != null) {
-          throw new StepException(toString() + " : " + e.getLocalizedMessage(), e.getCause());
+          throw new StepException(toString() + " : " + e.getCause().getMessage());
         } else {
-          throw new StepException(toString() + " : " + e.getLocalizedMessage());
+          throw new StepException(toString() + " : " + e.getMessage());
         }
       }
       results.add(modified);
