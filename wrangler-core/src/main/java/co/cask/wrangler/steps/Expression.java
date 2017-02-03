@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,6 +30,7 @@ import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +97,8 @@ public class Expression extends AbstractStep {
     functions.put(null, Convertors.class);
     functions.put("math", Math.class);
     functions.put("string", StringUtils.class);
+    functions.put("bytes", Bytes.class);
+    functions.put("arrays", Arrays.class);
 
     // Create and build the script.
     engine = new JexlBuilder().namespaces(functions).silent(false).cache(10).strict(true).create();
@@ -128,18 +132,18 @@ public class Expression extends AbstractStep {
         Object result = script.execute(ctx);
         int idx = modified.find(this.column);
         if (idx == -1) {
-          modified.add(this.column, result.toString());
+          modified.add(this.column, result);
         } else {
-          modified.setValue(idx, result.toString());
+          modified.setValue(idx, result);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
         // to check if there is a inner exception, if there is wrap it in 'StepException'
         // else just print the error message.
         if (e.getCause() != null) {
-          throw new StepException(toString() + " : " + e.getLocalizedMessage(), e.getCause());
+          throw new StepException(toString() + " : " + e.getCause().getMessage());
         } else {
-          throw new StepException(toString() + " : " + e.getLocalizedMessage());
+          throw new StepException(toString() + " : " + e.getMessage());
         }
       }
       results.add(modified);
