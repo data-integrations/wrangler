@@ -1,12 +1,8 @@
 # Performance Evaluation
 
-## Experiments 
+## Medium set of DMD
 
-### Medium
-
-
-
-### Directives
+## Directives
 
 ```
   parse-as-csv demo , true
@@ -24,15 +20,15 @@
   mask-shuffle demo_4
 ```
 
-### Experiment
-#### Experiment #1
+## Experiment
+### Experiment #1
 
 * Name of the file : resources/Consumer_Compliants_13M.csv
 * Number of records : 13,499,973
 * Number of bytes : 4,499,534,313 (~ 4GB)
 * Number of columns : 18
 
-#### Performance Numbers
+### Performance Numbers
 
 ```
 count          = 13,376,053
@@ -42,18 +38,13 @@ mean rate      = 64998.50 records/second
 15-minute rate = 36149.86 records/second
 ```
 
-#### Data Files
-* Number of records : 13,499,973 (13M)
-* Number of bytes : 4,499,534,313 (~ 4GB)
-* Number of columns : 18
-
-#### Experiment #2
+### Experiment #2
 * Total Time : 2:52:14 - 3:13:48 = 1294 seconds (21.5 minutes)
 * Number of records : 80,999,838 (80M)
 * Number of bytes : 26,997,205,878 (~ 26GB)
 * Number of columns : 18
 
-#### Performance Numbers
+### Performance Numbers
 ```
 count          = 13,376,053
 mean rate      = 64998.50 records/second
