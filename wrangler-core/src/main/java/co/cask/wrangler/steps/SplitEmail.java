@@ -16,22 +16,21 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.List;
 
 /**
- * A Step to decodes a column with url encoding.
+ * A Step to split email address into account and domain.
  */
-public class UrlDecode extends AbstractStep {
+public class SplitEmail extends AbstractStep {
   private final String column;
 
-  public UrlDecode(int lineno, String directive, String column) {
+  public SplitEmail(int lineno, String directive, String column) {
     super(lineno, directive);
     this.column = column;
   }
@@ -49,11 +48,30 @@ public class UrlDecode extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
+        if (object == null) {
+          record.add(column + ".account", null);
+          record.add(column + ".domain", null);
+          continue;
+        }
         if (object instanceof String) {
-          try {
-            record.setValue(idx, URLDecoder.decode((String) object, "UTF-8"));
-          } catch (UnsupportedEncodingException e) {
-            // Doesn't affect the record and it doesn't stop processing.
+          String emailAddress = (String) object;
+          int nameIdx = emailAddress.lastIndexOf("<"); // Joltie, Root <joltie.root@yahoo.com>
+          if (nameIdx == -1) {
+            KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
+            record.add(column + ".account", components.getKey());
+            record.add(column + ".domain", components.getValue());
+          } else {
+            String name = emailAddress.substring(0, nameIdx);
+            int endIdx = emailAddress.lastIndexOf(">");
+            if (endIdx == -1) {
+              record.add(column + ".account", null);
+              record.add(column + ".domain", null);
+            } else {
+              emailAddress = emailAddress.substring(nameIdx + 1, endIdx);
+              KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
+              record.add(column + ".account", components.getKey());
+              record.add(column + ".domain", components.getValue());
+            }
           }
         } else {
           throw new StepException(
@@ -66,5 +84,14 @@ public class UrlDecode extends AbstractStep {
       }
     }
     return records;
+  }
+
+  private KeyValue<String, String> extractDomainAndAccount(String emailId) {
+    int lastidx = emailId.lastIndexOf("@");
+    if (lastidx == -1) {
+      return new KeyValue<>(null, null);
+    } else {
+      return new KeyValue<>(emailId.substring(0, lastidx), emailId.substring(lastidx + 1));
+    }
   }
 }

@@ -55,9 +55,9 @@ public class SplitToRows extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {
-        Object value = record.getValue(idx);
-        if (value != null && value instanceof String) {
-          String[] lines = ((String) value).split(regex);
+        Object object = record.getValue(idx);
+        if (object != null && object instanceof String) {
+          String[] lines = ((String) object).split(regex);
           for (String line : lines) {
             Record r = new Record(record);
             r.setValue(idx, line);
@@ -65,8 +65,10 @@ public class SplitToRows extends AbstractStep {
           }
         } else {
           throw new StepException(
-            toString() + " : Cannot split empty or non-string types"
+            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
+                          object != null ? object.getClass().getName() : "null", column)
           );
+
         }
       }
     }
