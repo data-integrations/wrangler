@@ -170,54 +170,6 @@ public class PipelineTest {
   }
 
   @Test
-  public void testApplyExpr() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "set column name concat(last, \", \", first)",
-      "set column isteen age < 15 ? 'yes' : 'no'",
-      "set column salary hrlywage*40*4",
-      "drop first",
-      "drop last",
-      "set column email string:reverse(email)",
-      "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1",
-    };
-
-    // Run through the wrangling steps.
-    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
-      "150 Mars Ave,Palo Alto,CA,USA,32826"));
-
-    // Iterate through steps.
-    records = PipelineTest.execute(directives, records);
-
-    Assert.assertEquals("Joltie, Root", records.get(0).getValue("name"));
-    Assert.assertEquals("1886.3999999999999", records.get(0).getValue("salary"));
-    Assert.assertEquals("no", records.get(0).getValue("isteen"));
-    Assert.assertEquals("oi.etiloj@toor", records.get(0).getValue("email"));
-    Assert.assertEquals("13.0", records.get(0).getValue("hrlywage"));
-  }
-
-  @Test(expected = StepException.class)
-  public void testNegativeConditionApply() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "set column email string:reverse(email1)"
-    };
-
-    TextDirectives specification = new TextDirectives(directives);
-
-    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io," +
-      "32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"));
-
-    // Define all the steps in the wrangler.
-    List<Step> steps = new ArrayList<>(specification.getSteps());
-
-    // Run through the wrangling steps.
-    records = PipelineTest.execute(directives, records);
-  }
-
-  @Test
   public void testRowFilterRegex() throws Exception {
     String[] directives = new String[] {
       "set format csv , false",
