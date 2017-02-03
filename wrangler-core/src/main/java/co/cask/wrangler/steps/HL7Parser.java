@@ -75,6 +75,11 @@ public class HL7Parser extends AbstractStep {
             HL7MessageVisitor visitor = new HL7MessageVisitor(record, column + ".hl7");
             MessageVisitors.visit(message,
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
+          } else {
+            throw new StepException(
+              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.",
+                            toString(), object != null ? object.getClass().getName() : "null", column)
+            );
           }
         }
       } catch (HL7Exception e) {

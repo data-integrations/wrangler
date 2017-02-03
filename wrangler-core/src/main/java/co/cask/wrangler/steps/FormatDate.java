@@ -65,7 +65,7 @@ public class FormatDate extends AbstractStep {
         } else {
           throw new StepException(
             String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' directive first.", toString(),
-                          object.getClass().getName(), column)
+                          object != null ? object.getClass().getName() : "null", column)
           );
         }
       } else {

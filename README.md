@@ -87,6 +87,7 @@ Following are different directives currently available.
   * [Expressions](docs/directives/expression.md)
   * [URL Encode](docs/directives/url-encode.md)
   * [URL Decode](docs/directives/url-decode.md)
+  * [Split Email Address](docs/directives/split-email.md)
 * [Quantization](docs/directives/quantize.md)
 * [Unique ID]()
   * [UUID Generation](docs/directives/generate-uuid.md)
@@ -108,6 +109,7 @@ Following are different directives currently available.
   * [Copy Column](docs/directives/copy.md)
   * [Merge Columns](docs/directives/merge.md)
   * [Keep Columns](docs/directives/keep.md)
+  * [Swap Column](docs/directives/swap.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
   
 ## Wrangler Service

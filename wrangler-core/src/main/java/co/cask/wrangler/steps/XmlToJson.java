@@ -53,18 +53,18 @@ public class XmlToJson extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {
-        Object value = record.getValue(idx);
-        if (value == null) {
+        Object object = record.getValue(idx);
+        if (object == null) {
           throw new StepException(toString() + " : Did not find '" + col + "' in the record.");
         }
 
         try {
-          if (value instanceof String) {
-            record.setValue(idx, XML.toJSONObject((String) value));
+          if (object instanceof String) {
+            record.setValue(idx, XML.toJSONObject((String) object));
           } else {
             throw new StepException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                            col, value.getClass().getName())
+                            col, object != null ? object.getClass().getName() : "null")
             );
           }
         } catch (JSONException e) {

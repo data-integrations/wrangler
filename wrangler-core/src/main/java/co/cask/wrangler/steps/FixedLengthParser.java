@@ -53,9 +53,9 @@ public final class FixedLengthParser extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {
-        Object v = record.getValue(idx);
-        if (v instanceof String) {
-          String value = (String) v;
+        Object object = record.getValue(idx);
+        if (object instanceof String) {
+          String value = (String) object;
           int offset = 0;
           for (int i = 0; i < widths.length; ++i) {
             String val = value.substring(offset, offset + widths[i]);
@@ -65,7 +65,8 @@ public final class FixedLengthParser extends AbstractStep {
           }
         } else {
           throw new StepException(
-            String.format("%s : Invalid type of column '%s'. Should be of type String.", toString(), col)
+            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
+                          object != null ? object.getClass().getName() : "null", col)
           );
         }
       }

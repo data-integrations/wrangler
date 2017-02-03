@@ -55,9 +55,9 @@ public class SplitToColumns extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {
-        Object value = record.getValue(idx);
-        if (value instanceof String) {
-          String[] lines = ((String) value).split(regex);
+        Object object = record.getValue(idx);
+        if (object instanceof String) {
+          String[] lines = ((String) object).split(regex);
           int i = 1;
           for (String line : lines) {
             record.add(String.format("%s_%d", column, i), line);
@@ -66,7 +66,8 @@ public class SplitToColumns extends AbstractStep {
           results.add(record);
         } else {
           throw new StepException(
-            "blah blah blah"
+            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
+                          object != null ? object.getClass().getName() : "null", column)
           );
         }
       }

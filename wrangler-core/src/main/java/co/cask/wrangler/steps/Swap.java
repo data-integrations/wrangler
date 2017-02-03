@@ -21,49 +21,44 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.List;
 
 /**
- * A Step to decodes a column with url encoding.
+ * A step for swapping the column names.
  */
-public class UrlDecode extends AbstractStep {
-  private final String column;
+public class Swap extends AbstractStep {
+  private final String column1;
+  private final String column2;
 
-  public UrlDecode(int lineno, String directive, String column) {
+  public Swap(int lineno, String directive, String column1, String column2) {
     super(lineno, directive);
-    this.column = column;
+    this.column1 = column1;
+    this.column2 = column2;
   }
 
   /**
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param records List of input {@link Record} to be wrangled by this step.
    * @param context {@link PipelineContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled List of {@link Record}.
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
-      int idx = record.find(column);
-      if (idx != -1) {
-        Object object = record.getValue(idx);
-        if (object instanceof String) {
-          try {
-            record.setValue(idx, URLDecoder.decode((String) object, "UTF-8"));
-          } catch (UnsupportedEncodingException e) {
-            // Doesn't affect the record and it doesn't stop processing.
-          }
-        } else {
-          throw new StepException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
-        }
-      } else {
-        throw new StepException(toString() + " : Column '" + column + "' does not exist in the record.");
+      int sidx = record.find(column1);
+      int didx = record.find(column2);
+
+      if (sidx == -1) {
+        throw new StepException(toString() + " : Source column not found.");
       }
+
+      if (didx == -1) {
+        throw new StepException(toString() + " : Destination column not found.");
+      }
+
+      record.setColumn(sidx, column2);
+      record.setColumn(didx, column1);
     }
     return records;
   }
