@@ -68,18 +68,18 @@ public class Quantization extends AbstractStep {
 
       if (idx != -1) {
         try {
-          Object v = record.getValue(idx);
+          Object object = record.getValue(idx);
           Double d = null;
-          if (v instanceof String) {
-            d = Double.parseDouble((String) v);
-          } else if (v instanceof Double) {
-            d = (Double) v;
-          } else if (v instanceof Float) {
-            d = (Double) v;
+          if (object instanceof String) {
+            d = Double.parseDouble((String) object);
+          } else if (object instanceof Double) {
+            d = (Double) object;
+          } else if (object instanceof Float) {
+            d = (Double) object;
           } else {
             throw new StepException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, Float or Double.",
-                            toString(), col1, v.getClass().getName())
+                            toString(), object != null ? object.getClass().getName() : "null", col1)
             );
           }
           String value = rangeMap.get(d);

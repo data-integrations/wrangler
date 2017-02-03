@@ -62,17 +62,17 @@ public class ParseLog extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {
-        Object value = record.getValue(idx);
+        Object object = record.getValue(idx);
 
         String log;
-        if (value instanceof String) {
-          log = (String) value;
-        } else if (value instanceof byte[]) {
-          log = new String((byte[]) value);
+        if (object instanceof String) {
+          log = (String) object;
+        } else if (object instanceof byte[]) {
+          log = new String((byte[]) object);
         } else {
           throw new StepException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String or byte[].",
-                          toString(), value.getClass().getName(), column)
+                          toString(), object != null ? object.getClass().getName() : "null", column)
           );
         }
         line.set(record);
