@@ -86,3 +86,5 @@ Would generate the following record
     }
   }
 ```
+
+Once it's converted into JSON for each segment, you can apply [parse-as-json](parse-as-json.md) or [json-path](json-path.md) directives on the record. 
