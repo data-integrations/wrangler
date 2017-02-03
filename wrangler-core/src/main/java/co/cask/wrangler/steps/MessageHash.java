@@ -100,10 +100,7 @@ public class MessageHash extends AbstractStep {
    * @return true if we support, false otherwise.
    */
   public static boolean isValid(String algorithm) {
-    if (algorithm != null && algorithms.containsKey(algorithm)) {
-      return true;
-    }
-    return false;
+    return (algorithm != null && algorithms.containsKey(algorithm));
   }
 
   public MessageHash(int lineno, String directive, String column, MessageDigest digest, boolean encode) {
@@ -155,3 +152,4 @@ public class MessageHash extends AbstractStep {
     return records;
   }
 }
+
