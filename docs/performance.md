@@ -1,6 +1,15 @@
 # Performance Evaluation
 
-## Medium set of DMD
+## Light Data Transformation DMD
+
+Following are the high level transformations being performed on the data
+
+* Parsing of CSV,
+* Drop columns,
+* Setting defaults on column,
+* Changing case, 
+* Masking data and 
+* Filtering rows based on expression
 
 ## Directives
 
@@ -21,6 +30,9 @@
 ```
 
 ## Experiment
+
+Following are two experiments that were run one with 13M records and other with 80M.
+
 ### Experiment #1
 
 * Name of the file : resources/Consumer_Compliants_13M.csv
