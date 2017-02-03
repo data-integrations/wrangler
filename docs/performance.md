@@ -6,12 +6,6 @@
 
 
 
-### Data Files
-
-* Name of the file : resources/Consumer_Compliants_13M.csv
-* Number of records : 13,499,973
-* Number of columns : 18
-
 ### Directives
 
 ```
@@ -29,6 +23,13 @@
   mask-number demo_10 xxx##
   mask-shuffle demo_4
 ```
+
+### Data Files
+
+* Name of the file : resources/Consumer_Compliants_13M.csv
+* Number of records : 13,499,973
+* Number of bytes : 4,499,534,313 (~ 4GB)
+* Number of columns : 18
 
 ### Performance Numbers
 
