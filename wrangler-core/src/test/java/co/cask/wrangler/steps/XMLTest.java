@@ -239,5 +239,4 @@ public class XMLTest {
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body.catalog.product.description"));
   }
-
 }

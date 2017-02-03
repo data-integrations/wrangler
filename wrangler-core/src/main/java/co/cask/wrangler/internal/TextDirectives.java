@@ -38,6 +38,7 @@ import co.cask.wrangler.steps.Keep;
 import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.Mask;
 import co.cask.wrangler.steps.Merge;
+import co.cask.wrangler.steps.MessageHash;
 import co.cask.wrangler.steps.ParseDate;
 import co.cask.wrangler.steps.ParseLog;
 import co.cask.wrangler.steps.Quantization;
@@ -56,6 +57,8 @@ import co.cask.wrangler.steps.UrlEncode;
 import co.cask.wrangler.steps.XmlToJson;
 import org.apache.commons.lang.StringEscapeUtils;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -137,6 +140,7 @@ public class TextDirectives implements Directives {
     formats.put("parse-as-log","parse-as-log <column> <format>");
     formats.put("keep","keep <column>[,<column>]*");
     formats.put("parse-as-hl7", "parse-as-hl7 <column>");
+    formats.put("hash", "hash <column> <algorithm> [replace]");
     formats.put("swap", "swap <column1> <column2>");
   }
 
@@ -553,6 +557,35 @@ public class TextDirectives implements Directives {
           String column1 = getNextToken(tokenizer, command, "column1", lineno);
           String column2 = getNextToken(tokenizer, command, "column2", lineno);
           steps.add(new Swap(lineno, directive, column1, column2));
+        }
+        break;
+
+        // hash <column> <algorithm> [encode]
+        case "hash" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String algorithm = getNextToken(tokenizer, command, "algorithm", lineno);
+          String encodeOpt = getNextToken(tokenizer, "\n", command, "encode", lineno, true);
+          if (!MessageHash.isValid(algorithm)) {
+            throw new DirectiveParseException(
+              String.format("Algorithm '%s' specified in directive '%s' at line %d is not supported", algorithm,
+                            command, lineno)
+            );
+          }
+
+          boolean encode = true;
+          if (encodeOpt.equalsIgnoreCase("false")) {
+            encode = false;
+          }
+
+          try {
+            MessageDigest digest = MessageDigest.getInstance(algorithm);
+            steps.add(new MessageHash(lineno, directive, column, digest, encode));
+          } catch (NoSuchAlgorithmException e) {
+            throw new DirectiveParseException(
+              String.format("Unable to find algorithm specified '%s' in directive '%s' at line %d.",
+                            algorithm, command, lineno)
+            );
+          }
         }
         break;
 
