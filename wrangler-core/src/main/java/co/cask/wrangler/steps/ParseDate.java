@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import com.joestelmach.natty.DateGroup;
 import com.joestelmach.natty.Parser;
 
@@ -30,6 +31,7 @@ import java.util.TimeZone;
 /**
  * A Step to parse date.
  */
+@Usage(directive = "parse-as-date", usage = "parse-as-date <column>")
 public class ParseDate extends AbstractStep {
   private final String column;
   private final String timezone;

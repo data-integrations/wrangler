@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -31,6 +32,7 @@ import java.util.List;
 /**
  * A CSV Parser Stage for parsing the {@link Record} provided based on configuration.
  */
+@Usage(directive = "parse-as-csv", usage = "parse-as-csv <column> <delimiter> <skip-if-empty - true or false>")
 public class CsvParser extends AbstractStep {
   // Column within the input row that needs to be parsed as CSV
   private String col;

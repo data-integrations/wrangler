@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * A Wrangler step for upper casing the 'col' value of type String.
  */
+@Usage(directive = "uppercase", usage = "uppercase <column>")
 public class Upper extends AbstractStep {
   // Columns of the column to be upper cased.
   private String col;

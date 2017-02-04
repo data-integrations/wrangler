@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.json.JSONException;
 import org.json.XML;
 
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * A XML to Json Parser Stage.
  */
+@Usage(directive = "parse-as-xml", usage = "parse-as-xml <column>")
 public class XmlToJson extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;

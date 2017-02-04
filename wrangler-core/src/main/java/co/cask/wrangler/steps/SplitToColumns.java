@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * A Split on Stage for splitting the columns into multiple columns.
  */
+@Usage(directive = "split-to-columns", usage = "split-to-columns <column> <regex>")
 public class SplitToColumns extends AbstractStep {
   // Column on which to apply mask.
   private final String column;

@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -30,6 +31,7 @@ import java.util.TreeMap;
 /**
  * A Step to generate a message digest or hash of a column value. .
  */
+@Usage(directive = "hash", usage = "hash <column> <algorithm> [replace]")
 public class MessageHash extends AbstractStep {
   private static final Map<String, Boolean> algorithms = new TreeMap<>();
   private final String column;

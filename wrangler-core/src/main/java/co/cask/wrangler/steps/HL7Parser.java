@@ -34,6 +34,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -42,6 +43,7 @@ import java.util.List;
 /**
  * A step for parsing the HL7 Message.
  */
+@Usage(directive = "parse-as-hl7", usage = "parse-as-hl7 <column>")
 public class HL7Parser extends AbstractStep {
   private final String column;
   private final HapiContext context;
