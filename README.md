@@ -114,7 +114,7 @@ Following are different directives currently available.
   
 ## Performance
 
-Initial performance tests shows that with medium set of directives for transforming data, wrangler is able to process at ~ 60K records/second. The rates below are specified as '**records/second**'
+Initial performance tests shows that with medium set of directives for transforming data, wrangler is able to process at ~ 60K records/second. The rates below are specified as '**records/second**'. More details and test results will be available [here](docs/performance.md)
 
 | Directive Complexity | Column Count| Records | Size | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
 |----------------------|-------------|---------|------|-----------|---------------|---------------|----------------|
