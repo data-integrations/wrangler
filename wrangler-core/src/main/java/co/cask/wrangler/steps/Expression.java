@@ -29,7 +29,6 @@ import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +58,9 @@ public class Expression extends AbstractStep {
 
   // Parsed / Compiled expression.
   private final JexlScript script;
+
+  // Properties associated with pipeline
+  private final Map<String, Object> properties = new HashMap<>();
 
   /**
    * Helper for performing basic house keeping operations.
@@ -115,13 +117,16 @@ public class Expression extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
-    List<Record> results = new ArrayList<>();
+    // This is done only the first time.
+    if (properties.size() == 0 && context != null) {
+      for (Map.Entry<String, String> entry : context.getProperties().entrySet()) {
+        properties.put(entry.getKey(), entry.getValue());
+      }
+    }
 
     for (Record record : records) {
-      Record modified = new Record(record);
-
       // Move the fields from the record into the context.
-      JexlContext ctx = new MapContext();
+      JexlContext ctx = new MapContext(properties);
       for (int i = 0; i < record.length(); ++i) {
         ctx.set(record.getColumn(i), record.getValue(i));
       }
@@ -130,11 +135,11 @@ public class Expression extends AbstractStep {
       // mapped into context.
       try {
         Object result = script.execute(ctx);
-        int idx = modified.find(this.column);
+        int idx = record.find(this.column);
         if (idx == -1) {
-          modified.add(this.column, result);
+          record.add(this.column, result);
         } else {
-          modified.setValue(idx, result);
+          record.setValue(idx, result);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
@@ -146,10 +151,8 @@ public class Expression extends AbstractStep {
           throw new StepException(toString() + " : " + e.getMessage());
         }
       }
-      results.add(modified);
     }
-
-    return results;
+    return records;
   }
 }
 
