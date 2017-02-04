@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import com.google.common.base.Strings;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * A Wrangler step for splitting a col into two additional columns based on a delimiter.
  */
+@Usage(directive = "split", usage = "split <source> <delimiter> <new-column-1> <new-column-2>")
 public class Split extends AbstractStep {
   // Name of the column to be split
   private String col;

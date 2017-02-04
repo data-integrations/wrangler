@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * A Wrangler step for lower casing the 'col' value of type String.
  */
+@Usage(directive = "lowercase", usage = "lowercase <column>")
 public class Lower extends AbstractStep {
   // Columns of the column to be lower cased.
   private String col;

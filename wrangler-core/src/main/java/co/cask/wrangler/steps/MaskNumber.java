@@ -20,10 +20,10 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * A Wrangler plugin that applies substitution and shuffling masking on the column.
@@ -41,8 +41,8 @@ import java.util.Random;
  *
  *  <blockquote>
  *    <pre>
- *        Step step = new Mask(lineno, line, "ssn", "XXX-XX-####", 1);
- *        Step step = new Mask(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
+ *        Step step = new MaskNumber(lineno, line, "ssn", "XXX-XX-####", 1);
+ *        Step step = new MaskNumber(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
  *    </pre>
  *  </blockquote>
  * </p>
@@ -53,12 +53,13 @@ import java.util.Random;
  *
  *   <blockquote>
  *     <pre>
- *       Step step = new Mask(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
+ *       Step step = new MaskNumber(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
  *     </pre>
  *   </blockquote>
  * </p>
  */
-public class Mask extends AbstractStep {
+@Usage(directive = "mask-number", usage = "mask-number <column> <pattern>")
+public class MaskNumber extends AbstractStep {
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;
   public static final int MASK_SHUFFLE = 2;
@@ -69,21 +70,10 @@ public class Mask extends AbstractStep {
   // Column on which to apply mask.
   private final String column;
 
-  // Type of mask.
-  private final int maskType;
-
-  public Mask(int lineno, String detail, String column, int maskType) {
-    super(lineno, detail);
-    this.mask = "";
-    this.column = column;
-    this.maskType = maskType;
-  }
-
-  public Mask(int lineno, String detail, String column, String mask, int maskType) {
+  public MaskNumber(int lineno, String detail, String column, String mask) {
     super(lineno, detail);
     this.mask = mask;
     this.column = column;
-    this.maskType = maskType;
   }
 
   /**
@@ -101,15 +91,7 @@ public class Mask extends AbstractStep {
       Record masked = new Record(record);
       int idx = record.find(column);
       if (idx != -1) {
-        if (maskType == MASK_NUMBER) {
-          try {
-            masked.setValue(idx, maskNumber((String) record.getValue(idx), mask));
-          } catch (Exception e) {
-            throw new StepException(toString() + " : '" + column + "' column cannot be masked.");
-          }
-        } else if (maskType == MASK_SHUFFLE) {
-          masked.setValue(idx, maskShuffle((String) record.getValue(idx), 0));
-        }
+        masked.setValue(idx, maskNumber((String) record.getValue(idx), mask));
       } else {
         throw new StepException(toString() + " : '" +
                                   column + "' column is not defined. Please check the wrangling step."
@@ -141,31 +123,6 @@ public class Mask extends AbstractStep {
       }
     }
     return masked.toString();
-  }
-
-  private String maskShuffle(String str, int seed) {
-    final String cons = "bcdfghjklmnpqrstvwxz";
-    final String vowel = "aeiouy";
-    final String digit = "0123456789";
-
-    Random r = new Random(seed);
-    char data[] = str.toCharArray();
-
-    for (int n = 0; n < data.length; ++ n) {
-      char ln = Character.toLowerCase(data[n]);
-      if (cons.indexOf(ln) >= 0)
-        data[n] = randomChar(r, cons, ln != data[n]);
-      else if (vowel.indexOf(ln) >= 0)
-        data[n] = randomChar(r, vowel, ln != data[n]);
-      else if (digit.indexOf(ln) >= 0)
-        data[n] = randomChar(r, digit, ln != data[n]);
-    }
-    return new String(data);
-  }
-
-  private char randomChar(Random r, String cs, boolean uppercase) {
-    char c = cs.charAt(r.nextInt(cs.length()));
-    return uppercase ? Character.toUpperCase(c) : c;
   }
 }
 

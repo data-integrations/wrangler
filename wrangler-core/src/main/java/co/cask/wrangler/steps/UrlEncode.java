@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * A Step to encode a column with url encoding.
  */
+@Usage(directive = "url-encode", usage = "url-encode <column>")
 public class UrlEncode extends AbstractStep {
   private final String column;
 

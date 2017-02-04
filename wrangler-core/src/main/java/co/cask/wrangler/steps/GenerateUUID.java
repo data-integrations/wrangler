@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import java.util.UUID;
 /**
  * A Step to generate UUID.
  */
+@Usage(directive = "generate-uuid", usage = "generate-uuid <column>")
 public class GenerateUUID extends AbstractStep {
   private final String column;
 

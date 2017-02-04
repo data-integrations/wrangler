@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrangle Pipeline executes steps in the order they are specified.
+ * Wrangle Pipeline executes stepRegistry in the order they are specified.
  */
 public final class DefaultPipeline implements Pipeline<Record, StructuredRecord> {
   private Directives directives;
@@ -50,7 +50,7 @@ public final class DefaultPipeline implements Pipeline<Record, StructuredRecord>
 
   @Override
   public List<StructuredRecord> execute(List<Record> records, Schema schema) throws PipelineException {
-    // Iterate through steps
+    // Iterate through stepRegistry
     try {
       for (Step step : directives.getSteps()) {
         records = step.execute(records, context);

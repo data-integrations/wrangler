@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -32,6 +33,8 @@ import java.util.regex.Pattern;
 /**
  * A Wrangler step for quantizing a column.
  */
+@Usage(directive = "quantize", usage = "quantize <source> <destination> " +
+  "<[range1:range2)=value>,[<range1:range2=value>]*")
 public class Quantization extends AbstractStep {
   private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();

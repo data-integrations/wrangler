@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * A directive that Flattens a record
  */
+@Usage(directive = "flatten", usage = "flatten <column>[,<column>,<column>,...]")
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;

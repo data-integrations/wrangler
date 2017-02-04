@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
 
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * A Wrangle step for 'Sed' like transformations on the column.
  */
+@Usage(directive = "sed", usage = "sed <column> <expression>")
 public class Sed extends AbstractStep {
   private final String pattern;
   private final String column;

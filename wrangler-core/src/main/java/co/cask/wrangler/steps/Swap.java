@@ -20,12 +20,14 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.List;
 
 /**
  * A step for swapping the column names.
  */
+@Usage(directive = "swap", usage = "swap <column1> <column2>")
 public class Swap extends AbstractStep {
   private final String column1;
   private final String column2;

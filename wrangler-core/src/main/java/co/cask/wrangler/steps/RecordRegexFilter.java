@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 /**
  * A Wrangle step for filtering rows that match the pattern specified on the column.
  */
+@Usage(directive = "filter-row-if-matched", usage = "filter-row-if-matched <column> <regex>")
 public class RecordRegexFilter extends AbstractStep {
   private final String regex;
   private final String column;

@@ -20,12 +20,14 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.List;
 
 /**
  * A step to copy data from one column to another.
  */
+@Usage(directive = "copy", usage = "copy <source> <destination> [force]")
 public class Copy extends AbstractStep {
   private String source;
   private String destination;
