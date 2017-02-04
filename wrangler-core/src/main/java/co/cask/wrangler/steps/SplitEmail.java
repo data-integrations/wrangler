@@ -49,8 +49,8 @@ public class SplitEmail extends AbstractStep {
       if (idx != -1) {
         Object object = record.getValue(idx);
         if (object == null) {
-          record.add(column + ".account", null);
-          record.add(column + ".domain", null);
+          record.add(column + "_account", null);
+          record.add(column + "_domain", null);
           continue;
         }
         if (object instanceof String) {
@@ -58,19 +58,19 @@ public class SplitEmail extends AbstractStep {
           int nameIdx = emailAddress.lastIndexOf("<"); // Joltie, Root <joltie.root@yahoo.com>
           if (nameIdx == -1) {
             KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
-            record.add(column + ".account", components.getKey());
-            record.add(column + ".domain", components.getValue());
+            record.add(column + "_account", components.getKey());
+            record.add(column + "_domain", components.getValue());
           } else {
             String name = emailAddress.substring(0, nameIdx);
             int endIdx = emailAddress.lastIndexOf(">");
             if (endIdx == -1) {
-              record.add(column + ".account", null);
-              record.add(column + ".domain", null);
+              record.add(column + "_account", null);
+              record.add(column + "_domain", null);
             } else {
               emailAddress = emailAddress.substring(nameIdx + 1, endIdx);
               KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
-              record.add(column + ".account", components.getKey());
-              record.add(column + ".domain", components.getValue());
+              record.add(column + "_account", components.getKey());
+              record.add(column + "_domain", components.getValue());
             }
           }
         } else {
