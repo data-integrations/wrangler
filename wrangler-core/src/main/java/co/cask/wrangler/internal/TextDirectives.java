@@ -58,6 +58,7 @@ import co.cask.wrangler.steps.TitleCase;
 import co.cask.wrangler.steps.Upper;
 import co.cask.wrangler.steps.UrlDecode;
 import co.cask.wrangler.steps.UrlEncode;
+import co.cask.wrangler.steps.WriteToJson;
 import co.cask.wrangler.steps.XmlToJson;
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -76,18 +77,6 @@ import java.util.StringTokenizer;
  *
  * Following are some of the commands and format that {@link TextDirectives}
  * will handle.
- *
- * <ul>
- *   <li>set format csv , true</li>
- *   <li>set columns a,b,c,d,e,f,g </li>
- *   <li>rename a first</li>
- *   <li>drop b</li>
- *   <li>merge d e h |</li>
- *   <li>uppercase h</li>
- *   <li>lowercase first</li>
- *   <li>titlecase c</li>
- *   <li>indexsplit h 1 4 splitcol</li>
- * </ul>
  */
 public class TextDirectives implements Directives {
   static final char TAB = '\t';
@@ -95,8 +84,8 @@ public class TextDirectives implements Directives {
   // directives for wrangling.
   private String[] directives;
 
-  // Mapping of specification formats.
-  Map<String, String> formats = new HashMap<>();
+  // Mapping of specification usages.
+  Map<String, String> usages = new HashMap<>();
 
   // List of all Steps
   List<Class<? extends AbstractStep>> stepRegistry = Arrays.asList(
@@ -108,7 +97,7 @@ public class TextDirectives implements Directives {
     ParseDate.class, ParseLog.class, Quantization.class, RecordConditionFilter.class,
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
-    UrlDecode.class, UrlEncode.class, XmlToJson.class
+    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJson.class
   );
 
   public TextDirectives(String[] directives) {
@@ -118,15 +107,15 @@ public class TextDirectives implements Directives {
     // directive and usage.
     for (Class<? extends AbstractStep> step : stepRegistry) {
       Usage usage = step.getAnnotation(Usage.class);
-      formats.put(usage.directive(), usage.usage());
+      usages.put(usage.directive(), usage.usage());
     }
 
     // These are for directives that use other steps for executing.
     // wWe add them exclusively
-    formats.put("xml-path", "xml-path <source> <destination> <path>");
-    formats.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
-    formats.put("set format", "set format csv <delimiter> <skip empty lines>");
-    formats.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
+    usages.put("xml-path", "xml-path <source> <destination> <path>");
+    usages.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
+    usages.put("set format", "set format csv <delimiter> <skip empty lines>");
+    usages.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
   }
 
   public TextDirectives(String directives) {
@@ -574,6 +563,13 @@ public class TextDirectives implements Directives {
         }
         break;
 
+        // write-to-json <column>
+        case "write-to-json" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new WriteToJson(lineno, directive, column));
+        }
+        break;
+
         default:
           throw new DirectiveParseException(
             String.format("Unknown directive '%s' found in the directive at line %d", command, lineno)
@@ -607,7 +603,7 @@ public class TextDirectives implements Directives {
       }
     } else {
       if (!optional) {
-        String d = formats.get(directive);
+        String d = usages.get(directive);
         throw new DirectiveParseException(
           String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)",
                         field, lineno, directive, d)

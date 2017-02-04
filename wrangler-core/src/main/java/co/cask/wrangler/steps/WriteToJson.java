@@ -21,23 +21,22 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.gson.Gson;
 
 import java.util.List;
-import java.util.Random;
-import java.util.UUID;
 
 /**
- * A Step to generate UUID.
+ * A step to write the record fields as JSON.
  */
-@Usage(directive = "generate-uuid", usage = "generate-uuid <column>")
-public class GenerateUUID extends AbstractStep {
+@Usage(directive = "write-to-json", usage = "write-to-json <column>")
+public class WriteToJson extends AbstractStep {
   private final String column;
-  private final Random random;
+  private final Gson gson;
 
-  public GenerateUUID(int lineno, String directive, String column) {
+  public WriteToJson(int lineno, String directive, String column) {
     super(lineno, directive);
     this.column = column;
-    this.random = new Random();
+    this.gson = new Gson();
   }
 
   /**
@@ -50,13 +49,7 @@ public class GenerateUUID extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
-      int idx = record.find(column);
-      UUID uuid = new UUID(random.nextLong(), random.nextLong());
-      if (idx != -1) {
-        record.setValue(idx, uuid.toString());
-      } else {
-        record.add(column, uuid.toString());
-      }
+      record.addOrSet(column, gson.toJson(record.getRecord()));
     }
     return records;
   }
