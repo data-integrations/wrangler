@@ -112,6 +112,15 @@ Following are different directives currently available.
   * [Swap Column](docs/directives/swap.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
   
+## Performance
+
+Initial performance tests shows that with medium set of directives for transforming data. The rates below are specified as '**records/second**'
+
+| Directives Count | Directive Complexity | Column Count| Records | Size | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
+|-----------------|----------------------|-------------|---------|------|-----------|---------------|---------------|--------------------|
+| 14 | Medium | 18 | 13,499,973 | 4,499,534,313 | 64,998.50 | 64,921.29 | 46,866.70 | 36,149.86 | 
+| 14 | Medium | 18 | 80,999,838 | 26,997,205,878 | 62,465.93 | 62,706.39 | 60,755.41 | 56,673.32 | 
+
 ## Wrangler Service
 
 Wrangler is integrated as CDAP Service to support REST based interactive way for wrangling data. The main objective of having this service is to make it easy for interactively generating directives required for parsing data. This service does not support full scale big data processing, but operates on sampled data (~ 1M rows). 
