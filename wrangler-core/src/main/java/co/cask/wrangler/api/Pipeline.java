@@ -34,10 +34,21 @@ public interface Pipeline<I,O> {
   /**
    * Executes the pipeline on the input.
    *
-   * @param input LIst of Input record of type I
+   * @param input List of Input record of type I.
    * @param schema Schema to which the output should be mapped.
+   * @param meta aggregates metadata and statistics related to records being processed.
    * @return Parsed output list of record of type O
    */
-  public List<O> execute(List<I> input, Schema schema) throws PipelineException;
+  public List<O> execute(List<I> input, Schema schema, MetaAndStatistics meta) throws PipelineException;
+
+  /**
+   * Executes the pipeline on the input.
+   *
+   * @param input List of input record of type I.
+   * @param meta aggregates metadata and statistics related to records being processed.
+   * @return Parsed output list of record of type I
+   */
+  public List<I> execute(List<I> input, MetaAndStatistics meta) throws PipelineException;
+
 }
 
