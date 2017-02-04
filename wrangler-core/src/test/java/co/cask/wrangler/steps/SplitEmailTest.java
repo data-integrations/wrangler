@@ -48,26 +48,26 @@ public class SplitEmailTest {
 
     Assert.assertTrue(records.size() == 7);
 
-    Assert.assertEquals("root", records.get(0).getValue("email.account"));
-    Assert.assertEquals("cask.co", records.get(0).getValue("email.domain"));
+    Assert.assertEquals("root", records.get(0).getValue("email_account"));
+    Assert.assertEquals("cask.co", records.get(0).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.xxx", records.get(1).getValue("email.account"));
-    Assert.assertEquals("gmail.com", records.get(1).getValue("email.domain"));
+    Assert.assertEquals("joltie.xxx", records.get(1).getValue("email_account"));
+    Assert.assertEquals("gmail.com", records.get(1).getValue("email_domain"));
 
-    Assert.assertEquals("joltie_xxx", records.get(2).getValue("email.account"));
-    Assert.assertEquals("hotmail.com", records.get(2).getValue("email.domain"));
+    Assert.assertEquals("joltie_xxx", records.get(2).getValue("email_account"));
+    Assert.assertEquals("hotmail.com", records.get(2).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.\"@.\"root.\"@\".", records.get(3).getValue("email.account"));
-    Assert.assertEquals("yahoo.com", records.get(3).getValue("email.domain"));
+    Assert.assertEquals("joltie.\"@.\"root.\"@\".", records.get(3).getValue("email_account"));
+    Assert.assertEquals("yahoo.com", records.get(3).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.root", records.get(4).getValue("email.account"));
-    Assert.assertEquals("hotmail.com", records.get(4).getValue("email.domain"));
+    Assert.assertEquals("joltie.root", records.get(4).getValue("email_account"));
+    Assert.assertEquals("hotmail.com", records.get(4).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.root", records.get(5).getValue("email.account"));
-    Assert.assertEquals("hotmail.com", records.get(5).getValue("email.domain"));
+    Assert.assertEquals("joltie.root", records.get(5).getValue("email_account"));
+    Assert.assertEquals("hotmail.com", records.get(5).getValue("email_domain"));
 
-    Assert.assertNull(records.get(6).getValue("email.account"));
-    Assert.assertNull(records.get(6).getValue("email.domain"));
+    Assert.assertNull(records.get(6).getValue("email_account"));
+    Assert.assertNull(records.get(6).getValue("email_domain"));
   }
 
   @Test(expected = StepException.class)
@@ -99,8 +99,8 @@ public class SplitEmailTest {
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 4);
 
-    Assert.assertNotNull(records.get(0).getValue("email.account"));
-    Assert.assertNotNull(records.get(0).getValue("email.domain"));
-    Assert.assertNull(records.get(1).getValue("email.account"));
+    Assert.assertNotNull(records.get(0).getValue("email_account"));
+    Assert.assertNotNull(records.get(0).getValue("email_domain"));
+    Assert.assertNull(records.get(1).getValue("email_account"));
   }
 }

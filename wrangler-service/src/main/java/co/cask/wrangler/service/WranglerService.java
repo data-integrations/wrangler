@@ -84,6 +84,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * Deletes the workspace.
    *
    * @param request
    * @param responder
@@ -106,8 +107,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws ) {
 
-    String contentType = request.getHeader("Content");
-    
     String body = null;
     ByteBuffer content = request.getContent();
     if (content != null && content.hasRemaining()) {
@@ -115,17 +114,22 @@ public class WranglerService extends AbstractHttpServiceHandler {
     }
 
     if (body == null || body.isEmpty()) {
-      error(responder, "Body not present, please post the event JSON to generate paths.");
+      error(responder, "Body not present, please post the file containing the records to be wrangle.");
       return;
     }
 
     List<Record> records = new ArrayList<>();
-    records.add(new Record(ws, body));
+    int i = 0;
+    for (String line : body.split("\n")) {
+      records.add(new Record(ws, line));
+      ++i;
+    }
+
     String d = new Gson().toJson(records);
     try {
       Put data = new Put (Bytes.toBytes(ws), Bytes.toBytes("data"), Bytes.toBytes(d));
       workspace.put(data);
-      success(responder, String.format("Successfully uploaded data to workspace '%s'", ws));
+      success(responder, String.format("Successfully uploaded data to workspace '%s' (records %d)", ws, i));
     } catch (DataSetException e) {
       error(responder, e.getMessage());
     }
@@ -225,14 +229,20 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
 
-      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
+      List<Record> newRecords = execute(records.subList(0, limit), directives.toArray(new String[directives.size()]));
       JSONArray values = new JSONArray();
+      JSONArray headers = new JSONArray();
+      boolean added = false;
       for (Record record : newRecords) {
         List<KeyValue<String, Object>> fields = record.getRecord();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
+          if (added == false) {
+            headers.put(field.getKey());
+          }
           r.put(field.getKey(), field.getValue().toString());
         }
+        added = true;
         values.put(r);
       }
 
@@ -240,6 +250,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
       response.put("items", newRecords.size());
+      response.put("header", headers);
       response.put("value", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {

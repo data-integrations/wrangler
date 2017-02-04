@@ -414,10 +414,10 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // split-to-rows <column> <regex>
+        // split-to-rows <column> <separator>
         case "split-to-rows" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String regex = getNextToken(tokenizer, "\n", "regex", lineno);
+          String regex = getNextToken(tokenizer, "\n", "separator", lineno);
           steps.add(new SplitToRows(lineno, directive, column, regex));
         }
         break;
