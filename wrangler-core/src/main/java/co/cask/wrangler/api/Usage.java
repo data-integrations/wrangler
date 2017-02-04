@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A interface defining the usage of the step.
+ * A interface defining the usage for the directive.
  */
 @Documented
 @Target(ElementType.TYPE)
@@ -32,4 +32,5 @@ public @interface Usage {
   String directive();
   String usage();
 }
+
 
