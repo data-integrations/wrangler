@@ -17,11 +17,9 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Usage;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,14 +42,5 @@ public class UrlEncodeTest {
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("http%3A%2F%2Fwww.yahoo.com%3Fa%3Db+c%26b%3Dab%26xyz%3D1", records.get(0).getValue("url"));
-  }
-
-  @Test
-  public void testFoo() throws Exception {
-    List<Class<?>> classes = new ArrayList<>();
-    classes.add(CharacterCut.class);
-
-    Usage usage = CharacterCut.class.getAnnotation(Usage.class);
-    Assert.assertTrue(usage.directive().equalsIgnoreCase("cut-directive"));
   }
 }
