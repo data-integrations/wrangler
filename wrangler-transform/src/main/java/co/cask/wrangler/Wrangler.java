@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -73,10 +74,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private class WranglerPipelineContext implements PipelineContext {
     private StageMetrics metrics;
     private String name;
+    private Map<String, String> properties;
 
-    public WranglerPipelineContext(StageMetrics metrics, String name) {
+    public WranglerPipelineContext(StageMetrics metrics, String name, Map<String, String> properties) {
       this.metrics = metrics;
       this.name = name;
+      this.properties = properties;
     }
 
     /**
@@ -93,6 +96,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Override
     public String getContextName() {
       return name;
+    }
+
+    /**
+     * @return Properties associated with run and pipeline.
+     */
+    @Override
+    public Map<String, String> getProperties() {
+      return properties;
     }
   }
 
@@ -151,7 +162,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Parse DSL and initialize the wrangle pipeline.
     Directives directives = new TextDirectives(config.specification);
     pipeline = new DefaultPipeline();
-    pipeline.configure(directives, new WranglerPipelineContext(context.getMetrics(), context.getStageName()));
+    pipeline.configure(directives,
+                       new WranglerPipelineContext(context.getMetrics(), context.getStageName(),
+                                                   context.getPluginProperties().getProperties()));
 
     // Based on the configuration create output schema.
     try {
