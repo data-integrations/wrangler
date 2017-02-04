@@ -34,7 +34,7 @@ import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.DefaultPipeline;
+import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,7 +164,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     Directives directives = new TextDirectives(config.specification);
-    pipeline = new DefaultPipeline();
+    pipeline = new PipelineExecutor();
     pipeline.configure(directives,
                        new WranglerPipelineContext(context.getMetrics(), context.getStageName(),
                                                    context.getPluginProperties().getProperties()));
@@ -198,7 +198,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     List<StructuredRecord> records = new ArrayList<>();
     long start = System.nanoTime();
     try {
-      records = pipeline.execute(Arrays.asList(row), oSchema);
+      records = pipeline.execute(Arrays.asList(row), oSchema, null); // we don't compute meta and statistics.
     } catch (PipelineException e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;

@@ -28,9 +28,9 @@ import org.junit.Test;
 import java.util.Arrays;
 
 /**
- * Tests {@link DefaultPipeline}.
+ * Tests {@link PipelineExecutor}.
  */
-public class DefaultPipelineTest {
+public class PipelineExecutorTest {
 
   @Test
   public void testPipeline() throws Exception {
@@ -54,10 +54,10 @@ public class DefaultPipelineTest {
 
     Directives directives =
       new TextDirectives(StringUtils.join("\n", commands));
-    Pipeline pipeline = new DefaultPipeline();
+    Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(directives, null);
     Record row = new Record(Directives.STARTING_COLUMN, new String("a,b,c,d,e,f,g"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema, null).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("a", record.get("first"));
@@ -88,10 +88,10 @@ public class DefaultPipelineTest {
 
     Directives directives =
       new TextDirectives(StringUtils.join("\n", commands));
-    Pipeline pipeline = new DefaultPipeline();
+    Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(directives, null);
     Record row = new Record(Directives.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema, null).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("Larry", record.get("first"));
