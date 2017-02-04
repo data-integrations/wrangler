@@ -36,6 +36,8 @@ import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.DefaultPipeline;
 import co.cask.wrangler.internal.TextDirectives;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,6 +56,7 @@ import java.util.Map;
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
+  private final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
   // Plugin configuration.
   private final Config config;
 
@@ -197,16 +200,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     try {
       records = pipeline.execute(Arrays.asList(row), oSchema);
     } catch (PipelineException e) {
-      getContext().getMetrics().count("pipeline.records.failures", 1);
+      getContext().getMetrics().count("failures", 1);
       errorCounter++;
+      // If error threshold is reached, then terminate processing.
+      if (errorCounter > config.threshold) {
+        LOG.warn("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
+        throw new Exception(String.format("Reached error threshold %d, terminating processing.", config.threshold));
+      }
       return;
     } finally {
-      getContext().getMetrics().gauge("pipeline.record.processingtime", System.nanoTime() - start);
-    }
-
-    // If error threshold is reached, then terminate processing.
-    if (errorCounter > config.threshold) {
-      throw new Exception(String.format("Error threshold reached %d", config.threshold));
+      getContext().getMetrics().gauge("process.time", System.nanoTime() - start);
     }
 
     for (StructuredRecord record : records) {
