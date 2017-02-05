@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.StepException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,6 +34,24 @@ public class KeepTest {
     String[] directives = new String[] {
       "parse-as-csv body , true",
       "keep body_1,body_2"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "1,2,3,4,5,6,7,8,9,10")
+    );
+
+    records = PipelineTest.execute(directives, records);
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals(2, records.get(0).length());
+  }
+
+  @Test(expected = StepException.class)
+  public void testKeepWithNoFieldInRecord() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , true",
+      "keep body_1,body_2",
+      "keep body_3"  // this field body_3 is not existing in record anymore.
     };
 
     List<Record> records = Arrays.asList(
