@@ -16,12 +16,17 @@
 
 package co.cask.wrangler.internal;
 
+import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.MetaAndStatistics;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,9 +43,9 @@ public class BasicMetaAndStatisticsTest {
     };
 
     List<Record> records = Arrays.asList(
-      new Record("body", "1234.45,650-897-3839,111-11-1111,32826,http://www.yahoo.com"),
-      new Record("body", "45.56,670-897-3839,111-12-1111,32826,http://mars.io"),
-      new Record("body", "45.56,670-897-3839,222 45 6789,32826,http://mars.io")
+      new Record("body", "1234.45,650-897-3839,111-11-1111,32826,29/02/2000,\"$1234.56\",http://www.yahoo.com"),
+      new Record("body", "45.56,670-897-3839,111-12-1111,32826,29/02/2000,\"$56,789\",http://mars.io"),
+      new Record("body", "45.56,670-897-3839,222,32826,29/02/2000,\"\",http://mars.io")
     );
 
     Pipeline pipeline = new PipelineExecutor();
@@ -49,6 +54,92 @@ public class BasicMetaAndStatisticsTest {
     records = pipeline.execute(records, meta);
 
     Assert.assertTrue(records.size() > 1);
+
+    Record summary = meta.summary();
+    Assert.assertEquals(3, summary.length());
+    Assert.assertEquals(3.0, summary.getValue("total"));
+
+    Record stats = (Record) summary.getValue("stats");
+    Record types = (Record) summary.getValue("types");
+
+    Assert.assertEquals(7, stats.length());
+    Assert.assertEquals(7, types.length());
+
+    System.out.println("General Statistics");
+    System.out.println();
+    List<KeyValue<String, Object>> fields = stats.getFields();
+    for (KeyValue<String, Object> field : fields) {
+      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
+      for (KeyValue<String, Double> value : values) {
+        System.out.println(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+      }
+    }
+
+    System.out.println();
+    System.out.println("Type Statistics");
+    System.out.println();
+    fields = types.getFields();
+    for (KeyValue<String, Object> field : fields) {
+      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
+      for (KeyValue<String, Double> value : values) {
+        System.out.println(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+      }
+    }
+  }
+
+  // Disabled on purpose as we don't want to run this on regular basis.
+  @Ignore
+  @Test
+  public void testLargeFile() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , true",
+      "drop body"
+    };
+
+    List<Record> records = new ArrayList<>();
+    int lines = 1;
+    try(BufferedReader br = new BufferedReader(new FileReader("/Users/nitin/Work/Demo/data/customer_no_header.csv"))) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        records.add(new Record("body", line));
+        if (lines > 99) {
+          break;
+        }
+        lines++;
+      }
+    }
+
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(new TextDirectives(directives), null);
+    MetaAndStatistics meta = new BasicMetaAndStatistics();
+    pipeline.execute(records, meta);
+
+    Record summary = meta.summary();
+    Record stats = (Record) summary.getValue("stats");
+    Record types = (Record) summary.getValue("types");
+
+
+    System.out.println("General Statistics");
+    System.out.println("Total number of records : " + summary.getValue("total"));
+    System.out.println();
+    List<KeyValue<String, Object>> fields = stats.getFields();
+    for (KeyValue<String, Object> field : fields) {
+      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
+      for (KeyValue<String, Double> value : values) {
+        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+      }
+    }
+
+    System.out.println();
+    System.out.println("Type Statistics");
+    System.out.println();
+    fields = types.getFields();
+    for (KeyValue<String, Object> field : fields) {
+      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
+      for (KeyValue<String, Double> value : values) {
+        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+      }
+    }
   }
 
 }

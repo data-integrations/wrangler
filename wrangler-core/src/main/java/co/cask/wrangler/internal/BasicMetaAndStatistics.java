@@ -27,7 +27,10 @@ public class BasicMetaAndStatistics implements MetaAndStatistics {
   public void aggregate(List<Record> records) {
     ColumnMetrics types = new ColumnMetrics();
     ColumnMetrics stats = new ColumnMetrics();
+
+    Double count = new Double(0);
     for (Record record : records) {
+      ++count;
       for (int i = 0; i < record.length(); ++i) {
         String column = record.getColumn(i);
         Object object = record.getValue(i);
@@ -67,6 +70,29 @@ public class BasicMetaAndStatistics implements MetaAndStatistics {
     }
     meta.add("types", types);
     meta.add("stats", stats);
+    meta.add("total", count);
+  }
+
+  @Override
+  public Record summary() {
+    Record recordTypes = new Record();
+    ColumnMetrics types = (ColumnMetrics) meta.getValue("types");
+    for (String column : types.getColumns()) {
+      recordTypes.add(column, types.percentage(column, (Double)meta.getValue("total")));
+    }
+
+    Record recordStats = new Record();
+    ColumnMetrics stats = (ColumnMetrics) meta.getValue("stats");
+    for (String column : stats.getColumns()) {
+      recordStats.add(column, stats.percentage(column, (Double)meta.getValue("total")));
+    }
+
+    Record record = new Record();
+    record.add("types", recordTypes);
+    record.add("stats", recordStats);
+    record.add("total", meta.getValue("total"));
+
+    return record;
   }
 }
 
