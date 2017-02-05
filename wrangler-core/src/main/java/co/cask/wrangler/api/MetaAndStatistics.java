@@ -23,4 +23,5 @@ import java.util.List;
  */
 public interface MetaAndStatistics {
   public void aggregate(List<Record> records);
+  public Record summary();
 }

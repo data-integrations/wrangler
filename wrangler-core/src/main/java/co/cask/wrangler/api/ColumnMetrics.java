@@ -1,6 +1,11 @@
 package co.cask.wrangler.api;
 
+import co.cask.cdap.api.dataset.lib.KeyValue;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -29,5 +34,16 @@ public final class ColumnMetrics {
     }
     metric.set(name, value);
     measures.put(column, metric);
+  }
+
+  public Set<String> getColumns() {
+    return measures.keySet();
+  }
+
+  public List<KeyValue<String, Double>> percentage(String column, Double sum) {
+    if (measures.containsKey(column)) {
+      return measures.get(column).percentage(sum);
+    }
+    return new ArrayList<>();
   }
 }

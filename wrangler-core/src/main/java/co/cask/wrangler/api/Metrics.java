@@ -2,6 +2,8 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -58,6 +60,17 @@ public final class Metrics {
   public double average() {
     double sum = sum();
     return sum / (metrics.size() > 0 ? metrics.size() : 1);
+  }
+
+  public List<KeyValue<String, Double>> percentage(Double sum) {
+    List<KeyValue<String, Double>> percentages = new ArrayList<>();
+
+    for (Map.Entry<String, MutableDouble> entry : metrics.entrySet()) {
+      double percentage = entry.getValue().get() / sum;
+      percentages.add(new KeyValue<String, Double>(entry.getKey(), percentage));
+    }
+
+    return percentages;
   }
 
   public KeyValue<String, Double> max() {

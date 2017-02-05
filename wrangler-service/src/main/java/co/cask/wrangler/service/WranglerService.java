@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -152,7 +153,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> records = new Gson().fromJson(data, new TypeToken<List<Record>>(){}.getType());
       JSONArray values = new JSONArray();
       for (Record record : records) {
-        List<KeyValue<String, Object>> fields = record.getRecord();
+        List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
           r.append(field.getKey(), field.getValue().toString());
@@ -185,7 +186,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
       Record r = newRecords.get(0);
 
-      List<KeyValue<String, Object>> columns = r.getRecord();
+      List<KeyValue<String, Object>> columns = r.getFields();
       JSONArray values = new JSONArray();
       for (KeyValue<String, Object> column : columns) {
         JSONObject col = new JSONObject();
@@ -232,17 +233,17 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> newRecords = execute(records.subList(0, limit), directives.toArray(new String[directives.size()]));
       JSONArray values = new JSONArray();
       JSONArray headers = new JSONArray();
-      boolean added = false;
+      Map<String, Boolean> headerMap = new HashMap<>();
       for (Record record : newRecords) {
-        List<KeyValue<String, Object>> fields = record.getRecord();
+        List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
-          if (added == false) {
+          if (!headerMap.containsKey(field.getKey())) {
             headers.put(field.getKey());
+            headerMap.put(field.getKey(), true);
           }
           r.put(field.getKey(), field.getValue().toString());
         }
-        added = true;
         values.put(r);
       }
 
