@@ -152,7 +152,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> records = new Gson().fromJson(data, new TypeToken<List<Record>>(){}.getType());
       JSONArray values = new JSONArray();
       for (Record record : records) {
-        List<KeyValue<String, Object>> fields = record.getRecord();
+        List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
           r.append(field.getKey(), field.getValue().toString());
@@ -185,7 +185,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
       Record r = newRecords.get(0);
 
-      List<KeyValue<String, Object>> columns = r.getRecord();
+      List<KeyValue<String, Object>> columns = r.getFields();
       JSONArray values = new JSONArray();
       for (KeyValue<String, Object> column : columns) {
         JSONObject col = new JSONObject();
@@ -234,7 +234,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       JSONArray headers = new JSONArray();
       boolean added = false;
       for (Record record : newRecords) {
-        List<KeyValue<String, Object>> fields = record.getRecord();
+        List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
           if (added == false) {
