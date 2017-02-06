@@ -181,29 +181,6 @@ public class PipelineTest {
   }
 
   @Test
-  public void testRowFilterRegex() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "filter-row-if-matched email .*@joltie.io",
-      "filter-row-if-true id > 1092"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
-    );
-
-    records = PipelineTest.execute(directives, records);
-
-    // Filters all the records that don't match the pattern .*@joltie.io
-    Assert.assertTrue(records.size() == 1);
-  }
-
-  @Test
   public void testQuantizationRangeAndPattern() throws Exception {
     RangeMap<Double, String> rangeMap = TreeRangeMap.create();
     rangeMap.put(Range.closed(0.1, 0.9), "A");
@@ -315,22 +292,22 @@ public class PipelineTest {
   public void testParseJsonAndJsonPath() throws Exception {
     String[] directives = new String[] {
       "parse-as-json body",
-      "parse-as-json body.deviceReference",
-      "parse-as-json body.deviceReference.OS",
-      "parse-as-csv  body.deviceReference.screenSize | true",
-      "drop body.deviceReference.screenSize",
-      "rename body.deviceReference.screenSize_1 size1",
-      "rename body.deviceReference.screenSize_2 size2",
-      "rename body.deviceReference.screenSize_3 size3",
-      "rename body.deviceReference.screenSize_4 size4",
-      "json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']",
+      "parse-as-json body_deviceReference",
+      "parse-as-json body_deviceReference_OS",
+      "parse-as-csv  body_deviceReference_screenSize | true",
+      "drop body_deviceReference_screenSize",
+      "rename body_deviceReference_screenSize_1 size1",
+      "rename body_deviceReference_screenSize_2 size2",
+      "rename body_deviceReference_screenSize_3 size3",
+      "rename body_deviceReference_screenSize_4 size4",
+      "json-path body_deviceReference_alerts signal_lost $.[*].['Signal lost']",
       "json-path signal_lost signal_lost $.[0]",
       "drop body",
-      "drop body.deviceReference.OS",
-      "drop body.deviceReference",
-      "rename body.deviceReference.timestamp timestamp",
+      "drop body_deviceReference_OS",
+      "drop body_deviceReference",
+      "rename body_deviceReference_timestamp timestamp",
       "set column timestamp timestamp / 1000000",
-      "drop body.deviceReference.alerts",
+      "drop body_deviceReference_alerts",
       "set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
     };
 

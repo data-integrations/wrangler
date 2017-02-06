@@ -121,7 +121,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Validate the DSL by parsing DSL.
-    Directives directives = new TextDirectives(config.specification);
+    Directives directives = new TextDirectives(config.directives);
     try {
       directives.getSteps();
     } catch (DirectiveParseException e) {
@@ -163,7 +163,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     super.initialize(context);
 
     // Parse DSL and initialize the wrangle pipeline.
-    Directives directives = new TextDirectives(config.specification);
+    Directives directives = new TextDirectives(config.directives);
     pipeline = new PipelineExecutor();
     pipeline.configure(directives,
                        new WranglerPipelineContext(context.getMetrics(), context.getStageName(),
@@ -236,10 +236,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    * Configuration for the plugin.
    */
   public static class Config extends PluginConfig {
-    @Name("specification")
+    @Name("directives")
     @Description("Directives for wrangling the input records")
     @Macro
-    private String specification;
+    private String directives;
 
     @Name("field")
     @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
@@ -256,8 +256,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Description("Specifies the schema that has to be output.")
     private final String schema;
 
-    public Config(String specification, String field, int threshold, String schema) {
-      this.specification = specification;
+    public Config(String directives, String field, int threshold, String schema) {
+      this.directives = directives;
       this.field = field;
       this.threshold = threshold;
       this.schema = schema;

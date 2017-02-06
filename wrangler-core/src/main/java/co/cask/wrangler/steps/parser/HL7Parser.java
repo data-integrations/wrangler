@@ -72,7 +72,7 @@ public class HL7Parser extends AbstractStep {
           // Handling the first parsing on HL7 message
           if (object instanceof String) {
             Message message = parser.parse((String) object);
-            HL7MessageVisitor visitor = new HL7MessageVisitor(record, column + ".hl7");
+            HL7MessageVisitor visitor = new HL7MessageVisitor(record, column + "_hl7");
             MessageVisitors.visit(message,
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
           } else {

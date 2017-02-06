@@ -78,7 +78,7 @@ public class JsonParser extends AbstractStep {
           while(keysItr.hasNext()) {
             String key = keysItr.next();
             Object v = object.get(key);
-            record.add(String.format("%s.%s", col, key), v);
+            record.add(String.format("%s_%s", col, key), v);
           }
 
           // Delete the original column.

@@ -6,12 +6,12 @@
     <enabled>true</enabled>
   </finder>
   <finder>
-    <name>Phone 1</name>
+    <name>Phone</name>
     <pattern>[(]?\d{3}[-.)]?[ -]?\d{3}[-.]?\d{4}\b</pattern>
     <enabled>true</enabled>
   </finder>
   <finder>
-    <name>Phone 2</name>
+    <name>Phone</name>
     <pattern>(?:\d{1}\s)?\(?(\d{3})\)?-?\s?(\d{3})-?\s?(\d{4})</pattern>
     <enabled>true</enabled>
   </finder>
