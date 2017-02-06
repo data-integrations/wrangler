@@ -21,6 +21,17 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.steps.column.Columns;
+import co.cask.wrangler.steps.column.Drop;
+import co.cask.wrangler.steps.column.Merge;
+import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.parser.CsvParser;
+import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.Lower;
+import co.cask.wrangler.steps.transformation.Mask;
+import co.cask.wrangler.steps.transformation.Split;
+import co.cask.wrangler.steps.transformation.TitleCase;
+import co.cask.wrangler.steps.transformation.Upper;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -76,7 +87,7 @@ public class PipelineTest {
     List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
 
     // Define all the steps in the wrangler.
-    steps.add(new Split(0,"","col",",","firstCol","secondCol"));
+    steps.add(new Split(0, "", "col", ",", "firstCol", "secondCol"));
 
     // Run through the wrangling steps.
     for (Step step : steps) {

@@ -86,7 +86,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     /**
-     * @return Metrics context.
+     * @return Measurements context.
      */
     @Override
     public StageMetrics getMetrics() {
@@ -198,7 +198,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     List<StructuredRecord> records = new ArrayList<>();
     long start = System.nanoTime();
     try {
-      records = pipeline.execute(Arrays.asList(row), oSchema, null); // we don't compute meta and statistics.
+      records = pipeline.execute(Arrays.asList(row), oSchema); // we don't compute meta and statistics.
     } catch (PipelineException e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;

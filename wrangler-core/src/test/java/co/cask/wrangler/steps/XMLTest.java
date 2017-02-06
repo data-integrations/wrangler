@@ -191,7 +191,7 @@ public class XMLTest {
 
     List<Record> records = Arrays.asList(
       new Record("body", "<?xml version=\"1.0\"?>\n" +
-        "<?xml-stylesheet href=\"catalog.xsl\" type=\"text/xsl\"?>\n" +
+        "<?xml-stylesheet href=\"catalog.xsl\" type=\"transformation/xsl\"?>\n" +
         "<!DOCTYPE catalog SYSTEM \"catalog.dtd\">\n" +
         "<catalog>\n" +
         "   <product description=\"Cardigan Sweater\" product_image=\"cardigan.jpg\">\n" +

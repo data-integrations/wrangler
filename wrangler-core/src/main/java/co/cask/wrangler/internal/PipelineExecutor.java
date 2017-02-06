@@ -20,7 +20,6 @@ import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.MetaAndStatistics;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
@@ -54,13 +53,12 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
    *
    * @param records List of Input record of type I.
    * @param schema Schema to which the output should be mapped.
-   * @param meta aggregates metadata and statistics related to records being processed.
    * @return Parsed output list of record of type O
    */
   @Override
-  public List<StructuredRecord> execute(List<Record> records, Schema schema, MetaAndStatistics meta)
+  public List<StructuredRecord> execute(List<Record> records, Schema schema)
     throws PipelineException {
-    records = execute(records, meta);
+    records = execute(records);
     return toStructuredRecord(records, schema);
   }
 
@@ -68,12 +66,10 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
    * Executes the pipeline on the input.
    *
    * @param records List of input record of type I.
-   * @param meta aggregates metadata and statistics related to records being processed.
    * @return Parsed output list of record of type I
    */
   @Override
-  public List<Record> execute(List<Record> records, MetaAndStatistics meta) throws PipelineException {
-    // Iterate through stepRegistry
+  public List<Record> execute(List<Record> records) throws PipelineException {
     try {
       for (Step step : directives.getSteps()) {
         records = step.execute(records, context);
@@ -82,10 +78,6 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
       throw new PipelineException(e);
     } catch (DirectiveParseException e) {
       throw new PipelineException(e);
-    } finally {
-      if (meta != null) {
-        meta.aggregate(records);
-      }
     }
     return records;
   }
