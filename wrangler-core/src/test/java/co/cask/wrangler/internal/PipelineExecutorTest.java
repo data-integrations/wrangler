@@ -57,7 +57,7 @@ public class PipelineExecutorTest {
     Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(directives, null);
     Record row = new Record(Directives.STARTING_COLUMN, new String("a,b,c,d,e,f,g"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema, null).get(0);
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("a", record.get("first"));
@@ -91,7 +91,7 @@ public class PipelineExecutorTest {
     Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(directives, null);
     Record row = new Record(Directives.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema, null).get(0);
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("Larry", record.get("first"));
