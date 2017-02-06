@@ -54,10 +54,18 @@ public class RecordRegexFilter extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {
-        String value = (String) record.getValue(idx);
-        boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
-        if (status) {
-          continue;
+        Object object = record.getValue(idx);
+        if (object instanceof String) {
+          String value = (String) record.getValue(idx);
+          boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+          if (status) {
+            continue;
+          }
+        } else {
+          throw new StepException(
+            String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
+                          toString(), object != null ? object.getClass().getName() : "null", column)
+          );
         }
       } else {
         throw new StepException(toString() + " : '" +

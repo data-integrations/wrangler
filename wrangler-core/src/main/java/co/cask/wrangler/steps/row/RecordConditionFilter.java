@@ -48,7 +48,7 @@ public class RecordConditionFilter extends AbstractStep {
     super(lineno, detail);
     this.condition = condition;
     // Create and build the script.
-    engine = new JexlBuilder().silent(false).cache(10).strict(true).create();
+    engine = new JexlBuilder().silent(false).cache(1000).strict(true).create();
     script = engine.createScript(condition);
   }
 
@@ -86,10 +86,18 @@ public class RecordConditionFilter extends AbstractStep {
         } else {
           throw new StepException(toString() + " : " + e.getMessage());
         }
+      } catch (NumberFormatException e) {
+        throw new StepException(toString() + " : " + " type mismatch. Change type of constant " +
+                                  "or convert to right data type using conversion functions available. Reason : " + e.getMessage());
+      } catch (Exception e) {
+        if (e.getCause() != null) {
+          throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
+        } else {
+          throw new StepException(toString() + " : " + e.getMessage());
+        }
       }
       results.add(record);
     }
     return results;
   }
 }
-

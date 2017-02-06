@@ -175,7 +175,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
       response.put("value", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
-      LOG.info("Failed", e);
       error(responder, e.getMessage());
     }
   }
@@ -185,7 +184,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   public void validate(HttpServiceRequest request, HttpServiceResponder responder,
                        @PathParam("workspace") String ws,
                        @QueryParam("directive") List<String> directives,
-                       @QueryParam("count") int count) {
+                       @QueryParam("limit") int limit) {
     try {
       Row rawRows = workspace.get(Bytes.toBytes(ws));
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
@@ -194,7 +193,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       // Randomly select a 'count' records from the input.
       Iterable<Record> sampledRecords = Iterables.filter(
         records,
-        new RandomDistributionSampling(records.size(), count)
+        new RandomDistributionSampling(records.size(), limit)
       );
 
       // Run it through the pipeline.
@@ -240,9 +239,9 @@ public class WranglerService extends AbstractHttpServiceHandler {
         JSONObject v = new JSONObject();
         JSONObject o = new JSONObject();
         for (KeyValue<String, Double> value : values) {
-          o.put(value.getKey(), value.getValue());
+          o.put(value.getKey(), value.getValue().floatValue()*100);
         }
-        v.put("general", 0);
+        v.put("general", o);
         statistics.put(field.getKey(), v);
       }
 
@@ -252,14 +251,21 @@ public class WranglerService extends AbstractHttpServiceHandler {
         JSONObject v = new JSONObject();
         JSONObject o = new JSONObject();
         for (KeyValue<String, Double> value : values) {
-          o.put(value.getKey(), value.getValue());
+          o.put(value.getKey(), value.getValue().floatValue()*100);
         }
         v.put("types", o);
-        statistics.append(field.getKey(), v);
+        JSONObject object = (JSONObject) statistics.get(field.getKey());
+        if (object == null) {
+          statistics.put(field.getKey(), v);
+        } else {
+          object.put("types", o);
+        }
       }
 
       // Put the statistics along with validation rules.
       result.put("statistics", statistics);
+
+      LOG.info(statistics.toString());
 
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
