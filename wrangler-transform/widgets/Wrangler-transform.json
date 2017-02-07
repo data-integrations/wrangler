@@ -8,7 +8,7 @@
       "properties": [
         {
           "widget-type": "textbox",
-          "label": "Name of the field ('*' to wrangle all fields)",
+          "label": "Name of the field ('*' to transform all fields)",
           "name": "field",
           "widget-attributes" : {
             "default": "*"
@@ -16,8 +16,8 @@
         },
         {
           "widget-type": "textarea",
-          "label": "Wrangler Specification",
-          "name": "specification"
+          "label": "Transformation Directives",
+          "name": "directives"
         },
         {
           "widget-type": "textbox",

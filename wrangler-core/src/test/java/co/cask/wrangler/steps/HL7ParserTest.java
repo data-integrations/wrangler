@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.steps.parser.HL7Parser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -165,9 +166,9 @@ public class HL7ParserTest {
   public void testBasic() throws Exception {
     String[] directives = new String[] {
       "parse-as-hl7 body",
-      "parse-as-json body.hl7",
-      "keep body.hl7.MSH",
-      "parse-as-json body.hl7.MSH"
+      "parse-as-json body_hl7",
+      "keep body_hl7_MSH",
+      "parse-as-json body_hl7_MSH"
     };
 
     List<Record> records = Arrays.asList(

@@ -33,16 +33,16 @@ public class XMLTest {
     String[] directives = new String[] {
       "parse-as-xml body",
       "parse-xml-element body true",
-      "parse-xml-element body.catalog true",
-      "xml-path body.catalog.book author $.[*].author",
-      "xml-path body.catalog.book title $.[*].title",
-      "xml-path body.catalog.book genre $.[*].genre",
-      "xml-path body.catalog.book price $.[*].price",
-      "xml-path body.catalog.book publish_date $.[*].publish_date",
-      "xml-path body.catalog.book description $.[*].description",
+      "parse-xml-element body_catalog true",
+      "xml-path body_catalog_book author $.[*].author",
+      "xml-path body_catalog_book title $.[*].title",
+      "xml-path body_catalog_book genre $.[*].genre",
+      "xml-path body_catalog_book price $.[*].price",
+      "xml-path body_catalog_book publish_date $.[*].publish_date",
+      "xml-path body_catalog_book description $.[*].description",
       "flatten title,author,genre,price,publish_date,description",
-      "drop body.catalog.book",
-      "parse-xml-element body.catalog.name true"
+      "drop body_catalog_book",
+      "parse-xml-element body_catalog_name true"
     };
 
     List<Record> records = Arrays.asList(
@@ -181,17 +181,17 @@ public class XMLTest {
     String[] directives = new String[] {
       "parse-as-xml body",
       "parse-xml-element body true",
-      "parse-xml-element body.catalog true",
-      "parse-xml-element body.catalog.product true",
-      "xml-path body.catalog.product.catalog_item gender $.[*].gender",
-      "xml-path body.catalog.product.catalog_item item_number $.[*].item_number",
-      "xml-path body.catalog.product.catalog_item price $.[*].price",
+      "parse-xml-element body_catalog true",
+      "parse-xml-element body_catalog_product true",
+      "xml-path body_catalog_product_catalog_item gender $.[*].gender",
+      "xml-path body_catalog_product_catalog_item item_number $.[*].item_number",
+      "xml-path body_catalog_product_catalog_item price $.[*].price",
       "flatten gender,item_number,price"
     };
 
     List<Record> records = Arrays.asList(
       new Record("body", "<?xml version=\"1.0\"?>\n" +
-        "<?xml-stylesheet href=\"catalog.xsl\" type=\"text/xsl\"?>\n" +
+        "<?xml-stylesheet href=\"catalog.xsl\" type=\"transformation/xsl\"?>\n" +
         "<!DOCTYPE catalog SYSTEM \"catalog.dtd\">\n" +
         "<catalog>\n" +
         "   <product description=\"Cardigan Sweater\" product_image=\"cardigan.jpg\">\n" +
@@ -237,6 +237,6 @@ public class XMLTest {
     records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
-    Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body.catalog.product.description"));
+    Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body_catalog_product_description"));
   }
 }

@@ -125,47 +125,21 @@ Initial performance tests shows that with medium set of directives for transform
 
 ## Wrangler Service
 
-Wrangler is integrated as CDAP Service to support REST based interactive way for wrangling data. The main objective of having this service is to make it easy for interactively generating directives required for parsing data. This service does not support full scale big data processing, but operates on sampled data (~ 1M rows). 
+Wrangler is integrated as a CDAP Service to support REST based interactive ways to wrangle data. The main objective of having this service is to make it easy for interactively generating directives required for parsing data. This service does not support full scale big data processing.
 
-### Service Endpoints
+The base endpoint is defined below :
 
-Following are different service points supported by Wrangler. The base endpoint is defined below :
 ```
   http://<hostname>:11015/v3/namespaces/<namespace>/apps/wrangler/services/service/methods
 ```
 
-#### Workspace Lifecycle
+Following are different services provided:
 
-Workspace is a named area in the service that stores data on which the directives are applied. The service provides the ability to create/delete workspace. 
+* [Administration and Management](docs/service/admin.md)
+* [Directive Execution](docs/service/execution.md)
+* [Column Type Detection and Statistics](docs/service/statistics.md)
+* [Column Name Validation](docs/service/validation.md)
 
-* Create workspace
-```
-  PUT <base>/workspaces/<workspace-name>
-```
-
-* Delete workspace
-```
-  DELETE <base>/workspaces/<workspace-name>
-```
-
-* Upload data to workspace
-```
-  POST <base>/workspaces/<workspace-name>/upload
-```
-
-* Download data from workspace
-```
-  POST <base>/workspaces/<workspace-name>/download
-```
-
-#### Executing Directives
-
-Wrangling directives are executed in the service on the data stored in the workspace. 
-
-* Executing directives 
-```
-  GET <base>/workspaces/<workspace-name>/execute?directive="<directive>"[&directive="<directive>"]*
-```
 ## Build new directives
 
 Directives are executed as a step, so it's a simple three step process to actually implement the Step and
