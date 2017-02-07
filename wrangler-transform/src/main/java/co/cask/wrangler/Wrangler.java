@@ -34,7 +34,7 @@ import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.DefaultPipeline;
+import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +86,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     /**
-     * @return Metrics context.
+     * @return Measurements context.
      */
     @Override
     public StageMetrics getMetrics() {
@@ -121,7 +121,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Validate the DSL by parsing DSL.
-    Directives directives = new TextDirectives(config.specification);
+    Directives directives = new TextDirectives(config.directives);
     try {
       directives.getSteps();
     } catch (DirectiveParseException e) {
@@ -163,8 +163,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     super.initialize(context);
 
     // Parse DSL and initialize the wrangle pipeline.
-    Directives directives = new TextDirectives(config.specification);
-    pipeline = new DefaultPipeline();
+    Directives directives = new TextDirectives(config.directives);
+    pipeline = new PipelineExecutor();
     pipeline.configure(directives,
                        new WranglerPipelineContext(context.getMetrics(), context.getStageName(),
                                                    context.getPluginProperties().getProperties()));
@@ -198,7 +198,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     List<StructuredRecord> records = new ArrayList<>();
     long start = System.nanoTime();
     try {
-      records = pipeline.execute(Arrays.asList(row), oSchema);
+      records = pipeline.execute(Arrays.asList(row), oSchema); // we don't compute meta and statistics.
     } catch (PipelineException e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;
@@ -236,10 +236,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    * Configuration for the plugin.
    */
   public static class Config extends PluginConfig {
-    @Name("specification")
+    @Name("directives")
     @Description("Directives for wrangling the input records")
     @Macro
-    private String specification;
+    private String directives;
 
     @Name("field")
     @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
@@ -256,8 +256,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Description("Specifies the schema that has to be output.")
     private final String schema;
 
-    public Config(String specification, String field, int threshold, String schema) {
-      this.specification = specification;
+    public Config(String directives, String field, int threshold, String schema) {
+      this.directives = directives;
       this.field = field;
       this.threshold = threshold;
       this.schema = schema;

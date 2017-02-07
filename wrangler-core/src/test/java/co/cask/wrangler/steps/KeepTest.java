@@ -18,6 +18,8 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.steps.column.Keep;
+
 import org.junit.Assert;
 import org.junit.Test;
 
