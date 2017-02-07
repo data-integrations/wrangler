@@ -204,7 +204,7 @@ public class Record {
   /**
    * @return List of fields of record.
    */
-  public List<KeyValue<String, Object>> getRecord() {
+  public List<KeyValue<String, Object>> getFields() {
     List<KeyValue<String, Object>> v = new ArrayList<>();
     int i = 0;
     for (String column : columns) {
