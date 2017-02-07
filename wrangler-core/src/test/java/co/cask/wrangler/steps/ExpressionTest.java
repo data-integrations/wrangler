@@ -19,6 +19,7 @@ package co.cask.wrangler.steps;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.steps.transformation.Expression;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -88,7 +89,7 @@ public class ExpressionTest {
       new Record("number", "1")
             .add("first", "root")
             .add("last", "joltie")
-            .add("longtxt", "This is long text")
+            .add("longtxt", "This is long transformation")
             .add("eoltxt", "This has eol\n")
             .add("chop", "Joltie")
             .add("delws", "Jolti  Root")
