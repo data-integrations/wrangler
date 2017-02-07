@@ -21,6 +21,17 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.steps.column.Columns;
+import co.cask.wrangler.steps.column.Drop;
+import co.cask.wrangler.steps.column.Merge;
+import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.parser.CsvParser;
+import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.Lower;
+import co.cask.wrangler.steps.transformation.Mask;
+import co.cask.wrangler.steps.transformation.Split;
+import co.cask.wrangler.steps.transformation.TitleCase;
+import co.cask.wrangler.steps.transformation.Upper;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -76,7 +87,7 @@ public class PipelineTest {
     List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
 
     // Define all the steps in the wrangler.
-    steps.add(new Split(0,"","col",",","firstCol","secondCol"));
+    steps.add(new Split(0, "", "col", ",", "firstCol", "secondCol"));
 
     // Run through the wrangling steps.
     for (Step step : steps) {
@@ -167,29 +178,6 @@ public class PipelineTest {
 
     Assert.assertEquals("1", records.get(0).getValue("id"));
     Assert.assertEquals("A", records.get(0).getValue("useragent"));
-  }
-
-  @Test
-  public void testRowFilterRegex() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "filter-row-if-matched email .*@joltie.io",
-      "filter-row-if-true id > 1092"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
-    );
-
-    records = PipelineTest.execute(directives, records);
-
-    // Filters all the records that don't match the pattern .*@joltie.io
-    Assert.assertTrue(records.size() == 1);
   }
 
   @Test
@@ -299,43 +287,6 @@ public class PipelineTest {
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("07/29/2013", records.get(0).getValue("date"));
   }
-
-  @Test
-  public void testParseJsonAndJsonPath() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-json body",
-      "parse-as-json body.deviceReference",
-      "parse-as-json body.deviceReference.OS",
-      "parse-as-csv  body.deviceReference.screenSize | true",
-      "drop body.deviceReference.screenSize",
-      "rename body.deviceReference.screenSize_1 size1",
-      "rename body.deviceReference.screenSize_2 size2",
-      "rename body.deviceReference.screenSize_3 size3",
-      "rename body.deviceReference.screenSize_4 size4",
-      "json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']",
-      "json-path signal_lost signal_lost $.[0]",
-      "drop body",
-      "drop body.deviceReference.OS",
-      "drop body.deviceReference",
-      "rename body.deviceReference.timestamp timestamp",
-      "set column timestamp timestamp / 1000000",
-      "drop body.deviceReference.alerts",
-      "set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
-        "\"deviceId\": \"SM-R760NDAAXAR\", \"timestamp\": 122121212341231, \"OS\": { \"name\": \"Tizen OS\", " +
-        "\"version\": \"2.3.1\" }, \"alerts\": [ { \"Signal lost\": true }, { \"Emergency call\": true }, " +
-        "{ \"Wifi connection lost\": true }, { \"Battery low\": true }, { \"Calories\": 354 } ], \"screenSize\": " +
-        "\"extra-small|small|medium|large\", \"battery\": \"22%\", \"telephoneNumber\": \"+14099594986\", \"comments\": " +
-        "\"It is an AT&T samung wearable device.\" } }")
-      );
-
-    records = PipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
-  }
-
 
   @Test
   public void testSplitToColumns() throws Exception {

@@ -125,6 +125,11 @@
       <artifactId>hapi-structures-v26</artifactId>
       <version>${hl7.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.dataapps.chlorine</groupId>
+      <artifactId>chlorine-finder</artifactId>
+      <version>1.1.5</version>
+    </dependency>
   </dependencies>
 
 </project>

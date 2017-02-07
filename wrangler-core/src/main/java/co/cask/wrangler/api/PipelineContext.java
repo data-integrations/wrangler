@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public interface PipelineContext {
   /**
-   * @return Metrics handler.
+   * @return Measurements handler.
    */
   public StageMetrics getMetrics();
 

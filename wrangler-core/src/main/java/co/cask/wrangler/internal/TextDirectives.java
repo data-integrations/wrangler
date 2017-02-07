@@ -21,45 +21,45 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.steps.CharacterCut;
-import co.cask.wrangler.steps.Columns;
-import co.cask.wrangler.steps.Copy;
-import co.cask.wrangler.steps.CsvParser;
-import co.cask.wrangler.steps.Drop;
-import co.cask.wrangler.steps.Expression;
-import co.cask.wrangler.steps.FillNullOrEmpty;
-import co.cask.wrangler.steps.FixedLengthParser;
-import co.cask.wrangler.steps.Flatten;
-import co.cask.wrangler.steps.FormatDate;
-import co.cask.wrangler.steps.GenerateUUID;
-import co.cask.wrangler.steps.HL7Parser;
-import co.cask.wrangler.steps.IndexSplit;
 import co.cask.wrangler.steps.JsPath;
-import co.cask.wrangler.steps.JsonParser;
-import co.cask.wrangler.steps.Keep;
-import co.cask.wrangler.steps.Lower;
 import co.cask.wrangler.steps.MaskNumber;
 import co.cask.wrangler.steps.MaskShuffle;
-import co.cask.wrangler.steps.Merge;
-import co.cask.wrangler.steps.MessageHash;
-import co.cask.wrangler.steps.ParseDate;
-import co.cask.wrangler.steps.ParseLog;
-import co.cask.wrangler.steps.Quantization;
-import co.cask.wrangler.steps.RecordConditionFilter;
-import co.cask.wrangler.steps.RecordRegexFilter;
-import co.cask.wrangler.steps.Rename;
-import co.cask.wrangler.steps.Sed;
-import co.cask.wrangler.steps.Split;
-import co.cask.wrangler.steps.SplitEmail;
-import co.cask.wrangler.steps.SplitToColumns;
-import co.cask.wrangler.steps.SplitToRows;
-import co.cask.wrangler.steps.Swap;
-import co.cask.wrangler.steps.TitleCase;
-import co.cask.wrangler.steps.Upper;
-import co.cask.wrangler.steps.UrlDecode;
-import co.cask.wrangler.steps.UrlEncode;
+import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.WriteToJson;
 import co.cask.wrangler.steps.XmlToJson;
+import co.cask.wrangler.steps.column.Columns;
+import co.cask.wrangler.steps.column.Copy;
+import co.cask.wrangler.steps.column.Drop;
+import co.cask.wrangler.steps.column.Keep;
+import co.cask.wrangler.steps.column.Merge;
+import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.column.SplitToColumns;
+import co.cask.wrangler.steps.column.Swap;
+import co.cask.wrangler.steps.date.FormatDate;
+import co.cask.wrangler.steps.parser.CsvParser;
+import co.cask.wrangler.steps.parser.FixedLengthParser;
+import co.cask.wrangler.steps.parser.HL7Parser;
+import co.cask.wrangler.steps.parser.JsonParser;
+import co.cask.wrangler.steps.parser.ParseDate;
+import co.cask.wrangler.steps.parser.ParseLog;
+import co.cask.wrangler.steps.row.Flatten;
+import co.cask.wrangler.steps.row.RecordConditionFilter;
+import co.cask.wrangler.steps.row.RecordRegexFilter;
+import co.cask.wrangler.steps.row.SplitToRows;
+import co.cask.wrangler.steps.transformation.CharacterCut;
+import co.cask.wrangler.steps.transformation.Expression;
+import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
+import co.cask.wrangler.steps.transformation.GenerateUUID;
+import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.Lower;
+import co.cask.wrangler.steps.transformation.MessageHash;
+import co.cask.wrangler.steps.transformation.Quantization;
+import co.cask.wrangler.steps.transformation.Sed;
+import co.cask.wrangler.steps.transformation.Split;
+import co.cask.wrangler.steps.transformation.SplitEmail;
+import co.cask.wrangler.steps.transformation.TitleCase;
+import co.cask.wrangler.steps.transformation.Upper;
+import co.cask.wrangler.steps.transformation.UrlEncode;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import java.security.MessageDigest;
@@ -125,7 +125,7 @@ public class TextDirectives implements Directives {
   /**
    * Parses the DSL to generate a sequence of stepRegistry to be executed by {@link co.cask.wrangler.api.Pipeline}.
    *
-   * The text parsing here needs a better solution. It has many limitations and having different way would
+   * The transformation parsing here needs a better solution. It has many limitations and having different way would
    * allow us to provide much more advanced semantics for directives.
    *
    * @return List of stepRegistry to be executed.
