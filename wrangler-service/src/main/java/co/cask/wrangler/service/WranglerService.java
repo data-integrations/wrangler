@@ -52,8 +52,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -127,12 +128,16 @@ public class WranglerService extends AbstractHttpServiceHandler {
       return;
     }
 
+    LOG.info("Body " + body);
+
     List<Record> records = new ArrayList<>();
     int i = 0;
     for (String line : body.split("\n")) {
       records.add(new Record(ws, line));
       ++i;
     }
+
+    LOG.info("Upload done. Lines added {}.", i);
 
     String d = new Gson().toJson(records);
     try {
@@ -337,17 +342,18 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
 
-      List<Record> newRecords = execute(records.subList(0, limit), directives.toArray(new String[directives.size()]));
+      List<Record> newRecords = execute(records.subList(0, Math.min(records.size(), limit)),
+                                        directives.toArray(new String[directives.size()]));
       JSONArray values = new JSONArray();
       JSONArray headers = new JSONArray();
-      Map<String, Boolean> headerMap = new HashMap<>();
+      Set<String> headerList = new HashSet<>();
       for (Record record : newRecords) {
         List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
-          if (!headerMap.containsKey(field.getKey())) {
+          if (!headerList.contains(field.getKey())) {
             headers.put(field.getKey());
-            headerMap.put(field.getKey(), true);
+            headerList.add(field.getKey());
           }
           r.put(field.getKey(), field.getValue().toString());
         }

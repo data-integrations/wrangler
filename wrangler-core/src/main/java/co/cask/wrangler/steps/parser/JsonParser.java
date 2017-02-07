@@ -20,8 +20,10 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -52,20 +54,32 @@ public class JsonParser extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
-
     // Iterate through all the records.
     for (Record record : records) {
-
       int idx = record.find(col);
+
+      // If the input column exists in the record, proceed further.
       if (idx != -1) {
         Object value = record.getValue(idx);
 
         JSONObject object = null;
+        JSONArray list = null;
+
         try {
+          // If the input is a string, then it can either be an Array or Object.
           if (value instanceof String) {
-            object = new JSONObject((String) value);
+            Object json = new JSONTokener((String) value).nextValue();
+            if (json instanceof JSONObject) {
+              object = (JSONObject) json;
+            } else if (json instanceof JSONArray) { // Delete the source column when it's an array.
+              list = (JSONArray) json;
+              delete = true;
+            }
           } else if (value instanceof JSONObject) {
             object = (JSONObject) value;
+          } else if (value instanceof JSONArray) { // Delete the source column when it's an array.
+            list = (JSONArray) value;
+            delete = true;
           } else {
             throw new StepException(
               String.format("%s : Invalid type '%s' of column '%s'. " +
@@ -73,19 +87,56 @@ public class JsonParser extends AbstractStep {
                             toString(), object != null ? object.getClass().getName() : "null", col)
             );
           }
-          // Iterate through keys.
-          Iterator<String> keysItr = object.keys();
-          while(keysItr.hasNext()) {
-            String key = keysItr.next();
-            Object v = object.get(key);
-            record.add(String.format("%s_%s", col, key), v);
-          }
 
           // Delete the original column.
           if (delete) {
             record.remove(idx);
           }
-          results.add(record);
+
+          if (object != null) { // Iterate through keys.
+            Iterator<String> keysItr = object.keys();
+            while(keysItr.hasNext()) {
+              String key = keysItr.next();
+              Object v = object.get(key);
+              record.add(String.format("%s_%s", col, key), v);
+            }
+            results.add(record);
+          }
+
+          // It's an array of objects.
+          if(list != null) {
+            int index = 0;
+            while(index < list.length()) {
+              Object type = list.get(index);
+              if (type instanceof JSONObject) {
+                Record objectRecord = new Record(record);
+                Iterator<String> keysItr = ((JSONObject) type).keys();
+                while(keysItr.hasNext()) {
+                  String key = keysItr.next();
+                  Object v = ((JSONObject) type).get(key);
+                  objectRecord.add(String.format("%s_%s", col, key), v);
+                }
+                results.add(objectRecord);
+              } else {
+                break;
+              }
+              index++;
+            }
+
+            index = 0;
+            while(index < list.length()) {
+              Object type = list.get(index);
+              if(!(type instanceof JSONArray) && !(type instanceof JSONObject)) {
+                record.add(String.format("%s_%d", col, index + 1), type);
+              } else {
+                break;
+              }
+              index++;
+            }
+            if (index == list.length()) {
+              results.add(record);
+            }
+          }
         } catch (JSONException e) {
           throw new StepException(toString() + " : " + e.getMessage());
         }

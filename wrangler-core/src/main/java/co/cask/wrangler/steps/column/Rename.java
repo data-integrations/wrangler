@@ -21,7 +21,6 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,18 +50,16 @@ public class Rename extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
-    List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(oldcol);
       if (idx != -1) {
         record.setColumn(idx, newcol);
       } else {
         throw new StepException(toString() + " : '" +
-                                  oldcol + "' column is not defined in the record. Please check the wrangling steps."
+                                  oldcol + "' column is not defined in the record or the record has no column."
         );
       }
-      results.add(record);
     }
-    return results;
+    return records;
   }
 }

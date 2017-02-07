@@ -179,7 +179,7 @@ public class HL7Parser extends AbstractStep {
       if (inComposite) {
         compositeObject.put(Integer.toString(location.getComponent()), primitive.getValue());
       } else {
-        String fieldComponent = String.format("%d.%d", location.getField(), location.getComponent());
+        String fieldComponent = String.format("%d_%d", location.getField(), location.getComponent());
         if (location.getComponent() < 0) {
           fieldComponent = String.format("%d", location.getField());
         }
