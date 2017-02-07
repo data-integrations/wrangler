@@ -289,43 +289,6 @@ public class PipelineTest {
   }
 
   @Test
-  public void testParseJsonAndJsonPath() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-json body",
-      "parse-as-json body_deviceReference",
-      "parse-as-json body_deviceReference_OS",
-      "parse-as-csv  body_deviceReference_screenSize | true",
-      "drop body_deviceReference_screenSize",
-      "rename body_deviceReference_screenSize_1 size1",
-      "rename body_deviceReference_screenSize_2 size2",
-      "rename body_deviceReference_screenSize_3 size3",
-      "rename body_deviceReference_screenSize_4 size4",
-      "json-path body_deviceReference_alerts signal_lost $.[*].['Signal lost']",
-      "json-path signal_lost signal_lost $.[0]",
-      "drop body",
-      "drop body_deviceReference_OS",
-      "drop body_deviceReference",
-      "rename body_deviceReference_timestamp timestamp",
-      "set column timestamp timestamp / 1000000",
-      "drop body_deviceReference_alerts",
-      "set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
-        "\"deviceId\": \"SM-R760NDAAXAR\", \"timestamp\": 122121212341231, \"OS\": { \"name\": \"Tizen OS\", " +
-        "\"version\": \"2.3.1\" }, \"alerts\": [ { \"Signal lost\": true }, { \"Emergency call\": true }, " +
-        "{ \"Wifi connection lost\": true }, { \"Battery low\": true }, { \"Calories\": 354 } ], \"screenSize\": " +
-        "\"extra-small|small|medium|large\", \"battery\": \"22%\", \"telephoneNumber\": \"+14099594986\", \"comments\": " +
-        "\"It is an AT&T samung wearable device.\" } }")
-      );
-
-    records = PipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
-  }
-
-
-  @Test
   public void testSplitToColumns() throws Exception {
     String[] directives = new String[] {
       "split-to-columns body \\n",
