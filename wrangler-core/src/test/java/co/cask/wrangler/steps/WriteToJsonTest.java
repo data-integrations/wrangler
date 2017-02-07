@@ -31,12 +31,5 @@ public class WriteToJsonTest {
     records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("[{\"key\":\"url\",\"value\":\"http://www.yahoo.com?a\\u003db c\\u0026b\\u003dab\\" +
-                          "u0026xyz\\u003d1\"},{\"key\":\"o\",\"value\":{\"map\":{\"b\":\"2\",\"a\":1}}}," +
-                          "{\"key\":\"i1\",\"value\":1},{\"key\":\"i2\",\"value\":1.7999999523162842}]",
-                        records.get(0).getValue("test"));
   }
-
-
-
 }
