@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,10 +14,11 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.transformation.GenerateUUID;
+import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.parser.ParseDate;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,28 +26,29 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link GenerateUUID}
+ * Tests {@link ParseDate}
  */
-public class GenerateUUIDTest {
+public class ParseDateTest {
 
   @Test
-  public void testUUIDGeneration() throws Exception {
+  public void testBasicDateParser() throws Exception {
     String[] directives = new String[] {
-      "generate-uuid uuid",
+      "parse-as-date date US/Eastern",
+      "format-date date_1 MM/dd/yyyy HH:mm"
     };
 
     List<Record> records = Arrays.asList(
-      new Record("value", "abc"),
-      new Record("value", "xyz"),
-      new Record("value", "Should be fine")
+      new Record("date", "now"),
+      new Record("date", "today"),
+      new Record("date", "12/10/2016"),
+      new Record("date", "12/10/2016 06:45 AM"),
+      new Record("date", "september 7th 2016"),
+      new Record("date", "1485800109")
     );
 
     records = PipelineTest.execute(directives, records);
 
-    Assert.assertTrue(records.size() == 3);
-    Assert.assertEquals(2, records.get(0).length());
-    Assert.assertEquals("uuid", records.get(1).getColumn(1));
-    Assert.assertEquals("Should be fine", records.get(2).getValue("value"));
+    Assert.assertTrue(records.size() == 6);
   }
 
 }

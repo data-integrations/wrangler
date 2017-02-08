@@ -14,11 +14,12 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.transformation;
 
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.steps.PipelineTest;
 import co.cask.wrangler.steps.transformation.Expression;
 import org.junit.Assert;
 import org.junit.Test;

@@ -50,6 +50,7 @@ import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
+import co.cask.wrangler.steps.transformation.Lookup;
 import co.cask.wrangler.steps.transformation.IndexSplit;
 import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MessageHash;
@@ -58,6 +59,7 @@ import co.cask.wrangler.steps.transformation.Sed;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
+import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlDecode;
@@ -102,7 +104,8 @@ public class TextDirectives implements Directives {
     ParseDate.class, ParseLog.class, Quantization.class, RecordConditionFilter.class,
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
-    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJsonMap.class, RecordMissingOrNullFilter.class
+    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJsonMap.class, RecordMissingOrNullFilter.class,
+    Lookup.class
   );
 
   public TextDirectives(String[] directives) {
@@ -618,15 +621,33 @@ public class TextDirectives implements Directives {
         }
         break;
 
-//        // text-similarity <method> <column1> <column2> <destination>
-//        case "text-similarity" : {
-//          String method = getNextToken(tokenizer, command, "method", lineno);
-//          String column1 = getNextToken(tokenizer, command, "column1", lineno);
-//          String column2 = getNextToken(tokenizer, command, "column2", lineno);
-//          String destination = getNextToken(tokenizer, command, "destination", lineno);
-//          steps.add(new TextSimilairtyMeasure(lineno, directive, method, column1, column2, destination));
-//        }
-//        break;
+        // text-metric <method> <column1> <column2> <destination>
+        case "text-metric" : {
+          String method = getNextToken(tokenizer, command, "method", lineno);
+          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          steps.add(new TextMetricMeasure(lineno, directive, method, column1, column2, destination));
+        }
+        break;
+
+        // lookup 9|10 <column>
+        case "lookup" : {
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10") ) {
+            throw new IllegalArgumentException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10).");
+          } else {
+            ICDCatalog catalog = new ICDCatalog(type);
+            if (!catalog.configure()) {
+              throw new DirectiveParseException(
+                String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
+              );
+            }
+            steps.add(new Lookup(lineno, directive, catalog, column));
+          }
+        }
+        break;
 
         default:
           throw new DirectiveParseException(

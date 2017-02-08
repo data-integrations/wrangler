@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,10 +14,12 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.transformation.UrlEncode;
+import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.column.Swap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,23 +27,38 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link UrlEncode}
+ * Tests {@link Swap}
  */
-public class UrlEncodeTest {
+public class SwapTest {
 
   @Test
-  public void testUrlEncoding() throws Exception {
+  public void testSwap() throws Exception {
     String[] directives = new String[] {
-      "url-encode url",
+      "swap a b",
     };
 
     List<Record> records = Arrays.asList(
-      new Record("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
+      new Record("a", 1).add("b", "sample string")
     );
 
     records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("http%3A%2F%2Fwww.yahoo.com%3Fa%3Db+c%26b%3Dab%26xyz%3D1", records.get(0).getValue("url"));
+    Assert.assertEquals(1, records.get(0).getValue("b"));
+    Assert.assertEquals("sample string", records.get(0).getValue("a"));
   }
+
+  @Test(expected = StepException.class)
+  public void testSwapFeildNotFound() throws Exception {
+    String[] directives = new String[] {
+      "swap a b",
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("a", 1).add("c", "sample string")
+    );
+
+    records = PipelineTest.execute(directives, records);
+  }
+
 }

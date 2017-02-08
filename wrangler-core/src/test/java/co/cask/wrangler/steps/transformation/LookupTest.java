@@ -14,11 +14,10 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.column.Swap;
+import co.cask.wrangler.steps.PipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,38 +25,31 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link Swap}
+ * Tests {@link Lookup}
  */
-public class SwapTest {
+public class LookupTest {
 
   @Test
-  public void testSwap() throws Exception {
+  public void testICDCodeLookup() throws Exception {
     String[] directives = new String[] {
-      "swap a b",
+      "lookup icd-10 code",
     };
 
     List<Record> records = Arrays.asList(
-      new Record("a", 1).add("b", "sample string")
+      new Record("code", "A0100"),
+      new Record("code", "A0102"),
+      new Record("code", "Z9989"),
+      new Record("code", "Y36521S"),
+      new Record("code", "ABC"),     // Invalid code.
+      new Record("name", "Root")     // Code Column doesn't exit.
     );
 
     records = PipelineTest.execute(directives, records);
-
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(1, records.get(0).getValue("b"));
-    Assert.assertEquals("sample string", records.get(0).getValue("a"));
-  }
-
-  @Test(expected = StepException.class)
-  public void testSwapFeildNotFound() throws Exception {
-    String[] directives = new String[] {
-      "swap a b",
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("a", 1).add("c", "sample string")
-    );
-
-    records = PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 6);
+    Assert.assertEquals("code_description", records.get(0).getColumn(1));
+    for (int i = 0; i < 6; ++i) {
+      Assert.assertEquals(2, records.get(i).length());
+    }
   }
 
 }
