@@ -24,7 +24,8 @@ import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.MaskNumber;
 import co.cask.wrangler.steps.MaskShuffle;
-import co.cask.wrangler.steps.WriteToJsonMap;
+import co.cask.wrangler.steps.writer.WriteAsCSV;
+import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import co.cask.wrangler.steps.XmlToJson;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.Copy;
@@ -46,11 +47,11 @@ import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SplitToRows;
+import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
-import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.IndexSplit;
 import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MessageHash;
@@ -104,7 +105,7 @@ public class TextDirectives implements Directives {
     ParseDate.class, ParseLog.class, Quantization.class, RecordConditionFilter.class,
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
-    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJsonMap.class, RecordMissingOrNullFilter.class,
+    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteAsJsonMap.class, RecordMissingOrNullFilter.class,
     CatalogLookup.class
   );
 
@@ -579,10 +580,17 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // write-to-json <column>
-        case "write-to-json-map" : {
+        // write-as-json <column>
+        case "write-as-json-map" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new WriteToJsonMap(lineno, directive, column));
+          steps.add(new WriteAsJsonMap(lineno, directive, column));
+        }
+        break;
+
+        // write-as-csv <column>
+        case "write-as-csv" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new WriteAsCSV(lineno, directive, column));
         }
         break;
 

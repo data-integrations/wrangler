@@ -14,9 +14,10 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.steps.PipelineTest;
 import co.cask.wrangler.steps.parser.HL7Parser;
 import org.junit.Assert;
 import org.junit.Test;
