@@ -1,4 +1,4 @@
-# Write as JSON Map
+# NLP - Stemming Bag of Words
 
 STEMMING directive applies Porter Stemmer for English words. Porter Stemmer is one
  of the best stemmers available in this space. It excellently trades-off between
