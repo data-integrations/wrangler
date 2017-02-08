@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.nlp;
 
+import co.cask.wrangler.api.Record;
+import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.nlp.internal.PorterStemmer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,12 +26,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link PorterStemmer}
+ * Tests {@link PorterStemmer} and {@link Stemming}
  */
-public class PorterStemmerTest {
+public class StemmingTest {
 
   @Test
-  public void testStemming() throws Exception {
+  public void testPorterStemming() throws Exception {
     PorterStemmer stemmer = new PorterStemmer();
     String[] i = new String[]{
       "How",
@@ -43,4 +46,22 @@ public class PorterStemmerTest {
     List<String> o = stemmer.process(Arrays.asList(i));
     Assert.assertTrue(o.size() > 1);
   }
+
+  @Test
+  public void testStemming() throws Exception {
+    String[] directives = new String[] {
+      "stemming words",
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("words", Arrays.asList("how", "are", "you", "doing", "do", "you", "have", "apples"))
+    );
+
+    records = PipelineTest.execute(directives, records);
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals(Arrays.asList("how", "ar", "you", "do", "do", "you", "have", "appl"),
+                        records.get(0).getValue("words_porter"));
+  }
+
 }

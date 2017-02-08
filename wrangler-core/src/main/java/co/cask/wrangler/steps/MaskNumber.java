@@ -22,7 +22,6 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -75,21 +74,16 @@ public class MaskNumber extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
-    List<Record> results = new ArrayList<>();
     for (Record record : records) {
       Record masked = new Record(record);
       int idx = record.find(column);
       if (idx != -1) {
         masked.setValue(idx, maskNumber((String) record.getValue(idx), mask));
       } else {
-        throw new StepException(toString() + " : '" +
-                                  column + "' column is not defined. Please check the wrangling step."
-        );
+        masked.add(column, new String(""));
       }
-      results.add(masked);
     }
-
-    return results;
+    return records;
   }
 
   private String maskNumber(String number, String mask) {
