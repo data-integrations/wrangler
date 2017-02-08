@@ -2,6 +2,10 @@
 
 FILTER-ROW-IF-MATCHED directive provides a way to filters records that match the pattern for a column.
 
+## Deprecated
+
+Please use [FILTER-ROWS-ON](filter-rows-on.md) directive.
+
 ## Syntax
 ```
   filter-row-if-matched <column> <regex>

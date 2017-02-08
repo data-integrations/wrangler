@@ -20,15 +20,17 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.steps.parser.JsonParser;
+import co.cask.wrangler.api.Usage;
 import org.json.JSONException;
 import org.json.XML;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A XML to Json Parser Stage.
  */
+@Usage(directive = "parse-as-xml", usage = "parse-as-xml <column>")
 public class XmlToJson extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;
@@ -48,32 +50,30 @@ public class XmlToJson extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
-    List<Record> results = new ArrayList<>();
-
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {
-        Object value = record.getValue(idx);
-        if (value == null) {
+        Object object = record.getValue(idx);
+        if (object == null) {
           throw new StepException(toString() + " : Did not find '" + col + "' in the record.");
         }
 
         try {
-          if (value instanceof String) {
-            record.setValue(idx, XML.toJSONObject((String) value));
+          if (object instanceof String) {
+            JsonParser.flattenJson(XML.toJSONObject((String) object), col, 1, Integer.MAX_VALUE, record);
+            record.remove(idx);
           } else {
             throw new StepException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                            col, value.getClass().getName())
+                            col, object != null ? object.getClass().getName() : "null")
             );
           }
         } catch (JSONException e) {
           throw new StepException(toString() + " : " + e.getMessage());
         }
-        results.add(record);
       }
     }
-    return results;
+    return records;
   }
 
 }

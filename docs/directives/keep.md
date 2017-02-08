@@ -19,7 +19,7 @@ are removed from the record.
 
 ## Example
 
-Let's following is the record
+Let's consider a simple record as shown below:
 
 ```
   {

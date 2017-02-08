@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import org.json.JSONArray;
@@ -32,6 +33,7 @@ import java.util.Map;
 /**
  * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
  */
+@Usage(directive = "json-path", usage = "json-path <source> <destination> <json path>")
 public class JsPath extends AbstractStep {
   private String src;
   private String dest;
