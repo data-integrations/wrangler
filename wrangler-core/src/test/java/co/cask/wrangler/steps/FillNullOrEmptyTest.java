@@ -17,7 +17,6 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,8 +29,8 @@ import java.util.List;
  */
 public class FillNullOrEmptyTest {
 
-  @Test(expected = StepException.class)
-  public void testColumnNotSpecified() throws Exception {
+  @Test
+  public void testColumnNotPresent() throws Exception {
     String[] directives = new String[] {
       "fill-null-or-empty null N/A",
     };
@@ -43,6 +42,7 @@ public class FillNullOrEmptyTest {
     );
 
     PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 3);
   }
 
   @Test

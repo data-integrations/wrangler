@@ -24,8 +24,8 @@ import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.MaskNumber;
 import co.cask.wrangler.steps.MaskShuffle;
-import co.cask.wrangler.steps.transformation.UrlDecode;
-import co.cask.wrangler.steps.WriteToJsonMap;
+import co.cask.wrangler.steps.writer.WriteAsCSV;
+import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import co.cask.wrangler.steps.XmlToJson;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.Copy;
@@ -44,8 +44,10 @@ import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
+import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SplitToRows;
+import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
@@ -57,10 +59,15 @@ import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.Sed;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
+import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
+import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
+import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -79,13 +86,14 @@ import java.util.StringTokenizer;
  * will handle.
  */
 public class TextDirectives implements Directives {
+  private static final Logger LOG = LoggerFactory.getLogger(TextDirectives.class);
   static final char TAB = '\t';
 
   // directives for wrangling.
   private String[] directives;
 
   // Mapping of specification usages.
-  Map<String, String> usages = new HashMap<>();
+  private final Map<String, String> usages = new HashMap<>();
 
   // List of all Steps
   List<Class<? extends AbstractStep>> stepRegistry = Arrays.asList(
@@ -97,7 +105,8 @@ public class TextDirectives implements Directives {
     ParseDate.class, ParseLog.class, Quantization.class, RecordConditionFilter.class,
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
-    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJsonMap.class
+    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteAsJsonMap.class, RecordMissingOrNullFilter.class,
+    CatalogLookup.class
   );
 
   public TextDirectives(String[] directives) {
@@ -107,12 +116,15 @@ public class TextDirectives implements Directives {
     // directive and usage.
     for (Class<? extends AbstractStep> step : stepRegistry) {
       Usage usage = step.getAnnotation(Usage.class);
+      if (usage == null) {
+        LOG.warn("Usage annotation for directive '{}' missing.", step.getSimpleName());
+        continue;
+      }
       usages.put(usage.directive(), usage.usage());
     }
 
     // These are for directives that use other steps for executing.
     // wWe add them exclusively
-    usages.put("xml-path", "xml-path <source> <destination> <path>");
     usages.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
     usages.put("set format", "set format csv <delimiter> <skip empty lines>");
     usages.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
@@ -340,21 +352,26 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-json <column> <delete-column, true|false>
+        // parse-as-json <column> [depth]
         case "parse-xml-element":
         case "parse-as-json" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String deleteCol = getNextToken(tokenizer, "\n", command, "delete-column", lineno, true);
-          boolean delete = false;
-          if (deleteCol != null && deleteCol.equalsIgnoreCase("true")) {
-            delete = true;
+          String depthOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int depth = Integer.MAX_VALUE;
+          if (depthOpt != null && !depthOpt.isEmpty()) {
+            try {
+              depth = Integer.parseInt(depthOpt);
+            } catch (NumberFormatException e) {
+              throw new DirectiveParseException(
+                String.format("Depth '%s' specified is not a valid number.", depthOpt)
+              );
+            }
           }
-          steps.add(new JsonParser(lineno, directive, column, delete));
+          steps.add(new JsonParser(lineno, directive, column, depth));
         }
         break;
 
         // json-path <source> <destination> <json-path>
-        case "xml-path" :
         case "json-path" : {
           String src = getNextToken(tokenizer, command, "source", lineno);
           String dest = getNextToken(tokenizer, command, "dest", lineno);
@@ -563,10 +580,80 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // write-to-json <column>
-        case "write-to-json" : {
+        // write-as-json <column>
+        case "write-as-json-map" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new WriteToJsonMap(lineno, directive, column));
+          steps.add(new WriteAsJsonMap(lineno, directive, column));
+        }
+        break;
+
+        // write-as-csv <column>
+        case "write-as-csv" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new WriteAsCSV(lineno, directive, column));
+        }
+        break;
+
+        //filter-rows-on condition <boolean-expression>
+        //filter-rows-on regex <regex>
+        //filter-rows-on empty-or-null-columns <column>[,<column>]*
+        case "filter-rows-on" : {
+          String cmd = getNextToken(tokenizer, command, "command", lineno);
+          if (cmd.equalsIgnoreCase("condition")) {
+            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+            steps.add(new RecordConditionFilter(lineno, directive, condition));
+          } else if (cmd.equalsIgnoreCase("regex")) {
+            String column = getNextToken(tokenizer, command, "column", lineno);
+            String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
+            steps.add(new RecordRegexFilter(lineno, directive, column, pattern));
+          } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
+            String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
+            steps.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
+          } else {
+            throw new DirectiveParseException(
+              String.format("Unknow option '%s' specified for filter-rows-on directive at lineno %s", cmd, lineno)
+            );
+          }
+        }
+        break;
+
+        // text-distance <method> <column1> <column2> <destination>
+        case "text-distance" : {
+          String method = getNextToken(tokenizer, command, "method", lineno);
+          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          steps.add(new TextDistanceMeasure(lineno, directive, method, column1, column2, destination));
+        }
+        break;
+
+        // text-metric <method> <column1> <column2> <destination>
+        case "text-metric" : {
+          String method = getNextToken(tokenizer, command, "method", lineno);
+          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          steps.add(new TextMetricMeasure(lineno, directive, method, column1, column2, destination));
+        }
+        break;
+
+        // catalog-lookup ICD-9|ICD-10 <column>
+        case "catalog-lookup" : {
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10-2016") &&
+              !type.equalsIgnoreCase("ICD-10-2017")) {
+            throw new IllegalArgumentException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10-2016 " +
+                                                 "or ICD-10-2017).");
+          } else {
+            ICDCatalog catalog = new ICDCatalog(type);
+            if (!catalog.configure()) {
+              throw new DirectiveParseException(
+                String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
+              );
+            }
+            steps.add(new CatalogLookup(lineno, directive, catalog, column));
+          }
         }
         break;
 

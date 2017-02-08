@@ -28,7 +28,6 @@ import co.cask.wrangler.steps.column.Rename;
 import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.transformation.IndexSplit;
 import co.cask.wrangler.steps.transformation.Lower;
-import co.cask.wrangler.steps.transformation.Mask;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
