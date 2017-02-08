@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,9 +14,10 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.steps.PipelineTest;
 import co.cask.wrangler.steps.parser.ParseLog;
 import org.junit.Assert;
 import org.junit.Test;

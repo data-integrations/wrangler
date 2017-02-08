@@ -128,16 +128,12 @@ public class WranglerService extends AbstractHttpServiceHandler {
       return;
     }
 
-    LOG.info("Body " + body);
-
     List<Record> records = new ArrayList<>();
     int i = 0;
     for (String line : body.split("\n")) {
       records.add(new Record(ws, line));
       ++i;
     }
-
-    LOG.info("Upload done. Lines added {}.", i);
 
     String d = new Gson().toJson(records);
     try {
@@ -203,7 +199,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
       // Run it through the pipeline.
       records =
-        execute(Lists.newArrayList(sampledRecords), directives.toArray(new String[directives.size()]));
+        execute(Lists.newArrayList(sampledRecords), directives.toArray(new String[directives.size()]), limit);
 
       // Final response object.
       JSONObject response = new JSONObject();
@@ -294,8 +290,9 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
 
-      records = records.subList(0, Math.min(2, records.size()));
-      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
+      int limit = Math.min(2, records.size());
+      records = records.subList(0, limit);
+      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
       Record r = newRecords.get(0);
 
       List<KeyValue<String, Object>> columns = r.getFields();
@@ -347,7 +344,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
                                                  new TypeToken<List<Record>>(){}.getType());
 
       List<Record> newRecords = execute(records.subList(0, Math.min(records.size(), limit)),
-                                        directives.toArray(new String[directives.size()]));
+                                        directives.toArray(new String[directives.size()]), limit);
       JSONArray values = new JSONArray();
       JSONArray headers = new JSONArray();
       Set<String> headerList = new HashSet<>();
@@ -380,13 +377,14 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
 
   // Application Platform System - Big Data Appliance
-  private List<Record>  execute (List<Record> records, String[] directives)
+  private List<Record>  execute (List<Record> records, String[] directives, int limit)
     throws DirectiveParseException, StepException {
     Directives specification = new TextDirectives(directives);
     List<Step> steps = specification.getSteps();
 
     for (Step step : steps) {
       records = step.execute(records, null);
+      records = records.subList(0, Math.min(limit, records.size()));
     }
 
     return records;

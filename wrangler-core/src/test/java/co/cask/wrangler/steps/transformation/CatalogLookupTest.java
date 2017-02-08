@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,10 +14,10 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.transformation.UrlEncode;
+import co.cask.wrangler.steps.PipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,23 +25,31 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link UrlEncode}
+ * Tests {@link CatalogLookup}
  */
-public class UrlEncodeTest {
+public class CatalogLookupTest {
 
   @Test
-  public void testUrlEncoding() throws Exception {
+  public void testICDCodeLookup() throws Exception {
     String[] directives = new String[] {
-      "url-encode url",
+      "catalog-lookup icd-10-2016 code",
     };
 
     List<Record> records = Arrays.asList(
-      new Record("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
+      new Record("code", "A0100"),
+      new Record("code", "A0102"),
+      new Record("code", "Z9989"),
+      new Record("code", "Y36521S"),
+      new Record("code", "ABC"),     // Invalid code.
+      new Record("name", "Root")     // Code Column doesn't exit.
     );
 
     records = PipelineTest.execute(directives, records);
-
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("http%3A%2F%2Fwww.yahoo.com%3Fa%3Db+c%26b%3Dab%26xyz%3D1", records.get(0).getValue("url"));
+    Assert.assertTrue(records.size() == 6);
+    Assert.assertEquals("code_icd_10_2016_description", records.get(0).getColumn(1));
+    for (int i = 0; i < 6; ++i) {
+      Assert.assertEquals(2, records.get(i).length());
+    }
   }
+
 }

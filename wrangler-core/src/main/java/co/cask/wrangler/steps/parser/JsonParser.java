@@ -38,12 +38,12 @@ import java.util.List;
 public class JsonParser extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;
-  private boolean delete;
+  private int maxDepth;
 
-  public JsonParser(int lineno, String detail, String col, boolean delete) {
+  public JsonParser(int lineno, String detail, String col, int maxDepth) {
     super(lineno, detail);
     this.col = col;
-    this.delete = delete;
+    this.maxDepth = maxDepth;
   }
 
   /**
@@ -59,6 +59,7 @@ public class JsonParser extends AbstractStep {
     List<Record> results = new ArrayList<>();
     // Iterate through all the records.
     for (Record record : records) {
+      boolean delete = false;
       int idx = record.find(col);
 
       // If the input column exists in the record, proceed further.
@@ -97,12 +98,7 @@ public class JsonParser extends AbstractStep {
           }
 
           if (object != null) { // Iterate through keys.
-            Iterator<String> keysItr = object.keys();
-            while(keysItr.hasNext()) {
-              String key = keysItr.next();
-              Object v = object.get(key);
-              record.add(String.format("%s_%s", col, key), v);
-            }
+            flattenJson(object, col, 1, maxDepth, record);
             results.add(record);
           }
 
@@ -113,12 +109,7 @@ public class JsonParser extends AbstractStep {
               Object type = list.get(index);
               if (type instanceof JSONObject) {
                 Record objectRecord = new Record(record);
-                Iterator<String> keysItr = ((JSONObject) type).keys();
-                while(keysItr.hasNext()) {
-                  String key = keysItr.next();
-                  Object v = ((JSONObject) type).get(key);
-                  objectRecord.add(String.format("%s_%s", col, key), v);
-                }
+                flattenJson((JSONObject) type, col, 1, maxDepth, objectRecord);
                 results.add(objectRecord);
               } else {
                 break;
@@ -148,6 +139,32 @@ public class JsonParser extends AbstractStep {
       }
     }
     return results;
+  }
+
+  /**
+   * Recursively flattens JSON until the 'maxDepth' is reached.
+   *
+   * @param root of the JSONObject
+   * @param field name to be used to be stored in the record.
+   * @param depth current depth into JSON structure.
+   * @param maxDepth maximum depth to reach
+   * @param record to which the flatten fields need to be added.
+   */
+  public static void flattenJson(JSONObject root, String field, int depth, int maxDepth, Record record) {
+    if (depth > maxDepth) {
+      record.addOrSet(String.format("%s", field), root);
+      return;
+    }
+    Iterator<String> keysItr = root.keys();
+    while(keysItr.hasNext()) {
+      String key = keysItr.next();
+      Object value = root.get(key);
+      if (value instanceof JSONObject) {
+        flattenJson((JSONObject)value, String.format("%s_%s", field, key), depth++, maxDepth, record);
+      } else {
+        record.addOrSet(String.format("%s_%s", field, key), value);
+      }
+    }
   }
 
 }

@@ -114,7 +114,7 @@ public class HL7Parser extends AbstractStep {
 
     @Override
     public boolean end(Message message) throws HL7Exception {
-      record.add(column, segments);
+      JsonParser.flattenJson(segments, column, 1, Integer.MAX_VALUE, record);
       return true;
     }
 
