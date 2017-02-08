@@ -2,6 +2,10 @@
 
 FILTER-ROW-IF-TRUE directive provides support for filters records that match the condition.
 
+## Deprecated
+
+Please use [FILTER-ROWS-ON](filter-rows-on.md) directive.
+
 ## Syntax
 ```
   filter-row-if-true <condition>

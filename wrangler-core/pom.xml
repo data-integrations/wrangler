@@ -19,17 +19,17 @@
     <dependency>
       <groupId>com.joestelmach</groupId>
       <artifactId>natty</artifactId>
-      <version>0.11</version>
+      <version>${natty.version}</version>
     </dependency>
     <dependency>
       <groupId>nl.basjes.parse.httpdlog</groupId>
       <artifactId>httpdlog-parser</artifactId>
-      <version>3.0</version>
+      <version>${httpdlog-parser.version}</version>
     </dependency>
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
-      <version>2.9.7</version>
+      <version>${joda-time.version}</version>
     </dependency>
     <dependency>
       <groupId>org.unix4j</groupId>
@@ -73,6 +73,11 @@
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>${bouncycastle.version}</version>
     </dependency>
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
@@ -119,6 +124,16 @@
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-structures-v26</artifactId>
       <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dataapps.chlorine</groupId>
+      <artifactId>chlorine-finder</artifactId>
+      <version>1.1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.mpkorstanje</groupId>
+      <artifactId>simmetrics-core</artifactId>
+      <version>4.1.1</version>
     </dependency>
   </dependencies>
 
