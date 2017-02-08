@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.steps;
+package co.cask.wrangler.steps.writer;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
@@ -28,12 +28,12 @@ import java.util.List;
 /**
  * A step to write the record fields as JSON.
  */
-@Usage(directive = "write-to-json-map", usage = "write-to-json-map <column>")
-public class WriteToJsonMap extends AbstractStep {
+@Usage(directive = "write-as-json-map", usage = "write-as-json-map <column>")
+public class WriteAsJsonMap extends AbstractStep {
   private final String column;
   private final Gson gson;
 
-  public WriteToJsonMap(int lineno, String directive, String column) {
+  public WriteAsJsonMap(int lineno, String directive, String column) {
     super(lineno, directive);
     this.column = column;
     this.gson = new Gson();
