@@ -5,11 +5,11 @@ PARSE-AS-JSON is a directive for parsing a as json object. The directive can ope
 ## Syntax 
 
 ```
-  parse-as-json <column-name> [<delete-column>]
+  parse-as-json <column-name> [<depth>]
 ```
 
 ```column-name``` name of the column in the record that is a json object.
-```delete-column``` indicates that once the value of the column has been parsed as json, the original column is deleted.
+```depth``` indicates the depth at which JSON object enumeration terminates.
 
 ## Usage Notes
 
