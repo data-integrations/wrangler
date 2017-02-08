@@ -28,15 +28,15 @@ import java.util.List;
 /**
  * Looks ICD Code from the catalog.
  */
-@Usage(directive = "lookup", usage = "lookup ICD-9|ICD-10 <column>")
-public class Lookup extends AbstractStep {
+@Usage(directive = "catalog-lookup", usage = "catalog-lookup <catalog> <column>")
+public class CatalogLookup extends AbstractStep {
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;
 
   // Column from which the ICD code needs to be read.
   private String column;
 
-  public Lookup(int lineno, String detail, StaticCatalog catalog, String column) {
+  public CatalogLookup(int lineno, String detail, StaticCatalog catalog, String column) {
     super(lineno, detail);
     this.column = column;
     this.catalog = catalog;

@@ -50,7 +50,7 @@ import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
-import co.cask.wrangler.steps.transformation.Lookup;
+import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.IndexSplit;
 import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MessageHash;
@@ -105,7 +105,7 @@ public class TextDirectives implements Directives {
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
     UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJsonMap.class, RecordMissingOrNullFilter.class,
-    Lookup.class
+    CatalogLookup.class
   );
 
   public TextDirectives(String[] directives) {
@@ -631,8 +631,8 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // lookup 9|10 <column>
-        case "lookup" : {
+        // catalog-lookup ICD-9|ICD-10 <column>
+        case "catalog-lookup" : {
           String type = getNextToken(tokenizer, command, "type", lineno);
           String column = getNextToken(tokenizer, command, "column", lineno);
           if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10") ) {
@@ -644,7 +644,7 @@ public class TextDirectives implements Directives {
                 String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
               );
             }
-            steps.add(new Lookup(lineno, directive, catalog, column));
+            steps.add(new CatalogLookup(lineno, directive, catalog, column));
           }
         }
         break;
