@@ -32,12 +32,12 @@ public class XMLTest {
   public void testXMLParsing() throws Exception {
     String[] directives = new String[] {
       "parse-as-xml body",
-      "xml-path body_catalog_book author $.[*].author",
-      "xml-path body_catalog_book title $.[*].title",
-      "xml-path body_catalog_book genre $.[*].genre",
-      "xml-path body_catalog_book price $.[*].price",
-      "xml-path body_catalog_book publish_date $.[*].publish_date",
-      "xml-path body_catalog_book description $.[*].description",
+      "json-path body_catalog_book author $.[*].author",
+      "json-path body_catalog_book title $.[*].title",
+      "json-path body_catalog_book genre $.[*].genre",
+      "json-path body_catalog_book price $.[*].price",
+      "json-path body_catalog_book publish_date $.[*].publish_date",
+      "json-path body_catalog_book description $.[*].description",
       "flatten title,author,genre,price,publish_date,description",
       "drop body_catalog_book",
     };
@@ -177,9 +177,9 @@ public class XMLTest {
   public void testComplexXMLExample() throws Exception {
     String[] directives = new String[] {
       "parse-as-xml body",
-      "xml-path body_catalog_product_catalog_item gender $.[*].gender",
-      "xml-path body_catalog_product_catalog_item item_number $.[*].item_number",
-      "xml-path body_catalog_product_catalog_item price $.[*].price",
+      "json-path body_catalog_product_catalog_item gender $.[*].gender",
+      "json-path body_catalog_product_catalog_item item_number $.[*].item_number",
+      "json-path body_catalog_product_catalog_item price $.[*].price",
       "flatten gender,item_number,price"
     };
 
