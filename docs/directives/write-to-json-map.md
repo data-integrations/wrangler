@@ -1,6 +1,6 @@
 # Write to JSON
 
-WRITE-TO-JSON directive converts the record into JSON.
+WRITE-TO-JSON-MAP directive converts the record into JSON Map.
 
 ## Syntax
 ```
@@ -11,8 +11,8 @@ WRITE-TO-JSON directive converts the record into JSON.
 
 ## Usage Notes
 
-The WRITE-TO-JSON directive provides an easy way to convert the record
-into a JSON. If the ```column``` already exists, it will override it.
+The WRITE-TO-JSON-MAP directive provides an easy way to convert the record
+into a JSON. If the ```column``` already exists, it will overwrite it.
 
 Depending on the type of the object the field is holding it will be transformed
 appropriately.
@@ -29,7 +29,7 @@ Let's consider a very simple record
 
 running the directive
 ```
-  write-to-json body
+  write-to-json-map body
 ```
 
 would generate the following record

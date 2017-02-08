@@ -26,10 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Wrangler plugin that applies substitution and shuffling masking on the column.
+ * A Wrangler plugin that applies substitution masking on the column.
  *
  * <p>
- *  Substitution masking us generally used for masking credit card or SSN numbers.
+ *  Substitution masking is generally used for masking credit card or SSN numbers.
  *  This type of masking is fixed masking, where the pattern is applied on the
  *  fixed length string.
  *
@@ -45,17 +45,6 @@ import java.util.List;
  *        Step step = new MaskNumber(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
  *    </pre>
  *  </blockquote>
- * </p>
- *
- * <p>
- *   Fixed length shuffle masking performs obfuscation by using random character
- *   substitution method. The data is randomly shuffled in the column.
- *
- *   <blockquote>
- *     <pre>
- *       Step step = new MaskNumber(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
- *     </pre>
- *   </blockquote>
  * </p>
  */
 @Usage(directive = "mask-number", usage = "mask-number <column> <pattern>")
@@ -77,7 +66,7 @@ public class MaskNumber extends AbstractStep {
   }
 
   /**
-   * Masks the column specified using either substitution method or shuffling.
+   * Masks the column specified using either substitution method.
    *
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.

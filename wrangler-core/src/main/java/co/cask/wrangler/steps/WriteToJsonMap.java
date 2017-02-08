@@ -28,12 +28,12 @@ import java.util.List;
 /**
  * A step to write the record fields as JSON.
  */
-@Usage(directive = "write-to-json", usage = "write-to-json <column>")
-public class WriteToJson extends AbstractStep {
+@Usage(directive = "write-to-json-map", usage = "write-to-json-map <column>")
+public class WriteToJsonMap extends AbstractStep {
   private final String column;
   private final Gson gson;
 
-  public WriteToJson(int lineno, String directive, String column) {
+  public WriteToJsonMap(int lineno, String directive, String column) {
     super(lineno, directive);
     this.column = column;
     this.gson = new Gson();
@@ -49,7 +49,7 @@ public class WriteToJson extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
-      record.addOrSet(column, gson.toJson(record.getRecord()));
+      record.addOrSet(column, gson.toJson(record.getFields()));
     }
     return records;
   }
