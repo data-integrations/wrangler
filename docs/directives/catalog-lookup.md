@@ -1,7 +1,7 @@
 # Static Catalog Lookup
 
-CATALOG-LOOKUP directive provides static lookup into catalogs that are pre-loaded. Currently it supports looking up
-on health care ICD-9 and ICD-10 codes.
+CATALOG-LOOKUP directive provides lookup into catalogs pre-loaded. Currently it supports looking up
+on health care ICD-9 and ICD-10-{2016,2017} codes.
 
 ## Syntax
 
@@ -13,7 +13,8 @@ on health care ICD-9 and ICD-10 codes.
 Following are catalogs that are currently supported:
 
 * ICD-9
-* ICD-10
+* ICD-10-2016
+* ICD-10-2017
 
 ## Usage Notes
 
@@ -35,7 +36,7 @@ one field ```code``` that needs to be looked up.
 applying following LOOKUP directive with ICD-10 Catalog
 
 ```
-  catalog-lookup ICD-10 code
+  catalog-lookup ICD-10-2016 code
 ```
 
 would result in the record that has an additional column ```code_description```
