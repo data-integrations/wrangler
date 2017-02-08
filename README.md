@@ -67,7 +67,7 @@ E.g.
 
 Following are different directives currently available.
 
-* [Parsers]()
+* **Parsers**
   * [CSV Parser](docs/directives/csv-parser.md)
   * [Json Parser](docs/directives/parse-as-json.md)
   * [Json Path](docs/directives/json-path.md)
@@ -76,10 +76,10 @@ Following are different directives currently available.
   * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
   * [Date Parser](docs/directives/parse-as-date.md)
   * [HL7 Parser](docs/directives/parse-as-hl7.md)
-* [Output Formatters]()
+* **Output Formatters**
   * [JSON Map Formatter](docs/directives/write-as-json-map.md)
   * [CSV Formatter](docs/directives/write-as-csv.md)
-* [Text Transformations](docs/directives/text-transformation.md)
+* **Transformations**
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)
   * [Split by Seperator](docs/directives/split-by-seperator.md)
@@ -91,26 +91,26 @@ Following are different directives currently available.
   * [Split Email Address](docs/directives/split-email.md)
   * [Fuzzy String Match - Distance](docs/directives/text-distance.md)
   * [Fuzzy String Match - Metric](docs/directives/text-metric.md)
-* [Quantization](docs/directives/quantize.md)
-* [Unique ID]()
+  * [Quantization](docs/directives/quantize.md)
+* **Unique ID**
   * [UUID Generation](docs/directives/generate-uuid.md)
-* [Date Transformations](docs/directives/date-time.md)
+* **Date Transformations**
   * [Format Date](docs/directives/format-date.md)
   * [Format Unix Timestamp](docs/directives/format-timestamp.md)
-* [Static Catalog Lookup]()
-  * [ICD-9 Code](docs/directives/lookup.md)
-  * [ICD-10 Code - 2016, 2017](docs/directives/lookup.md)
-* [Hashing & Masking](docs/directives/masking.md)
+* **Static Catalog Lookup**
+  * [ICD-9 Code](docs/directives/catalog-lookup.md)
+  * [ICD-10 Code - 2016, 2017](docs/directives/catalog-lookup.md)
+* **Hashing & Masking**
   * [Substitution Masking](docs/directives/mask-substitution.md)
   * [Number Masking](docs/directives/mask-number.md)
   * [Message Digest or Hash](docs/directives/hash.md)
-* [Row Operations]()
+* **Row Operations**
   * [Flatten](docs/directives/flatten.md)
   * [Split To Rows](docs/directives/split-to-rows.md)
   * [Filter Rows On](docs/directives/filter-rows-on.md)
   * [Filter Row using Regex](docs/directives/filter-row-if-matched.md) (_Deprecated_)
   * [Filter Row on Condition](docs/directives/filter-row-if-true.md) (_Deprecated_)
-* [Column Operations]()
+* **Column Operations**
   * [Drop Column](docs/directives/drop.md)
   * [Rename Column](docs/directives/rename.md)
   * [Copy Column](docs/directives/copy.md)
