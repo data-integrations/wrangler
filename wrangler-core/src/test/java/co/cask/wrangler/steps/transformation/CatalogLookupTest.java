@@ -25,14 +25,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link Lookup}
+ * Tests {@link CatalogLookup}
  */
-public class LookupTest {
+public class CatalogLookupTest {
 
   @Test
   public void testICDCodeLookup() throws Exception {
     String[] directives = new String[] {
-      "lookup icd-10 code",
+      "catalog-lookup icd-10 code",
     };
 
     List<Record> records = Arrays.asList(
