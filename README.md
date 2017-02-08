@@ -101,8 +101,8 @@ Following are different directives currently available.
   * [Flatten](docs/directives/flatten.md)
   * [Split To Rows](docs/directives/split-to-rows.md)
   * [Filter Rows On](docs/directives/filter-rows-on.md)
-  * (_Deprecated_)[Filter Row using Regex](docs/directives/filter-row-if-matched.md)
-  * (_Deprecated_)[Filter Row on Condition](docs/directives/filter-row-if-true.md)
+  * [Filter Row using Regex](docs/directives/filter-row-if-matched.md) (_Deprecated_)
+  * [Filter Row on Condition](docs/directives/filter-row-if-true.md) (_Deprecated_)
 * [Column Operations]()
   * [Drop Column](docs/directives/drop.md)
   * [Rename Column](docs/directives/rename.md)
@@ -111,7 +111,7 @@ Following are different directives currently available.
   * [Keep Columns](docs/directives/keep.md)
   * [Swap Column](docs/directives/swap.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
-  * [Fill Null or Empty](docs/directives/fill-null-or-empty.md)  
+  * [Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md)  
   
 ## Performance
 
