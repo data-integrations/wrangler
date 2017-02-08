@@ -1,6 +1,6 @@
 # Static Catalog Lookup
 
-CATALOG-LOOKUP directive provides lookup into catalogs pre-loaded. Currently it supports looking up
+CATALOG-LOOKUP directive provides static lookup into catalogs that are pre-loaded. Currently it supports looking up
 on health care ICD-9 and ICD-10 codes.
 
 ## Syntax
