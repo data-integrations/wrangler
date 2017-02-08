@@ -81,7 +81,6 @@ Following are different directives currently available.
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)
   * [Split by Seperator](docs/directives/split-by-seperator.md)
-  * [Fill Null or Empty](docs/directives/fill-null-or-empty.md)
   * [Sed](docs/directives/sed.md)
   * [Cut](docs/directives/cut.md)
   * [Expressions](docs/directives/expression.md)
@@ -112,6 +111,7 @@ Following are different directives currently available.
   * [Keep Columns](docs/directives/keep.md)
   * [Swap Column](docs/directives/swap.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
+  * [Fill Null or Empty](docs/directives/fill-null-or-empty.md)  
   
 ## Performance
 
