@@ -4,7 +4,7 @@ WRITE-AS-CSV directive converts the record into CSV.
 
 ## Syntax
 ```
-  write-as-json <column>
+  write-as-csv <column>
 ```
 
 ```column``` will contain the CSV representation of the record.
