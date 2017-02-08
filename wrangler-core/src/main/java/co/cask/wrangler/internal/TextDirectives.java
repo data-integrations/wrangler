@@ -57,6 +57,7 @@ import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.Sed;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
+import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlDecode;
@@ -606,6 +607,26 @@ public class TextDirectives implements Directives {
           }
         }
         break;
+
+        // text-distance <method> <column1> <column2> <destination>
+        case "text-distance" : {
+          String method = getNextToken(tokenizer, command, "method", lineno);
+          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          steps.add(new TextDistanceMeasure(lineno, directive, method, column1, column2, destination));
+        }
+        break;
+
+//        // text-similarity <method> <column1> <column2> <destination>
+//        case "text-similarity" : {
+//          String method = getNextToken(tokenizer, command, "method", lineno);
+//          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+//          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+//          String destination = getNextToken(tokenizer, command, "destination", lineno);
+//          steps.add(new TextSimilairtyMeasure(lineno, directive, method, column1, column2, destination));
+//        }
+//        break;
 
         default:
           throw new DirectiveParseException(
