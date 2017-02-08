@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -39,6 +40,7 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
+@Usage(directive = "filter-row-if-true", usage = "filter-row-if-true <condition>")
 public class RecordConditionFilter extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;

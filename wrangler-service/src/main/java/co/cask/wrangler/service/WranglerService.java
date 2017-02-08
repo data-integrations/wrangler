@@ -311,6 +311,10 @@ public class WranglerService extends AbstractHttpServiceHandler {
           type = "double";
         } else if (v instanceof Float) {
           type = "float";
+        } else if (v instanceof Boolean) {
+          type = "boolean";
+        } else if (v instanceof byte[]) {
+          type = "bytes";
         }
         t.put(type);
         t.put("null");

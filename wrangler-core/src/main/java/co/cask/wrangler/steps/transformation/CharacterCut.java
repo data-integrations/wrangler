@@ -20,13 +20,15 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
 
 import java.util.List;
 
 /**
- * A step that implements unix cut command.
+ * A step that implements unix cut directive.
  */
+@Usage(directive = "cut-character", usage = "cut-character <source> <destination> <range|indexes>")
 public class CharacterCut extends AbstractStep {
   private String source;
   private String destination;

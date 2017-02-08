@@ -20,6 +20,8 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,6 +34,7 @@ import java.util.List;
 /**
  * A Json Parser Stage for parsing the {@link Record} provided based on configuration.
  */
+@Usage(directive = "parse-as-json", usage = "parse-as-json <column> <delete-column>")
 public class JsonParser extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;

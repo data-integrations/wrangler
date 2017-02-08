@@ -20,12 +20,14 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.List;
 
 /**
  * A step to fill null or empty column values with a fixed value.
  */
+@Usage(directive = "fill-null-or-empty", usage = "fill-null-or-empty <column> <fixed-value>")
 public class FillNullOrEmpty extends AbstractStep {
   private String column;
   private String value;

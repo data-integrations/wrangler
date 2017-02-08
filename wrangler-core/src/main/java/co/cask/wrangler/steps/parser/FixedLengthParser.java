@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * A Fixed length Parser Stage for parsing the {@link Record} provided based on configuration.
  */
+@Usage(directive = "parse-as-fixed-length", usage = "parse-as-fixed-length <source> <width,width,...>")
 public final class FixedLengthParser extends AbstractStep {
   private final int[] widths;
   private final String col;

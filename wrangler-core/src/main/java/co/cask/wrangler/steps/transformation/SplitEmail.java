@@ -21,12 +21,14 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.List;
 
 /**
  * A Step to split email address into account and domain.
  */
+@Usage(directive = "split-email", usage = "split-email <column>")
 public class SplitEmail extends AbstractStep {
   private final String column;
 
