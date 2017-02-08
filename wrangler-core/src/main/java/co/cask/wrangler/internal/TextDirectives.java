@@ -25,7 +25,7 @@ import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.MaskNumber;
 import co.cask.wrangler.steps.MaskShuffle;
 import co.cask.wrangler.steps.transformation.UrlDecode;
-import co.cask.wrangler.steps.WriteToJson;
+import co.cask.wrangler.steps.WriteToJsonMap;
 import co.cask.wrangler.steps.XmlToJson;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.Copy;
@@ -97,7 +97,7 @@ public class TextDirectives implements Directives {
     ParseDate.class, ParseLog.class, Quantization.class, RecordConditionFilter.class,
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
-    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJson.class
+    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJsonMap.class
   );
 
   public TextDirectives(String[] directives) {
@@ -566,7 +566,7 @@ public class TextDirectives implements Directives {
         // write-to-json <column>
         case "write-to-json" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new WriteToJson(lineno, directive, column));
+          steps.add(new WriteToJsonMap(lineno, directive, column));
         }
         break;
 

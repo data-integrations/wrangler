@@ -27,26 +27,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * A Wrangler plugin that applies substitution and shuffling masking on the column.
- *
- * <p>
- *  Substitution masking us generally used for masking credit card or SSN numbers.
- *  This type of masking is fixed masking, where the pattern is applied on the
- *  fixed length string.
- *
- *  <ul>
- *    <li>Use of # will include the digit from the position.</li>
- *    <li>Use x to mask the digit at that position</li>
- *    <li>Any other characters will be inserted as-is.</li>
- *  </ul>
- *
- *  <blockquote>
- *    <pre>
- *        Step step = new MaskNumber(lineno, line, "ssn", "XXX-XX-####", 1);
- *        Step step = new MaskNumber(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
- *    </pre>
- *  </blockquote>
- * </p>
+ * A Wrangler plugin that applies shuffling masking on the column.
  *
  * <p>
  *   Fixed length shuffle masking performs obfuscation by using random character

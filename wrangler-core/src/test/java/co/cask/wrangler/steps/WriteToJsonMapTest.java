@@ -9,9 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link WriteToJson}
+ * Tests {@link WriteToJsonMap}
  */
-public class WriteToJsonTest {
+public class WriteToJsonMapTest {
 
   @Test
   public void testWriteToJson() throws Exception {
