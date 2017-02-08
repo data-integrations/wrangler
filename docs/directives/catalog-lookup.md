@@ -41,12 +41,12 @@ applying following LOOKUP directive with ICD-10 Catalog
 
 would result in the record that has an additional column ```code_description```
 that will contain the result of lookup. In case, there is no matching code 'null' is stored
-in the ```code_description```
+in the ```code_icd_10_2016_description```
 
 ```
   {
     "code" : "Y36521S",
-    "code_description" : "War operations involving indirect blast effect of nuclear weapon, civilian, sequela"
+    "code_icd_10_2016_description" : "War operations involving indirect blast effect of nuclear weapon, civilian, sequela"
   }
 ```
 

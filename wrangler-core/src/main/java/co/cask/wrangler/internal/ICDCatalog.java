@@ -39,8 +39,8 @@ import java.util.Map;
 public final class ICDCatalog implements StaticCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(ICDCatalog.class);
 
-  // Type of ICD code 9 or 10.
-  private final String type;
+  // Type of ICD code 9 or 10 {2016,2017}.
+  private final String name;
 
   // Map to store mapping from code to description.
   private Map<String, ICDCode> lookupTable = new HashMap<>();
@@ -65,8 +65,8 @@ public final class ICDCatalog implements StaticCatalog {
     }
   }
 
-  public ICDCatalog(String type) {
-    this.type = type;
+  public ICDCatalog(String name) {
+    this.name = name;
   }
 
   /**
@@ -76,7 +76,7 @@ public final class ICDCatalog implements StaticCatalog {
    */
   @Override
   public boolean configure() {
-    String filename = String.format("%s_cm_codes.txt", type);
+    String filename = String.format("%s_cm_codes.txt", name);
     InputStream in = ICDCatalog.class.getClassLoader().getResourceAsStream(filename);
     if (in == null) {
       return false;
@@ -104,5 +104,13 @@ public final class ICDCatalog implements StaticCatalog {
   @Override
   public StaticCatalog.Entry lookup(String code)  {
     return lookupTable.get(code);
+  }
+
+  /**
+   * @return name of the catalog.
+   */
+  @Override
+  public String getCatalog() {
+    return name;
   }
 }
