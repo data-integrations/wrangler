@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * Filters records if that don't have all the columns specified or they have null values or combination.
  */
+@Usage(directive = "filter-rows-on", usage="filter-rows-on empty-or-null <column>[,<column>]*")
 public class RecordMissingOrNullFilter extends AbstractStep {
   private final String[] columns;
 

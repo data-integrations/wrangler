@@ -77,6 +77,8 @@ Following are different directives currently available.
   * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
   * [Date Parser](docs/directives/parse-as-date.md)
   * [HL7 Parser](docs/directives/parse-as-hl7.md)
+* [Output Formatters]()
+  * [JSON Map Formatter](docs/directives/write-to-json-map.md)
 * [Text Transformations](docs/directives/text-transformation.md)
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)

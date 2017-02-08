@@ -21,6 +21,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Map;
 /**
  * A step that implements the opposite of {@link Drop} columns.
  */
+@Usage(directive = "keep", usage = "keep <column>[,<column>]*")
 public class Keep extends AbstractStep {
   private final String[] columns;
   private final Map<String, Boolean> mapping = new HashMap<>();

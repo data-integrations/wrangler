@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import java.util.List;
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
  */
+@Usage(directive = "drop", usage = "drop <column>[,<column>]*")
 public class Drop extends AbstractStep {
   // Columns to be dropped.
   private List<String> columns;

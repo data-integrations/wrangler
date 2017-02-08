@@ -14,28 +14,29 @@
  * the License.
  */
 
-package co.cask.wrangler.steps.transformation;
+package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.gson.Gson;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.List;
 
 /**
- * A Step to decodes a column with url encoding.
+ * A step to write the record fields as JSON.
  */
-@Usage(directive = "url-decode", usage = "url-decode <column>")
-public class UrlDecode extends AbstractStep {
+@Usage(directive = "write-to-json-map", usage = "write-to-json-map <column>")
+public class WriteToJsonMap extends AbstractStep {
   private final String column;
+  private final Gson gson;
 
-  public UrlDecode(int lineno, String directive, String column) {
+  public WriteToJsonMap(int lineno, String directive, String column) {
     super(lineno, directive);
     this.column = column;
+    this.gson = new Gson();
   }
 
   /**
@@ -48,24 +49,7 @@ public class UrlDecode extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
-      int idx = record.find(column);
-      if (idx != -1) {
-        Object object = record.getValue(idx);
-        if (object instanceof String) {
-          try {
-            record.setValue(idx, URLDecoder.decode((String) object, "UTF-8"));
-          } catch (UnsupportedEncodingException e) {
-            // Doesn't affect the record and it doesn't stop processing.
-          }
-        } else {
-          throw new StepException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
-        }
-      } else {
-        throw new StepException(toString() + " : Column '" + column + "' does not exist in the record.");
-      }
+      record.addOrSet(column, gson.toJson(record.getFields()));
     }
     return records;
   }

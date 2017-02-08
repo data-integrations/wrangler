@@ -20,19 +20,24 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 /**
  * A Step to generate UUID.
  */
+@Usage(directive = "generate-uuid", usage = "generate-uuid <column>")
 public class GenerateUUID extends AbstractStep {
   private final String column;
+  private final Random random;
 
   public GenerateUUID(int lineno, String directive, String column) {
     super(lineno, directive);
     this.column = column;
+    this.random = new Random();
   }
 
   /**
@@ -46,10 +51,11 @@ public class GenerateUUID extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
       int idx = record.find(column);
+      UUID uuid = new UUID(random.nextLong(), random.nextLong());
       if (idx != -1) {
-        record.setValue(idx, UUID.randomUUID().toString());
+        record.setValue(idx, uuid.toString());
       } else {
-        record.add(column, UUID.randomUUID().toString());
+        record.add(column, uuid.toString());
       }
     }
     return records;

@@ -21,6 +21,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -46,6 +47,7 @@ import java.util.Map;
  *   Step step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
+@Usage(directive = "set column", usage = "set column <column> <jexl-expression>")
 public class Expression extends AbstractStep {
   // Column to which the result of experience is applied to.
   private final String column;

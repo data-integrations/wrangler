@@ -16,47 +16,54 @@
 
 package co.cask.wrangler.internal;
 
+import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
-import co.cask.wrangler.steps.transformation.CharacterCut;
+import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.JsPath;
+import co.cask.wrangler.steps.MaskNumber;
+import co.cask.wrangler.steps.MaskShuffle;
+import co.cask.wrangler.steps.WriteToJsonMap;
+import co.cask.wrangler.steps.XmlToJson;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.Copy;
-import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.column.Drop;
-import co.cask.wrangler.steps.transformation.Expression;
-import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
-import co.cask.wrangler.steps.parser.FixedLengthParser;
-import co.cask.wrangler.steps.row.Flatten;
-import co.cask.wrangler.steps.date.FormatDate;
-import co.cask.wrangler.steps.transformation.GenerateUUID;
-import co.cask.wrangler.steps.parser.HL7Parser;
-import co.cask.wrangler.steps.transformation.IndexSplit;
-import co.cask.wrangler.steps.JsPath;
-import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.column.Keep;
-import co.cask.wrangler.steps.transformation.Lower;
-import co.cask.wrangler.steps.transformation.Mask;
 import co.cask.wrangler.steps.column.Merge;
-import co.cask.wrangler.steps.transformation.MessageHash;
+import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.column.SplitToColumns;
+import co.cask.wrangler.steps.column.Swap;
+import co.cask.wrangler.steps.date.FormatDate;
+import co.cask.wrangler.steps.parser.CsvParser;
+import co.cask.wrangler.steps.parser.FixedLengthParser;
+import co.cask.wrangler.steps.parser.HL7Parser;
+import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
-import co.cask.wrangler.steps.transformation.Quantization;
+import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
+import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
-import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.row.SplitToRows;
+import co.cask.wrangler.steps.transformation.CharacterCut;
+import co.cask.wrangler.steps.transformation.Expression;
+import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
+import co.cask.wrangler.steps.transformation.GenerateUUID;
+import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.Lower;
+import co.cask.wrangler.steps.transformation.MessageHash;
+import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.Sed;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
-import co.cask.wrangler.steps.column.SplitToColumns;
-import co.cask.wrangler.steps.row.SplitToRows;
-import co.cask.wrangler.steps.column.Swap;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
+import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
-import co.cask.wrangler.steps.XmlToJson;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -69,81 +76,54 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
- * Parses the DSL into specification containing steps for wrangling.
+ * Parses the DSL into specification containing stepRegistry for wrangling.
  *
  * Following are some of the commands and format that {@link TextDirectives}
  * will handle.
- *
- * <ul>
- *   <li>set format csv , true</li>
- *   <li>set columns a,b,c,d,e,f,g </li>
- *   <li>rename a first</li>
- *   <li>drop b</li>
- *   <li>merge d e h |</li>
- *   <li>uppercase h</li>
- *   <li>lowercase first</li>
- *   <li>titlecase c</li>
- *   <li>indexsplit h 1 4 splitcol</li>
- * </ul>
  */
 public class TextDirectives implements Directives {
+  private static final Logger LOG = LoggerFactory.getLogger(TextDirectives.class);
   static final char TAB = '\t';
 
   // directives for wrangling.
   private String[] directives;
 
-  // Mapping of specification formats.
-  Map<String, String> formats = new HashMap<>();
+  // Mapping of specification usages.
+  private final Map<String, String> usages = new HashMap<>();
+
+  // List of all Steps
+  List<Class<? extends AbstractStep>> stepRegistry = Arrays.asList(
+    CharacterCut.class, Columns.class, Copy.class, CsvParser.class,
+    Drop.class, Expression.class, FillNullOrEmpty.class, FixedLengthParser.class,
+    Flatten.class, FormatDate.class, GenerateUUID.class, HL7Parser.class,
+    IndexSplit.class, JsonParser.class, JsPath.class, Keep.class, Lower.class,
+    MaskNumber.class, MaskShuffle.class, Merge.class, MessageHash.class,
+    ParseDate.class, ParseLog.class, Quantization.class, RecordConditionFilter.class,
+    RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
+    SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
+    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteToJsonMap.class, RecordMissingOrNullFilter.class
+  );
 
   public TextDirectives(String[] directives) {
     this.directives = directives;
 
-    // Add all the usages
-    // TODO: This needs a complete rewrite, seperate it into different class.
-    formats.put("set format", "set format [csv|json] <delimiter> <skip empty lines>");
-    formats.put("set column", "set column <column> <jexl-expression>");
-    formats.put("set columns", "set columns <column-1, column-2, ...>");
-    formats.put("rename", "rename <old> <new>");
-    formats.put("drop", "drop <column>[,<column>]*");
-    formats.put("merge", "merge <first> <second> <new-column> <seperator>");
-    formats.put("uppercase", "uppercase <column>");
-    formats.put("lowercase", "lowercase <column>");
-    formats.put("titlecase", "titlecase <column>");
-    formats.put("indexsplit", "indexsplit <source> <start> <end> <destination>");
-    formats.put("split", "split <source> <delimiter> <new-column-1> <new-column-2>");
-    formats.put("filter-row-if-matched", "filter-row-if-matched <column> <regex>");
-    formats.put("filter-row-if-true", "filter-row-if-true <condition>");
-    formats.put("mask-number", "mask-number <column> <pattern>");
-    formats.put("mask-shuffle", "mask-shuffle <column>");
-    formats.put("format-date", "format-date <column> <destination>");
-    formats.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
-    formats.put("quantize", "quantize <source-column> <destination-column> " +
-      "<[range1:range2)=value>,[<range1:range2=value>]*");
-    formats.put("sed", "sed <column> <expression>");
-    formats.put("grep", "grep <column> <pattern>");
-    formats.put("parse-as-csv", "parse-as-csv <column> <delimiter> <skip-if-empty - true or false> " +
-      "<name1, name2, name3 ...>");
-    formats.put("parse-as-json", "parse-as-json <column> <delete-column>");
-    formats.put("parse-as-fixed-length", "parse-as-fixed-length <source> <field ranges>");
-    formats.put("json-path", "json-path <source> <destination> <json path>");
-    formats.put("split-to-rows","split-to-rows <column> <separator>");
-    formats.put("split-to-columns","split-to-columns <column> <regex>");
-    formats.put("parse-as-xml", "parse-as-xml <column>");
-    formats.put("xml-path", "xml-path <source> <destination> <path>");
-    formats.put("flatten", "flatten <column>[,<column>,<column>,...]");
-    formats.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
-    formats.put("copy", "copy <source> <destination> [force]");
-    formats.put("fill-null-or-empty", "fill-null-or-empty <column> <fixed-value>");
-    formats.put("cut-character","cut-character <source> <destination> <range|indexes>");
-    formats.put("generate-uuid", "generate-uuid <column>");
-    formats.put("url-encode", "url-encode <column>");
-    formats.put("url-decode", "url-decode <column>");
-    formats.put("parse-as-log","parse-as-log <column> <format>");
-    formats.put("keep","keep <column>[,<column>]*");
-    formats.put("parse-as-hl7", "parse-as-hl7 <column>");
-    formats.put("hash", "hash <column> <algorithm> [replace]");
-    formats.put("swap", "swap <column1> <column2>");
-    formats.put("filter-rows-on", "filter-rows-on <condition|regex|empty-or-null-columns> [options]");
+    // Iterate through registry of steps to collect the
+    // directive and usage.
+    for (Class<? extends AbstractStep> step : stepRegistry) {
+      Usage usage = step.getAnnotation(Usage.class);
+      if (usage == null) {
+        LOG.warn("Usage annotation for directive '{}' missing.", step.getSimpleName());
+        continue;
+      }
+      usages.put(usage.directive(), usage.usage());
+    }
+
+    // These are for directives that use other steps for executing.
+    // wWe add them exclusively
+    usages.put("xml-path", "xml-path <source> <destination> <path>");
+    usages.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
+    usages.put("set format", "set format csv <delimiter> <skip empty lines>");
+    usages.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
   }
 
   public TextDirectives(String directives) {
@@ -151,21 +131,21 @@ public class TextDirectives implements Directives {
   }
 
   /**
-   * Parses the DSL to generate a sequence of steps to be executed by {@link co.cask.wrangler.api.Pipeline}.
+   * Parses the DSL to generate a sequence of stepRegistry to be executed by {@link co.cask.wrangler.api.Pipeline}.
    *
    * The transformation parsing here needs a better solution. It has many limitations and having different way would
    * allow us to provide much more advanced semantics for directives.
    *
-   * @return List of steps to be executed.
+   * @return List of stepRegistry to be executed.
    * @throws ParseException
    */
   private List<Step> parse() throws DirectiveParseException {
     List<Step> steps = new ArrayList<>();
 
-    // Split command by EOL
+    // Split directive by EOL
     int lineno = 1;
 
-    // Iterate through each command and create necessary steps.
+    // Iterate through each directive and create necessary stepRegistry.
     for (String directive : directives) {
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
@@ -305,14 +285,14 @@ public class TextDirectives implements Directives {
         case "mask-number": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String mask = getNextToken(tokenizer, command, "pattern", lineno);
-          steps.add(new Mask(lineno, directive, column, mask, Mask.MASK_NUMBER));
+          steps.add(new MaskNumber(lineno, directive, column, mask));
         }
         break;
 
         // mask-shuffle <column>
         case "mask-shuffle": {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new Mask(lineno, directive, column, Mask.MASK_SHUFFLE));
+          steps.add(new MaskShuffle(lineno, directive, column));
         }
         break;
 
@@ -597,6 +577,13 @@ public class TextDirectives implements Directives {
         }
         break;
 
+        // write-to-json <column>
+        case "write-to-json-map" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new WriteToJsonMap(lineno, directive, column));
+        }
+        break;
+
         //filter-rows-on condition <boolean-expression>
         //filter-rows-on regex <regex>
         //filter-rows-on empty-or-null-columns <column>[,<column>]*
@@ -653,7 +640,7 @@ public class TextDirectives implements Directives {
       }
     } else {
       if (!optional) {
-        String d = formats.get(directive);
+        String d = usages.get(directive);
         throw new DirectiveParseException(
           String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)",
                         field, lineno, directive, d)
@@ -664,7 +651,7 @@ public class TextDirectives implements Directives {
   }
 
   /**
-   * @return List of steps to executed in the order they are specified.
+   * @return List of stepRegistry to executed in the order they are specified.
    * @throws ParseException throw in case of parsing exception of specification.
    */
   @Override
