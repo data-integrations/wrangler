@@ -75,12 +75,11 @@ public class MaskNumber extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
-      Record masked = new Record(record);
       int idx = record.find(column);
       if (idx != -1) {
-        masked.setValue(idx, maskNumber((String) record.getValue(idx), mask));
+        record.setValue(idx, maskNumber((String) record.getValue(idx), mask));
       } else {
-        masked.add(column, new String(""));
+        record.add(column, new String(""));
       }
     }
     return records;
