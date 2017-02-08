@@ -17,12 +17,14 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.etl.api.StageMetrics;
 
+import java.util.Map;
+
 /**
  * Pipeline Context for passing contextual information to the pipeline being executed.
  */
 public interface PipelineContext {
   /**
-   * @return Metrics handler.
+   * @return Measurements handler.
    */
   public StageMetrics getMetrics();
 
@@ -30,4 +32,9 @@ public interface PipelineContext {
    * @return Context name.
    */
   public String getContextName();
+
+  /**
+   * @return Properties associated with run and pipeline.
+   */
+  public Map<String, String> getProperties();
 }

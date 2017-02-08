@@ -21,6 +21,16 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.steps.column.Columns;
+import co.cask.wrangler.steps.column.Drop;
+import co.cask.wrangler.steps.column.Merge;
+import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.parser.CsvParser;
+import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.Lower;
+import co.cask.wrangler.steps.transformation.Split;
+import co.cask.wrangler.steps.transformation.TitleCase;
+import co.cask.wrangler.steps.transformation.Upper;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -76,7 +86,7 @@ public class PipelineTest {
     List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
 
     // Define all the steps in the wrangler.
-    steps.add(new Split(0,"","col",",","firstCol","secondCol"));
+    steps.add(new Split(0, "", "col", ",", "firstCol", "secondCol"));
 
     // Run through the wrangling steps.
     for (Step step : steps) {
@@ -108,18 +118,18 @@ public class PipelineTest {
     List<Record> record = Arrays.asList(new Record("ssn", "888990000"));
 
     // More characters in mask, but not enough in the input.
-    Step step = new Mask(0, "", "ssn", "xxx-xx-#####", 1);
+    Step step = new MaskNumber(0, "", "ssn", "xxx-xx-#####");
     List<Record> actual = step.execute(record, null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
 
-    step = new Mask(0, "", "ssn", "xxx-xx-####-0", 1);
+    step = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
     actual = step.execute(record, null);
     Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
 
-    step = new Mask(0, "", "ssn", "xxx-xx-####", 1);
+    step = new MaskNumber(0, "", "ssn", "xxx-xx-####");
     actual = step.execute(record, null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
-    step = new Mask(0, "", "ssn", "x-####", 1);
+    step = new MaskNumber(0, "", "ssn", "x-####");
     actual = step.execute(record, null);
     Assert.assertEquals("x-8899", actual.get(0).getValue("ssn"));
   }
@@ -127,7 +137,7 @@ public class PipelineTest {
   @Test
   public void testMaskSuffle() throws Exception {
     List<Record> records = Arrays.asList(new Record("address", "150 Mars Street, Mar City, MAR, 783735"));
-    Step step = new Mask(0, "", "address", "", 2);
+    Step step = new MaskShuffle(0, "", "address");
     Record actual = (Record) step.execute(records, null).get(0);
     Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
   }
@@ -167,77 +177,6 @@ public class PipelineTest {
 
     Assert.assertEquals("1", records.get(0).getValue("id"));
     Assert.assertEquals("A", records.get(0).getValue("useragent"));
-  }
-
-  @Test
-  public void testApplyExpr() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "set column name concat(last, \", \", first)",
-      "set column isteen age < 15 ? 'yes' : 'no'",
-      "set column salary hrlywage*40*4",
-      "drop first",
-      "drop last",
-      "set column email string:reverse(email)",
-      "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1",
-    };
-
-    // Run through the wrangling steps.
-    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
-      "150 Mars Ave,Palo Alto,CA,USA,32826"));
-
-    // Iterate through steps.
-    records = PipelineTest.execute(directives, records);
-
-    Assert.assertEquals("Joltie, Root", records.get(0).getValue("name"));
-    Assert.assertEquals("1886.3999999999999", records.get(0).getValue("salary"));
-    Assert.assertEquals("no", records.get(0).getValue("isteen"));
-    Assert.assertEquals("oi.etiloj@toor", records.get(0).getValue("email"));
-    Assert.assertEquals("13.0", records.get(0).getValue("hrlywage"));
-  }
-
-  @Test(expected = StepException.class)
-  public void testNegativeConditionApply() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "set column email string:reverse(email1)"
-    };
-
-    TextDirectives specification = new TextDirectives(directives);
-
-    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io," +
-      "32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"));
-
-    // Define all the steps in the wrangler.
-    List<Step> steps = new ArrayList<>(specification.getSteps());
-
-    // Run through the wrangling steps.
-    records = PipelineTest.execute(directives, records);
-  }
-
-  @Test
-  public void testRowFilterRegex() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "filter-row-if-matched email .*@joltie.io",
-      "filter-row-if-true id > 1092"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
-    );
-
-    records = PipelineTest.execute(directives, records);
-
-    // Filters all the records that don't match the pattern .*@joltie.io
-    Assert.assertTrue(records.size() == 1);
   }
 
   @Test
@@ -347,43 +286,6 @@ public class PipelineTest {
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("07/29/2013", records.get(0).getValue("date"));
   }
-
-  @Test
-  public void testParseJsonAndJsonPath() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-json body",
-      "parse-as-json body.deviceReference",
-      "parse-as-json body.deviceReference.OS",
-      "parse-as-csv  body.deviceReference.screenSize | true",
-      "drop body.deviceReference.screenSize",
-      "rename body.deviceReference.screenSize_1 size1",
-      "rename body.deviceReference.screenSize_2 size2",
-      "rename body.deviceReference.screenSize_3 size3",
-      "rename body.deviceReference.screenSize_4 size4",
-      "json-path body.deviceReference.alerts signal_lost $.[*].['Signal lost']",
-      "json-path signal_lost signal_lost $.[0]",
-      "drop body",
-      "drop body.deviceReference.OS",
-      "drop body.deviceReference",
-      "rename body.deviceReference.timestamp timestamp",
-      "set column timestamp timestamp / 1000000",
-      "drop body.deviceReference.alerts",
-      "set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
-        "\"deviceId\": \"SM-R760NDAAXAR\", \"timestamp\": 122121212341231, \"OS\": { \"name\": \"Tizen OS\", " +
-        "\"version\": \"2.3.1\" }, \"alerts\": [ { \"Signal lost\": true }, { \"Emergency call\": true }, " +
-        "{ \"Wifi connection lost\": true }, { \"Battery low\": true }, { \"Calories\": 354 } ], \"screenSize\": " +
-        "\"extra-small|small|medium|large\", \"battery\": \"22%\", \"telephoneNumber\": \"+14099594986\", \"comments\": " +
-        "\"It is an AT&T samung wearable device.\" } }")
-      );
-
-    records = PipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
-  }
-
 
   @Test
   public void testSplitToColumns() throws Exception {

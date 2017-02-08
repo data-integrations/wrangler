@@ -67,91 +67,85 @@ E.g.
 
 Following are different directives currently available.
 
-* [Parsers]()
+* **Parsers**
   * [CSV Parser](docs/directives/csv-parser.md)
   * [Json Parser](docs/directives/parse-as-json.md)
   * [Json Path](docs/directives/json-path.md)
   * [XML Parser](docs/directives/parse-as-xml.md)
-  * [XML Path Parser](docs/directives/xml-path.md)
   * [Fixed Length Parser](docs/directives/fixed-length-parser.md)
   * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
   * [Date Parser](docs/directives/parse-as-date.md)
   * [HL7 Parser](docs/directives/parse-as-hl7.md)
-* [Text Transformations](docs/directives/text-transformation.md)
+* **Output Formatters**
+  * [JSON Map Formatter](docs/directives/write-as-json-map.md)
+  * [CSV Formatter](docs/directives/write-as-csv.md)
+* **Transformations**
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)
   * [Split by Seperator](docs/directives/split-by-seperator.md)
-  * [Fill Null or Empty](docs/directives/fill-null-or-empty.md)
   * [Sed](docs/directives/sed.md)
   * [Cut](docs/directives/cut.md)
   * [Expressions](docs/directives/expression.md)
   * [URL Encode](docs/directives/url-encode.md)
   * [URL Decode](docs/directives/url-decode.md)
-* [Quantization](docs/directives/quantize.md)
-* [Unique ID]()
+  * [Split Email Address](docs/directives/split-email.md)
+  * [Fuzzy String Match - Distance](docs/directives/text-distance.md)
+  * [Fuzzy String Match - Metric](docs/directives/text-metric.md)
+  * [Quantization](docs/directives/quantize.md)
+* **Unique ID**
   * [UUID Generation](docs/directives/generate-uuid.md)
-* [Date Transformations](docs/directives/date-time.md)
+* **Date Transformations**
   * [Format Date](docs/directives/format-date.md)
   * [Format Unix Timestamp](docs/directives/format-timestamp.md)
-* [Masking](docs/directives/masking.md)
+* **Static Catalog Lookup**
+  * [ICD-9 Code](docs/directives/catalog-lookup.md)
+  * [ICD-10 Code - 2016, 2017](docs/directives/catalog-lookup.md)
+* **Hashing & Masking**
   * [Substitution Masking](docs/directives/mask-substitution.md)
   * [Number Masking](docs/directives/mask-number.md)
-* [Row Operations]()
+  * [Message Digest or Hash](docs/directives/hash.md)
+* **Row Operations**
   * [Flatten](docs/directives/flatten.md)
   * [Split To Rows](docs/directives/split-to-rows.md)
-  * [Filter Row using Regex](docs/directives/filter-row-if-matched.md)
-  * [Filter Row on Condition](docs/directives/filter-row-if-true.md)
-* [Column Operations]()
+  * [Filter Rows On](docs/directives/filter-rows-on.md)
+  * [Filter Row using Regex](docs/directives/filter-row-if-matched.md) (_Deprecated_)
+  * [Filter Row on Condition](docs/directives/filter-row-if-true.md) (_Deprecated_)
+* **Column Operations**
   * [Drop Column](docs/directives/drop.md)
   * [Rename Column](docs/directives/rename.md)
   * [Copy Column](docs/directives/copy.md)
   * [Merge Columns](docs/directives/merge.md)
   * [Keep Columns](docs/directives/keep.md)
+  * [Swap Column](docs/directives/swap.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
+  * [Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md)  
   
+## Performance
+
+Initial performance tests shows that with medium set of directives for transforming data, wrangler is able to process at ~ 60K records/second. The rates below are specified as '**records/second**'. More details and test results will be available [here](docs/performance.md)
+
+| Directive Complexity | Column Count| Records | Size | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
+|----------------------|-------------|---------|------|-----------|---------------|---------------|----------------|
+| Medium | 18 | 13,499,973 | 4,499,534,313 | 64,998.50 | 64,921.29 | 46,866.70 | 36,149.86 | 
+| Medium | 18 | 80,999,838 | 26,997,205,878 | 62,465.93 | 62,706.39 | 60,755.41 | 56,673.32 | 
+
 ## Wrangler Service
 
-Wrangler is integrated as CDAP Service to support REST based interactive way for wrangling data. The main objective of having this service is to make it easy for interactively generating directives required for parsing data. This service does not support full scale big data processing, but operates on sampled data (~ 1M rows). 
+Wrangler is integrated as a CDAP Service to support REST based interactive ways to wrangle data. The main objective of having this service is to make it easy for interactively generating directives required for parsing data. This service does not support full scale big data processing.
 
-### Service Endpoints
+The base endpoint is defined below :
 
-Following are different service points supported by Wrangler. The base endpoint is defined below :
 ```
   http://<hostname>:11015/v3/namespaces/<namespace>/apps/wrangler/services/service/methods
 ```
 
-#### Workspace Lifecycle
+Following are different services provided:
 
-Workspace is a named area in the service that stores data on which the directives are applied. The service provides the ability to create/delete workspace. 
+* [Administration and Management](docs/service/admin.md)
+* [Directive Execution](docs/service/execution.md)
+* [Column Type Detection and Statistics](docs/service/statistics.md)
+* [Column Name Validation](docs/service/validation.md)
 
-* Create workspace
-```
-  PUT <base>/workspaces/<workspace-name>
-```
-
-* Delete workspace
-```
-  DELETE <base>/workspaces/<workspace-name>
-```
-
-* Upload data to workspace
-```
-  POST <base>/workspaces/<workspace-name>/upload
-```
-
-* Download data from workspace
-```
-  POST <base>/workspaces/<workspace-name>/download
-```
-
-#### Executing Directives
-
-Wrangling directives are executed in the service on the data stored in the workspace. 
-
-* Executing directives 
-```
-  GET <base>/workspaces/<workspace-name>/execute?directive="<directive>"[&directive="<directive>"]*
-```
 ## Build new directives
 
 Directives are executed as a step, so it's a simple three step process to actually implement the Step and
@@ -250,5 +244,3 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
-
-.. |(Hydrator)| image:: http://cask.co/wp-content/uploads/hydrator_logo_cdap1.png

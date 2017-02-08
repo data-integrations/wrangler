@@ -34,13 +34,16 @@ import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.DefaultPipeline;
+import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -53,6 +56,7 @@ import java.util.List;
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
+  private final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
   // Plugin configuration.
   private final Config config;
 
@@ -73,14 +77,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private class WranglerPipelineContext implements PipelineContext {
     private StageMetrics metrics;
     private String name;
+    private Map<String, String> properties;
 
-    public WranglerPipelineContext(StageMetrics metrics, String name) {
+    public WranglerPipelineContext(StageMetrics metrics, String name, Map<String, String> properties) {
       this.metrics = metrics;
       this.name = name;
+      this.properties = properties;
     }
 
     /**
-     * @return Metrics context.
+     * @return Measurements context.
      */
     @Override
     public StageMetrics getMetrics() {
@@ -93,6 +99,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Override
     public String getContextName() {
       return name;
+    }
+
+    /**
+     * @return Properties associated with run and pipeline.
+     */
+    @Override
+    public Map<String, String> getProperties() {
+      return properties;
     }
   }
 
@@ -107,7 +121,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Validate the DSL by parsing DSL.
-    Directives directives = new TextDirectives(config.specification);
+    Directives directives = new TextDirectives(config.directives);
     try {
       directives.getSteps();
     } catch (DirectiveParseException e) {
@@ -149,9 +163,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     super.initialize(context);
 
     // Parse DSL and initialize the wrangle pipeline.
-    Directives directives = new TextDirectives(config.specification);
-    pipeline = new DefaultPipeline();
-    pipeline.configure(directives, new WranglerPipelineContext(context.getMetrics(), context.getStageName()));
+    Directives directives = new TextDirectives(config.directives);
+    pipeline = new PipelineExecutor();
+    pipeline.configure(directives,
+                       new WranglerPipelineContext(context.getMetrics(), context.getStageName(),
+                                                   context.getPluginProperties().getProperties()));
 
     // Based on the configuration create output schema.
     try {
@@ -182,18 +198,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     List<StructuredRecord> records = new ArrayList<>();
     long start = System.nanoTime();
     try {
-      records = pipeline.execute(Arrays.asList(row), oSchema);
+      records = pipeline.execute(Arrays.asList(row), oSchema); // we don't compute meta and statistics.
     } catch (PipelineException e) {
-      getContext().getMetrics().count("pipeline.records.failures", 1);
+      getContext().getMetrics().count("failures", 1);
       errorCounter++;
+      // If error threshold is reached, then terminate processing.
+      if (errorCounter > config.threshold) {
+        LOG.warn("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
+        throw new Exception(String.format("Reached error threshold %d, terminating processing.", config.threshold));
+      }
       return;
     } finally {
-      getContext().getMetrics().gauge("pipeline.record.processingtime", System.nanoTime() - start);
-    }
-
-    // If error threshold is reached, then terminate processing.
-    if (errorCounter > config.threshold) {
-      throw new Exception(String.format("Error threshold reached %d", config.threshold));
+      getContext().getMetrics().gauge("process.time", System.nanoTime() - start);
     }
 
     for (StructuredRecord record : records) {
@@ -220,10 +236,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    * Configuration for the plugin.
    */
   public static class Config extends PluginConfig {
-    @Name("specification")
+    @Name("directives")
     @Description("Directives for wrangling the input records")
     @Macro
-    private String specification;
+    private String directives;
 
     @Name("field")
     @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
@@ -240,8 +256,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Description("Specifies the schema that has to be output.")
     private final String schema;
 
-    public Config(String specification, String field, int threshold, String schema) {
-      this.specification = specification;
+    public Config(String directives, String field, int threshold, String schema) {
+      this.directives = directives;
       this.field = field;
       this.threshold = threshold;
       this.schema = schema;
