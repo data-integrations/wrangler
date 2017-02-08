@@ -124,7 +124,6 @@ public class TextDirectives implements Directives {
 
     // These are for directives that use other steps for executing.
     // wWe add them exclusively
-    usages.put("xml-path", "xml-path <source> <destination> <path>");
     usages.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
     usages.put("set format", "set format csv <delimiter> <skip empty lines>");
     usages.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
@@ -372,7 +371,6 @@ public class TextDirectives implements Directives {
         break;
 
         // json-path <source> <destination> <json-path>
-        case "xml-path" :
         case "json-path" : {
           String src = getNextToken(tokenizer, command, "source", lineno);
           String dest = getNextToken(tokenizer, command, "dest", lineno);
