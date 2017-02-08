@@ -20,12 +20,14 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.List;
 
 /**
  * Wrangle Step for renaming a column.
  */
+@Usage(directive = "rename", usage = "rename <old> <new>")
 public class Rename extends AbstractStep {
   // Columns of the columns that needs to be renamed.
   private String oldcol;

@@ -119,18 +119,18 @@ public class PipelineTest {
     List<Record> record = Arrays.asList(new Record("ssn", "888990000"));
 
     // More characters in mask, but not enough in the input.
-    Step step = new Mask(0, "", "ssn", "xxx-xx-#####", 1);
+    Step step = new MaskNumber(0, "", "ssn", "xxx-xx-#####");
     List<Record> actual = step.execute(record, null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
 
-    step = new Mask(0, "", "ssn", "xxx-xx-####-0", 1);
+    step = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
     actual = step.execute(record, null);
     Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
 
-    step = new Mask(0, "", "ssn", "xxx-xx-####", 1);
+    step = new MaskNumber(0, "", "ssn", "xxx-xx-####");
     actual = step.execute(record, null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
-    step = new Mask(0, "", "ssn", "x-####", 1);
+    step = new MaskNumber(0, "", "ssn", "x-####");
     actual = step.execute(record, null);
     Assert.assertEquals("x-8899", actual.get(0).getValue("ssn"));
   }
@@ -138,7 +138,7 @@ public class PipelineTest {
   @Test
   public void testMaskSuffle() throws Exception {
     List<Record> records = Arrays.asList(new Record("address", "150 Mars Street, Mar City, MAR, 783735"));
-    Step step = new Mask(0, "", "address", "", 2);
+    Step step = new MaskShuffle(0, "", "address");
     Record actual = (Record) step.execute(records, null).get(0);
     Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
   }

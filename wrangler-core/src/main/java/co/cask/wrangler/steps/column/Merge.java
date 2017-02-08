@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * Wrangle Step that merges two columns and creates a third column.
  */
+@Usage(directive = "merge", usage = "merge <first> <second> <new-column> <seperator>")
 public class Merge extends AbstractStep {
   // Source column1
   private String col1;

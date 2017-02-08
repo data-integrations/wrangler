@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrangle Pipeline executes steps in the order they are specified.
+ * Wrangle Pipeline executes stepRegistry in the order they are specified.
  */
 public final class PipelineExecutor implements Pipeline<Record, StructuredRecord> {
   private Directives directives;

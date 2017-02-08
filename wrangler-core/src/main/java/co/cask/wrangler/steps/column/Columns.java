@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.List;
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
  */
+@Usage(directive = "set columns", usage = "set columns <column,column,...>")
 public class Columns extends AbstractStep {
   // Name of the columns represented in a {@link Record}
   private List<String> columns;

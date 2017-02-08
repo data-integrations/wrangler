@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 import nl.basjes.parse.core.Parser;
 import nl.basjes.parse.httpdlog.ApacheHttpdLoglineParser;
 
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * A Step for parsing Apache HTTPD and NGINX log files.
  */
+@Usage(directive = "parse-as-log", usage = "parse-as-log <column> <format>")
 public class ParseLog extends AbstractStep {
   private final String column;
   private final String format;
