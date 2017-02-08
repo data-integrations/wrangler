@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.Copy;
@@ -142,6 +143,7 @@ public class TextDirectives implements Directives {
     formats.put("parse-as-hl7", "parse-as-hl7 <column>");
     formats.put("hash", "hash <column> <algorithm> [replace]");
     formats.put("swap", "swap <column1> <column2>");
+    formats.put("filter-rows-on", "filter-rows-on <condition|regex|empty-or-null-columns> [options]");
   }
 
   public TextDirectives(String directives) {
@@ -366,16 +368,22 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-json <column> <delete-column, true|false>
+        // parse-as-json <column> [depth]
         case "parse-xml-element":
         case "parse-as-json" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String deleteCol = getNextToken(tokenizer, "\n", command, "delete-column", lineno, true);
-          boolean delete = false;
-          if (deleteCol != null && deleteCol.equalsIgnoreCase("true")) {
-            delete = true;
+          String depthOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int depth = Integer.MAX_VALUE;
+          if (depthOpt != null && !depthOpt.isEmpty()) {
+            try {
+              depth = Integer.parseInt(depthOpt);
+            } catch (NumberFormatException e) {
+              throw new DirectiveParseException(
+                String.format("Depth '%s' specified is not a valid number.", depthOpt)
+              );
+            }
           }
-          steps.add(new JsonParser(lineno, directive, column, delete));
+          steps.add(new JsonParser(lineno, directive, column, depth));
         }
         break;
 
@@ -584,6 +592,29 @@ public class TextDirectives implements Directives {
             throw new DirectiveParseException(
               String.format("Unable to find algorithm specified '%s' in directive '%s' at line %d.",
                             algorithm, command, lineno)
+            );
+          }
+        }
+        break;
+
+        //filter-rows-on condition <boolean-expression>
+        //filter-rows-on regex <regex>
+        //filter-rows-on empty-or-null-columns <column>[,<column>]*
+        case "filter-rows-on" : {
+          String cmd = getNextToken(tokenizer, command, "command", lineno);
+          if (cmd.equalsIgnoreCase("condition")) {
+            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+            steps.add(new RecordConditionFilter(lineno, directive, condition));
+          } else if (cmd.equalsIgnoreCase("regex")) {
+            String column = getNextToken(tokenizer, command, "column", lineno);
+            String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
+            steps.add(new RecordRegexFilter(lineno, directive, column, pattern));
+          } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
+            String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
+            steps.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
+          } else {
+            throw new DirectiveParseException(
+              String.format("Unknow option '%s' specified for filter-rows-on directive at lineno %s", cmd, lineno)
             );
           }
         }

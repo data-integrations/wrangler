@@ -1,21 +1,23 @@
 # Filter Row based on Regular Expression
 
-FILTER-ROW-IF-MATCHED directive provides a way to filters records that match the pattern for a column.
-
-## Deprecated
-
-Please use [FILTER-ROWS-ON](filter-rows-on.md) directive.
+FILTER-ROW-ON directive provides a way to filters records from the dataset.
 
 ## Syntax
 ```
-  filter-row-if-matched <column> <regex>
+  filter-rows-on <filter-type> <options>
 ```
 
-```regex``` is a valid regular expression that is evaluated on the column value for every record.
+```filter-type``` specifies the type of filter and options associated with the filter specified.
+
+```
+  filter-rows-on condition <boolea-expression>
+  filter-rows-on regex <regular-expression?
+  filter-rows-on empty-or-null-columns <column>[,<column>]*
+```
 
 ## Usage Notes
 
-The FILTER-ROW-IF-MATCHED directive applies the regular expression on a column value for every record.
+The FILTER-ROW-ON directive applies the regular expression on a column value for every record.
  If regex matches the column value, then the record is omitted, else it's passed as-is to the input of the
  next directive in the pipeline.
 

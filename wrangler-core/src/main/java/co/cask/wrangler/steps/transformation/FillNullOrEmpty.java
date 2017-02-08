@@ -37,7 +37,7 @@ public class FillNullOrEmpty extends AbstractStep {
   }
 
   /**
-   * Fills the null or empty column values with fixed value.
+   * Fills the null or empty column (and missing) values with fixed value.
    **
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
@@ -49,7 +49,8 @@ public class FillNullOrEmpty extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx == -1) {
-        throw new StepException(toString() + " : Column '" + column + "' does not exist in the record.");
+        record.add(column, value);
+        continue;
       }
       Object object = record.getValue(idx);
       if (object == null) {
@@ -59,11 +60,6 @@ public class FillNullOrEmpty extends AbstractStep {
           if (((String) object).isEmpty()) {
             record.setValue(idx, value);
           }
-        } else {
-          throw new StepException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.",
-                          toString(), object != null ? object.getClass().getName() : "null", column)
-          );
         }
       }
     }
