@@ -36,6 +36,11 @@ public interface StaticCatalog {
   public StaticCatalog.Entry lookup(String code);
 
   /**
+   * @return name of the catalog.
+   */
+  public String getCatalog();
+
+  /**
    * An entry in the catalog.
    */
   public interface Entry {

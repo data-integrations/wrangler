@@ -635,8 +635,10 @@ public class TextDirectives implements Directives {
         case "catalog-lookup" : {
           String type = getNextToken(tokenizer, command, "type", lineno);
           String column = getNextToken(tokenizer, command, "column", lineno);
-          if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10") ) {
-            throw new IllegalArgumentException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10).");
+          if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10-2016") &&
+              !type.equalsIgnoreCase("ICD-10-2017")) {
+            throw new IllegalArgumentException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10-2016 " +
+                                                 "or ICD-10-2017).");
           } else {
             ICDCatalog catalog = new ICDCatalog(type);
             if (!catalog.configure()) {

@@ -33,13 +33,17 @@ public class CatalogLookup extends AbstractStep {
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;
 
+  // Catalog name -- normalized for column name
+  private final String name;
+
   // Column from which the ICD code needs to be read.
-  private String column;
+  private final String column;
 
   public CatalogLookup(int lineno, String detail, StaticCatalog catalog, String column) {
     super(lineno, detail);
     this.column = column;
     this.catalog = catalog;
+    this.name = catalog.getCatalog().replaceAll("-", "_");
   }
 
   /**
@@ -59,15 +63,15 @@ public class CatalogLookup extends AbstractStep {
           String code = (String) object;
           StaticCatalog.Entry value = catalog.lookup(code);
           if (value != null) {
-            record.add(String.format("%s_description", column), value.getDescription());
+            record.add(String.format("%s_%s_description", column, name), value.getDescription());
           } else {
-            record.add(String.format("%s_description", column), null);
+            record.add(String.format("%s_%s_description", column, name), null);
           }
         } else {
-          record.add(String.format("%s_description", column), null);
+          record.add(String.format("%s_%s_description", column, name), null);
         }
       } else {
-        record.add(String.format("%s_description", column), null);
+        record.add(String.format("%s_%s_description", column, name), null);
       }
     }
     return records;
