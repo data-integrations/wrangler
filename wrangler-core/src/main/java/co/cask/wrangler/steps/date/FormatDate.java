@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -31,8 +32,8 @@ import java.util.List;
  * A Wrangle step for managing date formats.
  *
  */
+@Usage(directive = "format-date", usage = "format-date <column> <format>")
 public class FormatDate extends AbstractStep {
-  private String source;
   private final String format;
   private final String column;
   private final DateFormat destinationFmt;
@@ -41,7 +42,7 @@ public class FormatDate extends AbstractStep {
     super(lineno, detail);
     this.column = column;
     this.format = format;
-    this.destinationFmt = new SimpleDateFormat(format);
+    this.destinationFmt = new SimpleDateFormat(this.format);
   }
 
   /**

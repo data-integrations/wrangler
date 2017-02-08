@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * A Wrangler step for splitting a col into two additional columns based on a start and end.
  */
+@Usage(directive = "indexsplit", usage = "indexsplit <source> <start> <end> <destination>")
 public class IndexSplit extends AbstractStep {
   // Name of the column to be split
   private String col;
