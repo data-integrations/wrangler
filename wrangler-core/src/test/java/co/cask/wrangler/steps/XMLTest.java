@@ -32,8 +32,6 @@ public class XMLTest {
   public void testXMLParsing() throws Exception {
     String[] directives = new String[] {
       "parse-as-xml body",
-      "parse-xml-element body true",
-      "parse-xml-element body_catalog true",
       "xml-path body_catalog_book author $.[*].author",
       "xml-path body_catalog_book title $.[*].title",
       "xml-path body_catalog_book genre $.[*].genre",
@@ -42,7 +40,6 @@ public class XMLTest {
       "xml-path body_catalog_book description $.[*].description",
       "flatten title,author,genre,price,publish_date,description",
       "drop body_catalog_book",
-      "parse-xml-element body_catalog_name true"
     };
 
     List<Record> records = Arrays.asList(
@@ -180,9 +177,6 @@ public class XMLTest {
   public void testComplexXMLExample() throws Exception {
     String[] directives = new String[] {
       "parse-as-xml body",
-      "parse-xml-element body true",
-      "parse-xml-element body_catalog true",
-      "parse-xml-element body_catalog_product true",
       "xml-path body_catalog_product_catalog_item gender $.[*].gender",
       "xml-path body_catalog_product_catalog_item item_number $.[*].item_number",
       "xml-path body_catalog_product_catalog_item price $.[*].price",

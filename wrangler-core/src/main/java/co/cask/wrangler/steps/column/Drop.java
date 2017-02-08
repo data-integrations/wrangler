@@ -61,8 +61,6 @@ public class Drop extends AbstractStep {
         int idx = record.find(column);
         if (idx != -1) {
           record.remove(idx);
-        } else {
-          throw new StepException(toString() + " : Unable to find column '" + column + "' in the record.");
         }
       }
       result.add(record);

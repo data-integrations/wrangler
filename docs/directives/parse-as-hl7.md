@@ -45,7 +45,8 @@ the PID (patient identification) segment contains a patient name field containin
 parts, last name (LEVERKUHN), first name (ADRIAN), and middle initial (C). Components can be divided into
 subcomponents. Subcomponents are typically indicated by a & character.
 
-Parsing the above message using the directive
+Parsing the above message using the directive will generate a record that has flattened HL7 fields and all
+the **fields are converted to JSON**. Further parsing can be achieved with [PARSE-AS-JSON](parse-as-json.md) directive
 
 ```
   parse-as-hl7 message
