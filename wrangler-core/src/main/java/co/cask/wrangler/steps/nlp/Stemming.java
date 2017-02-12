@@ -22,10 +22,10 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.nlp.internal.PorterStemmer;
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
