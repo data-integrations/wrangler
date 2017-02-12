@@ -118,7 +118,9 @@ Following are different directives currently available.
   * [Keep Columns](docs/directives/keep.md)
   * [Swap Column](docs/directives/swap.md)
   * [Split To Columns](docs/directives/split-to-columns.md)
-  * [Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md)  
+  * [Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md)
+* **NLP**
+  * [Stemming Tokenized Words](docs/directives/stemming.md)
   
 ## Performance
 
