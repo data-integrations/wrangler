@@ -97,9 +97,11 @@ Following are different directives currently available.
 * **Date Transformations**
   * [Format Date](docs/directives/format-date.md)
   * [Format Unix Timestamp](docs/directives/format-timestamp.md)
-* **Static Catalog Lookup**
+* **Catalog Lookup**
   * [ICD-9 Code](docs/directives/catalog-lookup.md)
   * [ICD-10 Code - 2016, 2017](docs/directives/catalog-lookup.md)
+  * [IP Lookup - City](docs/directives/catalog-lookup.md)
+  * [IP Lookup - Country](docs/directives/catalog-lookup.md)
 * **Hashing & Masking**
   * [Substitution Masking](docs/directives/mask-substitution.md)
   * [Number Masking](docs/directives/mask-number.md)

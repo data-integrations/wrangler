@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.api;
 
+import org.json.JSONObject;
+
 /**
  * Interface for defining different kinds of catalog.
  */
@@ -44,6 +46,6 @@ public interface StaticCatalog {
    * An entry in the catalog.
    */
   public interface Entry {
-    public String getDescription();
+    public JSONObject get();
   }
 }

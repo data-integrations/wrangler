@@ -167,4 +167,15 @@ public class JsonParser extends AbstractStep {
     }
   }
 
+  /**
+   * Recursively flattens JSON until the 'maxDepth' is reached.
+   *
+   * @param root of the JSONObject
+   * @param field name to be used to be stored in the record.
+   * @param record to which the flatten fields need to be added.
+   */
+  public static void flattenJson(JSONObject root, String field, Record record) {
+    flattenJson(root, field, 1, Integer.MAX_VALUE, record);
+  }
+
 }

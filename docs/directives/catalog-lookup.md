@@ -16,6 +16,8 @@ Following are catalogs that are currently supported:
 * ICD-9
 * ICD-10-2016
 * ICD-10-2017
+* City (IP Lookup for City)
+* Country (IP Lookup for Country)
 
 ## Usage Notes
 
