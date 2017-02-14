@@ -1,10 +1,10 @@
 # Extract Regex Groups
 
-EXTRACT-REGEX-GROUP directive extracts the data from regex group into it's own column.
+EXTRACT-REGEX-GROUPS directive extracts the data from regex group into it's own column.
 ## Syntax
 
 ```
- extract-regex-group <column> <regex-with-groups>
+ extract-regex-groups <column> <regex-with-groups>
 ```
 
 The directive generates additional columns based on the regex groups. This ignores the $0 regex group.
@@ -28,7 +28,7 @@ Let's look at how this work with an example
 applying following directives
 
 ```
-  extract-regex-group title [^(]+\(([0-9]{4})\).*
+  extract-regex-groups title [^(]+\(([0-9]{4})\).*
 ```
 
 would result in record as follows
