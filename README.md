@@ -92,6 +92,7 @@ Following are different directives currently available.
   * [Fuzzy String Match - Distance](docs/directives/text-distance.md)
   * [Fuzzy String Match - Metric](docs/directives/text-metric.md)
   * [Quantization](docs/directives/quantize.md)
+  * [Regex Group Extractor](docs/directives/extract-regex-groups.md)
 * **Unique ID**
   * [UUID Generation](docs/directives/generate-uuid.md)
 * **Date Transformations**
