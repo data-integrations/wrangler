@@ -7,12 +7,12 @@ EXTRACT-REGEX-GROUP directive extracts the data from regex group into it's own c
  extract-regex-group <column> <regex-with-groups>
 ```
 
-The directive perform in-place change of case.
+The directive generates additional columns based on the regex groups. This ignores the $0 regex group.
 
 ## Usage Notes
 
-If multiple groups
-are matched then it creates multiple columns
+If multiple groups are matched then it creates multiple columns. The base name of the columns is
+appended with the group number the pattern is matched for.
 
 
 ## Example
@@ -21,31 +21,23 @@ Let's look at how this work with an example
 
 ```
   {
-    "id" : 1,
-    "gender" : "male",
-    "fname" : "Root",
-    "lname" : "JOLTIE"
-    "address" : "67 MARS AVE, MARSCIty, Marsville, Mars"
+    "title" : "Toy Story (1995)"
   }
 ```
 
 applying following directives
 
 ```
-  uppercase gender
-  titlecase lname
-  lowercase address
+  extract-regex-group title [^(]+\(([0-9]{4})\).*
 ```
 
 would result in record as follows
 
 ```
   {
-    "id" : 1,
-    "gender" : "MALE",
-    "fname" : "Root",
-    "lname" : "Joltie"
-    "address" : "67 mars ave, marscity, marsville, mars"
+    "title" : "Toy Story (1995)",
+    "title_1_1 : "1995"
   }
 ```
 
+```title_1_1``` follows the format of ```<column>_<match-count>_<match-position>```

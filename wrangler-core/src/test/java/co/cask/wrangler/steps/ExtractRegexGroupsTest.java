@@ -31,15 +31,18 @@ public class ExtractRegexGroupsTest {
   @Test
   public void testRegexGroups() throws Exception {
     String[] directives = new String[] {
-      "extract-regex-groups title (.*?)(\\([0-9]*\\))",
+      "extract-regex-groups title [^(]+\\(([0-9]{4})\\).*",
     };
 
     List<Record> records = Arrays.asList(
-      new Record("title", "Toy Story (1995)")
+      new Record("title", "Toy Story (1995)"),
+      new Record("title", "Toy Story")
     );
 
     records = PipelineTest.execute(directives, records);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(records.size() == 2);
+    Assert.assertEquals("1995", records.get(0).getValue(1));
+    Assert.assertEquals(1, records.get(1).length());
   }
 }
