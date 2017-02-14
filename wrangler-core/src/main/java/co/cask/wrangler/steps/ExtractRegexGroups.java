@@ -71,3 +71,4 @@ public class ExtractRegexGroups extends AbstractStep {
     return records;
   }
 }
+
