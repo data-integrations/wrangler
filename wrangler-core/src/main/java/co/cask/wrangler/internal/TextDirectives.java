@@ -21,6 +21,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
@@ -108,7 +109,7 @@ public class TextDirectives implements Directives {
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
     UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteAsJsonMap.class, RecordMissingOrNullFilter.class,
-    CatalogLookup.class, Stemming.class, ColumnsReplace.class
+    CatalogLookup.class, Stemming.class, ColumnsReplace.class, ExtractRegexGroups.class
   );
 
   public TextDirectives(String[] directives) {
@@ -670,6 +671,14 @@ public class TextDirectives implements Directives {
         case "columns-replace" : {
           String sed = getNextToken(tokenizer, command, "sed-expression", lineno);
           steps.add(new ColumnsReplace(lineno, directive, sed));
+        }
+        break;
+
+        // extract-regex-groups <column> <regex>
+        case "extract-regex-groups" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String regex = getNextToken(tokenizer, command, "regex", lineno);
+          steps.add(new ExtractRegexGroups(lineno, directive, column, regex));
         }
         break;
 
