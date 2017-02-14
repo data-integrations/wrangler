@@ -22,11 +22,9 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.JsPath;
-import co.cask.wrangler.steps.MaskNumber;
-import co.cask.wrangler.steps.MaskShuffle;
-import co.cask.wrangler.steps.nlp.Stemming;
-import co.cask.wrangler.steps.writer.WriteAsCSV;
-import co.cask.wrangler.steps.writer.WriteAsJsonMap;
+import co.cask.wrangler.steps.transformation.MaskNumber;
+import co.cask.wrangler.steps.transformation.MaskShuffle;
+import co.cask.wrangler.steps.column.ColumnsReplace;
 import co.cask.wrangler.steps.XmlToJson;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.Copy;
@@ -37,6 +35,7 @@ import co.cask.wrangler.steps.column.Rename;
 import co.cask.wrangler.steps.column.SplitToColumns;
 import co.cask.wrangler.steps.column.Swap;
 import co.cask.wrangler.steps.date.FormatDate;
+import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
@@ -66,6 +65,8 @@ import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
+import co.cask.wrangler.steps.writer.WriteAsCSV;
+import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +108,7 @@ public class TextDirectives implements Directives {
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
     UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteAsJsonMap.class, RecordMissingOrNullFilter.class,
-    CatalogLookup.class, Stemming.class
+    CatalogLookup.class, Stemming.class, ColumnsReplace.class
   );
 
   public TextDirectives(String[] directives) {
@@ -662,6 +663,13 @@ public class TextDirectives implements Directives {
         case "stemming" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new Stemming(lineno, directive, column));
+        }
+        break;
+
+        // columns <sed>
+        case "columns-replace" : {
+          String sed = getNextToken(tokenizer, command, "sed-expression", lineno);
+          steps.add(new ColumnsReplace(lineno, directive, sed));
         }
         break;
 
