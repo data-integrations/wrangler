@@ -21,6 +21,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.MaskNumber;
 import co.cask.wrangler.steps.MaskShuffle;
@@ -662,6 +663,14 @@ public class TextDirectives implements Directives {
         case "stemming" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new Stemming(lineno, directive, column));
+        }
+        break;
+
+        // extract-regex-groups <column> <regex>
+        case "extract-regex-groups" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String regex = getNextToken(tokenizer, command, "regex", lineno);
+          steps.add(new ExtractRegexGroups(lineno, directive, column, regex));
         }
         break;
 
