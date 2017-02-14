@@ -25,6 +25,8 @@ import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.MaskNumber;
 import co.cask.wrangler.steps.MaskShuffle;
+import co.cask.wrangler.steps.lookup.internal.ICDCatalog;
+import co.cask.wrangler.steps.lookup.internal.MaxMindGeoLookup;
 import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
@@ -49,7 +51,7 @@ import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SplitToRows;
-import co.cask.wrangler.steps.transformation.CatalogLookup;
+import co.cask.wrangler.steps.lookup.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
@@ -643,18 +645,36 @@ public class TextDirectives implements Directives {
         case "catalog-lookup" : {
           String type = getNextToken(tokenizer, command, "type", lineno);
           String column = getNextToken(tokenizer, command, "column", lineno);
-          if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10-2016") &&
-              !type.equalsIgnoreCase("ICD-10-2017")) {
-            throw new IllegalArgumentException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10-2016 " +
-                                                 "or ICD-10-2017).");
-          } else {
-            ICDCatalog catalog = new ICDCatalog(type);
-            if (!catalog.configure()) {
-              throw new DirectiveParseException(
-                String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
-              );
+
+          switch(type.toLowerCase()) {
+            case "icd-9":
+            case "icd-10-2016":
+            case "icd-10-2017": {
+              ICDCatalog catalog = new ICDCatalog(type);
+              if (!catalog.configure()) {
+                throw new DirectiveParseException(
+                  String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
+                );
+              }
+              steps.add(new CatalogLookup(lineno, directive, catalog, column));
             }
-            steps.add(new CatalogLookup(lineno, directive, catalog, column));
+            break;
+
+            case "country":
+            case "city": {
+              MaxMindGeoLookup catalog = new MaxMindGeoLookup(type);
+              if (!catalog.configure()) {
+                throw new DirectiveParseException(
+                  String.format("Failed to configure Geo Lookup StaticCatalog. Check with your administrator")
+                );
+              }
+              steps.add(new CatalogLookup(lineno, directive, catalog, column));
+            }
+            break;
+
+            default:
+              throw new IllegalArgumentException("Invalid catalog specified - should be ICD-9, ICD-10-2016, " +
+                                                   "ICD-10-2017, City, Country");
           }
         }
         break;
