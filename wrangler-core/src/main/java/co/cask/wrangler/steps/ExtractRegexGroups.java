@@ -27,7 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by nitin on 2/13/17.
+ * Extracts regex groups into separate columns.
  */
 @Usage(directive = "extract-regex-groups", usage = "extract-regex-groups <column> <regex-with-groups>")
 public class ExtractRegexGroups extends AbstractStep {
@@ -57,11 +57,13 @@ public class ExtractRegexGroups extends AbstractStep {
       if (idx != -1) {
         Object value = record.getValue(idx);
         if (value != null && value instanceof String) {
-          Matcher matcher = pattern.matcher((String) value);
-          if(matcher.matches()) {
-            for(int i = 0; i < matcher.groupCount(); i++) {
-              record.add(String.format("%s_%d", column, i), matcher.group(i));
+          Matcher matcher = pattern. matcher((String) value);
+          int count = 1;
+          while (matcher.find()) {
+            for(int i = 1; i <= matcher.groupCount(); i++) {
+              record.add(String.format("%s_%d_%d", column, count, i), matcher.group(i));
             }
+            count++;
           }
         }
       }
