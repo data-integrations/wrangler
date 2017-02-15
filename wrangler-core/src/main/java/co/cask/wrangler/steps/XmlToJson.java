@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * A XML to Json Parser Stage.
  */
-@Usage(directive = "parse-as-xml", usage = "parse-as-xml <column>")
+@Usage(directive = "parse-as-xml", usage = "parse-as-xml <column> [<depth>]")
 public class XmlToJson extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;

@@ -434,7 +434,7 @@ public class TextDirectives implements Directives {
           String depthOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
           int depth = Integer.MAX_VALUE;
           try {
-            if(depthOpt != null) {
+            if(depthOpt != null && !depthOpt.isEmpty()) {
               depth = Integer.parseInt(depthOpt);
             }
           } catch (NumberFormatException e) {
@@ -545,10 +545,19 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-hl7 <column>
+        // parse-as-hl7 <column> [<depth>]
         case "parse-as-hl7" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new HL7Parser(lineno, directive, column));
+          String depthOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int depth = Integer.MAX_VALUE;
+          try {
+            if (depthOpt != null && !depthOpt.isEmpty()) {
+              depth = Integer.parseInt(depthOpt);
+            }
+          } catch (NumberFormatException e) {
+            throw new DirectiveParseException(e.getMessage());
+          }
+          steps.add(new HL7Parser(lineno, directive, column, depth));
         }
         break;
         

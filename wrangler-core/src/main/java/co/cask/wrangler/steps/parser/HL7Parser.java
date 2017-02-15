@@ -43,15 +43,17 @@ import java.util.List;
 /**
  * A step for parsing the HL7 Message.
  */
-@Usage(directive = "parse-as-hl7", usage = "parse-as-hl7 <column>")
+@Usage(directive = "parse-as-hl7", usage = "parse-as-hl7 <column> [<depth>]")
 public class HL7Parser extends AbstractStep {
   private final String column;
   private final HapiContext context;
   private final Parser parser;
+  private final int depth;
 
-  public HL7Parser(int lineno, String detail, String column) {
+  public HL7Parser(int lineno, String detail, String column, int depth) {
     super(lineno, detail);
     this.column = column;
+    this.depth = depth;
     context = new DefaultHapiContext();
     context.setValidationContext(new NoValidation());
     parser = context.getGenericParser();
@@ -74,7 +76,7 @@ public class HL7Parser extends AbstractStep {
           // Handling the first parsing on HL7 message
           if (object instanceof String) {
             Message message = parser.parse((String) object);
-            HL7MessageVisitor visitor = new HL7MessageVisitor(record, column + "_hl7");
+            HL7MessageVisitor visitor = new HL7MessageVisitor(record, column + "_hl7", depth);
             MessageVisitors.visit(message,
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
           } else {
@@ -96,15 +98,17 @@ public class HL7Parser extends AbstractStep {
    */
   private final class HL7MessageVisitor implements MessageVisitor {
     private final Record record;
+    private final String column;
+    private final int depth;
     private JSONObject segments = new JSONObject();
     private JSONObject segmentObject = new JSONObject();
     private JSONObject compositeObject = new JSONObject();
     private boolean inComposite = false;
-    private String column;
 
-    public HL7MessageVisitor(Record record, String column) {
+    public HL7MessageVisitor(Record record, String column, int depth) {
       this.record = record;
       this.column = column;
+      this.depth = depth;
     }
 
     @Override
@@ -114,7 +118,7 @@ public class HL7Parser extends AbstractStep {
 
     @Override
     public boolean end(Message message) throws HL7Exception {
-      JsonParser.flattenJson(segments, column, 1, Integer.MAX_VALUE, record);
+      JsonParser.flattenJson(segments, column, 1, depth, record);
       return true;
     }
 
