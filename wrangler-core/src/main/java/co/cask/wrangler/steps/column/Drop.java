@@ -60,7 +60,7 @@ public class Drop extends AbstractStep {
     List<Record> result = new ArrayList<>();
     for (Record record : records) {
       for(String column : columns) {
-        int idx = record.find(column);
+        int idx = record.find(column.trim());
         if (idx != -1) {
           record.remove(idx);
         }

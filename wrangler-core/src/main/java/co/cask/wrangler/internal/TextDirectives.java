@@ -154,6 +154,10 @@ public class TextDirectives implements Directives {
 
     // Iterate through each directive and create necessary stepRegistry.
     for (String directive : directives) {
+      directive = directive.trim();
+      if(directive.isEmpty() || directive.startsWith("//")) {
+        continue;
+      }
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
 
