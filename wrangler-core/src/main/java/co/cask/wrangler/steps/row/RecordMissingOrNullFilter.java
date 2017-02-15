@@ -50,7 +50,7 @@ public class RecordMissingOrNullFilter extends AbstractStep {
     for (Record record : records) {
       boolean missingOrNull = true;
       for (String column : columns) {
-        int idx = record.find(column);
+        int idx = record.find(column.trim());
         if (idx != -1) {
           Object value = record.getValue(idx);
           if (value != null) {

@@ -39,7 +39,7 @@ public class Keep extends AbstractStep {
     super(lineno, directive);
     this.columns = columns;
     for (String column : columns) {
-      mapping.put(column, true);
+      mapping.put(column.trim(), true);
     }
   }
 
