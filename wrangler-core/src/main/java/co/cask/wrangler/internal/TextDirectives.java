@@ -428,10 +428,19 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-xml <column>
+        // parse-as-xml <column> [<depth>]
         case "parse-as-xml" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new XmlToJson(lineno, directive, column));
+          String depthOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int depth = Integer.MAX_VALUE;
+          try {
+            if(depthOpt != null) {
+              depth = Integer.parseInt(depthOpt);
+            }
+          } catch (NumberFormatException e) {
+            throw new DirectiveParseException(e.getMessage());
+          }
+          steps.add(new XmlToJson(lineno, directive, column, depth));
         }
         break;
 

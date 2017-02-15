@@ -34,10 +34,12 @@ import java.util.List;
 public class XmlToJson extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;
+  private int depth;
 
-  public XmlToJson(int lineno, String detail, String col) {
+  public XmlToJson(int lineno, String detail, String col, int depth) {
     super(lineno, detail);
     this.col = col;
+    this.depth = depth;
   }
 
   /**
@@ -60,7 +62,7 @@ public class XmlToJson extends AbstractStep {
 
         try {
           if (object instanceof String) {
-            JsonParser.flattenJson(XML.toJSONObject((String) object), col, 1, Integer.MAX_VALUE, record);
+            JsonParser.flattenJson(XML.toJSONObject((String) object), col, 1, depth, record);
             record.remove(idx);
           } else {
             throw new StepException(
