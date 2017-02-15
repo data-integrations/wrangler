@@ -1,6 +1,6 @@
 # Filter Row based on Regular Expression
 
-FILTER-ROW-ON directive provides a way to filters records from the dataset.
+FILTER-ROWS-ON directive provides a way to filters records from the dataset.
 
 ## Syntax
 ```
