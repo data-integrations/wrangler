@@ -8,12 +8,36 @@ COLUMNS-FORMAT-CASE directive provides the ability to clean up the column names 
  columns-format-case current-format desired-format
 ```
 
-```current-format``` specifies the current format and can accept any of the following options: lower_hyphen, 
+```current-format``` or ```desired-format``` specifies the current or desired format and can accept any of the following options:
+* lower_hyphen (e.g. column-name)
+* lower_underscore (e.g. column_name)
+* lower_camel (e.g. columnName)
+* upper_camel (e.g. ColumnName)
+* upper_underscore (e.g. COLUMN_NAME)
 
 ## Usage Notes
 
 Let's consider a simple example. Following is the record that contains
-columns that all have ```data_``` as prefix.
+columns all in a format containing camelCase.
+
+```
+  {
+    "dataName": "root",
+    "dataFirstName": "mars",
+    "dataLastName": "joltie",
+    "dataDataId": 1,
+    "dataAddress": "150 Mars Ave, Mars City, Mars, 8899898",
+    "dataMarsSsn" : "MARS-456282"
+  }
+```
+
+applying the directive as follows
+
+```
+  columns-format-case lower_camel lower_underscore
+```
+
+would result in the record that has an has column names as follows:
 
 ```
   {
@@ -22,28 +46,8 @@ columns that all have ```data_``` as prefix.
     "data_last_name": "joltie",
     "data_data_id": 1,
     "data_address": "150 Mars Ave, Mars City, Mars, 8899898",
-    "mars_ssn" : "MARS-456282"
+    "data_mars_ssn" : "MARS-456282"
   }
 ```
 
-applying the directive as follows
-
-```
-  columns-replace s/^data_//g
-```
-
-would result in the record that has an has column names prefix ```data_``` replaced
-with empty string, making the record look as follows:
-
-```
-  {
-    "name": "root",
-    "first_name": "mars",
-    "last_name": "joltie",
-    "data_id": 1,
-    "address": "150 Mars Ave, Mars City, Mars, 8899898",
-    "mars_ssn" : "MARS-456282"
-  }
-```
-
-> Note: The field value is untouched during this process. This operates only on the column names.
+> Note: The field values are untouched during this process. This operates only on the column names.

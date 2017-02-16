@@ -17,7 +17,6 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.PipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,9 +25,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link ColumnsFormatCase}
+ * Tests {@link ColumnsFormatCaseTest}
  */
-public class ColumnsFormatCase {
+public class ColumnsFormatCaseTest {
 
   @Test
   public void testColumnsFormatCase() throws Exception {
@@ -37,14 +36,14 @@ public class ColumnsFormatCase {
     };
 
     List<Record> records = Arrays.asList(
-      new Record("someThing", 1).add("thisWay", 2).add("wickedComes", 3)
+      new Record("what_someThing", 1).add("about_thisWay", 2).add("wickedComes", 3)
     );
 
     records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("some_thing", records.get(0).getColumn(0));
-    Assert.assertEquals("this_way", records.get(0).getColumn(1));
+    Assert.assertEquals("what_some_thing", records.get(0).getColumn(0));
+    Assert.assertEquals("about_this_way", records.get(0).getColumn(1));
     Assert.assertEquals("wicked_comes", records.get(0).getColumn(2));
   }
 }
