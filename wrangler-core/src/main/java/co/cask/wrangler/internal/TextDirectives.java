@@ -23,9 +23,11 @@ import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
+import co.cask.wrangler.steps.column.ColumnsFormatCase;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.column.ColumnsReplace;
+import co.cask.wrangler.steps.column.ColumnsFormatCase;
 import co.cask.wrangler.steps.XmlToJson;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.Copy;
@@ -109,7 +111,7 @@ public class TextDirectives implements Directives {
     RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
     SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
     UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteAsJsonMap.class, RecordMissingOrNullFilter.class,
-    CatalogLookup.class, Stemming.class, ColumnsReplace.class, ExtractRegexGroups.class
+    CatalogLookup.class, Stemming.class, ColumnsReplace.class, ExtractRegexGroups.class, ColumnsFormatCase.class
   );
 
   public TextDirectives(String[] directives) {
@@ -127,7 +129,7 @@ public class TextDirectives implements Directives {
     }
 
     // These are for directives that use other steps for executing.
-    // wWe add them exclusively
+    // We add them exclusively
     usages.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
     usages.put("set format", "set format csv <delimiter> <skip empty lines>");
     usages.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
@@ -693,6 +695,14 @@ public class TextDirectives implements Directives {
         case "columns-replace" : {
           String sed = getNextToken(tokenizer, command, "sed-expression", lineno);
           steps.add(new ColumnsReplace(lineno, directive, sed));
+        }
+        break;
+
+        // columns-format-case <current-case> <desired-case>
+        case "columns-format-case" : {
+          String currentCase = getNextToken(tokenizer, command, "current-case", lineno);
+          String desiredCase = getNextToken(tokenizer, command, "desired-case", lineno);
+          steps.add(new ColumnsFormatCase(lineno, directive, currentCase, desiredCase));
         }
         break;
 
