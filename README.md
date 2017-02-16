@@ -121,6 +121,7 @@ Following are different directives currently available.
   * [Split To Columns](docs/directives/split-to-columns.md)
   * [Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md)
   * [Replace Column Names - Bulk](docs/directives/columns-replace.md)
+  * [Format Column Case](docs/directives/columns-format-case.md)
 * **NLP**
   * [Stemming Tokenized Words](docs/directives/stemming.md)
   

@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package co.cask.wrangler.service;
 
 import co.cask.cdap.api.annotation.UseDataSet;
@@ -64,7 +63,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 /**
- * Created by nitin on 1/27/17.
+ * A service that exposes endpoints used by Wrangler.
  */
 public class WranglerService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(WranglerService.class);
@@ -77,15 +76,17 @@ public class WranglerService extends AbstractHttpServiceHandler {
    *
    * @param request
    * @param responder
-   * @param ws
+   * @param ws The name of the workspace to create.
    */
   @PUT
+  @POST
   @Path("workspaces/{workspace}")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws) {
     try {
-      Put created
-        = new Put (Bytes.toBytes(ws), Bytes.toBytes("created"), Bytes.toBytes((long)System.currentTimeMillis()/1000));
+      Put created = new Put(Bytes.toBytes(ws),
+                            Bytes.toBytes("created"),
+                            Bytes.toBytes(System.currentTimeMillis()/1000L));
       workspace.put(created);
       success(responder, String.format("Successfully created workspace '%s'", ws));
     } catch (DataSetException e) {
@@ -98,7 +99,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
    *
    * @param request
    * @param responder
-   * @param ws
+   * @param ws The name of the workspace to delete.
    */
   @DELETE
   @Path("workspaces/{workspace}")
@@ -148,7 +149,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   @GET
   @Path("workspaces/{workspace}/download")
   public void download(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws ) {
+                       @PathParam("workspace") String ws ) {
 
     try {
       Row row = workspace.get(Bytes.toBytes(ws));
@@ -273,8 +274,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
       response.put("items", 2);
       response.put("value", result);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (DataSetException e) {
-      error(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -323,8 +322,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
       }
 
       sendJson(responder, HttpURLConnection.HTTP_OK, values.toString());
-    } catch (DataSetException e) {
-      error(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -374,7 +371,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
       error(responder, e.getMessage());
     }
   }
-
 
   // Application Platform System - Big Data Appliance
   private List<Record>  execute (List<Record> records, String[] directives, int limit)
