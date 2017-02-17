@@ -26,9 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Filters records if that don't have all the columns specified or they have null values or combination.
+ * Filters records if they don't have all the columns specified or they have null values or combination.
  */
-@Usage(directive = "filter-rows-on", usage="filter-rows-on empty-or-null <column>[,<column>]*")
+@Usage(
+  directive = "filter-rows-on",
+  usage="filter-rows-on empty-or-null <column>[,<column>]*",
+  description = "Filters row that have empty or null columns."
+)
 public class RecordMissingOrNullFilter extends AbstractStep {
   private final String[] columns;
 

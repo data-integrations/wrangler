@@ -36,7 +36,11 @@ import java.util.List;
 /**
  * A step to write the record fields as CSV.
  */
-@Usage(directive = "write-as-csv", usage = "write-as-csv <column>")
+@Usage(
+  directive = "write-as-csv",
+  usage = "write-as-csv <column>",
+  description = "Writes the records files as well-formatted CSV"
+)
 public class WriteAsCSV extends AbstractStep {
   private final String column;
   private final CSVPrinter writer;

@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * Looks ICD Code from the catalog.
  */
-@Usage(directive = "catalog-lookup", usage = "catalog-lookup <catalog> <column>")
+@Usage(
+  directive = "catalog-lookup",
+  usage = "catalog-lookup <catalog> <column>",
+  description = "Look codes, values from catalogs defined."
+)
 public class CatalogLookup extends AbstractStep {
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;

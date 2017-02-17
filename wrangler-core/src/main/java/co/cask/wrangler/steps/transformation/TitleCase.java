@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * A Wrangler step for title casing the 'col' value of type String.
  */
-@Usage(directive = "titlecase", usage = "titlecase <column>")
+@Usage(
+  directive = "titlecase",
+  usage = "titlecase <column>",
+  description = "Changes the column value to titlecase."
+)
 public class TitleCase extends AbstractStep {
   // Columns of the column to be lower cased.
   private String col;

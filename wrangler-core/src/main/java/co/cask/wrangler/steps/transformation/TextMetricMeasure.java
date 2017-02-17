@@ -29,7 +29,11 @@ import java.util.List;
 /**
  * Step for implementing the directive for measuring the metrics between two sequence of characters.
  */
-@Usage(directive = "text-metric", usage = "text-metric <method> <column1> <column2> <destination>")
+@Usage(
+  directive = "text-metric",
+  usage = "text-metric <method> <column1> <column2> <destination>",
+  description = "Calculates the metric for comparing two string values."
+)
 public class TextMetricMeasure extends AbstractStep {
   private final String column1;
   private final String column2;

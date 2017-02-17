@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * A Fixed length Parser Stage for parsing the {@link Record} provided based on configuration.
  */
-@Usage(directive = "parse-as-fixed-length", usage = "parse-as-fixed-length <source> <width,width,...>")
+@Usage(
+  directive = "parse-as-fixed-length",
+  usage = "parse-as-fixed-length <source> <width,width,...>",
+  description = "Parses fixed length files using the width specification."
+)
 public final class FixedLengthParser extends AbstractStep {
   private final int[] widths;
   private final String col;

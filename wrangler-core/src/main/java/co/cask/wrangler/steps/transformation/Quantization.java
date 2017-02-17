@@ -33,8 +33,12 @@ import java.util.regex.Pattern;
 /**
  * A Wrangler step for quantizing a column.
  */
-@Usage(directive = "quantize", usage = "quantize <source> <destination> " +
-  "<[range1:range2)=value>,[<range1:range2=value>]*")
+@Usage(
+  directive = "quantize",
+  usage = "quantize <source> <destination> " +
+  "<[range1:range2)=value>,[<range1:range2=value>]*",
+  description = "Quanitize the range of numbers into label values."
+)
 public class Quantization extends AbstractStep {
   private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();

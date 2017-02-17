@@ -29,7 +29,11 @@ import java.util.List;
 /**
  * A directive that Flattens a record
  */
-@Usage(directive = "flatten", usage = "flatten <column>[,<column>,<column>,...]")
+@Usage(
+  directive = "flatten",
+  usage = "flatten <column>[,<column>,<column>,...]",
+  description = "Separates array elements of a column into indvidual records. Copies rest of the columns."
+)
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;
