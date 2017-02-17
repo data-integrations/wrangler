@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * A Wrangler step for upper casing the 'col' value of type String.
  */
-@Usage(directive = "uppercase", usage = "uppercase <column>")
+@Usage(
+  directive = "uppercase",
+  usage = "uppercase <column>",
+  description = "Changes the column value to uppercase."
+)
 public class Upper extends AbstractStep {
   // Columns of the column to be upper cased.
   private String col;

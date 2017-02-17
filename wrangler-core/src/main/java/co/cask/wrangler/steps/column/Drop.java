@@ -32,7 +32,11 @@ import java.util.List;
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
  */
-@Usage(directive = "drop", usage = "drop <column>[,<column>]*")
+@Usage(
+  directive = "drop",
+  usage = "drop <column>[,<column>]*",
+  description = "Drop one or more columns."
+)
 public class Drop extends AbstractStep {
   // Columns to be dropped.
   private List<String> columns;

@@ -16,18 +16,15 @@
 
 package co.cask.wrangler.internal;
 
-import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.UsageRegistry;
 import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
-import co.cask.wrangler.steps.transformation.MaskNumber;
-import co.cask.wrangler.steps.transformation.MaskShuffle;
-import co.cask.wrangler.steps.column.ColumnsReplace;
 import co.cask.wrangler.steps.XmlToJson;
 import co.cask.wrangler.steps.column.Columns;
+import co.cask.wrangler.steps.column.ColumnsReplace;
 import co.cask.wrangler.steps.column.Copy;
 import co.cask.wrangler.steps.column.Drop;
 import co.cask.wrangler.steps.column.Keep;
@@ -55,6 +52,8 @@ import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
 import co.cask.wrangler.steps.transformation.IndexSplit;
 import co.cask.wrangler.steps.transformation.Lower;
+import co.cask.wrangler.steps.transformation.MaskNumber;
+import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.Sed;
@@ -64,7 +63,6 @@ import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
 import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
-import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
@@ -77,9 +75,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
@@ -95,42 +91,11 @@ public class TextDirectives implements Directives {
   // directives for wrangling.
   private String[] directives;
 
-  // Mapping of specification usages.
-  private final Map<String, String> usages = new HashMap<>();
-
-  // List of all Steps
-  List<Class<? extends AbstractStep>> stepRegistry = Arrays.asList(
-    CharacterCut.class, Columns.class, Copy.class, CsvParser.class,
-    Drop.class, Expression.class, FillNullOrEmpty.class, FixedLengthParser.class,
-    Flatten.class, FormatDate.class, GenerateUUID.class, HL7Parser.class,
-    IndexSplit.class, JsonParser.class, JsPath.class, Keep.class, Lower.class,
-    MaskNumber.class, MaskShuffle.class, Merge.class, MessageHash.class,
-    ParseDate.class, ParseLog.class, Quantization.class, RecordConditionFilter.class,
-    RecordRegexFilter.class, Rename.class, Sed.class, Split.class, SplitEmail.class,
-    SplitToColumns.class, SplitToRows.class, Swap.class, TitleCase.class, Upper.class,
-    UrlDecode.class, UrlEncode.class, XmlToJson.class, WriteAsJsonMap.class, RecordMissingOrNullFilter.class,
-    CatalogLookup.class, Stemming.class, ColumnsReplace.class, ExtractRegexGroups.class
-  );
+  // Usage Registry
+  private final UsageRegistry usageRegistry = new UsageRegistry();
 
   public TextDirectives(String[] directives) {
     this.directives = directives;
-
-    // Iterate through registry of steps to collect the
-    // directive and usage.
-    for (Class<? extends AbstractStep> step : stepRegistry) {
-      Usage usage = step.getAnnotation(Usage.class);
-      if (usage == null) {
-        LOG.warn("Usage annotation for directive '{}' missing.", step.getSimpleName());
-        continue;
-      }
-      usages.put(usage.directive(), usage.usage());
-    }
-
-    // These are for directives that use other steps for executing.
-    // wWe add them exclusively
-    usages.put("parse-xml-element", "parse-xml-element <column> <delete-column>");
-    usages.put("set format", "set format csv <delimiter> <skip empty lines>");
-    usages.put("format-unix-timestamp", "format-unix-timestamp <column> <destination-format>");
   }
 
   public TextDirectives(String directives) {
@@ -360,7 +325,6 @@ public class TextDirectives implements Directives {
         break;
 
         // parse-as-json <column> [depth]
-        case "parse-xml-element":
         case "parse-as-json" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String depthOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
@@ -737,10 +701,10 @@ public class TextDirectives implements Directives {
       }
     } else {
       if (!optional) {
-        String d = usages.get(directive);
+        String usage = usageRegistry.getUsage(directive);
         throw new DirectiveParseException(
           String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)",
-                        field, lineno, directive, d)
+                        field, lineno, directive, usage)
         );
       }
     }
@@ -756,4 +720,3 @@ public class TextDirectives implements Directives {
     return parse();
   }
 }
-

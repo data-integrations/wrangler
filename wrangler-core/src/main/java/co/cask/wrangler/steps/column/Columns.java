@@ -31,7 +31,11 @@ import java.util.List;
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
  */
-@Usage(directive = "set columns", usage = "set columns <column,column,...>")
+@Usage(
+  directive = "set columns",
+  usage = "set columns <column,column,...>",
+  description = "Sets the column names."
+)
 public class Columns extends AbstractStep {
   // Name of the columns represented in a {@link Record}
   private List<String> columns;

@@ -32,7 +32,11 @@ import java.util.List;
 /**
  * A CSV Parser Stage for parsing the {@link Record} provided based on configuration.
  */
-@Usage(directive = "parse-as-csv", usage = "parse-as-csv <column> <delimiter> <skip-if-empty - true or false>")
+@Usage(
+  directive = "parse-as-csv",
+  usage = "parse-as-csv <column> <delimiter> <skip-if-empty - true or false>",
+  description = "Parses a column as CSV."
+)
 public class CsvParser extends AbstractStep {
   // Column within the input row that needs to be parsed as CSV
   private String col;

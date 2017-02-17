@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * A step to write the record fields as JSON.
  */
-@Usage(directive = "write-as-json-map", usage = "write-as-json-map <column>")
+@Usage(
+  directive = "write-as-json-map",
+  usage = "write-as-json-map <column>",
+  description = "Writes all record columns as JSON map."
+)
 public class WriteAsJsonMap extends AbstractStep {
   private final String column;
   private final Gson gson;

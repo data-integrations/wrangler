@@ -40,7 +40,11 @@ import java.util.Random;
  *   </blockquote>
  * </p>
  */
-@Usage(directive = "mask-shuffle", usage = "mask-shuffle <column>")
+@Usage(
+  directive = "mask-shuffle",
+  usage = "mask-shuffle <column>",
+  description = "Masks a column value by shuffling characters, but keep the length intact."
+)
 public class MaskShuffle extends AbstractStep {
   // Column on which to apply mask.
   private final String column;

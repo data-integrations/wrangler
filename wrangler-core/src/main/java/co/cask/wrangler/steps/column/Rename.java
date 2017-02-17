@@ -27,7 +27,11 @@ import java.util.List;
 /**
  * Wrangle Step for renaming a column.
  */
-@Usage(directive = "rename", usage = "rename <old> <new>")
+@Usage(
+  directive = "rename",
+  usage = "rename <old> <new>",
+  description = "Rename a column name."
+)
 public class Rename extends AbstractStep {
   // Columns of the columns that needs to be renamed.
   private String oldcol;

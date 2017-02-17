@@ -30,9 +30,12 @@ import java.util.List;
 
 /**
  * A Wrangle step for managing date formats.
- *
  */
-@Usage(directive = "format-date", usage = "format-date <column> <format>")
+@Usage(
+  directive = "format-date",
+  usage = "format-date <column> <format>",
+  description = "Format the column using date format."
+)
 public class FormatDate extends AbstractStep {
   private final String format;
   private final String column;
@@ -79,4 +82,3 @@ public class FormatDate extends AbstractStep {
     return results;
   }
 }
-

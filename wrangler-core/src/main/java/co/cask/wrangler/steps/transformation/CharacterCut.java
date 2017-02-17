@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * A step that implements unix cut directive.
  */
-@Usage(directive = "cut-character", usage = "cut-character <source> <destination> <range|indexes>")
+@Usage(
+  directive = "cut-character",
+  usage = "cut-character <source> <destination> <range|indexes>",
+  description = "Unix like 'cut' directive for splitting text"
+)
 public class CharacterCut extends AbstractStep {
   private String source;
   private String destination;

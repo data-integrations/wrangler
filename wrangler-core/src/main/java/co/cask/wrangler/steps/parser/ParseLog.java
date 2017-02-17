@@ -29,7 +29,11 @@ import java.util.List;
 /**
  * A Step for parsing Apache HTTPD and NGINX log files.
  */
-@Usage(directive = "parse-as-log", usage = "parse-as-log <column> <format>")
+@Usage(
+  directive = "parse-as-log",
+  usage = "parse-as-log <column> <format>",
+  description = "Parses Apache HTTPD and NGINX logs."
+)
 public class ParseLog extends AbstractStep {
   private final String column;
   private final String format;

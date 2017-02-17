@@ -27,7 +27,11 @@ import java.util.List;
 /**
  * A step to copy data from one column to another.
  */
-@Usage(directive = "copy", usage = "copy <source> <destination> [force]")
+@Usage(
+  directive = "copy",
+  usage = "copy <source> <destination> [force]",
+  description = "Copy data from one column to another."
+)
 public class Copy extends AbstractStep {
   private String source;
   private String destination;

@@ -33,7 +33,11 @@ import java.util.Map;
 /**
  * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
  */
-@Usage(directive = "json-path", usage = "json-path <source> <destination> <json path>")
+@Usage(
+  directive = "json-path",
+  usage = "json-path <source> <destination> <json path>",
+  description = "Parses JSON elements using JSON paths."
+)
 public class JsPath extends AbstractStep {
   private String src;
   private String dest;

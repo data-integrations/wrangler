@@ -29,7 +29,11 @@ import java.util.List;
 /**
  * A Step to encode a column with url encoding.
  */
-@Usage(directive = "url-encode", usage = "url-encode <column>")
+@Usage(
+  directive = "url-encode",
+  usage = "url-encode <column>",
+  description = "URL encode a column value."
+)
 public class UrlEncode extends AbstractStep {
   private final String column;
 
