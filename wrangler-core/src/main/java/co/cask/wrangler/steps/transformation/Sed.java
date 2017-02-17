@@ -30,7 +30,11 @@ import java.util.List;
 /**
  * A Wrangle step for 'Sed' like transformations on the column.
  */
-@Usage(directive = "sed", usage = "sed <column> <expression>")
+@Usage(
+  directive = "sed",
+  usage = "sed <column> <expression>",
+  description = "Stream editor (similar to unix) to perform on columns."
+)
 public class Sed extends AbstractStep {
   private final String pattern;
   private final String column;

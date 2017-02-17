@@ -32,6 +32,7 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.UsageRegistry;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -374,6 +376,55 @@ public class WranglerService extends AbstractHttpServiceHandler {
       error(responder, e.getMessage());
     }
   }
+
+  /**
+   * This REST API returns an array of all the directives, their usage and description.
+   *
+   * Following is the response of this call.
+   * {
+   *   "status": "OK",
+   *   "message": "Success",
+   *   "items" : 10,
+   *   "values" : [
+   *      {
+   *        "directive" : "parse-as-csv",
+   *        "usage" : "parse-as-csv <column> <delimiter> <skip-empty-row>",
+   *        "description" : "Parses as CSV ..."
+   *      },
+   *      ...
+   *   ]
+   * }
+   * @param request to gather information of the request.
+   * @param responder to respond to the service request.
+   */
+  @GET
+  @Path("usage")
+  public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
+    try {
+      UsageRegistry registry = new UsageRegistry();
+      Map<String, UsageRegistry.UsageDatum> usages = registry.getAll();
+
+      JSONObject response = new JSONObject();
+      int items = 0;
+      JSONArray values = new JSONArray();
+      for (Map.Entry<String, UsageRegistry.UsageDatum> entry : usages.entrySet()) {
+        JSONObject usage = new JSONObject();
+        usage.put("directive", entry.getKey());
+        usage.put("usage", entry.getValue().getUsage());
+        usage.put("description", entry.getValue().getDescription());
+        values.put(usage);
+        items++;
+      }
+      response.put("status", HttpURLConnection.HTTP_OK);
+      response.put("message", "Success");
+      response.put("items", items);
+      response.put("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    }
+  }
+
 
 
   // Application Platform System - Big Data Appliance

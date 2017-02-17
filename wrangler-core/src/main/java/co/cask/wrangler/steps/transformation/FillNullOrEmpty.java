@@ -27,7 +27,11 @@ import java.util.List;
 /**
  * A step to fill null or empty column values with a fixed value.
  */
-@Usage(directive = "fill-null-or-empty", usage = "fill-null-or-empty <column> <fixed-value>")
+@Usage(
+  directive = "fill-null-or-empty",
+  usage = "fill-null-or-empty <column> <fixed-value>",
+  description = "Fills a value of a column if it's empty or null with a fixed value."
+)
 public class FillNullOrEmpty extends AbstractStep {
   private String column;
   private String value;

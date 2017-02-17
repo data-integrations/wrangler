@@ -27,7 +27,11 @@ import java.util.List;
 /**
  * A step for swapping the column names.
  */
-@Usage(directive = "swap", usage = "swap <column1> <column2>")
+@Usage(
+  directive = "swap",
+  usage = "swap <column1> <column2>",
+  description = "Swap the column names."
+)
 public class Swap extends AbstractStep {
   private final String column1;
   private final String column2;

@@ -29,7 +29,11 @@ import java.util.List;
 /**
  * Step for implementing the directive for measuring the difference between two sequence of characters.
  */
-@Usage(directive = "text-distance", usage = "text-distance <method> <column1> <column2> <destination>")
+@Usage(
+  directive = "text-distance",
+  usage = "text-distance <method> <column1> <column2> <destination>",
+  description = "Calculates a text distance measure between two columns containing string."
+)
 public class TextDistanceMeasure extends AbstractStep {
   private final String column1;
   private final String column2;

@@ -40,7 +40,11 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
-@Usage(directive = "filter-row-if-true", usage = "filter-row-if-true <condition>")
+@Usage(
+  directive = "filter-row-if-true",
+  usage = "filter-row-if-true <condition>",
+  description = "Filters rows if condition is evaluated to true."
+)
 public class RecordConditionFilter extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;

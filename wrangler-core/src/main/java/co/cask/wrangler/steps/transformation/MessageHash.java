@@ -31,7 +31,11 @@ import java.util.TreeMap;
 /**
  * A Step to generate a message digest or hash of a column value. .
  */
-@Usage(directive = "hash", usage = "hash <column> <algorithm> [replace]")
+@Usage(
+  directive = "hash",
+  usage = "hash <column> <algorithm> [replace]",
+  description = "Creates a message digest for the column."
+)
 public class MessageHash extends AbstractStep {
   private static final Map<String, Boolean> algorithms = new TreeMap<>();
   private final String column;

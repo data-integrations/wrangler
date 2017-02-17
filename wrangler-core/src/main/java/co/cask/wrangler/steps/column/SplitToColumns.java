@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * A Split on Stage for splitting the columns into multiple columns.
  */
-@Usage(directive = "split-to-columns", usage = "split-to-columns <column> <regex>")
+@Usage(
+  directive = "split-to-columns",
+  usage = "split-to-columns <column> <regex>",
+  description = "Split a column into one or more columns with a regex."
+)
 public class SplitToColumns extends AbstractStep {
   // Column on which to apply mask.
   private final String column;

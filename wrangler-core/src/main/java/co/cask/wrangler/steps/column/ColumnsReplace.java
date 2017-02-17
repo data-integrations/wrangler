@@ -31,7 +31,11 @@ import java.util.List;
  *
  * This directive helps clearing out the columns names to make it more readable.
  */
-@Usage(directive = "columns-replace", usage = "columns-replace <sed-expression>")
+@Usage(
+  directive = "columns-replace",
+  usage = "columns-replace <sed-expression>",
+  description = "Modify column names using sed format."
+)
 public class ColumnsReplace extends AbstractStep {
   private final String sed;
 

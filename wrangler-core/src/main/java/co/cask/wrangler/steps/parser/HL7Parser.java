@@ -43,7 +43,11 @@ import java.util.List;
 /**
  * A step for parsing the HL7 Message.
  */
-@Usage(directive = "parse-as-hl7", usage = "parse-as-hl7 <column> [<depth>]")
+@Usage(
+  directive = "parse-as-hl7",
+  usage = "parse-as-hl7 <column> [<depth>]",
+  description = "Parses Health Level Seven International(HL7) files (non-xml)."
+)
 public class HL7Parser extends AbstractStep {
   private final String column;
   private final HapiContext context;

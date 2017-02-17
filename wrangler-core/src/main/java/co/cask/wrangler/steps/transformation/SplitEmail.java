@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * A Step to split email address into account and domain.
  */
-@Usage(directive = "split-email", usage = "split-email <column>")
+@Usage(
+  directive = "split-email",
+  usage = "split-email <column>",
+  description = "Split a email into account and domain."
+)
 public class SplitEmail extends AbstractStep {
   private final String column;
 
