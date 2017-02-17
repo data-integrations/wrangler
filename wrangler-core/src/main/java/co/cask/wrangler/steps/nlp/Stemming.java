@@ -31,7 +31,11 @@ import java.util.List;
 /**
  * Step for stemming the words provided using Porter Stemming.
  */
-@Usage(directive = "stemming", usage = "stemming <column>")
+@Usage(
+  directive = "stemming",
+  usage = "stemming <column>",
+  description = "Apply Porter Stemming on the column value."
+)
 public class Stemming extends AbstractStep {
   private final String column;
   private final PorterStemmer stemmer;

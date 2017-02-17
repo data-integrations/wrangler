@@ -29,7 +29,11 @@ import java.util.List;
 /**
  * A Wrangler step for splitting a col into two additional columns based on a delimiter.
  */
-@Usage(directive = "split", usage = "split <source> <delimiter> <new-column-1> <new-column-2>")
+@Usage(
+  directive = "split",
+  usage = "split <source> <delimiter> <new-column-1> <new-column-2>",
+  description = "[DEPRECATED] Use 'split-to-columns' or 'split-to-rows'."
+)
 public class Split extends AbstractStep {
   // Name of the column to be split
   private String col;

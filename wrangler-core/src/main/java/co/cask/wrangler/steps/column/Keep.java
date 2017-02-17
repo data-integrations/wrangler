@@ -30,7 +30,11 @@ import java.util.Map;
 /**
  * A step that implements the opposite of {@link Drop} columns.
  */
-@Usage(directive = "keep", usage = "keep <column>[,<column>]*")
+@Usage(
+  directive = "keep",
+  usage = "keep <column>[,<column>]*",
+  description = "Keep the columns specified and drop the rest."
+)
 public class Keep extends AbstractStep {
   private final String[] columns;
   private final Map<String, Boolean> mapping = new HashMap<>();

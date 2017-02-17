@@ -29,7 +29,11 @@ import java.util.regex.Pattern;
 /**
  * Extracts regex groups into separate columns.
  */
-@Usage(directive = "extract-regex-groups", usage = "extract-regex-groups <column> <regex-with-groups>")
+@Usage(
+  directive = "extract-regex-groups",
+  usage = "extract-regex-groups <column> <regex-with-groups>",
+  description = "Extracts groups from regex into columns."
+)
 public class ExtractRegexGroups extends AbstractStep {
   private final String column;
   private final String regex;

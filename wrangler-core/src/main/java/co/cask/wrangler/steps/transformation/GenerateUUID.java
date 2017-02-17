@@ -29,7 +29,11 @@ import java.util.UUID;
 /**
  * A Step to generate UUID.
  */
-@Usage(directive = "generate-uuid", usage = "generate-uuid <column>")
+@Usage(
+  directive = "generate-uuid",
+  usage = "generate-uuid <column>",
+  description = "Populates a column with a universally unique identifier."
+)
 public class GenerateUUID extends AbstractStep {
   private final String column;
   private final Random random;

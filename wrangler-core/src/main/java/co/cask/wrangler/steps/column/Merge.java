@@ -28,7 +28,11 @@ import java.util.List;
 /**
  * Wrangle Step that merges two columns and creates a third column.
  */
-@Usage(directive = "merge", usage = "merge <first> <second> <new-column> <seperator>")
+@Usage(
+  directive = "merge",
+  usage = "merge <first> <second> <new-column> <separator>",
+  description = "Merges two columns with a separator into a new column. "
+)
 public class Merge extends AbstractStep {
   // Source column1
   private String col1;

@@ -29,7 +29,11 @@ import java.util.List;
 /**
  * A Step to decodes a column with url encoding.
  */
-@Usage(directive = "url-decode", usage = "url-decode <column>")
+@Usage(
+  directive = "url-decode",
+  usage = "url-decode <column>",
+  description = "URL decode a column value."
+)
 public class UrlDecode extends AbstractStep {
   private final String column;
 
