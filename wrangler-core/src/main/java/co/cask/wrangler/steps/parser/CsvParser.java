@@ -26,7 +26,6 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -69,7 +68,6 @@ public class CsvParser extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context)
     throws StepException {
 
-    List<Record> results = new ArrayList<>();
     for (Record record : records) {
       String line = (String) record.getValue(col);
       if (line == null) {
@@ -80,13 +78,13 @@ public class CsvParser extends AbstractStep {
         parser = CSVParser.parse(line, format);
         List<CSVRecord> csvRecords = parser.getRecords();
         for (CSVRecord csvRecord : csvRecords) {
-          results.add(toRow(csvRecord, record));
+          toRow(csvRecord, record);
         }
       } catch (IOException e) {
         throw new StepException(toString(), e);
       }
     }
-    return results;
+    return records;
   }
 
   /**
@@ -95,12 +93,10 @@ public class CsvParser extends AbstractStep {
    * @param record
    * @return
    */
-  private Record toRow(CSVRecord record, Record row) {
-    Record r = new Record(row);
+  private void toRow(CSVRecord record, Record row) {
     for ( int i = 0; i < record.size(); i++) {
-      r.add(col + "_" + (i + 1), record.get(i));
+      row.add(col + "_" + (i + 1), record.get(i));
     }
-    return r;
   }
 
   /**
