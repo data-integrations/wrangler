@@ -66,7 +66,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 /**
- * Created by nitin on 1/27/17.
+ * Service for managing workspaces and also application of directives on to the workspace.
  */
 public class WranglerService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(WranglerService.class);
@@ -76,6 +76,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   private Table workspace;
 
   /**
+   * Creates a workspace.
    *
    * @param request
    * @param responder
@@ -433,9 +434,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       error(responder, e.getMessage());
     }
   }
-
-
-
+  
   // Application Platform System - Big Data Appliance
   private List<Record>  execute (List<Record> records, String[] directives, int limit)
     throws DirectiveParseException, StepException {
