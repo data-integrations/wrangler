@@ -212,9 +212,17 @@ public class WranglerService extends AbstractHttpServiceHandler {
       // Validate Column names.
       Validator<String> validator = new ColumnNameValidator();
       validator.initialize();
+
+      // Iterate through columsn to get a set
+      Set<String> uniqueColumns = new HashSet<>();
+      for (Record record : records) {
+        for (int i = 0; i < record.length(); ++i) {
+          uniqueColumns.add(record.getColumn(i));
+        }
+      }
+
       JSONObject columnValidationResult = new JSONObject();
-      for (int i = 0; i < records.get(0).length(); ++i) {
-        String name = records.get(0).getColumn(i);
+      for (String name : uniqueColumns) {
         JSONObject columnResult = new JSONObject();
         try {
           validator.validate(name);
@@ -225,6 +233,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
         }
         columnValidationResult.put(name, columnResult);
       }
+
       result.put("validation", columnValidationResult);
 
       // Generate General and Type related Statistics for each column.

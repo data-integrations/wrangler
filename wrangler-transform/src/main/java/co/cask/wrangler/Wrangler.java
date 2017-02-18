@@ -135,6 +135,15 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
     }
 
+    // Check if configured field is present in the input schema.
+    Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
+    if(inputSchema.getField(config.field) == null) {
+      throw new IllegalArgumentException(
+        String.format("Field '%s' configured to wrangler is not present in the input. " +
+                        "Only specify fields present in the input", config.field)
+      );
+    }
+
     // Set the output schema.
     configurer.getStageConfigurer().setOutputSchema(oSchema);
   }
@@ -190,7 +199,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         row.add(field.getName(), input.get(field.getName()));
       }
     } else {
-      row = new Record(Directives.STARTING_COLUMN, input.get(config.field));
+      row = new Record(config.field, input.get(config.field));
     }
 
     // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
