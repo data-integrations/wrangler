@@ -9,6 +9,8 @@
 
 Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
 
+[![Wrangling and Ingesting Demo](https://img.youtube.com/vi/KBW7a38vlUM/0.jpg)](https://www.youtube.com/watch?v=KBW7a38vlUM)
+
 ## Concepts
 
 This implementation of wrangler defines the following concepts. Please familiarize yourself with these concepts. 
