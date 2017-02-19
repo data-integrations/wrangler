@@ -302,7 +302,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
 
-      int limit = Math.min(2, records.size());
+      int limit = Math.min(100, records.size());
       records = records.subList(0, limit);
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
       Record r = newRecords.get(0);
