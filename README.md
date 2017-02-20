@@ -91,6 +91,7 @@ Following are different directives currently available.
   * [URL Encode](docs/directives/url-encode.md)
   * [URL Decode](docs/directives/url-decode.md)
   * [Split Email Address](docs/directives/split-email.md)
+  * [Split URL](docs/directives/split-url.md)
   * [Fuzzy String Match - Distance](docs/directives/text-distance.md)
   * [Fuzzy String Match - Metric](docs/directives/text-metric.md)
   * [Quantization](docs/directives/quantize.md)
