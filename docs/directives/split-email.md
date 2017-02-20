@@ -17,8 +17,8 @@ The SPLIT-EMAIL directive will parse the email address into its constituents - a
 Upon splitting the email address, the directive will create two new columns
 appending to the original column name.
 
-* <column>_account &
-* <column>_domain
+* column_account &
+* column_domain
 
 
 If the email address cannot be parsed correctly, the additional columns will be still
