@@ -134,7 +134,9 @@ public final class UsageRegistry {
     TextMetricMeasure.class,
     WriteAsCSV.class,
     ExtractRegexGroups.class,
-    SplitURL.class
+    SplitURL.class,
+    GenerateUUID.class,
+    FixedLengthParser.class
   );
 
   public UsageRegistry() {
