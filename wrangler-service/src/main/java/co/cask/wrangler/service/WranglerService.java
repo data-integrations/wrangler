@@ -32,7 +32,7 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.api.UsageRegistry;
+import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;

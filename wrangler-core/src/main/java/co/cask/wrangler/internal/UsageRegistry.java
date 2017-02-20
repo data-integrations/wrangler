@@ -1,5 +1,7 @@
-package co.cask.wrangler.api;
+package co.cask.wrangler.internal;
 
+import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.XmlToJson;
@@ -39,10 +41,13 @@ import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.Sed;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
+import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
+import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
+import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,6 +129,9 @@ public final class UsageRegistry {
     CatalogLookup.class,
     Stemming.class,
     ColumnsReplace.class,
+    TextDistanceMeasure.class,
+    TextMetricMeasure.class,
+    WriteAsCSV.class,
     ExtractRegexGroups.class
   );
 
