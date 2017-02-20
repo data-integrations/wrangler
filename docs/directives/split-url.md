@@ -18,14 +18,13 @@ The SPLIT-URL directive will parse the url constituents.
 Upon splitting the url, the directive will create sever new columns
 appending to the original column name.
 
-* <column>_protocol,
-* <column>_authority,
-* <column>_host,
-* <column>_port,
-* <column>_path,
-* <column>_filename &
-* <column>_query.
-
+* column_protocol,
+* column_authority,
+* column_host,
+* column_port,
+* column_path,
+* column_filename &
+* column_query.
 
 If the url cannot be parsed correctly, an exception is throw, but if the url column
 does not exist then columns with null value is appended to the record.
