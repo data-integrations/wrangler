@@ -19,7 +19,6 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.api.UsageRegistry;
 import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.XmlToJson;
