@@ -58,6 +58,7 @@ import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.Sed;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
+import co.cask.wrangler.steps.transformation.SplitURL;
 import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
 import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
@@ -666,6 +667,14 @@ public class TextDirectives implements Directives {
           steps.add(new ExtractRegexGroups(lineno, directive, column, regex));
         }
         break;
+
+        // split-url <column>
+        case "split-url" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new SplitURL(lineno, directive, column));
+        }
+        break;
+
 
         default:
           throw new DirectiveParseException(
