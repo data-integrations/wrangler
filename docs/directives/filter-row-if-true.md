@@ -22,7 +22,7 @@ The FILTER-ROW-IF-TRUE directive evaluates the boolean condition for each record
 ```StringUtils``` libraries for additional. The additional utility libraries are defined in 'math' and 'string'
 namespace.
 
-For more information on how to write JEXL expression please refer [here](docs/directive/expression.md).
+For more information on how to write JEXL expression please refer [here](https://commons.apache.org/proper/commons-jexl/reference/syntax.html).
 
 ## Examples
 
