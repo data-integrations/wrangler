@@ -5,6 +5,7 @@ import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.XmlToJson;
+import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
 import co.cask.wrangler.steps.column.Copy;
@@ -136,7 +137,8 @@ public final class UsageRegistry {
     ExtractRegexGroups.class,
     SplitURL.class,
     GenerateUUID.class,
-    FixedLengthParser.class
+    FixedLengthParser.class,
+    CleanseColumnNames.class
   );
 
   public UsageRegistry() {

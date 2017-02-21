@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.XmlToJson;
@@ -672,6 +673,12 @@ public class TextDirectives implements Directives {
         case "split-url" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new SplitURL(lineno, directive, column));
+        }
+        break;
+
+        // cleanse-column-names
+        case "cleanse-column-names" : {
+          steps.add(new CleanseColumnNames(lineno, directive));
         }
         break;
 
