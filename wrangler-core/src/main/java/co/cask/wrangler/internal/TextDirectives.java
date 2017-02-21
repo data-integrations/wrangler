@@ -165,7 +165,7 @@ public class TextDirectives implements Directives {
 
             // set columns <name1, name2, ...>
             case "columns": {
-              String columns = getNextToken(tokenizer, "set columns", "name1, name2, ...", lineno);
+              String columns = getNextToken(tokenizer, "\n", "set columns", "name1, name2, ...", lineno);
               String cols[] = columns.split(",");
               steps.add(new Columns(lineno, directive, Arrays.asList(cols)));
             }

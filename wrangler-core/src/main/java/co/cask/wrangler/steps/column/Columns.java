@@ -38,7 +38,7 @@ import java.util.List;
 )
 public class Columns extends AbstractStep {
   // Name of the columns represented in a {@link Record}
-  private List<String> columns;
+  private List<String> columns = new ArrayList<>();
 
   // Replaces the input {@link Record} column names.
   boolean replaceColumnNames;
@@ -50,7 +50,11 @@ public class Columns extends AbstractStep {
   public Columns(int lineno, String detail, List<String> columns, boolean replaceColumnNames) {
     super(lineno, detail);
     this.replaceColumnNames = replaceColumnNames;
-    this.columns = columns;
+    for (String column : columns) {
+      column = column.replaceAll("\"|'", "");
+      column = column.trim();
+      this.columns.add(column);
+    }
   }
 
   /**

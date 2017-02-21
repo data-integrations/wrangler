@@ -37,7 +37,7 @@ public class PipelineExecutorTest {
 
     String[] commands = new String[] {
       "set format csv , true",
-      "set columns a,b,c,d,e,f,g",
+      "set columns \"a\",\" b\",'c ',d,e,f,g",
       "rename a first",
       "drop b"
     };
