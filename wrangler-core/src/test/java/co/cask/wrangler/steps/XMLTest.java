@@ -20,21 +20,78 @@ import co.cask.wrangler.api.Record;
 import com.ximpleware.AutoPilot;
 import com.ximpleware.VTDGen;
 import com.ximpleware.VTDNav;
+import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 /**
  * Tests implementation of {@link XmlToJson}
  */
 public class XMLTest {
 
+  private static final String testXmlComplex = "<?xml version=\"1.0\"?>" +
+    "<?xml-stylesheet href=\"catalog.xsl\" type=\"transformation/xsl\"?>\n" +
+    "<!DOCTYPE catalog SYSTEM \"catalog.dtd\">\n" +
+    "<catalog>\n" +
+    "   <product description=\"Cardigan Sweater\" product_image=\"cardigan.jpg\">\n" +
+    "      <catalog_item gender=\"Men's\">\n" +
+    "         <item_number>QWZ5671</item_number>\n" +
+    "         <price>39.95</price>\n" +
+    "         <size description=\"Medium\">\n" +
+    "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+    "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+    "         </size>\n" +
+    "         <size description=\"Large\">\n" +
+    "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+    "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+    "         </size>\n" +
+    "      </catalog_item>\n" +
+    "      <catalog_item gender=\"Women's\">\n" +
+    "         <item_number>RRX9856</item_number>\n" +
+    "         <price>42.50</price>\n" +
+    "         <size description=\"Small\">\n" +
+    "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+    "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
+    "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+    "         </size>\n" +
+    "         <size description=\"Medium\">\n" +
+    "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
+    "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
+    "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+    "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
+    "         </size>\n" +
+    "         <size description=\"Large\">\n" +
+    "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
+    "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
+    "         </size>\n" +
+    "         <size description=\"Extra Large\">\n" +
+    "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
+    "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
+    "         </size>\n" +
+    "      </catalog_item>\n" +
+    "   </product>\n" +
+    "</catalog>";
+
+
   @Test
   public void testXMLParsing() throws Exception {
     String[] directives = new String[] {
-      "parse-as-xml body",
+      "parse-xml-to-json body",
       "json-path body_catalog_book author $.[*].author",
       "json-path body_catalog_book title $.[*].title",
       "json-path body_catalog_book genre $.[*].genre",
@@ -179,7 +236,7 @@ public class XMLTest {
   @Test
   public void testComplexXMLExample() throws Exception {
     String[] directives = new String[] {
-      "parse-as-xml body",
+      "parse-xml-to-json body",
       "json-path body_catalog_product_catalog_item gender $.[*].gender",
       "json-path body_catalog_product_catalog_item item_number $.[*].item_number",
       "json-path body_catalog_product_catalog_item price $.[*].price",
@@ -187,48 +244,7 @@ public class XMLTest {
     };
 
     List<Record> records = Arrays.asList(
-      new Record("body", "<?xml version=\"1.0\"?>\n" +
-        "<?xml-stylesheet href=\"catalog.xsl\" type=\"transformation/xsl\"?>\n" +
-        "<!DOCTYPE catalog SYSTEM \"catalog.dtd\">\n" +
-        "<catalog>\n" +
-        "   <product description=\"Cardigan Sweater\" product_image=\"cardigan.jpg\">\n" +
-        "      <catalog_item gender=\"Men's\">\n" +
-        "         <item_number>QWZ5671</item_number>\n" +
-        "         <price>39.95</price>\n" +
-        "         <size description=\"Medium\">\n" +
-        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
-        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
-        "         </size>\n" +
-        "         <size description=\"Large\">\n" +
-        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
-        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
-        "         </size>\n" +
-        "      </catalog_item>\n" +
-        "      <catalog_item gender=\"Women's\">\n" +
-        "         <item_number>RRX9856</item_number>\n" +
-        "         <price>42.50</price>\n" +
-        "         <size description=\"Small\">\n" +
-        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
-        "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
-        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
-        "         </size>\n" +
-        "         <size description=\"Medium\">\n" +
-        "            <color_swatch image=\"red_cardigan.jpg\">Red</color_swatch>\n" +
-        "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
-        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
-        "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
-        "         </size>\n" +
-        "         <size description=\"Large\">\n" +
-        "            <color_swatch image=\"navy_cardigan.jpg\">Navy</color_swatch>\n" +
-        "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
-        "         </size>\n" +
-        "         <size description=\"Extra Large\">\n" +
-        "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
-        "            <color_swatch image=\"black_cardigan.jpg\">Black</color_swatch>\n" +
-        "         </size>\n" +
-        "      </catalog_item>\n" +
-        "   </product>\n" +
-        "</catalog>\n")
+      new Record("body", testXmlComplex)
     );
 
     records = PipelineTest.execute(directives, records);
@@ -238,27 +254,90 @@ public class XMLTest {
   }
 
   @Test
-  public void testXMLDomParser() throws Exception {
+  public void testBasicXMLParser() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-xml body",
+      "xpath-element body item /catalog/product/catalog_item/item_number",
+      "xpath-array-element body items /catalog/product/catalog_item/item_number",
+      "xpath-attr body description description /catalog/product",
+      "xpath-array-attr body size_desc description /catalog/product/catalog_item[@gender=\"Women's\"]/size"
+    };
 
+    List<Record> records = Arrays.asList(
+      new Record("body", testXmlComplex)
+    );
 
-    VTDGen vg = new VTDGen();
-    if (!vg.parseFile("/Users/nitin/Downloads/CCDA_R2_CCD_HL7.xml", true))
-      return;
-    vg.parse(true);
-    VTDNav vn = vg.getNav();
-    AutoPilot ap = new AutoPilot(vn);
-    ap.selectXPath("/ClinicalDocument/custodian/assignedCustodian/representedCustodianOrganization/name");
-    int i = 0, j = 0;
-    while ((i = ap.evalXPath())!=-1) {
-//      j= vn.getAttrVal("id");
-//      if (j!=-1) {
-//        System.out.println(" attr value for pid is ==>" + vn.toString(j));
-//      }
-      int val = vn.getText();
-      if (val != -1) {
-        String title = vn.getXPathStringVal();
-        System.out.println(title);
-      }
-    }
+    records = PipelineTest.execute(directives, records);
+
+    JSONArray expectedDescription = new JSONArray();
+    expectedDescription.put("Small");
+    expectedDescription.put("Medium");
+    expectedDescription.put("Large");
+    expectedDescription.put("Extra Large");
+
+    JSONArray expectedItems = new JSONArray();
+    expectedItems.put("QWZ5671");
+    expectedItems.put("RRX9856");
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals(5, records.get(0).length());
+    Assert.assertEquals("QWZ5671", records.get(0).getValue(1));
+    //Assert.assertEquals(expectedItems, records.get(0).getValue(2));
+    Assert.assertEquals("Cardigan Sweater", records.get(0).getValue(3));
+    //Assert.assertEquals(expectedDescription, records.get(0).getValue(4));
   }
+
+//  @Test
+//  public void validateAgainstXSD() throws Exception {
+//    // parse an XML document into a DOM tree
+//    DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+//    Document document = parser.parse(new File("/Users/nitin/Downloads/shop_msg_2.xml"));
+//
+//    // create a SchemaFactory capable of understanding WXS schemas
+//    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+//
+//    // load a WXS schema, represented by a Schema instance
+//    Source schemaFile = new StreamSource(new File("/Users/nitin/Downloads/asds-streaming-schemas-v3_6_2/SabreASDS3.6.0RS.xsd"));
+//    Schema schema = factory.newSchema(schemaFile);
+//
+//    // create a Validator instance, which can be used to validate an instance document
+//    Validator validator = schema.newValidator();
+//
+//    // validate the DOM tree
+//    try {
+//      validator.validate(new DOMSource(document));
+//    } catch (SAXException e) {
+//      e.printStackTrace();
+//      // instance document is invalid!
+//    }
+//  }
+//
+//  @Test
+//  public void testXMLDomParser() throws Exception {
+//
+//
+//    VTDGen vg = new VTDGen();
+//    if (!vg.parseFile("/Users/nitin/Downloads/CCDA_R2_CCD_HL7.xml", true))
+//      return;
+//    VTDNav vn = vg.getNav();
+//    AutoPilot ap = new AutoPilot(vn);
+//    // parse-as-xml body
+//    // set-transient
+//    // xpath-text addr_state /ClinicalDocument/recordTarget/patientRole/addr/state
+//    // xpath-attribute
+//    // xpath-attribute
+//    ap.selectXPath("/ClinicalDocument/recordTarget/patientRole/telecom[@use='HP']");
+//    int i = 0, j = 0;
+//    while ((i = ap.evalXPath())!=-1) {
+//      j= vn.getAttrVal("value");
+//      if (j!=-1) {
+//        System.out.println(vn.toString(j));
+//      }
+////      int val = vn.getText();
+////      if (val != -1) {
+////        String title = vn.getXPathStringVal();
+////        System.out.println(title);
+////      }
+//    }
+//  }
 }
