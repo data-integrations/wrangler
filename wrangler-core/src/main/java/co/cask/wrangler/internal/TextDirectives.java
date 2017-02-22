@@ -40,6 +40,7 @@ import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
+import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
@@ -65,6 +66,10 @@ import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlEncode;
+import co.cask.wrangler.steps.transformation.XPathArrayAttr;
+import co.cask.wrangler.steps.transformation.XPathArrayElement;
+import co.cask.wrangler.steps.transformation.XPathAttr;
+import co.cask.wrangler.steps.transformation.XPathElement;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -408,8 +413,8 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-xml <column> [<depth>]
-        case "parse-as-xml" : {
+        // parse-xml-to-json <column> [<depth>]
+        case "parse-xml-to-json" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String depthOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
           int depth = Integer.MAX_VALUE;
@@ -421,6 +426,51 @@ public class TextDirectives implements Directives {
             throw new DirectiveParseException(e.getMessage());
           }
           steps.add(new XmlToJson(lineno, directive, column, depth));
+        }
+        break;
+
+        // parse-as-xml <column>
+        case "parse-as-xml" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new XmlParser(lineno, directive, column));
+        }
+        break;
+
+        // xpath-element <column> <destination> <xpath>
+        case "xpath-element" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          steps.add(new XPathElement(lineno, directive, column, destination, xpath));
+        }
+        break;
+
+        // xpath-array-element <column> <destination> <xpath>
+        case "xpath-array-element" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          steps.add(new XPathArrayElement(lineno, directive, column, destination, xpath));
+        }
+        break;
+
+        // xpath-attr <column> <destination> <attr> <xpath>
+        case "xpath-attr" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          String attribute = getNextToken(tokenizer, command, "attribute", lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          steps.add(new XPathAttr(lineno, directive, column, destination, attribute, xpath));
+        }
+        break;
+
+        // xpath-array-attr <column> <destination> <attr> <xpath>
+        case "xpath-array-attr" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String destination = getNextToken(tokenizer, command, "destination", lineno);
+          String attribute = getNextToken(tokenizer, command, "attribute", lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          steps.add(new XPathArrayAttr(lineno, directive, column, destination, attribute, xpath));
         }
         break;
 
