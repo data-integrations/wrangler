@@ -247,14 +247,29 @@ public class TextDirectives implements Directives {
         case "filter-row-if-matched": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          steps.add(new RecordRegexFilter(lineno, directive, column, pattern));
+          steps.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
+        }
+        break;
+
+        // filter-row-if-not-matched <column> <regex>
+        case "filter-row-if-not-matched": {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
+          steps.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
         }
         break;
 
         // filter-row-if-true  <condition>
         case "filter-row-if-true": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          steps.add(new RecordConditionFilter(lineno, directive, condition));
+          steps.add(new RecordConditionFilter(lineno, directive, condition, true));
+        }
+        break;
+
+        // filter-row-if-false  <condition>
+        case "filter-row-if-false": {
+          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+          steps.add(new RecordConditionFilter(lineno, directive, condition, false));
         }
         break;
 
@@ -584,24 +599,33 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        //filter-rows-on condition <boolean-expression>
-        //filter-rows-on regex <regex>
+        //filter-rows-on condition-true <boolean-expression>
+        //filter-rows-on condition-false <boolean-expression>
+        //filter-rows-on regex-match <regex>
+        //filter-rows-on regex-not-match <regex>
         //filter-rows-on empty-or-null-columns <column>[,<column>]*
         case "filter-rows-on" : {
           String cmd = getNextToken(tokenizer, command, "command", lineno);
-          if (cmd.equalsIgnoreCase("condition")) {
+          if (cmd.equalsIgnoreCase("condition-true")) {
             String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            steps.add(new RecordConditionFilter(lineno, directive, condition));
-          } else if (cmd.equalsIgnoreCase("regex")) {
+            steps.add(new RecordConditionFilter(lineno, directive, condition, true));
+          } else if (cmd.equalsIgnoreCase("condition-false")) {
+            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+            steps.add(new RecordConditionFilter(lineno, directive, condition, false));
+          } else if (cmd.equalsIgnoreCase("regex-match")) {
             String column = getNextToken(tokenizer, command, "column", lineno);
             String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-            steps.add(new RecordRegexFilter(lineno, directive, column, pattern));
+            steps.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
+          } else if (cmd.equalsIgnoreCase("regex-not-match")) {
+            String column = getNextToken(tokenizer, command, "column", lineno);
+            String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
+            steps.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
           } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
             String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
             steps.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
           } else {
             throw new DirectiveParseException(
-              String.format("Unknow option '%s' specified for filter-rows-on directive at lineno %s", cmd, lineno)
+              String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
             );
           }
         }
