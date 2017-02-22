@@ -17,6 +17,9 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
+import com.ximpleware.AutoPilot;
+import com.ximpleware.VTDGen;
+import com.ximpleware.VTDNav;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -232,5 +235,30 @@ public class XMLTest {
 
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body_catalog_product_description"));
+  }
+
+  @Test
+  public void testXMLDomParser() throws Exception {
+
+
+    VTDGen vg = new VTDGen();
+    if (!vg.parseFile("/Users/nitin/Downloads/CCDA_R2_CCD_HL7.xml", true))
+      return;
+    vg.parse(true);
+    VTDNav vn = vg.getNav();
+    AutoPilot ap = new AutoPilot(vn);
+    ap.selectXPath("/ClinicalDocument/custodian/assignedCustodian/representedCustodianOrganization/name");
+    int i = 0, j = 0;
+    while ((i = ap.evalXPath())!=-1) {
+//      j= vn.getAttrVal("id");
+//      if (j!=-1) {
+//        System.out.println(" attr value for pid is ==>" + vn.toString(j));
+//      }
+      int val = vn.getText();
+      if (val != -1) {
+        String title = vn.getXPathStringVal();
+        System.out.println(title);
+      }
+    }
   }
 }

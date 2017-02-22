@@ -49,10 +49,12 @@ public class RecordConditionFilter extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
+  private final boolean isTrue;
 
-  public RecordConditionFilter(int lineno, String detail, String condition) {
+  public RecordConditionFilter(int lineno, String detail, String condition, boolean isTrue) {
     super(lineno, detail);
     this.condition = condition;
+    this.isTrue = isTrue;
     // Create and build the script.
     engine = new JexlBuilder().silent(false).cache(1000).strict(true).create();
     script = engine.createScript(condition);
@@ -80,6 +82,9 @@ public class RecordConditionFilter extends AbstractStep {
       // mapped into context.
       try {
         boolean result = (Boolean) script.execute(ctx);
+        if (!isTrue) {
+          result = !result;
+        }
         if (result) {
           continue;
         }

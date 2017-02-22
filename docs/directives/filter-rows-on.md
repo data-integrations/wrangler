@@ -10,8 +10,10 @@ FILTER-ROW-ON directive provides a way to filters records from the dataset.
 ```filter-type``` specifies the type of filter and options associated with the filter specified.
 
 ```
-  filter-rows-on condition <boolea-expression>
-  filter-rows-on regex <regular-expression?
+  filter-rows-on condition-true <boolean-expression>
+  filter-rows-on condition-false <boolean-expression>
+  filter-rows-on regex-match <regular-expression>
+  filter-rows-on regex-not-match <regular-expression>
   filter-rows-on empty-or-null-columns <column>[,<column>]*
 ```
 

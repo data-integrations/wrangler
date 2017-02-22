@@ -54,6 +54,7 @@ import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,12 +67,18 @@ public final class UsageRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UsageRegistry.class);
 
   public class UsageDatum {
+    private final String directive;
     private final String usage;
     private final String description;
 
-    public UsageDatum(String usage, String description) {
+    public UsageDatum(String directive, String usage, String description) {
+      this.directive = directive;
       this.usage = usage;
       this.description = description;
+    }
+
+    public String getDirective() {
+      return directive;
     }
 
     public String getUsage() {
@@ -85,6 +92,9 @@ public final class UsageRegistry {
 
   // Mapping of specification usages.
   private final Map<String, UsageDatum> usages = new HashMap<>();
+
+  // Listing.
+  private final List<UsageDatum> usageList = new ArrayList<>();
 
   // List of all registered directive implementations defined as steps in the pipeline.
   private final List<Class<? extends AbstractStep>> stepRegistry = Arrays.asList (
@@ -150,17 +160,26 @@ public final class UsageRegistry {
         LOG.warn("Usage annotation for directive '{}' missing.", step.getSimpleName());
         continue;
       }
-      usages.put(usage.directive(), new UsageDatum(usage.usage(), usage.description()));
+      usages.put(usage.directive(), new UsageDatum(usage.directive(), usage.usage(), usage.description()));
+      usageList.add(new UsageDatum(usage.directive(), usage.usage(), usage.description()));
     }
 
     // These are for directives that use other steps for executing.
     // we add them exclusively
-    usages.put("set format",
-               new UsageDatum("set format csv <delimiter> <skip empty lines>",
-                              "[DEPRECATED] Parses the predefined column as CSV. Use 'parse-as-csv'."));
-    usages.put("format-unix-timestamp",
-               new UsageDatum("format-unix-timestamp <column> <format>",
-                              "Formats a unix timestamp using the format specified."));
+    addUsage("set format", "set format csv <delimiter> <skip empty lines>",
+             "[DEPRECATED] Parses the predefined column as CSV. Use 'parse-as-csv'.");
+    addUsage("format-unix-timestamp", "format-unix-timestamp <column> <format>",
+             "Formats a unix timestamp using the format specified.");
+    addUsage("filter-row-if-not-matched", "filter-row-if-not-matched <column> <regex>",
+             "Filters row if regex does not match");
+    addUsage("filter-row-if-false", "filter-row-if-false <condition>",
+             "Filters row if condition evaluates to false");
+  }
+
+  private void addUsage(String directive, String usage, String description) {
+    UsageDatum d = new UsageDatum(directive, usage, description);
+    usages.put(directive, d);
+    usageList.add(d);
   }
 
   /**
@@ -192,7 +211,7 @@ public final class UsageRegistry {
   /**
    * @return A map of directive to {@link UsageDatum}.
    */
-  public Map<String, UsageDatum> getAll() {
-    return usages;
+  public List<UsageDatum> getAll() {
+    return usageList;
   }
 }
