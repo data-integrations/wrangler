@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2017 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.AbstractStep;
@@ -15,6 +31,7 @@ import co.cask.wrangler.steps.column.Merge;
 import co.cask.wrangler.steps.column.Rename;
 import co.cask.wrangler.steps.column.SplitToColumns;
 import co.cask.wrangler.steps.column.Swap;
+import co.cask.wrangler.steps.date.DiffDate;
 import co.cask.wrangler.steps.date.FormatDate;
 import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
@@ -23,6 +40,7 @@ import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
+import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
@@ -106,6 +124,7 @@ public final class UsageRegistry {
     Columns.class,
     Copy.class,
     CsvParser.class,
+    DiffDate.class,
     Drop.class,
     Expression.class,
     FillNullOrEmpty.class,
@@ -124,6 +143,7 @@ public final class UsageRegistry {
     Merge.class,
     MessageHash.class,
     ParseDate.class,
+    ParseSimpleDate.class,
     ParseLog.class,
     Quantization.class,
     RecordConditionFilter.class,
