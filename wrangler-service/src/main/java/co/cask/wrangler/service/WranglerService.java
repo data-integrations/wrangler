@@ -355,7 +355,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
                         @PathParam("workspace") String ws,
                         @QueryParam("directive") List<String> directives,
                         @QueryParam("limit") int limit) {
-
     try {
       Row rawRows = workspace.get(Bytes.toBytes(ws));
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
@@ -366,6 +365,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       JSONArray values = new JSONArray();
       JSONArray headers = new JSONArray();
       Set<String> headerList = new HashSet<>();
+      boolean onlyFirstRow = true;
       for (Record record : newRecords) {
         List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
@@ -374,7 +374,21 @@ public class WranglerService extends AbstractHttpServiceHandler {
             headers.put(field.getKey());
             headerList.add(field.getKey());
           }
-          r.put(field.getKey(), field.getValue().toString());
+          Object object = field.getValue();
+          if (object != null) {
+            if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
+              r.put(field.getKey(), field.getValue().toString());
+            } else {
+              if (onlyFirstRow) {
+                r.put(field.getKey(), object.getClass().getSimpleName() + " object. Delete this column at the end.");
+                onlyFirstRow = false;
+              } else {
+                r.put(field.getKey(), ".");
+              }
+            }
+          } else {
+            r.put(field.getKey(), JSONObject.NULL);
+          }
         }
         values.put(r);
       }

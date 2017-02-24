@@ -35,20 +35,22 @@ import java.util.List;
  * A Step to extract XML element as an JSON array using XPath.
  */
 @Usage(
-  directive = "xpath-array-element",
-  usage = "xpath-array-element <column> <destination> <xpath>",
-  description = "Extract XML element as JSON array using XPath."
+  directive = "xpath-array",
+  usage = "xpath-array <column> <destination> <xpath>",
+  description = "Extract XML element or attributes as JSON array using XPath."
 )
 public class XPathArrayElement extends AbstractStep {
   private final String column;
   private final String destination;
   private final String xpath;
+  private final String attribute;
 
   public XPathArrayElement(int lineno, String directive, String column, String destination, String xpath) {
     super(lineno, directive);
     this.column = column;
     this.destination = destination;
     this.xpath = xpath;
+    this.attribute = XPathElement.extractAttributeFromXPath(xpath.trim());
   }
 
   /**
@@ -70,14 +72,25 @@ public class XPathArrayElement extends AbstractStep {
           AutoPilot ap = new AutoPilot(vn);
           try {
             ap.selectXPath(xpath);
-            int i = 0, j = 0;
-            while (( i = ap.evalXPath()) != -1) {
-              int val = vn.getText();
-              if (val != -1) {
-                values.add(vn.getXPathStringVal());
+            if (attribute == null) {
+              int i = 0, j = 0;
+              while (( i = ap.evalXPath()) != -1) {
+                int val = vn.getText();
+                if (val != -1) {
+                  values.add(vn.getXPathStringVal());
+                }
               }
+              record.addOrSet(destination, new JSONArray(values));
+            } else {
+              int i = 0, j = 0;
+              while (( i = ap.evalXPath()) != -1) {
+                int val = vn.getAttrVal(attribute);
+                if (val != -1) {
+                  values.add(vn.toString(val));
+                }
+              }
+              record.addOrSet(destination, new JSONArray(values));
             }
-            record.addOrSet(destination, new JSONArray(values));
           } catch (XPathParseException | XPathEvalException | NavException e) {
             throw new StepException(
               String.format("%s : Failed in extracting information using xpath element '%s' for field '%s'. %s",
