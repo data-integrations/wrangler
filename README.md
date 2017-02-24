@@ -25,7 +25,7 @@ A Column is a data value of any supported java type, one for each Record.
 
 ### Directive
 
-A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into zero or more records. A directive can produce one or more Steps to be executed by the Pipeline. 
+A Directive is a single data manipulation instruction specified to either transform, filter or pivot a single record into zero or more records. A directive can generate one or more Steps to be executed by the Pipeline. 
 
 ### Step
 
