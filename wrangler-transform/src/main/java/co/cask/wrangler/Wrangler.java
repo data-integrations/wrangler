@@ -247,7 +247,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   public static class Config extends PluginConfig {
     @Name("directives")
     @Description("Directives for wrangling the input records")
-    @Macro
     private String directives;
 
     @Name("field")

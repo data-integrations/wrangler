@@ -1,11 +1,12 @@
-# Stream Editor (SED)
+# Find and Replace
 
-SED directive performs basic text transformation of column values that are of type string.
+FIND-AND-REPLACE directive performs basic text transformation of column values that are of type string to find
+and replace using 'sed' like expressions.
 
 ## Syntax
 
 ```
- sed <column> <sed-script>
+ find-and-replace <column> <sed-script>
 ```
 
 ## Usage Notes
@@ -16,7 +17,7 @@ The ```sed-script``` is applied on each text to transform the data.
 Following is a typical example on how the SED directive is used
 
 ```
-  sed <column> s/regex/replacement/g
+  find-and-replace <column> s/regex/replacement/g
 ```
 
 Application of this directive will replace the value of the column that matches the ```regex```
@@ -30,14 +31,14 @@ is the conventional symbol, originating in the character for "search".
 For example, to replace all occurance of 'hello' to 'world' in the column 'message':
 
 ```
-  sed message s/hello/world/g
+  find-and-replace message s/hello/world/g
 ```
 
 The character after the s is the delimiter. It is conventionally a slash. If you want to change a pathname
 that contains a slash - say /usr/local/bin to /common/bin - you could use the backslash to quote the slash:
 
 ```
-  sed 's/\/usr\/local\/bin/\/common\/bin/' <old >new
+  find-and-replace 's/\/usr\/local\/bin/\/common\/bin/' <old >new
 ```
 
 
@@ -54,8 +55,8 @@ Let's following is the record
 applying following CUT directive
 
 ```
-  sed body s/one/ONE/g
-  sed body s/two/2/g
+  find-and-replace body s/one/ONE/g
+  find-and-replace body s/two/2/g
 ```
 
 would result in record as show below

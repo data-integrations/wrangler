@@ -28,18 +28,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Wrangle step for 'Sed' like transformations on the column.
+ * A Wrangle step for 'FindAndReplace' like transformations on the column.
  */
 @Usage(
-  directive = "sed",
-  usage = "sed <column> <expression>",
-  description = "Stream editor (similar to unix) to perform on columns."
+  directive = "find-and-replace",
+  usage = "find-and-replace <column> <expression>",
+  description = "Uses a sed like syntax to find and replace."
 )
-public class Sed extends AbstractStep {
+public class FindAndReplace extends AbstractStep {
   private final String pattern;
   private final String column;
 
-  public Sed(int lineno, String detail, String column, String pattern) {
+  public FindAndReplace(int lineno, String detail, String column, String pattern) {
     super(lineno, detail);
     this.pattern = pattern.trim();
     this.column = column;
