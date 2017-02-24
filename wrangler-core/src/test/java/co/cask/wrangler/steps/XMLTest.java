@@ -17,27 +17,13 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
-import com.ximpleware.AutoPilot;
-import com.ximpleware.VTDGen;
-import com.ximpleware.VTDNav;
+import co.cask.wrangler.steps.transformation.XPathElement;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 
 /**
  * Tests implementation of {@link XmlToJson}
@@ -61,7 +47,7 @@ public class XMLTest {
     "            <color_swatch image=\"burgundy_cardigan.jpg\">Burgundy</color_swatch>\n" +
     "         </size>\n" +
     "      </catalog_item>\n" +
-    "      <catalog_item gender=\"Women's\">\n" +
+    "      <catalog_item gender=\"Women's\" test=\"10\">\n" +
     "         <item_number>RRX9856</item_number>\n" +
     "         <price>42.50</price>\n" +
     "         <size description=\"Small\">\n" +
@@ -257,8 +243,9 @@ public class XMLTest {
   public void testBasicXMLParser() throws Exception {
     String[] directives = new String[] {
       "parse-as-xml body",
-      "xpath-element body item /catalog/product/catalog_item/item_number",
-      "xpath-array-element body items /catalog/product/catalog_item/item_number",
+      //"xpath body test description /catalog/product/catalog_item[@gender=\"Women's\"]/@test",
+      "xpath body item /catalog/product/catalog_item/item_number",
+      "xpath-array body items /catalog/product/catalog_item/item_number",
       "xpath-attr body description description /catalog/product",
       "xpath-array-attr body size_desc description /catalog/product/catalog_item[@gender=\"Women's\"]/size"
     };
@@ -285,6 +272,45 @@ public class XMLTest {
     //Assert.assertEquals(expectedItems, records.get(0).getValue(2));
     Assert.assertEquals("Cardigan Sweater", records.get(0).getValue(3));
     //Assert.assertEquals(expectedDescription, records.get(0).getValue(4));
+  }
+
+  @Test
+  public void testXPathElement() throws Exception {
+    String[] input = new String[] {
+      "/ClinicalDocument/recordTarget/patientRole/patient/name/given/@qualifier",
+      "/ClinicalDocument/recordTarget/patientRole/telecom[@use='WP']/@value",
+      "/ClinicalDocument/recordTarget/patientRole/patient/languageCommunication/languageCode/@code",
+      "/inventory/item[@type]/name",
+      "/inventory/item[@type]"
+    };
+
+    String[] output = new String[] {
+      "qualifier",
+      "value",
+      "code",
+      null,
+      null
+    };
+
+    for (int i = 0; i < input.length; ++i) {
+      Assert.assertEquals(output[i], XPathElement.extractAttributeFromXPath(input[i]));
+    }
+  }
+
+  private String extractAttribute(String path) {
+    int index = path.lastIndexOf('/');
+    if (index != -1) {
+      String attribute = path.substring(index + 1);
+      int squareIndex = attribute.indexOf('[');
+      if (squareIndex == -1) {
+        int attrIndex = attribute.indexOf('@');
+        if (attrIndex != -1) {
+          String attr = attribute.substring(attrIndex + 1);
+          return attr;
+        }
+      }
+    }
+    return null;
   }
 
 //  @Test

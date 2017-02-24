@@ -33,20 +33,22 @@ import java.util.List;
  * A Step to extract a single XML element using XPath.
  */
 @Usage(
-  directive = "xpath-element",
-  usage = "xpath-element <column> <destination> <xpath>",
-  description = "Extract a single XML element using XPath"
+  directive = "xpath",
+  usage = "xpath <column> <destination> <xpath>",
+  description = "Extract a single XML element or attribute using XPath"
 )
 public class XPathElement extends AbstractStep {
   private final String column;
   private final String destination;
   private final String xpath;
+  private final String attribute;
 
   public XPathElement(int lineno, String directive, String column, String destination, String xpath) {
     super(lineno, directive);
     this.column = column;
     this.destination = destination;
     this.xpath = xpath;
+    this.attribute = XPathElement.extractAttributeFromXPath(xpath.trim());
   }
 
   /**
@@ -66,13 +68,28 @@ public class XPathElement extends AbstractStep {
           VTDNav vn = (VTDNav) record.getValue(idx);
           AutoPilot ap = new AutoPilot(vn);
           try {
+            boolean found = false;
             ap.selectXPath(xpath);
-            if (ap.evalXPath() != -1) {
-              int val = vn.getText();
-              if (val != -1) {
-                String title = vn.getXPathStringVal();
-                record.addOrSet(destination, title);
+            if (attribute == null) {
+              if (ap.evalXPath() != -1) {
+                int val = vn.getText();
+                if (val != -1) {
+                  String title = vn.getXPathStringVal();
+                  record.addOrSet(destination, title);
+                  found = true;
+                }
               }
+            } else {
+              if (ap.evalXPath() != -1) {
+                int val = vn.getAttrVal(attribute);
+                if (val != -1) {
+                  record.addOrSet(destination, vn.toString(val));
+                  found = true;
+                }
+              }
+            }
+            if(!found) {
+              record.addOrSet(destination, null);
             }
           } catch (XPathParseException | XPathEvalException | NavException e) {
             throw new StepException(
@@ -91,5 +108,21 @@ public class XPathElement extends AbstractStep {
       }
     }
     return records;
+  }
+
+  public static String extractAttributeFromXPath(String path) {
+    int index = path.lastIndexOf('/');
+    if (index != -1) {
+      String attribute = path.substring(index + 1);
+      int squareIndex = attribute.indexOf('[');
+      if (squareIndex == -1) {
+        int attrIndex = attribute.indexOf('@');
+        if (attrIndex != -1) {
+          String attr = attribute.substring(attrIndex + 1);
+          return attr;
+        }
+      }
+    }
+    return null;
   }
 }

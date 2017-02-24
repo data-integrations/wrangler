@@ -436,20 +436,20 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // xpath-element <column> <destination> <xpath>
-        case "xpath-element" : {
+        // xpath <column> <destination> <xpath>
+        case "xpath" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
           steps.add(new XPathElement(lineno, directive, column, destination, xpath));
         }
         break;
 
-        // xpath-array-element <column> <destination> <xpath>
-        case "xpath-array-element" : {
+        // xpath-array <column> <destination> <xpath>
+        case "xpath-array" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
           steps.add(new XPathArrayElement(lineno, directive, column, destination, xpath));
         }
         break;
@@ -459,7 +459,7 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String attribute = getNextToken(tokenizer, command, "attribute", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
           steps.add(new XPathAttr(lineno, directive, column, destination, attribute, xpath));
         }
         break;
@@ -469,7 +469,7 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String attribute = getNextToken(tokenizer, command, "attribute", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, destination, lineno);
+          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
           steps.add(new XPathArrayAttr(lineno, directive, column, destination, attribute, xpath));
         }
         break;

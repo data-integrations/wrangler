@@ -45,6 +45,7 @@ public class XPathArrayAttr extends AbstractStep {
   private final String attr;
   private final String xpath;
 
+
   public XPathArrayAttr(int lineno, String directive, String column, String destination, String attr, String xpath) {
     super(lineno, directive);
     this.column = column;
