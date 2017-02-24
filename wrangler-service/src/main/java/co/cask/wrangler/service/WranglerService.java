@@ -43,6 +43,7 @@ import co.cask.wrangler.internal.validator.ColumnNameValidator;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -56,7 +57,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -118,7 +118,9 @@ public class WranglerService extends AbstractHttpServiceHandler {
   @POST
   @Path("workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws, @Nullable @QueryParam("recorddelimiter") String delimiter) {
+                     @PathParam("workspace") String ws) {
+
+    String delimiter = request.getHeader("recorddelimiter");
 
     String body = null;
     ByteBuffer content = request.getContent();
@@ -134,8 +136,9 @@ public class WranglerService extends AbstractHttpServiceHandler {
     List<Record> records = new ArrayList<>();
     int i = 0;
     if(delimiter == null || delimiter.isEmpty()) {
-      delimiter = "\n";
+      delimiter = "\\u001A";
     }
+    delimiter = StringEscapeUtils.unescapeJava(delimiter);
     for (String line : body.split(delimiter)) {
       records.add(new Record(ws, line));
       ++i;

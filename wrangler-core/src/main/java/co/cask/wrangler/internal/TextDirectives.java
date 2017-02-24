@@ -57,7 +57,7 @@ import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import co.cask.wrangler.steps.transformation.Quantization;
-import co.cask.wrangler.steps.transformation.Sed;
+import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.SplitURL;
@@ -322,7 +322,7 @@ public class TextDirectives implements Directives {
         case "sed" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          steps.add(new Sed(lineno, directive, column, expression));
+          steps.add(new FindAndReplace(lineno, directive, column, expression));
         }
         break;
 

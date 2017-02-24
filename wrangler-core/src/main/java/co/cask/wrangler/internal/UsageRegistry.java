@@ -40,7 +40,7 @@ import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import co.cask.wrangler.steps.transformation.Quantization;
-import co.cask.wrangler.steps.transformation.Sed;
+import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.SplitURL;
@@ -129,7 +129,7 @@ public final class UsageRegistry {
     RecordConditionFilter.class,
     RecordRegexFilter.class,
     Rename.class,
-    Sed.class,
+    FindAndReplace.class,
     Split.class,
     SplitEmail.class,
     SplitToColumns.class,
