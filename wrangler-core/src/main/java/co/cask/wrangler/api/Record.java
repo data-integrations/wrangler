@@ -36,6 +36,9 @@ public class Record {
   // Name of the columns held by the row.
   private List<String> columns = new ArrayList<>();
 
+  // Error record type
+  boolean isError = false;
+
   public Record() {
   }
 
@@ -47,6 +50,7 @@ public class Record {
   public Record(Record record) {
     this.values = new ArrayList<>(record.values);
     this.columns = new ArrayList<>(record.columns);
+    this.isError = record.isError;
   }
 
   /**
@@ -79,6 +83,20 @@ public class Record {
    */
   public String getColumn(int idx) {
     return columns.get(idx);
+  }
+
+  /**
+   * Sets this record as error record.
+   */
+  public void setError() {
+    isError = true;
+  }
+
+  /**
+   * @return true if this record is errored, else returns false.
+   */
+  public boolean isError() {
+    return isError;
   }
 
   /**
