@@ -38,11 +38,13 @@ public class RecordRegexFilter extends AbstractStep {
   private final String regex;
   private final String column;
   private Pattern pattern;
+  private boolean match;
 
-  public RecordRegexFilter(int lineno, String detail, String column, String regex) {
+  public RecordRegexFilter(int lineno, String detail, String column, String regex, boolean match) {
     super(lineno, detail);
     this.regex = regex.trim();
     this.column = column;
+    this.match = match;
     pattern = Pattern.compile(this.regex);
   }
 
@@ -64,6 +66,9 @@ public class RecordRegexFilter extends AbstractStep {
         if (object instanceof String) {
           String value = (String) record.getValue(idx);
           boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+          if (!match) {
+            status = !status;
+          }
           if (status) {
             continue;
           }
@@ -73,12 +78,8 @@ public class RecordRegexFilter extends AbstractStep {
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );
         }
-      } else {
-        throw new StepException(toString() + " : '" +
-                                  column + "' column is not defined. Please check the wrangling step."
-        );
+        results.add(record);
       }
-      results.add(record);
     }
 
     return results;

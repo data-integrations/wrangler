@@ -64,7 +64,8 @@ public class JsPath extends AbstractStep {
     for (Record record : records) {
       Object value = record.getValue(src);
       if (value == null) {
-        throw new StepException(toString() + " : Did not find field '" + src + "' in the record.");
+        record.add(dest, null);
+        continue;
       }
 
       // Detect the type of the object, convert it to String before apply JsonPath
