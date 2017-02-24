@@ -318,10 +318,10 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // sed <column> <expression>
-        case "sed" : {
+        // find-and-replace <column> <sed-script>
+        case "find-and-replace" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
+          String expression = getNextToken(tokenizer, "\n", command, "sed-script", lineno);
           steps.add(new FindAndReplace(lineno, directive, column, expression));
         }
         break;
