@@ -63,6 +63,7 @@ import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.SplitURL;
+import co.cask.wrangler.steps.transformation.TableLookup;
 import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
 import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
@@ -156,6 +157,7 @@ public final class UsageRegistry {
     SplitToColumns.class,
     SplitToRows.class,
     Swap.class,
+    TableLookup.class,
     TitleCase.class,
     Upper.class,
     UrlDecode.class,

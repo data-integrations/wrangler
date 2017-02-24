@@ -357,6 +357,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
                         @QueryParam("limit") int limit) {
     try {
       Row rawRows = workspace.get(Bytes.toBytes(ws));
+      // TODO: check workspace existence
       List<Record> records = new Gson().fromJson(rawRows.getString("data"),
                                                  new TypeToken<List<Record>>(){}.getType());
 
@@ -461,8 +462,9 @@ public class WranglerService extends AbstractHttpServiceHandler {
     Directives specification = new TextDirectives(directives);
     List<Step> steps = specification.getSteps();
 
+    ServicePipelineContext servicePipelineContext = new ServicePipelineContext(getContext());
     for (Step step : steps) {
-      records = step.execute(records, null);
+      records = step.execute(records, servicePipelineContext);
       records = records.subList(0, Math.min(limit, records.size()));
     }
 

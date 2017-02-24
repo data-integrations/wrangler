@@ -139,7 +139,17 @@
       <groupId>co.cask.cdap</groupId>
       <artifactId>cdap-etl-api</artifactId>
       <version>${cdap.version}</version>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>cdap-etl-core</artifactId>
+      <version>${cdap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>hydrator-test</artifactId>
+      <version>${cdap.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>co.cask.cdap</groupId>

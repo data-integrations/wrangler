@@ -25,6 +25,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginConfig;
 import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.InvalidEntry;
+import co.cask.cdap.etl.api.Lookup;
 import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transform;
@@ -108,6 +109,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Override
     public Map<String, String> getProperties() {
       return properties;
+    }
+
+    @Override
+    public <T> Lookup<T> provide(String s, Map<String, String> map) {
+      return provide(s, map);
     }
   }
 
