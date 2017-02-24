@@ -78,6 +78,7 @@ Following are different directives currently available.
   * [Fixed Length Parser](docs/directives/fixed-length-parser.md)
   * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
   * [Date Parser](docs/directives/parse-as-date.md)
+  * [Simple Date Parser](docs/directives/parse-as-simple-date.md)
   * [HL7 Parser](docs/directives/parse-as-hl7.md)
 * **Output Formatters**
   * [JSON Map Formatter](docs/directives/write-as-json-map.md)
@@ -102,6 +103,7 @@ Following are different directives currently available.
 * **Date Transformations**
   * [Format Date](docs/directives/format-date.md)
   * [Format Unix Timestamp](docs/directives/format-timestamp.md)
+  * [Diff Date](docs/directives/diff-date.md)
 * **Static Catalog Lookup**
   * [ICD-9 Code](docs/directives/catalog-lookup.md)
   * [ICD-10 Code - 2016, 2017](docs/directives/catalog-lookup.md)
