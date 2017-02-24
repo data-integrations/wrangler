@@ -1,0 +1,8 @@
+mvn clean package -DskipTests
+~/Downloads/cdap-sdk-4.1.0-SNAPSHOT/bin/cdap cli deploy app wrangler-service/target/wrangler-service-1.1.0-SNAPSHOT.jar
+
+cp */target/wrangler*.j* ~/Downloads/cdap-sdk-4.1.0-SNAPSHOT/artifacts
+curl -v localhost:11015/v3/namespaces/system/artifacts -XPOST
+
+
+

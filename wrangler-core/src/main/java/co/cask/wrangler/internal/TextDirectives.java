@@ -820,7 +820,7 @@ public class TextDirectives implements Directives {
   }
 
   /**
-   * @return List of stepRegistry to executed in the order they are specified.
+   * @return List of steps to executed in the order they are specified.
    * @throws ParseException throw in case of parsing exception of specification.
    */
   @Override

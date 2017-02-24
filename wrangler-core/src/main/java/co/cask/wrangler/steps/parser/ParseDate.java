@@ -47,6 +47,7 @@ public class ParseDate extends AbstractStep {
     if(timezone == null) {
       timezone = "UTC";
     }
+    // this is bad. esp if you have more than one such step in your pipeline
     TimeZone.setDefault(TimeZone.getTimeZone(timezone));
   }
 
