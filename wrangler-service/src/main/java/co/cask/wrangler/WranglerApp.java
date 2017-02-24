@@ -6,7 +6,7 @@ import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.service.WranglerService;
 
 /**
- * Created by nitin on 1/27/17.
+ * Wrangler Application.
  */
 public class WranglerApp extends AbstractApplication {
   /**
