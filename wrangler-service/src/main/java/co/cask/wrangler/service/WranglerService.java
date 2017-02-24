@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -117,7 +118,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   @POST
   @Path("workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws ) {
+                     @PathParam("workspace") String ws, @Nullable @QueryParam("recorddelimiter") String delimiter) {
 
     String body = null;
     ByteBuffer content = request.getContent();
@@ -132,7 +133,10 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
     List<Record> records = new ArrayList<>();
     int i = 0;
-    for (String line : body.split("\n")) {
+    if(delimiter == null || delimiter.isEmpty()) {
+      delimiter = "\n";
+    }
+    for (String line : body.split(delimiter)) {
       records.add(new Record(ws, line));
       ++i;
     }
