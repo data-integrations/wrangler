@@ -24,6 +24,7 @@ import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginConfig;
 import co.cask.cdap.etl.api.Emitter;
+import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transform;
@@ -216,6 +217,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         LOG.warn("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
         throw new Exception(String.format("Reached error threshold %d, terminating processing.", config.threshold));
       }
+      // Emit error record, if the Error flattener or error handlers are not connected, then
+      // the record is automatically omitted.
+      emitter.emitError(new InvalidEntry<StructuredRecord>(0, e.getMessage(), input));
       return;
     } finally {
       getContext().getMetrics().gauge("process.time", System.nanoTime() - start);
