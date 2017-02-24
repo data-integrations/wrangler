@@ -242,7 +242,7 @@ public class PipelineTest {
   @Test
   public void testSedGrep() throws Exception {
     String[] directives = new String[] {
-      "sed body s/\"//g"
+      "find-and-replace body s/\"//g"
     };
 
     List<Record> records = Arrays.asList(
