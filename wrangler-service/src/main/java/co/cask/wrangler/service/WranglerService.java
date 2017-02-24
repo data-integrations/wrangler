@@ -32,11 +32,11 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
 import co.cask.wrangler.internal.statistics.BasicStatistics;
 import co.cask.wrangler.internal.validator.ColumnNameValidator;
@@ -55,8 +55,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -118,7 +118,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   @POST
   @Path("workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws ) {
+                     @PathParam("workspace") String ws, @Nullable @QueryParam("recorddelimiter") String delimiter) {
 
     String body = null;
     ByteBuffer content = request.getContent();
@@ -133,7 +133,10 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
     List<Record> records = new ArrayList<>();
     int i = 0;
-    for (String line : body.split("\n")) {
+    if(delimiter == null || delimiter.isEmpty()) {
+      delimiter = "\n";
+    }
+    for (String line : body.split(delimiter)) {
       records.add(new Record(ws, line));
       ++i;
     }
@@ -412,16 +415,16 @@ public class WranglerService extends AbstractHttpServiceHandler {
   public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
       UsageRegistry registry = new UsageRegistry();
-      Map<String, UsageRegistry.UsageDatum> usages = registry.getAll();
+      List<UsageRegistry.UsageDatum> usages = registry.getAll();
 
       JSONObject response = new JSONObject();
       int items = 0;
       JSONArray values = new JSONArray();
-      for (Map.Entry<String, UsageRegistry.UsageDatum> entry : usages.entrySet()) {
+      for (UsageRegistry.UsageDatum entry : usages) {
         JSONObject usage = new JSONObject();
-        usage.put("directive", entry.getKey());
-        usage.put("usage", entry.getValue().getUsage());
-        usage.put("description", entry.getValue().getDescription());
+        usage.put("directive", entry.getDirective());
+        usage.put("usage", entry.getUsage());
+        usage.put("description", entry.getDescription());
         values.put(usage);
         items++;
       }
