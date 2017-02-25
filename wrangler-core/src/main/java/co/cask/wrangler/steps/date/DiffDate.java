@@ -30,8 +30,8 @@ import java.util.List;
  */
 @Usage(
   directive = "diff-date",
-  usage = "diff-date <column1> <column2> <destColumn>",
-  description = "Return the difference in milliseconds between two Date objects. " +
+  usage = "diff-date <column> <column> <destination>",
+  description = "Return the difference in milliseconds between two Date objects." +
     "Must use parse-simple-date or parse-date step first."
 )
 public class DiffDate extends AbstractStep {
@@ -73,7 +73,8 @@ public class DiffDate extends AbstractStep {
     Object o = record.getValue(idx);
     if (o == null || !(o instanceof Date)) {
       throw new StepException(
-        String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' directive first.", toString(),
+        String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' or " +
+                        "'parse-as-simple-date' directive first.", toString(),
                       o != null ? o.getClass().getName() : "null", colName)
       );
     }
