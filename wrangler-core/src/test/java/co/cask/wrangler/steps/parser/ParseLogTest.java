@@ -18,7 +18,6 @@ package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.steps.parser.ParseLog;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -65,12 +64,8 @@ public class ParseLogTest {
     );
 
     records = PipelineTest.execute(directives, records);
-
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(164, records.get(0).length());
-    Assert.assertEquals("HTTP.URI:request.referer", records.get(0).getColumn(25));
-    Assert.assertEquals("http://www.domain.com/content/report/shows/New_York/KSHK/trip/s_s_14_ny_ww/sheers.html",
-                        records.get(0).getValue(25));
+    Assert.assertEquals(44, records.get(0).length());
   }
 
   @Test

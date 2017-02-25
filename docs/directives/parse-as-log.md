@@ -24,6 +24,15 @@ the following are also recognized:
 * referer
 * agent
 
+So, if you are looking to parse combined log format or common log format you can do the following:
+
+```
+  parse-as-log body combined
+  parse-as-log body common
+```
+
+If you have logs that's not supported, you can specify the format.
+
 For Nginx the log_format tokens are specified [here](http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format)
 and [here](http://nginx.org/en/docs/http/ngx_http_core_module.html#variables).
 
@@ -53,14 +62,14 @@ Would result in following record
 
 ```
   {
-    "IP:connection.client.host" : "127.0.0.1",
-    "IP:connection.client.host.last" : "127.0.0.1"
-    "NUMBER:connection.client.logname" : null,
-    "NUMBER:connection.client.logname.last" : null,
+    "IP_connection.client.host" : "127.0.0.1",
+    "IP_connection.client.host.last" : "127.0.0.1"
+    "NUMBER_connection.client.logname" : null,
+    "NUMBER_connection.client.logname.last" : null,
     ...
     ...
-    "HTTP.PATH:request.firstline.uri.path" : "/apache_pb.gif",
-    "HTTP.REF:request.firstline.uri.ref" : null
+    "HTTP.PATH_request.firstline.uri.path" : "/apache_pb.gif",
+    "HTTP.REF_request.firstline.uri.ref" : null
   }
 ```
 
