@@ -16,7 +16,7 @@ into the destination column.
 Note that this directive can only apply on two columns whose date strings have already been parsed, either using the
 [PARSE-AS-DATE](docs/directives/parse-as-date.md) directive or the [PARSE-AS-SIMPLE-DATE](docs/directives/parse-as-simple-date.md).
 
-```date-diff``` can return in negative columns.
+```date-diff``` can return negative difference when first column is an earlier than the second column.
 
 ## Examples
 
@@ -42,4 +42,3 @@ will result in the record below.
   "update_date" : "02/14/2017",
   "diff_date" : 17280000
 }
-```
