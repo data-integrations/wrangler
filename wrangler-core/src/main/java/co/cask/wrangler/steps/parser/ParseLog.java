@@ -94,8 +94,15 @@ public class ParseLog extends AbstractStep {
 
   public final class LogLine {
     private Record record;
+
     public void setValue(final String name, final String value) {
-      record.addOrSet(name, value);
+      String key = name.toLowerCase();
+      if (key.contains(".last") || key.contains("original") || key.contains("bytesclf")
+        || key.contains("firstline") || key.contains("cookie") ) {
+        return;
+      }
+      key = key.replaceAll("[^a-zA-Z0-9_]","_");
+      record.addOrSet(key, value);
     }
 
     public void set(Record record) {
