@@ -21,7 +21,6 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;

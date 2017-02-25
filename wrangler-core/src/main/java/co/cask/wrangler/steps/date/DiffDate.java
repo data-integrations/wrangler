@@ -73,8 +73,7 @@ public class DiffDate extends AbstractStep {
     Object o = record.getValue(idx);
     if (o == null || !(o instanceof Date)) {
       throw new StepException(
-        String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' or " +
-                        "'parse-as-simple-date' directive first.", toString(),
+        String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' directive first.", toString(),
                       o != null ? o.getClass().getName() : "null", colName)
       );
     }
