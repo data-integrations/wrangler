@@ -5,7 +5,7 @@ DIFF-DATE is a directive for taking the difference in two dates.
 ## Syntax
 
 ```
-diff-date <column1> <column2> <destColumn>
+diff-date <column> <column> <destination>
 ```
 
 ## Usage Notes
@@ -14,10 +14,32 @@ The DIFF-DATE directive will take the difference between two Date objects, and p
 into the destination column.
 
 Note that this directive can only apply on two columns whose date strings have already been parsed, either using the
-PARSE-AS-DATE directive or the PARSE-AS-SIMPLE-DATE.
+[PARSE-AS-DATE](docs/directives/parse-as-date.md) directive or the [PARSE-AS-SIMPLE-DATE](docs/directives/parse-as-simple-date.md).
+
+```date-diff``` can return in negative columns.
 
 ## Examples
 
+Let's consider an example
 ```
-  diff-date laterDate earlierDate dateDiff
+{
+  "create_date" : "02/12/2017",
+  "update_date" : "02/14/2017"
+}
+```
+
+Now, applying the following directive
+
+```
+  diff-date update_date create_date diff_date
+```
+
+will result in the record below.
+
+```
+{
+  "create_date" : "02/12/2017",
+  "update_date" : "02/14/2017",
+  "diff_date" : 17280000
+}
 ```

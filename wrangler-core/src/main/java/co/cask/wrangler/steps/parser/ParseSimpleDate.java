@@ -21,32 +21,28 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import com.joestelmach.natty.DateGroup;
-import com.joestelmach.natty.Parser;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 /**
- * A Step to parse date.
+ * A Step to parse date into Date object.
  */
 @Usage(
   directive = "parse-as-simple-date",
-  usage = "parse-as-simple-date <column> <pattern>",
-  description = "Parses a column as date."
+  usage = "parse-as-simple-date <column> <format>",
+  description = "Parses a column as date using format."
 )
 public class ParseSimpleDate extends AbstractStep {
   private final String column;
-  private final SimpleDateFormat simpleDateFormat;
+  private final SimpleDateFormat format;
 
-  public ParseSimpleDate(int lineno, String directive, String column, String pattern) {
+  public ParseSimpleDate(int lineno, String directive, String column, String format) {
     super(lineno, directive);
     this.column = column;
-    this.simpleDateFormat = new SimpleDateFormat(pattern);
+    this.format = new SimpleDateFormat(format);
   }
 
   /**
@@ -62,13 +58,16 @@ public class ParseSimpleDate extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
+        if (object == null) {
+          continue;
+        }
         if (object instanceof String) {
           try {
-            Date date = simpleDateFormat.parse((String) object);
+            Date date = format.parse((String) object);
             record.setValue(idx, date);
           } catch (ParseException e) {
             throw new StepException(String.format("Failed to parse '%s' with pattern '%s'",
-                                                  object, simpleDateFormat.toPattern()));
+                                                  object, format.toPattern()));
           }
 
         } else {

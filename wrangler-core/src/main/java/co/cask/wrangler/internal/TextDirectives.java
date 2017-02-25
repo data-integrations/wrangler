@@ -573,7 +573,7 @@ public class TextDirectives implements Directives {
         // parse-as-simple-date <column> <pattern>
         case "parse-as-simple-date" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String pattern = getNextToken(tokenizer, "\n", command, "pattern", lineno);
+          String pattern = getNextToken(tokenizer, "\n", command, "format", lineno);
           steps.add(new ParseSimpleDate(lineno, directive, column, pattern));
         }
         break;
