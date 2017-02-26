@@ -21,34 +21,27 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import com.joestelmach.natty.DateGroup;
-import com.joestelmach.natty.Parser;
-
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 /**
- * A Step to parse date.
+ * A Step to parse date into Date object.
  */
 @Usage(
-  directive = "parse-as-date",
-  usage = "parse-as-date <column> [<timezone>]",
-  description = "Parses a column as date, identifies the format automatically."
+  directive = "parse-as-simple-date",
+  usage = "parse-as-simple-date <column> <format>",
+  description = "Parses a column as date using format."
 )
-public class ParseDate extends AbstractStep {
+public class ParseSimpleDate extends AbstractStep {
   private final String column;
-  private final String timezone;
+  private final SimpleDateFormat format;
 
-  public ParseDate(int lineno, String directive, String column, String timezone) {
+  public ParseSimpleDate(int lineno, String directive, String column, String format) {
     super(lineno, directive);
     this.column = column;
-    this.timezone = timezone;
-    if(timezone == null) {
-      timezone = "UTC";
-    }
-    // this is bad. esp if you have more than one such step in your pipeline
-    TimeZone.setDefault(TimeZone.getTimeZone(timezone));
+    this.format = new SimpleDateFormat(format);
   }
 
   /**
@@ -64,16 +57,18 @@ public class ParseDate extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
+        // If the data in the cell is null or is already of date format, then
+        // continue to next record.
+        if (object == null || object instanceof Date) {
+          continue;
+        }
         if (object instanceof String) {
-          Parser parser = new Parser();
-          List<DateGroup> groups = parser.parse((String) object);
-          int i = 1;
-          for (DateGroup group : groups) {
-            List<Date> dates = group.getDates();
-            for (Date date : dates) {
-              record.add(String.format("%s_%d", column, i), date);
-            }
-            i++;
+          try {
+            Date date = format.parse((String) object);
+            record.setValue(idx, date);
+          } catch (ParseException e) {
+            throw new StepException(String.format("Failed to parse '%s' with pattern '%s'",
+                                                  object, format.toPattern()));
           }
         } else {
           throw new StepException(

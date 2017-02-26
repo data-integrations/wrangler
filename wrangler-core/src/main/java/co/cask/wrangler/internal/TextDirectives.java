@@ -32,6 +32,7 @@ import co.cask.wrangler.steps.column.Merge;
 import co.cask.wrangler.steps.column.Rename;
 import co.cask.wrangler.steps.column.SplitToColumns;
 import co.cask.wrangler.steps.column.Swap;
+import co.cask.wrangler.steps.date.DiffDate;
 import co.cask.wrangler.steps.date.FormatDate;
 import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
@@ -40,6 +41,7 @@ import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
+import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
@@ -568,6 +570,23 @@ public class TextDirectives implements Directives {
         }
         break;
 
+        // parse-as-simple-date <column> <pattern>
+        case "parse-as-simple-date" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String pattern = getNextToken(tokenizer, "\n", command, "format", lineno);
+          steps.add(new ParseSimpleDate(lineno, directive, column, pattern));
+        }
+        break;
+
+        // diff-date <column1> <column2> <destColumn>
+        case "diff-date" : {
+          String column1 = getNextToken(tokenizer, command, "column1", lineno);
+          String column2 = getNextToken(tokenizer, command, "column2", lineno);
+          String destColumn = getNextToken(tokenizer, "\n", command, "destColumn", lineno);
+          steps.add(new DiffDate(lineno, directive, column1, column2, destColumn));
+        }
+        break;
+
         // keep <column>[,<column>]*
         case "keep" : {
           String columns = getNextToken(tokenizer, command, "columns", lineno);
@@ -801,7 +820,7 @@ public class TextDirectives implements Directives {
   }
 
   /**
-   * @return List of stepRegistry to executed in the order they are specified.
+   * @return List of steps to executed in the order they are specified.
    * @throws ParseException throw in case of parsing exception of specification.
    */
   @Override
