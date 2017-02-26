@@ -57,10 +57,19 @@ public class Keep extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
+      for (Map.Entry<String, Boolean> column : mapping.entrySet()) {
+        int idx = record.find(column.getKey());
+        if (idx == -1) {
+          throw new StepException(toString() + " : Column '" + column.getKey() + "' does not exist in the record.");
+        }
+      }
+
       int idx = 0;
       for(KeyValue<String, Object> v : record.getFields()) {
         if (!mapping.containsKey(v.getKey())) {
-          record.remove(idx);
+          if (record.find(v.getKey()) != -1) {
+            record.remove(idx);
+          }
         } else {
           ++idx;
         }
