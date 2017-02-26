@@ -77,7 +77,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <cdap.version>4.0.0</cdap.version>
+    <cdap.version>4.1.0</cdap.version>
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang.version>2.6</commons-lang.version>
