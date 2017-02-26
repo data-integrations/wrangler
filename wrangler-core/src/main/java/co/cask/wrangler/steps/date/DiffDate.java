@@ -38,6 +38,7 @@ public class DiffDate extends AbstractStep {
   private final String column1;
   private final String column2;
   private final String destCol;
+  private final Date date = new Date();
 
   public DiffDate(int lineno, String detail, String column1, String column2, String destCol) {
     super(lineno, detail);
@@ -59,23 +60,31 @@ public class DiffDate extends AbstractStep {
     for (Record record : records) {
       Date date1 = getDate(record, column1);
       Date date2 = getDate(record, column2);
-      record.addOrSet(destCol, date1.getTime() - date2.getTime());
+      if (date1 != null && date2 != null) {
+        record.addOrSet(destCol, date1.getTime() - date2.getTime());
+      } else {
+        record.addOrSet(destCol, null);
+      }
     }
     return records;
   }
 
   private Date getDate(Record record, String colName) throws StepException {
+    // If one of the column contains now, then we return
+    // the current date.
+    if (colName.equalsIgnoreCase("now")) {
+      return date;
+    }
+
+    // Else attempt to find the column.
     int idx = record.find(colName);
     if (idx == -1) {
       throw new StepException(toString() + " : '" +
-                                colName + "' column is not defined in the record. Please check the wrangling step.");
+                                colName + "' column is not defined in the record.");
     }
     Object o = record.getValue(idx);
     if (o == null || !(o instanceof Date)) {
-      throw new StepException(
-        String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' directive first.", toString(),
-                      o != null ? o.getClass().getName() : "null", colName)
-      );
+      return null;
     }
     return (Date) o;
   }

@@ -1,6 +1,6 @@
 # Simple Date Parser
 
-PARSE-AS-SIMPLE-DATE is a directive for simple date strings.
+PARSE-AS-SIMPLE-DATE is a directive for parsing the date strings.
 
 ## Syntax
 
@@ -11,7 +11,8 @@ parse-as-simple-date <column> <pattern>
 ## Usage Notes
 
 The PARSE-AS-SIMPLE-DATE directive will parse the given date string, using the given pattern string.
-
+If the column is 'null' or already parsed as date, then applying this directive is a no-op. The column
+to be parsed as date should be of type string.
 
 ## Examples
 
