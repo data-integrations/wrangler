@@ -176,7 +176,9 @@ public final class UsageRegistry {
     XmlParser.class,
     XPathElement.class,
     XPathArrayElement.class,
-    XPathAttr.class
+    XPathAttr.class,
+    ParseSimpleDate.class,
+    DiffDate.class
   );
 
   public UsageRegistry() {
