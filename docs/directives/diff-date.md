@@ -18,6 +18,10 @@ Note that this directive can only apply on two columns whose date strings have a
 
 ```date-diff``` can return negative difference when first column is an earlier than the second column.
 
+If one of the dates in the column is 'null', then resulting column will be null and if any of the columns
+contains "now", then the column with actual date is subtracted from the current time. "now" applies the same
+date across all the rows.
+
 ## Examples
 
 Let's consider an example
@@ -42,3 +46,4 @@ will result in the record below.
   "update_date" : "02/14/2017",
   "diff_date" : 17280000
 }
+```

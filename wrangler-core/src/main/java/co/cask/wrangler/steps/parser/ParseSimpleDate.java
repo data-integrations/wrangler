@@ -57,7 +57,9 @@ public class ParseSimpleDate extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
-        if (object == null) {
+        // If the data in the cell is null or is already of date format, then
+        // continue to next record.
+        if (object == null || object instanceof Date) {
           continue;
         }
         if (object instanceof String) {
@@ -68,7 +70,6 @@ public class ParseSimpleDate extends AbstractStep {
             throw new StepException(String.format("Failed to parse '%s' with pattern '%s'",
                                                   object, format.toPattern()));
           }
-
         } else {
           throw new StepException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
