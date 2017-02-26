@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Wrangle step for setting the columns obtained form wrangling.
+ * A Wrangle step for setting the columns obtained from wrangling.
  *
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
@@ -41,7 +41,7 @@ public class Columns extends AbstractStep {
   private List<String> columns = new ArrayList<>();
 
   // Replaces the input {@link Record} column names.
-  boolean replaceColumnNames;
+  private boolean replaceColumnNames;
 
   public Columns(int lineno, String detail, List<String> columns) {
     this(lineno, detail, columns, true);

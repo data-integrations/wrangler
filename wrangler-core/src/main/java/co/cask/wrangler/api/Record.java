@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Record defines the schema and data on which the wrangler will operate opon.
+ * Record defines the schema and data on which the wrangler will operate upon.
  */
 public class Record {
   private static final Logger LOG = LoggerFactory.getLogger(Record.class);
@@ -226,7 +226,7 @@ public class Record {
     List<KeyValue<String, Object>> v = new ArrayList<>();
     int i = 0;
     for (String column : columns) {
-      v.add(new KeyValue(column, values.get(i)));
+      v.add(new KeyValue<>(column, values.get(i)));
       ++i;
     }
     return v;
