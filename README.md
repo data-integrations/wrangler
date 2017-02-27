@@ -10,11 +10,14 @@
 Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
 
 ## Demo Videos and Recipes
-* [HL7 CCDA XML Parsing Recipe](demos/HL7-CCDA-XML-Parsing.md)
-* [Log Parsing](demos/Parsing-Apache-Log.md)
-* [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
-* [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38)
 
+* Recipes
+  * [HL7 CCDA XML Parsing Recipe](demos/HL7-CCDA-XML-Parsing.md)
+  * [Log Parsing](demos/Parsing-Apache-Log.md)
+* Videos  
+  * [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38)
+  * [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
+  
 ## Concepts
 
 This implementation of wrangler defines the following concepts. Please familiarize yourself with these concepts. 
