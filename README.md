@@ -75,6 +75,7 @@ Following are different directives currently available.
   * [Json Path](docs/directives/json-path.md)
   * [XML Parser](docs/directives/parse-as-xml.md)
   * [XPath](docs/directives/xpath.md)
+  * [XML To JSON](docs/directives/parse-xml-to-json.md)
   * [Fixed Length Parser](docs/directives/fixed-length-parser.md)
   * [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
   * [Date Parser](docs/directives/parse-as-date.md)
