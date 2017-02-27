@@ -26,9 +26,9 @@
   <description>An interactive tool for data cleansing and transformation.</description>
 
   <modules>
-    <module>wrangler-transform</module>
-    <module>wrangler-service</module>
-    <module>wrangler-core</module>
+    <module>transform</module>
+    <module>service</module>
+    <module>core</module>
   </modules>
 
   <licenses>
