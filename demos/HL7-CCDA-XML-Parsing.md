@@ -23,6 +23,7 @@ find-and-replace body s/[\r\n]//g
 split-to-rows body /ClinicalDocument>
 set column body body+"/ClinicalDocument>"
 extract-regex-groups body (<ClinicalDocument.*?ClinicalDocument>)
+filter-rows-on empty-or-null-columns body_1_1
 drop body
 rename body_1_1 body
 
