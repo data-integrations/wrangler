@@ -1,21 +1,18 @@
 # Parse XML.
 
-PARSE-AS-XML is a directive for parsing an XML document. The directive operates on input column that is of type String.
-Application of this directive transforms the XML into JSON document on fly simplifying further parsing using
-[PARSE-AS-JSON](parse-as-json.md).
+PARSE-AS-XML is a directive for parsing an XML document. The directive operates on column to parse that into to XML VTD
+ object that can then be queried using [XPATH](xpath.md) or [XPATH-ARRAY](xpath.md) or [XPATH-ATTR](xpath-attr.md) or
+ [XPATH-ARRAY-ATTR](xpath-attr.md)
 
 ## Syntax 
 
 ```
-  parse-as-xml <column-name> [<depth>]
+  parse-as-xml <column>
 ```
 
-```column-name``` name of the column in the record that is a XML document.
-```depth``` indicates the depth at which XML document should terminate processing.
+```column``` name of the column in the record that is a XML document.
 
 ## Usage Notes
 
-PARSE-AS-XML directive efficently the XML document and presents as JSON object to further transform it.
-The XML document contains elements, attributes, and content text. Sequence of similar elements are
-turned into JSONArray -- which can then be further parsed using [PARSE-AS-JSON](parse-as-json.md) directive.
-During parsing, the comments, prologs, DTDs and <code>&lt;[ [ ]]></code> are ignored.
+PARSE-AS-XML directive efficiently parses and represents the XML document into a in-memory structure that can then be
+ efficiently queried using other directives.
