@@ -59,19 +59,19 @@ would result in four (4) records being generated with each split value being ass
 ```
   {
     "id" : 1,
-    "codes" : USD,
+    "codes" : "USD",
   }
   {
     "id" : 1,
-    "codes" : AUD,
+    "codes" : "AUD",
   }
   {
     "id" : 1,
-    "codes" : AMD,
+    "codes" : "AMD",
   }
   {
     "id" : 1,
-    "codes" : XCD,
+    "codes" : "XCD",
   }
 ```
 

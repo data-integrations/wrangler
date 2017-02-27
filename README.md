@@ -86,7 +86,7 @@ Following are different directives currently available.
 * **Transformations**
   * [Change Text case](docs/directives/change-case.md)
   * [Index Split](docs/directives/index-split.md)
-  * [Split by Seperator](docs/directives/split-by-seperator.md)
+  * [Split by Separator](docs/directives/split-by-separator.md)
   * [Find and Replace](docs/directives/find-and-replace.md)
   * [Cut](docs/directives/cut.md)
   * [Expressions](docs/directives/expression.md)
