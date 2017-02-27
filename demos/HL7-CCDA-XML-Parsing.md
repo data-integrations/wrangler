@@ -11,6 +11,10 @@ To paste this receipe AS-IS, you would need
 
 [Here](sample/CCDA_R2_CCD_HL7.xml) is the sample data for running these directives through.
 
+## CDAP Pipeline
+
+* Version 4.1.0 - [Pipeline here](pipelines/parse-hl7-ccda-xml.json)
+
 ## Recipe
 ```
 // CCDA XML file is incomplete and needs to be fixed, before it can be parsed as XML
