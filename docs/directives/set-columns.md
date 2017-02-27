@@ -16,7 +16,7 @@ The most common use of SET COLUMNS directive is to set the name of columns when
 we parse a CSV file. The column names will be applied to the record start from
 field zero in the order they were specified.
 
-Let's take a simple example, let's say you have parsed a 'body' using [PARSE-AS-CSV](parse-as-csv.md)
+Let's take a simple example, let's say you have parsed a 'body' using [PARSE-AS-CSV](csv-parser.md)
 directive and then you are applying SET COLUMNS directive.
 
 
