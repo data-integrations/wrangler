@@ -61,7 +61,7 @@ public class ExtractRegexGroups extends AbstractStep {
       if (idx != -1) {
         Object value = record.getValue(idx);
         if (value != null && value instanceof String) {
-          Matcher matcher = pattern. matcher((String) value);
+          Matcher matcher = pattern.matcher((String) value);
           int count = 1;
           while (matcher.find()) {
             for(int i = 1; i <= matcher.groupCount(); i++) {
