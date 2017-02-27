@@ -48,6 +48,7 @@ import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SplitToRows;
+import co.cask.wrangler.steps.transformation.AddOrSetColumn;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Expression;
@@ -340,8 +341,14 @@ public class TextDirectives implements Directives {
             }
             delimiter = unescapedStr.charAt(0);
           }
-          boolean ignoreEmptyLines =
-            getNextToken(tokenizer, command, "true|false", lineno).equalsIgnoreCase("true");
+
+          boolean ignoreEmptyLines;
+          String ignoreEmptyLinesOpt = getNextToken(tokenizer, "\n", command, "true|false", lineno, true);
+          if (ignoreEmptyLinesOpt == null || ignoreEmptyLinesOpt.equalsIgnoreCase("true")) {
+            ignoreEmptyLines = true;
+          } else {
+            ignoreEmptyLines = false;
+          }
           CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
           steps.add(new CsvParser(lineno, directive, opt, column, false));
         }
@@ -775,6 +782,13 @@ public class TextDirectives implements Directives {
         }
         break;
 
+        // add-or-set-column <column> <expression>
+        case "add-or-set-column" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String expr = getNextToken(tokenizer, "\n", command, "expression", lineno);
+          steps.add(new AddOrSetColumn(lineno, directive, column, expr));
+        }
+        break;
 
         default:
           throw new DirectiveParseException(
