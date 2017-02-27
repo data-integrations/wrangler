@@ -1,6 +1,11 @@
-# HL7 CCDA XML Parsing
+# HL7 CCDA XML
 
-This demo provides 
+This receipe show you can use the wrangling directives to parse HL7 CCDA XML files. 
+
+## Version
+To paste this receipe AS-IS, you would need
+
+* Wrangler Service >= 1.2.0
 
 # Receipe
 ```
