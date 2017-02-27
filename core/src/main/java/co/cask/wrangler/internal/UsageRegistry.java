@@ -47,6 +47,7 @@ import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SplitToRows;
+import co.cask.wrangler.steps.transformation.AddOrSetColumn;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Expression;
@@ -176,7 +177,8 @@ public final class UsageRegistry {
     XmlParser.class,
     XPathElement.class,
     XPathArrayElement.class,
-    XPathAttr.class
+    XPathAttr.class,
+    AddOrSetColumn.class
   );
 
   public UsageRegistry() {

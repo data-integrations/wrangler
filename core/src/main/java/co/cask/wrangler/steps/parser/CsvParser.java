@@ -33,7 +33,7 @@ import java.util.List;
  */
 @Usage(
   directive = "parse-as-csv",
-  usage = "parse-as-csv <column> <delimiter> <skip-if-empty - true or false>",
+  usage = "parse-as-csv <column> <delimiter> [<skip-if-empty - true or false>]",
   description = "Parses a column as CSV."
 )
 public class CsvParser extends AbstractStep {
