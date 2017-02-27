@@ -1,0 +1,241 @@
+{
+    "name": "ParseHL7XML",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "4.1.0",
+        "scope": "SYSTEM"
+    },
+    "__ui__": {
+        "nodes": [
+            {
+                "name": "File",
+                "plugin": {
+                    "name": "File",
+                    "type": "batchsource",
+                    "label": "File",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "1.6.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "ignoreNonExistingFolders": "false",
+                        "recursive": "false",
+                        "referenceName": "hl7_xml_files",
+                        "path": "file://${root-dir}/CCDA_R2_CCD_HL7/*",
+                        "fileSystemProperties": "{\"textinputformat.record.delimiter\":\"`\"}"
+                    }
+                },
+                "outputSchema": "{\"name\":\"etlSchemaBody\",\"type\":\"record\",\"fields\":[{\"name\":\"offset\",\"type\":\"long\"},{\"name\":\"body\",\"type\":\"string\"}]}",
+                "type": "batchsource",
+                "label": "File",
+                "icon": "icon-file",
+                "_uiPosition": {
+                    "top": "329.3333435058594px",
+                    "left": "324.66668701171875px"
+                },
+                "$$hashKey": "object:3918"
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "1.1.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "field": "*",
+                        "directives": "// CCDA XML file is incomplete and needs to be fixed, before it can be parsed as XML\n// This is very common scenario. \n\nfind-and-replace body s/[\\r\\n]//g\n\n// This XML file has multiple root elements. \n\nsplit-to-rows body /ClinicalDocument>\nset column body body+\"/ClinicalDocument>\"\nextract-regex-groups body (<ClinicalDocument.*?ClinicalDocument>)\ndrop body\nfilter-rows-on empty-or-null-columns body_1_1\nrename body_1_1 body\n\n// Now we are ready to parse as XML\n\nparse-as-xml body\n\n// Use XPATH directive to extract only the elements needs. \n// Can also use XPATH-ARRAY to extract array of elements. \n// Extract Custodian and Patient MRN \n\nxpath body ASGN_AUTH_NM /ClinicalDocument/custodian/assignedCustodian/representedCustodianOrganization/name\nxpath body MRN_ID /ClinicalDocument/PatientMRN\n\n// Extract Patient information - Part 1\n\nxpath body MRN_ID /ClinicalDocument/recordTarget/patientRole/patient/name/given\nxpath body PTNT_FIRST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/given\nxpath body PTNT_LAST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/family\nxpath body PTNT_MIDDLE_NM /ClinicalDocument/recordTarget/patientRole/patient/name/middle\nxpath body PTNT_SFX_NM /ClinicalDocument/recordTarget/patientRole/patient/name/suffix\nxpath body PTNT_LN1_ADR /ClinicalDocument/recordTarget/patientRole/addr/streetAddressLine\nxpath body PTNT_CITY_NM /ClinicalDocument/recordTarget/patientRole/addr/city\nxpath body PTNT_ST_CD /ClinicalDocument/recordTarget/patientRole/addr/state\nxpath body PTNT_ZIP_PLUS_4_CD /ClinicalDocument/recordTarget/patientRole/addr/postalCode\n\n// Extract Patient information - Part 2\n\nxpath body PTNT_BIRTH_DT_VAL /ClinicalDocument/recordTarget/patientRole/patient/birthTime/@value\nxpath body PTNT_FIRST_NM_TP_CD /ClinicalDocument/recordTarget/patientRole/patient/name/given/@qualifier\nxpath body PTNT_NM_TP_CD /ClinicalDocument/recordTarget/patientRole/patient/name/@use\nxpath body PTNT_ADR_TP_CD /ClinicalDocument/recordTarget/patientRole/addr/@use\nxpath body PTNT_GNDR_VAL /ClinicalDocument/recordTarget/patientRole/patient/administrativeGenderCode/@code\nxpath body PTNT_GNDR_DSC /ClinicalDocument/recordTarget/patientRole/patient/administrativeGenderCode/@displayName\nxpath body PTNT_HO_PHN_NO /ClinicalDocument/recordTarget/patientRole/telecom[@use='HP']/@value\nxpath body PTNT_WORK_PHN_NO /ClinicalDocument/recordTarget/patientRole/telecom[@use='WP']/@value\nxpath body PTNT_MBL_PHN_NO /ClinicalDocument/recordTarget/patientRole/telecom[@use=' tel']/@value\n\n// Extract Patient information - Part 3\n\nxpath body PTNT_ETHN_ORIG_VAL /ClinicalDocument/recordTarget/patientRole/patient/ethnicGroupCode/@code\nxpath body PTNT_ETHN_ORIG_DSC /ClinicalDocument/recordTarget/patientRole/patient/ethnicGroupCode/@displayName\nxpath body PTNT_RACE_VAL /ClinicalDocument/recordTarget/patientRole/patient/raceCode/@code\nxpath body PTNT_RACE_DSC /ClinicalDocument/recordTarget/patientRole/patient/raceCode/@displayName\nxpath body PTNT_PRI_LANG_VAL /ClinicalDocument/recordTarget/patientRole/patient/languageCommunication/languageCode/@code\n\n// Extract Patient information - Part 4\n\nxpath body PTNT_MRTL_STS_VAL /ClinicalDocument/recordTarget/patientRole/patient/maritalStatusCode/@code\nxpath body PTNT_MRTL_STS_DSC /ClinicalDocument/recordTarget/patientRole/patient/maritalStatusCode/@displayName\nxpath body PTNT_RELIG_VAL /ClinicalDocument/recordTarget/patientRole/patient/religiousAffiliationCode/@code\nxpath body PTNT_RELIG_DSC /ClinicalDocument/recordTarget/patientRole/patient/religiousAffiliationCode/@displayName\nxpath body PTNT_EMAIL_ADR /ClinicalDocument/recordTarget/patientRole/telecom[@use='HP']/@value\n\n// Drop body as it's not needed. \n\ndrop body",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                        "threshold": "0"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                "inputSchema": [
+                    {
+                        "name": "File",
+                        "schema": "{\"name\":\"etlSchemaBody\",\"type\":\"record\",\"fields\":[{\"name\":\"offset\",\"type\":\"long\"},{\"name\":\"body\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataWrangler",
+                "_uiPosition": {
+                    "top": "329.3333435058594px",
+                    "left": "624.6666870117188px"
+                },
+                "$$hashKey": "object:3919"
+            },
+            {
+                "name": "TPFSParquet",
+                "plugin": {
+                    "name": "TPFSParquet",
+                    "type": "batchsink",
+                    "label": "TPFSParquet",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "1.6.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "compressionCodec": "Snappy",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                        "name": "hl7_xml_data"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "type": "batchsink",
+                "label": "TPFSParquet",
+                "icon": "icon-tpfsparquet",
+                "_uiPosition": {
+                    "top": "329.3333435058594px",
+                    "left": "924.6666870117188px"
+                },
+                "$$hashKey": "object:3920"
+            }
+        ],
+        "connections": [
+            {
+                "from": "File",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "TPFSParquet"
+            }
+        ]
+    },
+    "config": {
+        "batchInterval": "1s",
+        "resources": {
+            "memoryMB": 1024,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 1024,
+            "virtualCores": 1
+        },
+        "schedule": "0 * * * *",
+        "connections": [
+            {
+                "from": "File",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "TPFSParquet"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "engine": "mapreduce",
+        "stages": [
+            {
+                "name": "File",
+                "plugin": {
+                    "name": "File",
+                    "type": "batchsource",
+                    "label": "File",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "1.6.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "ignoreNonExistingFolders": "false",
+                        "recursive": "false",
+                        "referenceName": "hl7_xml_files",
+                        "path": "file://${root-dir}/CCDA_R2_CCD_HL7/*",
+                        "fileSystemProperties": "{\"textinputformat.record.delimiter\":\"`\"}"
+                    }
+                },
+                "outputSchema": "{\"name\":\"etlSchemaBody\",\"type\":\"record\",\"fields\":[{\"name\":\"offset\",\"type\":\"long\"},{\"name\":\"body\",\"type\":\"string\"}]}",
+                "type": "batchsource",
+                "label": "File",
+                "icon": "icon-file",
+                "_uiPosition": {
+                    "top": "329.3333435058594px",
+                    "left": "324.66668701171875px"
+                },
+                "$$hashKey": "object:3918"
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "1.1.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "field": "*",
+                        "directives": "// CCDA XML file is incomplete and needs to be fixed, before it can be parsed as XML\n// This is very common scenario. \n\nfind-and-replace body s/[\\r\\n]//g\n\n// This XML file has multiple root elements. \n\nsplit-to-rows body /ClinicalDocument>\nset column body body+\"/ClinicalDocument>\"\nextract-regex-groups body (<ClinicalDocument.*?ClinicalDocument>)\ndrop body\nfilter-rows-on empty-or-null-columns body_1_1\nrename body_1_1 body\n\n// Now we are ready to parse as XML\n\nparse-as-xml body\n\n// Use XPATH directive to extract only the elements needs. \n// Can also use XPATH-ARRAY to extract array of elements. \n// Extract Custodian and Patient MRN \n\nxpath body ASGN_AUTH_NM /ClinicalDocument/custodian/assignedCustodian/representedCustodianOrganization/name\nxpath body MRN_ID /ClinicalDocument/PatientMRN\n\n// Extract Patient information - Part 1\n\nxpath body MRN_ID /ClinicalDocument/recordTarget/patientRole/patient/name/given\nxpath body PTNT_FIRST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/given\nxpath body PTNT_LAST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/family\nxpath body PTNT_MIDDLE_NM /ClinicalDocument/recordTarget/patientRole/patient/name/middle\nxpath body PTNT_SFX_NM /ClinicalDocument/recordTarget/patientRole/patient/name/suffix\nxpath body PTNT_LN1_ADR /ClinicalDocument/recordTarget/patientRole/addr/streetAddressLine\nxpath body PTNT_CITY_NM /ClinicalDocument/recordTarget/patientRole/addr/city\nxpath body PTNT_ST_CD /ClinicalDocument/recordTarget/patientRole/addr/state\nxpath body PTNT_ZIP_PLUS_4_CD /ClinicalDocument/recordTarget/patientRole/addr/postalCode\n\n// Extract Patient information - Part 2\n\nxpath body PTNT_BIRTH_DT_VAL /ClinicalDocument/recordTarget/patientRole/patient/birthTime/@value\nxpath body PTNT_FIRST_NM_TP_CD /ClinicalDocument/recordTarget/patientRole/patient/name/given/@qualifier\nxpath body PTNT_NM_TP_CD /ClinicalDocument/recordTarget/patientRole/patient/name/@use\nxpath body PTNT_ADR_TP_CD /ClinicalDocument/recordTarget/patientRole/addr/@use\nxpath body PTNT_GNDR_VAL /ClinicalDocument/recordTarget/patientRole/patient/administrativeGenderCode/@code\nxpath body PTNT_GNDR_DSC /ClinicalDocument/recordTarget/patientRole/patient/administrativeGenderCode/@displayName\nxpath body PTNT_HO_PHN_NO /ClinicalDocument/recordTarget/patientRole/telecom[@use='HP']/@value\nxpath body PTNT_WORK_PHN_NO /ClinicalDocument/recordTarget/patientRole/telecom[@use='WP']/@value\nxpath body PTNT_MBL_PHN_NO /ClinicalDocument/recordTarget/patientRole/telecom[@use=' tel']/@value\n\n// Extract Patient information - Part 3\n\nxpath body PTNT_ETHN_ORIG_VAL /ClinicalDocument/recordTarget/patientRole/patient/ethnicGroupCode/@code\nxpath body PTNT_ETHN_ORIG_DSC /ClinicalDocument/recordTarget/patientRole/patient/ethnicGroupCode/@displayName\nxpath body PTNT_RACE_VAL /ClinicalDocument/recordTarget/patientRole/patient/raceCode/@code\nxpath body PTNT_RACE_DSC /ClinicalDocument/recordTarget/patientRole/patient/raceCode/@displayName\nxpath body PTNT_PRI_LANG_VAL /ClinicalDocument/recordTarget/patientRole/patient/languageCommunication/languageCode/@code\n\n// Extract Patient information - Part 4\n\nxpath body PTNT_MRTL_STS_VAL /ClinicalDocument/recordTarget/patientRole/patient/maritalStatusCode/@code\nxpath body PTNT_MRTL_STS_DSC /ClinicalDocument/recordTarget/patientRole/patient/maritalStatusCode/@displayName\nxpath body PTNT_RELIG_VAL /ClinicalDocument/recordTarget/patientRole/patient/religiousAffiliationCode/@code\nxpath body PTNT_RELIG_DSC /ClinicalDocument/recordTarget/patientRole/patient/religiousAffiliationCode/@displayName\nxpath body PTNT_EMAIL_ADR /ClinicalDocument/recordTarget/patientRole/telecom[@use='HP']/@value\n\n// Drop body as it's not needed. \n\ndrop body",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                        "threshold": "0"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                "inputSchema": [
+                    {
+                        "name": "File",
+                        "schema": "{\"name\":\"etlSchemaBody\",\"type\":\"record\",\"fields\":[{\"name\":\"offset\",\"type\":\"long\"},{\"name\":\"body\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataWrangler",
+                "_uiPosition": {
+                    "top": "329.3333435058594px",
+                    "left": "624.6666870117188px"
+                },
+                "$$hashKey": "object:3919"
+            },
+            {
+                "name": "TPFSParquet",
+                "plugin": {
+                    "name": "TPFSParquet",
+                    "type": "batchsink",
+                    "label": "TPFSParquet",
+                    "artifact": {
+                        "name": "core-plugins",
+                        "version": "1.6.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "compressionCodec": "Snappy",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                        "name": "hl7_xml_data"
+                    }
+                },
+                "outputSchema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}",
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"ASGN_AUTH_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_FIRST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LAST_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_LN1_ADR\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_CITY_NM\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ST_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ZIP_PLUS_4_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_BIRTH_DT_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_NM_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ADR_TP_CD\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_GNDR_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_HO_PHN_NO\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_ETHN_ORIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RACE_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_PRI_LANG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_MRTL_STS_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_VAL\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_RELIG_DSC\",\"type\":[\"string\",\"null\"]},{\"name\":\"PTNT_EMAIL_ADR\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "type": "batchsink",
+                "label": "TPFSParquet",
+                "icon": "icon-tpfsparquet",
+                "_uiPosition": {
+                    "top": "329.3333435058594px",
+                    "left": "924.6666870117188px"
+                },
+                "$$hashKey": "object:3920"
+            }
+        ]
+    }
+}
