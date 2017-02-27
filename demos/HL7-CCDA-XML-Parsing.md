@@ -23,6 +23,7 @@ find-and-replace body s/[\r\n]//g
 split-to-rows body /ClinicalDocument>
 set column body body+"/ClinicalDocument>"
 extract-regex-groups body (<ClinicalDocument.*?ClinicalDocument>)
+filter-rows-on empty-or-null-columns body_1_1
 drop body
 rename body_1_1 body
 
@@ -40,6 +41,7 @@ xpath body MRN_ID /ClinicalDocument/PatientMRN
 // Extract Patient information - Part 1
 
 xpath body MRN_ID /ClinicalDocument/recordTarget/patientRole/patient/name/given
+xpath body PTNT_FIRST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/given
 xpath body PTNT_LAST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/family
 xpath body PTNT_MIDDLE_NM /ClinicalDocument/recordTarget/patientRole/patient/name/middle
 xpath body PTNT_SFX_NM /ClinicalDocument/recordTarget/patientRole/patient/name/suffix
