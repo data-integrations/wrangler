@@ -34,7 +34,7 @@ import java.util.List;
 @Usage(
   directive = "set columns",
   usage = "set columns <column,column,...>",
-  description = "Sets the column names."
+  description = "Sets the column names for CSV parsed records."
 )
 public class Columns extends AbstractStep {
   // Name of the columns represented in a {@link Record}

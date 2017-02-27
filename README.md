@@ -128,6 +128,7 @@ Following are different directives currently available.
   * [Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md)
   * [Replace Column Names - Bulk](docs/directives/columns-replace.md)
   * [Sanatizes Column Names](docs/directives/cleanse-column-names.md)
+  * [Set Column Names](docs/directives/set-columns.md)
 * **NLP**
   * [Stemming Tokenized Words](docs/directives/stemming.md)
   
