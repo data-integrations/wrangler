@@ -68,25 +68,18 @@ public class JsPath extends AbstractStep {
         continue;
       }
 
-      // Detect the type of the object, convert it to String before apply JsonPath
-      // expression to it.
-      String v = null;
-      if (value instanceof String) {
-        v = (String) value;
-      } else if (value instanceof JSONArray) {
-        v = ((JSONArray) value).toString();
-      } else if (value instanceof net.minidev.json.JSONArray) {
-        v = ((net.minidev.json.JSONArray) value).toString();
-      } else if (value instanceof net.minidev.json.JSONObject) {
-        v = ((net.minidev.json.JSONObject) value).toString();
-      } else if (value instanceof JSONObject) {
-        v = ((JSONObject) value).toString();
-      } else {
+      // Detect the type of the object, convert it to String before applying JsonPath expression to it.
+      if (!(value instanceof String ||
+        value instanceof JSONArray ||
+        value instanceof net.minidev.json.JSONArray ||
+        value instanceof net.minidev.json.JSONObject ||
+        value instanceof JSONObject)) {
         throw new StepException(
           String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JSONArray, " +
                           "JSONObject or String.", toString(), value.getClass().getName(), src)
         );
       }
+      String v = value.toString();
 
       // Apply JSON path expression to it.
       Object e = Configuration.defaultConfiguration().jsonProvider().parse(v);

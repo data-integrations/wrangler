@@ -24,7 +24,7 @@ public enum ColumnType {
   STRING("string"),
   INT("int"),
   DOUBLE("double"),
-  BOOELAN("boolean");
+  BOOLEAN("boolean");
 
   private String type;
 

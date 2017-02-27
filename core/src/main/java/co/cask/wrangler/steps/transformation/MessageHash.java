@@ -21,12 +21,14 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A Step to generate a message digest or hash of a column value. .
@@ -37,67 +39,64 @@ import java.util.TreeMap;
   description = "Creates a message digest for the column."
 )
 public class MessageHash extends AbstractStep {
-  private static final Map<String, Boolean> algorithms = new TreeMap<>();
+  private static final Set<String> algorithms = ImmutableSet.of(
+    "SHA",
+    "SHA-384",
+    "SHA-512",
+    "MD5",
+    "SHA-256",
+    "MD2",
+    "KECCAK-224",
+    "SHA3-512",
+    "RIPEMD160",
+    "KECCAK-512",
+    "RIPEMD128",
+    "BLAKE2B-384",
+    "Skein-512-256",
+    "WHIRLPOOL",
+    "Skein-512-224",
+    "Skein-1024-1024",
+    "SHA-1",
+    "SHA-384",
+    "Skein-512-512",
+    "GOST3411",
+    "Skein-1024-512",
+    "Skein-256-256",
+    "MD5",
+    "MD4",
+    "MD2",
+    "Skein-256-224",
+    "SM3",
+    "Skein-512-160",
+    "BLAKE2B-256",
+    "Skein-512-128",
+    "RIPEMD320",
+    "GOST3411-2012-256",
+    "BLAKE2B-512",
+    "SHA-256",
+    "SHA-224",
+    "SHA3-384",
+    "Skein-256-160",
+    "Skein-256-128",
+    "KECCAK-384",
+    "GOST3411-2012-512",
+    "TIGER",
+    "SHA-512",
+    "SHA-512/256",
+    "SHA-512/224",
+    "RIPEMD256",
+    "BLAKE2B-160",
+    "Skein-512-384",
+    "Skein-1024-384",
+    "Tiger",
+    "SHA3-256",
+    "KECCAK-288",
+    "SHA3-224",
+    "KECCAK-256"
+  );
   private final String column;
   private final boolean encode;
   private final MessageDigest digest;
-
-  // Initializing available algorithms.
-  static {
-    algorithms.put("SHA", true);
-    algorithms.put("SHA-384", true);
-    algorithms.put("SHA-512", true);
-    algorithms.put("MD5", true);
-    algorithms.put("SHA-256", true);
-    algorithms.put("MD2", true);
-    algorithms.put("KECCAK-224", true);
-    algorithms.put("SHA3-512", true);
-    algorithms.put("RIPEMD160", true);
-    algorithms.put("KECCAK-512", true);
-    algorithms.put("RIPEMD128", true);
-    algorithms.put("BLAKE2B-384", true);
-    algorithms.put("Skein-512-256", true);
-    algorithms.put("WHIRLPOOL", true);
-    algorithms.put("Skein-512-224", true);
-    algorithms.put("Skein-1024-1024", true);
-    algorithms.put("SHA-1", true);
-    algorithms.put("SHA-384", true);
-    algorithms.put("Skein-512-512", true);
-    algorithms.put("GOST3411", true);
-    algorithms.put("Skein-1024-512", true);
-    algorithms.put("Skein-256-256", true);
-    algorithms.put("MD5", true);
-    algorithms.put("MD4", true);
-    algorithms.put("MD2", true);
-    algorithms.put("Skein-256-224", true);
-    algorithms.put("SM3", true);
-    algorithms.put("Skein-512-160", true);
-    algorithms.put("BLAKE2B-256", true);
-    algorithms.put("Skein-512-128", true);
-    algorithms.put("RIPEMD320", true);
-    algorithms.put("GOST3411-2012-256", true);
-    algorithms.put("BLAKE2B-512", true);
-    algorithms.put("SHA-256", true);
-    algorithms.put("SHA-224", true);
-    algorithms.put("SHA3-384", true);
-    algorithms.put("Skein-256-160", true);
-    algorithms.put("Skein-256-128", true);
-    algorithms.put("KECCAK-384", true);
-    algorithms.put("GOST3411-2012-512", true);
-    algorithms.put("TIGER", true);
-    algorithms.put("SHA-512", true);
-    algorithms.put("SHA-512/256", true);
-    algorithms.put("SHA-512/224", true);
-    algorithms.put("RIPEMD256", true);
-    algorithms.put("BLAKE2B-160", true);
-    algorithms.put("Skein-512-384", true);
-    algorithms.put("Skein-1024-384", true);
-    algorithms.put("Tiger", true);
-    algorithms.put("SHA3-256", true);
-    algorithms.put("KECCAK-288", true);
-    algorithms.put("SHA3-224", true);
-    algorithms.put("KECCAK-256", true);
-  }
 
   /**
    * Checks if the algorithm is the one we support.
@@ -106,7 +105,7 @@ public class MessageHash extends AbstractStep {
    * @return true if we support, false otherwise.
    */
   public static boolean isValid(String algorithm) {
-    return (algorithm != null && algorithms.containsKey(algorithm));
+    return (algorithm != null && algorithms.contains(algorithm));
   }
 
   public MessageHash(int lineno, String directive, String column, MessageDigest digest, boolean encode) {
