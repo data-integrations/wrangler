@@ -15,7 +15,7 @@ Collection of libraries, pipeline plugin and CDAP service for performing data cl
   * [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38)
   * [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
 * Recipes
-  * [HL7 CCDA XML Parsing Recipe](demos/HL7-CCDA-XML-Parsing.md)
+  * [HL7 CCDA XML Parsing](demos/HL7-CCDA-XML-Parsing.md)
   * [Log Parsing](demos/Parsing-Apache-Log.md)
   
 ## Concepts
