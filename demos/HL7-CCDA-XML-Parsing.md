@@ -40,6 +40,7 @@ xpath body MRN_ID /ClinicalDocument/PatientMRN
 // Extract Patient information - Part 1
 
 xpath body MRN_ID /ClinicalDocument/recordTarget/patientRole/patient/name/given
+xpath body PTNT_FIRST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/given
 xpath body PTNT_LAST_NM /ClinicalDocument/recordTarget/patientRole/patient/name/family
 xpath body PTNT_MIDDLE_NM /ClinicalDocument/recordTarget/patientRole/patient/name/middle
 xpath body PTNT_SFX_NM /ClinicalDocument/recordTarget/patientRole/patient/name/suffix
