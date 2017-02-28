@@ -60,6 +60,5 @@ Will generate the following record
     "col1_decode_base32" : "Base32 Encoding",
     "col2_decode_base64" : "Testing Base 64 Encoding",
     "col3_decode_hex" : "Hex Encoding",
-
   }
 ```
