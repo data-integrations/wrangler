@@ -66,6 +66,7 @@ import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.SplitURL;
+import co.cask.wrangler.steps.transformation.TableLookup;
 import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
 import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
@@ -746,6 +747,14 @@ public class TextDirectives implements Directives {
             }
             steps.add(new CatalogLookup(lineno, directive, catalog, column));
           }
+        }
+        break;
+
+        // table-lookup <column> <table>
+        case "table-lookup" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String table = getNextToken(tokenizer, command, "table", lineno);
+          steps.add(new TableLookup(lineno, directive, column, table));
         }
         break;
 
