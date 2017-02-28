@@ -19,9 +19,7 @@ applications that do not have legacy restrictions, simply because it
 makes it possible to manipulate objects with text editors.
 
 Upon using DECODE directive, it generates a new column were name
-would be of following format:
-
-```<column>_decode_<type>```
+would be of following format: **&lt;column&gt;_decode_&lt;type&gt;**
 
 Following is how this directive will handle different column values.
 
