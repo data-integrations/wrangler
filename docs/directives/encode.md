@@ -59,6 +59,5 @@ Will generate the following record
     "col1_encode_base32" : "IJQXGZJTGIQEK3TDN5SGS3TH",
     "col2_encode_base64" : "VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n",
     "col3_encode_hex" : "48657820456e636f64696e67"
-
   }
 ```
