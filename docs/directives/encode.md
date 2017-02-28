@@ -19,14 +19,11 @@ applications that do not have legacy restrictions, simply because it
 makes it possible to manipulate objects with text editors.
 
 Upon using ENCODE directive, it generates a new column were name
-would be of following format:
-
-```<column>_encode_<type>```
+would be of following format: **&lt;column&gt;_encode_&lt;type&gt;**
 
 Following is how this directive will handle different column values.
 
-* If the column is 'null', the resulting column
-will also be 'null'.
+* If the column is 'null', the resulting column will also be 'null'.
 * If a column specified is not found in the record, then it skips the record
 with no-op and moves to the next record.
 * If the column value is not of type string or byte array then it fails.
