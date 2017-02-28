@@ -19,10 +19,10 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.ExtractRegexGroups;
 import co.cask.wrangler.steps.JsPath;
 import co.cask.wrangler.steps.XmlToJson;
+import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
 import co.cask.wrangler.steps.column.Copy;
@@ -51,8 +51,11 @@ import co.cask.wrangler.steps.row.SplitToRows;
 import co.cask.wrangler.steps.transformation.AddOrSetColumn;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
+import co.cask.wrangler.steps.transformation.Decode;
+import co.cask.wrangler.steps.transformation.Encode;
 import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
+import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
 import co.cask.wrangler.steps.transformation.IndexSplit;
 import co.cask.wrangler.steps.transformation.Lower;
@@ -60,7 +63,6 @@ import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import co.cask.wrangler.steps.transformation.Quantization;
-import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.SplitURL;
@@ -787,6 +789,36 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expr = getNextToken(tokenizer, "\n", command, "expression", lineno);
           steps.add(new AddOrSetColumn(lineno, directive, column, expr));
+        }
+        break;
+
+        // encode <base32|base64|hex> <column>
+        case "encode" : {
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          type = type.toUpperCase();
+          if (!type.equals("BASE64") && !type.equals("BASE32") && !type.equals("HEX")) {
+            throw new DirectiveParseException(
+              String.format("Type of encoding specified '%s' is not supported. Supports base64, base32 & hex.",
+                            type)
+            );
+          }
+          steps.add(new Encode(lineno, directive, Encode.Type.valueOf(type), column));
+        }
+        break;
+
+        // decode <base32|base64|hex> <column>
+        case "decode" : {
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          type = type.toUpperCase();
+          if (!type.equals("BASE64") && !type.equals("BASE32") && !type.equals("HEX")) {
+            throw new DirectiveParseException(
+              String.format("Type of decoding specified '%s' is not supported. Supports base64, base32 & hex.",
+                            type)
+            );
+          }
+          steps.add(new Decode(lineno, directive, Decode.Type.valueOf(type), column));
         }
         break;
 
