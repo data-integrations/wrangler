@@ -108,6 +108,9 @@ Following are different directives currently available.
   * [Fuzzy String Match - Metric](docs/directives/text-metric.md)
   * [Quantization](docs/directives/quantize.md)
   * [Regex Group Extractor](docs/directives/extract-regex-groups.md)
+* **Encoders and Decoders**
+  * [Encode as Base-32,64 & Hex](docs/directives/encode.md)
+  * [Decode Base-32,64 & Hex](docs/directives/decode.md)
 * **Unique ID**
   * [UUID Generation](docs/directives/generate-uuid.md)
 * **Date Transformations**

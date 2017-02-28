@@ -50,6 +50,8 @@ import co.cask.wrangler.steps.row.SplitToRows;
 import co.cask.wrangler.steps.transformation.AddOrSetColumn;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
+import co.cask.wrangler.steps.transformation.Decode;
+import co.cask.wrangler.steps.transformation.Encode;
 import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
@@ -178,7 +180,9 @@ public final class UsageRegistry {
     XPathElement.class,
     XPathArrayElement.class,
     XPathAttr.class,
-    AddOrSetColumn.class
+    AddOrSetColumn.class,
+    Encode.class,
+    Decode.class
   );
 
   public UsageRegistry() {
