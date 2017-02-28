@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -70,6 +71,7 @@ import javax.ws.rs.QueryParam;
  */
 public class WranglerService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(WranglerService.class);
+  private static final Gson GSON = new Gson();
   public static final String WORKSPACE_DATASET = "workspace";
 
   @UseDataSet(WORKSPACE_DATASET)
@@ -144,7 +146,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       ++i;
     }
 
-    String d = new Gson().toJson(records);
+    String d = GSON.toJson(records);
     try {
       Put data = new Put (Bytes.toBytes(ws), Bytes.toBytes("data"), Bytes.toBytes(d));
       workspace.put(data);
@@ -157,18 +159,13 @@ public class WranglerService extends AbstractHttpServiceHandler {
   @GET
   @Path("workspaces/{workspace}/download")
   public void download(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws ) {
+                     @PathParam("workspace") String ws) {
 
     try {
-      Row row = workspace.get(Bytes.toBytes(ws));
-
-      String data = row.getString("data");
-      if (data == null || data.isEmpty()) {
-        error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
+      List<Record> records = getWorkspace(ws, responder);
+      if (records == null) {
         return;
       }
-
-      List<Record> records = new Gson().fromJson(data, new TypeToken<List<Record>>(){}.getType());
       JSONArray values = new JSONArray();
       for (Record record : records) {
         List<KeyValue<String, Object>> fields = record.getFields();
@@ -196,9 +193,10 @@ public class WranglerService extends AbstractHttpServiceHandler {
                        @QueryParam("directive") List<String> directives,
                        @QueryParam("limit") int limit) {
     try {
-      Row rawRows = workspace.get(Bytes.toBytes(ws));
-      List<Record> records = new Gson().fromJson(rawRows.getString("data"),
-                                                 new TypeToken<List<Record>>(){}.getType());
+      List<Record> records = getWorkspace(ws, responder);
+      if (records == null) {
+        return;
+      }
 
       // Randomly select a 'count' records from the input.
       Iterable<Record> sampledRecords = Iterables.filter(
@@ -304,9 +302,10 @@ public class WranglerService extends AbstractHttpServiceHandler {
                         @PathParam("workspace") String ws,
                         @QueryParam("directive") List<String> directives) {
     try {
-      Row rawRows = workspace.get(Bytes.toBytes(ws));
-      List<Record> records = new Gson().fromJson(rawRows.getString("data"),
-                                                 new TypeToken<List<Record>>(){}.getType());
+      List<Record> records = getWorkspace(ws, responder);
+      if (records == null) {
+        return;
+      }
 
       int limit = Math.min(100, records.size());
       records = records.subList(0, limit);
@@ -356,9 +355,10 @@ public class WranglerService extends AbstractHttpServiceHandler {
                         @QueryParam("directive") List<String> directives,
                         @QueryParam("limit") int limit) {
     try {
-      Row rawRows = workspace.get(Bytes.toBytes(ws));
-      List<Record> records = new Gson().fromJson(rawRows.getString("data"),
-                                                 new TypeToken<List<Record>>(){}.getType());
+      List<Record> records = getWorkspace(ws, responder);
+      if (records == null) {
+        return;
+      }
 
       List<Record> newRecords = execute(records.subList(0, Math.min(records.size(), limit)),
                                         directives.toArray(new String[directives.size()]), limit);
@@ -405,6 +405,23 @@ public class WranglerService extends AbstractHttpServiceHandler {
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
+  }
+
+  /**
+   * @returns the Records in the specified workspace. Returns null if the workspace does not exist, in which case
+   *          the HttpServiceResponder is responded to before returning.
+   */
+  @Nullable
+  private List<Record> getWorkspace(String workspaceName, HttpServiceResponder responder) {
+    Row row = workspace.get(Bytes.toBytes(workspaceName));
+
+    String data = row.getString("data");
+    if (data == null || data.isEmpty()) {
+      error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
+      return null;
+    }
+
+    return GSON.fromJson(data, new TypeToken<List<Record>>(){}.getType());
   }
 
   /**
@@ -461,8 +478,9 @@ public class WranglerService extends AbstractHttpServiceHandler {
     Directives specification = new TextDirectives(directives);
     List<Step> steps = specification.getSteps();
 
+    ServicePipelineContext servicePipelineContext = new ServicePipelineContext(getContext());
     for (Step step : steps) {
-      records = step.execute(records, null);
+      records = step.execute(records, servicePipelineContext);
       records = records.subList(0, Math.min(limit, records.size()));
     }
 

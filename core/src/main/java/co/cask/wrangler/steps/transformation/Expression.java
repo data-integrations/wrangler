@@ -125,9 +125,7 @@ public class Expression extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     // This is done only the first time.
     if (properties.size() == 0 && context != null) {
-      for (Map.Entry<String, String> entry : context.getProperties().entrySet()) {
-        properties.put(entry.getKey(), entry.getValue());
-      }
+      properties.putAll(context.getProperties());
     }
 
     for (Record record : records) {
