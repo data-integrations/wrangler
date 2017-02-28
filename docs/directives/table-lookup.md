@@ -18,8 +18,36 @@ with an underscore.
 ## Example
 
 The following example represents a lookup into the `customerTable` dataset of type Table, where the record's
-field name `customerId` will be used as the lookup key.
+field name `customerUserId` will be used as the lookup key.
 
 ```
-  table-lookup customerId customerTable
+  table-lookup customerUserId customerTable
 ```
+
+Suppose that the following is data in the Table `customerTable`:
+
+    +==========================================+
+    | CustomerUserId    | City                 |
+    +==========================================+
+    | bobistheman       | Palo Alto, CA        |
+    | joe1984           | Los Angeles, CA      |
+    | randomUserqwerty  | New York City, NY    |
+    +==========================================+
+
+Also suppose that the input records to the directive are:
+
+    +=================================================+
+    | CustomerUserId    | Product      | Quantity     |
+    +=================================================+
+    | bobistheman       | Apples       |     10       |
+    | joe1984           | Bicycle      |      1       |
+    +=================================================+
+
+Then the output Records of this directive will be:
+
+    +=========================================================================+
+    | CustomerUserId    | Product      | Quantity     | CustomerUserId_City   |
+    +=========================================================================+
+    | bobistheman       | Apples       |     10       |  Palo Alto, CA        |
+    | joe1984           | Bicycle      |      1       |  Los Angeles, CA      |
+    +=========================================================================+

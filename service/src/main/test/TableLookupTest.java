@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Tests {@link co.cask.wrangler.steps.transformation.TableLookup}.
  */
 public class TableLookupTest extends HydratorTestBase {
 

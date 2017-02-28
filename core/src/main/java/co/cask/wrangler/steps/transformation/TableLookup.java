@@ -62,11 +62,11 @@ public class TableLookup extends AbstractStep {
       lookup = context.provide(table, Collections.<String, String>emptyMap());
     } catch (DatasetInstantiationException e) {
       throw new StepException(
-        String.format("%s : Got exception while getting dataset '%s'. Please check that it exists.",
+        String.format("%s : Please check that a dataset '%s' of type Table exists.",
         toString(), table));
     }
     if (!(lookup instanceof co.cask.cdap.etl.api.lookup.TableLookup)) {
-      throw new StepException(toString() + " : Only Table Lookup is supported.");
+      throw new StepException(toString() + " : Lookup can be performed only on Tables.");
     }
     tableLookup = (co.cask.cdap.etl.api.lookup.TableLookup) lookup;
     initialized = true;
