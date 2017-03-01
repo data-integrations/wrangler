@@ -18,6 +18,8 @@ package co.cask.wrangler.service;
 
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.common.Bytes;
+import co.cask.cdap.api.data.schema.Schema;
+import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.table.Put;
@@ -27,6 +29,8 @@ import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
+import co.cask.cdap.internal.io.AbstractSchemaGenerator;
+import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Record;
@@ -43,6 +47,8 @@ import co.cask.wrangler.internal.validator.ColumnNameValidator;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -71,7 +77,8 @@ import javax.ws.rs.QueryParam;
  */
 public class WranglerService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(WranglerService.class);
-  private static final Gson GSON = new Gson();
+  private static final Gson GSON =
+    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   public static final String WORKSPACE_DATASET = "workspace";
 
   @UseDataSet(WORKSPACE_DATASET)
@@ -218,7 +225,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       Validator<String> validator = new ColumnNameValidator();
       validator.initialize();
 
-      // Iterate through columsn to get a set
+      // Iterate through columns to get a set
       Set<String> uniqueColumns = new HashSet<>();
       for (Record record : records) {
         for (int i = 0; i < record.length(); ++i) {
@@ -310,42 +317,46 @@ public class WranglerService extends AbstractHttpServiceHandler {
       int limit = Math.min(100, records.size());
       records = records.subList(0, limit);
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
-      Record r = newRecords.get(0);
 
-      List<KeyValue<String, Object>> columns = r.getFields();
-      JSONArray values = new JSONArray();
-      for (KeyValue<String, Object> column : columns) {
-        JSONObject col = new JSONObject();
-        col.put("name", column.getKey());
-        Object v = column.getValue();
-        JSONArray t = new JSONArray();
-        String type = "string";
-        if (v instanceof Integer) {
-          type = "int";
-        } else if (v instanceof Long) {
-          type = "long";
-        } else if (v instanceof Double) {
-          type = "double";
-        } else if (v instanceof Float) {
-          type = "float";
-        } else if (v instanceof Boolean) {
-          type = "boolean";
-        } else if (v instanceof byte[]) {
-          type = "bytes";
-        }
-        t.put(type);
-        t.put("null");
-        col.put("type", t);
-        values.put(col);
-      }
+      // generate a schema based upon the first record
+      Schema schema = Schema.recordOf("avroRecord", generateFields(newRecords.get(0)));
+      String schemaJson = GSON.toJson(schema);
+      // the current contract with the UI is not to pass the entire schema string, but just the fields
+      String fieldsJson = new JsonParser().parse(schemaJson).getAsJsonObject().get("fields").toString();
 
-      sendJson(responder, HttpURLConnection.HTTP_OK, values.toString());
+      sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
     } catch (DataSetException e) {
       error(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
 
+  }
+
+  private List<Schema.Field> generateFields(Record record) throws UnsupportedTypeException {
+    List<Schema.Field> fields = new ArrayList<>();
+    for (KeyValue<String, Object> column : record.getFields()) {
+      Object v = column.getValue();
+      Schema fieldSchema;
+      if (v instanceof Integer || v instanceof Long || v instanceof Double || v instanceof Float
+        || v instanceof Boolean || v instanceof byte[]) {
+        fieldSchema = new SimpleSchemaGenerator().generate(v.getClass());
+      } else {
+        fieldSchema = Schema.of(Schema.Type.STRING);
+      }
+      fields.add(Schema.Field.of(column.getKey(), Schema.nullableOf(fieldSchema)));
+    }
+    return fields;
+  }
+
+  private static final class SimpleSchemaGenerator extends AbstractSchemaGenerator {
+
+    @Override
+    protected Schema generateRecord(TypeToken<?> typeToken, Set<String> set,
+                                    boolean b) throws UnsupportedTypeException {
+      // we don't actually leverage this method, so no need to implement it
+      throw new UnsupportedOperationException();
+    }
   }
 
   @GET
@@ -377,7 +388,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
           Object object = field.getValue();
           if (object != null) {
             if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
-              r.put(field.getKey(), field.getValue().toString());
+              r.put(field.getKey(), object.toString());
             } else {
               if (onlyFirstRow) {
                 r.put(field.getKey(), object.getClass().getSimpleName() + " object. Delete this column at the end.");
