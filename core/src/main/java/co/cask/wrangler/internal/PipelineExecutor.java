@@ -72,6 +72,10 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
   public List<Record> execute(List<Record> records) throws PipelineException {
     try {
       for (Step step : directives.getSteps()) {
+        // If there are no records, then we short-circuit the processing and break out.
+        if (records.size() < 1) {
+          break;
+        }
         records = step.execute(records, context);
       }
     } catch (StepException e) {
