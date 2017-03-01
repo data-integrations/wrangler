@@ -65,7 +65,7 @@ public class ParseLogTest {
 
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(44, records.get(0).length());
+    Assert.assertEquals(91, records.get(0).length());
   }
 
   @Test

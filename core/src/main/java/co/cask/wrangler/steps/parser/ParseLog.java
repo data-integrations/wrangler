@@ -97,8 +97,7 @@ public class ParseLog extends AbstractStep {
 
     public void setValue(final String name, final String value) {
       String key = name.toLowerCase();
-      if (key.contains(".last") || key.contains("original") || key.contains("bytesclf")
-        || key.contains("firstline") || key.contains("cookie") ) {
+      if (key.contains("original") || key.contains("bytesclf") || key.contains("cookie") ) {
         return;
       }
       key = key.replaceAll("[^a-zA-Z0-9_]","_");
