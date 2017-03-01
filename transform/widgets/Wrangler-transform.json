@@ -15,6 +15,14 @@
           }
         },
         {
+          "widget-type": "textbox",
+          "label": "Precondition",
+          "name": "precondition",
+          "widget-attributes" : {
+            "default" : "true"
+          }
+        },
+        {
           "widget-type": "textarea",
           "label": "Transformation Directives",
           "name": "directives"
