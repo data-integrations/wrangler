@@ -281,7 +281,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
   }
 
-
   /**
    * Configuration for the plugin.
    */
