@@ -71,6 +71,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   // Error counter.
   private long errorCounter;
 
+  // Precondition application
+  private Precondition condition = null;
+
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
     this.config = config;
@@ -151,6 +154,15 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       );
     }
 
+    // Check if pre-condition is not null or empty and if so compile expression.
+    if (config.precondition != null && !config.precondition.trim().isEmpty()) {
+      try {
+        new Precondition(config.precondition);
+      } catch (PreconditionException e) {
+        throw new IllegalArgumentException(e.getMessage());
+      }
+    }
+
     // Set the output schema.
     configurer.getStageConfigurer().setOutputSchema(oSchema);
   }
@@ -192,6 +204,15 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
     }
 
+    // Check if pre-condition is not null or empty and if so compile expression.
+    if (config.precondition != null && !config.precondition.trim().isEmpty()) {
+      try {
+        condition = new Precondition(config.precondition);
+      } catch (PreconditionException e) {
+        throw new IllegalArgumentException(e.getMessage());
+      }
+    }
+
     // Initialize the error counter.
     errorCounter = 0;
   }
@@ -207,6 +228,15 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     } else {
       row = new Record(config.field, input.get(config.field));
+    }
+
+    // If pre-condition is set, then evaluate the precondition
+    if (condition != null) {
+      boolean skip = condition.apply(row);
+      if (skip) {
+        getContext().getMetrics().count("precondition.filtered", 1);
+        return; // Expression evaluated to true, so we skip the record.
+      }
     }
 
     // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
@@ -251,10 +281,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
   }
 
+
   /**
    * Configuration for the plugin.
    */
   public static class Config extends PluginConfig {
+    @Name("precondition")
+    @Description("Precondition expression specifying filtering before applying directives (true to filter)")
+    @Macro
+    private String precondition;
+
     @Name("directives")
     @Description("Directives for wrangling the input records")
     private String directives;
@@ -274,7 +310,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Description("Specifies the schema that has to be output.")
     private final String schema;
 
-    public Config(String directives, String field, int threshold, String schema) {
+    public Config(String precondition, String directives, String field, int threshold, String schema) {
+      this.precondition = precondition;
       this.directives = directives;
       this.field = field;
       this.threshold = threshold;
