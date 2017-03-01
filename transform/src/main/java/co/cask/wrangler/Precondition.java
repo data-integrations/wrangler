@@ -55,7 +55,7 @@ public class Precondition {
       Object result = script.eval(ctx);
       if (!(result instanceof Boolean)) {
         throw new PreconditionException(
-          String.format("Precondition '%s' does not result in boolean value", condition)
+          String.format("Precondition '%s' does not result in true or false.", condition)
         );
       }
       return (Boolean) result;
