@@ -14,6 +14,7 @@ Collection of libraries, pipeline plugin and CDAP service for performing data cl
 * Videos  
   * [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38)
   * [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
+  * [Realtime Ingestion of HL7 CCDA XML from Kafka into Time Parititioned Parquet](https://youtu.be/0fqNmnOnD-0)
 * Recipes
   * [Log Parsing](demos/Parsing-Apache-Log.md)
   * [HL7 CCDA XML Parsing](demos/HL7-CCDA-XML-Parsing.md)
