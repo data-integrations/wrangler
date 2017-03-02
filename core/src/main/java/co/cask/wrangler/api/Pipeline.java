@@ -23,13 +23,13 @@ import java.util.List;
 /**
  * Wrangle Pipeline executes steps in the order they are specified.
  */
-public interface Pipeline<I,O> {
+public interface Pipeline<I, O> {
   /**
    * Configures the wrangle pipeline using the directives.
    *
    * @param directives Wrangle directives.
    */
-  public void configure(Directives directives, PipelineContext context);
+  void configure(Directives directives, PipelineContext context);
 
   /**
    * Executes the pipeline on the input.
@@ -38,7 +38,7 @@ public interface Pipeline<I,O> {
    * @param schema Schema to which the output should be mapped.
    * @return Parsed output list of record of type O
    */
-  public List<O> execute(List<I> input, Schema schema) throws PipelineException;
+  List<O> execute(List<I> input, Schema schema) throws PipelineException;
 
   /**
    * Executes the pipeline on the input.
@@ -46,7 +46,7 @@ public interface Pipeline<I,O> {
    * @param input List of input record of type I.
    * @return Parsed output list of record of type I
    */
-  public List<I> execute(List<I> input) throws PipelineException;
+  List<I> execute(List<I> input) throws PipelineException;
 }
 
 
