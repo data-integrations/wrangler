@@ -12,11 +12,11 @@ Collection of libraries, pipeline plugin and CDAP service for performing data cl
 ## Demo Videos and Recipes
 
 * Videos  
-  * [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38) [SCREENCAST] 
-  * [End-to-End Demo Video](https://youtu.be/AnhF0qRmn24) [VOICE-OVER] 
-  * [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM) [SCREENCAST] 
-  * [Realtime HL7 CCDA XML from Kafka into Time Parititioned Parquet](https://youtu.be/0fqNmnOnD-0) [SCREENCAST] 
-  * [Parsing JSON File](https://youtu.be/vwnctcGDflE) [SCREENCAST] 
+  * [SCREENCAST] [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38) 
+  * [VOICE-OVER] [End-to-End Demo Video](https://youtu.be/AnhF0qRmn24)
+  * [SCREENCAST] [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
+  * [SCREENCAST] [Realtime HL7 CCDA XML from Kafka into Time Parititioned Parquet](https://youtu.be/0fqNmnOnD-0)
+  * [SCREENCAST] [Parsing JSON File](https://youtu.be/vwnctcGDflE)
 * Recipes
   * [Log Parsing](demos/Parsing-Apache-Log.md)
   * [HL7 CCDA XML Parsing](demos/HL7-CCDA-XML-Parsing.md)
