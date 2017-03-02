@@ -78,9 +78,7 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
         }
         records = step.execute(records, context);
       }
-    } catch (StepException e) {
-      throw new PipelineException(e);
-    } catch (DirectiveParseException e) {
+    } catch (StepException | DirectiveParseException e) {
       throw new PipelineException(e);
     }
     return records;

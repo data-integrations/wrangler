@@ -62,7 +62,7 @@ public class CleanseColumnNames extends AbstractStep {
         // Lower case columns
         column = column.toLowerCase();
         // Filtering unwanted characters
-        column = column.replaceAll("[^a-zA-Z0-9_]","_");
+        column = column.replaceAll("[^a-zA-Z0-9_]", "_");
         record.setColumn(i, column);
       }
     }

@@ -98,7 +98,6 @@ import java.util.StringTokenizer;
  */
 public class TextDirectives implements Directives {
   private static final Logger LOG = LoggerFactory.getLogger(TextDirectives.class);
-  static final char TAB = '\t';
 
   // directives for wrangling.
   private String[] directives;
@@ -132,7 +131,7 @@ public class TextDirectives implements Directives {
     // Iterate through each directive and create necessary stepRegistry.
     for (String directive : directives) {
       directive = directive.trim();
-      if(directive.isEmpty() || directive.startsWith("//")) {
+      if (directive.isEmpty() || directive.startsWith("//")) {
         continue;
       }
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");

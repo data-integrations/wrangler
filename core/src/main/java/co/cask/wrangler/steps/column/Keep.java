@@ -23,9 +23,9 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * A step that implements the opposite of {@link Drop} columns.
@@ -36,14 +36,13 @@ import java.util.Map;
   description = "Keep the columns specified and drop the rest."
 )
 public class Keep extends AbstractStep {
-  private final String[] columns;
-  private final Map<String, Boolean> mapping = new HashMap<>();
+
+  private final Set<String> keep = new HashSet<>();
 
   public Keep(int lineno, String directive, String[] columns) {
     super(lineno, directive);
-    this.columns = columns;
     for (String column : columns) {
-      mapping.put(column.trim(), true);
+      keep.add(column.trim());
     }
   }
 
@@ -58,8 +57,8 @@ public class Keep extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
       int idx = 0;
-      for(KeyValue<String, Object> v : record.getFields()) {
-        if (!mapping.containsKey(v.getKey())) {
+      for (KeyValue<String, Object> v : record.getFields()) {
+        if (!keep.contains(v.getKey())) {
           record.remove(idx);
         } else {
           ++idx;
