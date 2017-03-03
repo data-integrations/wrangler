@@ -37,12 +37,13 @@ import java.util.List;
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;
-  private int[] locations = null;
+  private int[] locations;
   private int count = 0;
 
   public Flatten(int lineno, String detail, String[] columns) {
     super(lineno, detail);
     this.columns = columns;
+    this.locations = new int[columns.length];
   }
 
   /**
@@ -57,53 +58,77 @@ public class Flatten extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
 
-    // Only once find the location of the columns to be flatten within
-    // the record. It's assumed that all records to passed to this
-    // instance are same.
-    if (locations == null) {
-      locations = new int[columns.length];
-      for (String column : columns) {
-        locations[count] = records.get(0).find(column);
-        ++count;
-      }
-    }
-
     // Iterate through the records.
     for (Record record : records) {
-
+      count = 0;
+      // Only once find the location of the columns to be flatten within
+      // the record. It's assumed that all records to passed to this
+      // instance are same.
+      for (String column : columns) {
+        locations[count] = record.find(column);
+        ++count;
+      }
       // For each record we find the maximum number of
       // values in each of the columns specified to be
       // flattened.
       int max = Integer.MIN_VALUE;
-      for (int i =0; i < count; ++i) {
-        Object value = record.getValue(locations[i]);
-        int m = ((JSONArray) value).length();
-        if (m > max) {
-          max = m;
+      for (int i = 0; i < count; ++i) {
+        if (locations[i] != -1) {
+          Object value = record.getValue(locations[i]);
+          int m = -1;
+          if (value instanceof JSONArray) {
+            m = ((JSONArray) value).length();
+          } else if (value instanceof net.minidev.json.JSONArray) {
+            m = ((net.minidev.json.JSONArray) value).size();
+          } else if (value instanceof List){
+            m = ((List) value).size();
+          } else {
+            m = 1;
+          }
+          if (m > max) {
+            max = m;
+          }
         }
       }
 
-      // We iterate through the arrays and populate
-      // all the columns.
+      // We iterate through the arrays and populate all the columns.
       for(int k = 0; k < max; ++k) {
         Record r = new Record(record);
         for (int i = 0; i < count; ++i) {
-          Object value = record.getValue(locations[i]);
-          // Record might not have the column itself.
-          // So, we add 'null' to that column.
-          if (value == null) {
-            r.add(columns[i], null);
-          } else {
-            if (value instanceof JSONArray) {
-              if (((JSONArray) value).get(k) == null) {
-                r.add(columns[i], null);
+          if (locations[i] != -1) {
+            Object value = record.getValue(locations[i]);
+            if (value == null) {
+              r.add(columns[i], null);
+            } else {
+              Object v = null;
+              if (value instanceof JSONArray) {
+                JSONArray array = (JSONArray) value;
+                if (k < array.length()) {
+                  v = array.get(k);
+                }
+              } else if (value instanceof net.minidev.json.JSONArray) {
+                net.minidev.json.JSONArray array = (net.minidev.json.JSONArray) value;
+                if (k < array.size()) {
+                  v = array.get(k);
+                }
+              } else if (value instanceof List) {
+                List<Object> array = (List) value;
+                if (k < array.size()) {
+                  v = array.get(k);
+                }
               } else {
-                r.setValue(locations[i], ((JSONArray) value).get(k));
+                v = value;
+              }
+              if (v == null) {
+                r.addOrSet(columns[i], null);
+              } else {
+                r.setValue(locations[i], v);
               }
             }
+          } else {
+            r.addOrSet(columns[i], null);
           }
         }
-
         results.add(r);
       }
     }
