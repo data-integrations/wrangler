@@ -23,75 +23,77 @@ In order to understand how FLATTEN directive works in different scenarios, let's
 The array in ```col2``` is flattened, the values in ```col3``` is repeated for every value of ```col2```
 
 **INPUT**
-
-|col1|col2|col3|
-|----|---- |----|
-| A |||
-| B |||
-|| [x1,y1] | 10 |
-|| [x2,y2] | 11 |
-
+```
+ [
+   { "col1" : "A" },
+   { "col1" : "B" },
+   { "col2" : [x1, y1], "col3" : 10 },
+   { "col2" : [x2, y2], "col3" : 11 } 
+ ]   
+```
 **OUTPUT**
-
-|col1|col2|col3|
-|----|---- |----|
-| A |||
-| B |||
-|  | x1 | 10 |
-|  | y1 | 10 |
-|  | x2 | 11 |
-|  | y2 | 11 |
+```
+ [
+   { "col1" : "A" },
+   { "col1" : "B" },
+   { "col2" : "x1", "col3" : 10 },
+   { "col2" : "y1", "col3" : 10 },
+   { "col2" : "x2", "col3" : 11 },
+   { "col2" : "y2", "col3" : 11 }   
+ ]
+```
 
 ### Case 2
 
 The array in ```col2``` and ```col3``` are flattened. 
 
 **INPUT**
-
-|col1|col2|col3|
-|----|---- |----|
-| A |||
-| B |||
-|| [x1,y1,z1] | [a1,b1,c1] |
-|| [x2,y2] | [a2,b2] |
-
+```
+ [
+   { "col1" : "A" },
+   { "col1" : "B" },
+   { "col2" : [ "x1", "y1", "z1" ], "col3" : [ "a1", "b1", "c1" ] },
+   { "col2" : [ "x2", "y2" ], "col3" : [ "a2", "b2" ] }
+ ]
+```
 **OUTPUT**
-
-|col1|col2|col3|
-|----|---- |----|
-| A |||
-| B |||
-|  | x1 | a1 |
-|  | y1 | b1 |
-|  | z1 | c1 |
-|  | x2 | a2 |
-|  | y2 | b2 |
-
+```
+ [
+   { "col1" : "A" },
+   { "col1" : "B" },
+   { "col2" : "x1", "col3" : "a1" },
+   { "col2" : "y1", "col3" : "b1" },
+   { "col2" : "z1", "col3" : "c1" },
+   { "col2" : "x2", "col3" : "a2" },
+   { "col2" : "y2", "col3" : "b2" } 
+ ]
+```
 ### Case 3
 
 The array in ```col2``` and ```col3``` are flattened. 
 
 **INPUT**
-
-|col1|col2|col3|
-|----|---- |----|
-| A |||
-| B |||
-|| [x1,y1,z1] | [a1,b1] |
-|| [x2,y2] | [a2,b2,c2] |
-
+```
+ [
+   { "col1" : "A" },
+   { "col1" : "B" },
+   { "col2" : [ "x1", "y1", "z1" ], "col3" : [ "a1", "b1" ] },
+   { "col2" : [ "x2", "y2" ], "col3" : [ "a2", "b2", "c2" ] }
+ ]
+```
 **OUTPUT**
-
-|col1|col2|col3|
-|----|---- |----|
-| A |||
-| B |||
-|  | x1 | a1 |
-|  | y1 | b1 |
-|  | z1 |  |
-|  | x2 | a2 |
-|  | y2 | b2 |
-|  | | c2 |
+```
+ [
+   { "col1" : "A" },
+   { "col1" : "B" },
+   { "col2" : "x1", "col3" : "a1" },
+   { "col2" : "y1", "col3" : "b1" },
+   { "col2" : "z1" },
+   { "col2" : "x2", "col3" : "a2" },
+   { "col2" : "y2", "col3" : "b2" },
+   { "col3" : "c2" }
+ ]
+```
 
 ## Examples
 
