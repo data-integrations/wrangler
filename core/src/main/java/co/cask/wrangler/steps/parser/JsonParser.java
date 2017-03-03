@@ -70,6 +70,10 @@ public class JsonParser extends AbstractStep {
       if (idx != -1) {
         Object value = record.getValue(idx);
 
+        if (value == null) {
+          continue;
+        }
+
         JSONObject object = null;
         JSONArray list = null;
 
