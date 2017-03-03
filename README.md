@@ -1,5 +1,5 @@
 # Wrangler
-[![Build Status](https://travis-ci.org/hydrator/wrangler-transform.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler-transform) 
+[![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
 <a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/11434/badge.svg"/>
@@ -12,9 +12,12 @@ Collection of libraries, pipeline plugin and CDAP service for performing data cl
 ## Demo Videos and Recipes
 
 * Videos  
-  * [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38)
-  * [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
-  * [Realtime Ingestion of HL7 CCDA XML from Kafka into Time Parititioned Parquet](https://youtu.be/0fqNmnOnD-0)
+  * [SCREENCAST] [Building from GitHub -- Wrangler](https://youtu.be/pGGjKU04Y38) 
+  * [VOICE-OVER] [End-to-End Demo Video](https://youtu.be/AnhF0qRmn24)
+  * [SCREENCAST] [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
+  * [SCREENCAST] [Realtime HL7 CCDA XML from Kafka into Time Parititioned Parquet](https://youtu.be/0fqNmnOnD-0)
+  * [SCREENCAST] [Parsing JSON File](https://youtu.be/vwnctcGDflE)
+  * [SCREENCAST] [Flattening Arrays](https://youtu.be/SemHxgBYIsY)
 * Recipes
   * [Log Parsing](demos/Parsing-Apache-Log.md)
   * [HL7 CCDA XML Parsing](demos/HL7-CCDA-XML-Parsing.md)
