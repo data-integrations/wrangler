@@ -484,7 +484,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
   
   // Application Platform System - Big Data Appliance
-  private List<Record>  execute (List<Record> records, String[] directives, int limit)
+  private List<Record>  execute(List<Record> records, String[] directives, int limit)
     throws DirectiveParseException, StepException {
     Directives specification = new TextDirectives(directives);
     List<Step> steps = specification.getSteps();

@@ -93,7 +93,7 @@ public class Record {
   }
 
   /**
-   * @return true if this record is errored, else returns false.
+   * @return {@code true} if this record is errored, else returns {@code false}.
    */
   public boolean isError() {
     return isError;

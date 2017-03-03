@@ -76,13 +76,13 @@ public class Quantization extends AbstractStep {
       if (idx != -1) {
         try {
           Object object = record.getValue(idx);
-          Double d = null;
+          Double d;
           if (object instanceof String) {
             d = Double.parseDouble((String) object);
           } else if (object instanceof Double) {
             d = (Double) object;
           } else if (object instanceof Float) {
-            d = (Double) object;
+            d = ((Float) object).doubleValue();
           } else {
             throw new StepException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, Float or Double.",
@@ -100,9 +100,9 @@ public class Quantization extends AbstractStep {
           throw new StepException(toString(), e);
         }
       } else {
-        throw new StepException(toString() + " : " +
-                                  col1 + " was not found or is not of type string. Please check the wrangle configuration."
-        );
+        throw new StepException(
+          String.format("%s : %s was not found or is not of type string. Please check the wrangle configuration.",
+                        toString(), col1));
       }
       results.add(record);
     }
