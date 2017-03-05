@@ -16,10 +16,10 @@
         },
         {
           "widget-type": "textbox",
-          "label": "Precondition",
+          "label": "Precondition Filter (true to filter record)",
           "name": "precondition",
           "widget-attributes" : {
-            "default" : "true"
+            "default" : "false"
           }
         },
         {
