@@ -27,4 +27,6 @@ Precondition filter is useful when you want to apply filtering on record before 
   offset == 0 
 ```
 
-This will filter out records that has 'offset' as zero. 
+This will filter out records that has 'offset' as zero.
+
+This plugin uses the ```emitError``` capability to emit records that fail parsing into a separate error stream allowing one to aggregate all the wrangling errors. Please note that if 'Max error' is set, then it will fail the pipeline when that error threshold is reached. 
