@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Implementation of {@PipelineContext}, for use in Service.
  */
-public class ServicePipelineContext implements PipelineContext {
+class ServicePipelineContext implements PipelineContext {
 
   private final HttpServiceContext serviceContext;
   private final DatasetContextLookupProvider lookupProvider;

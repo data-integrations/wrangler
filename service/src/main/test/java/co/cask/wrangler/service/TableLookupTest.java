@@ -14,13 +14,14 @@
  * the License.
  */
 
+package co.cask.wrangler.service;
+
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.ServiceManager;
 import co.cask.wrangler.WranglerApp;
-import co.cask.wrangler.service.WranglerServiceTestBase;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
