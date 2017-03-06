@@ -51,7 +51,6 @@ class SchemaUtilities {
     for (KeyValue<String, Object> column : record.getFields()) {
       String name = column.getKey();
       Object value = column.getValue();
-      LOG.info("Field Name : '{}'", name);
 
       // First, we check if object is of simple type.
       if (value instanceof String || value instanceof Integer ||
