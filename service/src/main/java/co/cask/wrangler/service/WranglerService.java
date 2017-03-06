@@ -289,8 +289,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
       // Put the statistics along with validation rules.
       result.put("statistics", statistics);
 
-      LOG.info(statistics.toString());
-
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
       response.put("items", 2);
@@ -319,7 +317,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
 
       // generate a schema based upon the first record
-      Schema schema = Schema.recordOf("avroRecord", generateFields(newRecords.get(0)));
+      Schema schema = SchemaUtilities.recordToSchema("record", newRecords);
       String schemaJson = GSON.toJson(schema);
       // the current contract with the UI is not to pass the entire schema string, but just the fields
       String fieldsJson = new JsonParser().parse(schemaJson).getAsJsonObject().get("fields").toString();
