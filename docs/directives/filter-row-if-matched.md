@@ -19,6 +19,8 @@ The FILTER-ROW-IF-MATCHED directive applies the regular expression on a column v
  If regex matches the column value, then the record is omitted, else it's passed as-is to the input of the
  next directive in the pipeline.
 
+ If regex is 'null', the value is compared against all the 'null' as well JSON null values.
+
 ## Examples
 
 Let's illustrate how this directive works with a concrete example.
