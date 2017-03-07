@@ -39,6 +39,7 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
+import co.cask.wrangler.internal.SchemaUtilities;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
