@@ -23,6 +23,7 @@ import co.cask.wrangler.steps.PipelineTest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.file.Files;
@@ -38,9 +39,10 @@ import java.util.Map;
  */
 public class RecordConvertorTest {
 
+  @Ignore
   @Test
   public void testWithFile() throws Exception {
-    Path path = Paths.get("/Users/nitin/Downloads/CDAP_Package/json_array_surveyfacts.json");
+    Path path = Paths.get("<filename>");
     byte[] data = Files.readAllBytes(path);
 
     String[] directives = new String[] {
