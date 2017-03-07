@@ -32,12 +32,12 @@ import co.cask.wrangler.api.Usage;
  * </p>
  */
 @Usage(
-  directive = "add-or-set-column",
-  usage = "add-or-set-column <column> <expression>",
-  description = "Adds a new column or sets an existing column the result of expression."
+  directive = "set-column",
+  usage = "set-column <column> <expression>",
+  description = "Sets a column the result of expression execution."
 )
-public class AddOrSetColumn extends Expression {
-  public AddOrSetColumn(int lineno, String detail, String column, String expression) {
+public class SetColumn extends Expression {
+  public SetColumn(int lineno, String detail, String column, String expression) {
     super(lineno, detail, column, expression);
   }
 }

@@ -20,7 +20,6 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.steps.transformation.Expression;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,7 +43,7 @@ public class ExpressionTest {
       "drop first",
       "drop last",
       "set column email string:reverse(email)",
-      "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1",
+      "set column hrlywage var x; x = math:ceil(FLOAT(hrlywage)); x + 1",
     };
 
     // Run through the wrangling steps.
@@ -124,5 +123,96 @@ public class ExpressionTest {
     Assert.assertEquals("root", records.get(0).getValue("first"));
     Assert.assertEquals(99, records.get(0).getValue("number"));
   }
+
+  @Test
+  public void testDateFunctions() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-simple-date date yyyy-MM-dd'T'HH:mm:ss",
+      "parse-as-simple-date other yyyy-MM-dd'T'HH:mm:ss",
+      "set-column unixtimestamp date:UNIXTIMESTAMP_MILLIS(date)",
+      "set-column month_no date:MONTH(date)",
+      "set-column month_short date:MONTH_SHORT(date)",
+      "set-column month_long date:MONTH_LONG(date)",
+      "set-column year date:YEAR(date)",
+      "set-column day_of_year date:DAY_OF_YEAR(date)",
+      "set-column era_long date:ERA_LONG(date)",
+      "set-column days date:SECONDS_TO_DAYS(seconds)",
+      "set-column hours date:SECONDS_TO_HOURS(seconds)",
+      "set-column diff_days date:DAYS_BETWEEN_NOW(date)",
+      "set-column diff date:DAYS_BETWEEN(date, other)"
+    };
+
+
+    //2017-02-02T21:06:44Z
+    List<Record> records = Arrays.asList(
+      new Record("date", "2017-02-02T21:06:44Z").add("seconds", 86401).add("other", "2017-02-03T21:06:44Z")
+    );
+
+    records = PipelineTest.execute(directives, records);
+
+    Assert.assertTrue(records.size() == 1);
+  }
+
+  @Test
+  public void testJSONFunctions() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-json body",
+      "set-column max json:ARRAY_MAX(body_numbers)",
+      "set-column min json:ARRAY_MIN(body_numbers)",
+      "set-column sum json:ARRAY_SUM(body_numbers)",
+      "set-column length json:ARRAY_LENGTH(body_numbers)",
+      "set-column body_responses json:ARRAY_OBJECT_REMOVE_NULL_FIELDS(body_responses, \"c,b\")",
+      "set-column body_responses json:ARRAY_OBJECT_RENAME_FIELDS(body_responses, \"a:field,b:value\")",
+      "set-column body_responses json:ARRAY_OBJECT_DROP_FIELDS(body_responses, \"c\")"
+    };
+
+    //2017-02-02T21:06:44Z
+    List<Record> records = Arrays.asList(
+      new Record("body", "{\n" +
+        "    \"name\" : {\n" +
+        "        \"fname\" : \"Joltie\",\n" +
+        "        \"lname\" : \"Root\",\n" +
+        "        \"mname\" : null\n" +
+        "    },\n" +
+        "    \"coordinates\" : [\n" +
+        "        12.56,\n" +
+        "        45.789\n" +
+        "    ],\n" +
+        "    \"numbers\" : [\n" +
+        "        1,\n" +
+        "        2.1,\n" +
+        "        3,\n" +
+        "        null,\n" +
+        "        4,\n" +
+        "        5,\n" +
+        "        6,\n" +
+        "        null\n" +
+        "    ],\n" +
+        "    \"responses\" : [\n" +
+        "        { \"a\" : 1, \"b\" : \"X\", \"c\" : 2.8},\n" +
+        "        { \"a\" : 2, \"b\" : \"Y\", \"c\" : 232342.8},\n" +
+        "        { \"a\" : 3, \"b\" : \"Z\", \"c\" : null},\n" +
+        "        { \"a\" : 4, \"b\" : \"U\"}\n" +
+        "    ],\n" +
+        "    \"integer\" : 1,\n" +
+        "    \"double\" : 2.8,\n" +
+        "    \"float\" : 45.6,\n" +
+        "    \"aliases\" : [\n" +
+        "        \"root\",\n" +
+        "        \"joltie\",\n" +
+        "        \"bunny\",\n" +
+        "        null\n" +
+        "    ]\n" +
+        "}")
+    );
+
+    records = PipelineTest.execute(directives, records);
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals(21.1, records.get(0).getValue("sum"));
+    Assert.assertEquals(6.0, records.get(0).getValue("max"));
+    Assert.assertEquals(1.0, records.get(0).getValue("min"));
+  }
+
 
 }

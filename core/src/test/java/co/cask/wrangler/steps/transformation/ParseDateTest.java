@@ -63,6 +63,21 @@ public class ParseDateTest {
   }
 
   @Test
+  public void testDateConversionToLong() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-simple-date date yyyy-MM-dd'T'HH:mm:ss"
+    };
+
+    //2017-02-02T21:06:44Z
+    List<Record> records = Arrays.asList(
+      new Record("date", "2017-02-02T21:06:44Z")
+    );
+
+    records = PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 1);
+  }
+
+  @Test
   public void testDateParser() throws Exception {
     String[] directives = new String[] {
       "parse-as-date date US/Eastern",
