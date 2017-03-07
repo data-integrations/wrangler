@@ -67,6 +67,10 @@ Once such a JSON is loaded, you apply the following directives before the functi
 
 | Function | Description | Examples |
 | :------- | :---------- | :------- |
-|_ARRAY_JOIN(JSON Array, Separator)_| Joins all the elements in array with separator. Returns unmodified array if object. Handles nulls | ```set-column alias_list json:ARRAY_JOIN(aliases, ",")``` |
-|_ARRAY\_SUM\_(JSON Array)_|Computes sum over all the elements. Handles 'null' values. Returns '0' if any elements that are not addable if found | set column sum ARRAY_SUM(numbers) |
+|ARRAY_JOIN(JSON Array, Separator)| Joins all the elements in array with separator. Returns unmodified array if object. Handles nulls | ```set-column alias_list json:ARRAY_JOIN(aliases, ",")``` |
+|ARRAY_SUM(JSON Array)|Computes sum over all the elements. Handles 'null' values by skipping. Returns '0' if any elements that are not addable if found | ```set-column sum ARRAY_SUM(numbers)``` |
+|ARRAY_MAX(JSON Array)|Computes max over all the elements. Handles 'null' values by skipping. Returns ```0x0.0000000000001P-1022``` if any elements if any issues found | ```set-column max ARRAY_MAX(numbers)``` |
+|ARRAY_MIN(JSON Array)|Computes min over all the elements. Handles 'null' values by skipping. Returns ```0x1.fffffffffffffP+1023``` if any elements if any issues found | ```set-column min ARRAY_MIN(numbers)``` |
+|ARRAY_LENGTH(JSON Array)Returns the length of JSON array object, if 'null' return zero | ```set-column length ARRAY_LENGTH(numbers)```|
+
 
