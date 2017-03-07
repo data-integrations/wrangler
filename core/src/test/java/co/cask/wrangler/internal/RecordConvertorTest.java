@@ -136,5 +136,4 @@ public class RecordConvertorTest {
     Schema schema = convertor.toSchema("record", Arrays.asList(record));
     Assert.assertNotNull(schema);
   }
-
 }
