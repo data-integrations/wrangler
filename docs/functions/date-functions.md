@@ -67,10 +67,14 @@ Once such a JSON is loaded, you apply the following directives before the functi
 
 | Function | Description | Examples |
 | :------- | :---------- | :------- |
-|ARRAY_JOIN(JSON Array, Separator)| Joins all the elements in array with separator. Returns unmodified array if object. Handles nulls | ```set-column alias_list json:ARRAY_JOIN(aliases, ",")``` |
-|ARRAY_SUM(JSON Array)|Computes sum over all the elements. Handles 'null' values by skipping. Returns '0' if any elements that are not addable if found | ```set-column sum ARRAY_SUM(numbers)``` |
-|ARRAY_MAX(JSON Array)|Computes max over all the elements. Handles 'null' values by skipping. Returns ```0x0.0000000000001P-1022``` if any elements if any issues found | ```set-column max ARRAY_MAX(numbers)``` |
-|ARRAY_MIN(JSON Array)|Computes min over all the elements. Handles 'null' values by skipping. Returns ```0x1.fffffffffffffP+1023``` if any elements if any issues found | ```set-column min ARRAY_MIN(numbers)``` |
-|ARRAY_LENGTH(JSON Array)|Returns the length of JSON array object, if 'null' return zero | ```set-column length ARRAY_LENGTH(numbers)```|
+|ARRAY_JOIN(array, separator)| Joins all the elements in array with separator. Returns unmodified array if object. Handles nulls | ```set-column alias_list json:ARRAY_JOIN(aliases, ",")``` |
+|ARRAY_SUM(array)|Computes sum over all the elements. Handles 'null' values by skipping. Returns '0' if any elements that are not addable if found | ```set-column sum json:ARRAY_SUM(numbers)``` |
+|ARRAY_MAX(array)|Computes max over all the elements. Handles 'null' values by skipping. Returns ```0x0.0000000000001P-1022``` if any elements if any issues found | ```set-column max json:ARRAY_MAX(numbers)``` |
+|ARRAY_MIN(array)|Computes min over all the elements. Handles 'null' values by skipping. Returns ```0x1.fffffffffffffP+1023``` if any elements if any issues found | ```set-column min json:ARRAY_MIN(numbers)``` |
+|ARRAY_LENGTH(array)|Returns the length of JSON array object, if 'null' return zero | ```set-column length json:ARRAY_LENGTH(numbers)```|
+|ARRAY_OBJECT_DROP_FIELDS(array, comma separated fileds)| Drops the list of fields from the json array of objects. No-op if they are not found|```set-column moves json:ARRAY_OBJECT_DROP_FIELDS(moves, "a,b")```|
+|TO_STRING(array)|Converts a JSON array to string, to construct a JSON again, use 'PARSE-AS-JSON' directive| ```set-column aliases_string json:TO_STRING(aliases)```|
+|TO_STRING(object)|Converts a JSON object to string, to construct a JSON again, use 'PARSE-AS-JSON' directive| ```set-column moves json:TO_STRING(moves)```|
+|ARRAY_OBJECT_REMOVE_NULL_FIELDS(array, comma separated list of fields)|Removes the fields within objects that are in JSON array that are null. Cleans up the JSON|```set-column moves json:ARRAY_OBJECT_REMOVE_NULL_FIELDS(moves, "a,b")```|
 
 
