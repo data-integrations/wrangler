@@ -91,4 +91,21 @@ public class ConversionFunctions {
     return a.concat(b);
   }
 
+  /**
+   * Concats two string with a delimiter.
+   *
+   * @param a first string.
+   * @param delim delimiter.
+   * @param b second string.
+   * @return concated string.
+   */
+  public static String concat(String a, String delim, String b) {
+    if (a == null && b != null) {
+      return delim.concat(b);
+    } else if (b == null && a != null) {
+      return a.concat(delim);
+    }
+    return a.concat(delim).concat(b);
+  }
+
 }
