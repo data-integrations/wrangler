@@ -36,6 +36,7 @@ import java.util.List;
 public final class PipelineExecutor implements Pipeline<Record, StructuredRecord> {
   private Directives directives;
   private PipelineContext context;
+  private RecordConvertor convertor = new RecordConvertor();
 
   /**
    * Configures the pipeline based on the directives.
@@ -59,7 +60,12 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
   public List<StructuredRecord> execute(List<Record> records, Schema schema)
     throws PipelineException {
     records = execute(records);
-    return toStructuredRecord(records, schema);
+    try {
+      List<StructuredRecord> output = convertor.toStructureRecord(records, schema);
+      return output;
+    } catch (RecordConvertorException e) {
+      throw new PipelineException("Problem converting into output record. Reason : " + e.getMessage());
+    }
   }
 
   /**
