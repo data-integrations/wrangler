@@ -31,7 +31,7 @@ public final class RecordConvertor {
    * @param schema Schema associated with {@link StructuredRecord}
    * @return Populated {@link StructuredRecord}
    */
-  public StructuredRecord toStructureRecord(Record record, Schema schema) throws RecordConversionException {
+  public StructuredRecord toStructureRecord(Record record, Schema schema) throws RecordConvertorException {
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     List<Schema.Field> fields = schema.getFields();
     for (Schema.Field field : fields) {
@@ -49,7 +49,7 @@ public final class RecordConvertor {
    * @param schema Schema associated with {@link StructuredRecord}
    * @return Populated list of {@link StructuredRecord}
    */
-  public List<StructuredRecord> toStructureRecord(List<Record> records, Schema schema) throws RecordConversionException {
+  public List<StructuredRecord> toStructureRecord(List<Record> records, Schema schema) throws RecordConvertorException {
     List<StructuredRecord> results = new ArrayList<>();
     for (Record record : records) {
       StructuredRecord r = toStructureRecord(record, schema);
@@ -67,7 +67,7 @@ public final class RecordConvertor {
    * @throws UnsupportedTypeException
    * @throws JSONException
    */
-  public Schema toSchema(String id, List<Record> records) throws RecordConversionException {
+  public Schema toSchema(String id, List<Record> records) throws RecordConvertorException {
     List<Schema.Field> fields = new ArrayList<>();
     Record record = createUberRecord(records);
 
@@ -89,7 +89,7 @@ public final class RecordConvertor {
             )
           );
         } catch (UnsupportedTypeException e) {
-          throw new RecordConversionException(
+          throw new RecordConvertorException(
             String.format("Unable to convert field '%s' to basic type.", name)
           );
         }
@@ -120,7 +120,7 @@ public final class RecordConvertor {
           try {
             arraySchema = generateJSONArraySchema(array);
           } catch (UnsupportedTypeException e) {
-            throw new RecordConversionException(
+            throw new RecordConvertorException(
               String.format("Unable to generate schema for field '%s', type JSON Array", name)
             );
           }
@@ -139,7 +139,7 @@ public final class RecordConvertor {
     return Schema.recordOf(id, fields);
   }
 
-  private Object decode(String name, Object object, Schema schema) throws RecordConversionException {
+  private Object decode(String name, Object object, Schema schema) throws RecordConvertorException {
     // Extract the type of the field.
     Schema.Type type = schema.getType();
 
@@ -172,12 +172,12 @@ public final class RecordConvertor {
         return decodeUnion(name, object, schema.getUnionSchemas());
     }
 
-    throw new RecordConversionException(
+    throw new RecordConvertorException(
       String.format("Unable decode object '%s' with schema type '%s'.", name, type.toString())
     );
   }
 
-  private Object decodeJSONArray(String name, JSONArray object, Schema schema) throws RecordConversionException {
+  private Object decodeJSONArray(String name, JSONArray object, Schema schema) throws RecordConvertorException {
     Schema.Type type = schema.getType();
     if (type == Schema.Type.RECORD) {
       List<Object> records = Lists.newArrayListWithCapacity(object.length());
@@ -195,8 +195,11 @@ public final class RecordConvertor {
   }
 
   @SuppressWarnings("RedundantCast")
-  private Object decodeSimpleTypes(String name, Object object, Schema schema) throws RecordConversionException {
+  private Object decodeSimpleTypes(String name, Object object, Schema schema) throws RecordConvertorException {
     Schema.Type type = schema.getType();
+    if (object == null || JSONObject.NULL.equals(object)) {
+      return null;
+    }
     switch (type) {
       case NULL:
         return null; // nothing much to do here.
@@ -208,12 +211,12 @@ public final class RecordConvertor {
           try {
             return Integer.parseInt(value);
           } catch (NumberFormatException e) {
-            throw new RecordConversionException(
+            throw new RecordConvertorException(
               String.format("Unable to convert '%s' to integer for field name '%s'", value, name)
             );
           }
         } else {
-          throw new RecordConversionException(
+          throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is integer, but the value is nor a integer or string. " +
                             "It is of type '%s'", name, object.getClass().getName())
           );
@@ -226,12 +229,12 @@ public final class RecordConvertor {
           try {
             return Long.parseLong(value);
           } catch (NumberFormatException e) {
-            throw new RecordConversionException(
+            throw new RecordConvertorException(
               String.format("Unable to convert '%s' to long for field name '%s'", value, name)
             );
           }
         } else {
-          throw new RecordConversionException(
+          throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is long, but the value is nor a string or long. " +
                             "It is of type '%s'", name, object.getClass().getName())
           );
@@ -244,12 +247,12 @@ public final class RecordConvertor {
           try {
             return Float.parseFloat(value);
           } catch (NumberFormatException e) {
-            throw new RecordConversionException(
+            throw new RecordConvertorException(
               String.format("Unable to convert '%s' to float for field name '%s'", value, name)
             );
           }
         } else {
-          throw new RecordConversionException(
+          throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is float, but the value is nor a string or float. " +
                           "It is of type '%s'", name, object.getClass().getName())
           );
@@ -262,12 +265,12 @@ public final class RecordConvertor {
           try {
             return Double.parseDouble(value);
           } catch (NumberFormatException e) {
-            throw new RecordConversionException(
+            throw new RecordConvertorException(
               String.format("Unable to convert '%s' to double for field name '%s'", value, name)
             );
           }
         } else {
-          throw new RecordConversionException(
+          throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is double, but the value is nor a string or double. " +
                             "It is of type '%s'", name, object.getClass().getName())
           );
@@ -280,12 +283,12 @@ public final class RecordConvertor {
           try {
             return Boolean.parseBoolean(value);
           } catch (NumberFormatException e) {
-            throw new RecordConversionException(
+            throw new RecordConvertorException(
               String.format("Unable to convert '%s' to boolean for field name '%s'", value, name)
             );
           }
         } else {
-          throw new RecordConversionException(
+          throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is double, but the value is nor a string or boolean. " +
                             "It is of type '%s'", name, object.getClass().getName())
           );
@@ -293,14 +296,14 @@ public final class RecordConvertor {
       case STRING:
         return object.toString();
     }
-    throw new RecordConversionException(
+    throw new RecordConvertorException(
       String.format("Unable decode object '%s' with schema type '%s'.", name, type.toString())
     );
   }
 
   private Map<Object, Object> decodeMap(String name,
                                         Map<Object, Object> object, Schema key, Schema value)
-    throws RecordConversionException {
+    throws RecordConvertorException {
     Map<Object, Object> output = Maps.newHashMap();
     for (Map.Entry<Object, Object> entry : object.entrySet()) {
       output.put(decode(name, entry.getKey(), key), decode(name, entry.getValue(), value));
@@ -308,20 +311,16 @@ public final class RecordConvertor {
     return output;
   }
 
-  private Object decodeUnion(String name, Object object, List<Schema> schemas) throws RecordConversionException {
+  private Object decodeUnion(String name, Object object, List<Schema> schemas) throws RecordConvertorException {
     for (Schema schema : schemas) {
-      try {
-        return decode(name, object, schema);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      return decode(name, object, schema);
     }
-    throw new RecordConversionException(
+    throw new RecordConvertorException(
       String.format("Unable decode object '%s'.", name)
     );
   }
 
-  private List<Object> decodeArray(String name, List nativeArray, Schema schema) throws RecordConversionException {
+  private List<Object> decodeArray(String name, List nativeArray, Schema schema) throws RecordConvertorException {
     List<Object> array = Lists.newArrayListWithCapacity(nativeArray.size());
     for (Object object : nativeArray) {
       array.add(decode(name, object, schema));
@@ -330,7 +329,7 @@ public final class RecordConvertor {
   }
 
   private StructuredRecord decodeRecord(String name, JSONObject object, Schema schema)
-    throws RecordConversionException {
+    throws RecordConvertorException {
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     for (Schema.Field field : schema.getFields()) {
       String fieldName = field.getName();
@@ -403,7 +402,7 @@ public final class RecordConvertor {
     while(it.hasNext()) {
       String name = it.next();
       Object value = object.get(name);
-      if (value != JSONObject.NULL) {
+      if (!JSONObject.NULL.equals(value)) {
         types.put(name, value);
       }
     }

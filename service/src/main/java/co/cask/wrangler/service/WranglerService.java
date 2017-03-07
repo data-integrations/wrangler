@@ -39,7 +39,7 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
-import co.cask.wrangler.internal.RecordConversionException;
+import co.cask.wrangler.internal.RecordConvertorException;
 import co.cask.wrangler.internal.RecordConvertor;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.internal.UsageRegistry;
@@ -326,7 +326,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
         // the current contract with the UI is not to pass the entire schema string, but just the fields
         String fieldsJson = new JsonParser().parse(schemaJson).getAsJsonObject().get("fields").toString();
         sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
-      } catch (RecordConversionException e) {
+      } catch (RecordConvertorException e) {
         error(responder, "There was a problem in generating schema for the record. " + e.getMessage());
         return;
       }

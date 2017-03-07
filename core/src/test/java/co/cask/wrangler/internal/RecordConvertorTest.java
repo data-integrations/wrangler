@@ -38,7 +38,7 @@ public class RecordConvertorTest {
         "    ],\n" +
         "    \"numbers\" : [\n" +
         "        1,\n" +
-        "        2.1,\n" +
+        "        2,\n" +
         "        3,\n" +
         "        null,\n" +
         "        4,\n" +

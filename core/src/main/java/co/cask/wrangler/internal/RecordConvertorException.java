@@ -6,8 +6,8 @@ import co.cask.wrangler.api.Record;
 /**
  * Throw when there is issue with conversion of {@link Record} to {@link StructuredRecord}
  */
-public class RecordConversionException extends Exception {
-  public RecordConversionException(String message) {
+public class RecordConvertorException extends Exception {
+  public RecordConvertorException(String message) {
     super(message);
   }
 }
