@@ -18,6 +18,9 @@ The FILL-NULL-OR-EMPTY directive fill the column value with ```fixed value``` if
 
 Also, the ```fixed value``` cannot be a empty string value.
 
+When the object in the record in a JSON object and it's a 'NULL', it ensure that
+it's applied to those records too.
+
 ## Example
 
 Let's look at how this work with an example
