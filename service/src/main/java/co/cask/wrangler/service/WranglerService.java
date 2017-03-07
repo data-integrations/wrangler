@@ -39,6 +39,8 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
+import co.cask.wrangler.internal.RecordConvertorException;
+import co.cask.wrangler.internal.RecordConvertor;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
@@ -289,8 +291,6 @@ public class WranglerService extends AbstractHttpServiceHandler {
       // Put the statistics along with validation rules.
       result.put("statistics", statistics);
 
-      LOG.info(statistics.toString());
-
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
       response.put("items", 2);
@@ -319,18 +319,22 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
 
       // generate a schema based upon the first record
-      Schema schema = Schema.recordOf("avroRecord", generateFields(newRecords.get(0)));
-      String schemaJson = GSON.toJson(schema);
-      // the current contract with the UI is not to pass the entire schema string, but just the fields
-      String fieldsJson = new JsonParser().parse(schemaJson).getAsJsonObject().get("fields").toString();
-
-      sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
+      RecordConvertor convertor = new RecordConvertor();
+      try {
+        Schema schema = convertor.toSchema("record", newRecords);
+        String schemaJson = GSON.toJson(schema);
+        // the current contract with the UI is not to pass the entire schema string, but just the fields
+        String fieldsJson = new JsonParser().parse(schemaJson).getAsJsonObject().get("fields").toString();
+        sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
+      } catch (RecordConvertorException e) {
+        error(responder, "There was a problem in generating schema for the record. " + e.getMessage());
+        return;
+      }
     } catch (DataSetException e) {
       error(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
-
   }
 
   private List<Schema.Field> generateFields(Record record) throws UnsupportedTypeException {

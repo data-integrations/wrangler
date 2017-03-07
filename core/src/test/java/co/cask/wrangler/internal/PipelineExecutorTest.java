@@ -97,8 +97,8 @@ public class PipelineExecutorTest {
     Assert.assertEquals("Larry", record.get("first"));
     Assert.assertEquals("Perez", record.get("last"));
     Assert.assertEquals("lperezqt@umn.edu", record.get("email"));
-    Assert.assertEquals("1481666448", record.get("timestamp"));
-    Assert.assertEquals("186.66", record.get("weight"));
+    Assert.assertEquals(1481666448L, record.get("timestamp"));
+    Assert.assertEquals(186.66f, record.get("weight"));
   }
 
 
