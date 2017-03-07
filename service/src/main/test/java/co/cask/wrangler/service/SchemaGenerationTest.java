@@ -6,6 +6,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.internal.SchemaUtilities;
 import co.cask.wrangler.internal.TextDirectives;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -72,75 +73,28 @@ public class SchemaGenerationTest {
     for (Schema.Field field : fields) {
       String name = field.getName();
       Object value = record.getValue(name);
-      builder.set(name, decode(value, field.getSchema()));
+      builder.set(name, decode(name, value, field.getSchema()));
     }
     return builder.build();
   }
 
-  private Object decode(Object object, Schema schema) {
-    Schema.Type type = schema.getType();
-
-    switch (type) {
-      case NULL:
-      case BOOLEAN:
-      case INT:
-      case LONG:
-      case FLOAT:
-      case DOUBLE:
-      case BYTES:
-      case STRING:
-        return decodeSimpleType(object, schema);
-      case ENUM:
-        break;
-      case ARRAY:
-        return decodeArray((List)object, schema.getComponentSchema());
-      case MAP:
-        Schema keySchema = schema.getMapSchema().getKey();
-        Schema valSchema = schema.getMapSchema().getValue();
-        // Should be fine to cast since schema tells us what it is.
-        //noinspection unchecked
-        return decodeMap((Map<Object, Object>) object, keySchema, valSchema);
-      case UNION:
-        return decodeUnion(object, schema.getUnionSchemas());
-    }
-    throw new RuntimeException("Unable decode object with schema " + schema);
-  }
-
-  private Object decodeUnion(Object object, List<Schema> schemas) {
-    for (Schema schema : schemas) {
-      try {
-        return decode(object, schema);
-      } catch (Exception e) {
-        // could be ok, just move on and try the next schema
-      }
-    }
-    throw new RuntimeException("Unable decode union with schema " + schemas);
-  }
-
-  private List<Object> decodeArray(List nativeArray, Schema componentSchema) {
-    List<Object> arr = Lists.newArrayListWithCapacity(nativeArray.size());
-    for (Object arrObj : nativeArray) {
-      arr.add(decode(arrObj, componentSchema));
-    }
-    return arr;
-  }
-
-  private Map<Object, Object> decodeMap(Map<Object, Object> object, Schema keySchema, Schema valSchema) {
-    Map<Object, Object> output = Maps.newHashMap();
-    for (Map.Entry<Object, Object> entry : object.entrySet()) {
-      output.put(decode(entry.getKey(), keySchema), decode(entry.getValue(), valSchema));
-    }
-    return output;
-  }
-
   @SuppressWarnings("RedundantCast")
-  private Object decodeSimpleType(Object object, Schema schema) {
+  private Object decodeSimpleType(String name, Object object, Schema schema) {
     Schema.Type type = schema.getType();
     switch (type) {
       case NULL:
         return null;
       // numbers come back as Numbers
       case INT:
+        if (object instanceof Integer) {
+          return (Integer) object;
+        } else if (object instanceof String) {
+          try {
+
+          } catch (NumberFormatException e) {
+
+          }
+        }
         return ((Number) object).intValue();
       case LONG:
         return ((Number) object).longValue();
@@ -157,6 +111,64 @@ public class SchemaGenerationTest {
     }
     throw new RuntimeException("Unable decode object with schema " + schema);
   }
+
+  private Object decode(String name, Object object, Schema schema) {
+    Schema.Type type = schema.getType();
+
+    switch (type) {
+      case NULL:
+      case BOOLEAN:
+      case INT:
+      case LONG:
+      case FLOAT:
+      case DOUBLE:
+      case BYTES:
+      case STRING:
+        return decodeSimpleType(name, object, schema);
+      case ENUM:
+        break;
+      case ARRAY:
+        return decodeArray(name, (List)object, schema.getComponentSchema());
+      case MAP:
+        Schema keySchema = schema.getMapSchema().getKey();
+        Schema valSchema = schema.getMapSchema().getValue();
+        // Should be fine to cast since schema tells us what it is.
+        //noinspection unchecked
+        return decodeMap(name, (Map<Object, Object>) object, keySchema, valSchema);
+      case UNION:
+        return decodeUnion(name, object, schema.getUnionSchemas());
+    }
+    throw new RuntimeException("Unable decode object with schema " + schema);
+  }
+
+  private Object decodeUnion(String name, Object object, List<Schema> schemas) {
+    for (Schema schema : schemas) {
+      try {
+        return decode(name, object, schema);
+      } catch (Exception e) {
+        // could be ok, just move on and try the next schema
+      }
+    }
+    throw new RuntimeException("Unable decode union with schema " + schemas);
+  }
+
+  private List<Object> decodeArray(String name, List nativeArray, Schema componentSchema) {
+    List<Object> arr = Lists.newArrayListWithCapacity(nativeArray.size());
+    for (Object arrObj : nativeArray) {
+      arr.add(decode(name, arrObj, componentSchema));
+    }
+    return arr;
+  }
+
+  private Map<Object, Object> decodeMap(String name, Map<Object, Object> object, Schema keySchema, Schema valSchema) {
+    Map<Object, Object> output = Maps.newHashMap();
+    for (Map.Entry<Object, Object> entry : object.entrySet()) {
+      output.put(decode(name, entry.getKey(), keySchema), decode(name, entry.getValue(), valSchema));
+    }
+    return output;
+  }
+
+
 
   private List<StructuredRecord> toStructuredRecord(List<Record> records, Schema schema) {
     List<StructuredRecord> results = new ArrayList<>();

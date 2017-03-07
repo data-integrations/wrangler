@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.internal;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.data.schema.UnsupportedTypeException;
@@ -37,10 +37,8 @@ import java.util.Set;
 
 /**
  * Schema useful utilities.
- *
- * This class is package private and cannot be used outside this package.
  */
-class SchemaUtilities {
+public class SchemaUtilities {
   private static final Logger LOG = LoggerFactory.getLogger(SchemaUtilities.class);
 
   public static Schema recordToSchema(String id, List<Record> records) throws UnsupportedTypeException, JSONException {
