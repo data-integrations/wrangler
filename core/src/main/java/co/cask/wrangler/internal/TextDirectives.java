@@ -48,7 +48,7 @@ import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SplitToRows;
-import co.cask.wrangler.steps.transformation.AddOrSetColumn;
+import co.cask.wrangler.steps.transformation.SetColumn;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Decode;
@@ -792,11 +792,11 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // add-or-set-column <column> <expression>
-        case "add-or-set-column" : {
+        // set-column <column> <expression>
+        case "set-column" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expr = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          steps.add(new AddOrSetColumn(lineno, directive, column, expr));
+          steps.add(new SetColumn(lineno, directive, column, expr));
         }
         break;
 
