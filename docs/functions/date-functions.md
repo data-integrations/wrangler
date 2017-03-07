@@ -68,5 +68,5 @@ Once such a JSON is loaded, you apply the following directives before the functi
 | Function | Description | Examples |
 | :------- | :---------- | :------- |
 |_ARRAY_JOIN(JSON Array, Separator)_| Joins all the elements in array with separator. Returns unmodified array if object. Handles nulls | ```set-column alias_list json:ARRAY_JOIN(aliases, ",")``` |
-|_ARRAY_SUM_(JSON Array)_|Computes sum over all the elements. Handles 'null' values. Returns '0' if any elements that are not addable if found | set column sum ARRAY_SUM(numbers) |
+|_ARRAY\_SUM\_(JSON Array)_|Computes sum over all the elements. Handles 'null' values. Returns '0' if any elements that are not addable if found | set column sum ARRAY_SUM(numbers) |
 
