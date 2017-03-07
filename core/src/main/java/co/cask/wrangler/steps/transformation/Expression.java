@@ -22,6 +22,9 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.transformation.functions.ConversionFunctions;
+import co.cask.wrangler.steps.transformation.functions.DateFunctions;
+import co.cask.wrangler.steps.transformation.functions.JSONFunctions;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -68,32 +71,6 @@ public class Expression extends AbstractStep {
   // Properties associated with pipeline
   private final Map<String, Object> properties = new HashMap<>();
 
-  /**
-   * Helper for performing basic house keeping operations.
-   */
-  public static class Convertors {
-    public static double toDouble(String value) {
-      return Double.parseDouble(value);
-    }
-    public static float toFloat(String value) {
-      return Float.parseFloat(value);
-    }
-    public static long toLong(String value) {
-      return Long.parseLong(value);
-    }
-    public static int toInt(String value) {
-      return Integer.parseInt(value);
-    }
-    public static byte[] toBytes(String value) {
-      return value.getBytes();
-    }
-    public static String concat(String a, String b) {
-      return a.concat(b);
-    }
-    public static String concat(String a, String delim, String b) {
-      return a.concat(delim).concat(b);
-    }
-  }
 
   public Expression(int lineno, String detail, String column, String expression) {
     super(lineno, detail);
@@ -102,7 +79,9 @@ public class Expression extends AbstractStep {
 
     // Load the functions that should be accessible in the script.
     Map<String, Object> functions = new HashMap<>();
-    functions.put(null, Convertors.class);
+    functions.put(null, ConversionFunctions.class);
+    functions.put("date", DateFunctions.class);
+    functions.put("json", JSONFunctions.class);
     functions.put("math", Math.class);
     functions.put("string", StringUtils.class);
     functions.put("bytes", Bytes.class);

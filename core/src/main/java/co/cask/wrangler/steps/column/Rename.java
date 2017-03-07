@@ -56,15 +56,18 @@ public class Rename extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    boolean found = false;
     for (Record record : records) {
       int idx = record.find(oldcol);
       if (idx != -1) {
         record.setColumn(idx, newcol);
-      } else {
-        throw new StepException(toString() + " : '" +
-                                  oldcol + "' column is not defined in the record or the record has no column."
-        );
+        found = true;
       }
+    }
+    if (!found) {
+      throw new StepException(
+        toString() + " : '" + oldcol + "' column is not defined in the record or the record has no column."
+      );
     }
     return records;
   }

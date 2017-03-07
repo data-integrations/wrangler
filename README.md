@@ -9,6 +9,8 @@
 
 Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
 
+Also, check the documentation of Wrangler Transform [here](transform/docs/Wrangler-transform.md)
+
 ## Demo Videos and Recipes
 
 * Videos  

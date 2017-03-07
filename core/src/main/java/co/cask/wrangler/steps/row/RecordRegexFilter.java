@@ -21,6 +21,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,11 @@ public class RecordRegexFilter extends AbstractStep {
     this.regex = regex.trim();
     this.column = column;
     this.match = match;
-    pattern = Pattern.compile(this.regex);
+    if (!regex.equalsIgnoreCase("null")) {
+      pattern = Pattern.compile(this.regex);
+    } else {
+      pattern = null;
+    }
   }
 
   /**
@@ -63,7 +68,13 @@ public class RecordRegexFilter extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
-        if (object instanceof String) {
+        if (pattern == null && object == null) {
+          continue;
+        } else if (object instanceof JSONObject) {
+          if (pattern == null && JSONObject.NULL.equals(object)) {
+            continue;
+          }
+        } else if (object instanceof String) {
           String value = (String) record.getValue(idx);
           boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
           if (!match) {
@@ -81,7 +92,6 @@ public class RecordRegexFilter extends AbstractStep {
         results.add(record);
       }
     }
-
     return results;
   }
 }
