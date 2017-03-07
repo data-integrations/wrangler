@@ -161,7 +161,7 @@ public class ExpressionTest {
       "set-column min json:ARRAY_MIN(body_numbers)",
       "set-column sum json:ARRAY_SUM(body_numbers)",
       "set-column length json:ARRAY_LENGTH(body_numbers)",
-      "set-column body_responses json:ARRAY_OBJECT_REMOVE_NULL_FIELDS(body_responses, \"c\")",
+      "set-column body_responses json:ARRAY_OBJECT_REMOVE_NULL_FIELDS(body_responses, \"c,b\")",
       "set-column body_responses json:ARRAY_OBJECT_RENAME_FIELDS(body_responses, \"a:field,b:value\")",
       "set-column body_responses json:ARRAY_OBJECT_DROP_FIELDS(body_responses, \"c\")"
     };

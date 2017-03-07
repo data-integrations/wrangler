@@ -172,9 +172,8 @@ public class JSONFunctions {
           String name = it.next();
           if (fieldSet.contains(name)) {
             continue;
-          } else {
-            newobject.put(name, v.get(name));
           }
+          newobject.put(name, v.get(name));
         }
         newarray.put(newobject);
       } else {
@@ -182,6 +181,20 @@ public class JSONFunctions {
       }
     }
     return newarray;
+  }
+
+  /**
+   * @return String of Array.
+   */
+  public static String TO_STRING(JSONArray array) {
+    return array.toString();
+  }
+
+  /**
+   * @return String of object.
+   */
+  public static String TO_STRING(JSONObject object) {
+    return object.toString();
   }
 
   /**
@@ -220,9 +233,8 @@ public class JSONFunctions {
               if (strvalue.equalsIgnoreCase("null")) {
                 continue;
               }
-            } else {
-              newobject.put(name, element);
             }
+            newobject.put(name, element);
           } else {
             newobject.put(name, v.get(name));
           }
