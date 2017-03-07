@@ -50,9 +50,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:https://github.com/hydrator/wrangler-transform.git</connection>
-    <developerConnection>scm:git:git@github.com:hydrator/wrangler-transform.git</developerConnection>
-    <url>https://github.com/hydrator/wrangler-transform.git</url>
+    <connection>scm:git:https://github.com/hydrator/wrangler.git</connection>
+    <developerConnection>scm:git:git@github.com:hydrator/wrangler.git</developerConnection>
+    <url>https://github.com/hydrator/wrangler.git</url>
     <tag>HEAD</tag>
   </scm>
 

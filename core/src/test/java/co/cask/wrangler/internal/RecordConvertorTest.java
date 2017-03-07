@@ -9,6 +9,9 @@ import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +21,25 @@ import java.util.Map;
  * Tests {@link RecordConvertor}
  */
 public class RecordConvertorTest {
+
+  @Test
+  public void testWithFile() throws Exception {
+    Path path = Paths.get("/Users/nitin/Downloads/CDAP_Package/json_array_surveyfacts.json");
+    byte[] data = Files.readAllBytes(path);
+
+    String[] directives = new String[] {
+      "parse-as-json body",
+      "drop body"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", new String(data))
+    );
+    RecordConvertor convertor = new RecordConvertor();
+    records = PipelineTest.execute(directives, records);
+    Schema schema = convertor.toSchema("record", records);
+    Assert.assertTrue(true);
+  }
 
   @Test
   public void testComplexStructureConversion() throws Exception {
