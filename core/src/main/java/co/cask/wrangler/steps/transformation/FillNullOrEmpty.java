@@ -21,6 +21,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -64,6 +65,10 @@ public class FillNullOrEmpty extends AbstractStep {
       } else {
         if (object instanceof String) {
           if (((String) object).isEmpty()) {
+            record.setValue(idx, value);
+          }
+        } else if (object instanceof JSONObject) {
+          if (JSONObject.NULL.equals(object)) {
             record.setValue(idx, value);
           }
         }
