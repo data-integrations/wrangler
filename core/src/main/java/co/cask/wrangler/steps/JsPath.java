@@ -23,12 +23,19 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JsonOrgJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.JsonOrgMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
@@ -42,12 +49,37 @@ public class JsPath extends AbstractStep {
   private String src;
   private String dest;
   private String path;
+  private JsonProvider provider;
 
   public JsPath(int lineno, String detail, String src, String dest, String path) {
     super(lineno, detail);
     this.src = src;
     this.dest = dest;
     this.path = path;
+    provider = Configuration.defaultConfiguration().jsonProvider();
+  }
+
+  /**
+   * This will be used for later use, for now we use default provider.
+   */
+  private static class Config implements Configuration.Defaults {
+    private final JsonProvider jsonProvider = new JsonOrgJsonProvider();
+    private final MappingProvider mappingProvider = new JsonOrgMappingProvider();
+
+    @Override
+    public JsonProvider jsonProvider() {
+      return jsonProvider;
+    }
+
+    @Override
+    public MappingProvider mappingProvider() {
+      return mappingProvider;
+    }
+
+    @Override
+    public Set<Option> options() {
+      return EnumSet.noneOf(Option.class);
+    }
   }
 
   /**
@@ -81,8 +113,9 @@ public class JsPath extends AbstractStep {
       }
       String v = value.toString();
 
+
       // Apply JSON path expression to it.
-      Object e = Configuration.defaultConfiguration().jsonProvider().parse(v);
+      Object e = provider.parse(v);
       Object object = JsonPath.read(e, path);
 
       // Check if the objects are arrays, if so convert it to List<Object>
