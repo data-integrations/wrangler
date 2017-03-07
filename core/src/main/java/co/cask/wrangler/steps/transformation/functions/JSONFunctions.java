@@ -186,15 +186,8 @@ public class JSONFunctions {
   /**
    * @return String of Array.
    */
-  public static String TO_STRING(JSONArray array) {
-    return array.toString();
-  }
-
-  /**
-   * @return String of object.
-   */
-  public static String TO_STRING(JSONObject object) {
-    return object.toString();
+  public static String TO_STRING(Object object) {
+    return (object == null) ? "null" : object.toString();
   }
 
   /**
