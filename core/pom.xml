@@ -142,4 +142,38 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <doCheck>true</doCheck>
+          <doUpdate>false</doUpdate>
+          <revisionOnScmFailure>false</revisionOnScmFailure>
+          <format>{0,date,yyyy-MM-dd-HH:mm:ss}_{1}</format>
+          <items>
+            <item>timestamp</item>
+            <item>${user.name}</item>
+          </items>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

@@ -16,23 +16,17 @@
 
 package co.cask.wrangler.service;
 
-import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.cdap.test.ApplicationManager;
-import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.ServiceManager;
 import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
 import co.cask.wrangler.WranglerApp;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.collections.KeyValue;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -75,6 +69,7 @@ public class WranglerServiceTest extends WranglerServiceTestBase {
                       Schema.Field.of("lname", Schema.nullableOf(Schema.of(Schema.Type.STRING))));
 
     Assert.assertEquals(expectedSchema, schema);
+
   }
 
   public Schema schema(URL baseURL, String workspace, List<String> directives) throws Exception {

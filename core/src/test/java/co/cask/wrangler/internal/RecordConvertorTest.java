@@ -113,6 +113,20 @@ public class RecordConvertorTest {
   }
 
   @Test
+  public void readVersionInfoInManifest(){
+    Package[] pkgs = Package.getPackages();
+    for(int i=0; i < pkgs.length; i++)
+      System.out.println(
+        pkgs[i].getName() + " " +
+          pkgs[i].getImplementationVersion()
+      );
+
+//    String s = new String();
+//    System.out.println(s.getClass().getPackage().getSpecificationVersion());
+//    System.out.println(s.getClass().getPackage().getImplementationVersion());
+  }
+
+  @Test
   public void testSchemaGeneration() throws Exception {
     Map<String, String> values = new HashMap<>(); values.put("foo", "1");
     JSONArray array1 = new JSONArray(); array1.put("a"); array1.put("b");
