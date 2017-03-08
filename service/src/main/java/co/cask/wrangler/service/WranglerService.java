@@ -362,10 +362,12 @@ public class WranglerService extends AbstractHttpServiceHandler {
       return;
     }
 
+    JSONObject object = new JSONObject();
     for(String key : props.stringPropertyNames()) {
       String value = props.getProperty(key);
-      values.put(add(key, value));
+      object.put(key, value);
     }
+    values.put(object);
 
     JSONObject response = new JSONObject();
     response.put("status", HttpURLConnection.HTTP_OK);
