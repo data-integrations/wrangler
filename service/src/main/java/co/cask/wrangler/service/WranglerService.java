@@ -39,8 +39,8 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
-import co.cask.wrangler.internal.RecordConvertorException;
 import co.cask.wrangler.internal.RecordConvertor;
+import co.cask.wrangler.internal.RecordConvertorException;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
@@ -57,6 +57,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -64,6 +66,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
@@ -82,6 +85,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   public static final String WORKSPACE_DATASET = "workspace";
+  private static final String resourceName = ".properties";
 
   @UseDataSet(WORKSPACE_DATASET)
   private Table workspace;
@@ -336,6 +340,47 @@ public class WranglerService extends AbstractHttpServiceHandler {
       error(responder, e.getMessage());
     }
   }
+
+  /**
+   * Generates the capability matrix, with versions and build number.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   */
+  @GET
+  @Path("info")
+  public void capabilities(HttpServiceRequest request, HttpServiceResponder responder) {
+    JSONArray values = new JSONArray();
+
+    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+    Properties props = new Properties();
+    try(InputStream resourceStream = loader.getResourceAsStream(resourceName)) {
+      props.load(resourceStream);
+    } catch (IOException e) {
+      error(responder, "There was problem reading the capability matrix. " +
+        "Please check the environment to ensure you have right verions of jar." + e.getMessage());
+      return;
+    }
+
+    for(String key : props.stringPropertyNames()) {
+      String value = props.getProperty(key);
+      values.put(add(key, value));
+    }
+
+    JSONObject response = new JSONObject();
+    response.put("status", HttpURLConnection.HTTP_OK);
+    response.put("message", "Success");
+    response.put("items", values.length());
+    response.put("value", values);
+    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+  }
+
+  private JSONObject add(String field, Object value) {
+    JSONObject object = new JSONObject();
+    object.put(field, value);
+    return object;
+  }
+
 
   private List<Schema.Field> generateFields(Record record) throws UnsupportedTypeException {
     List<Schema.Field> fields = new ArrayList<>();
