@@ -80,6 +80,7 @@ import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -89,7 +90,7 @@ import java.util.Map;
 /**
  * Registry of directive usages managed through this class.
  */
-public final class UsageRegistry {
+public final class UsageRegistry implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(UsageRegistry.class);
 
   public class UsageDatum {

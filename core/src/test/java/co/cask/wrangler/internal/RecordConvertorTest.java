@@ -23,12 +23,8 @@ import co.cask.wrangler.steps.PipelineTest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -38,26 +34,6 @@ import java.util.Map;
  * Tests {@link RecordConvertor}
  */
 public class RecordConvertorTest {
-
-  @Ignore
-  @Test
-  public void testWithFile() throws Exception {
-    Path path = Paths.get("<filename>");
-    byte[] data = Files.readAllBytes(path);
-
-    String[] directives = new String[] {
-      "parse-as-json body",
-      "drop body"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("body", new String(data))
-    );
-    RecordConvertor convertor = new RecordConvertor();
-    records = PipelineTest.execute(directives, records);
-    Schema schema = convertor.toSchema("record", records);
-    Assert.assertTrue(true);
-  }
 
   @Test
   public void testComplexStructureConversion() throws Exception {
@@ -112,19 +88,6 @@ public class RecordConvertorTest {
     Assert.assertEquals(4, ((List)outputs.get(0).get("body_moves")).size());
   }
 
-  @Test
-  public void readVersionInfoInManifest(){
-    Package[] pkgs = Package.getPackages();
-    for(int i=0; i < pkgs.length; i++)
-      System.out.println(
-        pkgs[i].getName() + " " +
-          pkgs[i].getImplementationVersion()
-      );
-
-//    String s = new String();
-//    System.out.println(s.getClass().getPackage().getSpecificationVersion());
-//    System.out.println(s.getClass().getPackage().getImplementationVersion());
-  }
 
   @Test
   public void testSchemaGeneration() throws Exception {

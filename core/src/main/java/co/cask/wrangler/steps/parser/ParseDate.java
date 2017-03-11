@@ -34,7 +34,7 @@ import java.util.TimeZone;
 @Usage(
   directive = "parse-as-date",
   usage = "parse-as-date <column> [<timezone>]",
-  description = "Parses a column as date, identifies the format automatically."
+  description = "Parses a column as date, identifies the format automatically (expensive)."
 )
 public class ParseDate extends AbstractStep {
   private final String column;

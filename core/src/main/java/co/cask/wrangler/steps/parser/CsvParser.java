@@ -81,7 +81,10 @@ public class CsvParser extends AbstractStep {
           toRow(csvRecord, record);
         }
       } catch (IOException e) {
-        throw new StepException(toString(), e);
+        throw new StepException(
+          String.format("%s : Issue parsing the record. %s", toString(), e.getMessage())
+
+        );
       }
     }
     return records;

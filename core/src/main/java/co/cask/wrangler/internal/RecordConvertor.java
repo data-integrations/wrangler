@@ -29,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,7 +40,7 @@ import java.util.Set;
 /**
  * Converts {@link Record} to {@link StructuredRecord}.
  */
-public final class RecordConvertor {
+public final class RecordConvertor implements Serializable {
   /**
    * Converts a Wrangler {@link Record} into a {@link StructuredRecord}.
    *

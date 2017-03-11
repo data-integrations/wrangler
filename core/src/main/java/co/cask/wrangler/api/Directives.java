@@ -16,12 +16,13 @@
 
 package co.cask.wrangler.api;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * A specification for how {@link Pipeline} will process.
  */
-public interface Directives {
+public interface Directives extends Serializable {
   // Column definition for the start of processing.
   public static final String STARTING_COLUMN = "__col";
 
