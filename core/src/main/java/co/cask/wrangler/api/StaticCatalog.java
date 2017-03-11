@@ -16,10 +16,12 @@
 
 package co.cask.wrangler.api;
 
+import java.io.Serializable;
+
 /**
  * Interface for defining different kinds of catalog.
  */
-public interface StaticCatalog {
+public interface StaticCatalog extends Serializable {
   /**
    * Configures a catalog.
    *
