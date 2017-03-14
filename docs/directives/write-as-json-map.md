@@ -36,7 +36,7 @@ would generate the following record
 
 ```
 {
-  "body" : "[{"key": "int", "value" : "1"}, {"key" : "string", "value" : "this is string"} ]"
+  "body" : "{"string":"this is string","int":1}"
   "int" : 1,
   "string" : "this is string",
 }
