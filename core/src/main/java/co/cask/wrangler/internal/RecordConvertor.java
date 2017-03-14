@@ -294,7 +294,7 @@ public final class RecordConvertor implements Serializable {
         }
       case BOOLEAN:
         if (object instanceof Boolean) {
-          return (Double) object;
+          return (Boolean) object;
         } else if (object instanceof String) {
           String value = (String) object;
           try {

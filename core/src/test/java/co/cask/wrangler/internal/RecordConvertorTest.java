@@ -48,6 +48,7 @@ public class RecordConvertorTest {
         "        \"lname\" : \"Root\",\n" +
         "        \"mname\" : null\n" +
         "    },\n" +
+        "    \"boolean\" : true,\n" +
         "    \"coordinates\" : [\n" +
         "        12.56,\n" +
         "        45.789\n" +
