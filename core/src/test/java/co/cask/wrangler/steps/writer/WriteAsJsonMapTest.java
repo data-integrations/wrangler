@@ -18,6 +18,7 @@ package co.cask.wrangler.steps.writer;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.PipelineTest;
+import com.google.gson.Gson;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,23 +31,33 @@ import java.util.List;
  */
 public class WriteAsJsonMapTest {
 
+  private static final Gson GSON = new Gson();
+
   @Test
   public void testWriteToJson() throws Exception {
     String[] directives = new String[] {
       "write-as-json-map test",
+      "keep test"
     };
 
     JSONObject o = new JSONObject();
     o.put("a", 1);
     o.put("b", "2");
+    String url = "http://www.yahoo.com?a=b c&b=ab&xyz=1";
     List<Record> records = Arrays.asList(
-      new Record("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
+      new Record().add("int", 1).add("string", "this is string"),
+      new Record("url", url)
       .add("o", o)
-      .add("i1", new Integer(1))
-      .add("i2", new Double(1.8f))
+      .add("i1", 1)
+      .add("i2", (double) 1.8f)
     );
     records = PipelineTest.execute(directives, records);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(records.size() == 2);
+    Assert.assertEquals(new Record("test", "{\"string\":\"this is string\",\"int\":1}"),
+                        records.get(0));
+    Assert.assertEquals(new Record("test", "{\"i1\":1,\"i2\":1.7999999523162842,\"url\":"
+      + GSON.toJson(url) + ",\"o\":{\"map\":{\"a\":1,\"b\":\"2\"}}}"),
+                        records.get(1));
   }
 }

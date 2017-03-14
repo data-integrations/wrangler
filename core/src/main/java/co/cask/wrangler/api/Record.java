@@ -18,6 +18,7 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -248,6 +249,8 @@ public class Record implements Serializable {
     }
   }
 
+
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(getClass())
@@ -256,5 +259,26 @@ public class Record implements Serializable {
       .add("columns", columns)
       .add("values", values)
       .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Record that = (Record) o;
+
+    return Objects.equal(this.values, that.values) &&
+      Objects.equal(this.columns, that.columns) &&
+      Objects.equal(this.isError, that.isError);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(values, columns, isError);
   }
 }
