@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.steps.writer;
 
+import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -23,7 +24,9 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A step to write the record fields as JSON.
@@ -53,7 +56,11 @@ public class WriteAsJsonMap extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
-      record.addOrSet(column, gson.toJson(record.getFields()));
+      Map<String, Object> toJson = new HashMap<>();
+      for (KeyValue<String, Object> entry : record.getFields()) {
+        toJson.put(entry.getKey(), entry.getValue());
+      }
+      record.addOrSet(column, gson.toJson(toJson));
     }
     return records;
   }
