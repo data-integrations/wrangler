@@ -16,12 +16,11 @@
 
 package co.cask.wrangler.steps.writer;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import com.google.gson.Gson;
 
 import java.util.List;
 import java.util.Objects;
@@ -35,11 +34,11 @@ import java.util.Objects;
   description = "Changes the column value to a string."
 )
 // TODO: add to usageRegistory and TextDirectives
-public class ToString extends AbstractStep {
+public class ToString extends AbstractIndependentStep {
   private final String column;
 
   public ToString(int lineno, String directive, String column) {
-    super(lineno, directive);
+    super(lineno, directive, column);
     this.column = column;
   }
 

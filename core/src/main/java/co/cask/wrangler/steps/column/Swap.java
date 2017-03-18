@@ -16,15 +16,19 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.api.i18n.Messages;
 import co.cask.wrangler.api.i18n.MessagesFactory;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A step for swapping the column names.
@@ -34,7 +38,7 @@ import java.util.List;
   usage = "swap <column1> <column2>",
   description = "Swap the column names."
 )
-public class Swap extends AbstractStep {
+public class Swap extends AbstractSimpleStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private final String column1;
   private final String column2;
@@ -70,5 +74,10 @@ public class Swap extends AbstractStep {
       record.setColumn(didx, column1);
     }
     return records;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    return ImmutableMap.<String, Set<String>>of(column1, ImmutableSet.of(column2), column2, ImmutableSet.of(column1));
   }
 }

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -33,12 +33,12 @@ import java.util.List;
   usage = "fill-null-or-empty <column> <fixed-value>",
   description = "Fills a value of a column if it's empty or null with a fixed value."
 )
-public class FillNullOrEmpty extends AbstractStep {
+public class FillNullOrEmpty extends AbstractIndependentStep {
   private String column;
   private String value;
 
   public FillNullOrEmpty(int lineno, String detail, String column, String value) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
     this.value = value;
   }

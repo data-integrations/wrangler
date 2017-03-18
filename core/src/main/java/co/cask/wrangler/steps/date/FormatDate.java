@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.date;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -36,16 +36,14 @@ import java.util.List;
   usage = "format-date <column> <format>",
   description = "Format the column using date format."
 )
-public class FormatDate extends AbstractStep {
-  private final String format;
+public class FormatDate extends AbstractIndependentStep {
   private final String column;
   private final DateFormat destinationFmt;
 
   public FormatDate(int lineno, String detail, String column, String format) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
-    this.format = format;
-    this.destinationFmt = new SimpleDateFormat(this.format);
+    this.destinationFmt = new SimpleDateFormat(format);
   }
 
   /**

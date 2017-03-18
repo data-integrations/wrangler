@@ -17,11 +17,12 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractKeepStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.Set;
   usage = "keep <column>[,<column>]*",
   description = "Keep the columns specified and drop the rest."
 )
-public class Keep extends AbstractStep {
+public class Keep extends AbstractKeepStep {
 
   private final Set<String> keep = new HashSet<>();
 
@@ -66,5 +67,10 @@ public class Keep extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getKeptColumns() {
+    return ImmutableSet.copyOf(keep);
   }
 }

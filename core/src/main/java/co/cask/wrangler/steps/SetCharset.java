@@ -1,5 +1,6 @@
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -25,13 +26,13 @@ import java.util.List;
   usage = "set-charset <column> <charset>",
   description = "Sets the character set decoding to UTF-8."
 )
-public class SetCharset extends AbstractStep {
+public class SetCharset extends AbstractIndependentStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private final String column;
   private final String charset;
 
   public SetCharset(int lineno, String detail, String column, String charset) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
     this.charset = charset;
   }

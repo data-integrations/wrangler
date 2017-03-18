@@ -16,12 +16,12 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-
+import com.google.common.collect.ImmutableSet;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +30,7 @@ import org.json.JSONTokener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Json Parser Stage for parsing the {@link Record} provided based on configuration.
@@ -39,7 +40,7 @@ import java.util.List;
   usage = "parse-as-json <column> [depth]",
   description = "Parses a column as JSON."
 )
-public class JsonParser extends AbstractStep {
+public class JsonParser extends AbstractUnboundedOutputStep {
   // Column within the input row that needs to be parsed as Json
   private String col;
   private int maxDepth;
@@ -173,4 +174,13 @@ public class JsonParser extends AbstractStep {
     }
   }
 
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(col);
+  }
+
+  @Override
+  public boolean isOutput(String column) {
+    return column.matches(String.format("%s(_.*?)+", col));
+  }
 }

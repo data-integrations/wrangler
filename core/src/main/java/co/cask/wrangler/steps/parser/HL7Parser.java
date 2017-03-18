@@ -30,7 +30,7 @@ import ca.uhn.hl7v2.model.Primitive;
 import ca.uhn.hl7v2.model.Segment;
 import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.validation.impl.NoValidation;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDestinationSourceStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -48,19 +48,18 @@ import java.util.List;
   usage = "parse-as-hl7 <column> [<depth>]",
   description = "Parses Health Level Seven International(HL7) files (non-xml)."
 )
-public class HL7Parser extends AbstractStep {
+public class HL7Parser extends AbstractDestinationSourceStep {
   private final String column;
-  private final HapiContext context;
   private final Parser parser;
   private final int depth;
 
   public HL7Parser(int lineno, String detail, String column, int depth) {
-    super(lineno, detail);
+    super(lineno, detail, column + "_hl7", column);
     this.column = column;
     this.depth = depth;
-    context = new DefaultHapiContext();
+    HapiContext context = new DefaultHapiContext();
     context.setValidationContext(new NoValidation());
-    parser = context.getGenericParser();
+    this.parser = context.getGenericParser();
   }
 
   /**
@@ -128,7 +127,6 @@ public class HL7Parser extends AbstractStep {
 
     @Override
     public boolean start(Group group, Location location) throws HL7Exception {
-
       return true;
     }
 

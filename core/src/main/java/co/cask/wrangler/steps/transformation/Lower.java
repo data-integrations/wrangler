@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -33,12 +33,12 @@ import java.util.List;
   usage = "lowercase <column>",
   description = "Changes the column value to lowercase."
 )
-public class Lower extends AbstractStep {
+public class Lower extends AbstractIndependentStep {
   // Columns of the column to be lower cased.
   private String col;
 
   public Lower(int lineno, String detail, String col) {
-    super(lineno, detail);
+    super(lineno, detail, col);
     this.col = col;
   }
 

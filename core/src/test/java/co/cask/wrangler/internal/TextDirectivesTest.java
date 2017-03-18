@@ -16,13 +16,13 @@
 
 package co.cask.wrangler.internal;
 
-import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.column.Columns;
-import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.column.Drop;
 import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.parser.CsvParser;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;

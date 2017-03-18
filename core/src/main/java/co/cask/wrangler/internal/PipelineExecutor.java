@@ -23,12 +23,15 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.ErrorRecordCollector;
 import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.Optimizer;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.optimizers.UnreachableOptimizer;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -53,13 +56,25 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
   public void configure(Directives directives, PipelineContext context) throws PipelineException {
     this.directives = directives;
     this.context = context;
+
+    List<Step> steps;
     try {
-      this.steps = directives.getSteps();
+      steps = directives.getSteps();
     } catch (DirectiveParseException e) {
       throw new PipelineException(
         String.format(e.getMessage())
       );
     }
+
+    ImmutableList<Optimizer<Record, Record, String>> optimizers = ImmutableList.<Optimizer<Record, Record, String>>of(
+      new UnreachableOptimizer()
+    );
+
+    for (Optimizer optimizer : optimizers) {
+      steps = optimizer.optimize(steps);
+    }
+
+    this.steps = steps;
   }
 
   /**

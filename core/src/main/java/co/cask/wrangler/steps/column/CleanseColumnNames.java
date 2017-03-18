@@ -16,13 +16,15 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedInputOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Cleanses columns names.
@@ -40,7 +42,7 @@ import java.util.List;
   usage = "cleanse-column-names",
   description = "Sanatizes column names -- trim, lowercase and replace non [A-Z][a-z][0-9]_ with underscore(_)."
 )
-public class CleanseColumnNames extends AbstractStep {
+public class CleanseColumnNames extends AbstractUnboundedInputOutputStep {
   public CleanseColumnNames(int lineno, String directive) {
     super(lineno, directive);
   }
@@ -62,10 +64,15 @@ public class CleanseColumnNames extends AbstractStep {
         // Lower case columns
         column = column.toLowerCase();
         // Filtering unwanted characters
-        column = column.replaceAll("[^a-zA-Z0-9_]", "_");
+        column = column.replaceAll("\\W", "_");
         record.setColumn(i, column);
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getInputColumns(String outputColumn) {
+    return ImmutableSet.of(outputColumn);
   }
 }

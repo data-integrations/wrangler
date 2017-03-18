@@ -17,13 +17,15 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,16 +37,14 @@ import java.util.regex.Pattern;
   usage = "extract-regex-groups <column> <regex-with-groups>",
   description = "Extracts groups from regex into columns."
 )
-public class ExtractRegexGroups extends AbstractStep {
+public class ExtractRegexGroups extends AbstractUnboundedOutputStep {
   private final String column;
-  private final String regex;
   private final Pattern pattern;
 
   public ExtractRegexGroups(int lineno, String directive, String column, String regex) {
     super(lineno, directive);
     this.column = column;
-    this.regex = regex;
-    pattern = Pattern.compile(regex);
+    this.pattern = Pattern.compile(regex);
 
   }
 
@@ -74,6 +74,16 @@ public class ExtractRegexGroups extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public boolean isOutput(String outputColumn) {
+    return outputColumn.matches(String.format("%s_\\d+_\\d+", column));
   }
 }
 

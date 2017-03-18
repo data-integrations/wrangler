@@ -16,14 +16,16 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Fixed length Parser Stage for parsing the {@link Record} provided based on configuration.
@@ -33,7 +35,7 @@ import java.util.List;
   usage = "parse-as-fixed-length <source> <width,width,...>",
   description = "Parses fixed length files using the width specification."
 )
-public final class FixedLengthParser extends AbstractStep {
+public final class FixedLengthParser extends AbstractUnboundedOutputStep {
   private final int[] widths;
   private final String col;
   private final String padding;
@@ -48,7 +50,7 @@ public final class FixedLengthParser extends AbstractStep {
   /**
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
-   * @param records     Input {@link Record} to be wrangled by this step.
+   * @param records Input {@link Record} to be wrangled by this step.
    * @param context {@link PipelineContext} passed to each step.
    * @return Wrangled {@link Record}.
    * @throws StepException In case of any issue this exception is thrown.
@@ -79,5 +81,15 @@ public final class FixedLengthParser extends AbstractStep {
       results.add(record);
     }
     return results;
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(col);
+  }
+
+  @Override
+  public boolean isOutput(String column) {
+    return column.matches(String.format("%s_\\d+", col));
   }
 }

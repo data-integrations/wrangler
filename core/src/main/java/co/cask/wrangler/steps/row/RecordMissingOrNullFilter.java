@@ -16,14 +16,18 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Filters records if they don't have all the columns specified or they have null values or combination.
@@ -33,7 +37,7 @@ import java.util.List;
   usage="filter-rows-on empty-or-null-columns <column>[,<column>]*",
   description = "Filters row that have empty or null columns."
 )
-public class RecordMissingOrNullFilter extends AbstractStep {
+public class RecordMissingOrNullFilter extends AbstractSimpleStep {
   private final String[] columns;
 
   public RecordMissingOrNullFilter(int lineno, String directive, String[] columns) {
@@ -67,5 +71,16 @@ public class RecordMissingOrNullFilter extends AbstractStep {
       }
     }
     return results;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    ImmutableMap.Builder<String, Set<String>> builder = ImmutableMap.builder();
+
+    for (String column : columns) {
+      builder.put(column, ImmutableSet.of(column));
+    }
+
+    return builder.build();
   }
 }

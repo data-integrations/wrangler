@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -25,20 +25,18 @@ import com.google.common.collect.ImmutableSet;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * A Step to generate a message digest or hash of a column value. .
  */
 @Usage(
   directive = "hash",
-  usage = "hash <column> <algorithm> [replace]",
+  usage = "hash <column> <algorithm> [encode]",
   description = "Creates a message digest for the column."
 )
-public class MessageHash extends AbstractStep {
+public class MessageHash extends AbstractIndependentStep {
   private static final Set<String> algorithms = ImmutableSet.of(
     "SHA",
     "SHA-384",
@@ -109,7 +107,7 @@ public class MessageHash extends AbstractStep {
   }
 
   public MessageHash(int lineno, String directive, String column, MessageDigest digest, boolean encode) {
-    super(lineno, directive);
+    super(lineno, directive, column);
     this.column = column;
     this.digest = digest;
     this.encode = encode;

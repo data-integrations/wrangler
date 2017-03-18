@@ -19,6 +19,7 @@ package co.cask.wrangler.api;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,7 +232,9 @@ public class Record implements Serializable {
     }
   }
 
-
+  public List<String> getColumns() {
+    return ImmutableList.copyOf(columns);
+  }
 
   @Override
   public String toString() {

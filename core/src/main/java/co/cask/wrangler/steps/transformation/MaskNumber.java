@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -51,7 +51,7 @@ import java.util.List;
   usage = "mask-number <column> <pattern>",
   description = "Masks a number using the masking pattern specified."
 )
-public class MaskNumber extends AbstractStep {
+public class MaskNumber extends AbstractIndependentStep {
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;
   public static final int MASK_SHUFFLE = 2;
@@ -63,7 +63,7 @@ public class MaskNumber extends AbstractStep {
   private final String column;
 
   public MaskNumber(int lineno, String detail, String column, String mask) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.mask = mask;
     this.column = column;
   }

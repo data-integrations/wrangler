@@ -19,7 +19,7 @@ package co.cask.wrangler.api;
 /**
  * An abstract class for {@link Step} with added debugging capabilities.
  */
-public abstract class AbstractStep implements Step<Record, Record> {
+public abstract class AbstractStep implements Step<Record, Record, String> {
   private int lineno;
   private String detail;
 

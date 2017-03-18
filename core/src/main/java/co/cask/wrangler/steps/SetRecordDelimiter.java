@@ -1,5 +1,6 @@
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -20,14 +21,14 @@ import java.util.List;
   usage = "set-record-delim <column> <delimiter> [<limit>]",
   description = "Sets the record delimiter."
 )
-public class SetRecordDelimiter extends AbstractStep {
+public class SetRecordDelimiter extends AbstractIndependentStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private final String column;
   private final String delimiter;
   private final int limit;
 
   public SetRecordDelimiter(int lineno, String detail, String column, String delimiter, int limit) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
     this.delimiter = delimiter;
     this.limit = limit;

@@ -18,15 +18,20 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DeletionStep;
+import co.cask.wrangler.api.OptimizerGraphBuilder;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.parser.JsonParser;
+import co.cask.wrangler.api.UnboundedOutputStep;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.parser.JsonParser;
+import com.google.common.collect.ImmutableSet;
 import org.json.JSONException;
 import org.json.XML;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A XML to Json Parser Stage.
@@ -36,7 +41,8 @@ import java.util.List;
   usage = "parse-xml-to-json <column> [<depth>]",
   description = "Parses a XML document to JSON representation."
 )
-public class XmlToJson extends AbstractStep {
+public class XmlToJson extends AbstractStep implements UnboundedOutputStep<Record, Record, String>,
+  DeletionStep<Record, Record, String> {
   // Column within the input row that needs to be parsed as Json
   private String col;
   private int depth;
@@ -83,4 +89,24 @@ public class XmlToJson extends AbstractStep {
     return records;
   }
 
+  @Override
+  public void acceptOptimizerGraphBuilder(OptimizerGraphBuilder<Record, Record, String> optimizerGraphBuilder) {
+    optimizerGraphBuilder.buildGraph((UnboundedOutputStep<Record, Record, String>) this);
+    optimizerGraphBuilder.buildGraph((DeletionStep<Record, Record, String>) this);
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(col);
+  }
+
+  @Override
+  public boolean isOutput(String column) {
+    return column.matches(String.format("%s(_.*?)+", col));
+  }
+
+  @Override
+  public Set<String> getDeletedColumns() {
+    return ImmutableSet.of(col);
+  }
 }

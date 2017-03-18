@@ -1,6 +1,6 @@
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -21,7 +21,7 @@ import java.util.Locale;
   usage = "encode <base64|base32|hex> column",
   description = "Encodes a column"
 )
-public class Encode extends AbstractStep {
+public class Encode extends AbstractIndependentStep {
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();
   private final Hex hexEncode = new Hex();
@@ -48,7 +48,7 @@ public class Encode extends AbstractStep {
   }
 
   public Encode(int lineno, String directive, Type type, String column) {
-    super(lineno, directive);
+    super(lineno, directive, column);
     this.type = type;
     this.column = column;
   }

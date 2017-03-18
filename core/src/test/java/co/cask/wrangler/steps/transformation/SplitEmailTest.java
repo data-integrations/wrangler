@@ -19,7 +19,6 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.steps.transformation.SplitEmail;
 import org.junit.Assert;
 import org.junit.Test;
 

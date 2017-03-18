@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDestinationSourceStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -34,14 +34,14 @@ import java.util.List;
   usage = "copy <source> <destination> [force]",
   description = "Copy data from one column to another."
 )
-public class Copy extends AbstractStep {
+public class Copy extends AbstractDestinationSourceStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private String source;
   private String destination;
   private boolean force;
 
   public Copy(int lineno, String detail, String source, String destination, boolean force) {
-    super(lineno, detail);
+    super(lineno, detail, destination, source);
     this.source = source;
     this.destination = destination;
     this.force = force;

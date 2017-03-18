@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -45,12 +45,12 @@ import java.util.Random;
   usage = "mask-shuffle <column>",
   description = "Masks a column value by shuffling characters, but keep the length intact."
 )
-public class MaskShuffle extends AbstractStep {
+public class MaskShuffle extends AbstractIndependentStep {
   // Column on which to apply mask.
   private final String column;
 
   public MaskShuffle(int lineno, String detail, String column) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
   }
 

@@ -17,14 +17,21 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DeletionStep;
+import co.cask.wrangler.api.OptimizerGraphBuilder;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.SimpleStep;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.api.i18n.Messages;
 import co.cask.wrangler.api.i18n.MessagesFactory;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Wrangle Step for renaming a column.
@@ -34,7 +41,8 @@ import java.util.List;
   usage = "rename <old> <new>",
   description = "Rename a column name."
 )
-public class Rename extends AbstractStep {
+public class Rename extends AbstractStep implements SimpleStep<Record, Record, String>,
+  DeletionStep<Record, Record, String> {
   private static final Messages MSG = MessagesFactory.getMessages();
 
   // Columns of the columns that needs to be renamed.
@@ -72,5 +80,21 @@ public class Rename extends AbstractStep {
       throw new StepException(MSG.get("column.not.found", toString(), oldcol));
     }
     return records;
+  }
+
+  @Override
+  public void acceptOptimizerGraphBuilder(OptimizerGraphBuilder<Record, Record, String> optimizerGraphBuilder) {
+    optimizerGraphBuilder.buildGraph((SimpleStep<Record, Record, String>) this);
+    optimizerGraphBuilder.buildGraph((DeletionStep<Record, Record, String>) this);
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    return ImmutableMap.<String, Set<String>>of(newcol, ImmutableSet.of(oldcol));
+  }
+
+  @Override
+  public Set<String> getDeletedColumns() {
+    return ImmutableSet.of(oldcol);
   }
 }

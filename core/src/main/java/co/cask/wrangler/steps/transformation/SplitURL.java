@@ -16,15 +16,19 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Step to split a URL into it's components.
@@ -34,7 +38,7 @@ import java.util.List;
   usage = "split-url <column>",
   description = "Split a url into it's components host,protocol,port,etc."
 )
-public class SplitURL extends AbstractStep {
+public class SplitURL extends AbstractSimpleStep {
   private final String column;
 
   public SplitURL(int lineno, String directive, String column) {
@@ -94,5 +98,19 @@ public class SplitURL extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    Set<String> inputSet = ImmutableSet.of(column);
+    return ImmutableMap.<String, Set<String>>builder()
+      .put(column + "_protocol", inputSet)
+      .put(column + "_authority", inputSet)
+      .put(column + "_host", inputSet)
+      .put(column + "_port", inputSet)
+      .put(column + "_path", inputSet)
+      .put(column + "_filename", inputSet)
+      .put(column + "_query", inputSet)
+      .build();
   }
 }

@@ -16,14 +16,16 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Split on Stage for splitting the columns into multiple columns.
@@ -33,7 +35,7 @@ import java.util.List;
   usage = "split-to-columns <column> <regex>",
   description = "Split a column into one or more columns with a regex."
 )
-public class SplitToColumns extends AbstractStep {
+public class SplitToColumns extends AbstractUnboundedOutputStep {
   // Column on which to apply mask.
   private final String column;
 
@@ -79,6 +81,16 @@ public class SplitToColumns extends AbstractStep {
       }
     }
     return results;
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public boolean isOutput(String outputColumn) {
+    return outputColumn.matches(String.format("%s_\\d+", column));
   }
 }
 

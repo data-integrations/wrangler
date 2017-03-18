@@ -17,7 +17,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDestinationSourceStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -46,14 +46,14 @@ import java.util.Set;
   usage = "json-path <source> <destination> <json path>",
   description = "Parses JSON elements using JSON paths."
 )
-public class JsPath extends AbstractStep {
+public class JsPath extends AbstractDestinationSourceStep {
   private String src;
   private String dest;
   private String path;
   private JsonProvider provider;
 
   public JsPath(int lineno, String detail, String src, String dest, String path) {
-    super(lineno, detail);
+    super(lineno, detail, dest, src);
     this.src = src;
     this.dest = dest;
     this.path = path;
@@ -130,7 +130,7 @@ public class JsPath extends AbstractStep {
 
       if (object instanceof Map) {
         JSONObject objects = new JSONObject();
-        for (Map.Entry<String, String> entry : ((Map<String, String>)object).entrySet()) {
+        for (Map.Entry<String, String> entry : ((Map<String, String>) object).entrySet()) {
           objects.put(entry.getKey(), entry.getValue());
         }
         object = objects;
