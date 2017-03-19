@@ -1,12 +1,10 @@
 # Wrangler
-[![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
+[![Join CDAP Users](https://secure-brook-71827.herokuapp.com/badge.svg)](https://secure-brook-71827.herokuapp.com/)[![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
 <a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/11434/badge.svg"/>
 </a>
-[![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Join CDAP Users](https://secure-brook-71827.herokuapp.com/badge.svg)](https://secure-brook-71827.herokuapp.com/)
+[![codecov](https://codecov.io/gh/hydrator/wrangler-transform/branch/develop/graph/badge.svg)](https://codecov.io/gh/hydrator/wrangler-transform) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Collection of libraries, pipeline plugin and CDAP service for performing data cleansing, transformation and filtering using a set of instructions. Instructions to manipulate data are either generated using an interative visual tool or could be manually entered.
 
