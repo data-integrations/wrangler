@@ -1,5 +1,5 @@
 # Wrangler
-[![Join CDAP Users](https://secure-brook-71827.herokuapp.com/badge.svg)](https://secure-brook-71827.herokuapp.com/) [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
+[![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
 <a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/11434/badge.svg"/>
