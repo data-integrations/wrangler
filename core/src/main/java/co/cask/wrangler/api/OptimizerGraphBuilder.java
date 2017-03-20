@@ -20,6 +20,7 @@ package co.cask.wrangler.api;
  * This interface builds optimization graphs by accepting the subtypes of {@code Step} and handling each one.
  */
 public interface OptimizerGraphBuilder<I, O, C> {
+  void buildGraph(Step<I, O, C> step);
   void buildGraph(SimpleStep<I, O, C> simpleStep);
   void buildGraph(DeletionStep<I, O, C> deletionStep);
   void buildGraph(KeepStep<I, O, C> keepStep);

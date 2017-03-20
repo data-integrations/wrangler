@@ -32,5 +32,10 @@ public abstract class AbstractStep implements Step<Record, Record, String> {
   public String toString() {
     return String.format("[Step %d] - <%s>", lineno, detail);
   }
+
+  @Override
+  public void acceptOptimizerGraphBuilder(OptimizerGraphBuilder<Record, Record, String> optimizerGraphBuilder) {
+    optimizerGraphBuilder.buildGraph(this);
+  }
 }
 

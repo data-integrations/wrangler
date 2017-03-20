@@ -29,6 +29,7 @@ import co.cask.wrangler.api.UnboundedOutputStep;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
@@ -49,9 +50,10 @@ public class UnreachableOptimizer implements Optimizer<Record, Record, String>,
 
   private MutableGraph<StepNode> graph = GraphBuilder.directed().build();
   private Deque<StepNode> unboundedNodes = new LinkedList<>();
-  private Set<Step<Record, Record, String>> keptSteps = new HashSet<>();
   private Map<String, StepNode> lastNode = new HashMap<>();
+  private Set<StepNode> genericNodes = new HashSet<>();
   private int stepNumber = 0;
+  private Set<Step<Record, Record, String>> keptSteps = new HashSet<>();
 
   private static class StepNode {
     public final Step<Record, Record, String> step;
@@ -92,6 +94,20 @@ public class UnreachableOptimizer implements Optimizer<Record, Record, String>,
     }
 
     graph.putEdge(newNode, oldNode);
+  }
+  @Override
+  public void buildGraph(Step<Record, Record, String> step) {
+    StepNode newNode = new StepNode(step, ++stepNumber);
+    graph.addNode(newNode);
+
+    for (StepNode node : lastNode.values()) {
+      graph.putEdge(newNode, node);
+    }
+    for (StepNode unboundedNode : unboundedNodes) {
+      graph.putEdge(newNode, unboundedNode);
+    }
+
+    genericNodes.add(newNode);
   }
 
   @Override
@@ -199,14 +215,14 @@ public class UnreachableOptimizer implements Optimizer<Record, Record, String>,
     }
 
     Set<Step<Record, Record, String>> usedSteps = keptSteps;
-    // build set of used steps from bounded nodes
-    for (StepNode unboundedNode : unboundedNodes) {
-      getUsefulSteps(unboundedNode);
-    }
+    Set<StepNode> keptNodes = ImmutableSet.<StepNode>builder()
+      .addAll(unboundedNodes)
+      .addAll(genericNodes)
+      .addAll(lastNode.values())
+      .build();
 
-    // build set of used steps from bounded nodes
-    for (StepNode headNode : lastNode.values()) {
-      getUsefulSteps(headNode);
+    for (StepNode node : keptNodes) {
+      getUsefulSteps(node);
     }
 
     // filter out unused steps

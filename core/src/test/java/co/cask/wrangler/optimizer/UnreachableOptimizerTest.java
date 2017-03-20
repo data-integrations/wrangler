@@ -16,8 +16,11 @@
 
 package co.cask.wrangler.optimizer;
 
+import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.optimizers.UnreachableOptimizer;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
@@ -48,6 +51,18 @@ import java.util.List;
  * Tests {@link UnreachableOptimizer}
  */
 public class UnreachableOptimizerTest {
+
+  private static class UserStep extends AbstractStep {
+    public UserStep(int lineno, String detail) {
+      super(lineno, detail);
+    }
+
+    @Override
+    public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+      return records;
+    }
+  }
+
 
   private void doTest(List<Step<Record, Record, String>> expectedOutput, List<Step<Record, Record, String>> input) {
     UnreachableOptimizer unreachableOptimizer = new UnreachableOptimizer();
@@ -139,5 +154,47 @@ public class UnreachableOptimizerTest {
       ImmutableList.of(uuidStep, makeFromXml, xmlToJson, rename, parseLog, dropColumns, columns);
 
     doTest(stepList, stepList);
+  }
+
+  @Test
+  public void testUserImplementedSteps() throws Exception {
+    Step<Record, Record, String> userStep1 = new UserStep(1, "userStep1");
+    Step<Record, Record, String> userStep2 = new UserStep(2, "userStep2");
+    Step<Record, Record, String> userStep3 = new UserStep(3, "userStep3");
+    Step<Record, Record, String> userStep4 = new UserStep(4, "userStep4");
+    Step<Record, Record, String> userStep5 = new UserStep(5, "userStep5");
+    Step<Record, Record, String> userStep6 = new UserStep(6, "userStep6");
+    Step<Record, Record, String> userStep7 = new UserStep(7, "userStep7");
+    Step<Record, Record, String> userStep8 = new UserStep(8, "userStep8");
+    Step<Record, Record, String> userStep9 = new UserStep(9, "userStep9");
+
+    List<Step<Record, Record, String>> stepList =
+      ImmutableList.of(userStep1, userStep2, userStep3, userStep4, userStep5,
+                       userStep6, userStep7, userStep8, userStep9);
+
+    doTest(stepList, stepList);
+  }
+
+  @Test
+  public void testUserAndPredefinedSteps() throws Exception {
+    Step<Record, Record, String> userStep1 = new UserStep(1, "userStep1");
+    Step<Record, Record, String> makeA = new GenerateUUID(2, "makeA", "A");
+    Step<Record, Record, String> makeB = new GenerateUUID(3, "makeB", "B");
+    Step<Record, Record, String> userStep2 = new UserStep(4, "userStep2");
+    Step<Record, Record, String> makeC = new GenerateUUID(5, "makeC", "C");
+    Step<Record, Record, String> mergeABtoA = new Merge(6, "mergeABtoA", "A", "B", "A", " ");
+    Step<Record, Record, String> cleanseColumns = new CleanseColumnNames(7, "cleanseColumns");
+    Step<Record, Record, String> mergeBCtoA = new Merge(8, "mergeBCtoA", "B", "C", "A", " ");
+    Step<Record, Record, String> encodeC = new Encode(9, "encodeC", Encode.Type.BASE64, "C");
+    Step<Record, Record, String> decodeC = new Decode(10, "decodeC", Decode.Type.BASE64, "C");
+
+    List<Step<Record, Record, String>> input =
+      ImmutableList.of(userStep1, makeA, makeB, userStep2, makeC, mergeABtoA, cleanseColumns, mergeBCtoA, encodeC,
+                       decodeC);
+
+    List<Step<Record, Record, String>> expected =
+      ImmutableList.of(userStep1, makeA, makeB, userStep2, makeC, cleanseColumns, mergeBCtoA, encodeC, decodeC);
+
+    doTest(expected, input);
   }
 }
