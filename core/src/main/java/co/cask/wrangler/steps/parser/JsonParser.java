@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Usage(
   directive = "parse-as-json",
-  usage = "parse-as-json <column> <depth>",
+  usage = "parse-as-json <column> [depth]",
   description = "Parses a column as JSON."
 )
 public class JsonParser extends AbstractStep {
