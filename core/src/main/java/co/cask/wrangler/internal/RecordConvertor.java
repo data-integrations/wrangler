@@ -429,11 +429,9 @@ public final class RecordConvertor implements Serializable {
     @Override
     protected Schema generateRecord(TypeToken<?> typeToken, Set<String> set,
                                     boolean b) throws UnsupportedTypeException {
-      if (typeToken.getType() instanceof JSONObject) {
-
-      }
-      // we don't actually leverage this method, so no need to implement it
-      throw new UnsupportedOperationException();
+      // we don't actually leverage this method for types we support, so no need to implement it
+      throw new UnsupportedTypeException(String.format("Generating record of type %s is not supported.",
+                                                       typeToken));
     }
   }
 }
