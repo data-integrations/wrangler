@@ -136,9 +136,9 @@ public final class RecordConvertor implements Serializable {
           Schema arraySchema = null;
           try {
             arraySchema = generateJSONArraySchema(array);
-          } catch (UnsupportedTypeException e) {
+          } catch (UnsupportedOperationException | UnsupportedTypeException e) {
             throw new RecordConvertorException(
-              String.format("Unable to generate schema for field '%s', type JSON Array", name)
+              String.format("Unable to generate schema for field '%s'. Complex JSON objects not supported yet", name)
             );
           }
           fields.add(
@@ -375,7 +375,7 @@ public final class RecordConvertor implements Serializable {
   }
 
   private static Schema generateJSONArraySchema(JSONArray array)
-    throws JSONException, UnsupportedTypeException {
+    throws JSONException, UnsupportedTypeException, UnsupportedOperationException, RecordConvertorException {
     Object object = array.get(0);
 
     // If it's not JSONObject, it's simple type.
@@ -405,7 +405,8 @@ public final class RecordConvertor implements Serializable {
     }
   }
 
-  private static Map<String, Object> getJSONArraySchema(JSONArray array) throws JSONException {
+  private static Map<String, Object> getJSONArraySchema(JSONArray array)
+    throws JSONException, RecordConvertorException {
     Map<String, Object> types = new HashMap<>();
     for (int i = 0; i < array.length(); ++i) {
       JSONObject object = (JSONObject) array.get(i);
@@ -414,11 +415,18 @@ public final class RecordConvertor implements Serializable {
     return types;
   }
 
-  private static void getJSONObjectSchema(JSONObject object, Map<String, Object> types) throws JSONException {
+  private static void getJSONObjectSchema(JSONObject object, Map<String, Object> types)
+    throws JSONException, RecordConvertorException {
     Iterator<String> it = object.keys();
     while(it.hasNext()) {
       String name = it.next();
       Object value = object.get(name);
+      if (value instanceof JSONArray || value instanceof JSONObject) {
+        throw new RecordConvertorException(
+          String.format("Current version does not support complex nested types of JSON. Please flatten the JSON " +
+                          "using PARSE-AS-JSON directive.")
+        );
+      }
       if (!JSONObject.NULL.equals(value)) {
         types.put(name, value);
       }

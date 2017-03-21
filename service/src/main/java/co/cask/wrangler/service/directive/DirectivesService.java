@@ -485,6 +485,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       } catch (RecordConvertorException e) {
         error(responder, "There was a problem in generating schema for the record. " + e.getMessage());
         return;
+      } catch (UnsupportedOperationException e) {
+        error(responder, "Current version does not support complex nested types of JSON schema. " +
+          "Please flatten the JSON using PARSE-AS-JSON directive.");
+        return;
       }
     } catch (DataSetException e) {
       error(responder, e.getMessage());
