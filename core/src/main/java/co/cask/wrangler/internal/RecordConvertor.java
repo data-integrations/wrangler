@@ -423,8 +423,8 @@ public final class RecordConvertor implements Serializable {
       Object value = object.get(name);
       if (value instanceof JSONArray || value instanceof JSONObject) {
         throw new RecordConvertorException(
-          String.format("Current version does not support complex nested types of JSON. Please flatten JSON field '%s'" +
-                          "using PARSE-AS-JSON directive.", fname)
+          String.format("Current version does not support complex nested types of JSON. " +
+                          "Please flatten JSON field '%s' using PARSE-AS-JSON directive.", fname)
         );
       }
       if (!JSONObject.NULL.equals(value)) {
