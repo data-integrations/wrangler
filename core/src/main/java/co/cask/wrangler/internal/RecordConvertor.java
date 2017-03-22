@@ -136,7 +136,7 @@ public final class RecordConvertor implements Serializable {
           Schema arraySchema = null;
           try {
             arraySchema = generateJSONArraySchema(name, array);
-          } catch (UnsupportedOperationException | UnsupportedTypeException e) {
+          } catch (UnsupportedTypeException e) {
             throw new RecordConvertorException(
               String.format("Unable to generate schema for field '%s'. Complex JSON objects not supported yet", name)
             );
@@ -375,7 +375,7 @@ public final class RecordConvertor implements Serializable {
   }
 
   private static Schema generateJSONArraySchema(String name, JSONArray array)
-    throws JSONException, UnsupportedTypeException, UnsupportedOperationException, RecordConvertorException {
+    throws JSONException, UnsupportedTypeException, RecordConvertorException {
     Object object = array.get(0);
 
     // If it's not JSONObject, it's simple type.
