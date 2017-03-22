@@ -24,6 +24,7 @@
   <name>wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
+  <url>http://github.com/hydrator/wrangler</url>
 
   <modules>
     <module>transform</module>
@@ -293,6 +294,18 @@
                 </goals>
               </execution>
             </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.2</version>
+            <extensions>true</extensions>
+            <configuration>
+              <nexusUrl>https://oss.sonatype.org</nexusUrl>
+              <serverId>sonatype.release</serverId>
+              <stagingProfileId>655dc88dc770c3</stagingProfileId>
+            </configuration>
           </plugin>
         </plugins>
       </build>

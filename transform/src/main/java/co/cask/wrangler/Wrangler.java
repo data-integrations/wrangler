@@ -80,14 +80,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   private class WranglerPipelineContext implements PipelineContext {
+    private final TransformContext context;
     private StageMetrics metrics;
     private String name;
     private Map<String, String> properties;
 
-    public WranglerPipelineContext(StageMetrics metrics, String name, Map<String, String> properties) {
-      this.metrics = metrics;
-      this.name = name;
-      this.properties = properties;
+    WranglerPipelineContext(TransformContext context) {
+      this.metrics = context.getMetrics();
+      this.name = context.getStageName();
+      this.properties = context.getPluginProperties().getProperties();
+      this.context = context;
     }
 
     /**
@@ -116,7 +118,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     @Override
     public <T> Lookup<T> provide(String s, Map<String, String> map) {
-      return provide(s, map);
+      return context.provide(s, map);
     }
   }
 
@@ -193,9 +195,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Parse DSL and initialize the wrangle pipeline.
     Directives directives = new TextDirectives(config.directives);
     pipeline = new PipelineExecutor();
-    pipeline.configure(directives,
-                       new WranglerPipelineContext(context.getMetrics(), context.getStageName(),
-                                                   context.getPluginProperties().getProperties()));
+    pipeline.configure(directives, new WranglerPipelineContext(context));
 
     // Based on the configuration create output schema.
     try {
