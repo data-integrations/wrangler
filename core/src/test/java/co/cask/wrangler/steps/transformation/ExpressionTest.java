@@ -214,5 +214,22 @@ public class ExpressionTest {
     Assert.assertEquals(1.0, records.get(0).getValue("min"));
   }
 
+  @Test
+  public void testMethodCalls() throws Exception {
+    String[] directives = new String[] {
+      "set column first first.trim()",
+      "filter-row-if-true first.isEmpty()"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("number", Bytes.toBytes(99))
+        .add("first", "  ")
+        .add("last", "joltie")
+    );
+
+    records = PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 0);
+  }
+
 
 }
