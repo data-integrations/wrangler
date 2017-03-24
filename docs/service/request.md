@@ -75,7 +75,7 @@ Following is one simple example
 
 ```
   {
-    "version" : "1.0"
+    "version" : "1.0",
     "workspace" : {
       "name" : "body",
       "results" : 100
