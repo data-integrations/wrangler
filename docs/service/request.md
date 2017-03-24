@@ -46,6 +46,7 @@ applied in and also the 'results' in terms of number of records that the request
 results are computed.
 
 | Field | Mandatory | Description |
+| :---- | :------: | :----- |
 | 'name' | Y | Specifies the name of the workspace the Data prep should operate on |
 | 'results' | Y | Specifies the number of the records that should be return in response upon execution of directives |
 
@@ -54,6 +55,7 @@ This section of the specification provides the ability to list all the directive
  applied on the data in the workspace, combined with option to save the directives as recipes by a name.
 
 | Field | Mandatory | Description |
+| :---- | :------: | :----- |
 | 'directives' | Y | List of directives to be applied on the data |
 | 'save' | N | Specifies whether the directives have to be saved. If this option is specified, then 'name' should be specified |
 | 'name' | N | Specifies the name of the recipe. This option is valid only when 'save' is set to true |
@@ -62,6 +64,7 @@ This section of the specification provides the ability to list all the directive
 This section of the specification provides information about how the input data needs to be sampled.
 
 | Field | Mandatory | Description |
+| :---- | :------: | :----- |
 | 'method' | Y | Specifies the type of sampling to be applied while selecting input data. Currently support FIRST only. |
 | 'seed'   | N | This specifies the random seed to be used when sampling data. |
 | 'number' | Y | Specifies the number of input records to be read from the source to apply directives |
