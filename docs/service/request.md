@@ -85,7 +85,7 @@ Following is one simple example
         "directives" : [
           "parse-as-csv body ,",
           "drop body",
-          "set-columns a,b,c,d",
+          "set-columns a,b,c,d"
         ],
         "save" : true,
         "name" : "my-recipe"
