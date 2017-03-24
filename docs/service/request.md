@@ -76,25 +76,23 @@ Following is one simple example
 ```
   {
     "version" : "1.0",
-    "request" : {
-      "workspace" : {
-        "name" : "body",
-        "results" : 100
-      },
-      "recipe" : {
-        "directives" : [
-          "parse-as-csv body ,",
-          "drop body",
-          "set-columns a,b,c,d"
-        ],
-        "save" : true,
-        "name" : "my-recipe"
-      },
-      "sampling" : {
-        "method" : "FIRST",
-        "seed" : 1,
-        "limit" : 1000
-      }
-    }  
+    "workspace" : {
+      "name" : "body",
+      "results" : 100
+    },
+    "recipe" : {
+      "directives" : [
+        "parse-as-csv body ,",
+        "drop body",
+        "set-columns a,b,c,d"
+      ],
+      "save" : true,
+      "name" : "my-recipe"
+    },
+    "sampling" : {
+      "method" : "FIRST",
+      "seed" : 1,
+      "limit" : 1000
+    }
   }
 ```
