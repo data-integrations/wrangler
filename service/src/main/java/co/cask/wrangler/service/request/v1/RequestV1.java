@@ -22,4 +22,19 @@ public final class RequestV1 implements Request {
   public int getVersion() {
     return version;
   }
+
+  @Override
+  public Workspace getWorkspace() {
+    return workspace;
+  }
+
+  @Override
+  public Sampling getSampling() {
+    return sampling;
+  }
+
+  @Override
+  public Recipe getRecipe() {
+    return recipe;
+  }
 }

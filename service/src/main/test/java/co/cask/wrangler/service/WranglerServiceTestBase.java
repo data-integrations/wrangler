@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base class which exposes utility functions for interacting with {@link WranglerService}.
+ * Base class which exposes utility functions for interacting with {@link DirectivesService}.
  */
 public class WranglerServiceTestBase extends TestBase {
 

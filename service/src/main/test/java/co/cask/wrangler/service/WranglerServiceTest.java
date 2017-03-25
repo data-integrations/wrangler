@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests for {@link WranglerService}.
+ * Tests for {@link DirectivesService}.
  */
 public class WranglerServiceTest extends WranglerServiceTestBase {
   private static final Gson GSON =

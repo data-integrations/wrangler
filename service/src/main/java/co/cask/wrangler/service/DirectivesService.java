@@ -80,8 +80,8 @@ import javax.ws.rs.QueryParam;
 /**
  * Service for managing workspaces and also application of directives on to the workspace.
  */
-public class WranglerService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(WranglerService.class);
+public class DirectivesService extends AbstractHttpServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(DirectivesService.class);
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   public static final String WORKSPACE_DATASET = "workspace";
