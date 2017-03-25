@@ -12,7 +12,7 @@
   <artifactId>wrangler-service</artifactId>
 
   <properties>
-    <app.main.class>co.cask.wrangler.WranglerApp</app.main.class>
+    <app.main.class>co.cask.wrangler.DataPrep</app.main.class>
   </properties>
 
   <dependencies>

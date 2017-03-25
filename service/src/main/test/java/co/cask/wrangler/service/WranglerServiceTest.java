@@ -23,7 +23,7 @@ import co.cask.cdap.test.ServiceManager;
 import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
-import co.cask.wrangler.WranglerApp;
+import co.cask.wrangler.DataPrep;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -46,7 +46,7 @@ public class WranglerServiceTest extends WranglerServiceTestBase {
 
   @Test
   public void test() throws Exception {
-    ApplicationManager wrangerApp = deployApplication(WranglerApp.class);
+    ApplicationManager wrangerApp = deployApplication(DataPrep.class);
     ServiceManager serviceManager = wrangerApp.getServiceManager("service").start();
     // should throw exception, instead of returning null
     URL baseURL = serviceManager.getServiceURL();

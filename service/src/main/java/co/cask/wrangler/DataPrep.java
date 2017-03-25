@@ -8,16 +8,16 @@ import co.cask.wrangler.service.DirectivesService;
 /**
  * Wrangler Application.
  */
-public class WranglerApp extends AbstractApplication {
+public class DataPrep extends AbstractApplication {
   /**
    * Override this method to declare and configure the application.
    */
   @Override
   public void configure() {
     setName("wrangler");
-    setDescription("Wrangler Backend Service");
+    setDescription("DataPrep Backend Service");
     createDataset(DirectivesService.WORKSPACE_DATASET, Table.class,
-                  DatasetProperties.builder().setDescription("Wrangler Dataset").build());
+                  DatasetProperties.builder().setDescription("DataPrep Dataset").build());
     addService("service", new DirectivesService());
   }
 }
