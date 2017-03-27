@@ -28,6 +28,9 @@ import com.google.gson.JsonParseException;
 
 import java.lang.reflect.Type;
 
+/**
+ * Serializes the HTTP Request received by the service.
+ */
 public class RequestDeserializer implements JsonDeserializer<Request> {
   @Override
   public Request deserialize(JsonElement json, Type type, JsonDeserializationContext context)
@@ -43,6 +46,7 @@ public class RequestDeserializer implements JsonDeserializer<Request> {
     }
 
     int version = object.get("version").getAsInt();
+
     if (version == 1) {
       Workspace workspace = context.deserialize(object.get("workspace"), Workspace.class);
       Recipe recipe = context.deserialize(object.get("recipe"), Recipe.class);

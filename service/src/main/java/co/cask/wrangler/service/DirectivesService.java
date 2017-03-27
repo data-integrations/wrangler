@@ -24,6 +24,7 @@ import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.table.Put;
 import co.cask.cdap.api.dataset.table.Row;
+import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
@@ -93,9 +94,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   /**
    * Creates a workspace.
    *
-   * @param request
-   * @param responder
-   * @param ws
+   * Following is the response
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : Successfully created workspace 'test'.
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace to be created.
    */
   @PUT
   @Path("workspaces/{workspace}")
@@ -112,11 +120,61 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * Lists all workspaces.
+   *
+   * Following is a response returned
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : "Success",
+   *   "items" : 4,
+   *   "value" : [
+   *      "body",
+   *      "ws",
+   *      "test",
+   *      "message"
+   *   ]
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   */
+  @GET
+  @Path("workspaces")
+  public void list(HttpServiceRequest request, HttpServiceResponder responder) {
+    JSONObject response = new JSONObject();
+    Row row;
+    try {
+      try (Scanner scanner = workspace.scan(null, null)) {
+        JSONArray values = new JSONArray();
+        while((row = scanner.next()) != null) {
+          byte[] key = row.getRow();
+          values.put(new String(key));
+        }
+        response.put("status", HttpURLConnection.HTTP_OK);
+        response.put("message", "Success");
+        response.put("items", values.length());
+        response.put("value", values);
+        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      }
+    } catch (DataSetException e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
    * Deletes the workspace.
    *
-   * @param request
-   * @param responder
-   * @param ws
+   * Following is the response
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : Successfully deleted workspace 'test'.
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace to deleted.
    */
   @DELETE
   @Path("workspaces/{workspace}")
@@ -130,6 +188,73 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Get information about the workspace.
+   *
+   * Following is the response
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : "Success",
+   *   "value" : [
+   *     {
+   *       "workspace" : "data",
+   *       "created" : 1430202202,
+   *       "recipe" : [
+   *          "parse-as-csv data ,",
+   *          "drop data"
+   *       ]
+   *     }
+   *   ]
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace to deleted.
+   */
+  @GET
+  @Path("workspaces/{workspace}")
+  public void get(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("workspace") String ws) {
+
+    JSONObject response = new JSONObject();
+    JSONArray values = new JSONArray();
+    JSONObject object = new JSONObject();
+
+    try {
+      Row row = workspace.get(Bytes.toBytes(ws));
+      byte[] recipe = row.get("recipe");
+      List<String> directives = new ArrayList<>();
+      if (recipe != null) {
+         directives = GSON.fromJson(new String(recipe),
+                                                new TypeToken<List<String>>() {}.getType());
+      }
+      JSONArray d = new JSONArray();
+      for (String directive : directives) {
+        d.put(directive);
+      }
+      byte[] created = row.get("created");
+      object.put("workspace", ws);
+      object.put("created", Bytes.toLong(created));
+      object.put("recipe", d);
+      values.put(object);
+      response.put("value", values);
+      response.put("status", HttpURLConnection.HTTP_OK);
+      response.put("message", "Success");
+      response.put("items", 1);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (DataSetException e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
+   * Upload data to the workspace.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Upload data to the workspace.
+   */
   @POST
   @Path("workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
@@ -169,6 +294,13 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Download data from the workspace.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Download data from the workspace.
+   */
   @GET
   @Path("workspaces/{workspace}/download")
   public void download(HttpServiceRequest request, HttpServiceResponder responder,
@@ -199,9 +331,18 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Summarizes the workspace by running directives.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace data to be summarized.
+   * @param directives List of directives.
+   * @param limit number of records to limit.
+   */
   @GET
   @Path("workspaces/{workspace}/summary")
-  public void validate(HttpServiceRequest request, HttpServiceResponder responder,
+  public void summary(HttpServiceRequest request, HttpServiceResponder responder,
                        @PathParam("workspace") String ws,
                        @QueryParam("directive") List<String> directives,
                        @QueryParam("limit") int limit) {
@@ -454,6 +595,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         }
         values.put(r);
       }
+
+      // Autosaves the recipes being executed.
+      String recipe = GSON.toJson(directives);
+      Put putRecipe
+        = new Put (Bytes.toBytes(ws), Bytes.toBytes("recipe"), Bytes.toBytes(recipe));
+      workspace.put(putRecipe);
 
       JSONObject response = new JSONObject();
       response.put("status", HttpURLConnection.HTTP_OK);
