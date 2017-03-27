@@ -477,7 +477,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
   private List<Record> getWorkspace(String workspaceName, HttpServiceResponder responder) {
     Row row = workspace.get(Bytes.toBytes(workspaceName));
 
-    String data = row.getString("data");
+    String data = Bytes.toString(row.get("data"));
     if (data == null || data.isEmpty()) {
       error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
       return null;
