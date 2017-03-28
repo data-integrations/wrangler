@@ -14,33 +14,33 @@
  * the License.
  */
 
-package co.cask.wrangler.service.request.v1;
+package co.cask.wrangler.service.directive;
+
+import java.util.List;
 
 /**
  * Created by nitin on 3/24/17.
  */
-public final class Sampling {
-  private String method;
-  private Integer seed;
-  private Integer limit;
+class Recipe {
+  private List<String> directives;
+  private Boolean save;
+  private String name;
 
-  public String getMethod() {
-    return method;
+  public Recipe(List<String> directives, Boolean save, String name) {
+    this.directives = directives;
+    this.save = save;
+    this.name = name;
   }
 
-  public Integer getSeed() {
-    if (seed != null) {
-      return seed;
-    } else {
-      return 1;
-    }
+  public List<String> getDirectives() {
+    return directives;
   }
 
-  public Integer getLimit() {
-    if (limit != null) {
-      return limit;
-    } else {
-      return 100;
-    }
+  public Boolean getSave() {
+    return save;
+  }
+
+  public String getName() {
+    return name;
   }
 }

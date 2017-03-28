@@ -14,14 +14,12 @@
  * the License.
  */
 
-package co.cask.wrangler.service.request.v1;
-
-import co.cask.wrangler.service.request.Request;
+package co.cask.wrangler.service.directive;
 
 /**
  * Created by nitin on 3/24/17.
  */
-public final class RequestV1 implements Request {
+final class RequestV1 implements Request {
   private int version;
   private Workspace workspace;
   private Recipe recipe;

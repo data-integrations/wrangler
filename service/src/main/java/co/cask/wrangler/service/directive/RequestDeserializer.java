@@ -14,12 +14,8 @@
  * the License.
  */
 
-package co.cask.wrangler.service.request;
+package co.cask.wrangler.service.directive;
 
-import co.cask.wrangler.service.request.v1.Recipe;
-import co.cask.wrangler.service.request.v1.RequestV1;
-import co.cask.wrangler.service.request.v1.Sampling;
-import co.cask.wrangler.service.request.v1.Workspace;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -31,7 +27,7 @@ import java.lang.reflect.Type;
 /**
  * Serializes the HTTP Request received by the service.
  */
-public class RequestDeserializer implements JsonDeserializer<Request> {
+class RequestDeserializer implements JsonDeserializer<Request> {
   @Override
   public Request deserialize(JsonElement json, Type type, JsonDeserializationContext context)
     throws JsonParseException {

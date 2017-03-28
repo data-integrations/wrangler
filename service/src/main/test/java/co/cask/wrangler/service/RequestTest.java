@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.service;
 
-import co.cask.wrangler.service.request.Request;
-import co.cask.wrangler.service.request.RequestDeserializer;
+import co.cask.wrangler.service.directive.Request;
+import co.cask.wrangler.service.directive.RequestDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;

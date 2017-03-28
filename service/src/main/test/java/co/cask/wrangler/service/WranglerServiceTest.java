@@ -24,6 +24,7 @@ import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
 import co.cask.wrangler.DataPrep;
+import co.cask.wrangler.service.directive.DirectivesService;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

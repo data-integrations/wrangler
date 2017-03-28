@@ -20,6 +20,7 @@ import co.cask.cdap.test.TestBase;
 import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
+import co.cask.wrangler.service.directive.DirectivesService;
 import com.google.common.base.Joiner;
 import com.google.gson.Gson;
 import org.junit.Assert;

@@ -14,18 +14,33 @@
  * the License.
  */
 
-package co.cask.wrangler.service.request;
-
-import co.cask.wrangler.service.request.v1.Recipe;
-import co.cask.wrangler.service.request.v1.Sampling;
-import co.cask.wrangler.service.request.v1.Workspace;
+package co.cask.wrangler.service.directive;
 
 /**
  * Created by nitin on 3/24/17.
  */
-public interface Request {
-  int getVersion();
-  Workspace getWorkspace();
-  Sampling getSampling();
-  Recipe getRecipe();
+final class Sampling {
+  private String method;
+  private Integer seed;
+  private Integer limit;
+
+  public String getMethod() {
+    return method;
+  }
+
+  public Integer getSeed() {
+    if (seed != null) {
+      return seed;
+    } else {
+      return 1;
+    }
+  }
+
+  public Integer getLimit() {
+    if (limit != null) {
+      return limit;
+    } else {
+      return 100;
+    }
+  }
 }

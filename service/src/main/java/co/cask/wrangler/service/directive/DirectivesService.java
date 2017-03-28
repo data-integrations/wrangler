@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.service.directive;
 
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.common.Bytes;
@@ -47,8 +47,6 @@ import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
 import co.cask.wrangler.internal.statistics.BasicStatistics;
 import co.cask.wrangler.internal.validator.ColumnNameValidator;
-import co.cask.wrangler.service.request.Request;
-import co.cask.wrangler.service.request.RequestDeserializer;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -129,8 +127,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * {
    *   "status" : 200,
    *   "message" : "Success",
-   *   "items" : 4,
-   *   "value" : [
+   *   "count" : 4,
+   *   "values" : [
    *      "body",
    *      "ws",
    *      "test",
@@ -155,8 +153,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         }
         response.put("status", HttpURLConnection.HTTP_OK);
         response.put("message", "Success");
-        response.put("items", values.length());
-        response.put("value", values);
+        response.put("count", values.length());
+        response.put("values", values);
         sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
       }
     } catch (DataSetException e) {
@@ -198,7 +196,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * {
    *   "status" : 200,
    *   "message" : "Success",
-   *   "value" : [
+   *   "values" : [
    *     {
    *       "workspace" : "data",
    *       "created" : 1430202202,
@@ -240,10 +238,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       object.put("created", Bytes.toLong(created));
       object.put("recipe", d);
       values.put(object);
-      response.put("value", values);
+      response.put("values", values);
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", 1);
+      response.put("count", 1);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -325,8 +323,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       JSONObject response = new JSONObject();
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", records.size());
-      response.put("value", values);
+      response.put("count", records.size());
+      response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -448,8 +446,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", 2);
-      response.put("value", result);
+      response.put("count", 2);
+      response.put("values", result);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -532,8 +530,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     JSONObject response = new JSONObject();
     response.put("status", HttpURLConnection.HTTP_OK);
     response.put("message", "Success");
-    response.put("items", values.length());
-    response.put("value", values);
+    response.put("count", values.length());
+    response.put("values", values);
     sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
@@ -544,7 +542,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * {
    *   "status" : 200,
    *   "message" : "Success",
-   *   "items" : 2,
+   *   "count" : 2,
    *   "header" : [ "a", "b", "c", "d" ],
    *   "value" : [
    *     { record 1},
@@ -622,9 +620,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       JSONObject response = new JSONObject();
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", newRecords.size());
+      response.put("count", newRecords.size());
       response.put("header", headers);
-      response.put("value", values);
+      response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (JsonParseException e) {
       error(responder, "Issue parsing request. " + e.getMessage());
@@ -642,7 +640,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * {
    *   "status": "OK",
    *   "message": "Success",
-   *   "items" : 10,
+   *   "count" : 10,
    *   "values" : [
    *      {
    *        "directive" : "parse-as-csv",
@@ -663,7 +661,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       List<UsageRegistry.UsageDatum> usages = registry.getAll();
 
       JSONObject response = new JSONObject();
-      int items = 0;
+      int count = 0;
       JSONArray values = new JSONArray();
       for (UsageRegistry.UsageDatum entry : usages) {
         JSONObject usage = new JSONObject();
@@ -671,11 +669,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         usage.put("usage", entry.getUsage());
         usage.put("description", entry.getDescription());
         values.put(usage);
-        items++;
+        count++;
       }
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", items);
+      response.put("count", count);
       response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
@@ -714,11 +712,24 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param responder to respond to the service request.
    * @param message to be included as part of the error
    */
-  static final void error(HttpServiceResponder responder, String message) {
+  public static final void error(HttpServiceResponder responder, String message) {
     JSONObject error = new JSONObject();
     error.put("status", HttpURLConnection.HTTP_INTERNAL_ERROR);
     error.put("message", message);
     sendJson(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, error.toString(2));
+  }
+
+  /**
+   * Sends the error response back to client for not Found.
+   *
+   * @param responder to respond to the service request.
+   * @param message to be included as part of the error
+   */
+  public static final void notFound(HttpServiceResponder responder, String message) {
+    JSONObject error = new JSONObject();
+    error.put("status", HttpURLConnection.HTTP_NOT_FOUND);
+    error.put("message", message);
+    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString(2));
   }
 
   /**
@@ -728,7 +739,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param status code to be returned to client.
    * @param body to be sent back to client.
    */
-  static final void sendJson(HttpServiceResponder responder, int status, String body) {
+  public static final void sendJson(HttpServiceResponder responder, int status, String body) {
     responder.send(status, ByteBuffer.wrap(body.getBytes(StandardCharsets.UTF_8)),
                    "application/json", new HashMap<String, String>());
   }
@@ -739,7 +750,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param responder to respond to the service request.
    * @param message to be included as part of the error
    */
-  static final void success(HttpServiceResponder responder, String message) {
+  public static final void success(HttpServiceResponder responder, String message) {
     JSONObject error = new JSONObject();
     error.put("status", HttpURLConnection.HTTP_OK);
     error.put("message", message);
