@@ -29,10 +29,18 @@ public final class Sampling {
   }
 
   public Integer getSeed() {
-    return seed;
+    if (seed != null) {
+      return seed;
+    } else {
+      return 1;
+    }
   }
 
   public Integer getLimit() {
-    return limit;
+    if (limit != null) {
+      return limit;
+    } else {
+      return 100;
+    }
   }
 }
