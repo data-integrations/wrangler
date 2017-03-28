@@ -4,7 +4,7 @@ WRITE-AS-JSON-MAP directive converts the record into JSON Map.
 
 ## Syntax
 ```
-  write-as-json <column>
+  write-as-json-map <column>
 ```
 
 ```column``` will contain the JSON of the fields in the record.
