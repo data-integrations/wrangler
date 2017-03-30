@@ -70,7 +70,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
    * @param name (Query Argument) display name of the recipe.
    */
   @PUT
-  @Path("{recipeId}")
+  @Path("recipes/{recipeId}")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("recipeId") String recipeId,
                      @QueryParam("description") String description,
@@ -108,7 +108,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
    * @param responder HTTP response handler.
    */
   @GET
-  @Path("list")
+  @Path("recipes/list")
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
     JSONObject response = new JSONObject();
     Row row;
@@ -160,7 +160,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
    * @param recipeId id of the recipe requested.
    */
   @GET
-  @Path("{recipeId}")
+  @Path("recipes/{recipeId}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("recipeId") String recipeId) {
     JSONObject response = new JSONObject();
@@ -205,7 +205,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
    * @param recipeId id of the recipe requested.
    */
   @POST
-  @Path("{recipeId}")
+  @Path("recipes/{recipeId}")
   public void post(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("recipeId") String recipeId) {
 
@@ -243,7 +243,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
    * @param recipeId to be deleted from the recipe store.
    */
   @DELETE
-  @Path("{recipeId}")
+  @Path("recipes/{recipeId}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("recipeId") String recipeId) {
     try {
