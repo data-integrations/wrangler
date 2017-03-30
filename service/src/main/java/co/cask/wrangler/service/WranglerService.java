@@ -150,13 +150,17 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
     List<Record> records = new ArrayList<>();
     int i = 0;
-    if(delimiter == null || delimiter.isEmpty()) {
-      delimiter = "\\u001A";
-    }
-    delimiter = StringEscapeUtils.unescapeJava(delimiter);
-    for (String line : body.split(delimiter)) {
-      records.add(new Record(ws, line));
-      ++i;
+    if(delimiter == null ) {
+      records.add(new Record(ws, content));
+    } else {
+      if (delimiter.isEmpty()) {
+        delimiter = "\\u001A";
+      }
+      delimiter = StringEscapeUtils.unescapeJava(delimiter);
+      for (String line : body.split(delimiter)) {
+        records.add(new Record(ws, line));
+        ++i;
+      }
     }
 
     String d = GSON.toJson(records);
