@@ -587,7 +587,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       JSONArray headers = new JSONArray();
       Set<String> headerList = new HashSet<>();
       boolean onlyFirstRow = true;
+      int count = 0;
       for (Record record : newRecords) {
+        // Limit the number of results to be returned.
+        if (count > reqBody.getWorkspace().getResults()) {
+          break;
+        }
         List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
@@ -612,6 +617,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           }
         }
         values.put(r);
+        count++;
       }
 
       // Autosaves the recipes being executed.
@@ -620,7 +626,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       JSONObject response = new JSONObject();
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("count", newRecords.size());
+      response.put("count", count);
       response.put("header", headers);
       response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
