@@ -800,7 +800,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    */
   private void autosave(String ws, Request request) throws DataSetException {
     String recipe = GSON.toJson(request);
-    LOG.info("Recipe : {}", recipe);
     Put putRecipe
       = new Put (Bytes.toBytes(ws), Bytes.toBytes("request"), Bytes.toBytes(recipe));
     workspace.put(putRecipe);

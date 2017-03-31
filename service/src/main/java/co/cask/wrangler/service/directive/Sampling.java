@@ -17,17 +17,28 @@
 package co.cask.wrangler.service.directive;
 
 /**
- * Created by nitin on 3/24/17.
+ * Defines the sampling specification of the {@link Request}
  */
 final class Sampling {
+  // Sampling method.
   private String method;
+
+  // Seeding capability for sampling.
   private Integer seed;
+
+  // Number of records to be read.
   private Integer limit;
 
+  /**
+   * @return Method for sampling data.
+   */
   public String getMethod() {
     return method;
   }
 
+  /**
+   * @return Sampling seed.
+   */
   public Integer getSeed() {
     if (seed != null) {
       return seed;
@@ -36,6 +47,9 @@ final class Sampling {
     }
   }
 
+  /**
+   * @return Number of records to be read before applying directives.
+   */
   public Integer getLimit() {
     if (limit != null) {
       return limit;
