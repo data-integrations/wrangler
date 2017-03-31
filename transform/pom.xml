@@ -24,7 +24,7 @@
     <dependency>
       <groupId>co.cask.wrangler</groupId>
       <artifactId>wrangler-core</artifactId>
-      <version>1.3.0-SNAPSHOT</version>
+      <version>${wrangler.version}</version>
     </dependency>
   </dependencies>
 

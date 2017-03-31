@@ -27,5 +27,8 @@ public final class FileTypes {
   public final static String HBASE = "application/hbase";
   public final static String HIVE = "application/hive";
   public final static String CDAP = "application/cdap";
+  public final static String JSON = "application/json";
+  public final static String MARKDOWN = "application/md";
+  public final static String JAR = "application/jar";
   public final static String UNKNOWN = "UNKNOWN";
 }

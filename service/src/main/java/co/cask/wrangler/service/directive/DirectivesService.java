@@ -53,9 +53,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -219,31 +221,22 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
     JSONObject response = new JSONObject();
     JSONArray values = new JSONArray();
-    JSONObject object = new JSONObject();
 
     try {
       Row row = workspace.get(Bytes.toBytes(ws));
-      byte[] recipe = row.get("recipe");
-      List<String> directives = new ArrayList<>();
-      if (recipe != null) {
-         directives = GSON.fromJson(new String(recipe),
-                                                new TypeToken<List<String>>() {}.getType());
+      byte[] bytes = row.get("request");
+      if (bytes != null) {
+        values.put(new JSONObject(new JSONTokener(new String(bytes, StandardCharsets.UTF_8))));
+        response.put("count", 1);
+      } else {
+        response.put("count", 0);
       }
-      JSONArray d = new JSONArray();
-      for (String directive : directives) {
-        d.put(directive);
-      }
-      byte[] created = row.get("created");
-      object.put("workspace", ws);
-      object.put("created", Bytes.toLong(created));
-      object.put("recipe", d);
-      values.put(object);
       response.put("values", values);
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("count", 1);
+
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (DataSetException e) {
+    } catch (DataSetException | JSONException e) {
       error(responder, e.getMessage());
     }
   }
@@ -278,6 +271,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     if(delimiter == null || delimiter.isEmpty()) {
       delimiter = "\\u001A";
     }
+
     delimiter = StringEscapeUtils.unescapeJava(delimiter);
     for (String line : body.split(delimiter)) {
       records.add(new Record(ws, line));
@@ -590,7 +584,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       int count = 0;
       for (Record record : newRecords) {
         // Limit the number of results to be returned.
-        if (count > reqBody.getWorkspace().getResults()) {
+        if (count >= reqBody.getWorkspace().getResults()) {
           break;
         }
         List<KeyValue<String, Object>> fields = record.getFields();
@@ -621,7 +615,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       // Autosaves the recipes being executed.
-      autosave(ws, directives);
+      autosave(ws, reqBody);
 
       JSONObject response = new JSONObject();
       response.put("status", HttpURLConnection.HTTP_OK);
@@ -784,13 +778,14 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * Autosaves the directives into workspace.
    *
    * @param ws Workspace under which the directives need to be saved.
-   * @param directives List of directives to be saved.
+   * @param request Entire request.
    * @throws DataSetException throw if it fails to save.
    */
-  private void autosave(String ws, List<String> directives) throws DataSetException {
-    String recipe = GSON.toJson(directives);
+  private void autosave(String ws, Request request) throws DataSetException {
+    String recipe = GSON.toJson(request);
+    LOG.info("Recipe : {}", recipe);
     Put putRecipe
-      = new Put (Bytes.toBytes(ws), Bytes.toBytes("recipe"), Bytes.toBytes(recipe));
+      = new Put (Bytes.toBytes(ws), Bytes.toBytes("request"), Bytes.toBytes(recipe));
     workspace.put(putRecipe);
   }
 

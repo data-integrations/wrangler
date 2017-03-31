@@ -28,6 +28,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.twill.filesystem.Location;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -46,6 +48,8 @@ import static co.cask.wrangler.service.directive.DirectivesService.sendJson;
  * It provides capabilities for listing file(s) and directories. It also provides metadata.
  */
 public class FSBrowserService extends AbstractHttpServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(FSBrowserService.class);
+
   /**
    * Lists the content of the path specified using the {@Location}.
    *
@@ -100,10 +104,14 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
       if (lookahead >= 0 && path.exists()) {
         Multiset<String> types = HashMultiset.create();
         for (Location location : path.list()) {
-          types.add(guessLocationType(location, lookahead - 1));
+          String type = guessLocationType(location, lookahead - 1);
+          types.add(type);
         }
+        String topType = FileTypes.UNKNOWN;
         for (Multiset.Entry<String> top : types.entrySet()) {
-          return top.getElement();
+          if(topType.equalsIgnoreCase(FileTypes.UNKNOWN)) {
+            topType = top.getElement();
+          }
         }
       }
     }
@@ -131,6 +139,15 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
       case "csv":
       case "txt":
         return FileTypes.TEXT;
+
+      case "json":
+        return FileTypes.JSON;
+
+      case "md":
+        return FileTypes.MARKDOWN;
+
+      case "jar":
+        return FileTypes.JAR;
 
       default:
         ContentInfoUtil util = new ContentInfoUtil();
