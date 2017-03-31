@@ -1,11 +1,15 @@
 {
   "metadata": {
-    "spec-version": "1.0"
+    "spec-version": "1.3"
   },
   "configuration-groups": [
     {
       "label": "Wrangler",
       "properties": [
+        {
+          "widget-type" : "hidden",
+          "name" : "workspace"
+        },
         {
           "widget-type": "textbox",
           "label": "Name of the field ('*' to transform all fields)",
@@ -24,15 +28,15 @@
         },
         {
           "widget-type": "textarea",
-          "label": "Transformation Directives",
+          "label": "Directives",
           "name": "directives"
         },
         {
           "widget-type": "textbox",
-          "label" : "Max number of errored events before stopping pipeline",
+          "label" : "Error Threshold",
           "name": "threshold",
           "widget-attributes": {
-            "default": "5"
+            "default": "1"
           }
         }
       ]
@@ -51,7 +55,12 @@
           "float",
           "double",
           "bytes",
-          "string"
+          "string",
+          "array",
+          "enum",
+          "record",
+          "map",
+          "union"
         ],
         "schema-default-type": "string",
         "property-watch": "format"
