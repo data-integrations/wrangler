@@ -17,12 +17,19 @@
 package co.cask.wrangler.service.directive;
 
 /**
- * Created by nitin on 3/24/17.
+ * Specifies the V1 version of the {@link Request} object.
  */
 final class RequestV1 implements Request {
+  // Version of request.
   private int version;
+
+  // Workspace information associated with request.
   private Workspace workspace;
+
+  // Recipe information associated with request.
   private Recipe recipe;
+
+  // Sampling information associated with request.
   private Sampling sampling;
 
   public RequestV1(int version, Workspace workspace, Recipe recipe, Sampling sampling) {
@@ -32,21 +39,33 @@ final class RequestV1 implements Request {
     this.sampling = sampling;
   }
 
+  /**
+   * @return Version number of request specification.
+   */
   @Override
   public int getVersion() {
     return version;
   }
 
+  /**
+   * @return {@link Workspace} information associated with this request.
+   */
   @Override
   public Workspace getWorkspace() {
     return workspace;
   }
 
+  /**
+   * @return {@link Sampling} information associated with this request.
+   */
   @Override
   public Sampling getSampling() {
     return sampling;
   }
 
+  /**
+   * @return {@link Recipe} information associated with this request.
+   */
   @Override
   public Recipe getRecipe() {
     return recipe;
