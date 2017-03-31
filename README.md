@@ -1,6 +1,6 @@
 # Wrangler
 <img src="https://cdap-users.herokuapp.com/assets/cm-available.svg"/> <img src="https://cdap-users.herokuapp.com/assets/cdap-transform.svg"/>
-<a href="https://cdap-users.herokuapp.com/"><img alt="Join CDAP community" src="https://cdap-users.herokuapp.com/badge.svg?t=2"/></a> [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
+<a href="https://cdap-users.herokuapp.com/"><img alt="Join CDAP community" src="https://cdap-users.herokuapp.com/badge.svg?t=wrangler"/></a> [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
 <a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/11434/badge.svg"/>
