@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.service.directive;
 
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.common.Bytes;
@@ -24,6 +24,7 @@ import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.table.Put;
 import co.cask.cdap.api.dataset.table.Row;
+import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
@@ -50,10 +51,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,13 +79,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 
 /**
  * Service for managing workspaces and also application of directives on to the workspace.
  */
-public class WranglerService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(WranglerService.class);
+public class DirectivesService extends AbstractHttpServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(DirectivesService.class);
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   public static final String WORKSPACE_DATASET = "workspace";
@@ -93,9 +96,16 @@ public class WranglerService extends AbstractHttpServiceHandler {
   /**
    * Creates a workspace.
    *
-   * @param request
-   * @param responder
-   * @param ws
+   * Following is the response
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : Successfully created workspace 'test'.
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace to be created.
    */
   @PUT
   @Path("workspaces/{workspace}")
@@ -112,11 +122,61 @@ public class WranglerService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * Lists all workspaces.
+   *
+   * Following is a response returned
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : "Success",
+   *   "count" : 4,
+   *   "values" : [
+   *      "body",
+   *      "ws",
+   *      "test",
+   *      "message"
+   *   ]
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   */
+  @GET
+  @Path("workspaces")
+  public void list(HttpServiceRequest request, HttpServiceResponder responder) {
+    JSONObject response = new JSONObject();
+    Row row;
+    try {
+      try (Scanner scanner = workspace.scan(null, null)) {
+        JSONArray values = new JSONArray();
+        while((row = scanner.next()) != null) {
+          byte[] key = row.getRow();
+          values.put(new String(key));
+        }
+        response.put("status", HttpURLConnection.HTTP_OK);
+        response.put("message", "Success");
+        response.put("count", values.length());
+        response.put("values", values);
+        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      }
+    } catch (DataSetException e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
    * Deletes the workspace.
    *
-   * @param request
-   * @param responder
-   * @param ws
+   * Following is the response
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : Successfully deleted workspace 'test'.
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace to deleted.
    */
   @DELETE
   @Path("workspaces/{workspace}")
@@ -130,6 +190,64 @@ public class WranglerService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Get information about the workspace.
+   *
+   * Following is the response
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : "Success",
+   *   "values" : [
+   *     {
+   *       "workspace" : "data",
+   *       "created" : 1430202202,
+   *       "recipe" : [
+   *          "parse-as-csv data ,",
+   *          "drop data"
+   *       ]
+   *     }
+   *   ]
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace to deleted.
+   */
+  @GET
+  @Path("workspaces/{workspace}")
+  public void get(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("workspace") String ws) {
+
+    JSONObject response = new JSONObject();
+    JSONArray values = new JSONArray();
+
+    try {
+      Row row = workspace.get(Bytes.toBytes(ws));
+      byte[] bytes = row.get("request");
+      if (bytes != null) {
+        values.put(new JSONObject(new JSONTokener(new String(bytes, StandardCharsets.UTF_8))));
+        response.put("count", 1);
+      } else {
+        response.put("count", 0);
+      }
+      response.put("values", values);
+      response.put("status", HttpURLConnection.HTTP_OK);
+      response.put("message", "Success");
+
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (DataSetException | JSONException e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
+   * Upload data to the workspace.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Upload data to the workspace.
+   */
   @POST
   @Path("workspaces/{workspace}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
@@ -153,6 +271,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
     if(delimiter == null || delimiter.isEmpty()) {
       delimiter = "\\u001A";
     }
+
     delimiter = StringEscapeUtils.unescapeJava(delimiter);
     for (String line : body.split(delimiter)) {
       records.add(new Record(ws, line));
@@ -169,13 +288,20 @@ public class WranglerService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Download data from the workspace.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Download data from the workspace.
+   */
   @GET
   @Path("workspaces/{workspace}/download")
   public void download(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws) {
 
     try {
-      List<Record> records = getWorkspace(ws, responder);
+      List<Record> records = getWorkspaceData(ws, responder);
       if (records == null) {
         return;
       }
@@ -191,25 +317,42 @@ public class WranglerService extends AbstractHttpServiceHandler {
       JSONObject response = new JSONObject();
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", records.size());
-      response.put("value", values);
+      response.put("count", records.size());
+      response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
     }
   }
 
-  @GET
+  /**
+   * Summarizes the workspace by running directives.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param ws Workspace data to be summarized.
+   */
+  @POST
   @Path("workspaces/{workspace}/summary")
-  public void validate(HttpServiceRequest request, HttpServiceResponder responder,
-                       @PathParam("workspace") String ws,
-                       @QueryParam("directive") List<String> directives,
-                       @QueryParam("limit") int limit) {
+  public void summary(HttpServiceRequest request, HttpServiceResponder responder,
+                       @PathParam("workspace") String ws) {
     try {
-      List<Record> records = getWorkspace(ws, responder);
+
+      // Read the request body
+      Request reqBody = postRequest(request);
+      if (reqBody == null) {
+        error(responder, "Request is empty. Please check if the request is sent as HTTP POST body.");
+        return;
+      }
+
+      List<String> directives = reqBody.getRecipe().getDirectives();
+      List<Record> records = getWorkspaceData(ws, responder);
       if (records == null) {
         return;
       }
+
+      // Get the minimum of records and the limit as set by the user.
+      int limit = Math.min(reqBody.getSampling().getLimit(), records.size());
 
       // Randomly select a 'count' records from the input.
       Iterable<Record> sampledRecords = Iterables.filter(
@@ -297,8 +440,8 @@ public class WranglerService extends AbstractHttpServiceHandler {
 
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", 2);
-      response.put("value", result);
+      response.put("count", 2);
+      response.put("values", result);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -307,18 +450,27 @@ public class WranglerService extends AbstractHttpServiceHandler {
     }
   }
 
-  @GET
+  @POST
   @Path("workspaces/{workspace}/schema")
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("workspace") String ws,
-                        @QueryParam("directive") List<String> directives) {
+                        @PathParam("workspace") String ws) {
     try {
-      List<Record> records = getWorkspace(ws, responder);
-      if (records == null) {
+
+      // Read the request body
+      Request reqBody = postRequest(request);
+      if (reqBody == null) {
+        error(responder, "Request is empty. Please check if the request is sent as HTTP POST body.");
         return;
       }
 
-      int limit = Math.min(100, records.size());
+      List<String> directives = reqBody.getRecipe().getDirectives();
+
+      List<Record> records = getWorkspaceData(ws, responder);
+      if (records == null) {
+        return;
+      }
+      // Get the minimum of records and the limit as set by the user.
+      int limit = Math.min(reqBody.getSampling().getLimit(), records.size());
       records = records.subList(0, limit);
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
 
@@ -372,63 +524,69 @@ public class WranglerService extends AbstractHttpServiceHandler {
     JSONObject response = new JSONObject();
     response.put("status", HttpURLConnection.HTTP_OK);
     response.put("message", "Success");
-    response.put("items", values.length());
-    response.put("value", values);
+    response.put("count", values.length());
+    response.put("values", values);
     sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
-  private JSONObject add(String field, Object value) {
-    JSONObject object = new JSONObject();
-    object.put(field, value);
-    return object;
-  }
-
-
-  private List<Schema.Field> generateFields(Record record) throws UnsupportedTypeException {
-    List<Schema.Field> fields = new ArrayList<>();
-    for (KeyValue<String, Object> column : record.getFields()) {
-      Object v = column.getValue();
-      Schema fieldSchema;
-      if (v instanceof Integer || v instanceof Long || v instanceof Double || v instanceof Float
-        || v instanceof Boolean || v instanceof byte[]) {
-        fieldSchema = new SimpleSchemaGenerator().generate(v.getClass());
-      } else {
-        fieldSchema = Schema.of(Schema.Type.STRING);
-      }
-      fields.add(Schema.Field.of(column.getKey(), Schema.nullableOf(fieldSchema)));
-    }
-    return fields;
-  }
-
-  private static final class SimpleSchemaGenerator extends AbstractSchemaGenerator {
-
-    @Override
-    protected Schema generateRecord(TypeToken<?> typeToken, Set<String> set,
-                                    boolean b) throws UnsupportedTypeException {
-      // we don't actually leverage this method, so no need to implement it
-      throw new UnsupportedOperationException();
-    }
-  }
-
-  @GET
+  /**
+   * Executes the directives on the record stored in the workspace.
+   *
+   * Following is the response from this request
+   * {
+   *   "status" : 200,
+   *   "message" : "Success",
+   *   "count" : 2,
+   *   "header" : [ "a", "b", "c", "d" ],
+   *   "value" : [
+   *     { record 1},
+   *     { record 2}
+   *   ]
+   * }
+   *
+   * @param request to gather information of the request.
+   * @param responder to respond to the service request.
+   * @param ws workspace in which the directives are executed.
+   */
+  @POST
   @Path("workspaces/{workspace}/execute")
   public void directive(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("workspace") String ws,
-                        @QueryParam("directive") List<String> directives,
-                        @QueryParam("limit") int limit) {
+                        @PathParam("workspace") String ws) {
     try {
-      List<Record> records = getWorkspace(ws, responder);
-      if (records == null) {
+
+      // Read the request body
+      Request reqBody = postRequest(request);
+      if (reqBody == null) {
+        error(responder, "Request is empty. Please check if the request is sent as HTTP POST body.");
         return;
       }
 
-      List<Record> newRecords = execute(records.subList(0, Math.min(records.size(), limit)),
+      List<Record> records = getWorkspaceData(ws, responder);
+      if (records == null) {
+        error(responder, "No data is present in the workspace '" + ws + "'");
+        return;
+      }
+
+      // Get the minimum of records and the limit as set by the user.
+      int limit = Math.min(reqBody.getSampling().getLimit(), records.size());
+
+      // Extract directives from the request.
+      List<String> directives = reqBody.getRecipe().getDirectives();
+
+      // Execute the directives.
+      List<Record> newRecords = execute(records.subList(0, limit),
                                         directives.toArray(new String[directives.size()]), limit);
+
       JSONArray values = new JSONArray();
       JSONArray headers = new JSONArray();
       Set<String> headerList = new HashSet<>();
       boolean onlyFirstRow = true;
+      int count = 0;
       for (Record record : newRecords) {
+        // Limit the number of results to be returned.
+        if (count >= reqBody.getWorkspace().getResults()) {
+          break;
+        }
         List<KeyValue<String, Object>> fields = record.getFields();
         JSONObject r = new JSONObject();
         for (KeyValue<String, Object> field : fields) {
@@ -453,15 +611,21 @@ public class WranglerService extends AbstractHttpServiceHandler {
           }
         }
         values.put(r);
+        count++;
       }
+
+      // Autosaves the recipes being executed.
+      autosave(ws, reqBody);
 
       JSONObject response = new JSONObject();
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", newRecords.size());
+      response.put("count", count);
       response.put("header", headers);
-      response.put("value", values);
+      response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (JsonParseException e) {
+      error(responder, "Issue parsing request. " + e.getMessage());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
     } catch (Exception e) {
@@ -493,7 +657,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
    * {
    *   "status": "OK",
    *   "message": "Success",
-   *   "items" : 10,
+   *   "count" : 10,
    *   "values" : [
    *      {
    *        "directive" : "parse-as-csv",
@@ -514,7 +678,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
       List<UsageRegistry.UsageDatum> usages = registry.getAll();
 
       JSONObject response = new JSONObject();
-      int items = 0;
+      int count = 0;
       JSONArray values = new JSONArray();
       for (UsageRegistry.UsageDatum entry : usages) {
         JSONObject usage = new JSONObject();
@@ -522,20 +686,29 @@ public class WranglerService extends AbstractHttpServiceHandler {
         usage.put("usage", entry.getUsage());
         usage.put("description", entry.getDescription());
         values.put(usage);
-        items++;
+        count++;
       }
       response.put("status", HttpURLConnection.HTTP_OK);
       response.put("message", "Success");
-      response.put("items", items);
+      response.put("count", count);
       response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
   }
-  
-  // Application Platform System - Big Data Appliance
-  private List<Record>  execute(List<Record> records, String[] directives, int limit)
+
+  /**
+   * Executes directives.
+   *
+   * @param records to on which directives need to be executed on.
+   * @param directives to be executed.
+   * @param limit number of record to be restricted.
+   * @return List of processed record.
+   * @throws DirectiveParseException
+   * @throws StepException
+   */
+  private List<Record> execute(List<Record> records, String[] directives, int limit)
     throws DirectiveParseException, StepException {
     Directives specification = new TextDirectives(directives);
     List<Step> steps = specification.getSteps();
@@ -556,11 +729,24 @@ public class WranglerService extends AbstractHttpServiceHandler {
    * @param responder to respond to the service request.
    * @param message to be included as part of the error
    */
-  static final void error(HttpServiceResponder responder, String message) {
+  public static final void error(HttpServiceResponder responder, String message) {
     JSONObject error = new JSONObject();
     error.put("status", HttpURLConnection.HTTP_INTERNAL_ERROR);
     error.put("message", message);
     sendJson(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, error.toString(2));
+  }
+
+  /**
+   * Sends the error response back to client for not Found.
+   *
+   * @param responder to respond to the service request.
+   * @param message to be included as part of the error
+   */
+  public static final void notFound(HttpServiceResponder responder, String message) {
+    JSONObject error = new JSONObject();
+    error.put("status", HttpURLConnection.HTTP_NOT_FOUND);
+    error.put("message", message);
+    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString(2));
   }
 
   /**
@@ -570,7 +756,7 @@ public class WranglerService extends AbstractHttpServiceHandler {
    * @param status code to be returned to client.
    * @param body to be sent back to client.
    */
-  static final void sendJson(HttpServiceResponder responder, int status, String body) {
+  public static final void sendJson(HttpServiceResponder responder, int status, String body) {
     responder.send(status, ByteBuffer.wrap(body.getBytes(StandardCharsets.UTF_8)),
                    "application/json", new HashMap<String, String>());
   }
@@ -581,11 +767,96 @@ public class WranglerService extends AbstractHttpServiceHandler {
    * @param responder to respond to the service request.
    * @param message to be included as part of the error
    */
-  static final void success(HttpServiceResponder responder, String message) {
+  public static final void success(HttpServiceResponder responder, String message) {
     JSONObject error = new JSONObject();
     error.put("status", HttpURLConnection.HTTP_OK);
     error.put("message", message);
     sendJson(responder, HttpURLConnection.HTTP_OK, error.toString(2));
+  }
+
+  /**
+   * @returns the Records in the specified workspace. Returns null if the workspace does not exist, in which case
+   *          the HttpServiceResponder is responded to before returning.
+   */
+  @Nullable
+  private List<Record> getWorkspaceData(String workspaceName, HttpServiceResponder responder) {
+    Row row = workspace.get(Bytes.toBytes(workspaceName));
+
+    String data = row.getString("data");
+    if (data == null || data.isEmpty()) {
+      error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
+      return null;
+    }
+
+    return GSON.fromJson(data, new TypeToken<List<Record>>(){}.getType());
+  }
+
+  /**
+   * Autosaves the directives into workspace.
+   *
+   * @param ws Workspace under which the directives need to be saved.
+   * @param request Entire request.
+   * @throws DataSetException throw if it fails to save.
+   */
+  private void autosave(String ws, Request request) throws DataSetException {
+    String recipe = GSON.toJson(request);
+    LOG.info("Recipe : {}", recipe);
+    Put putRecipe
+      = new Put (Bytes.toBytes(ws), Bytes.toBytes("request"), Bytes.toBytes(recipe));
+    workspace.put(putRecipe);
+  }
+
+  /**
+   * Parses the POST request from the body.
+   *
+   * @param request HTTP Request to extract the body.
+   * @return {@link Request}
+   * @throws JsonParseException thrown if there are any issues in parsing.
+   */
+  private Request postRequest(HttpServiceRequest request) throws JsonParseException {
+    Request body = null;
+    ByteBuffer content = request.getContent();
+    if (content != null && content.hasRemaining()) {
+      GsonBuilder builder = new GsonBuilder();
+      builder.registerTypeAdapter(Request.class, new RequestDeserializer());
+      Gson gson = builder.create();
+      body = gson.fromJson(Bytes.toString(content), Request.class);
+      return body;
+    }
+    return null;
+  }
+
+  private static final class SimpleSchemaGenerator extends AbstractSchemaGenerator {
+    @Override
+    protected Schema generateRecord(TypeToken<?> typeToken, Set<String> set,
+                                    boolean b) throws UnsupportedTypeException {
+      // we don't actually leverage this method, so no need to implement it
+      throw new UnsupportedOperationException();
+    }
+  }
+
+
+  private JSONObject add(String field, Object value) {
+    JSONObject object = new JSONObject();
+    object.put(field, value);
+    return object;
+  }
+
+
+  private List<Schema.Field> generateFields(Record record) throws UnsupportedTypeException {
+    List<Schema.Field> fields = new ArrayList<>();
+    for (KeyValue<String, Object> column : record.getFields()) {
+      Object v = column.getValue();
+      Schema fieldSchema;
+      if (v instanceof Integer || v instanceof Long || v instanceof Double || v instanceof Float
+        || v instanceof Boolean || v instanceof byte[]) {
+        fieldSchema = new SimpleSchemaGenerator().generate(v.getClass());
+      } else {
+        fieldSchema = Schema.of(Schema.Type.STRING);
+      }
+      fields.add(Schema.Field.of(column.getKey(), Schema.nullableOf(fieldSchema)));
+    }
+    return fields;
   }
 
 }

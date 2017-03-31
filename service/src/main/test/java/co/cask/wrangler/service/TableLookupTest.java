@@ -21,7 +21,7 @@ import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.ServiceManager;
-import co.cask.wrangler.WranglerApp;
+import co.cask.wrangler.DataPrep;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class TableLookupTest extends WranglerServiceTestBase {
     lookupTable.flush();
 
 
-    ApplicationManager wrangerApp = deployApplication(WranglerApp.class);
+    ApplicationManager wrangerApp = deployApplication(DataPrep.class);
     ServiceManager serviceManager = wrangerApp.getServiceManager("service").start();
     // should throw exception, instead of returning null
     URL baseURL = serviceManager.getServiceURL();

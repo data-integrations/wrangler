@@ -35,6 +35,7 @@ public class RecordConditionFilterTest {
     String[] directives = new String[] {
       "set format csv , false",
       "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
+      "filter-row-if-matched email NULL",
       "filter-row-if-matched email .*@joltie.io",
       "filter-row-if-true id > 1092"
     };

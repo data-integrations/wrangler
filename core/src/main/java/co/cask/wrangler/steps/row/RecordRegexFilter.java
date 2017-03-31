@@ -64,11 +64,14 @@ public class RecordRegexFilter extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
+    if (pattern == null) {
+      return records;
+    }
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
-        if (pattern == null && object == null) {
+        if (object == null) {
           continue;
         } else if (object instanceof JSONObject) {
           if (pattern == null && JSONObject.NULL.equals(object)) {
