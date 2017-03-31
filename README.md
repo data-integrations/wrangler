@@ -23,7 +23,7 @@ Also, check the documentation of Wrangler Transform [here](transform/docs/Wrangl
 * Recipes
   * [Log Parsing](demos/Parsing-Apache-Log.md)
   * [HL7 CCDA XML Parsing](demos/HL7-CCDA-XML-Parsing.md)
-  * [CSV Parsing and micro-wrangling columns] (demos/CSV-Parsing-And-Extraction.md)
+  * [CSV Parsing and micro-wrangling columns](demos/CSV-Parsing-And-Extraction.md)
 
   
 ## Concepts
