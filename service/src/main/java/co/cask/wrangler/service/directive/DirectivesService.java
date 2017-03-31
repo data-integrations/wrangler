@@ -634,6 +634,23 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * @returns the Records in the specified workspace. Returns null if the workspace does not exist, in which case
+   *          the HttpServiceResponder is responded to before returning.
+   */
+  @Nullable
+  private List<Record> getWorkspace(String workspaceName, HttpServiceResponder responder) {
+    Row row = workspace.get(Bytes.toBytes(workspaceName));
+
+    String data = Bytes.toString(row.get("data"));
+    if (data == null || data.isEmpty()) {
+      error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
+      return null;
+    }
+
+    return GSON.fromJson(data, new TypeToken<List<Record>>(){}.getType());
+  }
+
+  /**
    * This REST API returns an array of all the directives, their usage and description.
    *
    * Following is the response of this call.
