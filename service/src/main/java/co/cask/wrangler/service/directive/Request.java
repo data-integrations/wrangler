@@ -17,11 +17,26 @@
 package co.cask.wrangler.service.directive;
 
 /**
- * Created by nitin on 3/24/17.
+ * Dataprep request body and it's structure.
  */
 public interface Request {
+  /**
+   * @return Version of specification of request.
+   */
   int getVersion();
+
+  /**
+   * @return Workspace specification associated with the request.
+   */
   Workspace getWorkspace();
+
+  /**
+   * @return Sampling specification associated with the request.
+   */
   Sampling getSampling();
+
+  /**
+   * @return Recipe specification associated with the request.
+   */
   Recipe getRecipe();
 }

@@ -17,16 +17,25 @@
 package co.cask.wrangler.service.directive;
 
 /**
- * Created by nitin on 3/24/17.
+ * Specification about workspace for the {@link Request}
  */
 class Workspace {
+  // Name of the workspace.
   private String name;
+
+  // Number of results to be returned for the workspace.
   private Integer results;
 
+  /**
+   * @return Name of the workspace.
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * @return Number of results to return in the API.
+   */
   public Integer getResults() {
     return results;
   }

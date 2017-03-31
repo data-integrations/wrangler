@@ -53,6 +53,5 @@ class RequestDeserializer implements JsonDeserializer<Request> {
         String.format("Unsupported request version %d.", version)
       );
     }
-
   }
 }

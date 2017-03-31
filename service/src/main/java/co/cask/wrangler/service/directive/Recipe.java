@@ -19,11 +19,16 @@ package co.cask.wrangler.service.directive;
 import java.util.List;
 
 /**
- * Created by nitin on 3/24/17.
+ * Defines the recipe object that is part of the {@link Request}
  */
 class Recipe {
+  // Directives specified by the user
   private List<String> directives;
+
+  // Ability to save the directives
   private Boolean save;
+
+  // Name of the recipe.
   private String name;
 
   public Recipe(List<String> directives, Boolean save, String name) {
@@ -32,14 +37,23 @@ class Recipe {
     this.name = name;
   }
 
+  /**
+   * @return List of directives specified by the user.
+   */
   public List<String> getDirectives() {
     return directives;
   }
 
+  /**
+   * @return true if directives need to be saved, else false.
+   */
   public Boolean getSave() {
     return save;
   }
 
+  /**
+   * @return name of the recipe.
+   */
   public String getName() {
     return name;
   }
