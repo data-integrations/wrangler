@@ -142,8 +142,6 @@ public class JsonParser extends AbstractStep {
         } catch (JSONException e) {
           throw new StepException(toString() + " : " + e.getMessage());
         }
-      } else {
-        throw new StepException(toString() + " : Did not find '" + col + "' in the record.");
       }
     }
     return results;

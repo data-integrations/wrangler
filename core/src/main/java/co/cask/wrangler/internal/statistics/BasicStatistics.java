@@ -40,7 +40,6 @@ public class BasicStatistics implements Statistics {
     ColumnMetric stats = new ColumnMetric();
 
     Double count = new Double(0);
-    Record invalid = new Record();
     for (Record record : records) {
       ++count;
       for (int i = 0; i < record.length(); ++i) {

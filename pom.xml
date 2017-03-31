@@ -78,10 +78,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <wrangler.version>${project.version}</wrangler.version>
     <cdap.version>4.2.0-SNAPSHOT</cdap.version>
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
-    <commons-lang.version>2.6</commons-lang.version>
+    <commons-lang.version>3.5</commons-lang.version>
     <guava.version>19.0</guava.version>
     <unix4j.version>0.4</unix4j.version>
     <json-path.version>2.2.0</json-path.version>
@@ -158,8 +159,8 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
       <version>${commons-lang.version}</version>
     </dependency>
     <dependency>

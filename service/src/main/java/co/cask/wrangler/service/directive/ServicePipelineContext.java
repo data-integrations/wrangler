@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.service.directive;
 
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.etl.api.Lookup;
