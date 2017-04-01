@@ -73,7 +73,7 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
       // Iterate through each file.
       for(Location location : locations) {
         JSONObject object = locationInfo(location);
-        // If it's a directory, inspect the contents further attempting to detect the type.
+        // If it's a directory, inspect the contents further attempting to detect the type
         String type = guessLocationType(location, 1);
         object.put("type", type);
         values.put(object);
@@ -84,9 +84,11 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
       response.put("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (IOException e) {
-      error(responder, "Error exploring directory '" + path + "'. " + e.getMessage());
+      error(responder, "Error exploring directory '" + path + "'. " + e.getCause() == null
+        ? e.getMessage() : e.getCause().getMessage());
     } catch (URISyntaxException e) {
-      error(responder, "Error detecting proper URI for the directory '" + path + "'. " + e.getMessage());
+      error(responder, "Error detecting proper URI for the directory '" + path + "'. " + e.getCause() == null
+        ? e.getMessage() : e.getCause().getMessage());
     }
   }
 
@@ -97,26 +99,29 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
    * @param lookahead Specifies a look a head parameter.
    * @throws IOException
    */
-  private String guessLocationType(Location path, int lookahead) throws IOException {
-    if (path.exists() && !path.isDirectory()) {
-      return detectFileType(path);
-    } else {
-      if (lookahead >= 0 && path.exists()) {
-        Multiset<String> types = HashMultiset.create();
-        for (Location location : path.list()) {
-          String type = guessLocationType(location, lookahead - 1);
-          types.add(type);
-        }
-        String topType = FileTypes.UNKNOWN;
-        for (Multiset.Entry<String> top : types.entrySet()) {
-          if(topType.equalsIgnoreCase(FileTypes.UNKNOWN)) {
-            topType = top.getElement();
+  private String guessLocationType(Location path, int lookahead) {
+    try {
+      if (path.exists() && !path.isDirectory()) {
+        return detectFileType(path);
+      } else {
+        if (lookahead >= 0 && path.exists()) {
+          Multiset<String> types = HashMultiset.create();
+          for (Location location : path.list()) {
+            String type = guessLocationType(location, lookahead - 1);
+            types.add(type);
+          }
+          String topType = FileTypes.UNKNOWN;
+          for (Multiset.Entry<String> top : types.entrySet()) {
+            if(topType.equalsIgnoreCase(FileTypes.UNKNOWN)) {
+              topType = top.getElement();
+            }
           }
         }
       }
+    } catch (IOException e) {
+      // We might not have permission, so ignore on look-ahead.
     }
-
-   return FileTypes.UNKNOWN;
+    return FileTypes.UNKNOWN;
   }
 
   /**
