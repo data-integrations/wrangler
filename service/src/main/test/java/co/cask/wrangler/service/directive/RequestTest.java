@@ -14,10 +14,8 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.service.directive;
 
-import co.cask.wrangler.service.directive.Request;
-import co.cask.wrangler.service.directive.RequestDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
