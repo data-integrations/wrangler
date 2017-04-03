@@ -18,9 +18,9 @@ package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.steps.ExtractRegexGroups;
-import co.cask.wrangler.steps.JsPath;
-import co.cask.wrangler.steps.XmlToJson;
+import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
+import co.cask.wrangler.steps.parser.JsPath;
+import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
