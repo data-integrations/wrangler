@@ -71,7 +71,9 @@ public class Columns extends AbstractStep {
     for (Record record : records) {
       int idx = 0;
       for (String name : columns) {
-        record.setColumn(idx, name.trim());
+        if (idx < record.length()) {
+          record.setColumn(idx, name.trim());
+        }
         idx++;
       }
     }

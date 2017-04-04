@@ -30,7 +30,6 @@
     <module>transform</module>
     <module>service</module>
     <module>core</module>
-    <module>dq</module>
   </modules>
 
   <licenses>

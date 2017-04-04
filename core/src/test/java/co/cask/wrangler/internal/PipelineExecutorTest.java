@@ -56,7 +56,7 @@ public class PipelineExecutorTest {
       new TextDirectives(StringUtils.join("\n", commands));
     Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(directives, null);
-    Record row = new Record(Directives.STARTING_COLUMN, new String("a,b,c,d,e,f,g"));
+    Record row = new Record(Directives.STARTING_COLUMN, new String("a,b,c,d,e,f,1.0"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
@@ -65,7 +65,7 @@ public class PipelineExecutorTest {
     Assert.assertEquals("d", record.get("d"));
     Assert.assertEquals("e", record.get("e"));
     Assert.assertEquals("f", record.get("f"));
-    Assert.assertEquals("g", record.get("g"));
+    Assert.assertEquals("1.0", record.get("g"));
   }
 
 

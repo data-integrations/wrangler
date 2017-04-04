@@ -44,7 +44,7 @@ public final class Messages {
   public Messages(String name, Locale locale) {
     this.name = name;
     this.locale = locale;
-    bundle = ResourceBundle.getBundle(name, locale, this.getClass().getClassLoader());
+    bundle = ResourceBundle.getBundle(name, locale, Messages.class.getClassLoader());
   }
 
   public String get(String key) {

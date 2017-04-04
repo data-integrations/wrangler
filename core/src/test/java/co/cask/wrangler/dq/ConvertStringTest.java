@@ -15,7 +15,7 @@
  *
  */
 
-package co.cask.dq;
+package co.cask.wrangler.dq;
 
 import org.junit.Assert;
 import org.junit.Test;

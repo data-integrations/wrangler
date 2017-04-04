@@ -15,7 +15,7 @@
  *
  */
 
-package co.cask.dq;
+package co.cask.wrangler.dq;
 
 /**
  * Class description here.

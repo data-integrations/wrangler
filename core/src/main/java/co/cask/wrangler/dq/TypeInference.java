@@ -15,7 +15,7 @@
  *
  */
 
-package co.cask.dq;
+package co.cask.wrangler.dq;
 
 import java.math.BigInteger;
 import java.util.regex.Pattern;

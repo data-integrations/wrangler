@@ -15,7 +15,7 @@
  *
  */
 
-package co.cask.dq;
+package co.cask.wrangler.dq;
 
 import java.math.BigDecimal;
 import javax.annotation.Nullable;

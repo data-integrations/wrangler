@@ -15,7 +15,7 @@
  *
  */
 
-package co.cask.dq;
+package co.cask.wrangler.dq;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +48,7 @@ public class DateTimePattern {
   }
 
   private static void loadPatterns(String patternFileName, List<Map<Pattern, String>> patternParsers) throws IOException {
-    InputStream stream = DateTimePattern.class.getResourceAsStream(patternFileName);
+    InputStream stream = DateTimePattern.class.getClassLoader().getResourceAsStream(patternFileName);
     try {
       List<String> lines = IOUtils.readLines(stream, "UTF-8");
       Map<Pattern, String> currentGroupMap = new LinkedHashMap<Pattern, String>();
