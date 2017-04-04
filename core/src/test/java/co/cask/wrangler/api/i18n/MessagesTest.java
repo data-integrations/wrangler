@@ -24,7 +24,7 @@ import org.junit.Test;
  * Tests {@link Messages}
  */
 public class MessagesTest {
-  private static final Messages MSG = MessagesFactory.getMessages();
+  private static final Messages MSG = MessagesFactory.getMessages("user/test");
   private static String expected = "this is a simple test";
   @Test
   public void testMessages() throws Exception {

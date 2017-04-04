@@ -18,7 +18,6 @@ package co.cask.wrangler;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.ParallelPipelineExecutor;
-import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -38,16 +37,14 @@ public class InputFileTest {
   @Ignore
   @Test
   public void testWithFile() throws Exception {
-    Path path = Paths.get("/Users/nitin/Work/Demo/data/titanic.250K.csv");
+    Path path = Paths.get("/Users/nitin/Work/Demo/data/titanic.500K.csv");
     byte[] data = Files.readAllBytes(path);
 
     String[] directives = new String[] {
-      "parse-as-csv body ,",
+      "parse-as-csv body , true",
       "drop body",
-      "set columns PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
       "drop Cabin",
       "drop Embarked",
-      "filter-row-if-matched Age Age",
       "fill-null-or-empty Age 0",
       "filter-row-if-true Fare < 8.06"
     };
@@ -62,23 +59,24 @@ public class InputFileTest {
       records2.add(new Record("body", line));
     }
 
-    long start = System.currentTimeMillis();
-    PipelineExecutor executor1 = new PipelineExecutor();
-    executor1.configure(txtDirectives, null);
-    List<Record> results1 = executor1.execute(records1);
-    long end = System.currentTimeMillis();
-    System.out.println(
-      String.format("Sequential : Records %d, Duration %d", results1.size(), end - start)
-    );
+//    long start = System.currentTimeMillis();
+//    PipelineExecutor executor1 = new PipelineExecutor();
+//    executor1.configure(txtDirectives, null);
+//    List<Record> results1 = executor1.execute(records1);
+//    long end = System.currentTimeMillis();
+//    System.out.println(
+//      String.format("Sequential : Records %d, Duration %d", results1.size(), end - start)
+//    );
 
-    start = System.currentTimeMillis();
+    long start = System.currentTimeMillis();
     ParallelPipelineExecutor executor2 = new ParallelPipelineExecutor();
     executor2.configure(txtDirectives, null);
     List<Record> results2 = executor2.execute(records2);
-    end = System.currentTimeMillis();
+    long end = System.currentTimeMillis();
     System.out.println(
       String.format("Parallel : Records %d, Duration %d", results2.size(), end - start)
     );
+
 
     Assert.assertTrue(true);
   }
