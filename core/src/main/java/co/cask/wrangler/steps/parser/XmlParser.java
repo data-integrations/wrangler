@@ -24,7 +24,6 @@ import co.cask.wrangler.api.Usage;
 import com.ximpleware.ParseException;
 import com.ximpleware.VTDGen;
 import com.ximpleware.VTDNav;
-import org.apache.commons.csv.CSVRecord;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -83,50 +82,5 @@ public class XmlParser extends AbstractStep {
       }
     }
     return records;
-  }
-
-  /**
-   * Converts a {@link CSVRecord} to {@link Record}.
-   *
-   * @param record
-   * @return
-   */
-  private void toRow(CSVRecord record, Record row) {
-    for ( int i = 0; i < record.size(); i++) {
-      row.add(col + "_" + (i + 1), record.get(i));
-    }
-  }
-
-  /**
-   * Specifies the configuration for the CSV parser.
-   */
-  public static class Options {
-    private char delimiter = ',';
-    private boolean allowMissingColumnNames = true;
-    private char recordSeparator = '\n';
-    private boolean ignoreSurroundingSpaces = true;
-    private boolean ignoreEmptyLines = true;
-
-    public Options() {
-      // Defines the default object.
-    }
-
-    public Options(char delimiter) {
-      this.delimiter = delimiter;
-    }
-
-    public Options(char delimiter, boolean ignoreEmptyLines) {
-      this.delimiter = delimiter;
-      this.ignoreEmptyLines = ignoreEmptyLines;
-    }
-
-    public Options (char delimiter, boolean allowMissingColumnNames, char recordSeparator,
-                    boolean ignoreSurroundingSpaces, boolean ignoreEmptyLines) {
-      this.delimiter = delimiter;
-      this.allowMissingColumnNames = allowMissingColumnNames;
-      this.recordSeparator = recordSeparator;
-      this.ignoreSurroundingSpaces = ignoreSurroundingSpaces;
-      this.ignoreEmptyLines = ignoreEmptyLines;
-    }
   }
 }

@@ -27,6 +27,8 @@ import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import org.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,7 @@ import java.util.List;
   description = "Extract XML element or attributes as JSON array using XPath."
 )
 public class XPathArrayElement extends AbstractStep {
+  private static final Logger LOG = LoggerFactory.getLogger(XPathArrayElement.class);
   private final String column;
   private final String destination;
   private final String xpath;
@@ -72,6 +75,7 @@ public class XPathArrayElement extends AbstractStep {
           AutoPilot ap = new AutoPilot(vn);
           try {
             int tokenCount = vn.getTokenCount();
+            LOG.info("Token count {}", tokenCount);
             String token = null;
             String nsPrefix = null;
             String nsUrl = null;
@@ -80,6 +84,7 @@ public class XPathArrayElement extends AbstractStep {
               if ( vn.startsWith( i, "xmlns:" ) ) {
                 nsPrefix = token.substring( token.indexOf( ":" ) + 1 );
                 nsUrl = vn.toNormalizedString( i + 1 );
+                LOG.info("Registering namespace {} with url {}", nsPrefix, nsUrl);
                 ap.declareXPathNameSpace( nsPrefix, nsUrl );
               }// if
             }// for
