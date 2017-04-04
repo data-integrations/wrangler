@@ -18,6 +18,7 @@ package co.cask.wrangler;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.ParallelPipelineExecutor;
+import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -37,7 +38,7 @@ public class InputFileTest {
   @Ignore
   @Test
   public void testWithFile() throws Exception {
-    Path path = Paths.get("/Users/nitin/Work/Demo/data/titanic.500K.csv");
+    Path path = Paths.get("<path to file>");
     byte[] data = Files.readAllBytes(path);
 
     String[] directives = new String[] {
@@ -59,20 +60,20 @@ public class InputFileTest {
       records2.add(new Record("body", line));
     }
 
-//    long start = System.currentTimeMillis();
-//    PipelineExecutor executor1 = new PipelineExecutor();
-//    executor1.configure(txtDirectives, null);
-//    List<Record> results1 = executor1.execute(records1);
-//    long end = System.currentTimeMillis();
-//    System.out.println(
-//      String.format("Sequential : Records %d, Duration %d", results1.size(), end - start)
-//    );
-
     long start = System.currentTimeMillis();
+    PipelineExecutor executor1 = new PipelineExecutor();
+    executor1.configure(txtDirectives, null);
+    List<Record> results1 = executor1.execute(records1);
+    long end = System.currentTimeMillis();
+    System.out.println(
+      String.format("Sequential : Records %d, Duration %d", results1.size(), end - start)
+    );
+
+    start = System.currentTimeMillis();
     ParallelPipelineExecutor executor2 = new ParallelPipelineExecutor();
     executor2.configure(txtDirectives, null);
     List<Record> results2 = executor2.execute(records2);
-    long end = System.currentTimeMillis();
+    end = System.currentTimeMillis();
     System.out.println(
       String.format("Parallel : Records %d, Duration %d", results2.size(), end - start)
     );
