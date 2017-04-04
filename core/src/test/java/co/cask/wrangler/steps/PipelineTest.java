@@ -21,18 +21,9 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.internal.TextDirectives;
-import co.cask.wrangler.steps.column.Columns;
-import co.cask.wrangler.steps.column.Drop;
-import co.cask.wrangler.steps.column.Merge;
-import co.cask.wrangler.steps.column.Rename;
-import co.cask.wrangler.steps.parser.CsvParser;
-import co.cask.wrangler.steps.transformation.IndexSplit;
-import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;
-import co.cask.wrangler.steps.transformation.TitleCase;
-import co.cask.wrangler.steps.transformation.Upper;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -51,36 +42,6 @@ import java.util.regex.Pattern;
  * Tests different directives that are available within wrangling.
  */
 public class PipelineTest {
-
-  @Test
-  public void testBasicPipelineWorking() throws Exception {
-    List<Step> steps = new ArrayList<>();
-    List<Record> records = Arrays.asList(new Record("col", "1,2,a,A,one name|p2|p3"));
-
-    // Define all the steps in the wrangler.
-    steps.add(new CsvParser(0, "", new CsvParser.Options(), "col", true));
-    steps.add(new Columns(0, "", Arrays.asList("col", "first", "second", "third", "fourth", "fifth")));
-    steps.add(new Rename(0, "", "first", "one"));
-    steps.add(new Lower(0, "", "fourth"));
-    steps.add(new Upper(0, "", "third"));
-    steps.add(new CsvParser(0, "", new CsvParser.Options('|'), "fifth", false));
-    steps.add(new Drop(0, "", "fifth"));
-    steps.add(new Merge(0, "", "one", "second", "merged", "%"));
-    steps.add(new Rename(0, "", "fifth_1", "test"));
-    steps.add(new TitleCase(0, "", "test"));
-    steps.add(new IndexSplit(0, "", "test", 1, 4, "substr"));
-
-    // Run through the wrangling steps.
-    for (Step step : steps) {
-      records = step.execute(new ArrayList<Record>(records), null);
-    }
-
-    Assert.assertEquals("one", records.get(0).getColumn(1));
-    Assert.assertEquals("A", records.get(0).getValue(3));
-    Assert.assertEquals("a", records.get(0).getValue(4));
-    Assert.assertEquals("One", records.get(0).getValue("substr"));
-
-  }
 
   @Test
   public void testSplit() throws Exception {
@@ -265,10 +226,10 @@ public class PipelineTest {
   @Test
   public void testParseCSV() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body , false",
       "drop body",
       "rename body_1 date",
-      "parse-as-csv date / true",
+      "parse-as-csv date / false",
       "rename date_1 month",
       "rename date_2 day",
       "rename date_3 year"

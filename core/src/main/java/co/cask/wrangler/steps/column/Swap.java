@@ -21,6 +21,8 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.i18n.Messages;
+import co.cask.wrangler.api.i18n.MessagesFactory;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ import java.util.List;
   description = "Swap the column names."
 )
 public class Swap extends AbstractStep {
+  private static final Messages MSG = MessagesFactory.getMessages();
   private final String column1;
   private final String column2;
 
@@ -56,11 +59,11 @@ public class Swap extends AbstractStep {
       int didx = record.find(column2);
 
       if (sidx == -1) {
-        throw new StepException(toString() + " : Source column not found.");
+        throw new StepException(MSG.get("column.not.found", toString(), column1));
       }
 
       if (didx == -1) {
-        throw new StepException(toString() + " : Destination column not found.");
+        throw new StepException(MSG.get("column.not.found", toString(), column2));
       }
 
       record.setColumn(sidx, column2);

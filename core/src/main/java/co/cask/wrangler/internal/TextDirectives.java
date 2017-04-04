@@ -19,9 +19,9 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.steps.ExtractRegexGroups;
-import co.cask.wrangler.steps.JsPath;
-import co.cask.wrangler.steps.XmlToJson;
+import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
+import co.cask.wrangler.steps.parser.JsPath;
+import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
@@ -331,7 +331,7 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-csv <column> <delimiter> <skip-if-empty - true or false>
+        // parse-as-csv <column> <delimiter> [<header=true/false>]
         case "parse-as-csv" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String delimStr = getNextToken(tokenizer, command, "delimiter", lineno);
@@ -344,15 +344,15 @@ public class TextDirectives implements Directives {
             delimiter = unescapedStr.charAt(0);
           }
 
-          boolean ignoreEmptyLines;
-          String ignoreEmptyLinesOpt = getNextToken(tokenizer, "\n", command, "true|false", lineno, true);
-          if (ignoreEmptyLinesOpt == null || ignoreEmptyLinesOpt.equalsIgnoreCase("true")) {
-            ignoreEmptyLines = true;
+          boolean hasHeader;
+          String hasHeaderLinesOpt = getNextToken(tokenizer, "\n", command, "true|false", lineno, true);
+          if (hasHeaderLinesOpt == null || hasHeaderLinesOpt.equalsIgnoreCase("false")) {
+            hasHeader = false;
           } else {
-            ignoreEmptyLines = false;
+            hasHeader = true;
           }
-          CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
-          steps.add(new CsvParser(lineno, directive, opt, column, false));
+          CsvParser.Options opt = new CsvParser.Options(delimiter, true);
+          steps.add(new CsvParser(lineno, directive, opt, column, hasHeader));
         }
         break;
 

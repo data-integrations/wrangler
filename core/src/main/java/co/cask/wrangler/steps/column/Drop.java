@@ -22,7 +22,6 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,7 +60,6 @@ public class Drop extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
     throws StepException {
-    List<Record> result = new ArrayList<>();
     for (Record record : records) {
       for (String column : columns) {
         int idx = record.find(column.trim());
@@ -69,9 +67,8 @@ public class Drop extends AbstractStep {
           record.remove(idx);
         }
       }
-      result.add(record);
     }
-    return result;
+    return records;
   }
 }
 

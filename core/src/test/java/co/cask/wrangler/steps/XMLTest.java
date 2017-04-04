@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.transformation.XPathElement;
 import org.json.JSONArray;
 import org.junit.Assert;

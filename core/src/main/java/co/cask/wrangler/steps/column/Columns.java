@@ -68,18 +68,16 @@ public class Columns extends AbstractStep {
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
     throws StepException {
-    List<Record> results = new ArrayList<>();
     for (Record record : records) {
-      Record r = new Record(record);
-      if (replaceColumnNames) {
-        r.clearColumns();
-      }
+      int idx = 0;
       for (String name : columns) {
-        r.addColumn(name.trim());
+        if (idx < record.length()) {
+          record.setColumn(idx, name.trim());
+        }
+        idx++;
       }
-      results.add(r);
     }
-    return results;
+    return records;
   }
 }
 
