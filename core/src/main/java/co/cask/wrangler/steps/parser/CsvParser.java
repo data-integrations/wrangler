@@ -21,19 +21,24 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.dq.DataType;
+import co.cask.wrangler.dq.TypeInference;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A CSV Parser Stage for parsing the {@link Record} provided based on configuration.
  */
 @Usage(
   directive = "parse-as-csv",
-  usage = "parse-as-csv <column> <delimiter> [<skip-if-empty - true or false>]",
+  usage = "parse-as-csv <column> <delimiter> [<header=true/false>]",
   description = "Parses a column as CSV."
 )
 public class CsvParser extends AbstractStep {
@@ -44,9 +49,15 @@ public class CsvParser extends AbstractStep {
   private CSVFormat format;
 
   // Replaces the input {@link Record} columns.
-  boolean replaceColumns;
+  private boolean hasHeader;
 
-  public CsvParser(int lineno, String detail, Options options, String col, boolean replaceColumns) {
+  // Set to true once header is checked.
+  private boolean checkedHeader = false;
+
+  // Header names.
+  private List<String> headers = new ArrayList<>();
+
+  public CsvParser(int lineno, String detail, Options options, String col, boolean hasHeader) {
     super(lineno, detail);
     this.col = col;
     this.format = CSVFormat.DEFAULT.withDelimiter(options.delimiter);
@@ -54,7 +65,7 @@ public class CsvParser extends AbstractStep {
       .withAllowMissingColumnNames(options.allowMissingColumnNames)
       .withIgnoreSurroundingSpaces(options.ignoreSurroundingSpaces)
       .withRecordSeparator(options.recordSeparator);
-    this.replaceColumns = replaceColumns;
+    this.hasHeader = hasHeader;
   }
 
   /**
@@ -69,16 +80,26 @@ public class CsvParser extends AbstractStep {
     throws StepException {
 
     for (Record record : records) {
-      String line = (String) record.getValue(col);
-      if (line == null) {
-        throw new StepException(toString() + " : Unable to find column '" + col + "' in the record.");
+      int idx = record.find(col);
+      if (idx == -1) {
+        continue;
+      }
+      String line = (String) record.getValue(idx);
+      if(line == null || line.isEmpty()) {
+        continue;
       }
       CSVParser parser = null;
       try {
         parser = CSVParser.parse(line, format);
         List<CSVRecord> csvRecords = parser.getRecords();
         for (CSVRecord csvRecord : csvRecords) {
-          toRow(csvRecord, record);
+          if(!checkedHeader && hasHeader && isHeader(csvRecord)) {
+            for (int i = 0; i < csvRecord.size(); i++) {
+              headers.add(csvRecord.get(i));
+            }
+          } else {
+            toRow(csvRecord, record);
+          }
         }
       } catch (IOException e) {
         throw new StepException(
@@ -87,7 +108,7 @@ public class CsvParser extends AbstractStep {
         );
       }
     }
-    return records;
+    return hasHeader ? records.subList(1, records.size()) : records;
   }
 
   /**
@@ -97,9 +118,35 @@ public class CsvParser extends AbstractStep {
    * @return
    */
   private void toRow(CSVRecord record, Record row) {
+    int size = headers.size();
     for ( int i = 0; i < record.size(); i++) {
-      row.add(col + "_" + (i + 1), record.get(i));
+      if (size > 0) {
+        row.add(headers.get(i), record.get(i));
+      } else {
+        row.add(col + "_" + (i + 1), record.get(i));
+      }
     }
+  }
+
+  private boolean isHeader(CSVRecord record) {
+    checkedHeader = true;
+    Set<String> columns = new HashSet<>();
+    for (int i = 0; i < record.size(); i++) {
+      String value = record.get(i);
+      if (value == null || value.trim().isEmpty()) {
+        return false;
+      }
+      DataType type = TypeInference.getDataType(value);
+      if (type != DataType.STRING) {
+        return false;
+      }
+      if (columns.contains(value)) {
+        return false;
+      } else {
+        columns.add(value);
+      }
+    }
+    return true;
   }
 
   /**

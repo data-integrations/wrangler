@@ -32,7 +32,7 @@ public class KeepTest {
   @Test
   public void testKeep() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body ,",
       "keep body_1,body_2"
     };
 

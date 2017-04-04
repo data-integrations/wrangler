@@ -12,7 +12,7 @@
         },
         {
           "widget-type": "textbox",
-          "label": "Name of the field ('*' to transform all fields)",
+          "label": "Input Field",
           "name": "field",
           "widget-attributes" : {
             "default": "*"
@@ -20,7 +20,7 @@
         },
         {
           "widget-type": "textbox",
-          "label": "Precondition Filter (true to filter record)",
+          "label": "Precondition",
           "name": "precondition",
           "widget-attributes" : {
             "default" : "false"

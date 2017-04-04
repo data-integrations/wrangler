@@ -39,7 +39,7 @@ public class BasicStatisticsTest {
   @Test
   public void testMetaBasic() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body ,",
       "drop body"
     };
 

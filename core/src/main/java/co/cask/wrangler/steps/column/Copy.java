@@ -21,6 +21,8 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.i18n.Messages;
+import co.cask.wrangler.api.i18n.MessagesFactory;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ import java.util.List;
   description = "Copy data from one column to another."
 )
 public class Copy extends AbstractStep {
+  private static final Messages MSG = MessagesFactory.getMessages();
   private String source;
   private String destination;
   private boolean force;
@@ -59,7 +62,7 @@ public class Copy extends AbstractStep {
     for (Record record : records) {
       int sidx = record.find(source);
       if (sidx == -1) {
-        throw new StepException(toString() + " : Source column '" + source + "' does not exist in the record.");
+        throw new StepException(MSG.get("column.not.found", toString(), source));
       }
 
       int didx = record.find(destination);

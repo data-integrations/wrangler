@@ -33,14 +33,14 @@ public class CopyTest {
   @Test
   public void testBasicCopy() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body ,",
       "copy body_1 name"
     };
 
     List<Record> records = Arrays.asList(
-      new Record("body", "A,B,C"),
-      new Record("body", "D,E,F"),
-      new Record("body", "G,H,I")
+      new Record("body", "A,B,1"),
+      new Record("body", "D,E,2"),
+      new Record("body", "G,H,3")
     );
 
     records = PipelineTest.execute(directives, records);
@@ -58,14 +58,14 @@ public class CopyTest {
   @Test(expected = StepException.class)
   public void testCopyToExistingColumn() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body ,",
       "copy body_1 body_2"
     };
 
     List<Record> records = Arrays.asList(
-      new Record("body", "A,B,C"),
-      new Record("body", "D,E,F"),
-      new Record("body", "G,H,I")
+      new Record("body", "A,B,1"),
+      new Record("body", "D,E,2"),
+      new Record("body", "G,H,3")
     );
 
     records = PipelineTest.execute(directives, records);
@@ -74,14 +74,14 @@ public class CopyTest {
   @Test
   public void testForceCopy() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body ,",
       "copy body_1 body_2 true"
     };
 
     List<Record> records = Arrays.asList(
-      new Record("body", "A,B,C"),
-      new Record("body", "D,E,F"),
-      new Record("body", "G,H,I")
+      new Record("body", "A,B,1"),
+      new Record("body", "D,E,2"),
+      new Record("body", "G,H,3")
     );
 
     records = PipelineTest.execute(directives, records);

@@ -21,6 +21,8 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.i18n.Messages;
+import co.cask.wrangler.api.i18n.MessagesFactory;
 
 import java.util.List;
 
@@ -33,6 +35,8 @@ import java.util.List;
   description = "Rename a column name."
 )
 public class Rename extends AbstractStep {
+  private static final Messages MSG = MessagesFactory.getMessages();
+
   // Columns of the columns that needs to be renamed.
   private String oldcol;
 
@@ -65,9 +69,7 @@ public class Rename extends AbstractStep {
       }
     }
     if (!found) {
-      throw new StepException(
-        toString() + " : '" + oldcol + "' column is not defined in the record or the record has no column."
-      );
+      throw new StepException(MSG.get("column.not.found", toString(), oldcol));
     }
     return records;
   }

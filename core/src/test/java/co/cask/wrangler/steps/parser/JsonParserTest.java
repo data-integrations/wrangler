@@ -33,7 +33,7 @@ public class JsonParserTest {
   public void testParseJsonAndJsonPath() throws Exception {
     String[] directives = new String[] {
       "parse-as-json body",
-      "parse-as-csv  body_deviceReference_screenSize | true",
+      "parse-as-csv  body_deviceReference_screenSize | false",
       "drop body_deviceReference_screenSize",
       "rename body_deviceReference_screenSize_1 size1",
       "rename body_deviceReference_screenSize_2 size2",
@@ -45,7 +45,7 @@ public class JsonParserTest {
       "rename body_deviceReference_timestamp timestamp",
       "set column timestamp timestamp / 1000000",
       "drop body_deviceReference_alerts",
-      "set columns timestamp,alerts,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
+      "set columns timestamp,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
     };
 
     List<Record> records = Arrays.asList(
