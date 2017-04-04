@@ -65,25 +65,37 @@ public class XPathElement extends AbstractStep {
       if (idx != -1) {
         Object object = record.getValue(idx);
         if (object instanceof VTDNav) {
-          VTDNav vn = (VTDNav) record.getValue(idx);
-          AutoPilot ap = new AutoPilot(vn);
+          VTDNav vNav = (VTDNav) record.getValue(idx);
+          AutoPilot ap = new AutoPilot(vNav);
           try {
+            int tokenCount = vNav.getTokenCount();
+            String token = null;
+            String nsPrefix = null;
+            String nsUrl = null;
+            for ( int i = 0; i < tokenCount; i++ ) {
+              token = vNav.toNormalizedString( i );
+              if ( vNav.startsWith( i, "xmlns:" ) ) {
+                nsPrefix = token.substring( token.indexOf( ":" ) + 1 );
+                nsUrl = vNav.toNormalizedString( i + 1 );
+                ap.declareXPathNameSpace( nsPrefix, nsUrl );
+              }// if
+            }// for
             boolean found = false;
             ap.selectXPath(xpath);
             if (attribute == null) {
               if (ap.evalXPath() != -1) {
-                int val = vn.getText();
+                int val = vNav.getText();
                 if (val != -1) {
-                  String title = vn.getXPathStringVal();
+                  String title = vNav.getXPathStringVal();
                   record.addOrSet(destination, title);
                   found = true;
                 }
               }
             } else {
               if (ap.evalXPath() != -1) {
-                int val = vn.getAttrVal(attribute);
+                int val = vNav.getAttrVal(attribute);
                 if (val != -1) {
-                  record.addOrSet(destination, vn.toString(val));
+                  record.addOrSet(destination, vNav.toString(val));
                   found = true;
                 }
               }
