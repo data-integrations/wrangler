@@ -244,7 +244,6 @@ public class XMLTest {
   public void testBasicXMLParser() throws Exception {
     String[] directives = new String[] {
       "parse-as-xml body",
-      //"xpath body test description /catalog/product/catalog_item[@gender=\"Women's\"]/@test",
       "xpath body item /catalog/product/catalog_item/item_number",
       "xpath-array body items /catalog/product/catalog_item/item_number",
       "xpath-attr body description description /catalog/product",

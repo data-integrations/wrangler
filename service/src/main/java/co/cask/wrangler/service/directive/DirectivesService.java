@@ -568,14 +568,15 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       // Get the minimum of records and the limit as set by the user.
-      int limit = Math.min(reqBody.getSampling().getLimit(), records.size());
+      int limit = Math.min(records.size(), reqBody.getSampling().getLimit());
 
       // Extract directives from the request.
       List<String> directives = reqBody.getRecipe().getDirectives();
 
       // Execute the directives.
       List<Record> newRecords = execute(records.subList(0, limit),
-                                        directives.toArray(new String[directives.size()]), limit);
+                                        directives.toArray(new String[directives.size()]),
+                                        reqBody.getSampling().getLimit());
 
       JSONArray values = new JSONArray();
       JSONArray headers = new JSONArray();

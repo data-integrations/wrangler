@@ -36,6 +36,7 @@ public class RandomDistributionSampling implements Predicate<Object> {
     this.total = total;
     this.remain = remain;
   }
+
   @Override
   public boolean apply(@Nullable Object o) {
     if (random.nextInt(total--) < remain) {

@@ -214,4 +214,27 @@ public class FlattenTest {
 
     Assert.assertTrue(records.size() == 20);
   }
+
+  @Test
+  public void testFlatteningBasic() throws Exception {
+    String[] directives = new String[] {
+      "flatten FirstName",
+      "flatten LastName"
+    };
+
+    JSONArray fname = new JSONArray();
+    fname.put("SADASD");
+    fname.put("ROOT");
+
+    JSONArray lname = new JSONArray();
+    lname.put("SADASDMR");
+    lname.put("JOLTIE");
+
+    List<Record> records = Arrays.asList(
+      new Record("FirstName", fname).add("LastName", lname)
+    );
+
+    records = PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 4);
+  }
 }
