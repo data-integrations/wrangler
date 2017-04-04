@@ -17,6 +17,7 @@
 
 package co.cask.wrangler.internal;
 
+import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Directives;
@@ -41,11 +42,12 @@ import java.util.concurrent.Future;
 /**
  * Wrangle Pipeline executes stepRegistry in the order they are specified.
  */
+@Beta
 public final class ParallelPipelineExecutor implements Pipeline<Record, StructuredRecord> {
   private Directives directives;
   private PipelineContext context;
   private RecordConvertor convertor = new RecordConvertor();
-  private int threads = 4; //Runtime.getRuntime().availableProcessors();
+  private int threads = Runtime.getRuntime().availableProcessors();
   private ExecutorService executor = Executors.newFixedThreadPool(threads,
                                                                   new ThreadFactoryBuilder().setDaemon(true).build());
 
