@@ -71,6 +71,18 @@ public class XPathArrayElement extends AbstractStep {
           VTDNav vn = (VTDNav) record.getValue(idx);
           AutoPilot ap = new AutoPilot(vn);
           try {
+            int tokenCount = vn.getTokenCount();
+            String token = null;
+            String nsPrefix = null;
+            String nsUrl = null;
+            for ( int i = 0; i < tokenCount; i++ ) {
+              token = vn.toNormalizedString( i );
+              if ( vn.startsWith( i, "xmlns:" ) ) {
+                nsPrefix = token.substring( token.indexOf( ":" ) + 1 );
+                nsUrl = vn.toNormalizedString( i + 1 );
+                ap.declareXPathNameSpace( nsPrefix, nsUrl );
+              }// if
+            }// for
             ap.selectXPath(xpath);
             if (attribute == null) {
               int i = 0, j = 0;
