@@ -16,10 +16,10 @@
 
 package co.cask.wrangler;
 
-import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.RecordConvertor;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.internal.ParallelPipelineExecutor;
+import co.cask.wrangler.internal.PipelineExecutor;
+import co.cask.wrangler.internal.TextDirectives;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,20 +38,48 @@ public class InputFileTest {
   @Ignore
   @Test
   public void testWithFile() throws Exception {
-    Path path = Paths.get("<Path-to-File>");
+    Path path = Paths.get("/Users/nitin/Work/Demo/data/titanic.250K.csv");
     byte[] data = Files.readAllBytes(path);
 
     String[] directives = new String[] {
-      "find-and-replace body s/\\x00//g",
-      "parse-as-csv body ,"
+      "parse-as-csv body ,",
+      "drop body",
+      "set columns PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
+      "drop Cabin",
+      "drop Embarked",
+      "filter-row-if-matched Age Age",
+      "fill-null-or-empty Age 0",
+      "filter-row-if-true Fare < 8.06"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", new String(data))
+    TextDirectives txtDirectives = new TextDirectives(directives);
+
+    String lines = new String(data);
+    List<Record> records1 = new ArrayList<>();
+    List<Record> records2 = new ArrayList<>();
+    for (String line : lines.split("\n")) {
+      records1.add(new Record("body", line));
+      records2.add(new Record("body", line));
+    }
+
+    long start = System.currentTimeMillis();
+    PipelineExecutor executor1 = new PipelineExecutor();
+    executor1.configure(txtDirectives, null);
+    List<Record> results1 = executor1.execute(records1);
+    long end = System.currentTimeMillis();
+    System.out.println(
+      String.format("Sequential : Records %d, Duration %d", results1.size(), end - start)
     );
-    RecordConvertor convertor = new RecordConvertor();
-    records = PipelineTest.execute(directives, records);
-    Schema schema = convertor.toSchema("record", records);
+
+    start = System.currentTimeMillis();
+    ParallelPipelineExecutor executor2 = new ParallelPipelineExecutor();
+    executor2.configure(txtDirectives, null);
+    List<Record> results2 = executor2.execute(records2);
+    end = System.currentTimeMillis();
+    System.out.println(
+      String.format("Parallel : Records %d, Duration %d", results2.size(), end - start)
+    );
+
     Assert.assertTrue(true);
   }
 }
