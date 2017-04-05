@@ -1,17 +1,16 @@
-# Date Functions
+# JSON Functions
 
 Following are some date functions that might be useful in transforming your data. All of
-these functions are used in conjunction with 'SET-COLUMN' or 'SET COLUMN' directives.
+these functions are used in conjunction with 'PARSE-AS-JSON' directive.
 
 ## Pre-requisite
-All of these functions can be applied only after the directive 'PARSE-AS-DATE' or
-'PARSE-AS-SIMPLE-DATE' are applied.
+All of these functions can be applied only after the directive 'PARSE-AS-JSON'.
 
 ## Namespace
 
 All date related functions are in the namespace
 ```
-  date
+  json
 ```
 
 ## Example Data
