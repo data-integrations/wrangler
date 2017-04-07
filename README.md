@@ -114,6 +114,8 @@ Following are different directives currently available.
   * [Fuzzy String Match - Metric](docs/directives/text-metric.md)
   * [Quantization](docs/directives/quantize.md)
   * [Regex Group Extractor](docs/directives/extract-regex-groups.md)
+  * [Setting Character Set](docs/directives/set-charset.md)
+  * [Setting Record Delimiter](docs/directives/set-record-delim.md)
 * **Encoders and Decoders**
   * [Encode as Base-32,64 & Hex](docs/directives/encode.md)
   * [Decode Base-32,64 & Hex](docs/directives/decode.md)
@@ -152,6 +154,9 @@ Following are different directives currently available.
   * [Set Column Names](docs/directives/set-columns.md)
 * **NLP**
   * [Stemming Tokenized Words](docs/directives/stemming.md)
+* **Functions**
+    * [JSON](docs/functions/JSON.md)
+    * [Types](docs/functions/Types.md)
   
 ## Performance
 

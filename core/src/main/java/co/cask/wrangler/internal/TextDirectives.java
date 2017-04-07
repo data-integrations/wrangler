@@ -19,10 +19,6 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.steps.row.ErrorOnCondition;
-import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
-import co.cask.wrangler.steps.parser.JsPath;
-import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
@@ -39,22 +35,25 @@ import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
+import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
+import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
+import co.cask.wrangler.steps.row.SendToError;
 import co.cask.wrangler.steps.row.SplitToRows;
-import co.cask.wrangler.steps.transformation.SetColumn;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Decode;
 import co.cask.wrangler.steps.transformation.Encode;
 import co.cask.wrangler.steps.transformation.Expression;
+import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
@@ -64,6 +63,7 @@ import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import co.cask.wrangler.steps.transformation.Quantization;
+import co.cask.wrangler.steps.transformation.SetColumn;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.SplitURL;
@@ -73,9 +73,7 @@ import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlEncode;
-import co.cask.wrangler.steps.transformation.XPathArrayAttr;
 import co.cask.wrangler.steps.transformation.XPathArrayElement;
-import co.cask.wrangler.steps.transformation.XPathAttr;
 import co.cask.wrangler.steps.transformation.XPathElement;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
@@ -466,26 +464,6 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // xpath-attr <column> <destination> <attr> <xpath>
-        case "xpath-attr" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String attribute = getNextToken(tokenizer, command, "attribute", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          steps.add(new XPathAttr(lineno, directive, column, destination, attribute, xpath));
-        }
-        break;
-
-        // xpath-array-attr <column> <destination> <attr> <xpath>
-        case "xpath-array-attr" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String attribute = getNextToken(tokenizer, command, "attribute", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          steps.add(new XPathArrayAttr(lineno, directive, column, destination, attribute, xpath));
-        }
-        break;
-
         // flatten <column>[,<column>,<column>,...]
         case "flatten" : {
           String cols = getNextToken(tokenizer, command, "columns", lineno);
@@ -713,7 +691,7 @@ public class TextDirectives implements Directives {
         // send-to-error <condition>
         case "send-to-error": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          steps.add(new ErrorOnCondition(lineno, directive, condition, true));
+          steps.add(new SendToError(lineno, directive, condition));
         }
         break;
 

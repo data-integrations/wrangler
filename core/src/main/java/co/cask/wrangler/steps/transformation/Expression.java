@@ -16,24 +16,17 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.steps.transformation.functions.ConversionFunctions;
-import co.cask.wrangler.steps.transformation.functions.DateFunctions;
-import co.cask.wrangler.steps.transformation.functions.JSONFunctions;
-import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
-import org.apache.commons.lang.StringUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,19 +69,8 @@ public class Expression extends AbstractStep {
     super(lineno, detail);
     this.column = column;
     this.expression = expression;
-
-    // Load the functions that should be accessible in the script.
-    Map<String, Object> functions = new HashMap<>();
-    functions.put(null, ConversionFunctions.class);
-    functions.put("date", DateFunctions.class);
-    functions.put("json", JSONFunctions.class);
-    functions.put("math", Math.class);
-    functions.put("string", StringUtils.class);
-    functions.put("bytes", Bytes.class);
-    functions.put("arrays", Arrays.class);
-
     // Create and build the script.
-    engine = new JexlBuilder().namespaces(functions).silent(false).cache(10).strict(true).create();
+    engine = JexlFunctions.getEngine();
     script = engine.createScript(expression);
   }
 

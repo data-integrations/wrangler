@@ -22,7 +22,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import org.apache.commons.jexl3.JexlBuilder;
+import co.cask.wrangler.steps.transformation.JexlFunctions;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -46,18 +46,16 @@ import java.util.List;
   usage = "send-to-error <condition>",
   description = "Rule "
 )
-public class ErrorOnCondition extends AbstractStep {
+public class SendToError extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
-  private final boolean isTrue;
 
-  public ErrorOnCondition(int lineno, String detail, String condition, boolean isTrue) {
+  public SendToError(int lineno, String detail, String condition) {
     super(lineno, detail);
     this.condition = condition;
-    this.isTrue = isTrue;
     // Create and build the script.
-    engine = new JexlBuilder().silent(false).cache(1000).strict(true).create();
+    engine = JexlFunctions.getEngine();
     script = engine.createScript(condition);
   }
 
@@ -84,11 +82,15 @@ public class ErrorOnCondition extends AbstractStep {
       // mapped into context.
       try {
         boolean result = (Boolean) script.execute(ctx);
-        if (!isTrue) {
-          result = !result;
-        }
-        if (result) {
-          throw new ErrorRecordException(toString(), 1);
+
+        // If environment this is running is not transform, then there is no
+        // point right now to add to error records or throw ErrorRecordException.
+        if (context.getEnvironment() == PipelineContext.Environment.TRANSFORM) {
+          if (result) {
+            throw new ErrorRecordException(toString(), 1);
+          } else {
+            continue;
+          }
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
