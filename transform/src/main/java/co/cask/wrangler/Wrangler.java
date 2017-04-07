@@ -25,13 +25,12 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginConfig;
 import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.InvalidEntry;
-import co.cask.cdap.etl.api.Lookup;
 import co.cask.cdap.etl.api.PipelineConfigurer;
-import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
@@ -45,7 +44,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -79,49 +77,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     this.config = config;
   }
 
-  private class WranglerPipelineContext implements PipelineContext {
-    private final TransformContext context;
-    private StageMetrics metrics;
-    private String name;
-    private Map<String, String> properties;
-
-    WranglerPipelineContext(TransformContext context) {
-      this.metrics = context.getMetrics();
-      this.name = context.getStageName();
-      this.properties = context.getPluginProperties().getProperties();
-      this.context = context;
-    }
-
-    /**
-     * @return Measurements context.
-     */
-    @Override
-    public StageMetrics getMetrics() {
-      return metrics;
-    }
-
-    /**
-     * @return Context name.
-     */
-    @Override
-    public String getContextName() {
-      return name;
-    }
-
-    /**
-     * @return Properties associated with run and pipeline.
-     */
-    @Override
-    public Map<String, String> getProperties() {
-      return properties;
-    }
-
-    @Override
-    public <T> Lookup<T> provide(String s, Map<String, String> map) {
-      return context.provide(s, map);
-    }
-  }
-
+  /**
+   *
+   * @param configurer
+   * @throws IllegalArgumentException
+   */
   @Override
   public void configurePipeline(PipelineConfigurer configurer) throws IllegalArgumentException {
     super.configurePipeline(configurer);
@@ -169,6 +129,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     configurer.getStageConfigurer().setOutputSchema(oSchema);
   }
 
+  /**
+   *
+   * @param inputSchema
+   */
   void validateInputSchema(Schema inputSchema) {
     if (inputSchema != null) {
       // Check the existence of field in input schema
@@ -188,14 +152,22 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
   }
 
+  /**
+   *
+   * @param context
+   * @throws Exception
+   */
   @Override
   public void initialize(TransformContext context) throws Exception {
     super.initialize(context);
 
     // Parse DSL and initialize the wrangle pipeline.
     Directives directives = new TextDirectives(config.directives);
+    PipelineContext ctx = new WranglerPipelineContext(PipelineContext.Environment.TRANSFORM, context);
+
+    // Create the pipeline executor with context being set.
     pipeline = new PipelineExecutor();
-    pipeline.configure(directives, new WranglerPipelineContext(context));
+    pipeline.configure(directives, ctx);
 
     // Based on the configuration create output schema.
     try {
@@ -217,6 +189,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     errorCounter = 0;
   }
 
+  /**
+   *
+   * @param input
+   * @param emitter
+   * @throws Exception
+   */
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
     // Creates a row as starting point for input to the pipeline.
@@ -245,6 +223,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     long start = System.nanoTime();
     try {
       records = pipeline.execute(Arrays.asList(row), oSchema); // we don't compute meta and statistics.
+
+      // We now extract errors from the execution and pass it on to the error emitter.
+      List<ErrorRecord> errors = pipeline.errors();
+      if (errors.size() > 0) {
+        getContext().getMetrics().count("errors", 1);
+        ErrorRecord error = errors.get(0);
+        emitter.emitError(new InvalidEntry<StructuredRecord>(error.getCode(), error.getMessage(), input));
+      }
     } catch (PipelineException e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;

@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.steps.transformation.functions;
 
+import co.cask.wrangler.dq.TypeInference;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.Period;
@@ -29,7 +30,7 @@ import java.util.Date;
  *
  * set-column column <expression>
  */
-public class DateFunctions {
+public final class Dates {
   /**
    * Converts a date to long -- unix timestamp in milli-seconds.
    *
@@ -252,4 +253,23 @@ public class DateFunctions {
     return period.toStandardWeeks().getWeeks();
   }
 
+  /**
+   * Checks if a column is a date column or not.
+   *
+   * @param value representing a date.
+   * @return true if it's date, false if not.
+   */
+  public static boolean isDate(String value) {
+    return TypeInference.isDate(value);
+  }
+
+  /**
+   * Checks if the value passed is a date time.
+   *
+   * @param value representing date time.
+   * @return true if it's datetime, false if not.
+   */
+  public static boolean isTime(String value) {
+    return TypeInference.isTime(value);
+  }
 }

@@ -20,12 +20,16 @@ import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.ErrorRecord;
+import co.cask.wrangler.api.ErrorRecordCollector;
+import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +37,11 @@ import java.util.List;
 /**
  * Wrangle Pipeline executes stepRegistry in the order they are specified.
  */
-public final class PipelineExecutor implements Pipeline<Record, StructuredRecord> {
+public final class PipelineExecutor implements Pipeline<Record, StructuredRecord, ErrorRecord> {
   private Directives directives;
   private PipelineContext context;
+  private List<Step> steps;
+  private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private RecordConvertor convertor = new RecordConvertor();
 
   /**
@@ -44,9 +50,16 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
    * @param directives Wrangle directives.
    */
   @Override
-  public void configure(Directives directives, PipelineContext context) {
+  public void configure(Directives directives, PipelineContext context) throws PipelineException {
     this.directives = directives;
     this.context = context;
+    try {
+      this.steps = directives.getSteps();
+    } catch (DirectiveParseException e) {
+      throw new PipelineException(
+        String.format(e.getMessage())
+      );
+    }
   }
 
   /**
@@ -76,18 +89,41 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
    */
   @Override
   public List<Record> execute(List<Record> records) throws PipelineException {
+    List<Record> results = Lists.newArrayList();
     try {
-      for (Step step : directives.getSteps()) {
-        // If there are no records, then we short-circuit the processing and break out.
-        if (records.size() < 1) {
-          break;
+      int i = 0;
+      collector.reset();
+      while (i < records.size()) {
+        List<Record> newRecords = records.subList(i, i+1);
+        try {
+          for (Step step : steps) {
+            newRecords = step.execute(newRecords, context);
+            if (newRecords.size() < 1) {
+              break;
+            }
+          }
+          if(newRecords.size() > 0) {
+            results.addAll(newRecords);
+          }
+        } catch (ErrorRecordException e) {
+          collector.add(new ErrorRecord(newRecords.get(0), e.getMessage(), e.getCode()));
         }
-        records = step.execute(records, context);
+        i++;
       }
-    } catch (StepException | DirectiveParseException e) {
+    } catch (StepException  e) {
       throw new PipelineException(e);
     }
-    return records;
+    return results;
+  }
+
+  /**
+   * Returns records that are errored out.
+   *
+   * @return records that have errored out.
+   */
+  @Override
+  public List<ErrorRecord> errors() throws PipelineException {
+    return collector.get();
   }
 
   /**

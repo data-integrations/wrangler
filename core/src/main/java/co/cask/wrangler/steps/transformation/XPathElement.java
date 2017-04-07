@@ -31,6 +31,12 @@ import java.util.List;
 
 /**
  * A Step to extract a single XML element using XPath.
+ *
+ * <p>
+ *   TODO: This code has to be moved out into a plugin due to VTDNav once we have
+ *   the plugin framework.
+ * </p>
+ *
  */
 @Usage(
   directive = "xpath",

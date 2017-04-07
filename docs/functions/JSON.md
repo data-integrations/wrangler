@@ -15,7 +15,7 @@ All date related functions are in the namespace
 
 ## Example Data
 
-Assume a input JSON as follows
+Assume a input record as follows
 
 ```
 {
@@ -62,7 +62,7 @@ Once such a JSON is loaded, you apply the following directives before the functi
   columns-replace s/body_//g
 ```
 
-## List of Date Functions
+## List of JSON Functions
 
 | Function | Description | Examples |
 | :------- | :---------- | :------- |

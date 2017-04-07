@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Wrangle step for filtering rows based on the condition.
+ * A Wrangle step for erroring the record if
  *
  * <p>
  *   This step will evaluate the condition, if the condition evaluates to
@@ -41,20 +42,18 @@ import java.util.List;
  * </p>
  */
 @Usage(
-  directive = "filter-row-if-true",
-  usage = "filter-row-if-true <condition>",
-  description = "Filters rows if condition is evaluated to true."
+  directive = "send-to-error",
+  usage = "send-to-error <condition>",
+  description = "Send records that match condition to the error collector."
 )
-public class RecordConditionFilter extends AbstractStep {
+public class SendToError extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
-  private final boolean isTrue;
 
-  public RecordConditionFilter(int lineno, String detail, String condition, boolean isTrue) {
+  public SendToError(int lineno, String detail, String condition) {
     super(lineno, detail);
     this.condition = condition;
-    this.isTrue = isTrue;
     // Create and build the script.
     engine = JexlFunctions.getEngine();
     script = engine.createScript(condition);
@@ -69,7 +68,8 @@ public class RecordConditionFilter extends AbstractStep {
    * @throws StepException if there are any issues with processing the condition
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context)
+    throws StepException, ErrorRecordException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       // Move the fields from the record into the context.
@@ -82,11 +82,8 @@ public class RecordConditionFilter extends AbstractStep {
       // mapped into context.
       try {
         boolean result = (Boolean) script.execute(ctx);
-        if (!isTrue) {
-          result = !result;
-        }
         if (result) {
-          continue;
+          throw new ErrorRecordException(toString(), 1);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
@@ -101,6 +98,10 @@ public class RecordConditionFilter extends AbstractStep {
         throw new StepException(toString() + " : " + " type mismatch. Change type of constant " +
                                   "or convert to right data type using conversion functions available. Reason : " + e.getMessage());
       } catch (Exception e) {
+        // We want to propogate this exception up!
+        if (e instanceof ErrorRecordException) {
+          throw e;
+        }
         if (e.getCause() != null) {
           throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
         } else {

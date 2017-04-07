@@ -26,6 +26,16 @@ import java.util.Map;
  * Pipeline Context for passing contextual information to the pipeline being executed.
  */
 public interface PipelineContext extends LookupProvider, Serializable {
+  public enum Environment {
+    SERVICE,
+    TRANSFORM
+  };
+
+  /**
+   * @return Environment this context is prepared for.
+   */
+  public Environment getEnvironment();
+
   /**
    * @return Measurements handler.
    */
