@@ -44,7 +44,7 @@ import java.util.List;
 @Usage(
   directive = "send-to-error",
   usage = "send-to-error <condition>",
-  description = "Sends records to error that match the condition."
+  description = "Send records that match condition to the error collector."
 )
 public class SendToError extends AbstractStep {
   private final String condition;
