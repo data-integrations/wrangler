@@ -71,10 +71,10 @@ Once such a record is loaded, you apply the following directives before the func
 
 | Function | Description | Examples |
 | :------- | :---------- | :------- |
-|isDate(string)| Checks if the string value is a date field or not. true if it is, false otherwise. | ```filter-row-if-true types:isDate(date)``` |
-|isTime(string)| Checks if the string value is a date time field or not. true if it is, false otherwise. | ```filter-row-if-true types:isTime(time)``` |
-|isBoolean(string| Checks if the string value is a booelan field or not. true if it is, false otherwise. | ```send-to-error !types:isBoolean(boolean)``` |
-|isNumber(string| Checks if the string value is a number field or not. true if it is, false otherwise. | ```send-to-error !types:isNumber(integer)``` |
-|isEmpty(string| Checks if the string value is a empty or not. true if it is, false otherwise. | ```send-to-error !types:isEmpty(empty)``` |
-|isDouble(string| Checks if the string value is a double field or not. true if it is, false otherwise. | ```send-to-error !types:isDouble(double)``` |
-|isInteger(string| Checks if the string value is a integer field or not. true if it is, false otherwise. | ```send-to-error !types:isInteger(integer)``` |
+|isDate(string)| Checks if the string value is a date field or not. true if it is, false otherwise. | ```filter-row-if-true type:isDate(date)``` |
+|isTime(string)| Checks if the string value is a date time field or not. true if it is, false otherwise. | ```filter-row-if-true type:isTime(time)``` |
+|isBoolean(string| Checks if the string value is a booelan field or not. true if it is, false otherwise. | ```send-to-error !type:isBoolean(boolean)``` |
+|isNumber(string| Checks if the string value is a number field or not. true if it is, false otherwise. | ```send-to-error !type:isNumber(integer)``` |
+|isEmpty(string| Checks if the string value is a empty or not. true if it is, false otherwise. | ```send-to-error !type:isEmpty(empty)``` |
+|isDouble(string| Checks if the string value is a double field or not. true if it is, false otherwise. | ```send-to-error !type:isDouble(double)``` |
+|isInteger(string| Checks if the string value is a integer field or not. true if it is, false otherwise. | ```send-to-error !type:isInteger(integer)``` |
