@@ -82,15 +82,8 @@ public class SendToError extends AbstractStep {
       // mapped into context.
       try {
         boolean result = (Boolean) script.execute(ctx);
-
-        // If environment this is running is not transform, then there is no
-        // point right now to add to error records or throw ErrorRecordException.
-        if (context.getEnvironment() == PipelineContext.Environment.TRANSFORM) {
-          if (result) {
-            throw new ErrorRecordException(toString(), 1);
-          } else {
-            continue;
-          }
+        if (result) {
+          throw new ErrorRecordException(toString(), 1);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
