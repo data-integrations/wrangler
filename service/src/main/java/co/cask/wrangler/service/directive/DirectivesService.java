@@ -319,22 +319,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         return;
       }
 
-      JsonArray array = GSON.fromJson(data, new TypeToken<JsonArray>() {
-      }.getType());
+      JsonArray array = GSON.fromJson(data, new TypeToken<JsonArray>() {}.getType());
 
-//      List<Record> records = getWorkspaceData(ws, responder);
-//      if (records == null) {
-//        return;
-//      }
-//      JSONArray values = new JSONArray();
-//      for (Record record : records) {
-//        List<KeyValue<String, Object>> fields = record.getFields();
-//        JSONObject r = new JSONObject();
-//        for (KeyValue<String, Object> field : fields) {
-//          r.append(field.getKey(), field.getValue().toString());
-//        }
-//        values.put(r);
-//      }
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
