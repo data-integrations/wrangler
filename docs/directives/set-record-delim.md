@@ -13,4 +13,4 @@ SET-RECORD-DELIM directive sets the record delimiter.
 Sets the ```delimiter``` for the ```column```. This directive applies
 the record delimiter to generate more records. Optionally, one can specify
 the limit to limit the number of records being generated once the delimiter
-is applied. 
+is applied.

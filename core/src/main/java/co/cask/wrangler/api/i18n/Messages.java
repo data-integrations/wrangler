@@ -23,14 +23,21 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
+ * Messages is a i18n error or descriptive messages.
+ *
  * <code>
  *   private static final Messages MSG = MessageFactory.getMessages();
  *   private static final Messages MSG = MessageFactory.getMessages(name, Locale.FRANCE);
  * </code>
  */
 public final class Messages {
+  // Resource bundle.
   private static ResourceBundle bundle;
+
+  // Name of the resource.
   private final String name;
+
+  // Locale of the resource.
   private final Locale locale;
 
   public Messages() {
@@ -47,6 +54,12 @@ public final class Messages {
     bundle = ResourceBundle.getBundle(name, locale, Messages.class.getClassLoader());
   }
 
+  /**
+   * Return the message based on the key.
+   *
+   * @param key of the message.
+   * @return resolved string message.
+   */
   public String get(String key) {
     if (bundle == null) {
       return String.format("Key '%s' not found in bundle '%s' and locale '%s'",
@@ -61,6 +74,13 @@ public final class Messages {
     }
   }
 
+  /**
+   * Returns a string message with resolved arguments.
+   *
+   * @param key name of the key.
+   * @param args list of arguments.
+   * @return resolved string representation.
+   */
   public String get(String key, Object ... args) {
     return MessageFormat.format(get(key), args);
   }
