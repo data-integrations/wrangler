@@ -1,7 +1,6 @@
 # Send Records to Error
 
-SEND-TO-ERROR directive allows you filter records. It redirect the
-records that match the condition to the error collector if connected.
+SEND-TO-ERROR directive allows users to filter records and direct the filtered records that match a given condition to an error collector. If the error collector is not connected as the next stage in the pipeline then the filtered records will be dropped. 
 
 ## Syntax
 
@@ -9,7 +8,7 @@ records that match the condition to the error collector if connected.
  send-to-error <condition>
 ```
 
-```condition``` Is a JEXL expression specifing when to send the record
+```condition``` Is a JEXL expression specifing the condition to send the record
 to the error collector.
 
 ## Usage Notes
