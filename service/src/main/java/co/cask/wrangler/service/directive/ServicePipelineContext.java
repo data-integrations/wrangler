@@ -30,30 +30,51 @@ import java.util.Map;
  * Implementation of {@PipelineContext}, for use in Service.
  */
 class ServicePipelineContext implements PipelineContext {
-
+  private PipelineContext.Environment environment;
   private final HttpServiceContext serviceContext;
   private final DatasetContextLookupProvider lookupProvider;
 
-  public ServicePipelineContext(HttpServiceContext serviceContext) {
+  public ServicePipelineContext(Environment environment, HttpServiceContext serviceContext) {
+    this.environment = environment;
     this.serviceContext = serviceContext;
     this.lookupProvider = new DatasetContextLookupProvider(serviceContext);
   }
 
+  /**
+   * @return Environment this context is prepared for.
+   */
+  @Override
+  public Environment getEnvironment() {
+    return environment;
+  }
+
+  /**
+   * @return Measurements handler.
+   */
   @Override
   public StageMetrics getMetrics() {
     return NoopMetrics.INSTANCE;
   }
 
+  /**
+   * @return Context name.
+   */
   @Override
   public String getContextName() {
     return serviceContext.getSpecification().getName();
   }
 
+  /**
+   * @return
+   */
   @Override
   public Map<String, String> getProperties() {
     return Collections.emptyMap();
   }
 
+  /**
+   * @return Properties associated with run and pipeline.
+   */
   @Override
   public <T> Lookup<T> provide(String s, Map<String, String> map) {
     return lookupProvider.provide(s, map);

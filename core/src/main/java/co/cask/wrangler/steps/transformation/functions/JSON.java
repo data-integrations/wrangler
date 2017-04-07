@@ -31,7 +31,7 @@ import java.util.Set;
  *
  * set-column column <expression>
  */
-public class JSONFunctions {
+public final class JSON {
 
   /**
    * Joins the elements in the array with a separator to return a String object.

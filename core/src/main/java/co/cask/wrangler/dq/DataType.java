@@ -18,7 +18,7 @@
 package co.cask.wrangler.dq;
 
 /**
- * Class description here.
+ * Class that specifies type of data.
  */
 public enum DataType {
   BOOLEAN,
@@ -29,9 +29,15 @@ public enum DataType {
   TIME,
   EMPTY;
 
-  public static DataType get(String typeName) {
+  /**
+   * Get the type of the data.
+   *
+   * @param name of type.
+   * @return {@link DataType}.
+   */
+  public static DataType get(String name) {
     try {
-      return DataType.valueOf(typeName.toUpperCase());
+      return DataType.valueOf(name.toUpperCase());
     } catch (Exception e) {
       return DataType.STRING;
     }

@@ -19,7 +19,6 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.transformation.XPathElement;
-import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -245,9 +244,7 @@ public class XMLTest {
     String[] directives = new String[] {
       "parse-as-xml body",
       "xpath body item /catalog/product/catalog_item/item_number",
-      "xpath-array body items /catalog/product/catalog_item/item_number",
-      "xpath-attr body description description /catalog/product",
-      "xpath-array-attr body size_desc description /catalog/product/catalog_item[@gender=\"Women's\"]/size"
+      "xpath-array body items /catalog/product/catalog_item/item_number"
     };
 
     List<Record> records = Arrays.asList(
@@ -256,22 +253,9 @@ public class XMLTest {
 
     records = PipelineTest.execute(directives, records);
 
-    JSONArray expectedDescription = new JSONArray();
-    expectedDescription.put("Small");
-    expectedDescription.put("Medium");
-    expectedDescription.put("Large");
-    expectedDescription.put("Extra Large");
-
-    JSONArray expectedItems = new JSONArray();
-    expectedItems.put("QWZ5671");
-    expectedItems.put("RRX9856");
-
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(5, records.get(0).length());
+    Assert.assertEquals(3, records.get(0).length());
     Assert.assertEquals("QWZ5671", records.get(0).getValue(1));
-    //Assert.assertEquals(expectedItems, records.get(0).getValue(2));
-    Assert.assertEquals("Cardigan Sweater", records.get(0).getValue(3));
-    //Assert.assertEquals(expectedDescription, records.get(0).getValue(4));
   }
 
   @Test

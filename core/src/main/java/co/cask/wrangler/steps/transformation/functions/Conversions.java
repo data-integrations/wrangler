@@ -22,7 +22,7 @@ package co.cask.wrangler.steps.transformation.functions;
  *
  * set-column column <expression>
  */
-public class ConversionFunctions {
+public final class Conversions {
   /**
    * Converts String value to double.
    *
