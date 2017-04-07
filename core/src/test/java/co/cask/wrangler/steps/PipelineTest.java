@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
@@ -104,7 +105,7 @@ public class PipelineTest {
   }
 
 
-  public static List<Record> execute(List<Step> steps, List<Record> records) throws StepException {
+  public static List<Record> execute(List<Step> steps, List<Record> records) throws StepException, ErrorRecordException {
     for (Step step : steps) {
       records = step.execute(records, null);
     }
@@ -112,7 +113,7 @@ public class PipelineTest {
   }
 
   public static List<Record> execute(String[] directives, List<Record> records)
-    throws StepException, DirectiveParseException {
+    throws StepException, DirectiveParseException, ErrorRecordException {
     TextDirectives specification = new TextDirectives(directives);
     List<Step> steps = new ArrayList<>();
     steps.addAll(specification.getSteps());

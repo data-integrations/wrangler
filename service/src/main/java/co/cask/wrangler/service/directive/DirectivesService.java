@@ -33,13 +33,14 @@ import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.AbstractSchemaGenerator;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
+import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.RecordConvertor;
 import co.cask.wrangler.internal.RecordConvertorException;
 import co.cask.wrangler.internal.TextDirectives;
@@ -51,8 +52,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,6 +69,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -254,11 +259,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
                      @PathParam("workspace") String ws) {
 
     String delimiter = request.getHeader("recorddelimiter");
+    String charset = request.getHeader("charset");
+
+    if (charset == null || charset.isEmpty()) {
+      charset = "utf-8";
+    }
 
     String body = null;
     ByteBuffer content = request.getContent();
     if (content != null && content.hasRemaining()) {
-      body = Bytes.toString(content);
+      body = Charset.forName(charset).decode(content).toString();
     }
 
     if (body == null || body.isEmpty()) {
@@ -301,24 +311,35 @@ public class DirectivesService extends AbstractHttpServiceHandler {
                      @PathParam("workspace") String ws) {
 
     try {
-      List<Record> records = getWorkspaceData(ws, responder);
-      if (records == null) {
+      Row row = workspace.get(Bytes.toBytes(ws));
+
+      String data = Bytes.toString(row.get("data"));
+      if (data == null || data.isEmpty()) {
+        error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
         return;
       }
-      JSONArray values = new JSONArray();
-      for (Record record : records) {
-        List<KeyValue<String, Object>> fields = record.getFields();
-        JSONObject r = new JSONObject();
-        for (KeyValue<String, Object> field : fields) {
-          r.append(field.getKey(), field.getValue().toString());
-        }
-        values.put(r);
-      }
-      JSONObject response = new JSONObject();
-      response.put("status", HttpURLConnection.HTTP_OK);
-      response.put("message", "Success");
-      response.put("count", records.size());
-      response.put("values", values);
+
+      JsonArray array = GSON.fromJson(data, new TypeToken<JsonArray>() {
+      }.getType());
+
+//      List<Record> records = getWorkspaceData(ws, responder);
+//      if (records == null) {
+//        return;
+//      }
+//      JSONArray values = new JSONArray();
+//      for (Record record : records) {
+//        List<KeyValue<String, Object>> fields = record.getFields();
+//        JSONObject r = new JSONObject();
+//        for (KeyValue<String, Object> field : fields) {
+//          r.append(field.getKey(), field.getValue().toString());
+//        }
+//        values.put(r);
+//      }
+      JsonObject response = new JsonObject();
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", array.size());
+      response.add("values", array);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -362,7 +383,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       // Run it through the pipeline.
       records =
-        execute(Lists.newArrayList(sampledRecords), directives.toArray(new String[directives.size()]), limit);
+        execute(Lists.newArrayList(sampledRecords), directives.toArray(new String[directives.size()]));
 
       // Final response object.
       JSONObject response = new JSONObject();
@@ -472,7 +493,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       // Get the minimum of records and the limit as set by the user.
       int limit = Math.min(reqBody.getSampling().getLimit(), records.size());
       records = records.subList(0, limit);
-      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]), limit);
+      List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
 
       // generate a schema based upon the first record
       RecordConvertor convertor = new RecordConvertor();
@@ -575,8 +596,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       // Execute the directives.
       List<Record> newRecords = execute(records.subList(0, limit),
-                                        directives.toArray(new String[directives.size()]),
-                                        reqBody.getSampling().getLimit());
+                                        directives.toArray(new String[directives.size()]));
 
       JSONArray values = new JSONArray();
       JSONArray headers = new JSONArray();
@@ -601,7 +621,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
               r.put(field.getKey(), object.toString());
             } else {
               if (onlyFirstRow) {
-                r.put(field.getKey(), object.getClass().getSimpleName() + " object. Delete this column at the end.");
+                r.put(field.getKey(), "Not viewable object, delete this column after extracting information.");
                 onlyFirstRow = false;
               } else {
                 r.put(field.getKey(), ".");
@@ -700,27 +720,42 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * Extracts the charsets supported.
+   *
+   * @param request to gather information of the request.
+   * @param responder to respond to the service request.
+   */
+  @GET
+  @Path("charsets")
+  public void charsets(HttpServiceRequest request, HttpServiceResponder responder) {
+    Set<String> charsets = Charset.availableCharsets().keySet();
+    JsonObject response = new JsonObject();
+    response.addProperty("status", HttpURLConnection.HTTP_OK);
+    response.addProperty("message", "success");
+    response.addProperty("count", charsets.size());
+    JsonArray array = new JsonArray();
+    for (String charset : charsets) {
+      array.add(new JsonPrimitive(charset));
+    }
+    response.add("values", array);
+    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+  }
+
+  /**
    * Executes directives.
    *
    * @param records to on which directives need to be executed on.
    * @param directives to be executed.
-   * @param limit number of record to be restricted.
    * @return List of processed record.
    * @throws DirectiveParseException
    * @throws StepException
    */
-  private List<Record> execute(List<Record> records, String[] directives, int limit)
-    throws DirectiveParseException, StepException {
-    Directives specification = new TextDirectives(directives);
-    List<Step> steps = specification.getSteps();
-
-    ServicePipelineContext servicePipelineContext = new ServicePipelineContext(getContext());
-    for (Step step : steps) {
-      records = step.execute(records, servicePipelineContext);
-      records = records.subList(0, Math.min(limit, records.size()));
-    }
-
-    return records;
+  private List<Record> execute(List<Record> records, String[] directives)
+    throws DirectiveParseException, StepException, PipelineException {
+    PipelineExecutor executor = new PipelineExecutor();
+    executor.configure(new TextDirectives(directives),
+                       new ServicePipelineContext(PipelineContext.Environment.SERVICE, getContext()));
+    return executor.execute(records);
   }
 
 
@@ -783,7 +818,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   private List<Record> getWorkspaceData(String workspaceName, HttpServiceResponder responder) {
     Row row = workspace.get(Bytes.toBytes(workspaceName));
 
-    String data = row.getString("data");
+    String data = Bytes.toString(row.get("data"));
     if (data == null || data.isEmpty()) {
       error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
       return null;

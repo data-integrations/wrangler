@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.row.ErrorOnCondition;
 import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
 import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.XmlToJson;
@@ -706,6 +707,13 @@ public class TextDirectives implements Directives {
               String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
             );
           }
+        }
+        break;
+
+        // send-to-error <condition>
+        case "send-to-error": {
+          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+          steps.add(new ErrorOnCondition(lineno, directive, condition, true));
         }
         break;
 

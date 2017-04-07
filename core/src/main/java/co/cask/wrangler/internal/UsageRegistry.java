@@ -18,6 +18,7 @@ package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.row.ErrorOnCondition;
 import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
 import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.XmlToJson;
@@ -185,7 +186,8 @@ public final class UsageRegistry implements Serializable {
     XPathAttr.class,
     SetColumn.class,
     Encode.class,
-    Decode.class
+    Decode.class,
+    ErrorOnCondition.class
   );
 
   public UsageRegistry() {

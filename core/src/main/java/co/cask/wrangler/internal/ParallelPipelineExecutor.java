@@ -21,6 +21,7 @@ import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
@@ -43,7 +44,7 @@ import java.util.concurrent.Future;
  * Wrangle Pipeline executes stepRegistry in the order they are specified.
  */
 @Beta
-public final class ParallelPipelineExecutor implements Pipeline<Record, StructuredRecord> {
+public final class ParallelPipelineExecutor implements Pipeline<Record, StructuredRecord, ErrorRecord> {
   private Directives directives;
   private PipelineContext context;
   private RecordConvertor convertor = new RecordConvertor();
@@ -134,6 +135,16 @@ public final class ParallelPipelineExecutor implements Pipeline<Record, Structur
     } catch (Exception e) {
       throw new PipelineException(e);
     }
+  }
+
+  /**
+   * Returns records that are errored out.
+   *
+   * @return records that have errored out.
+   */
+  @Override
+  public List<ErrorRecord> errors() throws PipelineException {
+    return new ArrayList<>();
   }
 
   /**

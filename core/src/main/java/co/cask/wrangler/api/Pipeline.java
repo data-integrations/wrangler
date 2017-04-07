@@ -24,13 +24,13 @@ import java.util.List;
 /**
  * Wrangle Pipeline executes steps in the order they are specified.
  */
-public interface Pipeline<I, O> extends Serializable {
+public interface Pipeline<I, O, E> extends Serializable {
   /**
    * Configures the wrangle pipeline using the directives.
    *
    * @param directives Wrangle directives.
    */
-  void configure(Directives directives, PipelineContext context);
+  void configure(Directives directives, PipelineContext context) throws PipelineException;
 
   /**
    * Executes the pipeline on the input.
@@ -48,6 +48,13 @@ public interface Pipeline<I, O> extends Serializable {
    * @return Parsed output list of record of type I
    */
   List<I> execute(List<I> input) throws PipelineException;
+
+  /**
+   * Returns records that are errored out.
+   *
+   * @return records that have errored out.
+   */
+  List<E> errors() throws PipelineException;
 }
 
 

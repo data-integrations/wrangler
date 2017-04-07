@@ -133,6 +133,7 @@ Following are different directives currently available.
   * [Message Digest or Hash](docs/directives/hash.md)
 * **Row Operations**
   * [Flatten](docs/directives/flatten.md)
+  * [Send to Error](docs/directives/send-to-error.md)
   * [Split To Rows](docs/directives/split-to-rows.md)
   * [Filter Rows On](docs/directives/filter-rows-on.md)
   * [Filter Row using Regex](docs/directives/filter-row-if-matched.md) (_Deprecated_)

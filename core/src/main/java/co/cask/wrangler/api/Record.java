@@ -38,9 +38,6 @@ public class Record implements Serializable {
   // Name of the columns held by the row.
   private List<String> columns = new ArrayList<>();
 
-  // Error record type
-  boolean isError = false;
-
   public Record() {
   }
 
@@ -52,7 +49,6 @@ public class Record implements Serializable {
   public Record(Record record) {
     this.values = new ArrayList<>(record.values);
     this.columns = new ArrayList<>(record.columns);
-    this.isError = record.isError;
   }
 
   /**
@@ -85,20 +81,6 @@ public class Record implements Serializable {
    */
   public String getColumn(int idx) {
     return columns.get(idx);
-  }
-
-  /**
-   * Sets this record as error record.
-   */
-  public void setError() {
-    isError = true;
-  }
-
-  /**
-   * @return {@code true} if this record is errored, else returns {@code false}.
-   */
-  public boolean isError() {
-    return isError;
   }
 
   /**
@@ -273,12 +255,11 @@ public class Record implements Serializable {
     Record that = (Record) o;
 
     return Objects.equal(this.values, that.values) &&
-      Objects.equal(this.columns, that.columns) &&
-      Objects.equal(this.isError, that.isError);
+      Objects.equal(this.columns, that.columns);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(values, columns, isError);
+    return Objects.hashCode(values, columns);
   }
 }

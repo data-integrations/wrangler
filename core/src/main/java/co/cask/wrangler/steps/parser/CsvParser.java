@@ -97,6 +97,9 @@ public class CsvParser extends AbstractStep {
             for (int i = 0; i < csvRecord.size(); i++) {
               headers.add(csvRecord.get(i));
             }
+            if (records.size() > 0) {
+              return new ArrayList<>();
+            }
           } else {
             toRow(csvRecord, record);
           }
@@ -104,11 +107,10 @@ public class CsvParser extends AbstractStep {
       } catch (IOException e) {
         throw new StepException(
           String.format("%s : Issue parsing the record. %s", toString(), e.getMessage())
-
         );
       }
     }
-    return hasHeader ? records.subList(1, records.size()) : records;
+    return records;
   }
 
   /**
