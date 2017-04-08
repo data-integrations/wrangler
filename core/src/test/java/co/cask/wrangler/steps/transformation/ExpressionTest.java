@@ -155,18 +155,6 @@ public class ExpressionTest {
 
   @Test
   public void testJSONFunctions() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-json body",
-      "set-column max json:ARRAY_MAX(body_numbers)",
-      "set-column min json:ARRAY_MIN(body_numbers)",
-      "set-column sum json:ARRAY_SUM(body_numbers)",
-      "set-column length json:ARRAY_LENGTH(body_numbers)",
-      "set-column body_responses json:ARRAY_OBJECT_REMOVE_NULL_FIELDS(body_responses, \"c,b\")",
-      "set-column body_responses json:ARRAY_OBJECT_RENAME_FIELDS(body_responses, \"a:field,b:value\")",
-      "set-column body_responses json:ARRAY_OBJECT_DROP_FIELDS(body_responses, \"c\")"
-    };
-
-    //2017-02-02T21:06:44Z
     List<Record> records = Arrays.asList(
       new Record("body", "{\n" +
         "    \"name\" : {\n" +
@@ -206,12 +194,19 @@ public class ExpressionTest {
         "}")
     );
 
+    String[] directives = new String[] {
+      "set-column s0 json:select(body, \"$.name.fname\", \"$.name.lname\")",
+      "set-column s1 json:select(body, \"$.name.fname\")",
+      "set-column s11 json:select(body, \"$.numbers\")",
+      "set-column s2 json:select(body, \"$.numbers\")",
+      "set-column s4 json:remove(body, \"numbers\", \"integer\", \"float\", \"aliases\", \"name\")",
+      "set-column s5 json:join(s11, \":\")"
+    };
+
     records = PipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(21.1, records.get(0).getValue("sum"));
-    Assert.assertEquals(6.0, records.get(0).getValue("max"));
-    Assert.assertEquals(1.0, records.get(0).getValue("min"));
+
   }
 
   @Test

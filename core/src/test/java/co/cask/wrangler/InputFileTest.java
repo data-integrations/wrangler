@@ -20,6 +20,14 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.ParallelPipelineExecutor;
 import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonOrgJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.JsonOrgMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -28,12 +36,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The test in this file is ignored as we use this only in cases when someone reports an issue with the file.
  */
 public class InputFileTest {
+
+  public static final Configuration GSON_CONFIGURATION = Configuration
+    .builder()
+    .mappingProvider(new GsonMappingProvider())
+    .jsonProvider(new GsonJsonProvider())
+    .build();
+
+  public static final Configuration JSON_ORG_CONFIGURATION = Configuration
+    .builder()
+    .mappingProvider(new JsonOrgMappingProvider())
+    .jsonProvider(new JsonOrgJsonProvider())
+    .build();
 
   @Ignore
   @Test
@@ -80,5 +102,28 @@ public class InputFileTest {
 
 
     Assert.assertTrue(true);
+  }
+
+  /**
+   * This will be used for later use, for now we use default provider.
+   */
+  private static class Config implements Configuration.Defaults {
+    private final JsonProvider jsonProvider = new GsonJsonProvider();
+    private final MappingProvider mappingProvider = new GsonMappingProvider();
+
+    @Override
+    public JsonProvider jsonProvider() {
+      return jsonProvider;
+    }
+
+    @Override
+    public MappingProvider mappingProvider() {
+      return mappingProvider;
+    }
+
+    @Override
+    public Set<Option> options() {
+      return EnumSet.noneOf(Option.class);
+    }
   }
 }

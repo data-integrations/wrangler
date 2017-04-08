@@ -36,7 +36,7 @@ import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsPath;
-import co.cask.wrangler.steps.parser.JsonParser;
+import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
@@ -369,7 +369,7 @@ public class TextDirectives implements Directives {
               );
             }
           }
-          steps.add(new JsonParser(lineno, directive, column, depth));
+          steps.add(new JsParser(lineno, directive, column, depth));
         }
         break;
 
