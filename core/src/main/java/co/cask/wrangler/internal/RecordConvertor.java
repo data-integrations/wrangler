@@ -25,6 +25,9 @@ import co.cask.cdap.internal.io.AbstractSchemaGenerator;
 import co.cask.wrangler.api.Record;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -128,11 +131,12 @@ public final class RecordConvertor implements Serializable {
         );
       }
 
+
       // We now check if it's of JSONArray Type.
-      if (value instanceof JSONArray) {
+      if (value instanceof JsonArray) {
         // If it's on array type, then we need to see the type of object the array has.
-        JSONArray array = (JSONArray) value;
-        if (array.length() > 0) {
+        JsonArray array = (JsonArray) value;
+        if (array.size() > 0) {
           Schema arraySchema = null;
           try {
             arraySchema = generateJSONArraySchema(name, array);
@@ -374,12 +378,12 @@ public final class RecordConvertor implements Serializable {
     return uber;
   }
 
-  private static Schema generateJSONArraySchema(String name, JSONArray array)
+  private static Schema generateJSONArraySchema(String name, JsonArray array)
     throws JSONException, UnsupportedTypeException, RecordConvertorException {
     Object object = array.get(0);
 
     // If it's not JSONObject, it's simple type.
-    if (!(object instanceof JSONObject)) {
+    if (!(object instanceof JsonObject)) {
       return Schema.arrayOf(
         new SimpleSchemaGenerator().generate(object.getClass())
       );
@@ -405,23 +409,24 @@ public final class RecordConvertor implements Serializable {
     }
   }
 
-  private static Map<String, Object> getJSONArraySchema(String name, JSONArray array)
+  private static Map<String, Object> getJSONArraySchema(String name, JsonArray array)
     throws JSONException, RecordConvertorException {
     Map<String, Object> types = new HashMap<>();
-    for (int i = 0; i < array.length(); ++i) {
-      JSONObject object = (JSONObject) array.get(i);
+    for (int i = 0; i < array.size(); ++i) {
+      JsonObject object = (JsonObject) array.get(i);
       getJSONObjectSchema(name, object, types);
     }
     return types;
   }
 
-  private static void getJSONObjectSchema(String fname, JSONObject object, Map<String, Object> types)
+  private static void getJSONObjectSchema(String fname, JsonObject object, Map<String, Object> types)
     throws JSONException, RecordConvertorException {
-    Iterator<String> it = object.keys();
+    Iterator<Map.Entry<String, JsonElement>> it = object.entrySet().iterator();
     while(it.hasNext()) {
-      String name = it.next();
-      Object value = object.get(name);
-      if (value instanceof JSONArray || value instanceof JSONObject) {
+      Map.Entry<String, JsonElement> next = it.next();
+      String name = next.getKey();
+      Object value = next.getValue();
+      if (value instanceof JsonArray || value instanceof JsonArray) {
         throw new RecordConvertorException(
           String.format("Current version does not support complex nested types of JSON. " +
                           "Please flatten JSON field '%s' using PARSE-AS-JSON directive.", fname)

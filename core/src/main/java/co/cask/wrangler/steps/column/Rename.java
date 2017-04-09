@@ -65,11 +65,7 @@ public class Rename extends AbstractStep {
       int idx = record.find(oldcol);
       if (idx != -1) {
         record.setColumn(idx, newcol);
-        found = true;
       }
-    }
-    if (!found) {
-      throw new StepException(MSG.get("column.not.found", toString(), oldcol));
     }
     return records;
   }
