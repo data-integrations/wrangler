@@ -18,27 +18,19 @@ package co.cask.wrangler.internal;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.data.schema.UnsupportedTypeException;
-import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.cdap.internal.guava.reflect.TypeToken;
-import co.cask.cdap.internal.io.AbstractSchemaGenerator;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.steps.parser.JsParser;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.JsonPrimitive;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Converts {@link Record} to {@link StructuredRecord}.
@@ -78,88 +70,6 @@ public final class RecordConvertor implements Serializable {
     return results;
   }
 
-  /**
-   * Generates a schema given a list of records.
-   *
-   * @param id Schema id
-   * @param records List of records.
-   * @return returns {@link Schema}
-   * @throws UnsupportedTypeException
-   * @throws JSONException
-   */
-  public Schema toSchema(String id, List<Record> records) throws RecordConvertorException {
-    List<Schema.Field> fields = new ArrayList<>();
-    Record record = createUberRecord(records);
-
-    // Iterate through each field in the record.
-    for (KeyValue<String, Object> column : record.getFields()) {
-      String name = column.getKey();
-      Object value = column.getValue();
-
-      // First, we check if object is of simple type.
-      if (value instanceof String || value instanceof Integer ||
-        value instanceof Long || value instanceof Short ||
-        value instanceof Double || value instanceof Float ||
-        value instanceof Boolean || value instanceof byte[]) {
-        try {
-          fields.add(
-            Schema.Field.of(
-              name,
-              Schema.nullableOf(new SimpleSchemaGenerator().generate(value.getClass()))
-            )
-          );
-        } catch (UnsupportedTypeException e) {
-          throw new RecordConvertorException(
-            String.format("Unable to convert field '%s' to basic type.", name)
-          );
-        }
-      }
-
-      // Check if the object is of map type, if it's of map type, then generate a schema for
-      // map.
-      if (value instanceof Map) {
-        fields.add(
-          Schema.Field.of(
-            name,
-            Schema.nullableOf (
-              Schema.mapOf(
-                Schema.of(Schema.Type.STRING),
-                Schema.of(Schema.Type.STRING)
-              )
-            )
-          )
-        );
-      }
-
-
-      // We now check if it's of JSONArray Type.
-      if (value instanceof JsonArray) {
-        // If it's on array type, then we need to see the type of object the array has.
-        JsonArray array = (JsonArray) value;
-        if (array.size() > 0) {
-          Schema arraySchema = null;
-          try {
-            arraySchema = generateJSONArraySchema(name, array);
-          } catch (UnsupportedTypeException e) {
-            throw new RecordConvertorException(
-              String.format("Unable to generate schema for field '%s'. Complex JSON objects not supported yet", name)
-            );
-          }
-          fields.add(
-            Schema.Field.of(
-              name,
-              Schema.nullableOf(
-                arraySchema
-              )
-            )
-          );
-        }
-      }
-    }
-    // Construct the final Schema adding all the fields.
-    return Schema.recordOf(id, fields);
-  }
-
   private Object decode(String name, Object object, Schema schema) throws RecordConvertorException {
     // Extract the type of the field.
     Schema.Type type = schema.getType();
@@ -178,11 +88,9 @@ public final class RecordConvertor implements Serializable {
       case ENUM:
         break;
       case ARRAY:
-        if (object instanceof JSONArray) {
-          return decodeJSONArray(name, (JSONArray) object, schema.getComponentSchema());
-        } else {
-          return decodeArray(name, (List) object, schema.getComponentSchema());
-        }
+        return decodeArray(name, object, schema.getComponentSchema());
+      case RECORD:
+        return decodeRecord(name, object, schema);
       case MAP:
         Schema key = schema.getMapSchema().getKey();
         Schema value = schema.getMapSchema().getValue();
@@ -198,29 +106,52 @@ public final class RecordConvertor implements Serializable {
     );
   }
 
-  private Object decodeJSONArray(String name, JSONArray object, Schema schema) throws RecordConvertorException {
-    Schema.Type type = schema.getType();
-    if (type == Schema.Type.RECORD) {
-      List<Object> records = Lists.newArrayListWithCapacity(object.length());
-      for (int i = 0; i < object.length(); ++i) {
-        records.add(decodeRecord(name, object.getJSONObject(i), schema));
-      }
-      return records;
-    } else {
-      List<Object> records = Lists.newArrayListWithCapacity(object.length());
-      for (int i = 0; i < object.length(); ++i) {
-        records.add(decode(name, object.get(i), schema));
-      }
-      return records;
+  private StructuredRecord decodeRecord(String name, Object object, Schema schema) throws RecordConvertorException {
+    if (object instanceof Map) {
+      return decodeRecord(name, (Map) object, schema);
+    } else if (object instanceof JsonObject) {
+      return decodeRecord(name, (JsonObject) object, schema);
+    } else if (object instanceof JsonArray) {
+      List<Object> values = decodeArray(name, object, schema.getComponentSchema());
+      StructuredRecord.Builder builder = StructuredRecord.builder(schema);
+      builder.set(name, values);
+      return builder.build();
     }
+    throw new RecordConvertorException(
+      String.format("Unable decode object '%s' with schema type '%s'.", name, schema.getType().toString())
+    );
+  }
+
+  private StructuredRecord decodeRecord(String name, JsonObject nativeObject, Schema schema) throws RecordConvertorException {
+    StructuredRecord.Builder builder = StructuredRecord.builder(schema);
+    for (Schema.Field field : schema.getFields()) {
+      String fieldName = field.getName();
+      Object fieldVal = nativeObject.get(fieldName);
+      builder.set(fieldName, decode(name, fieldVal, field.getSchema()));
+    }
+    return builder.build();
+  }
+
+  private StructuredRecord decodeRecord(String name, Map nativeObject, Schema schema) throws RecordConvertorException {
+    StructuredRecord.Builder builder = StructuredRecord.builder(schema);
+    for (Schema.Field field : schema.getFields()) {
+      String fieldName = field.getName();
+      Object fieldVal = nativeObject.get(fieldName);
+      builder.set(fieldName, decode(name, fieldVal, field.getSchema()));
+    }
+    return builder.build();
   }
 
   @SuppressWarnings("RedundantCast")
   private Object decodeSimpleTypes(String name, Object object, Schema schema) throws RecordConvertorException {
     Schema.Type type = schema.getType();
-    if (object == null || JSONObject.NULL.equals(object)) {
+
+    if (object == null || JsonNull.INSTANCE.equals(object)) {
       return null;
+    } else if (object instanceof JsonPrimitive) {
+      return JsParser.getValue((JsonPrimitive)object);
     }
+
     switch (type) {
       case NULL:
         return null; // nothing much to do here.
@@ -314,6 +245,7 @@ public final class RecordConvertor implements Serializable {
                             "It is of type '%s'", name, object.getClass().getName())
           );
         }
+
       case STRING:
         return object.toString();
     }
@@ -341,110 +273,30 @@ public final class RecordConvertor implements Serializable {
     );
   }
 
-  private List<Object> decodeArray(String name, List nativeArray, Schema schema) throws RecordConvertorException {
-    List<Object> array = Lists.newArrayListWithCapacity(nativeArray.size());
-    for (Object object : nativeArray) {
-      array.add(decode(name, object, schema));
+  private List<Object> decodeArray(String name, Object object, Schema schema) throws RecordConvertorException {
+    if (object instanceof List) {
+      return decodeArray(name, (List) object, schema);
+    } else if (object instanceof JsonArray) {
+      return decodeArray(name, (JsonArray) object, schema);
+    }
+    throw new RecordConvertorException(
+      String.format("Unable to decode array '%s'", name)
+    );
+  }
+
+  private List<Object> decodeArray(String name, JsonArray list, Schema schema) throws RecordConvertorException {
+    List<Object> array = Lists.newArrayListWithCapacity(list.size());
+    for (int i = 0; i < list.size(); ++i) {
+      array.add(decode(name, list.get(i), schema));
     }
     return array;
   }
 
-  private StructuredRecord decodeRecord(String name, JSONObject object, Schema schema)
-    throws RecordConvertorException {
-    StructuredRecord.Builder builder = StructuredRecord.builder(schema);
-    for (Schema.Field field : schema.getFields()) {
-      String fieldName = field.getName();
-      try {
-        Object fieldVal = object.get(fieldName);
-        builder.set(fieldName, decode(name, fieldVal, field.getSchema()));
-      } catch (JSONException e) {
-        // High chance that field does not exist.
-      }
+  private List<Object> decodeArray(String name, List list, Schema schema) throws RecordConvertorException {
+    List<Object> array = Lists.newArrayListWithCapacity(list.size());
+    for (Object object : array) {
+      array.add(decode(name, object, schema));
     }
-    return builder.build();
-  }
-
-  private static Record createUberRecord(List<Record> records) {
-    Record uber = new Record();
-    for (Record record : records) {
-      for (int i = 0; i < record.length(); ++i) {
-        Object o = record.getValue(i);
-        uber.addOrSet(record.getColumn(i), null);
-        if (o != null) {
-          uber.addOrSet(record.getColumn(i), o);
-        }
-      }
-    }
-    return uber;
-  }
-
-  private static Schema generateJSONArraySchema(String name, JsonArray array)
-    throws JSONException, UnsupportedTypeException, RecordConvertorException {
-    Object object = array.get(0);
-
-    // If it's not JSONObject, it's simple type.
-    if (!(object instanceof JsonObject)) {
-      return Schema.arrayOf(
-        new SimpleSchemaGenerator().generate(object.getClass())
-      );
-    } else {
-      // It's JSONObject, now we need to determine types of it.
-      Map<String, Object> types = getJSONArraySchema(name, array);
-      List<Schema.Field> fields = new ArrayList<>();
-      for (Map.Entry<String, Object> entry : types.entrySet()) {
-        String nm = entry.getKey();
-        Object obj = entry.getValue();
-        fields.add(
-          Schema.Field.of(
-            nm,
-            Schema.nullableOf(
-              new SimpleSchemaGenerator().generate(obj.getClass())
-            )
-          )
-        );
-      }
-      // We have collected all the fields from the object. Now,
-      // we add it as array of these objects.
-      return Schema.arrayOf(Schema.recordOf("subrecord", fields));
-    }
-  }
-
-  private static Map<String, Object> getJSONArraySchema(String name, JsonArray array)
-    throws JSONException, RecordConvertorException {
-    Map<String, Object> types = new HashMap<>();
-    for (int i = 0; i < array.size(); ++i) {
-      JsonObject object = (JsonObject) array.get(i);
-      getJSONObjectSchema(name, object, types);
-    }
-    return types;
-  }
-
-  private static void getJSONObjectSchema(String fname, JsonObject object, Map<String, Object> types)
-    throws JSONException, RecordConvertorException {
-    Iterator<Map.Entry<String, JsonElement>> it = object.entrySet().iterator();
-    while(it.hasNext()) {
-      Map.Entry<String, JsonElement> next = it.next();
-      String name = next.getKey();
-      Object value = next.getValue();
-      if (value instanceof JsonArray || value instanceof JsonArray) {
-        throw new RecordConvertorException(
-          String.format("Current version does not support complex nested types of JSON. " +
-                          "Please flatten JSON field '%s' using PARSE-AS-JSON directive.", fname)
-        );
-      }
-      if (!JSONObject.NULL.equals(value)) {
-        types.put(name, value);
-      }
-    }
-  }
-
-  private static final class SimpleSchemaGenerator extends AbstractSchemaGenerator {
-    @Override
-    protected Schema generateRecord(TypeToken<?> typeToken, Set<String> set,
-                                    boolean b) throws UnsupportedTypeException {
-      // we don't actually leverage this method for types we support, so no need to implement it
-      throw new UnsupportedTypeException(String.format("Generating record of type %s is not supported.",
-                                                       typeToken));
-    }
+    return array;
   }
 }

@@ -33,6 +33,7 @@ import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.AbstractSchemaGenerator;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.Json2Schema;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
@@ -41,7 +42,6 @@ import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
 import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.RecordConvertor;
 import co.cask.wrangler.internal.RecordConvertorException;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.internal.UsageRegistry;
@@ -482,9 +482,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       List<Record> newRecords = execute(records, directives.toArray(new String[directives.size()]));
 
       // generate a schema based upon the first record
-      RecordConvertor convertor = new RecordConvertor();
+      Json2Schema json2Schema = new Json2Schema();
       try {
-        Schema schema = convertor.toSchema("record", newRecords);
+        Schema schema = json2Schema.toSchema("record", createUberRecord(newRecords));
         String schemaJson = GSON.toJson(schema);
         // the current contract with the UI is not to pass the entire schema string, but just the fields
         String fieldsJson = new JsonParser().parse(schemaJson).getAsJsonObject().get("fields").toString();
@@ -878,6 +878,20 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       fields.add(Schema.Field.of(column.getKey(), Schema.nullableOf(fieldSchema)));
     }
     return fields;
+  }
+
+  private static Record createUberRecord(List<Record> records) {
+    Record uber = new Record();
+    for (Record record : records) {
+      for (int i = 0; i < record.length(); ++i) {
+        Object o = record.getValue(i);
+        uber.addOrSet(record.getColumn(i), null);
+        if (o != null) {
+          uber.addOrSet(record.getColumn(i), o);
+        }
+      }
+    }
+    return uber;
   }
 
 }
