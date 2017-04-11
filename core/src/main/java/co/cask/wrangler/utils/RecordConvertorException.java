@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.internal;
+package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.wrangler.api.Record;

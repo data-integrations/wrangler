@@ -18,9 +18,10 @@ package co.cask.wrangler.internal;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.Json2Schema;
+import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.utils.RecordConvertor;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.internal;
+package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
@@ -36,6 +36,23 @@ import java.util.Map;
  * Converts {@link Record} to {@link StructuredRecord}.
  */
 public final class RecordConvertor implements Serializable {
+
+  /**
+   * Converts a list of {@link Record} into populated list of {@link StructuredRecord}
+   *
+   * @param records Collection of records.
+   * @param schema Schema associated with {@link StructuredRecord}
+   * @return Populated list of {@link StructuredRecord}
+   */
+  public List<StructuredRecord> toStructureRecord(List<Record> records, Schema schema) throws RecordConvertorException {
+    List<StructuredRecord> results = new ArrayList<>();
+    for (Record record : records) {
+      StructuredRecord r = toStructureRecord(record, schema);
+      results.add(r);
+    }
+    return results;
+  }
+
   /**
    * Converts a Wrangler {@link Record} into a {@link StructuredRecord}.
    *
@@ -52,22 +69,6 @@ public final class RecordConvertor implements Serializable {
       builder.set(name, decode(name, value, field.getSchema()));
     }
     return builder.build();
-  }
-
-  /**
-   * Converts a list of {@link Record} into populated list of {@link StructuredRecord}
-   *
-   * @param records Collection of records.
-   * @param schema Schema associated with {@link StructuredRecord}
-   * @return Populated list of {@link StructuredRecord}
-   */
-  public List<StructuredRecord> toStructureRecord(List<Record> records, Schema schema) throws RecordConvertorException {
-    List<StructuredRecord> results = new ArrayList<>();
-    for (Record record : records) {
-      StructuredRecord r = toStructureRecord(record, schema);
-      results.add(r);
-    }
-    return results;
   }
 
   private Object decode(String name, Object object, Schema schema) throws RecordConvertorException {

@@ -27,6 +27,10 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Collection of useful expression functions made available in the context
  * of an expression.
@@ -47,7 +51,7 @@ public final class JSON {
     JsonElement element = parser.parse(json);
     return select(element, path, paths);
   }
-
+  
   public static final JsonElement select(JsonElement element, String path, String ...paths) {
     DocumentContext context = JsonPath.using(GSON_CONFIGURATION).parse(element);
     if (paths.length == 0) {
@@ -67,12 +71,37 @@ public final class JSON {
     return remove(element, field, fields);
   }
 
+  /**
+   * Removes fields from a JSON inline.
+   *
+   * This method recursively iterates through the Json to delete one or more fields specified.
+   * It requires the Json to be parsed.
+   *
+   * @param element Json element to be parsed.
+   * @param field first field to be deleted.
+   * @param fields list of fields to be deleted.
+   * @return
+   */
   public static final JsonElement remove(JsonElement element, String field, String ... fields) {
-    if(element instanceof JsonObject) {
+    if(element.isJsonObject()) {
       JsonObject object = element.getAsJsonObject();
+      Set<Map.Entry<String, JsonElement>> entries = object.entrySet();
+      Iterator<Map.Entry<String, JsonElement>> iterator = entries.iterator();
+      while(iterator.hasNext()) {
+        Map.Entry<String, JsonElement> next = iterator.next();
+        remove(next.getValue(), field, fields);
+      }
       object.remove(field);
       for (String fld : fields) {
         object.remove(fld);
+      }
+    } else if (element.isJsonArray()) {
+      JsonArray object = element.getAsJsonArray();
+      for (int i = 0; i < object.size(); ++i) {
+        JsonElement arrayElement = object.get(i);
+        if (arrayElement.isJsonObject()) {
+          remove(arrayElement, field, fields);
+        }
       }
     }
     return element;

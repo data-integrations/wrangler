@@ -19,7 +19,6 @@ package co.cask.wrangler.service.directive;
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.table.Put;
@@ -30,10 +29,9 @@ import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
-import co.cask.cdap.internal.io.AbstractSchemaGenerator;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Json2Schema;
+import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
@@ -42,12 +40,12 @@ import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
 import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.RecordConvertorException;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
 import co.cask.wrangler.internal.statistics.BasicStatistics;
 import co.cask.wrangler.internal.validator.ColumnNameValidator;
+import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -485,9 +483,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       Json2Schema json2Schema = new Json2Schema();
       try {
         Schema schema = json2Schema.toSchema("record", createUberRecord(newRecords));
+        if (schema.getType() != Schema.Type.RECORD) {
+          schema = Schema.recordOf("array", Schema.Field.of("value", schema));
+        }
+
         String schemaJson = GSON.toJson(schema);
-        // the current contract with the UI is not to pass the entire schema string, but just the fields
-        String fieldsJson = new JsonParser().parse(schemaJson).getAsJsonObject().get("fields").toString();
+        // the current contract with the UI is not to pass the
+        // entire schema string, but just the fields
+        String fieldsJson = new JsonParser().parse(schemaJson)
+                                    .getAsJsonObject()
+                                    .get("fields").toString();
         sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
       } catch (RecordConvertorException e) {
         error(responder, "There was a problem in generating schema for the record. " + e.getMessage());
@@ -847,47 +852,22 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     return null;
   }
 
-  private static final class SimpleSchemaGenerator extends AbstractSchemaGenerator {
-    @Override
-    protected Schema generateRecord(TypeToken<?> typeToken, Set<String> set,
-                                    boolean b) throws UnsupportedTypeException {
-      // we don't actually leverage this method, so no need to implement it
-      throw new UnsupportedOperationException();
-    }
-  }
-
-
-  private JSONObject add(String field, Object value) {
-    JSONObject object = new JSONObject();
-    object.put(field, value);
-    return object;
-  }
-
-
-  private List<Schema.Field> generateFields(Record record) throws UnsupportedTypeException {
-    List<Schema.Field> fields = new ArrayList<>();
-    for (KeyValue<String, Object> column : record.getFields()) {
-      Object v = column.getValue();
-      Schema fieldSchema;
-      if (v instanceof Integer || v instanceof Long || v instanceof Double || v instanceof Float
-        || v instanceof Boolean || v instanceof byte[]) {
-        fieldSchema = new SimpleSchemaGenerator().generate(v.getClass());
-      } else {
-        fieldSchema = Schema.of(Schema.Type.STRING);
-      }
-      fields.add(Schema.Field.of(column.getKey(), Schema.nullableOf(fieldSchema)));
-    }
-    return fields;
-  }
-
+  /**
+   * Creates a uber record after iterating through all records.
+   *
+   * @param records list of all records.
+   * @return A single record will rows merged across all columns.
+   */
   private static Record createUberRecord(List<Record> records) {
     Record uber = new Record();
     for (Record record : records) {
       for (int i = 0; i < record.length(); ++i) {
         Object o = record.getValue(i);
-        uber.addOrSet(record.getColumn(i), null);
         if (o != null) {
-          uber.addOrSet(record.getColumn(i), o);
+          int idx = uber.find(record.getColumn(i));
+          if (idx == -1) {
+            uber.add(record.getColumn(i), o);
+          }
         }
       }
     }

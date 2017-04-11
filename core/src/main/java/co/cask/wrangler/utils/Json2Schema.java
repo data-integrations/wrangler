@@ -14,14 +14,14 @@
  * the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.AbstractSchemaGenerator;
-import co.cask.wrangler.internal.RecordConvertorException;
+import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.parser.JsParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -37,7 +37,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Class description here.
+ * Json to Schema translates a JSON string into a {@link co.cask.cdap.api.data.format.StructuredRecord} schema.
+ *
+ * The
  */
 public final class Json2Schema {
   private final JsonParser parser;
