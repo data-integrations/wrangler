@@ -51,7 +51,7 @@ public final class JSON {
     JsonElement element = parser.parse(json);
     return select(element, path, paths);
   }
-  
+
   public static final JsonElement select(JsonElement element, String path, String ...paths) {
     DocumentContext context = JsonPath.using(GSON_CONFIGURATION).parse(element);
     if (paths.length == 0) {
@@ -66,9 +66,9 @@ public final class JSON {
     }
   }
 
-  public static final JsonElement remove(String json, String field, String ... fields) {
+  public static final JsonElement drop(String json, String field, String ... fields) {
     JsonElement element = parser.parse(json);
-    return remove(element, field, fields);
+    return drop(element, field, fields);
   }
 
   /**
@@ -82,14 +82,14 @@ public final class JSON {
    * @param fields list of fields to be deleted.
    * @return
    */
-  public static final JsonElement remove(JsonElement element, String field, String ... fields) {
+  public static final JsonElement drop(JsonElement element, String field, String ... fields) {
     if(element.isJsonObject()) {
       JsonObject object = element.getAsJsonObject();
       Set<Map.Entry<String, JsonElement>> entries = object.entrySet();
       Iterator<Map.Entry<String, JsonElement>> iterator = entries.iterator();
       while(iterator.hasNext()) {
         Map.Entry<String, JsonElement> next = iterator.next();
-        remove(next.getValue(), field, fields);
+        drop(next.getValue(), field, fields);
       }
       object.remove(field);
       for (String fld : fields) {
@@ -100,7 +100,7 @@ public final class JSON {
       for (int i = 0; i < object.size(); ++i) {
         JsonElement arrayElement = object.get(i);
         if (arrayElement.isJsonObject()) {
-          remove(arrayElement, field, fields);
+          drop(arrayElement, field, fields);
         }
       }
     }
@@ -124,5 +124,29 @@ public final class JSON {
     }
     return sb.toString();
   }
+
+  /**
+   * This method converts a JavaScript value to a JSON string.
+   *
+   * @param element the value to convert to JSON string
+   * @return a JSON string.
+   */
+  public static String stringify(JsonElement element) {
+    if (element == null) {
+      return "null";
+    }
+    return element.toString();
+  }
+
+  /**
+   * Parses a column or string to JSON. This is equivalent to <code>JSON.parse()</code>
+   *
+   * @param json
+   * @return parsed json else throws an exception.
+   */
+  public static JsonElement parse(String json) {
+    return parser.parse(json);
+  }
+
 }
 

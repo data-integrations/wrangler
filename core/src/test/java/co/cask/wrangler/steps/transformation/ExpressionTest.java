@@ -199,7 +199,7 @@ public class ExpressionTest {
       "set-column s1 json:select(body, \"$.name.fname\")",
       "set-column s11 json:select(body, \"$.numbers\")",
       "set-column s2 json:select(body, \"$.numbers\")",
-      "set-column s4 json:remove(body, \"numbers\", \"integer\", \"float\", \"aliases\", \"name\")",
+      "set-column s4 json:drop(body, \"numbers\", \"integer\", \"float\", \"aliases\", \"name\")",
       "set-column s5 json:join(s11, \":\")"
     };
 

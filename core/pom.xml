@@ -129,42 +129,22 @@
     <dependency>
       <groupId>io.dataapps.chlorine</groupId>
       <artifactId>chlorine-finder</artifactId>
-      <version>1.1.5</version>
+      <version>${chlorine.version}</version>
     </dependency>
     <dependency>
       <groupId>com.github.mpkorstanje</groupId>
       <artifactId>simmetrics-core</artifactId>
-      <version>4.1.1</version>
+      <version>${simmetrics.version}</version>
     </dependency>
     <dependency>
       <groupId>com.ximpleware</groupId>
       <artifactId>vtd-xml</artifactId>
-      <version>2.13</version>
-    </dependency>
-    <dependency>
-      <groupId>com.googlecode.libphonenumber</groupId>
-      <artifactId>libphonenumber</artifactId>
-      <version>7.3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.googlecode.libphonenumber</groupId>
-      <artifactId>geocoder</artifactId>
-      <version>2.39</version>
-    </dependency>
-    <dependency>
-      <groupId>com.googlecode.libphonenumber</groupId>
-      <artifactId>carrier</artifactId>
-      <version>1.29</version>
-    </dependency>
-    <dependency>
-      <groupId>com.googlecode.libphonenumber</groupId>
-      <artifactId>prefixmapper</artifactId>
-      <version>2.39</version>
+      <version>${vtd.xml.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.5</version>
+      <version>${commons.io.version}</version>
     </dependency>
   </dependencies>
 

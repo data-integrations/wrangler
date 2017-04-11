@@ -37,11 +37,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Json to Schema translates a JSON string into a {@link co.cask.cdap.api.data.format.StructuredRecord} schema.
+ * Json to Schema translates a JSON string into a {@link Schema} schema.
  *
- * The
+ * This class takes in JSON as a string or parsed JSON as {@link JsonElement} and converts it to the
+ * {@link Schema}. It's recursive in nature and it creates multi-level of {@link Schema}.
  */
 public final class Json2Schema {
+  // Parser to parse json if provided as string.
   private final JsonParser parser;
 
   public Json2Schema() {
@@ -49,7 +51,7 @@ public final class Json2Schema {
   }
 
   /**
-   * Generates a schema given a list of records.
+   * Generates a {@link Schema} given a record.
    *
    * @param id Schema id
    * @return returns {@link Schema}
@@ -91,25 +93,20 @@ public final class Json2Schema {
   }
 
   /**
+   * Converts a json string to a {@link Schema}.
    *
-   * @param name
-   * @param json
-   * @return
-   * @throws RecordConvertorException
+   * @param id of the {@link Schema}
+   * @param json represents the JSON as {@link String}
+   * @return instance of {@link Schema} representing the JSON.
+   * @throws RecordConvertorException throw if there are any issues parsing to {@link Schema}
+   * @see {@link #toSchema(String, Record)}
    */
-  public Schema toSchema(String name, String json) throws RecordConvertorException {
+  public Schema toSchema(String id, String json) throws RecordConvertorException {
     JsonElement element = parser.parse(json);
-    return toSchema(name, element);
+    return toSchema(id, element);
   }
 
-  /**
-   *
-   * @param name
-   * @param element
-   * @return
-   * @throws RecordConvertorException
-   */
-  public Schema toSchema(String name, JsonElement element) throws RecordConvertorException {
+  private Schema toSchema(String name, JsonElement element) throws RecordConvertorException {
     Schema schema = null;
     if (element.isJsonObject() || element.isJsonArray()) {
       schema = toComplexSchema(name, element);
@@ -118,7 +115,6 @@ public final class Json2Schema {
     } else if (element.isJsonNull()) {
       schema = Schema.of(Schema.Type.NULL);
     }
-
     return schema;
   }
 

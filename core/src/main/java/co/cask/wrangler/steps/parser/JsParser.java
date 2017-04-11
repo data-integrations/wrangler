@@ -50,7 +50,11 @@ import java.util.Map;
 public class JsParser extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;
+
+  // Max depth to which the JSON needs to be parsed.
   private int maxDepth;
+
+  // JSON parser.
   private static final JsonParser parser = new JsonParser();
 
   public JsParser(int lineno, String detail, String col, int maxDepth) {
@@ -153,25 +157,28 @@ public class JsParser extends AbstractStep {
   }
 
   /**
+   * Gets a single value from the {@link JsonElement}. The value could be
+   * {@link JsonObject} or {@link JsonArray} or {@link JsonPrimitive}.
    *
-   * @param element
-   * @return
+   * @param element value to be extracted.
+   * @return the sub-element, else {@link com.google.gson.JsonNull}.
    */
   public static Object getValue(JsonElement element) {
-    if (element instanceof JsonObject) {
+    if (element.isJsonObject()) {
       return (JsonObject) element.getAsJsonObject();
-    } else if (element instanceof JsonArray) {
+    } else if (element.isJsonArray()) {
       return (JsonArray) element.getAsJsonArray();
-    } else if (element instanceof JsonPrimitive) {
+    } else if (element.isJsonPrimitive()) {
       return getValue(element.getAsJsonPrimitive());
     }
     return element.getAsJsonNull();
   }
 
   /**
+   * Extracts a value from the {@link JsonPrimitive}.
    *
-   * @param primitive
-   * @return
+   * @param primitive object to extract real value.
+   * @return java type extracted from the {@link JsonPrimitive}
    */
   public static Object getValue(JsonPrimitive primitive) {
     if (primitive.isBoolean()) {
@@ -207,6 +214,13 @@ public class JsParser extends AbstractStep {
     return null;
   }
 
+  /**
+   * Converts a {@link JSONObject} to {@link JsonElement}. This is used when converting
+   * XML to JSON.
+   *
+   * @param object {@link JSONObject} type to be converted.
+   * @return converted type {@link JsonElement}
+   */
   public static JsonElement convert(JSONObject object) {
     return new Gson().fromJson(object.toString(), JsonElement.class);
   }

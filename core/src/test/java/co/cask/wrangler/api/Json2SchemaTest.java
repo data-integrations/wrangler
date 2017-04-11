@@ -26,6 +26,7 @@ import co.cask.wrangler.utils.JsonPathGenerator;
 import co.cask.wrangler.utils.RecordConvertor;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
 import org.junit.Assert;
 import org.junit.Test;
@@ -170,5 +171,6 @@ public class Json2SchemaTest {
     JsonPathGenerator paths = new JsonPathGenerator();
     List<String> path = paths.get(COMPLEX_1);
     Assert.assertEquals(path.size(), 23);
+    String s = JsonNull.INSTANCE.toString();
   }
 }
