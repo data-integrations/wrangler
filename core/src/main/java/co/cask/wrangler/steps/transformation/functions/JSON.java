@@ -57,7 +57,7 @@ public final class JSON {
   }
 
   public static final JsonElement select(JsonElement element, String path, String ...paths) {
-    return select(element, false, path, paths);
+    return select(element, true, path, paths);
   }
 
   public static final JsonElement select(JsonElement element, boolean toLower, String path, String ...paths) {
