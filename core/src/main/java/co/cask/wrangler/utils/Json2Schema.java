@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Json to Schema translates a JSON string into a {@link Schema} schema.
@@ -106,8 +107,12 @@ public final class Json2Schema {
     return toSchema(id, element);
   }
 
+  @Nullable
   private Schema toSchema(String name, JsonElement element) throws RecordConvertorException {
     Schema schema = null;
+    if (element == null) {
+      return null;
+    }
     if (element.isJsonObject() || element.isJsonArray()) {
       schema = toComplexSchema(name, element);
     } else if (element.isJsonPrimitive()) {
