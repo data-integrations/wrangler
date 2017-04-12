@@ -38,7 +38,6 @@ import java.util.Set;
  * set-column column <expression>
  */
 public final class JSON {
-
   public static final Configuration GSON_CONFIGURATION = Configuration
     .builder()
     .mappingProvider(new GsonMappingProvider())
@@ -52,7 +51,19 @@ public final class JSON {
     return select(element, path, paths);
   }
 
+  public static final JsonElement select(String json, boolean toLower, String path, String ...paths) {
+    JsonElement element = PARSER.parse(json);
+    return select(element, toLower, path, paths);
+  }
+
   public static final JsonElement select(JsonElement element, String path, String ...paths) {
+    return select(element, false, path, paths);
+  }
+
+  public static final JsonElement select(JsonElement element, boolean toLower, String path, String ...paths) {
+    if (toLower) {
+      element = keysToLower(element);
+    }
     DocumentContext context = JsonPath.using(GSON_CONFIGURATION).parse(element);
     if (paths.length == 0) {
       return context.read(path);
@@ -107,6 +118,36 @@ public final class JSON {
     return element;
   }
 
+  /**
+   * This function lowers the keys of the json. it applies this transformation recurively.
+   *
+   * @param element to be transformed.
+   * @return modified element.
+   */
+  public static final JsonElement keysToLower(JsonElement element) {
+    if (element.isJsonObject()) {
+      JsonObject newObject = new JsonObject();
+      JsonObject object = element.getAsJsonObject();
+      Set<Map.Entry<String, JsonElement>> entries = object.entrySet();
+      Iterator<Map.Entry<String, JsonElement>> iterator = entries.iterator();
+      while(iterator.hasNext()) {
+        Map.Entry<String, JsonElement> next = iterator.next();
+        String name = next.getKey();
+        JsonElement child = next.getValue();
+        newObject.add(name.toLowerCase(), keysToLower(child));
+      }
+      return newObject;
+    } else if (element.isJsonArray()) {
+      JsonArray newArray = new JsonArray();
+      JsonArray array = element.getAsJsonArray();
+      for (int i = 0; i < array.size(); ++i) {
+        newArray.add(keysToLower(array.get(i)));
+      }
+      return newArray;
+    }
+    return element;
+  }
+
   public static String join(JsonElement element, String separator) {
     StringBuilder sb = new StringBuilder();
     if (element instanceof JsonArray) {
@@ -140,13 +181,28 @@ public final class JSON {
 
   /**
    * Parses a column or string to JSON. This is equivalent to <code>JSON.parse()</code>
+   * This function by default lowercases the keys.
    *
-   * @param json
+   * @param json string representation of json.
    * @return parsed json else throws an exception.
    */
   public static JsonElement parse(String json) {
-    return PARSER.parse(json);
+    return parse(json, true);
   }
 
+  /**
+   * Parses a column or string to JSON. This is equivalent to <code>JSON.parse()</code>
+   *
+   * @param json string representation of json.
+   * @param toLower true to lower case keys, false to leave it as-is.
+   * @return parsed json else throws an exception.
+   */
+  public static JsonElement parse(String json, boolean toLower) {
+    JsonElement element = PARSER.parse(json);
+    if (toLower) {
+      element = keysToLower(element);
+    }
+    return element;
+  }
 }
 

@@ -154,62 +154,6 @@ public class ExpressionTest {
   }
 
   @Test
-  public void testJSONFunctions() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("body", "{\n" +
-        "    \"name\" : {\n" +
-        "        \"fname\" : \"Joltie\",\n" +
-        "        \"lname\" : \"Root\",\n" +
-        "        \"mname\" : null\n" +
-        "    },\n" +
-        "    \"coordinates\" : [\n" +
-        "        12.56,\n" +
-        "        45.789\n" +
-        "    ],\n" +
-        "    \"numbers\" : [\n" +
-        "        1,\n" +
-        "        2.1,\n" +
-        "        3,\n" +
-        "        null,\n" +
-        "        4,\n" +
-        "        5,\n" +
-        "        6,\n" +
-        "        null\n" +
-        "    ],\n" +
-        "    \"responses\" : [\n" +
-        "        { \"a\" : 1, \"b\" : \"X\", \"c\" : 2.8},\n" +
-        "        { \"a\" : 2, \"b\" : \"Y\", \"c\" : 232342.8},\n" +
-        "        { \"a\" : 3, \"b\" : \"Z\", \"c\" : null},\n" +
-        "        { \"a\" : 4, \"b\" : \"U\"}\n" +
-        "    ],\n" +
-        "    \"integer\" : 1,\n" +
-        "    \"double\" : 2.8,\n" +
-        "    \"float\" : 45.6,\n" +
-        "    \"aliases\" : [\n" +
-        "        \"root\",\n" +
-        "        \"joltie\",\n" +
-        "        \"bunny\",\n" +
-        "        null\n" +
-        "    ]\n" +
-        "}")
-    );
-
-    String[] directives = new String[] {
-      "set-column s0 json:select(body, \"$.name.fname\", \"$.name.lname\")",
-      "set-column s1 json:select(body, \"$.name.fname\")",
-      "set-column s11 json:select(body, \"$.numbers\")",
-      "set-column s2 json:select(body, \"$.numbers\")",
-      "set-column s4 json:drop(body, \"numbers\", \"integer\", \"float\", \"aliases\", \"name\")",
-      "set-column s5 json:join(s11, \":\")"
-    };
-
-    records = PipelineTest.execute(directives, records);
-
-    Assert.assertTrue(records.size() == 1);
-
-  }
-
-  @Test
   public void testMethodCalls() throws Exception {
     String[] directives = new String[] {
       "set column first first.trim()",
@@ -225,6 +169,5 @@ public class ExpressionTest {
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 0);
   }
-
-
 }
+

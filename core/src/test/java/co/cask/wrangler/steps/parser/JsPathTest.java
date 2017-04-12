@@ -14,14 +14,10 @@
  * the License.
  */
 
-package co.cask.wrangler.internal;
+package co.cask.wrangler.steps.parser;
 
-import co.cask.cdap.api.data.format.StructuredRecord;
-import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.utils.RecordConvertor;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,36 +25,33 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link RecordConvertor}
+ * Tests {@link JsPath}
  */
-public class RecordConvertorTest {
-
+public class JsPathTest {
   @Test
-  public void testComplexNestedStructureConversion() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-json body",
-    };
-
+  public void testJSONFunctions() throws Exception {
     List<Record> records = Arrays.asList(
       new Record("body", "{\n" +
         "    \"name\" : {\n" +
-        "        \"fname\" : \"Joltie\",\n" +
-        "        \"lname\" : \"Root\"\n" +
+        "        \"Fname\" : \"Joltie\",\n" +
+        "        \"Lname\" : \"Root\",\n" +
+        "        \"mname\" : null\n" +
         "    },\n" +
-        "    \"boolean\" : true,\n" +
         "    \"coordinates\" : [\n" +
         "        12.56,\n" +
         "        45.789\n" +
         "    ],\n" +
         "    \"numbers\" : [\n" +
-        "        2," +
-        "        2,\n" +
+        "        1,\n" +
+        "        2.1,\n" +
         "        3,\n" +
+        "        null,\n" +
         "        4,\n" +
         "        5,\n" +
-        "        6\n" +
+        "        6,\n" +
+        "        null\n" +
         "    ],\n" +
-        "    \"moves\" : [\n" +
+        "    \"responses\" : [\n" +
         "        { \"a\" : 1, \"b\" : \"X\", \"c\" : 2.8},\n" +
         "        { \"a\" : 2, \"b\" : \"Y\", \"c\" : 232342.8},\n" +
         "        { \"a\" : 3, \"b\" : \"Z\", \"c\" : null},\n" +
@@ -70,35 +63,23 @@ public class RecordConvertorTest {
         "    \"aliases\" : [\n" +
         "        \"root\",\n" +
         "        \"joltie\",\n" +
-        "        \"bunny\"\n" +
+        "        \"bunny\",\n" +
+        "        null\n" +
         "    ]\n" +
         "}")
     );
 
+    String[] directives = new String[] {
+      "set-column s0 json:select(body, true, \"$.name.fname\", \"$.name.lname\")",
+      "set-column s1 json:select(body, true, \"$.name.fname\")",
+      "set-column s11 json:select(body, true, \"$.numbers\")",
+      "set-column s2 json:select(body, true, \"$.numbers\")",
+      "set-column s4 json:drop(body, \"numbers\", \"integer\", \"float\", \"aliases\", \"name\")",
+      "set-column s5 json:join(s11, \":\")"
+    };
+
     records = PipelineTest.execute(directives, records);
-    Record record = createUberRecord(records);
 
-    Json2Schema json2Schema = new Json2Schema();
-    RecordConvertor convertor = new RecordConvertor();
-
-    Schema schema = json2Schema.toSchema("superrecord", record);
-    List<StructuredRecord> outputs = convertor.toStructureRecord(records, schema);
-
-    Assert.assertEquals(1, outputs.size());
-    Assert.assertEquals(6, ((List)outputs.get(0).get("body_numbers")).size());
-  }
-
-  private static Record createUberRecord(List<Record> records) {
-    Record uber = new Record();
-    for (Record record : records) {
-      for (int i = 0; i < record.length(); ++i) {
-        Object o = record.getValue(i);
-        uber.addOrSet(record.getColumn(i), null);
-        if (o != null) {
-          uber.addOrSet(record.getColumn(i), o);
-        }
-      }
-    }
-    return uber;
+    Assert.assertTrue(records.size() == 1);
   }
 }
