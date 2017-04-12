@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
@@ -775,6 +776,18 @@ public class TextDirectives implements Directives {
         // cleanse-column-names
         case "cleanse-column-names" : {
           steps.add(new CleanseColumnNames(lineno, directive));
+        }
+        break;
+
+        // change-column-case <upper|lower|uppercase|lowercase>
+        case "change-column-case" : {
+          String casing = getNextToken(tokenizer, command, "case", lineno);
+          boolean toLower = false;
+          if (casing == null || casing.isEmpty() || casing.equalsIgnoreCase("lower")
+            || casing.equalsIgnoreCase("lowercase")) {
+            toLower = true;
+          }
+          steps.add(new ChangeColCaseNames(lineno, directive, toLower));
         }
         break;
 

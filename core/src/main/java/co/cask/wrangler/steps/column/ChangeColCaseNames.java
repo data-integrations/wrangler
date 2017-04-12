@@ -35,17 +35,11 @@ import java.util.List;
   description = "Changes the case of the columns to lowercase or uppercase."
 )
 public class ChangeColCaseNames extends AbstractStep {
-  private final boolean lowerCase;
+  private final boolean toLower;
 
-  public ChangeColCaseNames(int lineno, String detail, String colCase) {
+  public ChangeColCaseNames(int lineno, String detail, boolean toLower) {
     super(lineno, detail);
-    boolean lower = false;
-    if (colCase != null || colCase.isEmpty()) {
-      lower = true;
-    } else if (colCase.equalsIgnoreCase("lower") || colCase.equalsIgnoreCase("lowercase")) {
-      lower = true;
-    }
-    lowerCase = lower;
+    this.toLower = toLower;
   }
 
   /**
@@ -60,7 +54,7 @@ public class ChangeColCaseNames extends AbstractStep {
     for (Record record : records) {
       for (int i = 0; i < record.length(); ++i) {
         String name = record.getColumn(i);
-        if (lowerCase) {
+        if (toLower) {
           record.setColumn(i, name.toLowerCase());
         } else {
           record.setColumn(i, name.toUpperCase());
