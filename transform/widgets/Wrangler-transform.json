@@ -27,7 +27,7 @@
           }
         },
         {
-          "widget-type": "textarea",
+          "widget-type": "wrangler-directives",
           "label": "Directives",
           "name": "directives"
         },
