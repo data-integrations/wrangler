@@ -18,6 +18,7 @@ package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
@@ -185,7 +186,8 @@ public final class UsageRegistry implements Serializable {
     SetColumn.class,
     Encode.class,
     Decode.class,
-    SendToError.class
+    SendToError.class,
+    ChangeColCaseNames.class
   );
 
   public UsageRegistry() {

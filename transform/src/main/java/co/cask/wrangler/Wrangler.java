@@ -278,6 +278,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     @Name("directives")
     @Description("Directives for wrangling the input records")
+    @Macro
     private String directives;
 
     @Name("field")

@@ -80,7 +80,6 @@ public class JsPath extends AbstractStep {
         continue;
       }
 
-      // Detect the type of the object, convert it to String before applying JsonPath expression to it.
       if (!(value instanceof String ||
         value instanceof JsonObject ||
         value instanceof JsonArray)) {

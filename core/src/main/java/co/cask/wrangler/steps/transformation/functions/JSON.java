@@ -45,10 +45,10 @@ public final class JSON {
     .jsonProvider(new GsonJsonProvider())
     .build();
 
-  private static final JsonParser parser = new JsonParser();
+  private static final JsonParser PARSER = new JsonParser();
 
   public static final JsonElement select(String json, String path, String ...paths) {
-    JsonElement element = parser.parse(json);
+    JsonElement element = PARSER.parse(json);
     return select(element, path, paths);
   }
 
@@ -67,7 +67,7 @@ public final class JSON {
   }
 
   public static final JsonElement drop(String json, String field, String ... fields) {
-    JsonElement element = parser.parse(json);
+    JsonElement element = PARSER.parse(json);
     return drop(element, field, fields);
   }
 
@@ -145,7 +145,7 @@ public final class JSON {
    * @return parsed json else throws an exception.
    */
   public static JsonElement parse(String json) {
-    return parser.parse(json);
+    return PARSER.parse(json);
   }
 
 }
