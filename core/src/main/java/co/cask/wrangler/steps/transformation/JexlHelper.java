@@ -14,9 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class description here.
+ * Collection of registered functions for jexl context.
  */
-public final class JexlFunctions {
+public final class JexlHelper {
 
   /**
    * @return configured {@link JexlEngine}

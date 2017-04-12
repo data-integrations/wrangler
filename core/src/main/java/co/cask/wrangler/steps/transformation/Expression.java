@@ -70,7 +70,7 @@ public class Expression extends AbstractStep {
     this.column = column;
     this.expression = expression;
     // Create and build the script.
-    engine = JexlFunctions.getEngine();
+    engine = JexlHelper.getEngine();
     script = engine.createScript(expression);
   }
 
