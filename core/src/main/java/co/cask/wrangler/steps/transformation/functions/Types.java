@@ -38,6 +38,7 @@ public final class Types implements Serializable {
     return TypeInference.isNumber(value);
   }
 
+
   /**
    * Checks if a value is a boolean or not.
    *

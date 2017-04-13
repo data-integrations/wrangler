@@ -21,6 +21,7 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.ParallelPipelineExecutor;
 import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.steps.transformation.functions.DDL;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -86,10 +87,19 @@ public class InputFileTest {
   @Ignore
   @Test
   public void testSchemaParsing() throws Exception {
-    Path path = Paths.get("/Users/nitin/Downloads/schema_1.json");
-    byte[] data = Files.readAllBytes(path);
-    String schemaStr = new String(data);
-    Schema s = Schema.parseJson(schemaStr);
+    Path path = Paths.get("/Users/nitin/Downloads/schema_from_avro.avsc");
+    byte[] avroSchemaBytes = Files.readAllBytes(path);
+    String avroSchemaString = new String(avroSchemaBytes);
+
+    // Takes the avro schema and converts it to json.
+    Schema schema = DDL.parse(avroSchemaString);
+
+    // Now we select the path : 'GetReservationRS.Reservation.PassengerReservation.Segments.Segment'
+    schema = DDL.select(schema, "GetReservationRS.Reservation.PassengerReservation.Segments.Segment[0]");
+
+    // Now, we drop 'Product'
+    schema = DDL.drop(schema, "Product", "Air", "Vehicle", "Hotel", "General");
+
     Assert.assertTrue(true);
   }
 

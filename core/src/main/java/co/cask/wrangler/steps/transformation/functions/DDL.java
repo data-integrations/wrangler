@@ -34,9 +34,9 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
- * Structured Record and Schema DML.
+ * Structured Record and Schema DDL.
  */
-public final class DML implements Serializable {
+public final class DDL implements Serializable {
 
   /**
    * Given a JSON representation of schema, returns a {@link Schema} object.
@@ -50,7 +50,7 @@ public final class DML implements Serializable {
   }
 
   /**
-   * Given a SQL DML, returns the {@link Schema} representation of the SQL.
+   * Given a SQL DDL, returns the {@link Schema} representation of the SQL.
    *
    * @param sql to be converted to {@link Schema}.
    * @return instance of {@link Schema}.
@@ -118,6 +118,14 @@ public final class DML implements Serializable {
    */
   public static Schema drop(Schema schema, String path) {
     return drop(schema, path, path);
+  }
+
+  public static Schema drop(Schema schema, String path, String ... paths) {
+    Schema mutatedSchema = drop(schema, path, path);
+    for (String otherPath : paths) {
+      mutatedSchema = drop(mutatedSchema, otherPath, otherPath);
+    }
+    return mutatedSchema;
   }
 
   private static Schema drop(Schema schema, @Nullable String path, String fullPath) {
