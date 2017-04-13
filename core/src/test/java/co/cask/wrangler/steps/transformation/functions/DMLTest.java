@@ -1,0 +1,150 @@
+/*
+ * Copyright © 2017 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package co.cask.wrangler.steps.transformation.functions;
+
+import co.cask.cdap.api.data.format.StructuredRecord;
+import co.cask.cdap.api.data.schema.Schema;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import org.junit.Assert;
+import org.junit.Test;
+
+/**
+ * Tests {@link DML}
+ */
+public class DMLTest {
+  @Test
+  public void testGetRecursiveRecord() {
+    Schema inner2 = Schema.recordOf("inner2",
+                                    Schema.Field.of("x", Schema.of(Schema.Type.STRING)),
+                                    Schema.Field.of("y", Schema.of(Schema.Type.INT)),
+                                    Schema.Field.of("z", Schema.arrayOf(Schema.of(Schema.Type.INT))));
+    Schema inner1 = Schema.recordOf("inner1",
+                                    Schema.Field.of("rec2", Schema.arrayOf(Schema.nullableOf(inner2))),
+                                    Schema.Field.of("s", Schema.of(Schema.Type.STRING)),
+                                    Schema.Field.of("l", Schema.of(Schema.Type.LONG)),
+                                    Schema.Field.of("m", Schema.mapOf(Schema.of(Schema.Type.STRING),
+                                                                      Schema.of(Schema.Type.INT))));
+    Schema nestedSchema = Schema.recordOf(
+      "nested",
+      Schema.Field.of("rec1", inner1),
+      Schema.Field.of("z", Schema.of(Schema.Type.BOOLEAN)),
+      Schema.Field.of("a", Schema.arrayOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("m", Schema.mapOf(Schema.nullableOf(Schema.of(Schema.Type.STRING)),
+                                        Schema.nullableOf(inner2))));
+
+    StructuredRecord record2 = StructuredRecord.builder(inner2)
+      .set("x", "str2")
+      .set("y", 5)
+      .set("z", ImmutableList.of(0, 1, 2, 3))
+      .build();
+    StructuredRecord record1 = StructuredRecord.builder(inner1)
+      .set("s", "str1")
+      .set("l", 3L)
+      .set("rec2", Lists.newArrayList(null, record2))
+      .set("m", ImmutableMap.of("a", 1, "b", 2))
+      .build();
+    StructuredRecord nestedRecord = StructuredRecord.builder(nestedSchema)
+      .set("rec1", record1)
+      .set("z", true)
+      .set("a", ImmutableList.of("a", "b", "c"))
+      .set("m", ImmutableMap.of("rec2", record2))
+      .build();
+
+    Assert.assertEquals(inner1, DML.select(nestedSchema, "rec1"));
+    Assert.assertEquals(record1, DML.select(nestedRecord, "rec1"));
+
+    Assert.assertEquals(Schema.of(Schema.Type.BOOLEAN), DML.select(nestedSchema, "z"));
+    Assert.assertTrue((boolean) DML.select(nestedRecord, "z"));
+
+    Assert.assertEquals(Schema.arrayOf(Schema.of(Schema.Type.STRING)), DML.select(nestedSchema, "a"));
+
+    Assert.assertEquals(Schema.mapOf(Schema.nullableOf(Schema.of(Schema.Type.STRING)),
+                                     Schema.nullableOf(inner2)),
+                        DML.select(nestedSchema, "m"));
+    Assert.assertEquals(nestedRecord.get("m"), DML.select(nestedRecord, "m"));
+    Assert.assertEquals(Schema.nullableOf(inner2), DML.select(nestedSchema, "m[rec2]"));
+
+    Assert.assertEquals(Schema.of(Schema.Type.STRING), DML.select(nestedSchema, "a[0]"));
+    Assert.assertEquals("a", DML.select(nestedRecord, "a[0]"));
+    Assert.assertEquals("b", DML.select(nestedRecord, "a[1]"));
+    Assert.assertEquals("c", DML.select(nestedRecord, "a[2]"));
+
+    Assert.assertEquals(Schema.of(Schema.Type.STRING), DML.select(nestedSchema, "rec1.s"));
+    Assert.assertEquals("str1", DML.select(nestedRecord, "rec1.s"));
+
+    Assert.assertEquals(Schema.of(Schema.Type.LONG), DML.select(nestedSchema, "rec1.l"));
+    Assert.assertEquals(3L, DML.select(nestedRecord, "rec1.l"));
+
+    Assert.assertEquals(Schema.arrayOf(Schema.nullableOf(inner2)), DML.select(nestedSchema, "rec1.rec2"));
+
+    Assert.assertEquals(Schema.mapOf(Schema.of(Schema.Type.STRING),
+                                     Schema.of(Schema.Type.INT)),
+                        DML.select(nestedSchema, "rec1.m"));
+    Assert.assertEquals(Schema.of(Schema.Type.INT), DML.select(nestedSchema, "rec1.m[a]"));
+    Assert.assertEquals(1, DML.select(nestedRecord, "rec1.m[a]"));
+    Assert.assertEquals(2, DML.select(nestedRecord, "rec1.m[b]"));
+
+    Assert.assertEquals(Schema.nullableOf(inner2), DML.select(nestedSchema, "rec1.rec2[0]"));
+    Assert.assertNull(DML.select(nestedRecord, "rec1.rec2[0]"));
+    Assert.assertEquals(record2, DML.select(nestedRecord, "rec1.rec2[1]"));
+    Assert.assertEquals(record2, DML.select(nestedRecord, "m[rec2]"));
+
+    Assert.assertEquals(Schema.of(Schema.Type.STRING), DML.select(nestedSchema, "rec1.rec2[1].x"));
+    Assert.assertEquals(Schema.of(Schema.Type.STRING), DML.select(nestedSchema, "m[rec2].x"));
+    Assert.assertEquals("str2", DML.select(nestedRecord, "rec1.rec2[1].x"));
+    Assert.assertEquals("str2", DML.select(nestedRecord, "m[rec2].x"));
+
+    Assert.assertEquals(Schema.of(Schema.Type.INT), DML.select(nestedSchema, "rec1.rec2[1].y"));
+    Assert.assertEquals(Schema.of(Schema.Type.INT), DML.select(nestedSchema, "m[rec2].y"));
+    Assert.assertEquals(5, DML.select(nestedRecord, "rec1.rec2[1].y"));
+    Assert.assertEquals(5, DML.select(nestedRecord, "m[rec2].y"));
+
+    Assert.assertEquals(Schema.arrayOf(Schema.of(Schema.Type.INT)), DML.select(nestedSchema, "rec1.rec2[1].z"));
+    Assert.assertEquals(Schema.arrayOf(Schema.of(Schema.Type.INT)), DML.select(nestedSchema, "m[rec2].z"));
+
+    Assert.assertEquals(Schema.of(Schema.Type.INT), DML.select(nestedSchema, "rec1.rec2[1].z[0]"));
+    Assert.assertEquals(Schema.of(Schema.Type.INT), DML.select(nestedSchema, "m[rec2].z[0]"));
+    Assert.assertEquals(0, DML.select(nestedRecord, "rec1.rec2[1].z[0]"));
+    Assert.assertEquals(1, DML.select(nestedRecord, "rec1.rec2[1].z[1]"));
+    Assert.assertEquals(2, DML.select(nestedRecord, "rec1.rec2[1].z[2]"));
+    Assert.assertEquals(3, DML.select(nestedRecord, "rec1.rec2[1].z[3]"));
+    Assert.assertEquals(0, DML.select(nestedRecord, "m[rec2].z[0]"));
+    Assert.assertEquals(1, DML.select(nestedRecord, "m[rec2].z[1]"));
+    Assert.assertEquals(2, DML.select(nestedRecord, "m[rec2].z[2]"));
+    Assert.assertEquals(3, DML.select(nestedRecord, "m[rec2].z[3]"));
+
+    Schema newSchema = DML.drop(nestedSchema, "rec1.rec2[0].z");
+    newSchema = DML.drop(newSchema, "rec1.rec2[0].x");
+    newSchema = DML.drop(newSchema, "rec1.m");
+    newSchema = DML.drop(newSchema, "rec1.l");
+    newSchema = DML.drop(newSchema, "m");
+    newSchema = DML.drop(newSchema, "a");
+
+    Schema inner2New = Schema.recordOf("inner2",
+                                       Schema.Field.of("y", Schema.of(Schema.Type.INT)));
+    Schema inner1New = Schema.recordOf("inner1",
+                                       Schema.Field.of("rec2", Schema.arrayOf(Schema.nullableOf(inner2New))),
+                                       Schema.Field.of("s", Schema.of(Schema.Type.STRING)));
+    Schema nestedSchemaNew = Schema.recordOf(
+      "nested",
+      Schema.Field.of("rec1", inner1New),
+      Schema.Field.of("z", Schema.of(Schema.Type.BOOLEAN)));
+    Assert.assertEquals(nestedSchemaNew, newSchema);
+  }
+}

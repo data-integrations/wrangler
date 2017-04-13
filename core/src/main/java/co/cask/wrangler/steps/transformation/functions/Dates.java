@@ -22,6 +22,7 @@ import org.joda.time.Days;
 import org.joda.time.Period;
 import org.joda.time.Seconds;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -30,7 +31,7 @@ import java.util.Date;
  *
  * set-column column <expression>
  */
-public final class Dates {
+public final class Dates implements Serializable {
   /**
    * Converts a date to long -- unix timestamp in milli-seconds.
    *

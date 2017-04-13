@@ -43,11 +43,12 @@ public class Json2SchemaTest {
     JsonTestData.ARRAY_OF_NUMBERS,
     JsonTestData.ARRAY_OF_STRING,
     JsonTestData.COMPLEX_2,
-    JsonTestData.EMPTY_OBJECT
+    JsonTestData.EMPTY_OBJECT,
+    JsonTestData.FB_JSON
   };
 
   private static final String[] directives = new String[] {
-    "set-column body json:parse(body)"
+    "set-column body json:parse(body, false)"
   };
 
   @Test
@@ -70,7 +71,7 @@ public class Json2SchemaTest {
       String decode = StructuredRecordStringConverter.toJsonString(structuredRecords.get(0));
       JsonElement originalObject = parser.parse(test);
       JsonElement roundTripObject = parser.parse(decode).getAsJsonObject().get("body");
-      Assert.assertTrue(originalObject.equals(roundTripObject));
+      Assert.assertEquals(originalObject, roundTripObject);
       Assert.assertTrue(structuredRecords.size() > 0);
     }
   }

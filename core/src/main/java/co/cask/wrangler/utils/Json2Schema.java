@@ -89,6 +89,10 @@ public final class Json2Schema {
         Schema schema = toSchema(name, (JsonElement) value);
         fields.add(Schema.Field.of(name, schema));
       }
+
+      if (value instanceof Schema) {
+        fields.addAll(((Schema) value).getFields());
+      }
     }
     return Schema.recordOf(id, fields);
   }

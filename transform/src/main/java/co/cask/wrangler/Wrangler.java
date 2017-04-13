@@ -33,15 +33,14 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
-import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.utils.StructuredRecordConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -190,48 +189,51 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
+   * Transforms the input record by applying directives on the record being passed.
    *
-   * @param input
-   * @param emitter
-   * @throws Exception
+   * @param input record to be transformed.
+   * @param emitter to collect all the output of the transformation.
+   * @throws Exception thrown if there are any issue with the transformation.
    */
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
-    // Creates a row as starting point for input to the pipeline.
-    Record row;
-    if (config.field.equalsIgnoreCase("*")) {
-      row = new Record();
-      for (Schema.Field field : input.getSchema().getFields()) {
-        row.add(field.getName(), input.get(field.getName()));
-      }
-    } else {
-      row = new Record(config.field, input.get(config.field));
-    }
-
-    // If pre-condition is set, then evaluate the precondition
-    if (condition != null) {
-      boolean skip = condition.apply(row);
-      if (skip) {
-        getContext().getMetrics().count("precondition.filtered", 1);
-        return; // Expression evaluated to true, so we skip the record.
-      }
-    }
-
-    // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
-    // but just return without emitting any record out.
-    List<StructuredRecord> records = new ArrayList<>();
-    long start = System.nanoTime();
+    long start = 0;
+    List<StructuredRecord> records;
     try {
-      records = pipeline.execute(Arrays.asList(row), oSchema); // we don't compute meta and statistics.
+      // Creates a row as starting point for input to the pipeline.
+      Record row = new Record();
+      if (config.field.equalsIgnoreCase("*")) {
+        for (Schema.Field field : input.getSchema().getFields()) {
+          row.add(field.getName(), input.get(field.getName()));
+        }
+      } if (config.field.equalsIgnoreCase("$")) {
+        // This basically taking the incoming structured record and transforming
+        // it to have a subset of it.
+        emitter.emit(StructuredRecordConverter.transform(input, oSchema));
+        return;
+      } else {
+        row.add(config.field, input.get(config.field));
+      }
 
+      // If pre-condition is set, then evaluate the precondition
+      if (condition != null) {
+        boolean skip = condition.apply(row);
+        if (skip) {
+          getContext().getMetrics().count("precondition.filtered", 1);
+          return; // Expression evaluated to true, so we skip the record.
+        }
+      }
+
+      start = System.nanoTime();
+      records = pipeline.execute(Arrays.asList(row), oSchema);
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
         getContext().getMetrics().count("errors", 1);
         ErrorRecord error = errors.get(0);
-        emitter.emitError(new InvalidEntry<StructuredRecord>(error.getCode(), error.getMessage(), input));
+        emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
       }
-    } catch (PipelineException e) {
+    } catch (Exception e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;
       // If error threshold is reached, then terminate processing.
@@ -241,7 +243,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
       // Emit error record, if the Error flattener or error handlers are not connected, then
       // the record is automatically omitted.
-      emitter.emitError(new InvalidEntry<StructuredRecord>(0, e.getMessage(), input));
+      emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
       return;
     } finally {
       getContext().getMetrics().gauge("process.time", System.nanoTime() - start);

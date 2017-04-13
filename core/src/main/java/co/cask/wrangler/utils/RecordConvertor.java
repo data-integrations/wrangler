@@ -47,7 +47,7 @@ public final class RecordConvertor implements Serializable {
   public List<StructuredRecord> toStructureRecord(List<Record> records, Schema schema) throws RecordConvertorException {
     List<StructuredRecord> results = new ArrayList<>();
     for (Record record : records) {
-      StructuredRecord r = toStructureRecord(record, schema);
+      StructuredRecord r = decodeRecord(record, schema);
       results.add(r);
     }
     return results;
@@ -60,7 +60,7 @@ public final class RecordConvertor implements Serializable {
    * @param schema Schema associated with {@link StructuredRecord}
    * @return Populated {@link StructuredRecord}
    */
-  public StructuredRecord toStructureRecord(Record record, Schema schema) throws RecordConvertorException {
+  public StructuredRecord decodeRecord(Record record, Schema schema) throws RecordConvertorException {
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     List<Schema.Field> fields = schema.getFields();
     for (Schema.Field field : fields) {

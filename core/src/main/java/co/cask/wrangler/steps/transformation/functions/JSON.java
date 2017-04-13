@@ -27,6 +27,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +38,7 @@ import java.util.Set;
  *
  * set-column column <expression>
  */
-public final class JSON {
+public final class JSON implements Serializable {
   public static final Configuration GSON_CONFIGURATION = Configuration
     .builder()
     .mappingProvider(new GsonMappingProvider())
@@ -187,7 +188,7 @@ public final class JSON {
    * @return parsed json else throws an exception.
    */
   public static JsonElement parse(String json) {
-    return parse(json, true);
+    return parse(json, false);
   }
 
   /**

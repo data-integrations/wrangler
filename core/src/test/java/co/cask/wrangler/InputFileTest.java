@@ -16,6 +16,7 @@
 
 package co.cask.wrangler;
 
+import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.ParallelPipelineExecutor;
 import co.cask.wrangler.internal.PipelineExecutor;
@@ -81,4 +82,15 @@ public class InputFileTest {
 
     Assert.assertTrue(true);
   }
+
+  @Ignore
+  @Test
+  public void testSchemaParsing() throws Exception {
+    Path path = Paths.get("/Users/nitin/Downloads/schema_1.json");
+    byte[] data = Files.readAllBytes(path);
+    String schemaStr = new String(data);
+    Schema s = Schema.parseJson(schemaStr);
+    Assert.assertTrue(true);
+  }
+
 }

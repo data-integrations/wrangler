@@ -2,10 +2,12 @@ package co.cask.wrangler.steps.transformation.functions;
 
 import co.cask.wrangler.dq.TypeInference;
 
+import java.io.Serializable;
+
 /**
  * Static class that is included in the Jexl expression for detecting types of data.
  */
-public final class Types {
+public final class Types implements Serializable {
   /**
    * Checks if a value is a date or not.
    *
