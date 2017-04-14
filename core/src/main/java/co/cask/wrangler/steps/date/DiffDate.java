@@ -16,14 +16,18 @@
 
 package co.cask.wrangler.steps.date;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Wrangle step for taking difference in Dates.
@@ -34,7 +38,7 @@ import java.util.List;
   description = "Return the difference in milliseconds between two Date objects." +
     "Must use parse-simple-date or parse-date step first."
 )
-public class DiffDate extends AbstractStep {
+public class DiffDate extends AbstractSimpleStep {
   private final String column1;
   private final String column2;
   private final String destCol;
@@ -87,5 +91,10 @@ public class DiffDate extends AbstractStep {
       return null;
     }
     return (Date) o;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    return ImmutableMap.<String, Set<String>>of(destCol, ImmutableSet.of(column1, column2));
   }
 }

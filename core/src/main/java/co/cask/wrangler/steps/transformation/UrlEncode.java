@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -34,11 +34,11 @@ import java.util.List;
   usage = "url-encode <column>",
   description = "URL encode a column value."
 )
-public class UrlEncode extends AbstractStep {
+public class UrlEncode extends AbstractIndependentStep {
   private final String column;
 
   public UrlEncode(int lineno, String directive, String column) {
-    super(lineno, directive);
+    super(lineno, directive, column);
     this.column = column;
   }
 

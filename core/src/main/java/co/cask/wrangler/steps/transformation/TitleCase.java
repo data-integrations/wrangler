@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -33,12 +33,12 @@ import java.util.List;
   usage = "titlecase <column>",
   description = "Changes the column value to titlecase."
 )
-public class TitleCase extends AbstractStep {
+public class TitleCase extends AbstractIndependentStep {
   // Columns of the column to be lower cased.
   private String col;
 
   public TitleCase(int lineno, String detail, String col) {
-    super(lineno, detail);
+    super(lineno, detail, col);
     this.col = col;
   }
 

@@ -17,13 +17,17 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Step to split email address into account and domain.
@@ -33,7 +37,7 @@ import java.util.List;
   usage = "split-email <column>",
   description = "Split a email into account and domain."
 )
-public class SplitEmail extends AbstractStep {
+public class SplitEmail extends AbstractSimpleStep {
   private final String column;
 
   public SplitEmail(int lineno, String directive, String column) {
@@ -67,7 +71,6 @@ public class SplitEmail extends AbstractStep {
             record.add(column + "_account", components.getKey());
             record.add(column + "_domain", components.getValue());
           } else {
-            String name = emailAddress.substring(0, nameIdx);
             int endIdx = emailAddress.lastIndexOf(">");
             if (endIdx == -1) {
               record.add(column + "_account", null);
@@ -99,5 +102,11 @@ public class SplitEmail extends AbstractStep {
     } else {
       return new KeyValue<>(emailId.substring(0, lastidx), emailId.substring(lastidx + 1));
     }
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    Set<String> inputSet = ImmutableSet.of(column);
+    return ImmutableMap.of(column + "_account", inputSet, column + "_domain", inputSet);
   }
 }

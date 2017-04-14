@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -48,12 +49,9 @@ import java.util.Map;
   usage = "set column <column> <jexl-expression>",
   description = "Sets a column by evaluating a JEXL expression."
 )
-public class Expression extends AbstractStep {
+public class Expression extends AbstractIndependentStep {
   // Column to which the result of experience is applied to.
   private final String column;
-
-  // The actual expression
-  private final String expression;
 
   // Handler to Jexl Engine.
   private final JexlEngine engine;
@@ -66,9 +64,9 @@ public class Expression extends AbstractStep {
 
 
   public Expression(int lineno, String detail, String column, String expression) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
-    this.expression = expression;
+
     // Create and build the script.
     engine = JexlFunctions.getEngine();
     script = engine.createScript(expression);

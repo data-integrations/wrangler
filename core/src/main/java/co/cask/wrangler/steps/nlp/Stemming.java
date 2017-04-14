@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.nlp;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -36,12 +36,12 @@ import java.util.List;
   usage = "stemming <column>",
   description = "Apply Porter Stemming on the column value."
 )
-public class Stemming extends AbstractStep {
+public class Stemming extends AbstractIndependentStep {
   private final String column;
   private final PorterStemmer stemmer;
 
   public Stemming(int lineno, String detail, String column) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
     this.stemmer = new PorterStemmer();
   }

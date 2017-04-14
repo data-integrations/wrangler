@@ -16,12 +16,13 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedInputOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlFunctions;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -30,6 +31,7 @@ import org.apache.commons.jexl3.MapContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -45,7 +47,7 @@ import java.util.List;
   usage = "filter-row-if-true <condition>",
   description = "Filters rows if condition is evaluated to true."
 )
-public class RecordConditionFilter extends AbstractStep {
+public class RecordConditionFilter extends AbstractUnboundedInputOutputStep {
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
@@ -110,5 +112,10 @@ public class RecordConditionFilter extends AbstractStep {
       results.add(record);
     }
     return results;
+  }
+
+  @Override
+  public Set<String> getInputColumns(String outputColumn) {
+    return ImmutableSet.of(outputColumn);
   }
 }

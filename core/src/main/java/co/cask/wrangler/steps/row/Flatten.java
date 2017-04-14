@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,15 +16,19 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A directive that Flattens a record
@@ -34,7 +38,7 @@ import java.util.List;
   usage = "flatten <column>[,<column>,<column>,...]",
   description = "Separates array elements of a column into indvidual records. Copies rest of the columns."
 )
-public class Flatten extends AbstractStep {
+public class Flatten extends AbstractSimpleStep {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;
   private int[] locations;
@@ -75,7 +79,7 @@ public class Flatten extends AbstractStep {
       for (int i = 0; i < count; ++i) {
         if (locations[i] != -1) {
           Object value = record.getValue(locations[i]);
-          int m = -1;
+          int m;
           if (value instanceof JSONArray) {
             m = ((JSONArray) value).length();
           } else if (value instanceof net.minidev.json.JSONArray) {
@@ -92,7 +96,7 @@ public class Flatten extends AbstractStep {
       }
 
       // We iterate through the arrays and populate all the columns.
-      for(int k = 0; k < max; ++k) {
+      for (int k = 0; k < max; ++k) {
         Record r = new Record(record);
         for (int i = 0; i < count; ++i) {
           if (locations[i] != -1) {
@@ -135,4 +139,14 @@ public class Flatten extends AbstractStep {
     return results;
   }
 
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    ImmutableMap.Builder<String, Set<String>> builder = ImmutableMap.builder();
+
+    for (String column : columns) {
+      builder.put(column, ImmutableSet.of(column));
+    }
+
+    return builder.build();
+  }
 }

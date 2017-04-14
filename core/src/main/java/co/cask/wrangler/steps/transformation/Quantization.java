@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDestinationSourceStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -39,17 +39,17 @@ import java.util.regex.Pattern;
   "<[range1:range2)=value>,[<range1:range2=value>]*",
   description = "Quanitize the range of numbers into label values."
 )
-public class Quantization extends AbstractStep {
+public class Quantization extends AbstractDestinationSourceStep {
   private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();
 
-  private String col1;
-  private String col2;
+  private String source;
+  private String destination;
 
-  public Quantization(int lineno, String detail, String col1, String col2, String ranges) {
-    super(lineno, detail);
-    this.col1 = col1;
-    this.col2 = col2;
+  public Quantization(int lineno, String detail, String source, String destination, String ranges) {
+    super(lineno, detail, destination, source);
+    this.source = source;
+    this.destination = destination;
     Pattern pattern = Pattern.compile(RANGE_PATTERN);
     Matcher matcher = pattern.matcher(ranges);
     while(matcher.find()) {
@@ -71,7 +71,7 @@ public class Quantization extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
-      int idx = record.find(col1);
+      int idx = record.find(source);
 
       if (idx != -1) {
         try {
@@ -86,13 +86,13 @@ public class Quantization extends AbstractStep {
           } else {
             throw new StepException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, Float or Double.",
-                            toString(), object != null ? object.getClass().getName() : "null", col1)
+                            toString(), object != null ? object.getClass().getName() : "null", source)
             );
           }
           String value = rangeMap.get(d);
-          int destIdx = record.find(col2);
+          int destIdx = record.find(destination);
           if (destIdx == -1) {
-            record.add(col2, value);
+            record.add(destination, value);
           } else {
             record.setValue(destIdx, value);
           }
@@ -102,7 +102,7 @@ public class Quantization extends AbstractStep {
       } else {
         throw new StepException(
           String.format("%s : %s was not found or is not of type string. Please check the wrangle configuration.",
-                        toString(), col1));
+                        toString(), source));
       }
       results.add(record);
     }

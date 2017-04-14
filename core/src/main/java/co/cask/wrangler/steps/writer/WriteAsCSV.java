@@ -16,12 +16,13 @@
 
 package co.cask.wrangler.steps.writer;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedInputStep;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -29,9 +30,9 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A step to write the record fields as CSV.
@@ -41,18 +42,13 @@ import java.util.List;
   usage = "write-as-csv <column>",
   description = "Writes the records files as well-formatted CSV"
 )
-public class WriteAsCSV extends AbstractStep {
+public class WriteAsCSV extends AbstractUnboundedInputStep {
+
   private final String column;
-  private final CSVPrinter writer;
 
   public WriteAsCSV(int lineno, String directive, String column) throws DirectiveParseException {
     super(lineno, directive);
     this.column = column;
-    try {
-      this.writer = CSVFormat.DEFAULT.print(new StringWriter());
-    } catch (IOException e) {
-      throw new DirectiveParseException(toString() + " : " + "Unable to create CSV writer. " + e.getMessage());
-    }
   }
 
   /**
@@ -84,5 +80,15 @@ public class WriteAsCSV extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getBoundedOutputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public Set<String> getOutputColumn(String inputColumn) {
+    return ImmutableSet.of(column);
   }
 }

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDestinationSourceStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -45,14 +45,14 @@ import java.util.List;
   usage = "xpath-array <column> <destination> <xpath>",
   description = "Extract XML element or attributes as JSON array using XPath."
 )
-public class XPathArrayElement extends AbstractStep {
+public class XPathArrayElement extends AbstractDestinationSourceStep {
   private final String column;
   private final String destination;
   private final String xpath;
   private final String attribute;
 
   public XPathArrayElement(int lineno, String directive, String column, String destination, String xpath) {
-    super(lineno, directive);
+    super(lineno, directive, destination, column);
     this.column = column;
     this.destination = destination;
     this.xpath = xpath;

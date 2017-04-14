@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,13 +17,18 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.KeepStep;
+import co.cask.wrangler.api.OptimizerGraphBuilder;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.UnboundedInputStep;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Wrangle step for setting the columns obtained from wrangling.
@@ -36,7 +41,9 @@ import java.util.List;
   usage = "set columns <column,column,...>",
   description = "Sets the column names for CSV parsed records."
 )
-public class Columns extends AbstractStep {
+public class Columns extends AbstractStep implements UnboundedInputStep<Record, Record, String>,
+  KeepStep<Record, Record, String> {
+
   // Name of the columns represented in a {@link Record}
   private List<String> columns = new ArrayList<>();
 
@@ -66,18 +73,40 @@ public class Columns extends AbstractStep {
    * @throws StepException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
-    throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
       int idx = 0;
       for (String name : columns) {
         if (idx < record.length()) {
-          record.setColumn(idx, name.trim());
+          record.setColumn(idx, name);
         }
         idx++;
       }
     }
     return records;
+  }
+
+  @Override
+  public void acceptOptimizerGraphBuilder(OptimizerGraphBuilder<Record, Record, String> optimizerGraphBuilder) {
+    optimizerGraphBuilder.buildGraph((UnboundedInputStep<Record, Record, String>) this);
+    if (replaceColumnNames) {
+      optimizerGraphBuilder.buildGraph((KeepStep<Record, Record, String>) this);
+    }
+  }
+
+  @Override
+  public Set<String> getKeptColumns() {
+    return ImmutableSet.copyOf(columns);
+  }
+
+  @Override
+  public Set<String> getBoundedOutputColumns() {
+    return ImmutableSet.copyOf(columns);
+  }
+
+  @Override
+  public Set<String> getOutputColumn(String inputColumn) {
+    return ImmutableSet.copyOf(columns);
   }
 }
 

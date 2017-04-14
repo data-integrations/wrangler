@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDestinationSourceStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -33,13 +33,13 @@ import java.util.List;
   usage = "cut-character <source> <destination> <range|indexes>",
   description = "Unix like 'cut' directive for splitting text"
 )
-public class CharacterCut extends AbstractStep {
+public class CharacterCut extends AbstractDestinationSourceStep {
   private String source;
   private String destination;
   private String range;
 
   public CharacterCut(int lineno, String detail, String source, String destination, String range) {
-    super(lineno, detail);
+    super(lineno, detail, destination, source);
     this.source = source;
     this.destination = destination;
     this.range = range;

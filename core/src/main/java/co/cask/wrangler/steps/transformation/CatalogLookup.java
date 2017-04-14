@@ -16,14 +16,16 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.StaticCatalog;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.StaticCatalog;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Looks ICD Code from the catalog.
@@ -33,7 +35,7 @@ import java.util.List;
   usage = "catalog-lookup <catalog> <column>",
   description = "Look codes, values from catalogs defined."
 )
-public class CatalogLookup extends AbstractStep {
+public class CatalogLookup extends AbstractUnboundedOutputStep {
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;
 
@@ -79,5 +81,15 @@ public class CatalogLookup extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public boolean isOutput(String outputColumn) {
+    return outputColumn.matches(String.format("%s_\\w+_description", column));
   }
 }

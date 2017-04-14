@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,14 +17,19 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DeletionStep;
+import co.cask.wrangler.api.OptimizerGraphBuilder;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.UnboundedOutputStep;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 import nl.basjes.parse.core.Parser;
 import nl.basjes.parse.httpdlog.ApacheHttpdLoglineParser;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Step for parsing Apache HTTPD and NGINX log files.
@@ -34,16 +39,16 @@ import java.util.List;
   usage = "parse-as-log <column> <format>",
   description = "Parses Apache HTTPD and NGINX logs."
 )
-public class ParseLog extends AbstractStep {
+public class ParseLog extends AbstractStep implements UnboundedOutputStep<Record, Record, String>,
+  DeletionStep<Record, Record, String> {
+
   private final String column;
-  private final String format;
   private final LogLine line;
   private final Parser<Object> parser;
 
   public ParseLog(int lineno, String detail, String column, String format) {
     super(lineno, detail);
     this.column = column;
-    this.format = format;
     this.line = new LogLine();
     this.parser = new ApacheHttpdLoglineParser<>(Object.class, format);
     List<String> paths = this.parser.getPossiblePaths();
@@ -90,6 +95,27 @@ public class ParseLog extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public void acceptOptimizerGraphBuilder(OptimizerGraphBuilder<Record, Record, String> optimizerGraphBuilder) {
+    optimizerGraphBuilder.buildGraph((UnboundedOutputStep<Record, Record, String>) this);
+    optimizerGraphBuilder.buildGraph((DeletionStep<Record, Record, String>) this);
+  }
+
+  @Override
+  public Set<String> getDeletedColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public boolean isOutput(String column) {
+    return !(column.contains("original") || column.contains("bytesclf") || column.contains("cookie"));
   }
 
   public final class LogLine {

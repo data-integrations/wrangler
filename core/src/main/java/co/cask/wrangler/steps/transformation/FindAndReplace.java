@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -35,12 +35,12 @@ import java.util.List;
   usage = "find-and-replace <column> <expression>",
   description = "Uses a sed like syntax to find and replace."
 )
-public class FindAndReplace extends AbstractStep {
+public class FindAndReplace extends AbstractIndependentStep {
   private final String pattern;
   private final String column;
 
   public FindAndReplace(int lineno, String detail, String column, String pattern) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.pattern = pattern.trim();
     this.column = column;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,11 +16,12 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 import com.ximpleware.ParseException;
 import com.ximpleware.VTDGen;
 import com.ximpleware.VTDNav;
@@ -28,6 +29,7 @@ import org.apache.commons.csv.CSVRecord;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A XML Parser.
@@ -42,7 +44,7 @@ import java.util.List;
   usage = "parse-as-xml <column>",
   description = "Parses a column as XML."
 )
-public class XmlParser extends AbstractStep {
+public class XmlParser extends AbstractUnboundedOutputStep {
   // Column within the input row that needs to be parsed as CSV
   private String col;
   private final VTDGen vg = new VTDGen();
@@ -100,6 +102,16 @@ public class XmlParser extends AbstractStep {
     for ( int i = 0; i < record.size(); i++) {
       row.add(col + "_" + (i + 1), record.get(i));
     }
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(col);
+  }
+
+  @Override
+  public boolean isOutput(String column) {
+    return column.matches(String.format("%s_\\d+", col));
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,6 +19,7 @@ package co.cask.wrangler.api;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,7 +232,9 @@ public class Record implements Serializable {
     }
   }
 
-
+  public List<String> getColumns() {
+    return ImmutableList.copyOf(columns);
+  }
 
   @Override
   public String toString() {

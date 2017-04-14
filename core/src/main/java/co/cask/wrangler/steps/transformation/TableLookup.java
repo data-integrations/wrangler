@@ -20,15 +20,17 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.DatasetInstantiationException;
 import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.etl.api.Lookup;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An AbstractStep that performs a lookup into a Table Dataset and adds the row values into the record.
@@ -38,7 +40,7 @@ import java.util.Map;
   usage = "table-lookup <column> <table>",
   description = "Uses the given column as a key to perform a lookup into the specified table."
 )
-public class TableLookup extends AbstractStep {
+public class TableLookup extends AbstractUnboundedOutputStep {
 
   private final String column;
   private final String table;
@@ -100,5 +102,15 @@ public class TableLookup extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public boolean isOutput(String outputColumn) {
+    return outputColumn.matches(String.format("%s_.*", column));
   }
 }

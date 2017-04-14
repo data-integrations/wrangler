@@ -16,15 +16,19 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.simmetrics.StringDistance;
 import org.simmetrics.metrics.StringDistances;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Step for implementing the directive for measuring the difference between two sequence of characters.
@@ -34,7 +38,7 @@ import java.util.List;
   usage = "text-distance <method> <column1> <column2> <destination>",
   description = "Calculates a text distance measure between two columns containing string."
 )
-public class TextDistanceMeasure extends AbstractStep {
+public class TextDistanceMeasure extends AbstractSimpleStep {
   private final String column1;
   private final String column2;
   private final String destination;
@@ -152,5 +156,10 @@ public class TextDistanceMeasure extends AbstractStep {
     }
 
     return records;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    return ImmutableMap.<String, Set<String>>of(destination, ImmutableSet.of(column1, column2));
   }
 }

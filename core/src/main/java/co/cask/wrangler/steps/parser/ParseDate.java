@@ -16,16 +16,18 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 import com.joestelmach.natty.DateGroup;
 import com.joestelmach.natty.Parser;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -36,7 +38,7 @@ import java.util.TimeZone;
   usage = "parse-as-date <column> [<timezone>]",
   description = "Parses a column as date, identifies the format automatically (expensive)."
 )
-public class ParseDate extends AbstractStep {
+public class ParseDate extends AbstractUnboundedOutputStep {
   private final String column;
   private final String timezone;
 
@@ -44,7 +46,7 @@ public class ParseDate extends AbstractStep {
     super(lineno, directive);
     this.column = column;
     this.timezone = timezone;
-    if(timezone == null) {
+    if (timezone == null) {
       timezone = "UTC";
     }
     // this is bad. esp if you have more than one such step in your pipeline
@@ -86,5 +88,15 @@ public class ParseDate extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public boolean isOutput(String outputColumn) {
+    return outputColumn.matches(String.format("%s_\\d+", column));
   }
 }

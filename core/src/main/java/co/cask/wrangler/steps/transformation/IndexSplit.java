@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDestinationSourceStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -33,7 +33,7 @@ import java.util.List;
   usage = "indexsplit <source> <start> <end> <destination>",
   description = "[DEPRECATED] Please use 'cut-character' directive."
 )
-public class IndexSplit extends AbstractStep {
+public class IndexSplit extends AbstractDestinationSourceStep {
   // Name of the column to be split
   private String col;
 
@@ -44,7 +44,7 @@ public class IndexSplit extends AbstractStep {
   private String dest;
 
   public IndexSplit(int lineno, String detail, String col, int start, int end, String dest) {
-    super(lineno, detail);
+    super(lineno, detail, dest, col);
     this.col = col;
     this.start = start - 1; // Assumes the wrangle configuration starts @ 1
     this.end = end - 1;

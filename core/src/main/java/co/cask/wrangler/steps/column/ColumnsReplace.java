@@ -16,15 +16,17 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedInputOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Applies a sed expression on the column names.
@@ -36,7 +38,7 @@ import java.util.List;
   usage = "columns-replace <sed-expression>",
   description = "Modify column names using sed format."
 )
-public class ColumnsReplace extends AbstractStep {
+public class ColumnsReplace extends AbstractUnboundedInputOutputStep {
   private final String sed;
 
   public ColumnsReplace(int lineno, String detail, String sed) {
@@ -67,6 +69,11 @@ public class ColumnsReplace extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getInputColumns(String outputColumn) {
+    return ImmutableSet.of(outputColumn);
   }
 }
 

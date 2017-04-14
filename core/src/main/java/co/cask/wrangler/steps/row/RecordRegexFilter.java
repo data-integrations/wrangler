@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -35,14 +35,14 @@ import java.util.regex.Pattern;
   usage = "filter-row-if-matched <column> <regex>",
   description = "Filters row if regex is matched."
 )
-public class RecordRegexFilter extends AbstractStep {
+public class RecordRegexFilter extends AbstractIndependentStep {
   private final String regex;
   private final String column;
   private Pattern pattern;
   private boolean match;
 
   public RecordRegexFilter(int lineno, String detail, String column, String regex, boolean match) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.regex = regex.trim();
     this.column = column;
     this.match = match;

@@ -17,16 +17,18 @@
 package co.cask.wrangler.steps.writer;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedInputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A step to write the record fields as JSON.
@@ -36,7 +38,7 @@ import java.util.Map;
   usage = "write-as-json-map <column>",
   description = "Writes all record columns as JSON map."
 )
-public class WriteAsJsonMap extends AbstractStep {
+public class WriteAsJsonMap extends AbstractUnboundedInputStep {
   private final String column;
   private final Gson gson;
 
@@ -63,5 +65,15 @@ public class WriteAsJsonMap extends AbstractStep {
       record.addOrSet(column, gson.toJson(toJson));
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getBoundedOutputColumns() {
+    return ImmutableSet.of(column);
+  }
+
+  @Override
+  public Set<String> getOutputColumn(String inputColumn) {
+    return ImmutableSet.of(column);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * A interface defining the wrangle step in the wrangling pipeline.
  */
-public interface Step<I, O> extends Serializable {
+public interface Step<I, O, C> extends Serializable {
   /**
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
@@ -31,5 +31,12 @@ public interface Step<I, O> extends Serializable {
    * @return Wrangled List of {@link Record}.
    */
   List<O> execute(List<I> records, PipelineContext context) throws StepException, ErrorRecordException;
-}
 
+  /**
+   * Accepts an {@code OptimizerGraphBuilder} and allows the metadata of this {@code Step} to be read by the
+   * {@code OptimizerGraphBuilder}.
+   *
+   * @param optimizerGraphBuilder The {@code OptimizerGraphBuilder} to accept
+   */
+  void acceptOptimizerGraphBuilder(OptimizerGraphBuilder<I, O, C> optimizerGraphBuilder);
+}

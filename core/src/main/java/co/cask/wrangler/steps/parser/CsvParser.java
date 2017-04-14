@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,13 +16,14 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractUnboundedOutputStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.dq.DataType;
 import co.cask.wrangler.dq.TypeInference;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -41,7 +42,7 @@ import java.util.Set;
   usage = "parse-as-csv <column> <delimiter> [<header=true/false>]",
   description = "Parses a column as CSV."
 )
-public class CsvParser extends AbstractStep {
+public class CsvParser extends AbstractUnboundedOutputStep {
   // Column within the input row that needs to be parsed as CSV
   private String col;
 
@@ -88,9 +89,8 @@ public class CsvParser extends AbstractStep {
       if(line == null || line.isEmpty()) {
         continue;
       }
-      CSVParser parser = null;
       try {
-        parser = CSVParser.parse(line, format);
+        CSVParser parser = CSVParser.parse(line, format);
         List<CSVRecord> csvRecords = parser.getRecords();
         for (CSVRecord csvRecord : csvRecords) {
           if(!checkedHeader && hasHeader && isHeader(csvRecord)) {
@@ -121,7 +121,7 @@ public class CsvParser extends AbstractStep {
    */
   private void toRow(CSVRecord record, Record row) {
     int size = headers.size();
-    for ( int i = 0; i < record.size(); i++) {
+    for (int i = 0; i < record.size(); i++) {
       if (size > 0) {
         row.add(headers.get(i), record.get(i));
       } else {
@@ -151,6 +151,16 @@ public class CsvParser extends AbstractStep {
     return true;
   }
 
+  @Override
+  public Set<String> getBoundedInputColumns() {
+    return ImmutableSet.of(col);
+  }
+
+  @Override
+  public boolean isOutput(String column) {
+    return column.matches(String.format("%s_\\d+", col));
+  }
+
   /**
    * Specifies the configuration for the CSV parser.
    */
@@ -174,7 +184,7 @@ public class CsvParser extends AbstractStep {
       this.ignoreEmptyLines = ignoreEmptyLines;
     }
 
-    public Options (char delimiter, boolean allowMissingColumnNames, char recordSeparator,
+    public Options(char delimiter, boolean allowMissingColumnNames, char recordSeparator,
                     boolean ignoreSurroundingSpaces, boolean ignoreEmptyLines) {
       this.delimiter = delimiter;
       this.allowMissingColumnNames = allowMissingColumnNames;

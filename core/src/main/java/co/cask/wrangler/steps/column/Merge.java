@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,14 +16,18 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Wrangle Step that merges two columns and creates a third column.
@@ -33,7 +37,7 @@ import java.util.List;
   usage = "merge <first> <second> <new-column> <separator>",
   description = "Merges two columns with a separator into a new column. "
 )
-public class Merge extends AbstractStep {
+public class Merge extends AbstractSimpleStep {
   // Source column1
   private String col1;
 
@@ -79,5 +83,10 @@ public class Merge extends AbstractStep {
     }
 
     return results;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    return ImmutableMap.<String, Set<String>>of(dest, ImmutableSet.of(col1, col2));
   }
 }

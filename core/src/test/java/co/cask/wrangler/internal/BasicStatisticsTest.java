@@ -17,9 +17,9 @@
 package co.cask.wrangler.internal;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.internal.statistics.BasicStatistics;
 import org.junit.Assert;
 import org.junit.Ignore;

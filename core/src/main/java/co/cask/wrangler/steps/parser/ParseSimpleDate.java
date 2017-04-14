@@ -16,11 +16,12 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,12 +35,12 @@ import java.util.List;
   usage = "parse-as-simple-date <column> <format>",
   description = "Parses a column as date using format."
 )
-public class ParseSimpleDate extends AbstractStep {
+public class ParseSimpleDate extends AbstractIndependentStep {
   private final String column;
   private final SimpleDateFormat format;
 
   public ParseSimpleDate(int lineno, String directive, String column, String format) {
-    super(lineno, directive);
+    super(lineno, directive, column);
     this.column = column;
     this.format = new SimpleDateFormat(format);
   }

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractIndependentStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -33,7 +33,7 @@ import java.util.List;
   usage = "split-to-rows <column> <separator>",
   description = "Splits a column into multiple rows, copies the rest of the columns."
 )
-public class SplitToRows extends AbstractStep {
+public class SplitToRows extends AbstractIndependentStep {
   // Column on which to apply mask.
   private final String column;
 
@@ -41,7 +41,7 @@ public class SplitToRows extends AbstractStep {
   private final String regex;
 
   public SplitToRows(int lineno, String detail, String column, String regex) {
-    super(lineno, detail);
+    super(lineno, detail, column);
     this.column = column;
     this.regex = regex;
   }

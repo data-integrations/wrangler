@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,14 +16,16 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDeletionStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Wrangle step for dropping the columns obtained form wrangling.
@@ -36,7 +38,7 @@ import java.util.List;
   usage = "drop <column>[,<column>]*",
   description = "Drop one or more columns."
 )
-public class Drop extends AbstractStep {
+public class Drop extends AbstractDeletionStep {
   // Columns to be dropped.
   private List<String> columns;
 
@@ -69,6 +71,11 @@ public class Drop extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Set<String> getDeletedColumns() {
+    return ImmutableSet.copyOf(columns);
   }
 }
 

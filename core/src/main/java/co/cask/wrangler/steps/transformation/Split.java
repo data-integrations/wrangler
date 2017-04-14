@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,15 +16,19 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Wrangler step for splitting a col into two additional columns based on a delimiter.
@@ -34,7 +38,7 @@ import java.util.List;
   usage = "split <source> <delimiter> <new-column-1> <new-column-2>",
   description = "[DEPRECATED] Use 'split-to-columns' or 'split-to-rows'."
 )
-public class Split extends AbstractStep {
+public class Split extends AbstractSimpleStep {
   // Name of the column to be split
   private String col;
 
@@ -88,5 +92,11 @@ public class Split extends AbstractStep {
       results.add(record);
     }
     return results;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    Set<String> inputSet = ImmutableSet.of(col);
+    return ImmutableMap.of(firstColumnName, inputSet, secondColumnName, inputSet);
   }
 }

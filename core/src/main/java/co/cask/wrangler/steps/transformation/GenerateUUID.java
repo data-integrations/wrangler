@@ -16,14 +16,18 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractSimpleStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -34,7 +38,7 @@ import java.util.UUID;
   usage = "generate-uuid <column>",
   description = "Populates a column with a universally unique identifier."
 )
-public class GenerateUUID extends AbstractStep {
+public class GenerateUUID extends AbstractSimpleStep {
   private final String column;
   private final Random random;
 
@@ -63,5 +67,10 @@ public class GenerateUUID extends AbstractStep {
       }
     }
     return records;
+  }
+
+  @Override
+  public Map<String, Set<String>> getColumnMap() {
+    return ImmutableMap.<String, Set<String>>of(column, ImmutableSet.<String>of());
   }
 }
