@@ -74,6 +74,7 @@ public class SendToError extends AbstractStep {
     for (Record record : records) {
       // Move the fields from the record into the context.
       JexlContext ctx = new MapContext();
+      ctx.set("this", record);
       for (int i = 0; i < record.length(); ++i) {
         ctx.set(record.getColumn(i), record.getValue(i));
       }

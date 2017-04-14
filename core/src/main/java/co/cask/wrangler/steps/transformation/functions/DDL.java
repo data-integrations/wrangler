@@ -234,7 +234,7 @@ public final class DDL {
 
     if (field == null) {
       throw new IllegalArgumentException(
-        String.format("nested field '%s' in path '%s' does not exist", fieldName, path));
+        String.format("Nested field '%s' in path '%s' does not exist", fieldName, path));
     }
 
     Schema fieldSchema = field.getSchema();
@@ -334,7 +334,7 @@ public final class DDL {
 
     if (field == null) {
       throw new IllegalArgumentException(
-        String.format("nested field '%s' in path '%s' does not exist", fieldName, path));
+        String.format("Nested field '%s' in path '%s' does not exist", fieldName, path));
     }
 
     Schema fieldSchema = field.getSchema();

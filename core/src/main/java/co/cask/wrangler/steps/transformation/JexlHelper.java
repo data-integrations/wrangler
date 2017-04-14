@@ -3,9 +3,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.steps.transformation.functions.Conversions;
 import co.cask.wrangler.steps.transformation.functions.DDL;
+import co.cask.wrangler.steps.transformation.functions.DataQuality;
 import co.cask.wrangler.steps.transformation.functions.Dates;
 import co.cask.wrangler.steps.transformation.functions.JSON;
-import co.cask.wrangler.steps.transformation.functions.Types;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.lang.StringUtils;
@@ -43,7 +43,7 @@ public final class JexlHelper {
     functions.put("string", StringUtils.class);
     functions.put("bytes", Bytes.class);
     functions.put("arrays", Arrays.class);
-    functions.put("types", Types.class);
+    functions.put("dq", DataQuality.class);
     functions.put("ddl", DDL.class);
     return functions;
   }

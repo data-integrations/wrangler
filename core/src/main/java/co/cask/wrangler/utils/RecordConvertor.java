@@ -68,7 +68,6 @@ public final class RecordConvertor implements Serializable {
         return (StructuredRecord) cell;
       }
     }
-
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     List<Schema.Field> fields = schema.getFields();
     for (Schema.Field field : fields) {

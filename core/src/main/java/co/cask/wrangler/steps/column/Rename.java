@@ -60,7 +60,6 @@ public class Rename extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
-    boolean found = false;
     for (Record record : records) {
       int idx = record.find(oldcol);
       if (idx != -1) {

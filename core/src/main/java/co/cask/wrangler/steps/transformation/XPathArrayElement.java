@@ -21,12 +21,13 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 import com.ximpleware.AutoPilot;
 import com.ximpleware.NavException;
 import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
-import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +99,11 @@ public class XPathArrayElement extends AbstractStep {
                   values.add(vn.getXPathStringVal());
                 }
               }
-              record.addOrSet(destination, new JSONArray(values));
+              JsonArray array = new JsonArray();
+              for (String value : values) {
+                array.add(new JsonPrimitive(value));
+              }
+              record.addOrSet(destination, array);
             } else {
               int i = 0, j = 0;
               while (( i = ap.evalXPath()) != -1) {
@@ -107,7 +112,11 @@ public class XPathArrayElement extends AbstractStep {
                   values.add(vn.toString(val));
                 }
               }
-              record.addOrSet(destination, new JSONArray(values));
+              JsonArray array = new JsonArray();
+              for (String value : values) {
+                array.add(new JsonPrimitive(value));
+              }
+              record.addOrSet(destination, array);
             }
           } catch (XPathParseException | XPathEvalException | NavException e) {
             throw new StepException(
