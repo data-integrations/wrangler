@@ -19,6 +19,7 @@ package co.cask.wrangler.internal;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
@@ -36,7 +37,7 @@ import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsPath;
-import co.cask.wrangler.steps.parser.JsonParser;
+import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
@@ -130,7 +131,7 @@ public class TextDirectives implements Directives {
     // Iterate through each directive and create necessary stepRegistry.
     for (String directive : directives) {
       directive = directive.trim();
-      if (directive.isEmpty() || directive.startsWith("//")) {
+      if (directive.isEmpty() || directive.startsWith("//") || directive.startsWith("#")) {
         continue;
       }
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
@@ -369,7 +370,7 @@ public class TextDirectives implements Directives {
               );
             }
           }
-          steps.add(new JsonParser(lineno, directive, column, depth));
+          steps.add(new JsParser(lineno, directive, column, depth));
         }
         break;
 
@@ -775,6 +776,18 @@ public class TextDirectives implements Directives {
         // cleanse-column-names
         case "cleanse-column-names" : {
           steps.add(new CleanseColumnNames(lineno, directive));
+        }
+        break;
+
+        // change-column-case <upper|lower|uppercase|lowercase>
+        case "change-column-case" : {
+          String casing = getNextToken(tokenizer, command, "case", lineno);
+          boolean toLower = false;
+          if (casing == null || casing.isEmpty() || casing.equalsIgnoreCase("lower")
+            || casing.equalsIgnoreCase("lowercase")) {
+            toLower = true;
+          }
+          steps.add(new ChangeColCaseNames(lineno, directive, toLower));
         }
         break;
 

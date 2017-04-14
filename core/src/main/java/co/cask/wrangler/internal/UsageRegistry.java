@@ -18,6 +18,7 @@ package co.cask.wrangler.internal;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
 import co.cask.wrangler.steps.column.ColumnsReplace;
@@ -34,8 +35,8 @@ import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
+import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.JsPath;
-import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
@@ -139,7 +140,7 @@ public final class UsageRegistry implements Serializable {
     GenerateUUID.class,
     HL7Parser.class,
     IndexSplit.class,
-    JsonParser.class,
+    JsParser.class,
     JsPath.class,
     Keep.class,
     Lower.class,
@@ -185,7 +186,8 @@ public final class UsageRegistry implements Serializable {
     SetColumn.class,
     Encode.class,
     Decode.class,
-    SendToError.class
+    SendToError.class,
+    ChangeColCaseNames.class
   );
 
   public UsageRegistry() {

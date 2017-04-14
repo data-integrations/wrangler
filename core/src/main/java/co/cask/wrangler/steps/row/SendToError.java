@@ -22,7 +22,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.steps.transformation.JexlFunctions;
+import co.cask.wrangler.steps.transformation.JexlHelper;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -55,7 +55,7 @@ public class SendToError extends AbstractStep {
     super(lineno, detail);
     this.condition = condition;
     // Create and build the script.
-    engine = JexlFunctions.getEngine();
+    engine = JexlHelper.getEngine();
     script = engine.createScript(condition);
   }
 
@@ -74,6 +74,7 @@ public class SendToError extends AbstractStep {
     for (Record record : records) {
       // Move the fields from the record into the context.
       JexlContext ctx = new MapContext();
+      ctx.set("this", record);
       for (int i = 0; i < record.length(); ++i) {
         ctx.set(record.getColumn(i), record.getValue(i));
       }

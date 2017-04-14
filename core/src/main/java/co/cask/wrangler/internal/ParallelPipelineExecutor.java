@@ -27,6 +27,8 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.utils.RecordConvertor;
+import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;

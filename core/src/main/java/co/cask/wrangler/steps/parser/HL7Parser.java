@@ -35,8 +35,8 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.List;
 
@@ -104,9 +104,9 @@ public class HL7Parser extends AbstractStep {
     private final Record record;
     private final String column;
     private final int depth;
-    private JSONObject segments = new JSONObject();
-    private JSONObject segmentObject = new JSONObject();
-    private JSONObject compositeObject = new JSONObject();
+    private JsonObject segments = new JsonObject();
+    private JsonObject segmentObject = new JsonObject();
+    private JsonObject compositeObject = new JsonObject();
     private boolean inComposite = false;
 
     public HL7MessageVisitor(Record record, String column, int depth) {
@@ -122,7 +122,7 @@ public class HL7Parser extends AbstractStep {
 
     @Override
     public boolean end(Message message) throws HL7Exception {
-      JsonParser.flattenJson(segments, column, 1, depth, record);
+      JsParser.flattenJson(segments, column, 1, depth, record);
       return true;
     }
 
@@ -139,22 +139,22 @@ public class HL7Parser extends AbstractStep {
 
     @Override
     public boolean start(Segment segment, Location location) throws HL7Exception {
-      segmentObject = new JSONObject();
+      segmentObject = new JsonObject();
       return true;
     }
 
     @Override
     public boolean end(Segment segment, Location location) throws HL7Exception {
       if (!segments.has(segment.getName())) {
-        segments.put(segment.getName(), segmentObject);
+        segments.add(segment.getName(), segmentObject);
       } else {
         Object object = segments.get(segment.getName());
-        if (!(object instanceof JSONArray)) {
-          JSONObject o = (JSONObject) segments.get(segment.getName());
-          JSONArray a = new JSONArray();
-          a.put(o);
-          a.put(segmentObject);
-          segments.put(segment.getName(), a);
+        if (!(object instanceof JsonArray)) {
+          JsonObject o = (JsonObject) segments.get(segment.getName());
+          JsonArray a = new JsonArray();
+          a.add(o);
+          a.add(segmentObject);
+          segments.add(segment.getName(), a);
         }
       }
       return true;
@@ -173,13 +173,13 @@ public class HL7Parser extends AbstractStep {
     @Override
     public boolean start(Composite composite, Location location) throws HL7Exception {
       inComposite = true;
-      compositeObject = new JSONObject();
+      compositeObject = new JsonObject();
       return true;
     }
 
     @Override
     public boolean end(Composite composite, Location location) throws HL7Exception {
-      segmentObject.put(Integer.toString(location.getField()), compositeObject);
+      segmentObject.add(Integer.toString(location.getField()), compositeObject);
       inComposite = false;
       return true;
     }
@@ -187,13 +187,13 @@ public class HL7Parser extends AbstractStep {
     @Override
     public boolean visit(Primitive primitive, Location location) throws HL7Exception {
       if (inComposite) {
-        compositeObject.put(Integer.toString(location.getComponent()), primitive.getValue());
+        compositeObject.addProperty(Integer.toString(location.getComponent()), primitive.getValue());
       } else {
         String fieldComponent = String.format("%d_%d", location.getField(), location.getComponent());
         if (location.getComponent() < 0) {
           fieldComponent = String.format("%d", location.getField());
         }
-        segmentObject.put(fieldComponent, primitive.getValue());
+        segmentObject.addProperty(fieldComponent, primitive.getValue());
       }
       return true;
     }

@@ -21,7 +21,9 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import org.json.JSONArray;
+import co.cask.wrangler.steps.parser.JsParser;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,10 +78,8 @@ public class Flatten extends AbstractStep {
         if (locations[i] != -1) {
           Object value = record.getValue(locations[i]);
           int m = -1;
-          if (value instanceof JSONArray) {
-            m = ((JSONArray) value).length();
-          } else if (value instanceof net.minidev.json.JSONArray) {
-            m = ((net.minidev.json.JSONArray) value).size();
+          if (value instanceof JsonArray) {
+            m = ((JsonArray) value).size();
           } else if (value instanceof List){
             m = ((List) value).size();
           } else {
@@ -101,13 +101,8 @@ public class Flatten extends AbstractStep {
               r.add(columns[i], null);
             } else {
               Object v = null;
-              if (value instanceof JSONArray) {
-                JSONArray array = (JSONArray) value;
-                if (k < array.length()) {
-                  v = array.get(k);
-                }
-              } else if (value instanceof net.minidev.json.JSONArray) {
-                net.minidev.json.JSONArray array = (net.minidev.json.JSONArray) value;
+              if (value instanceof JsonArray) {
+                JsonArray array = (JsonArray) value;
                 if (k < array.size()) {
                   v = array.get(k);
                 }
@@ -122,7 +117,11 @@ public class Flatten extends AbstractStep {
               if (v == null) {
                 r.addOrSet(columns[i], null);
               } else {
-                r.setValue(locations[i], v);
+                if (v instanceof JsonElement) {
+                  r.setValue(locations[i], JsParser.getValue((JsonElement)v));
+                } else {
+                  r.setValue(locations[i], v);
+                }
               }
             }
           } else {

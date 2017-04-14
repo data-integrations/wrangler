@@ -21,7 +21,7 @@ import java.math.BigInteger;
 import java.util.regex.Pattern;
 
 /**
- * Class description here.
+ * Type Interface provides utility functions that allow you to detect the types of data.
  */
 public class TypeInference {
   private static final Pattern patternInteger = Pattern.compile("^(\\+|-)?\\d+$");

@@ -25,9 +25,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link JsonParser}
+ * Tests {@link JsParser}
  */
-public class JsonParserTest {
+public class JsParserTest {
 
   @Test
   public void testParseJsonAndJsonPath() throws Exception {
@@ -43,9 +43,8 @@ public class JsonParserTest {
       "json-path signal_lost signal_lost $.[0]",
       "drop body",
       "rename body_deviceReference_timestamp timestamp",
-      "set column timestamp timestamp / 1000000",
-      "drop body_deviceReference_alerts",
-      "set columns timestamp,phone,battery,brand,type,comments,deviceId,os_name,os_version,size1,size2,size3,size4,signal"
+      "set column timestamp timestamp",
+      "drop body_deviceReference_alerts"
     };
 
     List<Record> records = Arrays.asList(
@@ -86,7 +85,7 @@ public class JsonParserTest {
     );
 
     records = PipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(records.size() == 5);
   }
 
 
@@ -143,5 +142,4 @@ public class JsonParserTest {
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
-
 }

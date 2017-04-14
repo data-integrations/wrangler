@@ -154,67 +154,6 @@ public class ExpressionTest {
   }
 
   @Test
-  public void testJSONFunctions() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-json body",
-      "set-column max json:ARRAY_MAX(body_numbers)",
-      "set-column min json:ARRAY_MIN(body_numbers)",
-      "set-column sum json:ARRAY_SUM(body_numbers)",
-      "set-column length json:ARRAY_LENGTH(body_numbers)",
-      "set-column body_responses json:ARRAY_OBJECT_REMOVE_NULL_FIELDS(body_responses, \"c,b\")",
-      "set-column body_responses json:ARRAY_OBJECT_RENAME_FIELDS(body_responses, \"a:field,b:value\")",
-      "set-column body_responses json:ARRAY_OBJECT_DROP_FIELDS(body_responses, \"c\")"
-    };
-
-    //2017-02-02T21:06:44Z
-    List<Record> records = Arrays.asList(
-      new Record("body", "{\n" +
-        "    \"name\" : {\n" +
-        "        \"fname\" : \"Joltie\",\n" +
-        "        \"lname\" : \"Root\",\n" +
-        "        \"mname\" : null\n" +
-        "    },\n" +
-        "    \"coordinates\" : [\n" +
-        "        12.56,\n" +
-        "        45.789\n" +
-        "    ],\n" +
-        "    \"numbers\" : [\n" +
-        "        1,\n" +
-        "        2.1,\n" +
-        "        3,\n" +
-        "        null,\n" +
-        "        4,\n" +
-        "        5,\n" +
-        "        6,\n" +
-        "        null\n" +
-        "    ],\n" +
-        "    \"responses\" : [\n" +
-        "        { \"a\" : 1, \"b\" : \"X\", \"c\" : 2.8},\n" +
-        "        { \"a\" : 2, \"b\" : \"Y\", \"c\" : 232342.8},\n" +
-        "        { \"a\" : 3, \"b\" : \"Z\", \"c\" : null},\n" +
-        "        { \"a\" : 4, \"b\" : \"U\"}\n" +
-        "    ],\n" +
-        "    \"integer\" : 1,\n" +
-        "    \"double\" : 2.8,\n" +
-        "    \"float\" : 45.6,\n" +
-        "    \"aliases\" : [\n" +
-        "        \"root\",\n" +
-        "        \"joltie\",\n" +
-        "        \"bunny\",\n" +
-        "        null\n" +
-        "    ]\n" +
-        "}")
-    );
-
-    records = PipelineTest.execute(directives, records);
-
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(21.1, records.get(0).getValue("sum"));
-    Assert.assertEquals(6.0, records.get(0).getValue("max"));
-    Assert.assertEquals(1.0, records.get(0).getValue("min"));
-  }
-
-  @Test
   public void testMethodCalls() throws Exception {
     String[] directives = new String[] {
       "set column first first.trim()",
@@ -230,6 +169,5 @@ public class ExpressionTest {
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 0);
   }
-
-
 }
+
