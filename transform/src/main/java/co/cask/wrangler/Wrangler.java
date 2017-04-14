@@ -37,6 +37,7 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.utils.StructuredRecordConverter;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ import java.util.List;
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
-  private final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
   // Plugin configuration.
   private final Config config;
 
@@ -100,15 +101,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Based on the configuration create output schema.
+
     try {
-      oSchema = Schema.parseJson(config.schema);
+      if (!config.containsMacro("schema")) {
+        oSchema = Schema.parseJson(config.schema);
+      }
     } catch (IOException e) {
       throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
     }
 
     // Check if configured field is present in the input schema.
     Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-    if((!config.field.equalsIgnoreCase("*") || !config.field.equalsIgnoreCase("#"))
+    if (inputSchema != null && !(config.field.equals("*") && config.field.equals("#"))
       && inputSchema.getField(config.field) == null) {
       throw new IllegalArgumentException(
         String.format("Field '%s' configured to wrangler is not present in the input. " +
@@ -126,7 +130,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Set the output schema.
-    configurer.getStageConfigurer().setOutputSchema(oSchema);
+    if (oSchema != null) {
+      configurer.getStageConfigurer().setOutputSchema(oSchema);
+    }
   }
 
   /**
@@ -257,7 +263,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // attempt to take if from 'input'.
       for (Schema.Field field : oSchema.getFields()) {
         Object wObject = record.get(field.getName()); // wrangled records
-        if(wObject == null) {
+        if (wObject == null) {
           builder.set(field.getName(), null);
         } else {
           if (wObject instanceof String) {
@@ -298,6 +304,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     @Name("schema")
     @Description("Specifies the schema that has to be output.")
+    @Macro
     private final String schema;
 
     public Config(String precondition, String directives, String field, int threshold, String schema) {
