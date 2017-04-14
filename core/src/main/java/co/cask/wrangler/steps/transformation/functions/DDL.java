@@ -133,6 +133,11 @@ public final class DDL implements Serializable {
       return schema;
     }
 
+    // TODO: Need to handle union type
+    if (schema.getType() != Schema.Type.RECORD) {
+      return schema;
+    }
+
     int dotIndex = path.indexOf('.');
     String recordField = dotIndex > 0 ? path.substring(0, dotIndex) : path;
     String nextPath = dotIndex > 0 ? path.substring(dotIndex + 1) : null;
