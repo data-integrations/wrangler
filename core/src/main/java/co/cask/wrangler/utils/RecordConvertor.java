@@ -61,6 +61,14 @@ public final class RecordConvertor implements Serializable {
    * @return Populated {@link StructuredRecord}
    */
   public StructuredRecord decodeRecord(Record record, Schema schema) throws RecordConvertorException {
+    // TODO: This is a hack to workaround StructuredRecord processing. NEED TO RETHINK.
+    if (record.getFields().size() == 1) {
+      Object cell = record.getValue(0);
+      if (cell instanceof StructuredRecord) {
+        return (StructuredRecord) cell;
+      }
+    }
+
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     List<Schema.Field> fields = schema.getFields();
     for (Schema.Field field : fields) {
@@ -123,7 +131,8 @@ public final class RecordConvertor implements Serializable {
     );
   }
 
-  private StructuredRecord decodeRecord(String name, JsonObject nativeObject, Schema schema) throws RecordConvertorException {
+  private StructuredRecord decodeRecord(String name,
+                                        JsonObject nativeObject, Schema schema) throws RecordConvertorException {
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     for (Schema.Field field : schema.getFields()) {
       String fieldName = field.getName();
@@ -150,7 +159,7 @@ public final class RecordConvertor implements Serializable {
     if (object == null || JsonNull.INSTANCE.equals(object)) {
       return null;
     } else if (object instanceof JsonPrimitive) {
-      return JsParser.getValue((JsonPrimitive)object);
+      return JsParser.getValue((JsonPrimitive) object);
     }
 
     switch (type) {
