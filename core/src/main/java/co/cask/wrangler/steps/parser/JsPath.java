@@ -22,21 +22,17 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.JsonOrgJsonProvider;
-import com.jayway.jsonpath.spi.json.JsonProvider;
-import com.jayway.jsonpath.spi.mapper.JsonOrgMappingProvider;
-import com.jayway.jsonpath.spi.mapper.MappingProvider;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.jayway.jsonpath.ParseContext;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
@@ -50,37 +46,20 @@ public class JsPath extends AbstractStep {
   private String src;
   private String dest;
   private String path;
-  private JsonProvider provider;
+  private ParseContext parser;
+
+  public static final Configuration GSON_CONFIGURATION = Configuration
+    .builder()
+    .mappingProvider(new GsonMappingProvider())
+    .jsonProvider(new GsonJsonProvider())
+    .build();
 
   public JsPath(int lineno, String detail, String src, String dest, String path) {
     super(lineno, detail);
     this.src = src;
     this.dest = dest;
     this.path = path;
-    provider = Configuration.defaultConfiguration().jsonProvider();
-  }
-
-  /**
-   * This will be used for later use, for now we use default provider.
-   */
-  private static class Config implements Configuration.Defaults {
-    private final JsonProvider jsonProvider = new JsonOrgJsonProvider();
-    private final MappingProvider mappingProvider = new JsonOrgMappingProvider();
-
-    @Override
-    public JsonProvider jsonProvider() {
-      return jsonProvider;
-    }
-
-    @Override
-    public MappingProvider mappingProvider() {
-      return mappingProvider;
-    }
-
-    @Override
-    public Set<Option> options() {
-      return EnumSet.noneOf(Option.class);
-    }
+    this.parser = JsonPath.using(GSON_CONFIGURATION);
   }
 
   /**
@@ -101,47 +80,24 @@ public class JsPath extends AbstractStep {
         continue;
       }
 
-      // Detect the type of the object, convert it to String before applying JsonPath expression to it.
       if (!(value instanceof String ||
-        value instanceof JSONArray ||
-        value instanceof net.minidev.json.JSONArray ||
-        value instanceof net.minidev.json.JSONObject ||
-        value instanceof JSONObject)) {
+        value instanceof JsonObject ||
+        value instanceof JsonArray)) {
         throw new StepException(
-          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JSONArray, " +
-                          "JSONObject or String.", toString(), value.getClass().getName(), src)
+          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JsonElement, " +
+                          "String.", toString(), value.getClass().getName(), src)
         );
       }
-      String v = value.toString();
 
-
-      // Apply JSON path expression to it.
-      Object e = provider.parse(v);
-      Object object = JsonPath.read(e, path);
-
-      // Check if the objects are arrays, if so convert it to List<Object>
-      if (object instanceof net.minidev.json.JSONArray) {
-        JSONArray objects = new JSONArray();
-        for(int i = 0; i < ((net.minidev.json.JSONArray) object).size(); ++i) {
-          objects.put(((net.minidev.json.JSONArray) object).get(i));
-        }
-        object = objects;
-      }
-
-      if (object instanceof Map) {
-        JSONObject objects = new JSONObject();
-        for (Map.Entry<String, String> entry : ((Map<String, String>)object).entrySet()) {
-          objects.put(entry.getKey(), entry.getValue());
-        }
-        object = objects;
-      }
+      JsonElement element = parser.parse(value).read(path);
+      Object val = JsParser.getValue(element);
 
       // If destination is already present add it, else set the value.
       int pos = record.find(dest);
       if (pos == -1) {
-        record.add(dest, object);
+        record.add(dest, val);
       } else {
-        record.setValue(pos, object);
+        record.setValue(pos, val);
       }
       results.add(record);
     }

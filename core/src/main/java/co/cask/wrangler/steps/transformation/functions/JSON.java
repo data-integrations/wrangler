@@ -16,11 +16,17 @@
 
 package co.cask.wrangler.steps.transformation.functions;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -32,262 +38,171 @@ import java.util.Set;
  * set-column column <expression>
  */
 public final class JSON {
+  public static final Configuration GSON_CONFIGURATION = Configuration
+    .builder()
+    .mappingProvider(new GsonMappingProvider())
+    .jsonProvider(new GsonJsonProvider())
+    .build();
+
+  private static final JsonParser PARSER = new JsonParser();
+
+  public static final JsonElement select(String json, String path, String ...paths) {
+    JsonElement element = PARSER.parse(json);
+    return select(element, path, paths);
+  }
+
+  public static final JsonElement select(String json, boolean toLower, String path, String ...paths) {
+    JsonElement element = PARSER.parse(json);
+    return select(element, toLower, path, paths);
+  }
+
+  public static final JsonElement select(JsonElement element, String path, String ...paths) {
+    return select(element, true, path, paths);
+  }
+
+  public static final JsonElement select(JsonElement element, boolean toLower, String path, String ...paths) {
+    if (toLower) {
+      element = keysToLower(element);
+    }
+    DocumentContext context = JsonPath.using(GSON_CONFIGURATION).parse(element);
+    if (paths.length == 0) {
+      return context.read(path);
+    } else {
+      JsonArray array = new JsonArray();
+      array.add((JsonElement)context.read(path));
+      for (String p : paths) {
+        array.add((JsonElement)context.read(p));
+      }
+      return array;
+    }
+  }
+
+  public static final JsonElement drop(String json, String field, String ... fields) {
+    JsonElement element = PARSER.parse(json);
+    return drop(element, field, fields);
+  }
 
   /**
-   * Joins the elements in the array with a separator to return a String object.
+   * Removes fields from a JSON inline.
    *
-   * @param array JSON Array to be joined.
-   * @param separator between elements of the JSON Array.
-   * @return Joined String of elements of JSON array.
+   * This method recursively iterates through the Json to delete one or more fields specified.
+   * It requires the Json to be parsed.
+   *
+   * @param element Json element to be parsed.
+   * @param field first field to be deleted.
+   * @param fields list of fields to be deleted.
+   * @return
    */
-  public static String ARRAY_JOIN(JSONArray array, String separator) {
+  public static final JsonElement drop(JsonElement element, String field, String ... fields) {
+    if(element.isJsonObject()) {
+      JsonObject object = element.getAsJsonObject();
+      Set<Map.Entry<String, JsonElement>> entries = object.entrySet();
+      Iterator<Map.Entry<String, JsonElement>> iterator = entries.iterator();
+      while(iterator.hasNext()) {
+        Map.Entry<String, JsonElement> next = iterator.next();
+        drop(next.getValue(), field, fields);
+      }
+      object.remove(field);
+      for (String fld : fields) {
+        object.remove(fld);
+      }
+    } else if (element.isJsonArray()) {
+      JsonArray object = element.getAsJsonArray();
+      for (int i = 0; i < object.size(); ++i) {
+        JsonElement arrayElement = object.get(i);
+        if (arrayElement.isJsonObject()) {
+          drop(arrayElement, field, fields);
+        }
+      }
+    }
+    return element;
+  }
+
+  /**
+   * This function lowers the keys of the json. it applies this transformation recurively.
+   *
+   * @param element to be transformed.
+   * @return modified element.
+   */
+  public static final JsonElement keysToLower(JsonElement element) {
+    if (element.isJsonObject()) {
+      JsonObject newObject = new JsonObject();
+      JsonObject object = element.getAsJsonObject();
+      Set<Map.Entry<String, JsonElement>> entries = object.entrySet();
+      Iterator<Map.Entry<String, JsonElement>> iterator = entries.iterator();
+      while(iterator.hasNext()) {
+        Map.Entry<String, JsonElement> next = iterator.next();
+        String name = next.getKey();
+        JsonElement child = next.getValue();
+        newObject.add(name.toLowerCase(), keysToLower(child));
+      }
+      return newObject;
+    } else if (element.isJsonArray()) {
+      JsonArray newArray = new JsonArray();
+      JsonArray array = element.getAsJsonArray();
+      for (int i = 0; i < array.size(); ++i) {
+        newArray.add(keysToLower(array.get(i)));
+      }
+      return newArray;
+    }
+    return element;
+  }
+
+  public static String join(JsonElement element, String separator) {
     StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < array.length(); ++i) {
-      Object value = array.get(i);
-      if (value == null || JSONObject.NULL.equals(value)) {
-        continue;
+    if (element instanceof JsonArray) {
+      JsonArray array = element.getAsJsonArray();
+      for (int i = 0; i < array.size(); ++i) {
+        JsonElement value = array.get(i);
+        if (value == null) {
+          continue;
+        }
+        if (value instanceof JsonPrimitive) {
+          sb.append(value);
+        }
+        sb.append(separator);
       }
-      if ( !(value instanceof JSONObject) ) {
-        sb.append(value);
-      } else {
-        break;
-      }
-      sb.append(separator);
     }
     return sb.toString();
   }
 
   /**
-   * Computes SUM of elements of JSON Array.
+   * This method converts a JavaScript value to a JSON string.
    *
-   * @param array to be summed.
-   * @return sum.
+   * @param element the value to convert to JSON string
+   * @return a JSON string.
    */
-  public static Double ARRAY_SUM(JSONArray array) {
-    double sum = 0.0;
-    for (int i = 0; i < array.length(); ++i) {
-      Object value = array.get(i);
-      if (value == null || JSONObject.NULL.equals(value)) {
-        continue;
-      }
-      if (value instanceof Integer || value instanceof Double || value instanceof Float || value instanceof Short) {
-        double v = array.getDouble(i);
-        sum = sum + v;
-      } else {
-        break;
-      }
+  public static String stringify(JsonElement element) {
+    if (element == null) {
+      return "null";
     }
-    return sum;
+    return element.toString();
   }
 
   /**
-   * Determines the MAX element from the JSON Array.
+   * Parses a column or string to JSON. This is equivalent to <code>JSON.parse()</code>
+   * This function by default lowercases the keys.
    *
-   * @param array to extract max.
-   * @return max
+   * @param json string representation of json.
+   * @return parsed json else throws an exception.
    */
-  public static Double ARRAY_MAX(JSONArray array) {
-    double max = Double.MIN_VALUE;
-    for (int i = 0; i < array.length(); ++i) {
-      Object value = array.get(i);
-      if (value == null || JSONObject.NULL.equals(value)) {
-        continue;
-      }
-      if (value instanceof Integer || value instanceof Double || value instanceof Float || value instanceof Short) {
-       double v = array.getDouble(i);
-        if (max < v) {
-          max = v;
-        }
-      } else {
-        break;
-      }
-    }
-    return max;
+  public static JsonElement parse(String json) {
+    return parse(json, false);
   }
 
   /**
-   * Determines the MIN element from the JSON Array.
+   * Parses a column or string to JSON. This is equivalent to <code>JSON.parse()</code>
    *
-   * @param array to extract min.
-   * @return min
+   * @param json string representation of json.
+   * @param toLower true to lower case keys, false to leave it as-is.
+   * @return parsed json else throws an exception.
    */
-  public static Double ARRAY_MIN(JSONArray array) {
-    double min = Double.MAX_VALUE;
-    for (int i = 0; i < array.length(); ++i) {
-      Object value = array.get(i);
-      if (value == null || JSONObject.NULL.equals(value)) {
-        continue;
-      }
-      if (value instanceof Integer || value instanceof Double || value instanceof Float || value instanceof Short) {
-        double v = array.getDouble(i);
-        if (min > v) {
-          min = v;
-        }
-      } else {
-        break;
-      }
+  public static JsonElement parse(String json, boolean toLower) {
+    JsonElement element = PARSER.parse(json);
+    if (toLower) {
+      element = keysToLower(element);
     }
-    return min;
+    return element;
   }
-
-  /**
-   * Returns the length of the array.
-   *
-   * @param array JSON Array
-   * @return length of array.
-   */
-  public static int ARRAY_LENGTH(JSONArray array) {
-    if (array != null) {
-      return array.length();
-    }
-    return 0;
-  }
-
-  /**
-   * Drops fields from JSON.
-   *
-   * @param array to be modified.
-   * @param fields list of fields to drop.
-   * @return modified array.
-   */
-  public static JSONArray ARRAY_OBJECT_DROP_FIELDS(JSONArray array, String fields) {
-    String[] cols = fields.split(",");
-    Set<String> fieldSet = new HashSet<>();
-    for (String col : cols) {
-      fieldSet.add(col.trim());
-    }
-
-    JSONArray newarray = new JSONArray();
-    // Iterate through each object in the array.
-    for (int i = 0; i < array.length(); ++i) {
-      JSONObject newobject = new JSONObject();
-      Object value = array.get(i);
-      if (value == null || JSONObject.NULL.equals(value)) {
-        continue;
-      }
-      if (value instanceof JSONObject) {
-        JSONObject v = array.getJSONObject(i);
-        Iterator<String> it = v.keys();
-        while (it.hasNext()) {
-          String name = it.next();
-          if (fieldSet.contains(name)) {
-            continue;
-          }
-          newobject.put(name, v.get(name));
-        }
-        newarray.put(newobject);
-      } else {
-        return array;
-      }
-    }
-    return newarray;
-  }
-
-  /**
-   * @return String of Array.
-   */
-  public static String TO_STRING(Object object) {
-    return (object == null) ? "null" : object.toString();
-  }
-
-  /**
-   * Removes null fields.
-   *
-   * @param array to filter the fields.
-   * @param columns list of columns to be checked for.
-   * @return modified array.
-   */
-  public static JSONArray ARRAY_OBJECT_REMOVE_NULL_FIELDS(JSONArray array, String columns) {
-    String[] cols = columns.split(",");
-    Set<String> columnSet = new HashSet<>();
-    for (String col : cols) {
-      columnSet.add(col.trim());
-    }
-
-    JSONArray newarray = new JSONArray();
-    // Iterate through each object in the array.
-    for (int i = 0; i < array.length(); ++i) {
-      JSONObject newobject = new JSONObject();
-      Object value = array.get(i);
-      if (value == null || JSONObject.NULL.equals(value)) {
-        continue;
-      }
-      if (value instanceof JSONObject) {
-        JSONObject v = array.getJSONObject(i);
-        Iterator<String> it = v.keys();
-        while (it.hasNext()) {
-          String name = it.next();
-          if (columnSet.contains(name)) {
-            Object element = v.get(name);
-            if (element == null || element == JSONObject.NULL) {
-              continue;
-            } else if (element instanceof String) {
-              String strvalue = v.getString(name);
-              if (strvalue.equalsIgnoreCase("null")) {
-                continue;
-              }
-            }
-            newobject.put(name, element);
-          } else {
-            newobject.put(name, v.get(name));
-          }
-        }
-        newarray.put(newobject);
-      } else {
-        return array;
-      }
-    }
-    return newarray;
-  }
-
-  /**
-   * Rename fields in JSON.
-   *
-   * @param array of objects who's fields need to be renamed.
-   * @param rename from:to[,from:to]
-   * @return modified array.
-   */
-  public static JSONArray ARRAY_OBJECT_RENAME_FIELDS(JSONArray array, String rename) {
-    String[] cols = rename.split(",");
-    Map<String, String> columnSet = new HashMap<>();
-    for (String col : cols) {
-      col = col.trim();
-      String[] splits = col.split(":");
-      if (splits.length != 2) {
-        return array;
-      }
-      String from = splits[0];
-      String to = splits[1];
-      columnSet.put(from, to);
-    }
-
-    JSONArray newarray = new JSONArray();
-    // Iterate through each object in the array.
-    for (int i = 0; i < array.length(); ++i) {
-      JSONObject newobject = new JSONObject();
-      Object value = array.get(i);
-      if (value == null || JSONObject.NULL.equals(value)) {
-        continue;
-      }
-      if (value instanceof JSONObject) {
-        JSONObject v = array.getJSONObject(i);
-        Iterator<String> it = v.keys();
-        while (it.hasNext()) {
-          String name = it.next();
-          if (columnSet.containsKey(name)) {
-            Object element = v.get(name);
-            newobject.put(columnSet.get(name), element);
-          } else {
-            newobject.put(name, v.get(name));
-          }
-        }
-        newarray.put(newobject);
-      } else {
-        return array;
-      }
-    }
-    return newarray;
-  }
-
-
 }
+

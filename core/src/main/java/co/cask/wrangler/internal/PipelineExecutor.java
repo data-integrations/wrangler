@@ -29,6 +29,8 @@ import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.utils.RecordConvertor;
+import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;

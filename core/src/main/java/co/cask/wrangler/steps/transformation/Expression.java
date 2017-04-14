@@ -70,7 +70,7 @@ public class Expression extends AbstractStep {
     this.column = column;
     this.expression = expression;
     // Create and build the script.
-    engine = JexlFunctions.getEngine();
+    engine = JexlHelper.getEngine();
     script = engine.createScript(expression);
   }
 
@@ -92,6 +92,7 @@ public class Expression extends AbstractStep {
     for (Record record : records) {
       // Move the fields from the record into the context.
       JexlContext ctx = new MapContext(properties);
+      ctx.set("this", record);
       for (int i = 0; i < record.length(); ++i) {
         ctx.set(record.getColumn(i), record.getValue(i));
       }
