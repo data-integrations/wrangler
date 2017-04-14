@@ -112,11 +112,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Check if configured field is present in the input schema.
     Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-    if (inputSchema != null && !(config.field.equals("*") && config.field.equals("#"))
-      && inputSchema.getField(config.field) == null) {
+    if((!"*".equalsIgnoreCase(config.field) || !"#".equalsIgnoreCase(config.field)
+      && inputSchema.getField(config.field) == null)) {
       throw new IllegalArgumentException(
         String.format("Field '%s' configured to wrangler is not present in the input. " +
-                        "Only specify fields present in the input", config.field)
+                        "Only specify fields present in the input", config.field == null ? "null" : config.field)
       );
     }
 
@@ -210,11 +210,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     try {
       // Creates a row as starting point for input to the pipeline.
       Record row = new Record();
-      if (config.field.equalsIgnoreCase("*")) {
+      if ("*".equalsIgnoreCase(config.field)) {
         for (Schema.Field field : input.getSchema().getFields()) {
           row.add(field.getName(), input.get(field.getName()));
         }
-      } if (config.field.equalsIgnoreCase("#")) {
+      } if ("#".equalsIgnoreCase(config.field)) {
         // This basically taking the incoming structured record and transforming
         // it to have a subset of it.
         emitter.emit(StructuredRecordConverter.transform(input, oSchema));

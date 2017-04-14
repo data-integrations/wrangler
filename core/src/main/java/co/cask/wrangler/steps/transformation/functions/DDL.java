@@ -24,7 +24,6 @@ import com.google.common.collect.Iterables;
 import com.google.gson.JsonElement;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +35,7 @@ import javax.annotation.Nullable;
 /**
  * Structured Record and Schema DDL.
  */
-public final class DDL implements Serializable {
+public final class DDL {
 
   /**
    * Given a JSON representation of schema, returns a {@link Schema} object.

@@ -16,15 +16,13 @@
 
 package co.cask.wrangler.steps.transformation.functions;
 
-import java.io.Serializable;
-
 /**
  * Collection of useful expression functions made available in the context
  * of an expression.
  *
  * set-column column <expression>
  */
-public final class Conversions implements Serializable {
+public final class Conversions {
   /**
    * Converts String value to double.
    *

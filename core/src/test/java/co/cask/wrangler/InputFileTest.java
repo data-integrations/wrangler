@@ -102,7 +102,7 @@ public class InputFileTest {
     // Now, we drop 'Product'
     schema = DDL.drop(schema, "Product", "Air", "Vehicle", "Hotel", "General");
 
-    Assert.assertTrue(true);
+    Assert.assertNotNull(schema);
   }
 
 }

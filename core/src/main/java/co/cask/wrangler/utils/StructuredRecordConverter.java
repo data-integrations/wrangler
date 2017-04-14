@@ -37,7 +37,11 @@ public final class StructuredRecordConverter {
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     for (Schema.Field field : record.getSchema().getFields()) {
       String name = field.getName();
-      builder.set(name, convertField(record.get(name), field.getSchema()));
+      // If the field name is not in the output, then skip it and if it's not nullable, then
+      // it would be error out -- in which case, the user has to fix the schema to proceed.
+      if (schema.getField(name) != null) {
+        builder.set(name, convertField(record.get(name), field.getSchema()));
+      }
     }
     return builder.build();
   }
