@@ -112,8 +112,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Check if configured field is present in the input schema.
     Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-    if((!"*".equalsIgnoreCase(config.field) || !"#".equalsIgnoreCase(config.field)
-      && inputSchema.getField(config.field) == null)) {
+    if (!(config.field.equals("*") || config.field.equals("#") ) &&
+      (inputSchema !=null && inputSchema.getField(config.field) == null)) {
       throw new IllegalArgumentException(
         String.format("Field '%s' configured to wrangler is not present in the input. " +
                         "Only specify fields present in the input", config.field == null ? "null" : config.field)
