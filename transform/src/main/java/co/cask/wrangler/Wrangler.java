@@ -214,11 +214,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         for (Schema.Field field : input.getSchema().getFields()) {
           row.add(field.getName(), input.get(field.getName()));
         }
-      } if ("#".equalsIgnoreCase(config.field)) {
-        // This basically taking the incoming structured record and transforming
-        // it to have a subset of it.
-        emitter.emit(StructuredRecordConverter.transform(input, oSchema));
-        return;
+      } else if ("#".equalsIgnoreCase(config.field)) {
+        row.add(input.getSchema().getRecordName(), input);
       } else {
         row.add(config.field, input.get(config.field));
       }

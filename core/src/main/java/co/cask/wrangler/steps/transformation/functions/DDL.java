@@ -72,13 +72,10 @@ public final class DDL {
   }
 
   /**
-   * Given a {@link StructuredRecord} returns the {@link Schema} for the record.
-   *
-   * @param record from which the {@link Schema} need
-   * @return {@link Schema} of the {@link StructuredRecord}
+   * Given a {@link StructuredRecord} returns the same {@link StructuredRecord}.
    */
-  public static Schema parse(StructuredRecord record) {
-    return record.getSchema();
+  public static StructuredRecord parse(StructuredRecord record) {
+    return record;
   }
 
   /**
@@ -298,14 +295,23 @@ public final class DDL {
     return fieldSchema;
   }
 
-  /**
-   * Select a sub-stucture of a {@link StructuredRecord}.
-   *
-   * @param record to be operated on
-   * @param path to applied to the {@link StructuredRecord}
-   * @param <T> type of object returned.
-   * @return sub-structure of the {@link StructuredRecord}
-   */
+  public static StructuredRecord drop(StructuredRecord record, String path) {
+    return drop(record, path, path);
+  }
+
+  public static StructuredRecord drop(StructuredRecord record, String path, String ... paths) {
+    // No-op. This is just to mirror the drop method for Schema
+    return record;
+  }
+
+    /**
+     * Select a sub-stucture of a {@link StructuredRecord}.
+     *
+     * @param record to be operated on
+     * @param path to applied to the {@link StructuredRecord}
+     * @param <T> type of object returned.
+     * @return sub-structure of the {@link StructuredRecord}
+     */
   public static <T> T select(StructuredRecord record, String path) {
     return recursiveGet(record, path, Splitter.on('.').split(path).iterator());
   }
