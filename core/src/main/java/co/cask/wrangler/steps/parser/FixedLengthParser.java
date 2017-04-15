@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -30,19 +31,25 @@ import java.util.List;
  */
 @Usage(
   directive = "parse-as-fixed-length",
-  usage = "parse-as-fixed-length <source> <width,width,...>",
+  usage = "parse-as-fixed-length <source> <width,width,...> [padding character]",
   description = "Parses fixed length files using the width specification."
 )
 public final class FixedLengthParser extends AbstractStep {
   private final int[] widths;
   private final String col;
   private final String padding;
+  private final int recordLength;
 
   public FixedLengthParser(int lineno, String detail, String col, int[] widths, String padding) {
     super(lineno, detail);
     this.col = col;
     this.padding = padding;
     this.widths = widths;
+    int sum = 0;
+    for (int i = 0; i < widths.length; ++i) {
+      sum += widths[i];
+    }
+    this.recordLength = sum;
   }
 
   /**
@@ -54,20 +61,41 @@ public final class FixedLengthParser extends AbstractStep {
    * @throws StepException In case of any issue this exception is thrown.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context)
+    throws StepException, ErrorRecordException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {
         Object object = record.getValue(idx);
         if (object instanceof String) {
-          String value = (String) object;
-          int offset = 0;
-          for (int i = 0; i < widths.length; ++i) {
-            String val = value.substring(offset, offset + widths[i]);
-            val = val.replaceAll(padding, "");
-            record.add(String.format("%s_%d", col, i+1), val);
-            offset = offset + widths[i];
+          String data = (String) object;
+          int length = data.length();
+          // If the recordLength length doesn't match the string length.
+          if (length < recordLength) {
+            throw new ErrorRecordException(
+              String.format("Fewer bytes than length of record specified - expected atleast %d bytes, found %s bytes.",
+                            recordLength, length),
+              2
+            );
+          }
+
+          int index = 1;
+          while ((index + recordLength - 1) <= length) {
+            Record newRecord = new Record(record);
+            int recPosition = index;
+            int colid = 1;
+            for (int width : widths) {
+              String val = data.substring(recPosition - 1, recPosition + width - 1);
+              if (padding != null) {
+                val = val.replaceAll(padding, "");
+              }
+              newRecord.add(String.format("%s_%d", col, colid), val);
+              recPosition += width;
+              colid+=1;
+            }
+            results.add(newRecord);
+            index = (index + recordLength);
           }
         } else {
           throw new StepException(
@@ -76,7 +104,6 @@ public final class FixedLengthParser extends AbstractStep {
           );
         }
       }
-      results.add(record);
     }
     return results;
   }

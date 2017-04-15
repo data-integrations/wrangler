@@ -6,8 +6,6 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.api.i18n.Messages;
-import co.cask.wrangler.api.i18n.MessagesFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -26,7 +24,6 @@ import java.util.List;
   description = "Sets the character set decoding to UTF-8."
 )
 public class SetCharset extends AbstractStep {
-  private static final Messages MSG = MessagesFactory.getMessages();
   private final String column;
   private final String charset;
 
@@ -54,20 +51,22 @@ public class SetCharset extends AbstractStep {
         continue;
       }
 
-      Object value = record.getValue(idx);
-      if (value == null) {
+      Object object = record.getValue(idx);
+      if (object == null) {
         continue;
       }
 
       // Convert from byte[] or ByteBuffer into right ByteBuffer.
       ByteBuffer buffer;
-      if (value instanceof byte[]) {
-        buffer = ByteBuffer.wrap((byte[]) value);
-      } else if (value instanceof ByteBuffer) {
-        buffer = (ByteBuffer) value;
+      if (object instanceof byte[]) {
+        buffer = ByteBuffer.wrap((byte[]) object);
+      } else if (object instanceof ByteBuffer) {
+        buffer = (ByteBuffer) object;
       } else {
         throw new StepException(
-          MSG.get("")
+          String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
+                        object != null ? object.getClass().getName() : "null", column)
+
         );
       }
 
@@ -76,7 +75,7 @@ public class SetCharset extends AbstractStep {
         record.setValue(idx, result.toString());
       } catch (Error e) {
         throw new StepException(
-          MSG.get("")
+          String.format("Problem converting to character set '%s'", charset)
         );
       }
     }

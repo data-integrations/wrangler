@@ -32,11 +32,11 @@ import java.util.List;
 public class Record implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(Record.class);
 
-  // Values held by the row.
-  private List<Object> values = new ArrayList<>();
-
   // Name of the columns held by the row.
   private List<String> columns = new ArrayList<>();
+
+  // Values held by the row.
+  private List<Object> values = new ArrayList<>();
 
   public Record() {
   }
