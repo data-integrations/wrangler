@@ -1,12 +1,10 @@
 # Wrangler
-<img src="https://cdap-users.herokuapp.com/assets/cm-available.svg"/>
-<img src="https://cdap-users.herokuapp.com/assets/cdap-transform.svg"/>
-<a href="https://cdap-users.herokuapp.com/">
-  <img alt="Join CDAP community" src="https://cdap-users.herokuapp.com/badge.svg?t=wrangler"/></a>
+
+![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
+![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
+[![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](href="https://cdap-users.herokuapp.com)
 [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
-<a href="https://scan.coverity.com/projects/hydrator-wrangler-transform">
-  <img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/11434/badge.svg"/>
-</a>
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/11434/badge.svg)](https://scan.coverity.com/projects/hydrator-wrangler-transform)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A collection of libraries, a pipeline plugin, and a CDAP service for performing data
