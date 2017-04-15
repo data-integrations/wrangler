@@ -2,7 +2,7 @@
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
-[![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](href="https://cdap-users.herokuapp.com)
+[![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](https://cdap-users.herokuapp.com)
 [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/11434/badge.svg)](https://scan.coverity.com/projects/hydrator-wrangler-transform)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
