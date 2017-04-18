@@ -37,8 +37,8 @@ import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
-import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.JsParser;
+import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
@@ -60,6 +60,7 @@ import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
 import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.InvokeHttp;
 import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
@@ -388,8 +389,20 @@ public class TextDirectives implements Directives {
         //set-charset <column> <charset>
         case "set-charset" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String charset = getNextToken(tokenizer, "\n", column, "charset", lineno, true);
+          String charset = getNextToken(tokenizer, "\n", command, "charset", lineno, true);
           steps.add(new SetCharset(lineno, directive, column, charset));
+        }
+        break;
+
+        //invoke-http <url> <column>[,<column>]
+        case "invoke-http" : {
+          String url = getNextToken(tokenizer, command, "url", lineno);
+          String columnsOpt = getNextToken(tokenizer, "\n", command, "columns", lineno, true);
+          List<String> columns = new ArrayList<>();
+          for (String column : columnsOpt.split(",")) {
+            columns.add(column.trim());
+          }
+          steps.add(new InvokeHttp(lineno, directive, url, columns));
         }
         break;
 
