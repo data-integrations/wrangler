@@ -89,6 +89,9 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
     } catch (URISyntaxException e) {
       error(responder, "Error detecting proper URI for the directory '" + path + "'. " + e.getCause() == null
         ? e.getMessage() : e.getCause().getMessage());
+    } catch (Throwable e) {
+      error(responder, "Unexpected error happened '" + path + "'. " + e.getCause() == null
+        ? e.getMessage() : e.getCause().getMessage());
     }
   }
 
@@ -120,6 +123,8 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
       }
     } catch (IOException e) {
       // We might not have permission, so ignore on look-ahead.
+    } catch (Throwable e) {
+
     }
     return FileTypes.UNKNOWN;
   }
@@ -152,6 +157,10 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
         return FileTypes.MARKDOWN;
 
       case "jar":
+        return FileTypes.JAR;
+
+      case "yml":
+      case "yaml":
         return FileTypes.JAR;
 
       default:
@@ -193,7 +202,7 @@ public class FSBrowserService extends AbstractHttpServiceHandler {
    * @throws URISyntaxException issue constructing the URI.
    */
   private Location getLocation(String path) throws URISyntaxException {
-    FileSet fileset = getContext().getDataset("lines");
+    FileSet fileset = getContext().getDataset("indexds");
     Location baseLocation = fileset.getBaseLocation();
     getContext().discardDataset(fileset);
 

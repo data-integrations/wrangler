@@ -20,6 +20,7 @@ package co.cask.wrangler.service.filesystem;
  * Specifies the type of the files being detected.
  */
 public final class FileTypes {
+  public final static String YAML = "application/yaml";
   public final static String TEXT = "application/text";
   public final static String SEQUENCE = "application/sequence";
   public final static String PARQUET = "application/parquet";
