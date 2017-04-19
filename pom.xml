@@ -78,8 +78,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <wrangler.version>${project.version}</wrangler.version>
-    <cdap.version>4.2.0-SNAPSHOT</cdap.version>
+    <cdap.version>4.1.1</cdap.version>
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang.version>3.5</commons-lang.version>
