@@ -8,9 +8,9 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A collection of libraries, a pipeline plugin, and a CDAP service for performing data
-cleansing, transformation, and filtering using a set of data manipulation instructions.
-These instructions are either generated using an interative visual tool or are manually
-created.
+cleansing, transformation, and filtering using a set of data manipulation instructions
+(directives). These instructions are either generated using an interative visual tool or
+are manually created.
 
 Check the documentation of the Wrangler Transform [here](transform/docs/Wrangler-transform.md).
 
@@ -189,13 +189,14 @@ below are specified as *records/second*. Additional details and test results are
 
 Wrangler is integrated as a CDAP Service to support HTTP RESTful-based interactive
 wrangling of data. The main objective of this service is to make it simple and easy to
-interactively generate the directives required for parsing a given data set. This service
-does not support full-scale big data processing.
+interactively apply the directives required for parsing a given data set. This service is
+not intended to replace full-scale big data processing. It is primarily used to
+interactively apply directives on a sample of your data.
 
 The base endpoint is:
 
 ```
-http://<hostname>:11015/v3/namespaces/<namespace>/apps/wrangler/services/service/methods
+http://<hostname>:11015/v3/namespaces/<namespace>/apps/dataprep/services/service/methods
 ```
 
 These are the different services provided:
