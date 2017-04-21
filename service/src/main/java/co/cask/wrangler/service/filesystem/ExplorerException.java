@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,23 +14,17 @@
  * the License.
  */
 
-package co.cask.wrangler.api;
-
-import java.io.Serializable;
-import java.util.List;
+package co.cask.wrangler.service.filesystem;
 
 /**
- * A specification for how {@link Pipeline} will process.
+ * Exception thrown when there is issue with File System exploration.
  */
-@PublicEvolving
-public interface Directives extends Serializable {
-  // Column definition for the start of processing.
-  public static final String STARTING_COLUMN = "__col";
+public class ExplorerException extends Exception {
+  public ExplorerException(String message) {
+    super(message);
+  }
 
-  /**
-   * Generates a configured set of {@link Step} to be executed.
-   *
-   * @return List of {@link Step}.
-   */
-  List<Step> getSteps() throws DirectiveParseException;
+  public ExplorerException(Exception e) {
+    super(e);
+  }
 }

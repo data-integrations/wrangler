@@ -17,9 +17,11 @@
 package co.cask.wrangler.service;
 
 import co.cask.cdap.api.data.schema.Schema;
+import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.ServiceManager;
+import co.cask.cdap.test.TestConfiguration;
 import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
@@ -29,6 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URL;
@@ -41,9 +45,13 @@ import java.util.Map;
 /**
  * Tests for {@link DirectivesService}.
  */
+@Ignore
 public class WranglerServiceTest extends WranglerServiceTestBase {
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+  @ClassRule
+  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
+
 
   @Test
   public void test() throws Exception {
@@ -70,7 +78,7 @@ public class WranglerServiceTest extends WranglerServiceTestBase {
                       Schema.Field.of("lname", Schema.nullableOf(Schema.of(Schema.Type.STRING))));
 
     Assert.assertEquals(expectedSchema, schema);
-
+    serviceManager.stop();
   }
 
   public Schema schema(URL baseURL, String workspace, List<String> directives) throws Exception {

@@ -24,6 +24,7 @@ import co.cask.cdap.test.ServiceManager;
 import co.cask.wrangler.DataPrep;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URL;
@@ -32,6 +33,7 @@ import java.util.List;
 /**
  * Tests {@link co.cask.wrangler.steps.transformation.TableLookup}.
  */
+@Ignore
 public class TableLookupTest extends WranglerServiceTestBase {
 
   @Test

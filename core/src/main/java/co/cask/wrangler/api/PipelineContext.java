@@ -25,6 +25,7 @@ import java.util.Map;
 /**
  * Pipeline Context for passing contextual information to the pipeline being executed.
  */
+@Public
 public interface PipelineContext extends LookupProvider, Serializable {
   public enum Environment {
     SERVICE,

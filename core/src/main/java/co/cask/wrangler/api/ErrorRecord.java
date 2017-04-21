@@ -3,6 +3,7 @@ package co.cask.wrangler.api;
 /**
  * Specifies the structure for Error records.
  */
+@Public
 public final class ErrorRecord {
   // Actual record that is errored.
   private final Record record;

@@ -9,7 +9,7 @@ import co.cask.cdap.api.dataset.lib.ObjectMappedTable;
 import co.cask.cdap.api.dataset.lib.ObjectMappedTableProperties;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.service.directive.DirectivesService;
-import co.cask.wrangler.service.filesystem.FSBrowserService;
+import co.cask.wrangler.service.filesystem.ExplorerService;
 import co.cask.wrangler.service.recipe.RecipeDatum;
 import co.cask.wrangler.service.recipe.RecipeService;
 import org.apache.hadoop.mapred.TextInputFormat;
@@ -47,7 +47,7 @@ public class DataPrep extends AbstractApplication {
     addService("service",
                new DirectivesService(),
                new RecipeService(),
-               new FSBrowserService()
+               new ExplorerService()
     );
 
   }

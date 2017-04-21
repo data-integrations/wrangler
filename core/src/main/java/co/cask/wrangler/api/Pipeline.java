@@ -24,6 +24,7 @@ import java.util.List;
 /**
  * Wrangle Pipeline executes steps in the order they are specified.
  */
+@Public
 public interface Pipeline<I, O, E> extends Serializable {
   /**
    * Configures the wrangle pipeline using the directives.

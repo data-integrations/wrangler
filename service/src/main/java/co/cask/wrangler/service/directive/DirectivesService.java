@@ -31,7 +31,6 @@ import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
@@ -45,21 +44,20 @@ import co.cask.wrangler.internal.UsageRegistry;
 import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
 import co.cask.wrangler.internal.statistics.BasicStatistics;
 import co.cask.wrangler.internal.validator.ColumnNameValidator;
+import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,19 +145,19 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @GET
   @Path("workspaces")
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
     Row row;
     try {
       try (Scanner scanner = workspace.scan(null, null)) {
-        JSONArray values = new JSONArray();
+        JsonArray values = new JsonArray();
         while((row = scanner.next()) != null) {
           byte[] key = row.getRow();
-          values.put(new String(key));
+          values.add(new JsonPrimitive(new String(key)));
         }
-        response.put("status", HttpURLConnection.HTTP_OK);
-        response.put("message", "Success");
-        response.put("count", values.length());
-        response.put("values", values);
+        response.addProperty("status", HttpURLConnection.HTTP_OK);
+        response.addProperty("message", "Success");
+        response.addProperty("count", values.size());
+        response.add("values", values);
         sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
       }
     } catch (DataSetException e) {
@@ -222,22 +220,20 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("workspace") String ws) {
 
-    JSONObject response = new JSONObject();
-    JSONArray values = new JSONArray();
-
+    JsonObject response = new JsonObject();
+    JsonArray values = new JsonArray();
     try {
       Row row = workspace.get(Bytes.toBytes(ws));
       byte[] bytes = row.get("request");
       if (bytes != null) {
-        values.put(new JSONObject(new JSONTokener(new String(bytes, StandardCharsets.UTF_8))));
-        response.put("count", 1);
+        values.add(new JsonParser().parse(new String(bytes, StandardCharsets.UTF_8)));
+        response.addProperty("count", 1);
       } else {
-        response.put("count", 0);
+        response.addProperty("count", 0);
       }
-      response.put("values", values);
-      response.put("status", HttpURLConnection.HTTP_OK);
-      response.put("message", "Success");
-
+      response.add("values", values);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException | JSONException e) {
       error(responder, e.getMessage());
@@ -310,15 +306,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
     try {
       Row row = workspace.get(Bytes.toBytes(ws));
-
       String data = Bytes.toString(row.get("data"));
       if (data == null || data.isEmpty()) {
         error(responder, "No data exists in the workspace. Please upload the data to this workspace.");
         return;
       }
-
       JsonArray array = GSON.fromJson(data, new TypeToken<JsonArray>() {}.getType());
-
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
@@ -370,10 +363,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         execute(Lists.newArrayList(sampledRecords), directives.toArray(new String[directives.size()]));
 
       // Final response object.
-      JSONObject response = new JSONObject();
+      JsonObject response = new JsonObject();
 
       // Storing the results 'validation' and 'statistics'
-      JSONObject result = new JSONObject();
+      JsonObject result = new JsonObject();
 
       // Validate Column names.
       Validator<String> validator = new ColumnNameValidator();
@@ -387,20 +380,20 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         }
       }
 
-      JSONObject columnValidationResult = new JSONObject();
+      JsonObject columnValidationResult = new JsonObject();
       for (String name : uniqueColumns) {
-        JSONObject columnResult = new JSONObject();
+        JsonObject columnResult = new JsonObject();
         try {
           validator.validate(name);
-          columnResult.put("valid", true);
+          columnResult.addProperty("valid", true);
         } catch (ValidatorException e) {
-          columnResult.put("valid", false);
-          columnResult.put("message", e.getMessage());
+          columnResult.addProperty("valid", false);
+          columnResult.addProperty("message", e.getMessage());
         }
-        columnValidationResult.put(name, columnResult);
+        columnValidationResult.add(name, columnResult);
       }
 
-      result.put("validation", columnValidationResult);
+      result.add("validation", columnValidationResult);
 
       // Generate General and Type related Statistics for each column.
       Statistics statsGenerator = new BasicStatistics();
@@ -411,42 +404,42 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       // Serialize the results into JSON.
       List<KeyValue<String, Object>> fields = stats.getFields();
-      JSONObject statistics = new JSONObject();
+      JsonObject statistics = new JsonObject();
       for (KeyValue<String, Object> field : fields) {
         List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
-        JSONObject v = new JSONObject();
-        JSONObject o = new JSONObject();
+        JsonObject v = new JsonObject();
+        JsonObject o = new JsonObject();
         for (KeyValue<String, Double> value : values) {
-          o.put(value.getKey(), value.getValue().floatValue()*100);
+          o.addProperty(value.getKey(), value.getValue().floatValue()*100);
         }
-        v.put("general", o);
-        statistics.put(field.getKey(), v);
+        v.add("general", o);
+        statistics.add(field.getKey(), v);
       }
 
       fields = types.getFields();
       for (KeyValue<String, Object> field : fields) {
         List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
-        JSONObject v = new JSONObject();
-        JSONObject o = new JSONObject();
+        JsonObject v = new JsonObject();
+        JsonObject o = new JsonObject();
         for (KeyValue<String, Double> value : values) {
-          o.put(value.getKey(), value.getValue().floatValue()*100);
+          o.addProperty(value.getKey(), value.getValue().floatValue()*100);
         }
-        v.put("types", o);
-        JSONObject object = (JSONObject) statistics.get(field.getKey());
+        v.add("types", o);
+        JsonObject object = (JsonObject) statistics.get(field.getKey());
         if (object == null) {
-          statistics.put(field.getKey(), v);
+          statistics.add(field.getKey(), v);
         } else {
-          object.put("types", o);
+          object.add("types", o);
         }
       }
 
       // Put the statistics along with validation rules.
-      result.put("statistics", statistics);
+      result.add("statistics", statistics);
 
-      response.put("status", HttpURLConnection.HTTP_OK);
-      response.put("message", "Success");
-      response.put("count", 2);
-      response.put("values", result);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", 2);
+      response.add("values", result);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -514,7 +507,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @GET
   @Path("info")
   public void capabilities(HttpServiceRequest request, HttpServiceResponder responder) {
-    JSONArray values = new JSONArray();
+    JsonArray values = new JsonArray();
 
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
     Properties props = new Properties();
@@ -526,18 +519,18 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       return;
     }
 
-    JSONObject object = new JSONObject();
+    JsonObject object = new JsonObject();
     for(String key : props.stringPropertyNames()) {
       String value = props.getProperty(key);
-      object.put(key, value);
+      object.addProperty(key, value);
     }
-    values.put(object);
+    values.add(object);
 
-    JSONObject response = new JSONObject();
-    response.put("status", HttpURLConnection.HTTP_OK);
-    response.put("message", "Success");
-    response.put("count", values.length());
-    response.put("values", values);
+    JsonObject response = new JsonObject();
+    response.addProperty("status", HttpURLConnection.HTTP_OK);
+    response.addProperty("message", "Success");
+    response.addProperty("count", values.size());
+    response.add("values", values);
     sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
@@ -589,8 +582,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       List<Record> newRecords = execute(records.subList(0, limit),
                                         directives.toArray(new String[directives.size()]));
 
-      JSONArray values = new JSONArray();
-      JSONArray headers = new JSONArray();
+      JsonArray values = new JsonArray();
+      JsonArray headers = new JsonArray();
       Set<String> headerList = new HashSet<>();
       boolean onlyFirstRow = true;
       int count = 0;
@@ -600,41 +593,41 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           break;
         }
         List<KeyValue<String, Object>> fields = record.getFields();
-        JSONObject r = new JSONObject();
+        JsonObject r = new JsonObject();
         for (KeyValue<String, Object> field : fields) {
           if (!headerList.contains(field.getKey())) {
-            headers.put(field.getKey());
+            headers.add(new JsonPrimitive(field.getKey()));
             headerList.add(field.getKey());
           }
           Object object = field.getValue();
           if (object != null) {
             if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
-              r.put(field.getKey(), object.toString());
+              r.addProperty(field.getKey(), object.toString());
             } else {
               if (onlyFirstRow) {
-                r.put(field.getKey(), "Not viewable object, delete this column after extracting information.");
+                r.addProperty(field.getKey(), "Not viewable object, delete this column after extracting information.");
                 onlyFirstRow = false;
               } else {
-                r.put(field.getKey(), ".");
+                r.addProperty(field.getKey(), ".");
               }
             }
           } else {
-            r.put(field.getKey(), JSONObject.NULL);
+            r.add(field.getKey(), JsonNull.INSTANCE);
           }
         }
-        values.put(r);
+        values.add(r);
         count++;
       }
 
       // Autosaves the recipes being executed.
       autosave(ws, reqBody);
 
-      JSONObject response = new JSONObject();
-      response.put("status", HttpURLConnection.HTTP_OK);
-      response.put("message", "Success");
-      response.put("count", count);
-      response.put("header", headers);
-      response.put("values", values);
+      JsonObject response = new JsonObject();
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", count);
+      response.add("header", headers);
+      response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (JsonParseException e) {
       error(responder, "Issue parsing request. " + e.getMessage());
@@ -689,21 +682,21 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       UsageRegistry registry = new UsageRegistry();
       List<UsageRegistry.UsageDatum> usages = registry.getAll();
 
-      JSONObject response = new JSONObject();
+      JsonObject response = new JsonObject();
       int count = 0;
-      JSONArray values = new JSONArray();
+      JsonArray values = new JsonArray();
       for (UsageRegistry.UsageDatum entry : usages) {
-        JSONObject usage = new JSONObject();
-        usage.put("directive", entry.getDirective());
-        usage.put("usage", entry.getUsage());
-        usage.put("description", entry.getDescription());
-        values.put(usage);
+        JsonObject usage = new JsonObject();
+        usage.addProperty("directive", entry.getDirective());
+        usage.addProperty("usage", entry.getUsage());
+        usage.addProperty("description", entry.getDescription());
+        values.add(usage);
         count++;
       }
-      response.put("status", HttpURLConnection.HTTP_OK);
-      response.put("message", "Success");
-      response.put("count", count);
-      response.put("values", values);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", count);
+      response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
       error(responder, e.getMessage());
@@ -757,10 +750,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param message to be included as part of the error
    */
   public static final void error(HttpServiceResponder responder, String message) {
-    JSONObject error = new JSONObject();
-    error.put("status", HttpURLConnection.HTTP_INTERNAL_ERROR);
-    error.put("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, error.toString(2));
+    JsonObject error = new JsonObject();
+    error.addProperty("status", HttpURLConnection.HTTP_INTERNAL_ERROR);
+    error.addProperty("message", message);
+    sendJson(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, error.toString());
   }
 
   /**
@@ -770,10 +763,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param message to be included as part of the error
    */
   public static final void notFound(HttpServiceResponder responder, String message) {
-    JSONObject error = new JSONObject();
-    error.put("status", HttpURLConnection.HTTP_NOT_FOUND);
-    error.put("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString(2));
+    JsonObject error = new JsonObject();
+    error.addProperty("status", HttpURLConnection.HTTP_NOT_FOUND);
+    error.addProperty("message", message);
+    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString());
   }
 
   /**
@@ -795,10 +788,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param message to be included as part of the error
    */
   public static final void success(HttpServiceResponder responder, String message) {
-    JSONObject error = new JSONObject();
-    error.put("status", HttpURLConnection.HTTP_OK);
-    error.put("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_OK, error.toString(2));
+    JsonObject error = new JsonObject();
+    error.addProperty("status", HttpURLConnection.HTTP_OK);
+    error.addProperty("message", message);
+    sendJson(responder, HttpURLConnection.HTTP_OK, error.toString());
   }
 
   /**
