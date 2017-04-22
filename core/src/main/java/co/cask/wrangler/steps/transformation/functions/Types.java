@@ -21,7 +21,7 @@ import co.cask.wrangler.dq.TypeInference;
 /**
  * Static class that is included in the Jexl expression for detecting types of data.
  */
-public final class Types {
+public class Types {
   /**
    * Checks if a value is a date or not.
    *
@@ -51,6 +51,7 @@ public final class Types {
   public static boolean isNumber(String value) {
     return TypeInference.isNumber(value);
   }
+
 
   /**
    * Checks if a value is a boolean or not.

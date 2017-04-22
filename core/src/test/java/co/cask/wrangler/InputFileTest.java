@@ -16,14 +16,19 @@
 
 package co.cask.wrangler;
 
+import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.ParallelPipelineExecutor;
 import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.steps.transformation.functions.DDL;
+import com.google.common.io.Resources;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -81,4 +86,23 @@ public class InputFileTest {
 
     Assert.assertTrue(true);
   }
+
+  @Ignore
+  @Test
+  public void testSchemaParsing() throws Exception {
+    URL schemaURL = getClass().getClassLoader().getResource("schema.avsc");
+    Assert.assertNotNull(schemaURL);
+
+    // Takes the avro schema and converts it to json.
+    Schema schema = DDL.parse(Resources.toString(schemaURL, StandardCharsets.UTF_8));
+
+    // Now we select the path : 'GetReservationRS.Reservation.PassengerReservation.Segments.Segment'
+    schema = DDL.select(schema, "GetReservationRS.Reservation.PassengerReservation.Segments.Segment[0]");
+
+    // Now, we drop 'Product'
+    schema = DDL.drop(schema, "Product", "Air", "Vehicle", "Hotel", "General");
+
+    Assert.assertNotNull(schema);
+  }
+
 }

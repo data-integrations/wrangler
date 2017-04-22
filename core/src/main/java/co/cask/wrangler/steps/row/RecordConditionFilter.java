@@ -21,7 +21,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.steps.transformation.JexlFunctions;
+import co.cask.wrangler.steps.transformation.JexlHelper;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -56,7 +56,7 @@ public class RecordConditionFilter extends AbstractStep {
     this.condition = condition;
     this.isTrue = isTrue;
     // Create and build the script.
-    engine = JexlFunctions.getEngine();
+    engine = JexlHelper.getEngine();
     script = engine.createScript(condition);
   }
 

@@ -53,11 +53,11 @@ public class DataPrep extends AbstractApplication {
     }
 
     // Used by the file service.
-    createDataset("lines", FileSet.class, FileSetProperties.builder()
-      .setBasePath("example/data/lines")
+    createDataset("indexds", FileSet.class, FileSetProperties.builder()
+      .setBasePath("dataprep/indexds")
       .setInputFormat(TextInputFormat.class)
       .setOutputFormat(TextOutputFormat.class)
-      .setDescription("Store input lines")
+      .setDescription("Store Dataset Index files")
       .build());
 
     addService("service",

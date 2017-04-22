@@ -20,8 +20,8 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.api.Usage;
+import com.google.gson.JsonObject;
 import org.json.JSONException;
 import org.json.XML;
 
@@ -66,7 +66,8 @@ public class XmlToJson extends AbstractStep {
 
         try {
           if (object instanceof String) {
-            JsonParser.flattenJson(XML.toJSONObject((String) object), col, 1, depth, record);
+            JsonObject element = JsParser.convert(XML.toJSONObject((String) object)).getAsJsonObject();
+            JsParser.flattenJson(element, col, 1, depth, record);
             record.remove(idx);
           } else {
             throw new StepException(

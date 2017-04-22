@@ -14,16 +14,23 @@
  * the License.
  */
 
-package co.cask.wrangler.internal;
+package co.cask.wrangler.steps.transformation.functions;
 
-import co.cask.cdap.api.data.format.StructuredRecord;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.utils.JsonTestData;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * Throw when there is issue with conversion of {@link Record} to {@link StructuredRecord}
+ * Tests {@link JSON}
  */
-public class RecordConvertorException extends Exception {
-  public RecordConvertorException(String message) {
-    super(message);
+public class JSONTest {
+  @Test
+  public void testLowercaseKeys() throws Exception {
+    JsonParser parser = new JsonParser();
+    JsonElement lower = JSON.keysToLower(parser.parse(JsonTestData.JSON_ARRAY_WITH_OBJECT_CASE_MIX));
+    JsonElement expected = JSON.parse(JsonTestData.JSON_ARRAY_WITH_OBJECT);
+    Assert.assertTrue(expected.equals(lower));
   }
 }

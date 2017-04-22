@@ -33,15 +33,15 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
-import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.utils.StructuredRecordConverter;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,7 +56,7 @@ import java.util.List;
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
-  private final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
   // Plugin configuration.
   private final Config config;
 
@@ -101,18 +101,22 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Based on the configuration create output schema.
+
     try {
-      oSchema = Schema.parseJson(config.schema);
+      if (!config.containsMacro("schema")) {
+        oSchema = Schema.parseJson(config.schema);
+      }
     } catch (IOException e) {
       throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
     }
 
     // Check if configured field is present in the input schema.
     Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-    if(!config.field.equalsIgnoreCase("*") && inputSchema.getField(config.field) == null) {
+    if (!(config.field.equals("*") || config.field.equals("#") ) &&
+      (inputSchema !=null && inputSchema.getField(config.field) == null)) {
       throw new IllegalArgumentException(
         String.format("Field '%s' configured to wrangler is not present in the input. " +
-                        "Only specify fields present in the input", config.field)
+                        "Only specify fields present in the input", config.field == null ? "null" : config.field)
       );
     }
 
@@ -126,10 +130,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Set the output schema.
-    configurer.getStageConfigurer().setOutputSchema(oSchema);
+    if (oSchema != null) {
+      configurer.getStageConfigurer().setOutputSchema(oSchema);
+    }
   }
 
   /**
+   * Validates input schema.
    *
    * @param inputSchema
    */
@@ -190,58 +197,58 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
+   * Transforms the input record by applying directives on the record being passed.
    *
-   * @param input
-   * @param emitter
-   * @throws Exception
+   * @param input record to be transformed.
+   * @param emitter to collect all the output of the transformation.
+   * @throws Exception thrown if there are any issue with the transformation.
    */
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
-    // Creates a row as starting point for input to the pipeline.
-    Record row;
-    if (config.field.equalsIgnoreCase("*")) {
-      row = new Record();
-      for (Schema.Field field : input.getSchema().getFields()) {
-        row.add(field.getName(), input.get(field.getName()));
-      }
-    } else {
-      row = new Record(config.field, input.get(config.field));
-    }
-
-    // If pre-condition is set, then evaluate the precondition
-    if (condition != null) {
-      boolean skip = condition.apply(row);
-      if (skip) {
-        getContext().getMetrics().count("precondition.filtered", 1);
-        return; // Expression evaluated to true, so we skip the record.
-      }
-    }
-
-    // Run through the wrangle pipeline, if there is a SkipRecord exception, don't proceed further
-    // but just return without emitting any record out.
-    List<StructuredRecord> records = new ArrayList<>();
-    long start = System.nanoTime();
+    long start = 0;
+    List<StructuredRecord> records;
     try {
-      records = pipeline.execute(Arrays.asList(row), oSchema); // we don't compute meta and statistics.
+      // Creates a row as starting point for input to the pipeline.
+      Record row = new Record();
+      if ("*".equalsIgnoreCase(config.field)) {
+        for (Schema.Field field : input.getSchema().getFields()) {
+          row.add(field.getName(), input.get(field.getName()));
+        }
+      } else if ("#".equalsIgnoreCase(config.field)) {
+        row.add(input.getSchema().getRecordName(), input);
+      } else {
+        row.add(config.field, input.get(config.field));
+      }
 
+      // If pre-condition is set, then evaluate the precondition
+      if (condition != null) {
+        boolean skip = condition.apply(row);
+        if (skip) {
+          getContext().getMetrics().count("precondition.filtered", 1);
+          return; // Expression evaluated to true, so we skip the record.
+        }
+      }
+
+      start = System.nanoTime();
+      records = pipeline.execute(Arrays.asList(row), oSchema);
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
         getContext().getMetrics().count("errors", 1);
         ErrorRecord error = errors.get(0);
-        emitter.emitError(new InvalidEntry<StructuredRecord>(error.getCode(), error.getMessage(), input));
+        emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
       }
-    } catch (PipelineException e) {
+    } catch (Exception e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;
       // If error threshold is reached, then terminate processing.
       if (errorCounter > config.threshold) {
-        LOG.warn("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
+        LOG.error("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
         throw new Exception(String.format("Reached error threshold %d, terminating processing.", config.threshold));
       }
       // Emit error record, if the Error flattener or error handlers are not connected, then
       // the record is automatically omitted.
-      emitter.emitError(new InvalidEntry<StructuredRecord>(0, e.getMessage(), input));
+      emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
       return;
     } finally {
       getContext().getMetrics().gauge("process.time", System.nanoTime() - start);
@@ -253,7 +260,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // attempt to take if from 'input'.
       for (Schema.Field field : oSchema.getFields()) {
         Object wObject = record.get(field.getName()); // wrangled records
-        if(wObject == null) {
+        if (wObject == null) {
           builder.set(field.getName(), null);
         } else {
           if (wObject instanceof String) {
@@ -278,6 +285,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     @Name("directives")
     @Description("Directives for wrangling the input records")
+    @Macro
     private String directives;
 
     @Name("field")
@@ -293,6 +301,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     @Name("schema")
     @Description("Specifies the schema that has to be output.")
+    @Macro
     private final String schema;
 
     public Config(String precondition, String directives, String field, int threshold, String schema) {

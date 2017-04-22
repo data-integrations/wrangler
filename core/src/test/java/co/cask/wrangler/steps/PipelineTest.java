@@ -18,9 +18,11 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.internal.PipelineExecutor;
 import co.cask.wrangler.internal.TextDirectives;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
@@ -266,57 +268,5 @@ public class PipelineTest {
     Assert.assertEquals("EEFFFF", records.get(0).getValue("body_2"));
   }
 
-  @Test
-  public void testFixedLengthParser() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-fixed-length body 2,2,1,1,3,4",
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("body", "AABBCDEEEFFFF")
-    );
-
-    records = PipelineTest.execute(directives, records);
-
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("AA", records.get(0).getValue("body_1"));
-    Assert.assertEquals("BB", records.get(0).getValue("body_2"));
-    Assert.assertEquals("C", records.get(0).getValue("body_3"));
-    Assert.assertEquals("D", records.get(0).getValue("body_4"));
-    Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
-    Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
-  }
-
-  @Test(expected = DirectiveParseException.class)
-  public void testFixedLengthParserBadRangeSpecification() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-fixed-length body A-B,C-D,12",
-    };
-
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-  }
-
-  @Test
-  public void testFixedLengthWidthPadding() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-fixed-length body 4,4,4,4,4,4 _" ,
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("body", "AA__BB__C___D___EEE_FFFF")
-    );
-
-    records = PipelineTest.execute(directives, records);
-
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("AA", records.get(0).getValue("body_1"));
-    Assert.assertEquals("BB", records.get(0).getValue("body_2"));
-    Assert.assertEquals("C", records.get(0).getValue("body_3"));
-    Assert.assertEquals("D", records.get(0).getValue("body_4"));
-    Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
-    Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
-  }
 }
 
