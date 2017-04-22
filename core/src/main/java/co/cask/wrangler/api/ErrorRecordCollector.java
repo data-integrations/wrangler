@@ -1,5 +1,7 @@
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.Public;
+
 import java.util.ArrayList;
 import java.util.List;
 

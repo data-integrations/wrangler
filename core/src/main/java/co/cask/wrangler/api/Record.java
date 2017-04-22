@@ -17,6 +17,7 @@
 package co.cask.wrangler.api;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
+import co.cask.wrangler.api.annotations.PublicEvolving;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;

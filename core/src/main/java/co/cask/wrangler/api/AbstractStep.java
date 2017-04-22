@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 /**
  * An abstract class for {@link Step} with added debugging capabilities.
  */

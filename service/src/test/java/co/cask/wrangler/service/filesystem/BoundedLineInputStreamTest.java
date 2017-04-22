@@ -4,6 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests {@link BoundedLineInputStream}
@@ -15,9 +17,12 @@ public class BoundedLineInputStreamTest {
     InputStream stream = Explorer.class.getClassLoader().getResourceAsStream("file.extensions");
     BoundedLineInputStream blis = BoundedLineInputStream.iterator(stream, "utf-8", 10);
     int i = 0;
+    List<String> lines = new ArrayList<>();
     try {
       while(blis.hasNext()) {
         String line = blis.next();
+        lines.add(line);
+        Assert.assertNotNull(line);
         i++;
       }
     } finally {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,25 +14,29 @@
  * the License.
  */
 
-package co.cask.wrangler.api;
-
-import co.cask.wrangler.api.annotations.PublicEvolving;
-
-import java.io.Serializable;
-import java.util.List;
+package co.cask.wrangler.proto;
 
 /**
- * A specification for how {@link Pipeline} will process.
+ * Specification about workspace for the {@link Request}
  */
-@PublicEvolving
-public interface Directives extends Serializable {
-  // Column definition for the start of processing.
-  public static final String STARTING_COLUMN = "__col";
+public final class Workspace {
+  // Name of the workspace.
+  private String name;
+
+  // Number of results to be returned for the workspace.
+  private Integer results;
 
   /**
-   * Generates a configured set of {@link Step} to be executed.
-   *
-   * @return List of {@link Step}.
+   * @return Name of the workspace.
    */
-  List<Step> getSteps() throws DirectiveParseException;
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * @return Number of results to return in the API.
+   */
+  public Integer getResults() {
+    return results;
+  }
 }

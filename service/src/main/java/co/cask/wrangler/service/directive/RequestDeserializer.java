@@ -16,6 +16,11 @@
 
 package co.cask.wrangler.service.directive;
 
+import co.cask.wrangler.proto.Recipe;
+import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.proto.RequestV1;
+import co.cask.wrangler.proto.Sampling;
+import co.cask.wrangler.proto.Workspace;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -27,7 +32,7 @@ import java.lang.reflect.Type;
 /**
  * Serializes the HTTP Request received by the service.
  */
-class RequestDeserializer implements JsonDeserializer<Request> {
+public class RequestDeserializer implements JsonDeserializer<Request> {
   @Override
   public Request deserialize(JsonElement json, Type type, JsonDeserializationContext context)
     throws JsonParseException {

@@ -1,5 +1,7 @@
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.Public;
+
 /**
  * Specifies the structure for Error records.
  */

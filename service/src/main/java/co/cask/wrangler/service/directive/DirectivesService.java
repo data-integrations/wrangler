@@ -38,15 +38,15 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
-import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.TextDirectives;
-import co.cask.wrangler.internal.UsageRegistry;
-import co.cask.wrangler.internal.sampling.RandomDistributionSampling;
-import co.cask.wrangler.internal.statistics.BasicStatistics;
-import co.cask.wrangler.internal.validator.ColumnNameValidator;
+import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.executor.UsageRegistry;
+import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.statistics.BasicStatistics;
+import co.cask.wrangler.validator.ColumnNameValidator;
+import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.RecordConvertorException;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,6 +70,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -353,10 +354,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       int limit = Math.min(reqBody.getSampling().getLimit(), records.size());
 
       // Randomly select a 'count' records from the input.
-      Iterable<Record> sampledRecords = Iterables.filter(
-        records,
-        new RandomDistributionSampling(records.size(), limit)
-      );
+      Iterator<Record> sampledRecords
+        = new Reservoir<Record>(limit).sample(records.iterator());
 
       // Run it through the pipeline.
       records =

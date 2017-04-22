@@ -17,6 +17,7 @@
 package co.cask.wrangler.api;
 
 import co.cask.cdap.api.data.schema.Schema;
+import co.cask.wrangler.api.annotations.Public;
 
 import java.io.Serializable;
 import java.util.List;
