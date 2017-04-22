@@ -62,7 +62,7 @@ from a step are passed to the next step in the pipeline.
 
 ### Directives
 
-A directive is represented by simple text in this format:
+A directive can be represented in text in this format:
 
 ```
 <command> <argument-1> <argument-2> ... <argument-n>
@@ -185,12 +185,12 @@ below are specified as *records/second*. Additional details and test results are
 | Medium | 18 | 80,999,838 | 26,997,205,878 | 62,465.93 | 62,706.39 | 60,755.41 | 56,673.32 |
 
 
-## Wrangler Service
+## Data Prep Service
 
-Wrangler is integrated as a CDAP Service to support HTTP RESTful-based interactive
+Data Prep is integrated as a CDAP Service to support HTTP RESTful-based interactive
 wrangling of data. The main objective of this service is to make it simple and easy to
-interactively apply the directives required for parsing a given data set. This service is
-not intended to replace full-scale big data processing. It is primarily used to
+interactively apply the directives required for parsing a given data set. The service is
+not intended to replace full-scale big data processing; it is primarily used to
 interactively apply directives on a sample of your data.
 
 The base endpoint is:
@@ -216,11 +216,11 @@ In order to add a new step, implement the interface 'Step':
 
 ```
 /**
- * A interface defining a wrangle step in a wrangling pipeline.
+ * A interface defining a Data Prep step in a pipeline.
  */
 public interface Step {
   /**
-   * Executes a wrangle step on each {@link Row} and returns an array of wrangled {@link Row Rows}.
+   * Executes a Data Prep step on each {@link Row} and returns an array of wrangled {@link Row Rows}.
    *
    * @param records the list of input {@link Record Records} to be wrangled by this step
    * @return the list of wrangled {@link Record Records}
@@ -270,8 +270,11 @@ to the users.
 
 ## IRC Channel
 
-CDAP IRC Channel: #cdap on irc.freenode.net
+CDAP IRC Channel: [#cdap on irc.freenode.net](http://webchat.freenode.net?channels=%23cdap)
 
+## Slack Team
+
+CDAP Users on Slack: [cdap-users team](https://cdap-users.herokuapp.com)
 
 ## License and Trademarks
 
