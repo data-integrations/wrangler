@@ -1,4 +1,4 @@
-# Wrangler
+# Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
@@ -13,6 +13,7 @@ cleansing, transformation, and filtering using a set of data manipulation instru
 are manually created.
 
 Check the documentation of the Wrangler Transform [here](transform/docs/Wrangler-transform.md).
+
 
 ## Demo Videos and Recipes
 
@@ -57,6 +58,7 @@ a function.
 
 A *Pipeline* is a collection of steps to be applied on a record. The record(s) outputed
 from a step are passed to the next step in the pipeline.
+
 
 ## Notations
 
@@ -174,10 +176,10 @@ These are the different directives currently available:
 
 ## Performance
 
-Initial performance tests shows that with a set of directives of medium complexity for
-transforming data, *Wrangler* is able to process at about 60K records/second. The rates
-below are specified as *records/second*. Additional details and test results are available
-[here](docs/performance.md).
+Initial performance tests show that with a set of directives of medium complexity for
+transforming data, *DataPrep* is able to process at about 60K records per second. The
+rates below are specified as *records/second*. Additional details and test results
+[are available](docs/performance.md).
 
 | Directive Complexity | Column Count| Records | Size | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
 |----------------------|-------------|---------|------|-----------|---------------|---------------|----------------|
@@ -205,6 +207,7 @@ These are the different services provided:
 * [Directive Execution](docs/service/execution.md)
 * [Column Type Detection and Statistics](docs/service/statistics.md)
 * [Column Name Validation](docs/service/validation.md)
+
 
 ## Building New Directives
 
@@ -237,6 +240,7 @@ Add a comprehensive test case for testing the directive that has been added.
 Modify the specification to parse the directive specification and create the implementation of
 the step you have created in part 1.
 
+
 ## Build
 To build your plugin:
 
@@ -257,7 +261,9 @@ For example, if your artifact is named `wrangler-transform-1.0.0-SNAPSHOT`:
     > load artifact target/wrangler-transform-1.0.0-SNAPSHOT.jar config-file target/wrangler-transform-1.0.0-SNAPSHOT.json
 
 
-## Mailing Lists
+## Contact
+
+### Mailing Lists
 
 CDAP User Group and Development Discussions:
 
@@ -268,13 +274,14 @@ applications or building plugins for appplications. You can expect questions fro
 users, release announcements, and any other discussions that we think will be helpful
 to the users.
 
-## IRC Channel
+### IRC Channel
 
 CDAP IRC Channel: [#cdap on irc.freenode.net](http://webchat.freenode.net?channels=%23cdap)
 
-## Slack Team
+### Slack Team
 
 CDAP Users on Slack: [cdap-users team](https://cdap-users.herokuapp.com)
+
 
 ## License and Trademarks
 
