@@ -7,7 +7,7 @@ import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
 import co.cask.cdap.api.dataset.lib.ObjectMappedTable;
 import co.cask.cdap.api.dataset.lib.ObjectMappedTableProperties;
-import co.cask.cdap.api.dataset.table.Table;
+import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.filesystem.ExplorerService;
 import co.cask.wrangler.service.recipe.RecipeDatum;
@@ -26,7 +26,8 @@ public class DataPrep extends AbstractApplication {
   public void configure() {
     setName("dataprep");
     setDescription("DataPrep Backend Service");
-    createDataset(DirectivesService.WORKSPACE_DATASET, Table.class,
+
+    createDataset(DirectivesService.WORKSPACE_DATASET, WorkspaceDataset.class,
                   DatasetProperties.builder().setDescription("DataPrep Dataset").build());
     try {
       createDataset(RecipeService.DATASET, ObjectMappedTable.class,

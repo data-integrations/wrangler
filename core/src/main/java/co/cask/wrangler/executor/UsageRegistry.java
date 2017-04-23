@@ -31,6 +31,7 @@ import co.cask.wrangler.steps.column.SplitToColumns;
 import co.cask.wrangler.steps.column.Swap;
 import co.cask.wrangler.steps.date.DiffDate;
 import co.cask.wrangler.steps.date.FormatDate;
+import co.cask.wrangler.steps.language.SetCharset;
 import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
@@ -47,6 +48,7 @@ import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SendToError;
+import co.cask.wrangler.steps.row.SetRecordDelimiter;
 import co.cask.wrangler.steps.row.SplitToRows;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
@@ -187,7 +189,9 @@ public final class UsageRegistry implements Serializable {
     Encode.class,
     Decode.class,
     SendToError.class,
-    ChangeColCaseNames.class
+    ChangeColCaseNames.class,
+    SetCharset.class,
+    SetRecordDelimiter.class
   );
 
   public UsageRegistry() {

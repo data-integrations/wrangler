@@ -49,6 +49,7 @@ import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
 import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SendToError;
+import co.cask.wrangler.steps.row.SetRecordDelimiter;
 import co.cask.wrangler.steps.row.SplitToRows;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
@@ -113,6 +114,10 @@ public class TextDirectives implements Directives {
 
   public TextDirectives(String directives) {
     this(directives.split("\n"));
+  }
+
+  public TextDirectives(List<String> directives) {
+    this(directives.toArray(new String[directives.size()]));
   }
 
   /**
@@ -388,8 +393,28 @@ public class TextDirectives implements Directives {
         //set-charset <column> <charset>
         case "set-charset" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String charset = getNextToken(tokenizer, "\n", column, "charset", lineno, true);
+          String charset = getNextToken(tokenizer, "\n", command, "charset", lineno, false);
           steps.add(new SetCharset(lineno, directive, column, charset));
+        }
+        break;
+
+        // set-record-delim <column> <delimiter> [<limit>]
+        case "set-record-delim" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String delimiter = getNextToken(tokenizer, command, "delimiter", lineno);
+          String limitStr = getNextToken(tokenizer, "\n", column, "limit", lineno, true);
+          if (limitStr == null || limitStr.isEmpty()) {
+            limitStr = "1";
+          }
+          try {
+            int limit = Integer.parseInt(limitStr);
+            steps.add(new SetRecordDelimiter(lineno, directive, column, delimiter, limit));
+          } catch (NumberFormatException e) {
+            throw new DirectiveParseException(
+              String.format("Limit '%s' specified is not a number.", limitStr)
+            );
+          }
+
         }
         break;
 

@@ -6,8 +6,6 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.api.i18n.Messages;
-import co.cask.wrangler.api.i18n.MessagesFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,6 @@ import java.util.List;
   description = "Sets the record delimiter."
 )
 public class SetRecordDelimiter extends AbstractStep {
-  private static final Messages MSG = MessagesFactory.getMessages();
   private final String column;
   private final String delimiter;
   private final int limit;
