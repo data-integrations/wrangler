@@ -26,6 +26,8 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.ConnectionType;
+import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -126,6 +128,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         name = id;
       }
       table.createWorkspaceMeta(id, name);
+      Map<String, String> properties = new HashMap<>();
+      properties.put(PropertyIds.ID, id);
+      properties.put(PropertyIds.NAME, name);
+      table.writeProperties(id, properties);
       success(responder, String.format("Successfully created workspace '%s'", id));
     } catch (WorkspaceException e) {
       error(responder, e.getMessage());
@@ -241,9 +247,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       JsonObject req = new JsonObject();
       if (data != null) {
         req = (JsonObject) new JsonParser().parse(data);
-      } else {
-        notFound(responder, String.format("Workspace '%s' does not have any data.", id));
-        return;
       }
       Map<String, String> properties = table.getProperties(id);
       req.add("properties", GSON.toJsonTree(properties));
@@ -326,9 +329,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       // Write properties for workspace.
       Map<String, String> properties = new HashMap<>();
-      properties.put(DELIMITER_HEADER, delimiter);
-      properties.put(RequestExtractor.CHARSET_HEADER, charset);
-      properties.put(RequestExtractor.CONTENT_TYPE_HEADER, contentType);
+      properties.put(PropertyIds.DELIMITER, delimiter);
+      properties.put(PropertyIds.CHARSET, charset);
+      properties.put(PropertyIds.CONTENT_TYPE, contentType);
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
       table.writeProperties(id, properties);
 
       success(responder, String.format("Successfully uploaded data to workspace '%s'", id));

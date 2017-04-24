@@ -31,8 +31,8 @@ import java.nio.charset.Charset;
  */
 public final class RequestExtractor {
   private final HttpServiceRequest request;
-  public static final String CONTENT_TYPE_HEADER = "Content-Type";
-  public static final String CHARSET_HEADER = "charset";
+  public static final String CONTENT_TYPE_HEADER = PropertyIds.CONTENT_TYPE;
+  public static final String CHARSET_HEADER = PropertyIds.CHARSET;
 
   public RequestExtractor(HttpServiceRequest request) {
     this.request = request;

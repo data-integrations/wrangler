@@ -26,6 +26,8 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.ConnectionType;
+import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.api.Record;
@@ -70,6 +72,7 @@ public class ExplorerService extends AbstractHttpServiceHandler {
   private static final Gson gson =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private Explorer explorer;
+  private static final String COLUMN_NAME = "body";
 
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
@@ -107,10 +110,14 @@ public class ExplorerService extends AbstractHttpServiceHandler {
     }
 
     RequestExtractor extractor = new RequestExtractor(request);
-    if (extractor.isContentType("text/plain")) {
+    if (extractor.isContentType(DataType.TEXT.getType())) {
       BoundedLineInputStream stream = null;
       try {
         Location location = explorer.getLocation(path);
+        if (!location.exists()) {
+          error(responder, String.format("%s (No such file)", path));
+          return;
+        }
         String name = location.getName();
         String id = String.format("%s:%s", location.getName(), location.toURI().getPath());
         id = ServiceUtils.generateMD5(id);
@@ -119,7 +126,7 @@ public class ExplorerService extends AbstractHttpServiceHandler {
         // Iterate through lines to extract only 'limit' random lines.
         // Depending on the type, the sampling of the input is performed.
         List<Record> records = new ArrayList<>();
-        BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), "utf-8", lines);
+        BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), Charsets.UTF_8, lines);
         Iterator<String> it = blis;
         if (samplingMethod == SamplingMethod.POISSON) {
           it = new Poisson<String>(lines).sample(blis);
@@ -129,15 +136,16 @@ public class ExplorerService extends AbstractHttpServiceHandler {
           it = new Reservoir<String>(lines).sample(blis);
         }
         while(it.hasNext()) {
-          records.add(new Record("body", it.next()));
+          records.add(new Record(COLUMN_NAME, it.next()));
         }
 
         // Set all properties and write to workspace.
         Map<String, String> properties = new HashMap<>();
-        properties.put("file", location.getName());
-        properties.put("uri", location.toURI().toString());
-        properties.put("path", location.toURI().getPath());
-        properties.put("sampler", samplingMethod.getMethod());
+        properties.put(PropertyIds.FILE_NAME, location.getName());
+        properties.put(PropertyIds.URI, location.toURI().toString());
+        properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
+        properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
+        properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
         table.writeProperties(id, properties);
 
         // Write records to workspace.
@@ -147,12 +155,12 @@ public class ExplorerService extends AbstractHttpServiceHandler {
         // Preparing return response to include mandatory fields : id and name.
         JsonArray values = new JsonArray();
         JsonObject object = new JsonObject();
-        object.addProperty("id", id);
-        object.addProperty("name", name);
-        object.addProperty("uri", location.toURI().toString());
-        object.addProperty("path", location.toURI().getPath());
-        object.addProperty("file", location.getName());
-        object.addProperty("sampler", samplingMethod.getMethod());
+        object.addProperty(PropertyIds.ID, id);
+        object.addProperty(PropertyIds.NAME, name);
+        object.addProperty(PropertyIds.URI, location.toURI().toString());
+        object.addProperty(PropertyIds.FILE_PATH, location.toURI().getPath());
+        object.addProperty(PropertyIds.FILE_NAME, location.getName());
+        object.addProperty(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
         values.add(object);
 
         response.addProperty("status", HttpURLConnection.HTTP_OK);
