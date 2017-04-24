@@ -96,10 +96,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public static final String WORKSPACE_DATASET = "workspace";
   private static final String resourceName = ".properties";
 
-  private static final String CONTENT_TYPE_HEADER = "Content-type";
   private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   private static final String DELIMITER_HEADER = "delimiter";
-  private static final String CHARSET_HEADER = "charset";
 
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
@@ -259,10 +257,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
 
     // Extract charset, if not specified, default it to UTF-8.
-    String charset = handler.getHeader(CHARSET_HEADER, "UTF-8");
+    String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
 
     // Get content type - application/data-prep, application/octet-stream or text/plain.
-    String contentType = handler.getHeader(CONTENT_TYPE_HEADER, "application/data-prep");
+    String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
 
     // Extract content.
     byte[] content = handler.getContent();
@@ -309,8 +307,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       // Write properties for workspace.
       Map<String, String> properties = new HashMap<>();
       properties.put(DELIMITER_HEADER, delimiter);
-      properties.put(CHARSET_HEADER, charset);
-      properties.put(CONTENT_TYPE_HEADER, contentType);
+      properties.put(RequestExtractor.CHARSET_HEADER, charset);
+      properties.put(RequestExtractor.CONTENT_TYPE_HEADER, contentType);
       table.writeProperties(ws, properties);
 
       success(responder, String.format("Successfully uploaded data to workspace '%s'", ws));

@@ -275,7 +275,7 @@ public final class Explorer {
    * @return Location
    * @throws URISyntaxException issue constructing the URI.
    */
-  private Location getLocation(String path) throws ExplorerException {
+  public Location getLocation(String path) throws ExplorerException {
     FileSet fileset = null;
     try {
       fileset = (FileSet) provider.acquire();

@@ -18,23 +18,42 @@ package co.cask.wrangler.service.filesystem;
 
 import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
+import co.cask.cdap.api.annotation.UseDataSet;
+import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.Dataset;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.wrangler.service.directive.DirectivesService;
+import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.RequestExtractor;
+import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Sampler;
+import co.cask.wrangler.dataset.workspace.DataType;
+import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.sampling.Reservoir;
+import com.google.common.base.Charsets;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.twill.filesystem.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
+import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
+import static co.cask.wrangler.service.directive.DirectivesService.error;
 import static co.cask.wrangler.service.directive.DirectivesService.sendJson;
+import static co.cask.wrangler.service.directive.DirectivesService.success;
 
 /**
  * A {@link ExplorerService} is a HTTP Service handler for exploring the filesystem.
@@ -42,8 +61,13 @@ import static co.cask.wrangler.service.directive.DirectivesService.sendJson;
  */
 public class ExplorerService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ExplorerService.class);
-  private static final Gson gson = new Gson();
+  private static final Gson gson =
+    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+
   private Explorer explorer;
+
+  @UseDataSet(WORKSPACE_DATASET)
+  private WorkspaceDataset table;
 
   /**
    * Lists the content of the path specified using the {@Location}.
@@ -54,7 +78,7 @@ public class ExplorerService extends AbstractHttpServiceHandler {
    * @throws Exception
    */
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("explorer")
+  @Path("fs/explorer")
   @GET
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path, @QueryParam("hidden") boolean hidden) throws Exception {
@@ -62,15 +86,52 @@ public class ExplorerService extends AbstractHttpServiceHandler {
       Map<String, Object> listing = explorer.browse(path, hidden);
       sendJson(responder, HttpURLConnection.HTTP_OK, gson.toJson(listing));
     } catch (ExplorerException e) {
-      DirectivesService.error(responder, e.getMessage());
+      error(responder, e.getMessage());
     }
   }
 
-  @Path("read")
+  @Path("fs/explorer/read")
   @GET
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path, @QueryParam("lines") int lines) {
+    RequestExtractor extractor = new RequestExtractor(request);
+    if (extractor.isContentType("text/plain")) {
+      BoundedLineInputStream stream = null;
+      try {
+        Location location = explorer.getLocation(path);
+        String workspace = String.format("%s",location.getName());
+        table.createWorkspaceMeta(workspace);
 
+        Map<String, String> properties = new HashMap<>();
+        properties.put("file", location.getName());
+        properties.put("uri", location.toURI().toString());
+        properties.put("path", location.toURI().getPath());
+        table.writeProperties(workspace, properties);
+
+        // Iterate through lines to extract only 'limit' random lines.
+        List<Record> records = new ArrayList<>();
+        BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), "utf-8", lines);
+        Sampler<String> sampler = new Reservoir<>(lines);
+        Iterator<String> it = sampler.sample(blis);
+        while(it.hasNext()) {
+          records.add(new Record("body", it.next()));
+        }
+
+        String data = gson.toJson(records);
+        table.writeToWorkspace(workspace, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+        success(responder, String.format("Successfully loaded file '%s'", path));
+      } catch (ExplorerException e) {
+        error(responder, e.getMessage());
+      } catch (IOException e) {
+        error(responder, e.getMessage());
+      } catch (Exception e) {
+        error(responder, e.getMessage());
+      } finally {
+        if (stream != null) {
+          stream.close();
+        }
+      }
+    }
   }
 
   @Override
