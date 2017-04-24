@@ -27,20 +27,25 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.RequestExtractor;
+import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Sampler;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.sampling.Bernoulli;
+import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
+import co.cask.wrangler.service.ServiceUtils;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.twill.filesystem.Location;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,10 +55,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
+import static co.cask.wrangler.service.ServiceUtils.error;
+import static co.cask.wrangler.service.ServiceUtils.sendJson;
+import static co.cask.wrangler.service.ServiceUtils.success;
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
-import static co.cask.wrangler.service.directive.DirectivesService.error;
-import static co.cask.wrangler.service.directive.DirectivesService.sendJson;
-import static co.cask.wrangler.service.directive.DirectivesService.success;
 
 /**
  * A {@link ExplorerService} is a HTTP Service handler for exploring the filesystem.
@@ -63,7 +68,6 @@ public class ExplorerService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ExplorerService.class);
   private static final Gson gson =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
-
   private Explorer explorer;
 
   @UseDataSet(WORKSPACE_DATASET)
@@ -93,32 +97,47 @@ public class ExplorerService extends AbstractHttpServiceHandler {
   @Path("fs/explorer/read")
   @GET
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("path") String path, @QueryParam("lines") int lines) {
+                   @QueryParam("path") String path, @QueryParam("lines") int lines,
+                   @QueryParam("sampler") String sampler) {
+
+    SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
+    if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
+      samplingMethod = SamplingMethod.FIRST;
+    }
+
     RequestExtractor extractor = new RequestExtractor(request);
     if (extractor.isContentType("text/plain")) {
       BoundedLineInputStream stream = null;
       try {
         Location location = explorer.getLocation(path);
-        String workspace = String.format("%s",location.getName());
-        table.createWorkspaceMeta(workspace);
+        String name = String.format("%s", location.getName());
+        String id = String.format("%s:%s", location.getName(), location.toURI().getPath());
+        id = ServiceUtils.generateMD5(id);
+        table.createWorkspaceMeta(id, name);
 
         Map<String, String> properties = new HashMap<>();
         properties.put("file", location.getName());
         properties.put("uri", location.toURI().toString());
         properties.put("path", location.toURI().getPath());
-        table.writeProperties(workspace, properties);
+        table.writeProperties(id, properties);
 
         // Iterate through lines to extract only 'limit' random lines.
+        // Depending on the type, the sampling of the input is performed.
         List<Record> records = new ArrayList<>();
         BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), "utf-8", lines);
-        Sampler<String> sampler = new Reservoir<>(lines);
-        Iterator<String> it = sampler.sample(blis);
+        Iterator<String> it = blis;
+        if (samplingMethod == SamplingMethod.POISSON) {
+          it = new Poisson<String>(lines).sample(blis);
+        } else if (samplingMethod == SamplingMethod.BERNOULLI) {
+          it = new Bernoulli<String>(lines).sample(blis);
+        } else if (samplingMethod == SamplingMethod.RESERVOIR) {
+          it = new Reservoir<String>(lines).sample(blis);
+        }
         while(it.hasNext()) {
           records.add(new Record("body", it.next()));
         }
-
         String data = gson.toJson(records);
-        table.writeToWorkspace(workspace, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+        table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
         success(responder, String.format("Successfully loaded file '%s'", path));
       } catch (ExplorerException e) {
         error(responder, e.getMessage());
@@ -138,6 +157,7 @@ public class ExplorerService extends AbstractHttpServiceHandler {
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
     final HttpServiceContext ctx = context;
+    Security.addProvider(new BouncyCastleProvider());
     this.explorer = new Explorer(new DatasetProvider() {
       @Override
       public Dataset acquire() {

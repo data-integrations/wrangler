@@ -24,6 +24,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.dataset.DatasetSpecification;
 import co.cask.cdap.api.dataset.lib.AbstractDataset;
+import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.module.EmbeddedDataset;
 import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.api.dataset.table.Scanner;
@@ -42,7 +43,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 /**
  *
@@ -52,6 +52,7 @@ public class WorkspaceDataset extends AbstractDataset {
   private final Table table;
   private final Gson gson;
   public static final byte[] DATA_COL       = Bytes.toBytes("data");
+  public static final byte[] NAME_COL       = Bytes.toBytes("name");
   public static final byte[] TYPE_COL       = Bytes.toBytes("type");
   public static final byte[] CREATED_COL    = Bytes.toBytes("created");
   public static final byte[] UPDATED_COL    = Bytes.toBytes("updated");
@@ -68,53 +69,57 @@ public class WorkspaceDataset extends AbstractDataset {
   /**
    * Creates a workspace meta entry, with default type as {@link DataType#BINARY} and empty properties.
    *
-   * @param workspace name of workspace.
+   * @param id id of workspace.
+   * @param name of the workspace to display.
    * @throws WorkspaceException thrown when there is issue creating workspace.
    */
   @WriteOnly
-  public void createWorkspaceMeta(@Nullable String workspace) throws WorkspaceException {
-    createWorkspaceMeta(workspace, DataType.BINARY);
+  public void createWorkspaceMeta(String id, String name) throws WorkspaceException {
+    createWorkspaceMeta(id, name, DataType.BINARY);
   }
 
   /**
    * Creates a workspace meta entry, with the type specified and empty properties.
    *
-   * @param workspace Name of workspace to be created.
+   * @param id id of the workspace to be created.
+   * @param name of the workspace to display.
    * @param type of data in workspace.
    * @throws WorkspaceException thrown when issue creating workspace meta entry.
    */
   @WriteOnly
-  public void createWorkspaceMeta(@Nullable String workspace, DataType type) throws WorkspaceException {
-    createWorkspaceMeta(workspace, type, new HashMap<String, String>());
+  public void createWorkspaceMeta(String id, String name, DataType type) throws WorkspaceException {
+    createWorkspaceMeta(id, name, type, new HashMap<String, String>());
   }
 
   /**
    * Creates a workspace meta entry with the type specified and properties.
    *
-   * @param workspace Name of workspace to be created.
+   * @param id id of workspace to be created.
+   * @param name name of workspace to be created.
    * @param type of data stored in workspace.
    * @param properties associated with workspace.
    * @throws WorkspaceException thrown when issue creating workspace meta entry.
    */
   @WriteOnly
-  public void createWorkspaceMeta(@Nullable String workspace, DataType type,
+  public void createWorkspaceMeta(String id, String name, DataType type,
                      Map<String, String> properties) throws WorkspaceException {
-    if (workspace == null || workspace.isEmpty()) {
-      throw new WorkspaceException("Workspace name cannot be empty or null");
+    if (id == null || id.isEmpty()) {
+      throw new WorkspaceException("Workspace id cannot be empty or null");
     }
 
     byte[][] columns = new byte[][] {
-     CREATED_COL, TYPE_COL, PROPERTIES_COL
+     CREATED_COL, TYPE_COL, NAME_COL, PROPERTIES_COL
     };
 
     byte[][] data = new byte[][] {
       Bytes.toBytes(System.currentTimeMillis() / 1000),
       Bytes.toBytes(type.getType()),
+      Bytes.toBytes(name),
       toJsonBytes(properties)
     };
 
     try {
-      table.put(toKey(workspace), columns, data);
+      table.put(toKey(id), columns, data);
     } catch (DataSetException e) {
       throw new WorkspaceException(
         String.format("Unable to create workspace '%s'",
@@ -130,13 +135,14 @@ public class WorkspaceDataset extends AbstractDataset {
    * @throws WorkspaceException throw if there is issue listing workspaces.
    */
   @ReadOnly
-  public List<String> getWorkspaces() throws WorkspaceException {
-    List<String> values = new ArrayList<>();
+  public List<KeyValue<String, String>> getWorkspaces() throws WorkspaceException {
+    List<KeyValue<String, String>> values = new ArrayList<>();
     Row row;
     try (Scanner scanner = table.scan(null, null)) {
       while((row = scanner.next()) != null) {
         byte[] key = row.getRow();
-        values.add(Bytes.toString(key));
+        byte[] name = row.get(NAME_COL);
+        values.add(new KeyValue<>(Bytes.toString(key), Bytes.toString(name)));
       }
     } catch (DataSetException e) {
       throw new WorkspaceException(
@@ -149,22 +155,22 @@ public class WorkspaceDataset extends AbstractDataset {
   /**
    * Deletes the workspace.
    *
-   * @param workspace to be deleted.
+   * @param id to be deleted.
    * @throws WorkspaceException thrown if there is issue deleting workspace.
    */
   @WriteOnly
-  public void deleteWorkspace(String workspace) throws WorkspaceException {
+  public void deleteWorkspace(String id) throws WorkspaceException {
     try {
-      table.delete(toKey(workspace));
+      table.delete(toKey(id));
     } catch (DataSetException e){
       throw new WorkspaceException(
-        String.format("Failed to delete workspace '%s'. %s", workspace, e.getMessage())
+        String.format("Failed to delete workspace '%s'. %s", id, e.getMessage())
       );
     }
   }
 
   @WriteOnly
-  public void writeToWorkspace(String workspace, byte[] key, DataType type, byte[] data)
+  public void writeToWorkspace(String id, byte[] key, DataType type, byte[] data)
     throws WorkspaceException {
     byte[][] columns = new byte[][] {
       UPDATED_COL, TYPE_COL, key
@@ -177,7 +183,7 @@ public class WorkspaceDataset extends AbstractDataset {
     };
 
     try {
-      table.put(toKey(workspace), columns, bytes);
+      table.put(toKey(id), columns, bytes);
     } catch (DataSetException e) {
       throw new WorkspaceException(
         String.format("Unable to create workspace '%s'",
@@ -187,7 +193,7 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   @WriteOnly
-  public void updateWorkspace(String workspace, byte[] key, byte[] data)
+  public void updateWorkspace(String id, byte[] key, byte[] data)
     throws WorkspaceException {
     byte[][] columns = new byte[][] {
       UPDATED_COL, key
@@ -199,7 +205,7 @@ public class WorkspaceDataset extends AbstractDataset {
     };
 
     try {
-      table.put(toKey(workspace), columns, bytes);
+      table.put(toKey(id), columns, bytes);
     } catch (DataSetException e) {
       throw new WorkspaceException(
         String.format("Unable to create workspace '%s'",
@@ -209,48 +215,48 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   @WriteOnly
-  public void updateWorkspace(String workspace, byte[] key, String data) throws WorkspaceException {
-    updateWorkspace(workspace, key, data.getBytes(Charsets.UTF_8));
+  public void updateWorkspace(String id, byte[] key, String data) throws WorkspaceException {
+    updateWorkspace(id, key, data.getBytes(Charsets.UTF_8));
   }
 
   @WriteOnly
-  public void writeProperties(String workspace, Map<String, String> properties) throws WorkspaceException {
+  public void writeProperties(String id, Map<String, String> properties) throws WorkspaceException {
     byte[] bytes = toJsonBytes(properties);
-    updateWorkspace(workspace, PROPERTIES_COL, bytes);
+    updateWorkspace(id, PROPERTIES_COL, bytes);
   }
 
   @ReadWrite
-  public void updateProperty(String workspace, String key, String value) throws KeyNotFoundException, WorkspaceException {
-    byte[] bytes = getData(workspace, Bytes.toBytes(key));
+  public void updateProperty(String id, String key, String value) throws KeyNotFoundException, WorkspaceException {
+    byte[] bytes = getData(id, Bytes.toBytes(key));
     Map<String, String> properties = fromJsonBytes(bytes);
     properties.put(key, value);
-    updateWorkspace(workspace, PROPERTIES_COL, toJsonBytes(properties));
+    updateWorkspace(id, PROPERTIES_COL, toJsonBytes(properties));
   }
 
   /**
    * Retrieves the data from the workspace provided the key.
    *
-   * @param workspace name of the workspace.
+   * @param id id of the workspace.
    * @param key the key to be retrieved.
    * @return if key is found, returns the data, else throws a {@link KeyNotFoundException}.
    */
   @ReadOnly
-  public byte[] getData(String workspace, byte[] key) throws KeyNotFoundException, WorkspaceException {
-    byte[] bytes = table.get(toKey(workspace), key);
+  public byte[] getData(String id, byte[] key) throws KeyNotFoundException, WorkspaceException {
+    byte[] bytes = table.get(toKey(id), key);
     if(bytes == null) {
       throw new KeyNotFoundException(
-        String.format("Workspace '%s' doesn't have key '%s'.", workspace, Bytes.toShort(key))
+        String.format("Workspace '%s' doesn't have key '%s'.", id, Bytes.toShort(key))
       );
     }
     return bytes;
   }
 
   @ReadOnly
-  public <T> T getData(String workspace, byte[] key, DataType type) throws KeyNotFoundException, WorkspaceException {
-    byte[] bytes = table.get(toKey(workspace), key);
+  public <T> T getData(String id, byte[] key, DataType type) throws KeyNotFoundException, WorkspaceException {
+    byte[] bytes = table.get(toKey(id), key);
     if(bytes == null) {
       throw new KeyNotFoundException(
-        String.format("Workspace '%s' doesn't have key '%s'.", workspace, Bytes.toShort(key))
+        String.format("Workspace '%s' doesn't have key '%s'.", id, Bytes.toShort(key))
       );
     }
     if (type == DataType.BINARY){
@@ -272,13 +278,13 @@ public class WorkspaceDataset extends AbstractDataset {
    *
    * Workspace can store types of data as defined in {@link DataType} class.
    *
-   * @param workspace name of the workspace for which the stored content type is stored.
+   * @param id id of the workspace for which the stored content type is stored.
    * @return string representation of the type defined in {@link DataType} if found, null otherwise.
    * @see DataType
    */
   @ReadOnly
-  public DataType getType(String workspace)  {
-    byte[] bytes = table.get(Bytes.toBytes(workspace), TYPE_COL);
+  public DataType getType(String id)  {
+    byte[] bytes = table.get(Bytes.toBytes(id), TYPE_COL);
     DataType type = DataType.fromString(Bytes.toString(bytes));
     return type;
   }

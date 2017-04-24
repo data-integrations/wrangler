@@ -27,16 +27,13 @@ import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.RequestExtractor;
-import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.PipelineContext;
-import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
-import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.KeyNotFoundException;
+import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
 import co.cask.wrangler.executor.PipelineExecutor;
@@ -54,7 +51,6 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -70,7 +66,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,6 +80,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+
+import static co.cask.wrangler.service.ServiceUtils.error;
+import static co.cask.wrangler.service.ServiceUtils.sendJson;
+import static co.cask.wrangler.service.ServiceUtils.success;
 
 /**
  * Service for managing workspaces and also application of directives on to the workspace.
@@ -114,15 +114,19 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
-   * @param ws Workspace to be created.
+   * @param id of workspace to be created.
+   * @param name of workspace to be created.
    */
   @PUT
-  @Path("workspaces/{workspace}")
+  @Path("workspaces/{id}")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws) {
+                     @PathParam("id") String id, @QueryParam("name") String name) {
     try {
-      table.createWorkspaceMeta(ws);
-      success(responder, String.format("Successfully created workspace '%s'", ws));
+      if (name == null || name.isEmpty()) {
+        name = id;
+      }
+      table.createWorkspaceMeta(id, name);
+      success(responder, String.format("Successfully created workspace '%s'", id));
     } catch (WorkspaceException e) {
       error(responder, e.getMessage());
     }
@@ -153,12 +157,15 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
       JsonObject response = new JsonObject();
-      List<String> workspaces = table.getWorkspaces();
-      JsonElement element = GSON.toJsonTree(workspaces, new TypeToken<List<String>>(){}.getType());
+      List<KeyValue<String,String>> workspaces = table.getWorkspaces();
+      JsonArray array = new JsonArray();
+      for (KeyValue<String, String> workspace : workspaces) {
+        array.add(new JsonPrimitive(workspace.getKey()));
+      }
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
       response.addProperty("count", workspaces.size());
-      response.add("values", element);
+      response.add("values", array);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (WorkspaceException e) {
       error(responder, e.getMessage());
@@ -177,15 +184,15 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
-   * @param ws Workspace to deleted.
+   * @param id Workspace to deleted.
    */
   @DELETE
-  @Path("workspaces/{workspace}")
+  @Path("workspaces/{id}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws) {
+                     @PathParam("id") String id) {
     try {
-      table.deleteWorkspace(ws);
-      success(responder, String.format("Successfully deleted workspace '%s'", ws));
+      table.deleteWorkspace(id);
+      success(responder, String.format("Successfully deleted workspace '%s'", id));
     } catch (WorkspaceException e) {
       error(responder, e.getMessage());
     }
@@ -213,17 +220,17 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
-   * @param ws Workspace to deleted.
+   * @param id Workspace to deleted.
    */
   @GET
-  @Path("workspaces/{workspace}")
+  @Path("workspaces/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws) {
+                     @PathParam("id") String id) {
     JsonObject response = new JsonObject();
     JsonArray values = new JsonArray();
     try {
       try {
-        String data = table.getData(ws, WorkspaceDataset.REQUEST_COL, DataType.TEXT);
+        String data = table.getData(id, WorkspaceDataset.REQUEST_COL, DataType.TEXT);
         values.add(new JsonParser().parse(data));
         response.addProperty("count", 1);
       } catch (KeyNotFoundException e) {
@@ -243,12 +250,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
-   * @param ws Upload data to the workspace.
+   * @param id Upload data to the workspace.
    */
   @POST
-  @Path("workspaces/{workspace}/upload")
+  @Path("workspaces/{id}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws) {
+                     @PathParam("id") String id) {
     RequestExtractor handler = new RequestExtractor(request);
 
     // For back-ward compatibility, we check if there is delimiter specified
@@ -276,7 +283,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         case TEXT: {
           // Convert the type into unicode.
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          table.writeToWorkspace(ws, WorkspaceDataset.DATA_COL, DataType.TEXT, Bytes.toBytes(body));
+          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, Bytes.toBytes(body));
           break;
         }
 
@@ -285,15 +292,15 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
           List<Record> records = new ArrayList<>();
           for (String line : body.split(delimiter)) {
-            records.add(new Record(ws, line));
+            records.add(new Record(id, line));
           }
           String data = GSON.toJson(records);
-          table.writeToWorkspace(ws, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
           break;
         }
 
         case BINARY: {
-          table.writeToWorkspace(ws, WorkspaceDataset.DATA_COL, DataType.BINARY, content);
+          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, content);
           break;
         }
 
@@ -309,9 +316,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       properties.put(DELIMITER_HEADER, delimiter);
       properties.put(RequestExtractor.CHARSET_HEADER, charset);
       properties.put(RequestExtractor.CONTENT_TYPE_HEADER, contentType);
-      table.writeProperties(ws, properties);
+      table.writeProperties(id, properties);
 
-      success(responder, String.format("Successfully uploaded data to workspace '%s'", ws));
+      success(responder, String.format("Successfully uploaded data to workspace '%s'", id));
     } catch (WorkspaceException e) {
       error(responder, e.getMessage());
     }
@@ -322,16 +329,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
-   * @param ws Download data from the workspace.
+   * @param id Download data from the workspace.
    */
   @GET
-  @Path("workspaces/{workspace}/download")
+  @Path("workspaces/{id}/download")
   public void download(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("workspace") String ws) {
+                     @PathParam("id") String id) {
     JsonArray array = new JsonArray();
     try {
-      DataType type = table.getType(ws);
-      byte[] bytes = table.getData(ws, WorkspaceDataset.DATA_COL);
+      DataType type = table.getType(id);
+      byte[] bytes = table.getData(id, WorkspaceDataset.DATA_COL);
       if (type == DataType.BINARY) {
         String data = Bytes.toHexString(bytes);
         array.add(new JsonPrimitive(data));
@@ -376,17 +383,17 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *
    * @param request to gather information of the request.
    * @param responder to respond to the service request.
-   * @param ws workspace in which the directives are executed.
+   * @param id workspace in which the directives are executed.
    */
   @POST
-  @Path("workspaces/{workspace}/execute")
+  @Path("workspaces/{id}/execute")
   public void directive(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("workspace") String ws) {
+                        @PathParam("id") String id) {
     try {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
-      List<Record> records = executeDirectives(ws, user, new Function<List<Record>, List<Record>>() {
+      List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
         public List<Record> apply(@Nullable List<Record> records) {
@@ -430,7 +437,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       // Save the recipes being executed.
-      table.updateWorkspace(ws, WorkspaceDataset.REQUEST_COL, GSON.toJson(user));
+      table.updateWorkspace(id, WorkspaceDataset.REQUEST_COL, GSON.toJson(user));
 
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
@@ -451,17 +458,17 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
-   * @param ws Workspace data to be summarized.
+   * @param id Workspace data to be summarized.
    */
   @POST
-  @Path("workspaces/{workspace}/summary")
+  @Path("workspaces/{id}/summary")
   public void summary(HttpServiceRequest request, HttpServiceResponder responder,
-                       @PathParam("workspace") String ws) {
+                       @PathParam("id") String id) {
     try {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
-      List<Record> records = executeDirectives(ws, user, new Function<List<Record>, List<Record>>() {
+      List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
         public List<Record> apply(@Nullable List<Record> records) {
@@ -554,14 +561,14 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   @POST
-  @Path("workspaces/{workspace}/schema")
+  @Path("workspaces/{id}/schema")
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("workspace") String ws) {
+                        @PathParam("id") String id) {
     try {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
-      List<Record> records = executeDirectives(ws, user, new Function<List<Record>, List<Record>>() {
+      List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
         public List<Record> apply(@Nullable List<Record> records) {
@@ -704,75 +711,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   /**
-   * Executes directives.
-   *
-   * @param records to on which directives need to be executed on.
-   * @param directives to be executed.
-   * @return List of processed record.
-   * @throws DirectiveParseException
-   * @throws StepException
-   */
-  private List<Record> execute(List<Record> records, String[] directives)
-    throws DirectiveParseException, StepException, PipelineException {
-    PipelineExecutor executor = new PipelineExecutor();
-    executor.configure(new TextDirectives(directives),
-                       new ServicePipelineContext(PipelineContext.Environment.SERVICE, getContext()));
-    return executor.execute(records);
-  }
-
-  /**
-   * Sends the error response back to client.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static final void error(HttpServiceResponder responder, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", HttpURLConnection.HTTP_INTERNAL_ERROR);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, error.toString());
-  }
-
-  /**
-   * Sends the error response back to client for not Found.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static final void notFound(HttpServiceResponder responder, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", HttpURLConnection.HTTP_NOT_FOUND);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString());
-  }
-
-  /**
-   * Returns a Json response back to client.
-   *
-   * @param responder to respond to the service request.
-   * @param status code to be returned to client.
-   * @param body to be sent back to client.
-   */
-  public static final void sendJson(HttpServiceResponder responder, int status, String body) {
-    responder.send(status, ByteBuffer.wrap(body.getBytes(StandardCharsets.UTF_8)),
-                   "application/json", new HashMap<String, String>());
-  }
-
-  /**
-   * Sends the success response back to client.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static final void success(HttpServiceResponder responder, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", HttpURLConnection.HTTP_OK);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_OK, error.toString());
-  }
-
-
-  /**
    * Creates a uber record after iterating through all records.
    *
    * @param records list of all records.
@@ -797,29 +735,29 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   /**
    * Converts the data in workspace into records.
    *
-   * @param workspace name of the workspace from which the records are generated.
+   * @param id name of the workspace from which the records are generated.
    * @return list of records.
    * @throws WorkspaceException thrown when there is issue retrieving data.
    */
-  private List<Record> fromWorkspace(String workspace) throws KeyNotFoundException, WorkspaceException {
-    DataType type = table.getType(workspace);
+  private List<Record> fromWorkspace(String id) throws KeyNotFoundException, WorkspaceException {
+    DataType type = table.getType(id);
     List<Record> records = new ArrayList<>();
 
     switch(type) {
       case TEXT: {
-        String data = table.getData(workspace, WorkspaceDataset.DATA_COL, DataType.TEXT);
-        records.add(new Record(workspace, data));
+        String data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.TEXT);
+        records.add(new Record(id, data));
         break;
       }
 
       case BINARY: {
-        byte[] data = table.getData(workspace, WorkspaceDataset.DATA_COL, DataType.BINARY);
-        records.add(new Record(workspace, data));
+        byte[] data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.BINARY);
+        records.add(new Record(id, data));
         break;
       }
 
       case RECORDS: {
-        records = table.getData(workspace, WorkspaceDataset.DATA_COL, DataType.RECORDS);
+        records = table.getData(id, WorkspaceDataset.DATA_COL, DataType.RECORDS);
         break;
       }
     }
@@ -829,12 +767,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   /**
    * Executes directives by extracting them from request.
    *
-   * @param workspace data to be used for executing directives.
+   * @param id data to be used for executing directives.
    * @param user request passed on http.
    * @param sample sampling function.
    * @return records generated from the directives.
    */
-  private List<Record> executeDirectives(String workspace, @Nullable Request user,
+  private List<Record> executeDirectives(String id, @Nullable Request user,
                                          Function<List<Record>, List<Record>> sample)
     throws Exception {
     if (user == null) {
@@ -842,7 +780,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
 
     // Extract records from the workspace.
-    List<Record> records = fromWorkspace(workspace);
+    List<Record> records = fromWorkspace(id);
     // Execute the pipeline.
     PipelineContext context = new ServicePipelineContext(PipelineContext.Environment.SERVICE, getContext());
     PipelineExecutor executor = new PipelineExecutor();
