@@ -32,7 +32,6 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
-import co.cask.wrangler.dataset.KeyNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
@@ -83,6 +82,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.service.ServiceUtils.error;
+import static co.cask.wrangler.service.ServiceUtils.notFound;
 import static co.cask.wrangler.service.ServiceUtils.sendJson;
 import static co.cask.wrangler.service.ServiceUtils.success;
 
@@ -142,10 +142,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *   "message" : "Success",
    *   "count" : 4,
    *   "values" : [
-   *      "body",
-   *      "ws",
-   *      "test",
-   *      "message"
+   *      { "id" : "ABC", "name" : "body"},
+   *      { "id" : "XYZ", "name" : "ws"},
+   *      { "id" : "123", "name" : "test"},
+   *      { "id" : "UVW", "name" : "foo"}
    *   ]
    * }
    *
@@ -160,11 +160,14 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       List<KeyValue<String,String>> workspaces = table.getWorkspaces();
       JsonArray array = new JsonArray();
       for (KeyValue<String, String> workspace : workspaces) {
-        array.add(new JsonPrimitive(workspace.getKey()));
+        JsonObject object = new JsonObject();
+        object.addProperty("id", workspace.getKey());
+        object.addProperty("name", workspace.getValue());
+        array.add(object);
       }
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
-      response.addProperty("count", workspaces.size());
+      response.addProperty("count", array.size());
       response.add("values", array);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (WorkspaceException e) {
@@ -206,6 +209,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * {
    *   "status" : 200,
    *   "message" : "Success",
+   *   "count" : 1,
    *   "values" : [
    *     {
    *       "workspace" : "data",
@@ -213,7 +217,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *       "recipe" : [
    *          "parse-as-csv data ,",
    *          "drop data"
-   *       ]
+   *       ],
+   *       "properties" : {
+   *         { "key" : "value"},
+   *         { "key" : "value"}
+   *       }
    *     }
    *   ]
    * }
@@ -229,13 +237,18 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     JsonObject response = new JsonObject();
     JsonArray values = new JsonArray();
     try {
-      try {
-        String data = table.getData(id, WorkspaceDataset.REQUEST_COL, DataType.TEXT);
-        values.add(new JsonParser().parse(data));
-        response.addProperty("count", 1);
-      } catch (KeyNotFoundException e) {
-        response.addProperty("count", 0);
+      String data = table.getData(id, WorkspaceDataset.REQUEST_COL, DataType.TEXT);
+      JsonObject req = new JsonObject();
+      if (data != null) {
+        req = (JsonObject) new JsonParser().parse(data);
+      } else {
+        notFound(responder, String.format("Workspace '%s' does not have any data.", id));
+        return;
       }
+      Map<String, String> properties = table.getProperties(id);
+      req.add("properties", GSON.toJsonTree(properties));
+      values.add(req);
+      response.addProperty("count", 1);
       response.add("values", values);
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
@@ -339,29 +352,31 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     try {
       DataType type = table.getType(id);
       byte[] bytes = table.getData(id, WorkspaceDataset.DATA_COL);
-      if (type == DataType.BINARY) {
-        String data = Bytes.toHexString(bytes);
-        array.add(new JsonPrimitive(data));
-      } else if (type == DataType.TEXT) {
-        String data = Bytes.toString(bytes);
-        array.add(new JsonPrimitive(data));
-      } else if (type == DataType.RECORDS) {
-        String data = Bytes.toString(bytes);
-        array = GSON.fromJson(data, new TypeToken<JsonArray>() {}.getType());
+      if (bytes != null) {
+        if (type == DataType.BINARY) {
+          String data = Bytes.toHexString(bytes);
+          array.add(new JsonPrimitive(data));
+        } else if (type == DataType.TEXT) {
+          String data = Bytes.toString(bytes);
+          array.add(new JsonPrimitive(data));
+        } else if (type == DataType.RECORDS) {
+          String data = Bytes.toString(bytes);
+          array = GSON.fromJson(data, new TypeToken<JsonArray>() {}.getType());
+        } else {
+          error(responder, "Unknown workspace data type. Should be application/data-prep, text/plain " +
+            "or application/octet-stream");
+          return;
+        }
+        JsonObject response = new JsonObject();
+        response.addProperty("status", HttpURLConnection.HTTP_OK);
+        response.addProperty("message", "Success");
+        response.addProperty("count", array.size());
+        response.add("values", array);
+        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
       } else {
-        error(responder, "Unknown workspace data type. Should be application/data-prep, text/plain " +
-          "or application/octet-stream");
-        return;
+        notFound(responder, String.format("Workspace '%s' does not not have data.", id));
       }
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", array.size());
-      response.add("values", array);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (WorkspaceException e) {
-      error(responder, e.getMessage());
-    } catch (KeyNotFoundException e) {
       error(responder, e.getMessage());
     }
   }
@@ -739,20 +754,24 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @return list of records.
    * @throws WorkspaceException thrown when there is issue retrieving data.
    */
-  private List<Record> fromWorkspace(String id) throws KeyNotFoundException, WorkspaceException {
+  private List<Record> fromWorkspace(String id) throws WorkspaceException {
     DataType type = table.getType(id);
     List<Record> records = new ArrayList<>();
 
     switch(type) {
       case TEXT: {
         String data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.TEXT);
-        records.add(new Record(id, data));
+        if (data != null) {
+          records.add(new Record(id, data));
+        }
         break;
       }
 
       case BINARY: {
         byte[] data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.BINARY);
-        records.add(new Record(id, data));
+        if (data != null) {
+          records.add(new Record(id, data));
+        }
         break;
       }
 

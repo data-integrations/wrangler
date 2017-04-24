@@ -32,7 +32,6 @@ import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.dataset.KeyNotFoundException;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -226,11 +225,17 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   @ReadWrite
-  public void updateProperty(String id, String key, String value) throws KeyNotFoundException, WorkspaceException {
+  public void updateProperty(String id, String key, String value) throws WorkspaceException {
     byte[] bytes = getData(id, Bytes.toBytes(key));
     Map<String, String> properties = fromJsonBytes(bytes);
     properties.put(key, value);
     updateWorkspace(id, PROPERTIES_COL, toJsonBytes(properties));
+  }
+
+  @ReadOnly
+  public Map<String, String> getProperties(String id) throws WorkspaceException {
+    byte[] bytes = table.get(Bytes.toBytes(id), PROPERTIES_COL);
+    return fromJsonBytes(bytes);
   }
 
   /**
@@ -238,26 +243,19 @@ public class WorkspaceDataset extends AbstractDataset {
    *
    * @param id id of the workspace.
    * @param key the key to be retrieved.
-   * @return if key is found, returns the data, else throws a {@link KeyNotFoundException}.
+   * @return if key is found, returns the data, else returns null.
    */
   @ReadOnly
-  public byte[] getData(String id, byte[] key) throws KeyNotFoundException, WorkspaceException {
+  public byte[] getData(String id, byte[] key) throws WorkspaceException {
     byte[] bytes = table.get(toKey(id), key);
-    if(bytes == null) {
-      throw new KeyNotFoundException(
-        String.format("Workspace '%s' doesn't have key '%s'.", id, Bytes.toShort(key))
-      );
-    }
     return bytes;
   }
 
   @ReadOnly
-  public <T> T getData(String id, byte[] key, DataType type) throws KeyNotFoundException, WorkspaceException {
+  public <T> T getData(String id, byte[] key, DataType type) throws WorkspaceException {
     byte[] bytes = table.get(toKey(id), key);
     if(bytes == null) {
-      throw new KeyNotFoundException(
-        String.format("Workspace '%s' doesn't have key '%s'.", id, Bytes.toShort(key))
-      );
+      return null;
     }
     if (type == DataType.BINARY){
       return (T) bytes;

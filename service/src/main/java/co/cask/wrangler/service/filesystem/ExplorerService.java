@@ -38,6 +38,8 @@ import co.cask.wrangler.service.ServiceUtils;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.apache.twill.filesystem.Location;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
@@ -57,7 +59,6 @@ import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.service.ServiceUtils.error;
 import static co.cask.wrangler.service.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.ServiceUtils.success;
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
@@ -99,7 +100,7 @@ public class ExplorerService extends AbstractHttpServiceHandler {
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
                    @QueryParam("sampler") String sampler) {
-
+    JsonObject response = new JsonObject();
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
@@ -110,16 +111,10 @@ public class ExplorerService extends AbstractHttpServiceHandler {
       BoundedLineInputStream stream = null;
       try {
         Location location = explorer.getLocation(path);
-        String name = String.format("%s", location.getName());
+        String name = location.getName();
         String id = String.format("%s:%s", location.getName(), location.toURI().getPath());
         id = ServiceUtils.generateMD5(id);
         table.createWorkspaceMeta(id, name);
-
-        Map<String, String> properties = new HashMap<>();
-        properties.put("file", location.getName());
-        properties.put("uri", location.toURI().toString());
-        properties.put("path", location.toURI().getPath());
-        table.writeProperties(id, properties);
 
         // Iterate through lines to extract only 'limit' random lines.
         // Depending on the type, the sampling of the input is performed.
@@ -136,9 +131,35 @@ public class ExplorerService extends AbstractHttpServiceHandler {
         while(it.hasNext()) {
           records.add(new Record("body", it.next()));
         }
+
+        // Set all properties and write to workspace.
+        Map<String, String> properties = new HashMap<>();
+        properties.put("file", location.getName());
+        properties.put("uri", location.toURI().toString());
+        properties.put("path", location.toURI().getPath());
+        properties.put("sampler", samplingMethod.getMethod());
+        table.writeProperties(id, properties);
+
+        // Write records to workspace.
         String data = gson.toJson(records);
         table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
-        success(responder, String.format("Successfully loaded file '%s'", path));
+
+        // Preparing return response to include mandatory fields : id and name.
+        JsonArray values = new JsonArray();
+        JsonObject object = new JsonObject();
+        object.addProperty("id", id);
+        object.addProperty("name", name);
+        object.addProperty("uri", location.toURI().toString());
+        object.addProperty("path", location.toURI().getPath());
+        object.addProperty("file", location.getName());
+        object.addProperty("sampler", samplingMethod.getMethod());
+        values.add(object);
+
+        response.addProperty("status", HttpURLConnection.HTTP_OK);
+        response.addProperty("message", "Success");
+        response.addProperty("count", values.size());
+        response.add("values", values);
+        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
       } catch (ExplorerException e) {
         error(responder, e.getMessage());
       } catch (IOException e) {
