@@ -17,6 +17,8 @@
 
 package co.cask.wrangler.api.i18n;
 
+import co.cask.wrangler.api.annotations.Public;
+
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -30,6 +32,7 @@ import java.util.ResourceBundle;
  *   private static final Messages MSG = MessageFactory.getMessages(name, Locale.FRANCE);
  * </code>
  */
+@Public
 public final class Messages {
   // Resource bundle.
   private static ResourceBundle bundle;

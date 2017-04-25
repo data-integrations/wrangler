@@ -18,12 +18,10 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.executor.TextDirectives;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;

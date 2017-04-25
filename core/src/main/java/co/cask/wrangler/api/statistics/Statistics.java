@@ -17,12 +17,14 @@
 package co.cask.wrangler.api.statistics;
 
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.util.List;
 
 /**
  * Interface for calculating metrics over the records being processed.
  */
+@PublicEvolving
 public interface Statistics {
   /**
    * Aggregates statistics for all the records.

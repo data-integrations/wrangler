@@ -18,9 +18,9 @@ package co.cask.wrangler;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.ParallelPipelineExecutor;
-import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.executor.ParallelPipelineExecutor;
+import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.executor.TextDirectives;
 import co.cask.wrangler.steps.transformation.functions.DDL;
 import com.google.common.io.Resources;
 import org.junit.Assert;

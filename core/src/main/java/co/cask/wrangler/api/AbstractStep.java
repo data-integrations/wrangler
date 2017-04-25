@@ -16,9 +16,12 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 /**
  * An abstract class for {@link Step} with added debugging capabilities.
  */
+@PublicEvolving
 public abstract class AbstractStep implements Step<Record, Record> {
   private int lineno;
   private String detail;

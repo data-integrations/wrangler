@@ -21,7 +21,7 @@
     <dependency>
       <groupId>co.cask.wrangler</groupId>
       <artifactId>wrangler-core</artifactId>
-      <version>${wrangler.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.orbit</groupId>

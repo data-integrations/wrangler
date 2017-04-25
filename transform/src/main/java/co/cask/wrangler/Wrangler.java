@@ -34,10 +34,8 @@ import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.TextDirectives;
-import co.cask.wrangler.utils.StructuredRecordConverter;
-import com.google.gson.Gson;
+import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.executor.TextDirectives;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
