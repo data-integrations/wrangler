@@ -16,12 +16,15 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * A specification for how {@link Pipeline} will process.
  */
+@PublicEvolving
 public interface Directives extends Serializable {
   // Column definition for the start of processing.
   public static final String STARTING_COLUMN = "__col";
