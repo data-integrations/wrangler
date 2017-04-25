@@ -18,7 +18,7 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.etl.api.LookupProvider;
 import co.cask.cdap.etl.api.StageMetrics;
-import co.cask.wrangler.api.annotations.Public;
+import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Pipeline Context for passing contextual information to the pipeline being executed.
  */
-@Public
+@PublicEvolving
 public interface PipelineContext extends LookupProvider, Serializable {
   public enum Environment {
     SERVICE,

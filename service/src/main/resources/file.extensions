@@ -160,7 +160,7 @@ jpeg	image/jpeg
 jpg	image/jpeg
 jps	image/x-jps
 js	text/javascript
-json	text/plain
+json	application/json
 jut	image/jutvision
 kar	audio/midi
 ksh	text/x-scriptksh
@@ -445,7 +445,7 @@ xlv	application/excel
 xlw	application/excel
 xlsx	application/excel
 xm	audio/xm
-xml	text/xml
+xml	application/xml
 xmz	xgl/movie
 xpix	application/x-vndls-xpix
 xpm	image/xpm

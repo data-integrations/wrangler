@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service.filesystem;
+package co.cask.wrangler.service.explorer;
 
 import co.cask.cdap.api.dataset.lib.FileSet;
 import com.google.common.collect.HashMultiset;
@@ -135,7 +135,8 @@ public final class Explorer {
    * @return true if it's wrangle-able, false otherwise.
    */
   private boolean isWrangleable(String type) {
-    if (type.startsWith("text/")) {
+    if ("text/plain".equalsIgnoreCase(type) || "application/json".equalsIgnoreCase(type)
+      || "application/xml".equalsIgnoreCase(type)) {
       return true;
     }
     return false;

@@ -16,10 +16,14 @@
 
 package co.cask.wrangler;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 /**
  * This class {@link SamplingMethod} defines different types of sampling methods available.
  */
+@PublicEvolving
 public enum SamplingMethod {
+  NONE("none"),
   FIRST("first"),
   POISSON("poisson"),
   BERNOULLI("bernoulli"),

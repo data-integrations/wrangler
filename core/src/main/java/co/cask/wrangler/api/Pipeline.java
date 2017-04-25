@@ -17,7 +17,7 @@
 package co.cask.wrangler.api;
 
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.annotations.Public;
+import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Wrangle Pipeline executes steps in the order they are specified.
  */
-@Public
+@PublicEvolving
 public interface Pipeline<I, O, E> extends Serializable {
   /**
    * Configures the wrangle pipeline using the directives.

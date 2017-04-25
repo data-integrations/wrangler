@@ -7,6 +7,8 @@ import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.ServiceManager;
 import co.cask.cdap.test.TestBase;
 import co.cask.cdap.test.TestConfiguration;
+import co.cask.wrangler.service.explorer.DatasetProvider;
+import co.cask.wrangler.service.explorer.Explorer;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -18,7 +20,7 @@ import java.util.Map;
  * Class description here.
  */
 @Ignore
-public class ExplorerServiceTest extends TestBase {
+public class FilesystemExplorerTest extends TestBase {
   @ClassRule
   public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
 

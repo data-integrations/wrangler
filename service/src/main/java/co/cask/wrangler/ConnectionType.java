@@ -16,9 +16,12 @@
 
 package co.cask.wrangler;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 /**
  * This class {@link ConnectionType} defines different connections from which the data is extracted.
  */
+@PublicEvolving
 public enum ConnectionType {
   UPLOAD("upload"),
   FILE("file"),

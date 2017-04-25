@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 import java.util.Iterator;
 
 /**
@@ -24,6 +26,7 @@ import java.util.Iterator;
  *
  * It helps create random samples of data easily.
  */
+@PublicEvolving
 public abstract class Sampler<T> {
   protected final static double EPSILON = 1e-5;
 

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service.filesystem;
+package co.cask.wrangler.service.explorer;
 
 /**
  * Exception thrown when there is issue with File System exploration.

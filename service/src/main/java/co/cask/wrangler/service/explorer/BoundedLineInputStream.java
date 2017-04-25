@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service.filesystem;
+package co.cask.wrangler.service.explorer;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;

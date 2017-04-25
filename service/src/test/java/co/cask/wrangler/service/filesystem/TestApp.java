@@ -3,6 +3,7 @@ package co.cask.wrangler.service.filesystem;
 import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
+import co.cask.wrangler.service.explorer.FilesystemExplorer;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 
@@ -21,6 +22,6 @@ public class TestApp extends AbstractApplication {
       .setOutputFormat(TextOutputFormat.class)
       .setDescription("Store Dataset Index files")
       .build());
-    addService("service", new ExplorerService());
+    addService("service", new FilesystemExplorer());
   }
 }
