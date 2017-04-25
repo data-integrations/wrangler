@@ -1,6 +1,6 @@
-# CSV Parse
+# Parse as CSV
 
-PARSE-AS-CSV is a directive for parsing an input record as comma-seperated value. 
+The `parse-as-csv` is a directive for parsing an input record as comma-separated values.
 
 ## Syntax
 
@@ -8,11 +8,13 @@ PARSE-AS-CSV is a directive for parsing an input record as comma-seperated value
 parse-as-csv <column-name> <delimiter> <skip-on-error>
 ```
 
-```column-name``` specifies the name of the column in the record that should be parsed as CSV using the ```delimiter``` specified. Often times there are empty lines in file(s) that need to be skipped, set ```skip-on-error``` to true, by default it's set to false.
+The `column-name` specifies the column in the record that should be parsed as CSV using
+the specified `delimiter`. If there are empty lines in the input that need to be
+skipped, set `skip-on-error` to `true`; by default, it's set to `false`.
 
 ## Examples
 
-Let's look at an example. Let's a consider a single line from the consumer complaint CSV file. Each line of the CSV file is added to a record. 
+Consider a single line from a consumer complaint CSV file. Each line of the CSV file is added as a record:
 
 ```
 {
@@ -20,13 +22,14 @@ Let's look at an example. Let's a consider a single line from the consumer compl
 }
 ```
 
-Now, let's apply the directive to see the results. 
+Applying this directive:
 
 ```
   parse-as-csv body , true
 ```
 
-applying the above directive would result in record as show below
+would result in this record:
+
 ```
 {
   "body" : "07/29/2013,Consumer Loan,Vehicle loan,Managing the loan or lease,,,,Wells Fargo & Company,VA,24540,,N/A,Phone,07/30/2013,Closed with explanation,Yes,No,468882",

@@ -1,14 +1,14 @@
 # Request Format
 
-Currently, the Data Prep frontend makes a 'GET' call with all the directives in the query arguments.
-This causes issues on different browsers differently as there are limits to how much data can be pushed
-over the wire using this approach. So, in this document we will describe the format that we will be using
-for sending requests to the backend.
+Currently, the Data Prep frontend makes a `GET` call with all the directives in the query
+arguments. This causes issues on some browsers as there are limits as to how much data can
+be pushed using this approach. This document describes the format that is used for sending
+a request to the backend.
 
 ## Specification Version
 
-This document provides version 1.0 specification of the request and the details of how this should
-be handled on the FE and backend.
+This document covers version 1.0 of the request specification and details how this should
+be handled on the frontend and backend.
 
 ## JSON Request Format
 ```
@@ -37,41 +37,43 @@ be handled on the FE and backend.
 ```
 
 ### Version
-Specifies the version of this specification. If there are any additions or deletions to the specification,
-this version would be updated.
+Specifies the version of this specification (`1.0`). If there are any additions or
+deletions to the specification, this version would be updated.
 
 ### Workspace
-This section of the specification provides information about the workspace that directives are being
-applied in and also the 'results' in terms of number of records that the request should return when the
-results are computed.
+This section of the specification provides information about the workspace that directives
+are being applied in and the `results` in terms of the number of records that the request
+should return when the results are computed.
 
 | Field | Mandatory | Description |
 | :---- | :------: | :----- |
-| 'name' | Y | Specifies the name of the workspace the Data prep should operate on |
-| 'results' | Y | Specifies the number of the records that should be return in response upon execution of directives |
+| 'name' | Y | Specifies the name of the workspace the Data Prep should operate on |
+| 'results' | Y | Specifies the number of the records that should be returned in response upon execution of directives |
 
-### Directives
-This section of the specification provides the ability to list all the directives that need to be
- applied on the data in the workspace, combined with option to save the directives as recipes by a name.
+### Recipe
+This section of the specification contains all of the directives that are to be applied on
+the data in the workspace, with an option to save the directives as a recipe with a name.
 
 | Field | Mandatory | Description |
 | :---- | :------: | :----- |
 | 'directives' | Y | List of directives to be applied on the data |
-| 'save' | N | Specifies whether the directives have to be saved. If this option is specified, then 'name' should be specified |
-| 'name' | N | Specifies the name of the recipe. This option is valid only when 'save' is set to true |
+| 'save' | N | Specifies whether the directives should be saved. If this option is specified, then `name` should be specified. |
+| 'name' | N | Specifies the name of the recipe. This option is valid only when `save` is set to `true`. |
 
 ### Sampling
-This section of the specification provides information about how the input data needs to be sampled.
+This section of the specification provides information about how the input data is to be
+sampled.
 
 | Field | Mandatory | Description |
 | :---- | :------: | :----- |
-| 'method' | Y | Specifies the type of sampling to be applied while selecting input data. Currently support FIRST only. |
-| 'seed'   | N | This specifies the random seed to be used when sampling data. |
-| 'number' | Y | Specifies the number of input records to be read from the source to apply directives |
+| 'method' | Y | Specifies the type of sampling to be applied while selecting input data. Currently supports `first` only. |
+| 'seed'   | N | This specifies the random seed to be used when sampling data |
+| 'limit'  | Y | Specifies the number of input records to be read from the source to apply directives |
+
 
 ## Example
 
-Following is one simple example
+Here is a simple example:
 
 ```
   {
@@ -90,7 +92,7 @@ Following is one simple example
       "name" : "my-recipe"
     },
     "sampling" : {
-      "method" : "FIRST",
+      "method" : "first",
       "seed" : 1,
       "limit" : 1000
     }
