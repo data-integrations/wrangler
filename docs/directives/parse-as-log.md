@@ -1,6 +1,6 @@
-# Parser HTTPD or NGINX Logs
+# Parser as Log
 
-PARSE-AS-LOG is a directive for parsing Apache HTTPD and NGINX access log files.
+The `parse-as-log` directive parses access log files, such as from Apache HTTPD and nginx servers.
 
 ## Syntax
 
@@ -10,13 +10,14 @@ parse-as-log <column> <format>
 
 ## Usage Notes
 
-The PARSE-AS-LOG directive provides a generic log parser that you can construct by specifying the ```format``` of
-the log line or the format in which the file was written. The format which specifies the configuration options of
- the log line are schema of the access log lines as written by the service.
+The `parse-as-log` directive provides a generic log parser that you construct by
+specifying the `format` of the log line or the format in which the file was written. The
+format, which specifies the configuration options of the log line, becomes the schema of
+the access log lines as written by the service.
 
-Directive uses the ```LogFormat``` format that wrote the file as the input parameter.
-In addition to the config options specified in the Apache HTTPD manual under [Custom Log Formats](http://httpd.apache.org/docs/current/mod/mod_log_config.html)
-the following are also recognized:
+In addition to the config options specified in the Apache HTTPD manual under [Custom Log
+Formats](http://httpd.apache.org/docs/current/mod/mod_log_config.html#formats), these
+options are recognized:
 
 * common
 * combined
@@ -24,73 +25,78 @@ the following are also recognized:
 * referer
 * agent
 
-So, if you are looking to parse combined log format or common log format you can do the following:
+For example: to parse either _combined log format_ or _common log format_, you can use:
 
 ```
   parse-as-log body combined
   parse-as-log body common
 ```
 
-If you have logs that's not supported, you can specify the format.
+If you have logs that are in a format that is not supported, you can specify a custom format.
+In that case, `format` is a string of tokens specifying the log line format.
 
-For Nginx the log_format tokens are specified [here](http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format)
-and [here](http://nginx.org/en/docs/http/ngx_http_core_module.html#variables).
+For nginx, the `format` tokens are specified by
+[log_format](http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format) and
+[embedded variables](http://nginx.org/en/docs/http/ngx_http_core_module.html#variables).
 
 ## Examples
 
-Let's take a real-life example with the common log format. The format for common log is as follows:
+The format for common log is:
 
 ```
   %h %l %u %t "%r" %>s %b
 ```
 
-and the corresponding log line as a record needs to be parsed into it's components.
+and a corresponding log line as a record that needs to be parsed, in that format:
 
 ```
   {
-    "body" : "127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326"
+    "body": "127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] \"GET /apache_pb.gif HTTP/1.0\" 200 2326"
   }
 ```
 
-Using the directive as follows:
+Applying either of these directives:
 
 ```
   parse-as-log body %h %l %u %t "%r" %>s %b
+  parse-as-log body common
 ```
 
-Would result in following record
+would result in this record:
 
 ```
   {
-    "IP_connection.client.host" : "127.0.0.1",
-    "IP_connection.client.host.last" : "127.0.0.1"
-    "NUMBER_connection.client.logname" : null,
-    "NUMBER_connection.client.logname.last" : null,
+    "ip_connection_client_host": "127.0.0.1",
+    "ip_connection_client_host.last": "127.0.0.1"
+    "number_connection_client_logname": null,
+    "number_connection_client_logname.last": null,
     ...
     ...
-    "HTTP.PATH_request.firstline.uri.path" : "/apache_pb.gif",
-    "HTTP.REF_request.firstline.uri.ref" : null
+    "http_path_request_firstline_uri_path": "/apache_pb.gif",
+    "http_ref_request_firstline_uri_ref": null
   }
 ```
 
-Another example with Combined Log Format
+Using the Combined Log Format:
+
 ```
   %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\
 ```
 
-and the corresponding log line
+and a corresponding log line:
 ```
   127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "http://www.example.com/start.
   html" "Mozilla/4.08 [en] (Win98; I ;Nav)"
 ```
 
-Can also parse complex formats like the one shown below:
+Complex formats, such as this, can also be parsed:
 
 ```
   %t %u [%D %h %{True-Client-IP}i %{UNIQUE_ID}e %r] %{Cookie}i %s \"%{User-Agent}i\" \"%{host}i\" %l %b %{Referer}i
 ```
 
-Log line
+Example log line for such a format:
+
 ```
   [03/Dec/2013:10:53:59 +0000] - [32002 10.102.4.254 195.229.241.182 Up24RwpmBAwAAA1LWJsAAAAR GET
   /content/dam/Central_Library/Street_Shots/Youth/2012/09sep/LFW/Gallery_03/LFW_SS13_SEPT_12_777.jpg.

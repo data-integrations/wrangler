@@ -24,7 +24,7 @@ Consider this example: a record containing a single field `code` that requires b
 
 ```
   {
-    "code" : "Y36521S"
+    "code": "Y36521S"
   }
 ```
 

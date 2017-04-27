@@ -39,7 +39,7 @@ Using this record as an example:
   }
 ```
 
-Applying these `copy` directives
+Applying these directives:
 
 ```
   copy timestamp datetime

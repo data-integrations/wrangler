@@ -1,6 +1,6 @@
-# Rename Column
+# Rename
 
-RENAME directive renames the existing column named old to a column named new in the record. 
+The `rename` directive renames an existing column in the record.
 
 ## Syntax
 
@@ -8,46 +8,47 @@ RENAME directive renames the existing column named old to a column named new in 
  rename <old> <new>
 ```
 
-```old``` is the name of the old column that has to be renamed and ```new``` is the name of the column that it needs to be renamed to.
+`old` is the name of an existing column to be renamed and `new` is the new name of the column.
 
 ## Usage Notes
 
-RENAME will rename the specified column name by replacing it with a new name specicified. The old column name is not more available in record after this directive has been applied on the record. 
+The `rename` directive will rename the specified column name by replacing it with a new
+name. The original column name will no longer be available in the record after this directive
+has been applied to the record.
 
-RENAME directive will only rename the column that exists. if the column name does not exist in the record, execution of this directive will fail. 
+The `rename` directive will only rename a column that exists. If the column name does not
+exist in the record, execution will fail.
 
 ## Example
 
-Let's say we record as specified below:
+Using this record as an example:
 
 ```
-{
-  "x" : 6.3,
-  "y" : 187,
-  "codes" : {
-    "a" : "code1",
-    "b" : 2
+  {
+    "x": 6.3,
+    "y": 187,
+    "codes": {
+      "a": "code1",
+      "b": 2
+    }
   }
-}
 ```
-applying the RENAME directive on basic type like ```y``` as follows
+Applying these directives:
 
 ```
-  rename y weight
   rename x height
+  rename y weight
 ```
 
-would generate the following record.
+would result in this record:
 
 ```
-{
-  "weight" : 6.3,
-  "height" : 187,
-  "codes" : {
-    "a" : "code1",
-    "b" : 2
+  {
+    "height": 6.3,
+    "weight": 187,
+    "codes": {
+      "a": "code1",
+      "b": 2
+    }
   }
-}
 ```
-
-

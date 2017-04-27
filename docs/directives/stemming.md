@@ -1,9 +1,9 @@
-# NLP - Stemming Bag of Words
+# Stemming
 
-STEMMING directive applies Porter Stemmer for English words. Porter Stemmer is one
- of the best stemmers available in this space. It excellently trades-off between
- speed, readability and accuracy. It stems using a set of rules, or transformations,
- applied in a succession of steps. Generally, it applies around 60 rules in 6 steps.
+The `stemming` directive applies the Porter stemmer algorithm for English words. The
+Porter stemmer has excellent trade-off between speed, readability, and accuracy. It stems
+using a set of rules (transformations) applied in a succession of steps. Generally, it
+applies approximately 60 rules in 6 steps.
 
 ## Syntax
 
@@ -11,37 +11,36 @@ STEMMING directive applies Porter Stemmer for English words. Porter Stemmer is o
   stemming <column>
 ```
 
-```column``` contains bag of words either of type string array or string list.
+```column``` contains a bag of words of type string array or type string list.
 
 ## Usage Notes
 
-The STEMMING directive provides an easy way to apply the stemmer on bag of
- tokenized words. Applying this directive creates an additional column
- 
-```<column>_porter``` depending on the type of the object the field is holding it will be transformed
-appropriately.
+The `stemming` directive applies the stemmer on a bag of tokenized words. Applying this
+directive creates an additional `<column>_porter` column. Depending on the type of the
+object the field is holding, it will be transformed appropriately.
 
 ## Example
 
-Let's consider a very simple example that has tokenized bag of words as string array
-or list of strings.
+Using this record, a tokenized bag of words as a string array or list of strings, as an
+example:
 
 ```
 {
-  "word" : { "how", "are", "you", "doing", "do", "you", "have", "apples" }
+  "word": { "how", "are", "you", "doing", "do", "you", "have", "apples" }
 }
 ```
 
-running the directive
+Applying this directive:
+
 ```
-  stemming words
+  stemming ps_word
 ```
 
-would generate the following record
+The result would be this record:
 
 ```
 {
-  "word" : { "how", "are", "you", "doing", "do", "you", "have", "apples" },
-  "word_porter" : { "how", "ar", "you", "do", "do", "you", "have", "appl" }
+  "word": { "how", "are", "you", "doing", "do", "you", "have", "apples" },
+  "word_porter": { "how", "ar", "you", "do", "do", "you", "have", "appl" }
 }
 ```

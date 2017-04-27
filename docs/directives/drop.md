@@ -1,6 +1,6 @@
-# Drop Column
+# Drop
 
-DROP directive is used to drop a column from the record. 
+The `drop` directive is used to drop a column in a record.
 
 ## Syntax
 
@@ -8,15 +8,17 @@ DROP directive is used to drop a column from the record.
  drop <column>[,<column>]*
 ```
 
-```column``` is the name of the column in the record to be droped. If the ```column``` does not exist in the record, then the directive fails.
+`column` is the name of the column in the record to be droped. If the `column`
+does not exist in the record, the directive fails.
 
 ## Usage Notes
 
-After the DROP directive is applied, the column and it's associated value are removed from the record. Downstream directives will not be able to reference the column there after.
+After the `drop` directive is applied, the column and its associated value are removed from
+the record. Later directives will not be able to reference the dropped column.
 
 ## Example
 
-Let's following is the record
+Using this record as an example:
 
 ```
   {
@@ -27,13 +29,13 @@ Let's following is the record
   }
 ```
 
-applying following DROP directive 
+Applying this directive:
 
 ```
   drop isvalid,measurement
 ```
 
-would result in record that no ```isvalid``` field. 
+would result in a record with no `isvalid` or `measurement` fields:
 
 ```
   {
@@ -41,4 +43,3 @@ would result in record that no ```isvalid``` field.
     "timestamp" : 1234434343
   }
 ```
-

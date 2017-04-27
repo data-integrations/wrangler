@@ -1,6 +1,8 @@
-# Send Records to Error
+# Send to Error
 
-SEND-TO-ERROR directive allows users to filter records and direct the filtered records that match a given condition to an error collector. If the error collector is not connected as the next stage in the pipeline then the filtered records will be dropped. 
+The `send-to-error` directive allows the filtering of records and directs the filtered
+records that match a given condition to an error collector. If the error collector is not
+connected as the next stage in a pipeline, then the filtered records will be dropped.
 
 ## Syntax
 
@@ -8,41 +10,40 @@ SEND-TO-ERROR directive allows users to filter records and direct the filtered r
  send-to-error <condition>
 ```
 
-```condition``` Is a JEXL expression specifing the condition to send the record
-to the error collector.
+`condition` is a JEXL expression specifing the condition that governs if the record should
+be sent to the error collector.
 
 ## Usage Notes
 
-The most common use of SEND-TO-ERROR directive is to filter out records
-that are not part of clean data. This is a data cleansing directive to
-remove records that do not conform to the rules specified.
+The most common use of the `send-to-error` directive is to filter out records that are not
+part of clean data. This is a data cleansing directive to remove records that do not
+conform to specified rules.
 
-The record is sent to the error collector (if connected) when the
-condition for the record evaluates to 'true'. If the condition evaluates
-to 'false' then the record is passed untouched.
+The record is sent to the error collector (if connected) when the condition for the record
+evaluates to `true`. If the condition evaluates to `false`, the record is passed on
+untouched.
 
-Let's illustrate how this directive would work with a simple example.
-Assume a record that has three field.
+## Example
 
-* Name,
-* DOB and
+Assume a record that has three field:
+
+* Name
 * Age
+* DOB
 
-As part of data cleansing process, you want to make sure that all the
-records that are being ingested have right data. In this case, let's
-say you want to make sure
+As part of a data cleansing process, you want to check that all the records being ingested
+follow these rules:
 
-* 'Name' is not empty,
-* 'Age' is not empty and less than 0 or greater 100 and
-* 'DOB' is a valid date.
+* `Name` is not empty
+* `Age` is not empty and not less than 1 or greater 130
+* `DOB` is a valid date
 
-This is how the above rules can be applied on the data and if there
-are any records that match the condition mentioned above, I would like
-to move them to error collector for further investigation.
+These directives will implement these rules; any records that match any of these
+conditions will be sent to the error collector for further investigation:
 
 ```
   send-to-error Name == null
   send-to-error Age.isEmpty()
-  send-to-error Age < 1 || Age > 100
+  send-to-error Age < 1 || Age > 130
   send-to-error !date:isDate(DOB)
 ```

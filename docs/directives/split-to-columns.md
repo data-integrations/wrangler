@@ -1,6 +1,6 @@
 # Split to Columns
 
-SPLIT-TO-COLUMNS directive splits a column based on separator into multiple columns.
+The `split-to-columns` directive splits a column based on a separator into multiple columns.
 
 ## Syntax
 
@@ -8,73 +8,78 @@ SPLIT-TO-COLUMNS directive splits a column based on separator into multiple colu
  split-to-columns <column> <separator>
 ```
 
-The ```column``` is split based on the ```separator```. ```separator``` can be defined as a regular expression.
+The `column` is split based on the `separator`, which can be defined as a regular
+expression (regex).
 
 ## Usage Notes
 
-The SPLIT-TO-COLUMNS directive takes the input column and applies the regex separator and generates as multiple
-columns generated from the split. The name of the columns are in the format specified below:
+The `split-to-columns` directive takes a column, applies the regular expression separator,
+and then creates multiple columns from the split. The name of the columns are in the
+format:
 
 ```
   {
-    "column" : "...",
-    "column_1" : "...",
-    "column_2" : "...",
-    "column_3" : "...",
+    "column": "...",
+    "column_1": "...",
+    "column_2": "...",
+    "column_3": "...",
     ...
-    "column_n" : "..."
-
+    "column_n": "..."
   }
 ```
 
-The original column when it was split to columns, it generated addition two columns for the record.
-column_1 and column_2 ... column_n are the columns that includes 'n' parts of the split generated from applying
-this directive.
+Regular expressions allows the use of complex search patterns when splitting the data in
+the column. It supports standard Java regular expression constructs.
 
-So for example, if we have a ```separator``` pattern as "," over a string
+The original column, when it is split into columns, generates new columns for the record.
+`column_1`, `column_2`, through to `column_n` are the new columns that contain the `n`
+parts of the split generated from applying this directive.
 
-```This will be split 1,This will be split 2,This will be split 3,Split 4```
+**Note:** This directive can only operate on columns of type string.
 
-will generate four new columns
+## Examples
+
+If we have a `separator` pattern of `,` (a comma) over the string:
+
+`This will be split 1,This will be split 2,This will be split 3,Split 4`
+
+This will generate four new columns:
 
 ```
-  [1] This will be split 1
-  [2] This will be split 2
-  [3] This will be split 3
-  [4] Split 4
-
+{
+  "1": "This will be split 1",
+  "2": "This will be split 2",
+  "3": "This will be split 3",
+  "4": "Split 4"
+}
 ```
 
-> NOTE : This directive can only operate on string type columns.
-
-## Example
-
-Let's look at an example that will demonstrates the behavior of SPLIT-TO-COLUMNS directive. Let's start with a record
+Using this record as an example:
 
 ```
   {
-    "id" : 1,
-    "codes" : "USD|AUD|AMD|XCD",
+    "id": 1,
+    "codes": "USD|AUD|AMD|XCD"
   }
 ```
 
-applying following SPLIT-TO-COLUMNS directive
+Applying this directive:
 
 ```
-  split-to-columns codes \\|
+  split-to-columns codes \|
 ```
-> NOTE: The backslashes are to escape the pipe(|) as it's a option separator in regex pattern.
 
-would result in four (4) records being generated with each split value being assigned to the column ```codes```
+**Note:** A backslash is required to escape the pipe character (`|`) as it is an optional separator in a regex pattern.
+
+This would result in four columns being generated, with each split value being assigned to the column `codes`:
 
 ```
   {
-    "id" : 1,
-    "codes" : "USD|AUD|AMD|XCD",
-    "codes_1" : "USD",
-    "codes_2" : "AUD",
-    "codes_3" : "AMD",
-    "codes_4" : "XCD"
+    "id": 1,
+    "codes": "USD|AUD|AMD|XCD",
+    "codes_1": "USD",
+    "codes_2": "AUD",
+    "codes_3": "AMD",
+    "codes_4": "XCD"
   }
 ```
-

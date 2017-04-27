@@ -1,6 +1,6 @@
-# Date Parser
+# Parse as Date
 
-PARSE-AS-DATE is a directive for parsing date using natural language processing.
+The `parse-as-date` directive is for parsing dates using natural language processing.
 
 ## Syntax
 
@@ -10,11 +10,11 @@ parse-as-date <column> [<timezone>]
 
 ## Usage Notes
 
-The PARSE-AS-DATE directive will apply standard language recognition and translation techniques to produce a list of
+The `parse-as-date` directive will apply standard language recognition and translation techniques to produce a list of
 corresponding dates with optional parse and syntax information.
 
-It recognizes dates described in many ways, including formal dates (02/28/1979), relaxed dates (oct 1st),
-relative dates (the day before next thursday), and even date alternatives (next wed or thurs).
+It recognizes dates described in many ways, including formal dates (`02/28/1979`), relaxed dates (`oct 1st`),
+relative dates (`the day before next thursday`), and even date alternatives (`next wed or thurs`).
 
 This directive will also search for date components within a larger block of text, detect their structure, and
 create dates.

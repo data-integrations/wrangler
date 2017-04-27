@@ -1,6 +1,7 @@
 # Fixed Length Parser
 
-Parses a column as fixed length record with widths for each field specified.
+The `parse-as-fixed-length` directive parses a column as a fixed length record with widths
+for each field specified.
 
 ## Syntax
 ```
@@ -9,37 +10,40 @@ Parses a column as fixed length record with widths for each field specified.
 
 ## Usage Notes
 
-Fixed width text files are special cases of text files where the format is specified by column widths,
-pad character and left/right alignment.  Column widths are measured in units of characters.
-For example, if you have data in a text file where the first column always has exactly 10 characters,
-and the second column has exactly 5, the third has exactly 12 (and so on), this would be categorized as a
-fixed width text file.
+Fixed width text files are special cases of text files where the format is specified by
+column widths, pad characters and left or right alignment. Column widths are measured in
+units of characters.
+
+For example, if you have data in a text file where the first column always has exactly 10
+characters, the second column has exactly 5, the third has exactly 12, and so on; this
+would be categorized as a fixed width text file.
+
+If not defined, the `padding` character is assumed to be a space character.
 
 ## Examples
 
-Let's assume a sample record as shown below:
+Using this record as an example:
 
 ```
   {
-    "body" : "12  10  ABCXYZ"
+    "body": "12  10  ABCXYZ"
   }
 ```
 
-applying the PARSE-AS-FIXED-LENGTH directive assumes SPACE as the default padding
-character.
+Applying this directive:
 
 ```
 parse-as-fixed-length body 2,4,5,3
 ```
 
-would generate the following record
+would result in this record:
 
 ```
   {
-    "body" : "12  10  ABCXYZ",
-    "body_1" : "12",
-    "body_2" : "  10",
-    "body_3" : "  ABC",
-    "body_4" : "XYZ
+    "body": "12  10  ABCXYZ",
+    "body_1": "12",
+    "body_2": "  10",
+    "body_3": "  ABC",
+    "body_4": "XYZ
   }
 ```

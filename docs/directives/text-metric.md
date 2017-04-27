@@ -12,7 +12,7 @@ TEXT-METRIC directive provides metric between two sequence of characters.
  and stores the resulting metric in the ```destination``` column. The value of metric is always between
  0 and 1.
 
-Following are different metrics supported
+These metrics are supported:
 
 * euclidean
 * cosine
@@ -27,7 +27,7 @@ Following are different metrics supported
 * damerau-levenshtein
 * generalized-jaccard
 * jaro
-* simon-white &
+* simon-white
 * levenshtein
 
 

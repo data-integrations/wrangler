@@ -1,30 +1,35 @@
 # Diff Date
 
-DIFF-DATE is a directive for taking the difference in two dates.
+The `diff-date` directive calculates the difference between two dates.
 
 ## Syntax
 
 ```
-diff-date <column> <column> <destination>
+diff-date <column1> <column2> <destination>
 ```
 
 ## Usage Notes
 
-The DIFF-DATE directive will take the difference between two Date objects, and put difference (in milliseconds)
-into the destination column.
+The `diff-date` directive calculates the difference between two Date objects (`column1`
+minus `column2`) and puts the difference (in milliseconds) into the destination column.
 
-Note that this directive can only apply on two columns whose date strings have already been parsed, either using the
-[PARSE-AS-DATE](docs/directives/parse-as-date.md) directive or the [PARSE-AS-SIMPLE-DATE](docs/directives/parse-as-simple-date.md).
+This directive can only be applied on two columns whose date strings have already been
+parsed, either using the [parse-as-date](docs/directives/parse-as-date.md) or
+[parse-as-simple-date](docs/directives/parse-as-simple-date.md) directives.
 
-```date-diff``` can return negative difference when first column is an earlier than the second column.
+A negative difference can be returned when the first column is an earlier date than the
+second column.
 
-If one of the dates in the column is 'null', then resulting column will be null and if any of the columns
-contains "now", then the column with actual date is subtracted from the current time. "now" applies the same
-date across all the rows.
+If one of the dates in the column is `null`, the resulting column will be `null`.
+
+If any of the columns contains the string `now`, then the current date-time will be
+substituted for it. When `now` is encountered, the directive applies the same value for
+`now` across all rows.
 
 ## Examples
 
-Let's consider an example
+Using this record as an example:
+
 ```
 {
   "create_date" : "02/12/2017",
@@ -32,13 +37,13 @@ Let's consider an example
 }
 ```
 
-Now, applying the following directive
+Applying this directive:
 
 ```
   diff-date update_date create_date diff_date
 ```
 
-will result in the record below.
+would result in this record:
 
 ```
 {

@@ -1,24 +1,24 @@
 # Set Columns
 
-SET COLUMNS directive sets the name of the columns as specified in the order they were specified.
+The `set columns` directive sets the names of columns, in the order they are specified.
 
 ## Syntax
 
 ```
- set columns <columm>[,<column>]*
+ set columns <columm>[,<column>*]
 ```
 
-```column``` specifies the name of the column to be set.
+`column` specifies the new name of an existing column
 
 ## Usage Notes
 
-The most common use of SET COLUMNS directive is to set the name of columns when
-we parse a CSV file. The column names will be applied to the record start from
-field zero in the order they were specified.
+The most common use of the `set columns` directive is to set the name of columns when
+a CSV file is parsed. The column names will be applied to the record starting from the first
+field, in the order they are specified.
 
-Let's take a simple example, let's say you have parsed a 'body' using [PARSE-AS-CSV](csv-parser.md)
-directive and then you are applying SET COLUMNS directive.
+## Examples
 
+Using this record as an example:
 
 ```
   {
@@ -26,14 +26,15 @@ directive and then you are applying SET COLUMNS directive.
   }
 ```
 
-Applying the directives below
+If you have parsed this `body` using the [parse-as-csv](csv-parser.md)
+directive and are now applying the `set columns` directive:
 
 ```
-  parse-as-csv body , true
+  parse-as-csv body , false
   set columns a,b,c,d,e
 ```
 
-Would generate record that has the column names assigned as follows:
+This would generate a record that has these column names:
 
 ```
 {
@@ -42,19 +43,20 @@ Would generate record that has the column names assigned as follows:
   "c" : "2",
   "d" : "3",
   "e" : "4",
-  "body_5" : "5"   ---> Note this was not assigned the name as expected.
+  "body_5" : "5"
 }
 ```
+Note that the last field (`body_5`) was not assigned the expected name.
 
-In order to make this right, you would have to add a [DROP](drop.md) directive to the mix. So, it would be as follows:
+In order to correct this, a [drop](drop.md) directive is required:
 
 ```
-  parse-as-csv body , true
+  parse-as-csv body , false
   drop body
   set columns a,b,c,d,e
 ```
 
-Now, you'r record would look as follows:
+The result would be this record:
 
 ```
 {
@@ -66,13 +68,16 @@ Now, you'r record would look as follows:
 }
 ```
 
-### Most common mistake
+## Common Mistakes
 
-When using SET COLUMNS directive, the number of fields in the record should be same
-as number of column names in the SET COLUMNS directive. If they are not, then this
+When using the `set columns` directive, the number of fields in the record should be same
+as number of column names in the `set columns` directive. If they are not, then this
 directive will partially name the record fields.
 
-So, when this directive is executed in the Wrangler Transform and if the field "Name of field"
-to be transformed is set to '*' then all fields are added to the record causing issues with
-naming of the columns -- as it would also include column names that are coming from the
+The names of the columns are in a single option, separated by commas. Separating by spaces
+will set only the name of the first column.
+
+When this directive is executed in a pipeline and the field "Name of field" to be
+transformed is set to `*`, then all fields are added to the record causing issues with the
+naming of the columns, as it would also include column names that are coming from the
 input.

@@ -1,54 +1,54 @@
-# Filter Row based on Regular Expression
+# Filter Row If Matched
 
-FILTER-ROW-IF-MATCHED directive provides a way to filters records that match the pattern for a column.
+The `filter-row-if-matched` directive filters records that match a pattern for a column.
 
 ## Deprecated
 
-Please use [FILTER-ROWS-ON](filter-rows-on.md) directive.
+Use the [filter-rows-on](filter-rows-on.md) directive instead.
 
 ## Syntax
 ```
   filter-row-if-matched <column> <regex>
 ```
 
-```regex``` is a valid regular expression that is evaluated on the column value for every record.
+`regex` is a valid regular expression that is evaluated on the column value for every record.
 
 ## Usage Notes
 
-The FILTER-ROW-IF-MATCHED directive applies the regular expression on a column value for every record.
- If regex matches the column value, then the record is omitted, else it's passed as-is to the input of the
- next directive in the pipeline.
+The `filter-row-if-matched` directive applies the regular expression on a column value for
+every record. If the regex matches the column value, the record is omitted, otherwise it
+is passed as-is to the input of the next directive.
 
- If regex is 'null', the value is compared against all the 'null' as well JSON null values.
+If the regex is `null`, the value is compared against all the `null` as well as JSON null values.
 
 ## Examples
 
-Let's illustrate how this directive works with a concrete example.
-Let's assume that you have input records as follows:
+Using this record as an example:
 
 ```
   {
-    "id" : 1
-    "name" : "Joltie, Root",
-    "emailid" : "jolti@hotmail.com",
-    "hrlywage" : "12.34",
-    "gender" : "Male",
-    "country" : "US",
+    "id": 1,
+    "name": "Joltie, Root",
+    "emailid": "jolti@hotmail.com",
+    "hrlywage": "12.34",
+    "gender": "Male",
+    "country": "US"
   }
 ```
 
-You want to operate only on the records where an individual is residing in ```country``` US.
+Applying this directive:
 
 ```
-  filter-row-if-true country !~ US
+  filter-row-if-matched country !~ US
 ```
 
-Will result in filtering out records for individuals that are not in US.
+would result in filtering out records for individuals that are not in the US (where
+`country` does not match "US").
 
-Low let's say you want to filter out individual within US who's ```hrlywage``` is greater than 12.
+Applying this directive:
 
 ```
-  filter-row-if-true (country !~ US && hrlywage > 12)
+  filter-row-if-matched (country !~ US && hrlywage > 12)
 ```
-
-Will result in records that have individual who reside in US and who's hourly wage is less than 12.
+would result in filtering out records for individuals that are not in the US (where
+`country` does not match "US") and whose hourly wage (`hrlywage`) is greater than 12.

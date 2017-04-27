@@ -1,6 +1,6 @@
 # Change Column Case
 
-The `change-column-case` directive changes the column names to either lowercase or uppercase.
+The `change-column-case` directive changes column names to either lowercase or uppercase.
 
 ## Syntax
 

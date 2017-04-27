@@ -12,7 +12,6 @@ The `cleanse-column-names` directive sanatizes column names, following these rul
  cleanse-column-names
 ```
 
-
 ## Example
 
 Using this record as an example:

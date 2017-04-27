@@ -11,7 +11,7 @@ TEXT-DISTANCE directive measures the difference between two sequence of characte
 ```method``` specified measures the distance between the strings of ```column1``` and ```column2```
  and stores the resulting distance measure in the ```destination``` column.
 
-Following are different distance measures supported
+These distance measures are supported:
 
 * euclidean
 * cosine
@@ -26,7 +26,7 @@ Following are different distance measures supported
 * damerau-levenshtein
 * generalized-jaccard
 * jaro
-* simon-white &
+* simon-white
 * levenshtein
 
 

@@ -1,6 +1,6 @@
 # Columns Replace
 
-The `columns-replace` directive provides the ability to alter column names in bulk.
+The `columns-replace` directive alters column names in bulk.
 
 ## Syntax
 

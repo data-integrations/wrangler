@@ -1,7 +1,7 @@
-# Keep Columns
+# Keep
 
-KEEP directive is used to keep the columns from the record. This has exact opposite behavior of
-[DROP](docs/directives/drop.md)
+The `keep` directive is used to keep specified columns from the record. This is the
+opposite behavior of the [drop](docs/directives/drop.md) directive.
 
 ## Syntax
 
@@ -9,39 +9,38 @@ KEEP directive is used to keep the columns from the record. This has exact oppos
  keep <column>[,<column>]
 ```
 
-```column``` is the name of the column in the record to be kept.
+`column` is the name of a column in the record to be kept.
 
 ## Usage Notes
 
-After the KEEP directive is applied, the column specified in the directive are preserved, but rest all
-are removed from the record.
+After the `keep` directive is applied, the column(s) specified in the directive are
+preserved, and all other columns are removed from the record.
 
 
 ## Example
 
-Let's consider a simple record as shown below:
+Using this record as an example:
 
 ```
   {
-    "id" : 1,
-    "timestamp" : 1234434343,
-    "measurement" : 10.45,
-    "isvalid" : true
+    "id": 1,
+    "timestamp": 1234434343,
+    "measurement": 10.45,
+    "isvalid": true
   }
 ```
 
-applying following KEEP directive
+Applying this directive:
 
 ```
   keep id,measurement
 ```
 
-would result in record that has only ```id``` and ```measurement```
+would result in this record:
 
 ```
   {
-    "id" : 1,
-    "measurement" : 10.45
+    "id": 1,
+    "measurement": 10.45
   }
 ```
-

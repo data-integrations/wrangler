@@ -1,27 +1,38 @@
 # Cut
 
-CUT directive selects parts of the string value.
+The `cut` directive selects parts of a string value, accepting standard [cut
+options](http://man7.org/linux/man-pages/man1/cut.1.html).
 
 ## Syntax
 
 ```
- cut-character <source> <destination> <range>|<indexes>
+ cut-character <source> <destination> <option>
 ```
 
+`<option>` is the standard [cut options](http://man7.org/linux/man-pages/man1/cut.1.html)
+
 ## Usage Notes
+
+The standard options for the `cut` directive include a list of one or more ranges of characters.
+Each range is prefaced with a type (`-b` byte, `-c` character, `-f` field) and written as:
+
+* `N  ` The N'th byte, character, or field, counting from 1
+* `N- ` From the N'th byte, character, or field, to the end of the line
+* `N-M` From the N'th to M'th (included) byte, character, or field
+* `-M ` From the first to M'th (included) byte, character, or field
 
 
 ## Example
 
-Let's following is the record
+Using this record as an example:
 
 ```
   {
-    "body" : "one two three four five six seven eight"
+    "body": "one two three four five six seven eight"
   }
 ```
 
-applying following CUT directive
+Applying these directives:
 
 ```
   cut-character body one -c 1-3
@@ -33,18 +44,17 @@ applying following CUT directive
   cut-character body seven -c 1,2,3-5
 ```
 
-would result in record as show below
+would result in this record:
 
 ```
   {
-    "body" : "one two three four five six seven eight",
-    "one" : "one",
-    "two" : "two",
-    "three" : "three",
-    "four" : "four five six seven eight",
-    "five" : "one",
-    "six" : "one",
-    "seven" : "one t"
+    "body": "one two three four five six seven eight",
+    "one": "one",
+    "two": "two",
+    "three": "three",
+    "four": "four five six seven eight",
+    "five": "one",
+    "six": "one",
+    "seven": "one t"
   }
 ```
-

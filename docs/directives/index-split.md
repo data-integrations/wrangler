@@ -1,7 +1,7 @@
-# Index Split
+# Indexsplit
 
-INDEXSPLIT directive splits a string at a given index in two substrings.
+The `indexsplit` directive splits a string at a given index into two substrings.
 
 ## Deprecated
 
-Please use [SPLIT-TO-COLUMNS](split-to-columns.md) or [PARSE-AS-FIXED-LENGTH](fixed-length-parser.md) directives.
+Use the [split-to-columns](split-to-columns.md) or [parse-as-fixed-length](fixed-length-parser.md) directives instead.
