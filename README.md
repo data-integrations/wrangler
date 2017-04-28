@@ -99,81 +99,81 @@ For example:
 
 These are the different directives currently available:
 
-|**Parsers**||
-|-----------------------|-|
-|[Parse as CSV](docs/directives/parse-as-csv.md)|Parsing an input record as comma-separated values|
-|[JSON Parser](docs/directives/parse-as-json.md)
-|[JSON Path](docs/directives/json-path.md)
-|[XML Parser](docs/directives/parse-as-xml.md)
-|[XPath](docs/directives/xpath.md)
-|[XML To JSON](docs/directives/parse-xml-to-json.md)
-|[Fixed Length Parser](docs/directives/fixed-length-parser.md)
-|[HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)
-|[Date Parser](docs/directives/parse-as-date.md)
-|[Simple Date Parser](docs/directives/parse-as-simple-date.md)
-|[HL7 Parser](docs/directives/parse-as-hl7.md)
-|**Output Formatters**||
-|[JSON Map Formatter](docs/directives/write-as-json-map.md)
-|[CSV Formatter](docs/directives/write-as-csv.md)
-|**Transformations**||
-|[Change Text Case](docs/directives/change-case.md)
-|[Index Split](docs/directives/index-split.md)
-|[Split by Separator](docs/directives/split-by-separator.md)
-|[Find and Replace](docs/directives/find-and-replace.md)
-|[Cut](docs/directives/cut.md)|Selects parts of a string value|
-|[Expressions](docs/directives/expression.md)
-|[URL Encode](docs/directives/url-encode.md)
-|[URL Decode](docs/directives/url-decode.md)
-|[Split Email Address](docs/directives/split-email.md)
-|[Split URL](docs/directives/split-url.md)
-|[Fuzzy String Match - Distance](docs/directives/text-distance.md)
-|[Fuzzy String Match - Metric](docs/directives/text-metric.md)
-|[Quantization](docs/directives/quantize.md)
-|[Regex Group Extractor](docs/directives/extract-regex-groups.md)|Extracts the data from a regex group into its own column|
-|[Setting Character Set](docs/directives/set-charset.md)
-|[Setting Record Delimiter](docs/directives/set-record-delim.md)
-|**Encoders and Decoders**||
-|[Encode](docs/directives/encode.md)|Encodes a column value as one of `base32`, `base64`, or `hex`|
-|[Decode](docs/directives/decode.md)|Decodes a column value as one of `base32`, `base64`, or `hex`|
-|**Unique ID**||
-|[UUID Generation](docs/directives/generate-uuid.md)
-|**Date Transformations**
-|[Format Date](docs/directives/format-date.md)
-|[Format Unix Timestamp](docs/directives/format-timestamp.md)
-|[Diff Date](docs/directives/diff-date.md)
-|**Lookups**||
-|[Catalog Lookup](docs/directives/catalog-lookup.md)|Static catalog lookup of ICD-9, ICD-10-2016, ICD-10-2017 codes|
-|[Table Lookup](docs/directives/table-lookup.md)
-|**Hashing & Masking**
-|[Substitution Masking](docs/directives/mask-substitution.md)
-|[Number Masking](docs/directives/mask-number.md)
-|[Message Digest or Hash](docs/directives/hash.md)
-|**Row Operations**||
-|[Flatten](docs/directives/flatten.md)
-|[Send to Error](docs/directives/send-to-error.md)
-|[Split To Rows](docs/directives/split-to-rows.md)
-|[Filter Rows On](docs/directives/filter-rows-on.md)
-|[Filter Row using Regex](docs/directives/filter-row-if-matched.md) (_Deprecated_)
-|[Filter Row on Condition](docs/directives/filter-row-if-true.md) (_Deprecated_)
-|**Column Operations**||
-|[Change Column Case](docs/directives/change-column-case.md)|Changes column names to either lowercase or uppercase|
-|[Changing Case](docs/directives/changing-case.md)|Change the case of column values|
-|[Cleanse Column Names](docs/directives/cleanse-column-names.md)|Sanatizes column names, following specific rules|
-|[Columns Replace](docs/directives/columns-replace.md)|Alters column names in bulk|
-|[Copy](docs/directives/copy.md)|Copies values from a source column into a destination column|
-|[Drop Column](docs/directives/drop.md)| |
-|[Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md)| |
-|[Keep Columns](docs/directives/keep.md)| |
-|[Merge Columns](docs/directives/merge.md)| |
-|[Rename Column](docs/directives/rename.md)| |
-|[Set Column Names](docs/directives/set-columns.md)| |
-|[Split To Columns](docs/directives/split-to-columns.md)| |
-|[Swap Columns](docs/directives/swap.md)
-|**NLP**||
-|[Stemming Tokenized Words](docs/directives/stemming.md)| |
-|**Functions**||
-|[JSON](docs/functions/JSON.md)| |
-|[Types](docs/functions/Types.md)| |
+| **Parsers**                                                         |                                                                |
+| ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [Parse as CSV](docs/directives/parse-as-csv.md)                     | Parsing an input record as comma-separated values              |
+| [JSON Parser](docs/directives/parse-as-json.md)                     |                                                                |
+| [JSON Path](docs/directives/json-path.md)                           |                                                                |
+| [XML Parser](docs/directives/parse-as-xml.md)                       |                                                                |
+| [XPath](docs/directives/xpath.md)                                   |                                                                |
+| [XML To JSON](docs/directives/parse-xml-to-json.md)                 |                                                                |
+| [Fixed Length Parser](docs/directives/fixed-length-parser.md)       |                                                                |
+| [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)       |                                                                |
+| [Date Parser](docs/directives/parse-as-date.md)                     |                                                                |
+| [Simple Date Parser](docs/directives/parse-as-simple-date.md)       |                                                                |
+| [HL7 Parser](docs/directives/parse-as-hl7.md)                       |                                                                |
+| **Output Formatters**                                               |                                                                |
+| [JSON Map Formatter](docs/directives/write-as-json-map.md)          |                                                                |
+| [CSV Formatter](docs/directives/write-as-csv.md)                    |                                                                |
+| **Transformations**                                                 |                                                                |
+| [Change Text Case](docs/directives/change-case.md)                  |                                                                |
+| [Index Split](docs/directives/index-split.md)                       |                                                                |
+| [Split by Separator](docs/directives/split-by-separator.md)         |                                                                |
+| [Find and Replace](docs/directives/find-and-replace.md)             |                                                                |
+| [Cut](docs/directives/cut.md)                                       | Selects parts of a string value                                |
+| [Expressions](docs/directives/expression.md)                        |                                                                |
+| [URL Encode](docs/directives/url-encode.md)                         |                                                                |
+| [URL Decode](docs/directives/url-decode.md)                         |                                                                |
+| [Split Email Address](docs/directives/split-email.md)               |                                                                |
+| [Split URL](docs/directives/split-url.md)                           |                                                                |
+| [Fuzzy String Match - Distance](docs/directives/text-distance.md)   |                                                                |
+| [Fuzzy String Match - Metric](docs/directives/text-metric.md)       |                                                                |
+| [Quantization](docs/directives/quantize.md)                         |                                                                |
+| [Regex Group Extractor](docs/directives/extract-regex-groups.md)    | Extracts the data from a regex group into its own column       |
+| [Setting Character Set](docs/directives/set-charset.md)             |                                                                |
+| [Setting Record Delimiter](docs/directives/set-record-delim.md)     |                                                                |
+| **Encoders and Decoders**                                           |                                                                |
+| [Encode](docs/directives/encode.md)                                 | Encodes a column value as one of `base32`, `base64`, or `hex`  |
+| [Decode](docs/directives/decode.md)                                 | Decodes a column value as one of `base32`, `base64`, or `hex`  |
+| **Unique ID**                                                       |                                                                |
+| [UUID Generation](docs/directives/generate-uuid.md)                 |                                                                |
+| **Date Transformations**                                            |                                                                |
+| [Format Date](docs/directives/format-date.md)                       |                                                                |
+| [Format Unix Timestamp](docs/directives/format-timestamp.md)        |                                                                |
+| [Diff Date](docs/directives/diff-date.md)                           |                                                                |
+| **Lookups**                                                         |                                                                |
+| [Catalog Lookup](docs/directives/catalog-lookup.md)                 | Static catalog lookup of ICD-9, ICD-10-2016, ICD-10-2017 codes |
+| [Table Lookup](docs/directives/table-lookup.md)                     |                                                                |
+| **Hashing & Masking**                                               |                                                                |
+| [Substitution Masking](docs/directives/mask-substitution.md)        |                                                                |
+| [Number Masking](docs/directives/mask-number.md)                    |                                                                |
+| [Message Digest or Hash](docs/directives/hash.md)                   |                                                                |
+| **Row Operations**                                                  |                                                                |
+| [Flatten](docs/directives/flatten.md)                               |                                                                |
+| [Send to Error](docs/directives/send-to-error.md)                   |                                                                |
+| [Split To Rows](docs/directives/split-to-rows.md)                   |                                                                |
+| [Filter Rows On](docs/directives/filter-rows-on.md)                 |                                                                |
+| [Filter Row using Regex](docs/directives/filter-row-if-matched.md)  | (_Deprecated_)                                                 |
+| [Filter Row on Condition](docs/directives/filter-row-if-true.md)    | (_Deprecated_)                                                 |
+| **Column Operations**                                               |                                                                |
+| [Change Column Case](docs/directives/change-column-case.md)         | Changes column names to either lowercase or uppercase          |
+| [Changing Case](docs/directives/changing-case.md)                   | Change the case of column values                               |
+| [Cleanse Column Names](docs/directives/cleanse-column-names.md)     | Sanatizes column names, following specific rules               |
+| [Columns Replace](docs/directives/columns-replace.md)               | Alters column names in bulk                                    |
+| [Copy](docs/directives/copy.md)                                     | Copies values from a source column into a destination column   |
+| [Drop Column](docs/directives/drop.md)                              |                                                                |
+| [Fill Null or Empty Columns](docs/directives/fill-null-or-empty.md) |                                                                |
+| [Keep Columns](docs/directives/keep.md)                             |                                                                |
+| [Merge Columns](docs/directives/merge.md)                           |                                                                |
+| [Rename Column](docs/directives/rename.md)                          |                                                                |
+| [Set Column Names](docs/directives/set-columns.md)                  |                                                                |
+| [Split To Columns](docs/directives/split-to-columns.md)             |                                                                |
+| [Swap Columns](docs/directives/swap.md)                             |                                                                |
+| **NLP**                                                             |                                                                |
+| [Stemming Tokenized Words](docs/directives/stemming.md)             |                                                                |
+| **Functions**                                                       |                                                                |
+| [JSON](docs/functions/JSON.md)                                      |                                                                |
+| [Types](docs/functions/Types.md)                                    |                                                                |
 
 
 ## Performance
