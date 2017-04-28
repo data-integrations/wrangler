@@ -1,24 +1,32 @@
-# Generate UUID
+# URL Encode
 
-URL-ENCODE encodes a string to application/x-www-form-urlencoded MIME format.
+The `url-encode` directive encodes a string to the `application/x-www-form-urlencoded`
+MIME format.
+
 
 ## Syntax
+
 ```
   url-encode <column>
 ```
 
-```column``` to be url encoded.
+`column` contains a URL to be encoded
+
 
 ## Usage Notes
 
-When encoding a string, the following rules apply:
+See https://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.1 for details of these rules.
 
-* The alphanumeric characters "a" through "z", "A" through "Z" and "0" through "9" remain the same.
-*  The special characters ".", "-", "*", and "_" remain the same.
-* The space character " " is converted into a plus sign "+".
-* All other characters are unsafe and are first converted into one or more bytes using some encoding scheme.
-Then each byte is represented by the 3-character string "%xy", where xy is the two-digit hexadecimal representation
-of the byte. The recommended encoding scheme to use is UTF-8. However, for compatibility reasons, if an encoding
-is not specified, then the default encoding of the platform is used.
+When encoding a string, these rules apply:
 
-> NOTE: Uses UTF-8 as the encoding scheme for the string.
+* The alphanumeric characters `a` through `z`, `A` through `Z`, and `0` through `9` remain
+  unchanged
+* The special characters `.`, `-`, `*`, and `_` remain unchanged
+* The space character ` ` is converted into a plus sign (`+`)
+* All other characters are considered unsafe and are first converted into one or more
+  bytes using an encoding scheme. Each byte is then represented by a 3-character string
+  `%xy`, where `xy` is the two-digit hexadecimal representation of the byte. The recommended
+  encoding scheme to use is UTF-8. However, for compatibility reasons, if an encoding is not
+  specified, then the default encoding of the platform is used.
+
+**Note:** Uses UTF-8 as the encoding scheme for the string.
