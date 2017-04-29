@@ -3,12 +3,13 @@
 The `decode` directive decodes a column value as one of `base32`, `base64`, or `hex`
 following [RFC-4648](https://tools.ietf.org/html/rfc4648).
 
+
 ## Syntax
 ```
-  decode <base32|base64|hex> <column>
+decode <base32|base64|hex> <column>
 ```
 
-`column` is the name of the column to which the decoding is applied.
+The `<column>` is the name of the column to which the decoding is applied.
 
 
 ## Usage Notes
@@ -27,35 +28,35 @@ Different column values are handled following these rules:
 * If the column specified is not found in the record, then the record is skipped as a no-op.
 * If the column value is not of either type string or byte array, it fails.
 
+See also the [encode](encode.md) directive.
+
+
 ## Example
 
 Using this record as an example:
-
 ```
-  {
-    "col1": "IJQXGZJTGIQEK3TDN5SGS3TH",
-    "col2": "VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n",
-    "col3": "48657820456e636f64696e67"
-  }
+{
+  "col1": "IJQXGZJTGIQEK3TDN5SGS3TH",
+  "col2": "VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n",
+  "col3": "48657820456e636f64696e67"
+}
 ```
 
 Applying these directives:
-
 ```
-  decode base32 col1
-  decode base64 col2
-  decode hex col3
+decode base32 col1
+decode base64 col2
+decode hex col3
 ```
 
 would result in this record:
-
 ```
-  {
-    "col1": "IJQXGZJTGIQEK3TDN5SGS3TH",
-    "col2": "VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n",
-    "col3": "48657820456e636f64696e67",
-    "col1_decode_base32": "Base32 Encoding",
-    "col2_decode_base64": "Testing Base 64 Encoding",
-    "col3_decode_hex": "Hex Encoding",
-  }
+{
+  "col1": "IJQXGZJTGIQEK3TDN5SGS3TH",
+  "col2": "VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n",
+  "col3": "48657820456e636f64696e67",
+  "col1_decode_base32": "Base32 Encoding",
+  "col2_decode_base64": "Testing Base 64 Encoding",
+  "col3_decode_hex": "Hex Encoding",
+}
 ```

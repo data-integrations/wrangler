@@ -3,13 +3,14 @@
 The `cut` directive selects parts of a string value, accepting standard [cut
 options](http://man7.org/linux/man-pages/man1/cut.1.html).
 
+
 ## Syntax
-
 ```
- cut-character <source> <destination> <option>
+cut-character <source> <destination> <option>
 ```
 
-`<option>` is the standard [cut options](http://man7.org/linux/man-pages/man1/cut.1.html)
+The `<option>` is the standard [cut options](http://man7.org/linux/man-pages/man1/cut.1.html).
+
 
 ## Usage Notes
 
@@ -25,36 +26,33 @@ Each range is prefaced with a type (`-b` byte, `-c` character, `-f` field) and w
 ## Example
 
 Using this record as an example:
-
 ```
-  {
-    "body": "one two three four five six seven eight"
-  }
+{
+  "body": "one two three four five six seven eight"
+}
 ```
 
 Applying these directives:
-
 ```
-  cut-character body one -c 1-3
-  cut-character body two -c 5-7
-  cut-character body three -c 9-13
-  cut-character body four -c 15-
-  cut-character body five -c 1,2,3
-  cut-character body six -c -3
-  cut-character body seven -c 1,2,3-5
+cut-character body one -c 1-3
+cut-character body two -c 5-7
+cut-character body three -c 9-13
+cut-character body four -c 15-
+cut-character body five -c 1,2,3
+cut-character body six -c -3
+cut-character body seven -c 1,2,3-5
 ```
 
 would result in this record:
-
 ```
-  {
-    "body": "one two three four five six seven eight",
-    "one": "one",
-    "two": "two",
-    "three": "three",
-    "four": "four five six seven eight",
-    "five": "one",
-    "six": "one",
-    "seven": "one t"
-  }
+{
+  "body": "one two three four five six seven eight",
+  "one": "one",
+  "two": "two",
+  "three": "three",
+  "four": "four five six seven eight",
+  "five": "one",
+  "six": "one",
+  "seven": "one t"
+}
 ```

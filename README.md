@@ -12,7 +12,7 @@ cleansing, transformation, and filtering using a set of data manipulation instru
 (directives). These instructions are either generated using an interative visual tool or
 are manually created.
 
-The documentation of the Data Prep Transform is available [here](transform/docs/Wrangler-transform.md).
+The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
 
 
 ## Demo Videos and Recipes
@@ -25,14 +25,15 @@ The documentation of the Data Prep Transform is available [here](transform/docs/
   * [SCREENCAST] [Parsing JSON File](https://youtu.be/vwnctcGDflE)
   * [SCREENCAST] [Flattening Arrays](https://youtu.be/SemHxgBYIsY)
 * Recipes
-  * [Log Parsing](demos/Parsing-Apache-Log.md)
-  * [HL7 CCDA XML Parsing](demos/HL7-CCDA-XML-Parsing.md)
-  * [CSV Parsing and Extracting Column Values](demos/CSV-Parsing-And-Extraction.md)
+  * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
+  * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)
+  * [Parsing HL7 CCDA XML Files](demos/parsing-hl7-ccda-xml-files.md)
 
 
 ## Concepts
 
-This implementation of Data Prep uses these concepts.
+This implementation of Data Prep uses the concepts of _Record_, _Column_, _Directive_,
+_Step_, and _Pipeline_.
 
 ### Record
 
@@ -46,7 +47,7 @@ A *Column* is a data value of any of the supported Java types, one for each reco
 
 A *Directive* is a single data manipulation instruction, specified to either transform,
 filter, or pivot a single record into zero or more records. A directive can generate one
-or more *steps* to be executed by a Pipeline.
+or more *steps* to be executed by a pipeline.
 
 ### Step
 
@@ -97,17 +98,18 @@ For example:
 
 ## Available Directives
 
-These are the different directives currently available:
+These directives are currently available:
 
-| **Parsers**                                                         |                                                                |
+| Directive                                                           | Description                                                    |
 | ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Parsers**                                                         |                                                                |
 | [Parse as CSV](docs/directives/parse-as-csv.md)                     | Parsing an input record as comma-separated values              |
 | [JSON Parser](docs/directives/parse-as-json.md)                     |                                                                |
 | [JSON Path](docs/directives/json-path.md)                           |                                                                |
 | [XML Parser](docs/directives/parse-as-xml.md)                       |                                                                |
 | [XPath](docs/directives/xpath.md)                                   |                                                                |
 | [XML To JSON](docs/directives/parse-xml-to-json.md)                 |                                                                |
-| [Fixed Length Parser](docs/directives/fixed-length-parser.md)       |                                                                |
+| [Parse as Fixed Length](docs/directives/parse-as-fixed-length.md)       |                                                                |
 | [HTTPD and NGNIX Log Parser](docs/directives/parse-as-log.md)       |                                                                |
 | [Date Parser](docs/directives/parse-as-date.md)                     |                                                                |
 | [Simple Date Parser](docs/directives/parse-as-simple-date.md)       |                                                                |
@@ -172,8 +174,8 @@ These are the different directives currently available:
 | **NLP**                                                             |                                                                |
 | [Stemming Tokenized Words](docs/directives/stemming.md)             |                                                                |
 | **Functions**                                                       |                                                                |
-| [JSON](docs/functions/JSON.md)                                      |                                                                |
-| [Types](docs/functions/Types.md)                                    |                                                                |
+| [JSON](docs/functions/json-functions.md)                            |  Date functions that can be useful in transforming your data                                                              |
+| [Types](docs/functions/type-functions.md)                           |  Functions for detecting the type of data           |
 
 
 ## Performance
@@ -183,10 +185,10 @@ transforming data, *DataPrep* is able to process at about 60K records per second
 rates below are specified as *records/second*. Additional details and test results
 [are available](docs/performance.md).
 
-| Directive Complexity | Column Count| Records | Size | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
-|----------------------|-------------|---------|------|-----------|---------------|---------------|----------------|
-| Medium | 18 | 13,499,973 | 4,499,534,313 | 64,998.50 | 64,921.29 | 46,866.70 | 36,149.86 |
-| Medium | 18 | 80,999,838 | 26,997,205,878 | 62,465.93 | 62,706.39 | 60,755.41 | 56,673.32 |
+| Directive Complexity | Column Count | Records    | Size           | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
+| -------------------- | -----------: | ---------: | -------------: | --------: | ------------: | ------------: | -------------: |
+| Medium               | 18           | 13,499,973 | 4,499,534,313  | 64,998.50 | 64,921.29     | 46,866.70     | 36,149.86      |
+| Medium               | 18           | 80,999,838 | 26,997,205,878 | 62,465.93 | 62,706.39     | 60,755.41     | 56,673.32      |
 
 
 ## Data Prep Service
@@ -203,12 +205,15 @@ The base endpoint is:
 http://<hostname>:11015/v3/namespaces/<namespace>/apps/dataprep/services/service/methods
 ```
 
-These are the different services provided:
+These services are provided:
 
 * [Administration and Management](docs/service/admin.md)
 * [Directive Execution](docs/service/execution.md)
 * [Column Type Detection and Statistics](docs/service/statistics.md)
 * [Column Name Validation](docs/service/validation.md)
+
+The [Request Format Specification](docs/service/request.md) describes the format that is used for sending
+a request to the back-end.
 
 
 ## Building New Directives

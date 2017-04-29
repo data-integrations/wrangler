@@ -6,7 +6,7 @@ opposite behavior of the [drop](docs/directives/drop.md) directive.
 ## Syntax
 
 ```
- keep <column>[,<column>]
+keep <column>[,<column>]
 ```
 
 `column` is the name of a column in the record to be kept.
@@ -22,25 +22,25 @@ preserved, and all other columns are removed from the record.
 Using this record as an example:
 
 ```
-  {
-    "id": 1,
-    "timestamp": 1234434343,
-    "measurement": 10.45,
-    "isvalid": true
-  }
+{
+  "id": 1,
+  "timestamp": 1234434343,
+  "measurement": 10.45,
+  "isvalid": true
+}
 ```
 
 Applying this directive:
 
 ```
-  keep id,measurement
+keep id,measurement
 ```
 
 would result in this record:
 
 ```
-  {
-    "id": 1,
-    "measurement": 10.45
-  }
+{
+  "id": 1,
+  "measurement": 10.45
+}
 ```

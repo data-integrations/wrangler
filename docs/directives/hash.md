@@ -2,20 +2,22 @@
 
 The `hash` directive generates a message digest.
 
+
 ## Syntax
 ```
-  hash <column> <algorithm> [encode]
+hash <column> <algorithm> [<encode>]
 ```
 
-`column` is the name of the column to which the hashing `algorithm` is applied.
+The `<column>` is the name of the column to which the hashing `<algorithm>` is applied.
 
-If `encode` is set to `true`, the hashed digest is encoded as `hex` with left-padding
-zeroes. By default, `encode` is set to `true`. To disable `hex` encoding, set `encode` to
+If `<encode>` is set to `true`, the hashed digest is encoded as `hex` with left-padding
+zeroes. By default, `<encode>` is set to `true`. To disable `hex` encoding, set `<encode>` to
 false.
+
 
 ## Usage Notes
 
-The `hash` directive, when applied on a `column`, will replace the content of the column
+The `hash` directive, when applied on a `<column>`, will replace the content of the column
 with the message hash. No new columns are created with the application of this directive.
 
 These algorithms are supported by the `hash` directive:
@@ -74,32 +76,30 @@ These algorithms are supported by the `hash` directive:
 * TIGER
 * WHIRLPOOL
 
+
 ## Example
 
 Using this record as an example:
-
 ```
-  {
-    "message": "secret message"
-  }
+{
+  "message": "secret message"
+}
 ```
 
 Applying this directive:
-
 ```
-  hash message SHA3-384
+hash message SHA3-384
 ```
 
 would generate a message digest and replace the column with it:
-
 ```
-  {
-    "message": "9cc25835d1ef78b4cd8b36a0c4ad636a6094fbb944b1d880f21c7129a645e819d3be987e8ae2f0f8d6cbebb8452419ef"
-  }
+{
+  "message": "9cc25835d1ef78b4cd8b36a0c4ad636a6094fbb944b1d880f21c7129a645e819d3be987e8ae2f0f8d6cbebb8452419ef"
+}
 ```
 
 The column `message` is replaced with the digest created using the SHA3-384 algorithm. The
 type of column is a string.
 
-**Note:** By default, encoding is on. When `encode` is set to `false`, the output column
+**Note:** By default, encoding is on. When `<encode>` is set to `false`, the output column
 type is a byte array.

@@ -3,12 +3,13 @@
 The `encode` directive encodes a column value as one of `base32`, `base64`, or `hex`
 following [RFC-4648](https://tools.ietf.org/html/rfc4648).
 
+
 ## Syntax
 ```
-  encode <base32|base64|hex> <column>
+encode <base32|base64|hex> <column>
 ```
 
-```column``` is the name of the column to which the encoding is applied.
+The `<column>` is the name of the column to which the encoding is applied.
 
 
 ## Usage Notes
@@ -27,35 +28,35 @@ Different column values are handled following these rules:
 * If the column specified is not found in the record, then the record is skipped as a no-op.
 * If the column value is not of either type string or byte array, it fails.
 
+See also the [decode](dedcode.md) directive.
+
+
 ## Example
 
 Using this record as an example:
-
 ```
-  {
-    "col1": "Base32 Encoding",
-    "col2": "Testing Base 64 Encoding",
-    "col3": "Hex Encoding"
-  }
+{
+  "col1": "Base32 Encoding",
+  "col2": "Testing Base 64 Encoding",
+  "col3": "Hex Encoding"
+}
 ```
 
 Applying these directives:
-
 ```
-  encode base32 col1
-  encode base64 col2
-  encode hex col3
+encode base32 col1
+encode base64 col2
+encode hex col3
 ```
 
 would result in this record:
-
 ```
-  {
-    "col1": "Base32 Encoding",
-    "col2": "Testing Base 64 Encoding",
-    "col3": "Hex Encoding",
-    "col1_encode_base32": "IJQXGZJTGIQEK3TDN5SGS3TH",
-    "col2_encode_base64": "VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n",
-    "col3_encode_hex": "48657820456e636f64696e67"
-  }
+{
+  "col1": "Base32 Encoding",
+  "col2": "Testing Base 64 Encoding",
+  "col3": "Hex Encoding",
+  "col1_encode_base32": "IJQXGZJTGIQEK3TDN5SGS3TH",
+  "col2_encode_base64": "VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n",
+  "col3_encode_hex": "48657820456e636f64696e67"
+}
 ```

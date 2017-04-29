@@ -2,42 +2,42 @@
 
 The `generate-uuid` directive generates a universally unique identifier (UUID) of the record.
 
+
 ## Syntax
 ```
-  generate-uuid <column>
+generate-uuid <column>
 ```
 
-`column` is set to the UUID generated.
+The `<column>` is set to the UUID generated for the record.
+
 
 ## Usage Notes
 
 The directive generates a type 4, pseudo-randomly generated UUID. The UUID is generated
 using a cryptographically strong pseudo-random number generator.
 
-## Examples
+
+## Example
 
 Using this record as an example, where you would like to generate a random identifier for
-each record to uniquely identify it:
-
+the record to uniquely identify it:
 ```
-  {
-    "x": 1
-    "y": 2
-  }
+{
+  "x": 1,
+  "y": 2
+}
 ```
 
 Applying this directive:
-
 ```
-  generate-uuid uuid
+generate-uuid uuid
 ```
 
-would result in this record:
-
+would result in a record similar to this (the value of the `uuid` will be different):
 ```
-  {
-    "x": 1
-    "y": 2
-    "uuid": "57126d32-8c91-4c00-9697-8abda450e836"
-  }
+{
+  "x": 1,
+  "y": 2,
+  "uuid": "57126d32-8c91-4c00-9697-8abda450e836"
+}
 ```

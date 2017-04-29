@@ -6,7 +6,7 @@ The `json-path` directive uses a DSL for reading JSON records.
 ## Syntax
 
 ```
- json-path <source-column> <destination-column> <expression>
+json-path <source-column> <destination-column> <expression>
 ```
 
 * `source-column` specifies the column in the record that should be considered as the "root member object" or "$".
@@ -20,24 +20,26 @@ An expression always refers to a JSON structure in the same way that an XPath ex
 is used in combination with an XML document. The "root member object" is always referred
 to as `$` regardless if it is an object or an array.
 
+
 ### Notation
 
 Expressions can use either the "dot–notation":
 
 ```
-  $.name.first
+$.name.first
 ```
 
 or the "bracket–notation":
 
 ```
-  $['name']['first']
+$['name']['first']
 ```
+
 
 ### Operators
 
 | Operator                  | Description                                                 |
-| :------------------------ | :---------------------------------------------------------- |
+| ------------------------- | ----------------------------------------------------------- |
 | `$`                       | The root element to query; this starts all path expressions |
 | `@`                       | The current node being processed by a filter predicate      |
 | `*`                       | Wildcard; available anywhere a name or numeric are required |
@@ -55,19 +57,20 @@ Functions can be invoked at the tail end of a path: the input to a function is t
 of the path expression. The function output is dictated by the function itself.
 
 | Function   | Returns                                             | Output  |
-| :--------- | :-------------------------------------------------- | ------- |
+| ---------- | --------------------------------------------------- | ------- |
 | `min()`    | The min value of an array of numbers                | Double  |
 | `max()`    | The max value of an array of numbers                | Double  |
 | `avg()`    | The average value of an array of numbers            | Double  |
 | `stddev()` | The standard deviation value of an array of numbers | Double  |
 | `length()` | The length of an array                              | Integer |
 
+
 ### Filter Operators
 
 Filters are logical expressions used to filter arrays. A typical filter would be:
 
 ```
-  [?(@.age>18)]
+[?(@.age>18)]
 ```
 
 where `@` represents the current item being processed.
@@ -78,7 +81,7 @@ where `@` represents the current item being processed.
   `[?(@.color=='blue')]` or `[?(@.color=="blue")]`
 
 | Filter Operator | Description                                                               |
-| :-------------- | :------------------------------------------------------------------------ |
+| --------------- | ------------------------------------------------------------------------- |
 | `==`            | Left is equal in type and value to right (note `1` is not equal to `'1'`) |
 | `!=`            | Left is not equal to right                                                |
 | `<`             | Left is less than right                                                   |
@@ -137,7 +140,7 @@ Using this JSON as an example:
 ```
 
 | JSON Path (click link to test)                                                                                 | Result                                                       |
-| :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------- |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | [$.store.book[*].author](http://jsonpath.herokuapp.com/?path=$.store.book[*].author)                           | The authors of all books                                     |
 | [$..author](http://jsonpath.herokuapp.com/?path=$..author)                                                     | All authors                                                  |
 | [$.store.*](http://jsonpath.herokuapp.com/?path=$.store.*)                                                     | All things, both books and bicycles                          |

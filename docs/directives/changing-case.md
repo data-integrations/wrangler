@@ -3,48 +3,45 @@
 The `uppercase`, `lowercase`, and `titlecase` directives change the case of column
 values they are applied to.
 
-## Syntax
 
+## Syntax
 ```
- lowercase <column>
- uppercase <column>
- titlecase <column>
+lowercase <column>
+uppercase <column>
+titlecase <column>
 ```
 
 The directive performs an in-place change of case.
 
+
 ## Example
 
 Using this record as an example:
-
 ```
-  {
-    "id": 1,
-    "gender": "male",
-    "fname": "Root",
-    "lname": "JOLTIE",
-    "address": "67 MARS AVE, MARSCIty, Marsville, Mars"
-  }
+{
+  "id": 1,
+  "gender": "male",
+  "fname": "Root",
+  "lname": "JOLTIE",
+  "address": "67 MARS AVE, MARSCIty, Marsville, Mars"
+}
 ```
 
 Applying these directives
-
 ```
-  uppercase gender
-  titlecase fname
-  titlecase lname
-  lowercase address
+uppercase gender
+titlecase fname
+titlecase lname
+lowercase address
 ```
 
 would result in this record:
-
 ```
-  {
-    "id": 1,
-    "gender": "MALE",
-    "fname": "Root",
-    "lname": "Joltie",
-    "address": "67 mars ave, marscity, marsville, mars"
-  }
+{
+  "id": 1,
+  "gender": "MALE",
+  "fname": "Root",
+  "lname": "Joltie",
+  "address": "67 mars ave, marscity, marsville, mars"
+}
 ```
-

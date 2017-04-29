@@ -2,20 +2,21 @@
 
 The `diff-date` directive calculates the difference between two dates.
 
-## Syntax
 
+## Syntax
 ```
 diff-date <column1> <column2> <destination>
 ```
 
+
 ## Usage Notes
 
-The `diff-date` directive calculates the difference between two Date objects (`column1`
-minus `column2`) and puts the difference (in milliseconds) into the destination column.
+The `diff-date` directive calculates the difference between two Date objects (`<column1>`
+minus `<column2>`) and puts the difference (in milliseconds) into the destination column.
 
 This directive can only be applied on two columns whose date strings have already been
-parsed, either using the [parse-as-date](docs/directives/parse-as-date.md) or
-[parse-as-simple-date](docs/directives/parse-as-simple-date.md) directives.
+parsed, either using the [parse-as-date](parse-as-date.md) or
+[parse-as-simple-date](parse-as-simple-date.md) directives.
 
 A negative difference can be returned when the first column is an earlier date than the
 second column.
@@ -26,10 +27,10 @@ If any of the columns contains the string `now`, then the current date-time will
 substituted for it. When `now` is encountered, the directive applies the same value for
 `now` across all rows.
 
-## Examples
+
+## Example
 
 Using this record as an example:
-
 ```
 {
   "create_date" : "02/12/2017",
@@ -38,13 +39,11 @@ Using this record as an example:
 ```
 
 Applying this directive:
-
 ```
-  diff-date update_date create_date diff_date
+diff-date update_date create_date diff_date
 ```
 
 would result in this record:
-
 ```
 {
   "create_date" : "02/12/2017",

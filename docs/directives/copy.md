@@ -2,15 +2,16 @@
 
 The `copy` directive copies values from a source column into a destination column.
 
+
 ## Syntax
-
 ```
- copy <source> <destination> [<force>]
+copy <source> <destination> [<force>]
 ```
 
-The `copy` directive copies data from the `source` column into the `destination` column.
-If the `destination` column already exists, the `force` option can be set to true to
-override any existing data in that column. By default, the option `force` is set to
+The `copy` directive copies data from the `<source>` column into the `<destination>` column.
+
+If the `<destination>` column already exists, the `<force>` option can be set to `true` to
+override any existing data in that column. By default, the `<force>` option is set to
 `false`.
 
 
@@ -22,46 +23,44 @@ If the `source` doesn't exist in the record, the execution will fail.
 Copying makes a deep copy of the source into the destination. The type of data from the
 source in the destination column is maintained as-is.
 
+
 ## Example
 
 Using this record as an example:
-
 ```
-  {
-    "id": 1,
-    "timestamp": 1234434343,
-    "measurement": 10.45,
-    "isvalid": true,
-    "message": {
-       "code": 132,
-       "text": "Failure in the temperature sensor"
-    }
+{
+  "id": 1,
+  "timestamp": 1234434343,
+  "measurement": 10.45,
+  "isvalid": true,
+  "message": {
+     "code": 132,
+     "text": "Failure in the temperature sensor"
   }
+}
 ```
 
 Applying these directives:
-
 ```
-  copy timestamp datetime
-  copy message status
+copy timestamp datetime
+copy message status
 ```
 
 would result in this record:
-
 ```
-  {
-    "id": 1,
-    "timestamp": 1234434343,
-    "datetime": 1234434343,
-    "measurement": 10.45,
-    "isvalid": true,
-    "message": {
-       "code": 132,
-       "text": "Failure in the temperature sensor"
-    },
-    "status": {
-        "code": 132,
-        "text": "Failure in the temperature sensor"
-    }
+{
+  "id": 1,
+  "timestamp": 1234434343,
+  "datetime": 1234434343,
+  "measurement": 10.45,
+  "isvalid": true,
+  "message": {
+     "code": 132,
+     "text": "Failure in the temperature sensor"
+  },
+  "status": {
+      "code": 132,
+      "text": "Failure in the temperature sensor"
   }
+}
 ```

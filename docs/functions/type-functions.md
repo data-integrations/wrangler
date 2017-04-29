@@ -4,15 +4,16 @@ These are functions for detecting the type of data. These functions can be used 
 directives `filter-row-if-false`, `filter-row-if-true`, `filter-row-on`, or
 `send-to-error`.
 
+
 ## Pre-requisite
+
 These can be used only in the `filter-*` or `send-to-error` directives.
+
 
 ## Namespace
 
-All type-related functions are in the namespace
-```
-  type
-```
+All type-related functions are in the namespace `type`.
+
 
 ## Example Data
 
@@ -61,7 +62,8 @@ Upload to the workspace `body` an input record such as:
 }
 ```
 
-Once such a record is loaded, apply these directives before applying any of the functions listed here:
+Once such a record is loaded, apply these directives before applying any of the functions
+listed here:
 ```
   parse-as-json body
   columns-replace s/body_//g
@@ -69,12 +71,14 @@ Once such a record is loaded, apply these directives before applying any of the 
 
 ## List of Type Functions
 
-| Function | Description | Example |
-| :------- | :---------- | :------ |
-|isDate(string)| Checks if the string value is a date field. True if it is, false otherwise. | `filter-row-if-true type:isDate(date)` |
-|isTime(string)| Checks if the string value is a date time. True if it is, false otherwise. | `filter-row-if-true type:isTime(time)` |
-|isBoolean(string| Checks if the string value is a booelan field. True if it is, false otherwise. | `send-to-error !type:isBoolean(boolean)` |
-|isNumber(string| Checks if the string value is a number field. True if it is, false otherwise. | `send-to-error !type:isNumber(integer)` |
-|isEmpty(string| Checks if the string value is empty. True if it is, false otherwise. | `send-to-error !type:isEmpty(empty)` |
-|isDouble(string| Checks if the string value is a double field. True if it is, false otherwise. | `send-to-error !type:isDouble(double)` |
-|isInteger(string| Checks if the string value is an integer field. True if it is, false otherwise. | `send-to-error !type:isInteger(integer)` |
+Each function returns `true` if the condition is met, `false` otherwise.
+
+| Function            | Condition                                 | Example                                  |
+| ------------------- | ----------------------------------------- | ---------------------------------------- |
+| `isDate(string)`    | Tests if string value is a date field     | `filter-row-if-true type:isDate(date)`   |
+| `isTime(string)`    | Tests if string value is a date time      | `filter-row-if-true type:isTime(time)`   |
+| `isBoolean(string)` | Tests if string value is a booelan field  | `send-to-error !type:isBoolean(boolean)` |
+| `isNumber(string)`  | Tests if string value is a number field   | `send-to-error !type:isNumber(integer)`  |
+| `isEmpty(string)`   | Tests if string value is empty            | `send-to-error !type:isEmpty(empty)`     |
+| `isDouble(string)`  | Tests if string value is a double field   | `send-to-error !type:isDouble(double)`   |
+| `isInteger(string)` | Tests if string value is an integer field | `send-to-error !type:isInteger(integer)` |

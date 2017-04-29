@@ -2,16 +2,20 @@
 
 The `filter-row-if-matched` directive filters records that match a pattern for a column.
 
+
 ## Deprecated
 
 Use the [filter-rows-on](filter-rows-on.md) directive instead.
 
+
 ## Syntax
+
 ```
-  filter-row-if-matched <column> <regex>
+filter-row-if-matched <column> <regex>
 ```
 
-`regex` is a valid regular expression that is evaluated on the column value for every record.
+The `<regex>` is a valid regular expression that is evaluated on the column value for every record.
+
 
 ## Usage Notes
 
@@ -21,34 +25,31 @@ is passed as-is to the input of the next directive.
 
 If the regex is `null`, the value is compared against all the `null` as well as JSON null values.
 
+
 ## Examples
 
 Using this record as an example:
-
 ```
-  {
-    "id": 1,
-    "name": "Joltie, Root",
-    "emailid": "jolti@hotmail.com",
-    "hrlywage": "12.34",
-    "gender": "Male",
-    "country": "US"
-  }
+{
+  "id": 1,
+  "name": "Joltie, Root",
+  "emailid": "jolti@hotmail.com",
+  "hrlywage": "12.34",
+  "gender": "Male",
+  "country": "US"
+}
 ```
 
 Applying this directive:
-
 ```
-  filter-row-if-matched country !~ US
+filter-row-if-matched country !~ US
 ```
-
 would result in filtering out records for individuals that are not in the US (where
 `country` does not match "US").
 
 Applying this directive:
-
 ```
-  filter-row-if-matched (country !~ US && hrlywage > 12)
+filter-row-if-matched (country !~ US && hrlywage > 12)
 ```
 would result in filtering out records for individuals that are not in the US (where
 `country` does not match "US") and whose hourly wage (`hrlywage`) is greater than 12.
