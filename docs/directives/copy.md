@@ -17,8 +17,8 @@ override any existing data in that column. By default, the `<force>` option is s
 
 ## Usage Notes
 
-The `copy` directive will copy data from `source` if and only if `source` column exists.
-If the `source` doesn't exist in the record, the execution will fail.
+The `copy` directive will copy data from `<source>` if and only if `<source>` column exists.
+If the `<source>` doesn't exist in the record, the execution will fail.
 
 Copying makes a deep copy of the source into the destination. The type of data from the
 source in the destination column is maintained as-is.

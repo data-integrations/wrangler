@@ -2,71 +2,103 @@
 
 The `set columns` directive sets the names of columns, in the order they are specified.
 
+
 ## Syntax
-
 ```
- set columns <columm>[,<column>*]
+set columns <columm>[,<column>*]
 ```
 
-`column` specifies the new name of an existing column
+The `<column>` specifies the new name of an existing column or columns.
+
 
 ## Usage Notes
 
-The most common use of the `set columns` directive is to set the name of columns when
-a CSV file is parsed. The column names will be applied to the record starting from the first
-field, in the order they are specified.
+The most common use of the `set columns` directive is to set the name of columns when a
+CSV file is parsed. The column names will be applied to the record starting from the first
+field, in the order that they are specified.
+
 
 ## Examples
 
 Using this record as an example:
-
 ```
-  {
-    "body" : "1,2,3,4,5"
-  }
+{
+  "body": "1,2,3,4,5"
+}
 ```
 
-If you have parsed this `body` using the [parse-as-csv](csv-parser.md)
-directive and are now applying the `set columns` directive:
-
+If you have parsed this `body` using the [parse-as-csv](parse-as-csv.md)
+directive:
 ```
-  parse-as-csv body , false
-  set columns a,b,c,d,e
+parse-as-csv body , false
+```
+
+the resulting record would be:
+```
+{
+  "body": "1,2,3,4,5",
+  "body_1": "1",
+  "body_2": "2",
+  "body_3": "3",
+  "body_4": "4",
+  "body_5": "5"
+}
+```
+
+If you then apply the `set columns` directive:
+```
+set columns a,b,c,d,e
 ```
 
 This would generate a record that has these column names:
-
 ```
 {
-  "a" : "1,2,3,4,5",
-  "b" : "1",
-  "c" : "2",
-  "d" : "3",
-  "e" : "4",
-  "body_5" : "5"
+  "a": "1,2,3,4,5",
+  "b": "1",
+  "c": "2",
+  "d": "3",
+  "e": "4",
+  "body_5": "5"
 }
 ```
+
 Note that the last field (`body_5`) was not assigned the expected name.
 
-In order to correct this, a [drop](drop.md) directive is required:
-
+In order to correct this, either rename all the columns using:
 ```
-  parse-as-csv body , false
-  drop body
-  set columns a,b,c,d,e
+parse-as-csv body , false
+set columns body,a,b,c,d,e
 ```
-
-The result would be this record:
-
+resulting in this record:
 ```
 {
-  "a" : "1",
-  "b" : "2",
-  "c" : "3",
-  "d" : "4",
-  "e" : "5"
+  "body": "1,2,3,4,5",
+  "a": "1",
+  "b": "2",
+  "c": "3",
+  "d": "4",
+  "e": "5"
 }
 ```
+
+or use a [drop](drop.md) directive:
+```
+parse-as-csv body , false
+drop body
+set columns a,b,c,d,e
+```
+
+The result would then be this record:
+```
+{
+  "a": "1",
+  "b": "2",
+  "c": "3",
+  "d": "4",
+  "e": "5"
+}
+```
+
 
 ## Common Mistakes
 

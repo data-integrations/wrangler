@@ -33,8 +33,8 @@ substituted for it. When `now` is encountered, the directive applies the same va
 Using this record as an example:
 ```
 {
-  "create_date" : "02/12/2017",
-  "update_date" : "02/14/2017"
+  "create_date": "02/12/2017",
+  "update_date": "02/14/2017"
 }
 ```
 
@@ -46,8 +46,8 @@ diff-date update_date create_date diff_date
 would result in this record:
 ```
 {
-  "create_date" : "02/12/2017",
-  "update_date" : "02/14/2017",
-  "diff_date" : 17280000
+  "create_date": "02/12/2017",
+  "update_date": "02/14/2017",
+  "diff_date": 17280000
 }
 ```

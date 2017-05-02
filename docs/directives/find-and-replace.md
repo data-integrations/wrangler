@@ -5,10 +5,10 @@ expression to find and replace text.
 
 
 ## Syntax
-
 ```
 find-and-replace <column> <sed-script>
 ```
+
 
 ## Usage Notes
 
@@ -16,7 +16,6 @@ This directive is a column-oriented text processor that operates on a single val
 The `sed-script` is applied on each text value to transform the data.
 
 A typical example on how the directive is used:
-
 ```
 find-and-replace <column> s/regex/replacement/g
 ```
@@ -31,14 +30,12 @@ value follows the second delimiting symbol. A forward-slash (`/`) is the convent
 symbol used as a delimiter, and the origin of the character for "search".
 
 For example, to replace all occurrences of `hello` with `world` in the column `message`:
-
 ```
 find-and-replace message s/hello/world/g
 ```
 
 If you want to change a pathname that contains a slash (such as `/usr/local/bin` to
 `/common/bin`), you can use a backslash to escape any slashes:
-
 ```
 find-and-replace pathname s/\/usr\/local\/bin/\/common\/bin/
 ```
@@ -47,24 +44,21 @@ find-and-replace pathname s/\/usr\/local\/bin/\/common\/bin/
 ## Example
 
 Using this record as an example:
-
 ```
 {
-  "body" : "one two three four five six seven eight"
+  "body": "one two three four five six seven eight"
 }
 ```
 
-Applying these directives:
-
+Applying these two directives:
 ```
 find-and-replace body s/one/ONE/g
 find-and-replace body s/two/2/g
 ```
 
 would result in this record:
-
 ```
 {
-  "body" : "ONE 2 three four five six seven eight",
+  "body": "ONE 2 three four five six seven eight",
 }
 ```

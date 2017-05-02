@@ -103,7 +103,6 @@ The arrays in `col2` and `col3` are flattened:
 ### Case 4
 
 Using this record as an example:
-
 ```
 {
   "x": 5,

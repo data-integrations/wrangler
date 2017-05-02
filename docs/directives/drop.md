@@ -23,10 +23,10 @@ the record. Later directives will not be able to reference the dropped column.
 Using this record as an example:
 ```
 {
-  "id" : 1,
-  "timestamp" : 1234434343,
-  "measurement" : 10.45,
-  "isvalid" : true
+  "id": 1,
+  "timestamp": 1234434343,
+  "measurement": 10.45,
+  "isvalid": true
 }
 ```
 
@@ -38,7 +38,7 @@ drop isvalid,measurement
 would result in a record with no `isvalid` or `measurement` fields:
 ```
 {
-  "id" : 1,
-  "timestamp" : 1234434343
+  "id": 1,
+  "timestamp": 1234434343
 }
 ```

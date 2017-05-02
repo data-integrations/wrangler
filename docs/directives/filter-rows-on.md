@@ -20,6 +20,7 @@ regex-not-match <regular-expression>
 empty-or-null-columns <column>[,<column>]*
 ```
 
+
 ## Usage Notes
 
 The `filter-row-on` directive applies the boolean or regular expression on a column value

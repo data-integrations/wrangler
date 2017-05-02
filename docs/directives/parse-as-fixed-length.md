@@ -5,7 +5,6 @@ for each field specified.
 
 
 ## Syntax
-
 ```
 parse-as-fixed-length <column> <width>[,<width>]* [<padding>]
 ```
@@ -23,7 +22,7 @@ would be categorized as a fixed-width text file.
 If not defined, the `<padding>` character is assumed to be a space character.
 
 
-## Examples
+## Example
 
 Using this record as an example:
 ```

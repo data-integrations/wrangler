@@ -2,13 +2,14 @@
 
 The `split-email` directive splits an email ID into an account and its domain.
 
+
 ## Syntax
-
 ```
-  split-email <column>
+split-email <column>
 ```
 
-`column` is a column containing an email address.
+The `<column>` is a column containing an email address.
+
 
 ## Usage Notes
 
@@ -24,54 +25,50 @@ the original column name:
 If the email address cannot be parsed correctly, the additional columns will still be
 generated, but they would be set to `null` depending on the parts that could not be parsed.
 
+
 ## Examples
 
 Using this record as an example:
 
 ```
-  {
-    "name": "Root, Joltie",
-    "email_address": "root@example.com",
-  }
+{
+  "name": "Root, Joltie",
+  "email_address": "root@example.com",
+}
 ```
 
 Applying this directive:
-
 ```
-  split-email email_address
+split-email email_address
 ```
 
 would result in this record:
-
 ```
-  {
-    "name": "Root, Joltie",
-    "email_address": "root@example.com",
-    "email_address_account": "root",
-    "email_address_domain": "example.com"
-  }
+{
+  "name": "Root, Joltie",
+  "email_address": "root@example.com",
+  "email_address_account": "root",
+  "email_address_domain": "example.com"
+}
 ```
 
 In case of any errors parsing: when the email address field in the record is `null`:
-
 ```
-  {
-    "email": null
-  }
+{
+  "email": null
+}
 ```
 
 this would result in the record:
-
 ```
-  {
-    "email": null,
-    "email_account": null,
-    "email_domain": null
-  }
+{
+  "email": null,
+  "email_account": null,
+  "email_domain": null
+}
 ```
 
 Using these records as an example, with a variety of email IDs:
-
 ```
 [
   { "email": "root@example.org" },
@@ -84,8 +81,7 @@ Using these records as an example, with a variety of email IDs:
 ]
 ```
 
-running the directive result in these records:
-
+running the directive results in these records:
 ```
 [
   { "email": "root@example.org", "email_account": "root", "email_domain": "cask.co" },

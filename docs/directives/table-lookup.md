@@ -2,14 +2,15 @@
 
 The `table-lookup` directive performs lookups into Table datasets.
 
-## Syntax
 
+## Syntax
 ```
 table-lookup <column> <table>
 ```
 
-* `column` is an existing column that exists in both the current records and the table
-* `table` is a Table Dataset that has a column named by `column`
+* `<column>` is an existing column that exists in both the current records and the table
+* `<table>` is a Table Dataset that has a column named by `<column>`
+
 
 ## Usage Notes
 
@@ -17,6 +18,7 @@ The `table-lookup` directive uses a column as the lookup key into a specified Ta
 dataset for each record. The column should be of type string. The values in the row of the
 Table will be parsed as strings and placed in the record in new columns, the names
 constructed from combining the lookup key and the row column name with an underscore.
+
 
 ## Example
 
@@ -39,9 +41,8 @@ If the input records to the directive are:
 | joe1984        | Bicycle | 1        |
 
 Applying this directive:
-
 ```
-  table-lookup customerUserId customerTable
+table-lookup customerUserId customerTable
 ```
 
 would result in these output records:

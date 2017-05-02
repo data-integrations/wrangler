@@ -2,13 +2,15 @@
 
 The `rename` directive renames an existing column in the record.
 
+
 ## Syntax
-
 ```
- rename <old> <new>
+rename <old> <new>
 ```
 
-`old` is the name of an existing column to be renamed and `new` is the new name of the column.
+* `<old>` is the name of an existing column to be renamed
+* `<new>` is the new name of the column
+
 
 ## Usage Notes
 
@@ -19,36 +21,35 @@ has been applied to the record.
 The `rename` directive will only rename a column that exists. If the column name does not
 exist in the record, execution will fail.
 
+
 ## Example
 
 Using this record as an example:
-
 ```
-  {
-    "x": 6.3,
-    "y": 187,
-    "codes": {
-      "a": "code1",
-      "b": 2
-    }
+{
+  "x": 6.3,
+  "y": 187,
+  "codes": {
+    "a": "code1",
+    "b": 2
   }
+}
 ```
-Applying these directives:
 
+Applying these directives:
 ```
-  rename x height
-  rename y weight
+rename x height
+rename y weight
 ```
 
 would result in this record:
-
 ```
-  {
-    "height": 6.3,
-    "weight": 187,
-    "codes": {
-      "a": "code1",
-      "b": 2
-    }
+{
+  "height": 6.3,
+  "weight": 187,
+  "codes": {
+    "a": "code1",
+    "b": 2
   }
+}
 ```

@@ -4,18 +4,20 @@ The `parse-as-hl7` directive is for parsing Health Level 7 Version 2 (HL7 V2) me
 [HL7](http://www.hl7.org) is a messaging standard used in the healthcare industry to
 exchange data between systems.
 
+
 ## Syntax
-
 ```
-  parse-as-hl7 <column>
+parse-as-hl7 <column>
 ```
 
-`column` contains HL7 V2 messages.
+The `<column>` contains HL7 V2 messages.
+
 
 ## Usage Notes
 
-This is an example of an [HL7 V2](http://www.hl7.org/implement/standards/product_brief.cfm?product_id=185) message in a record:
-
+This is an example of an [HL7
+V2](http://www.hl7.org/implement/standards/product_brief.cfm?product_id=185) message in a
+record:
 ```
 MSH|^~\&||.|||199908180016||ADT^A04|ADT.1.1698593|P|2.6
 PID|1||000395122||LEVERKUHN^ADRIAN^C||19880517180606|M|||6 66TH AVE NE^^WEIMAR^DL^98052||(157)983-3296|||S||12354768|87654321
@@ -31,53 +33,54 @@ Data in an HL7 V2 message is organized hierarchically as:
 * Field = { Component, Component, ... Component }
 * Component = { Sub-Component, Sub-Component, ... Sub-Component }
 
-Each line of an HL7 V2 message is a segment. A segment is a logical grouping of fields. The first three characters in a
-segment identify the segment type. In the above message, there are five segments: the `MSH` (message header); the `PID` (patient
-identification); two `NK1` (next of kin) segments; and the `IN1` (insurance).
+Each line of an HL7 V2 message is a segment. A segment is a logical grouping of fields.
+The first three characters in a segment identify the segment type. In the above message,
+there are five segments: the `MSH` (message header); the `PID` (patient identification);
+two `NK1` (next-of-kin) segments; and the `IN1` (insurance).
 
-Each segment consists of fields. A field contains information related to the purpose of the segment, such as the name
-of the insurance company in the `IN1` (insurance) segment. Fields are typically (but not always) delimited by a `|`
-character.
+Each segment consists of fields. A field contains information related to the purpose of
+the segment, such as the name of the insurance company in the `IN1` (insurance) segment.
+Fields are typically (but not always) delimited by a `|` character.
 
-Fields can be divided into components. Components are typically indicated by a `^` character. In the above example,
-the `PID` (patient identification) segment contains a patient name field containing `LEVERKUHN^ADRIAN^C` which has three
-parts: last name (`LEVERKUHN`); first name (`ADRIAN`); and middle initial (`C`). Components can be divided into
-subcomponents. Subcomponents are typically indicated by an `&` character.
+Fields can be divided into components. Components are typically indicated by a `^`
+character. In the above example, the `PID` (patient identification) segment contains a
+patient name field containing `LEVERKUHN^ADRIAN^C` which has three parts: last name
+(`LEVERKUHN`); first name (`ADRIAN`); and middle initial (`C`). Components can be divided
+into subcomponents. Subcomponents are typically indicated by an `&` character.
 
-Parsing the above message using the directive will generate a record that has flattened HL7 V2 components and all
-**fields converted to JSON**. Further parsing can be achieved with the [parse-as-json](parse-as-json.md) directive.
+Parsing the above message using the directive will generate a record that has flattened
+HL7 V2 components and all **fields converted to JSON**. Further parsing can be achieved
+with the [parse-as-json](parse-as-json.md) directive.
 
 
 ## Example
 
 Applying this directive to the above message:
-
 ```
-  parse-as-hl7 body
+parse-as-hl7 body
 ```
 
 would result in a record of this form:
-
 ```
-  {
-    "body": "<original-hl7-message>",
-    "body_hl7_MSH_<field-index>": "<primitive-value>",
-    ...
-    "body_hl7_MSH_<field-index>_<component-index>": "<primitive-value>",
-    ...
-    "body_hl7_PID_<field-index>": "<primitive-value>",
-    ...
-    "body_hl7_PID_<field-index>_<component-index>": "<primitive-value>",
-    ...
-    "body_hl7_NK1_<field-index>>": "<primitive-value>",
-    ...
-    "body_hl7_NK1_<field-index>_<component-index>": "<primitive-value>",
-    ...
-    "body_hl7_IN1_<field-index>>": "<primitive-value>",
-    ...
-    "body_hl7_IN1_<field-index>_<component-index>": "<primitive-value>",
-    ...
-  }
+{
+  "body": "<original-hl7-message>",
+  "body_hl7_MSH_<field-index>": "<primitive-value>",
+  ...
+  "body_hl7_MSH_<field-index>_<component-index>": "<primitive-value>",
+  ...
+  "body_hl7_PID_<field-index>": "<primitive-value>",
+  ...
+  "body_hl7_PID_<field-index>_<component-index>": "<primitive-value>",
+  ...
+  "body_hl7_NK1_<field-index>>": "<primitive-value>",
+  ...
+  "body_hl7_NK1_<field-index>_<component-index>": "<primitive-value>",
+  ...
+  "body_hl7_IN1_<field-index>>": "<primitive-value>",
+  ...
+  "body_hl7_IN1_<field-index>_<component-index>": "<primitive-value>",
+  ...
+}
 ```
 
 Once each segment has been converted into JSON, you can apply

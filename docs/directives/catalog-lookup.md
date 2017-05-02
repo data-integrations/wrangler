@@ -22,8 +22,8 @@ These catalogs are currently supported:
 
 ## Usage Notes
 
-Consider this example: a record containing a single field `code` that requires being
-looked up:
+Using this record as an example: a record containing a single field (`code`) that requires
+looking up:
 ```
 {
   "code": "Y36521S"

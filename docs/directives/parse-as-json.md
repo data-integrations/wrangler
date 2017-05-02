@@ -4,14 +4,14 @@ The `parse-as-json` directive is for parsing a JSON object. The directive can op
 String or JSONObject types. When the directive is applied, the high-level keys of the JSON
 are appended to the original column name to create new column names.
 
+
 ## Syntax
-
 ```
-  parse-as-json <column-name> [<depth>]
+parse-as-json <column-name> [<depth>]
 ```
 
-* `column-name` name of the column in the record that is a JSON object
-* `depth` indicates the depth at which JSON object enumeration terminates
+* `<column-name>` is the name of the column in the record that is a JSON object
+* `<depth>` indicates the depth at which JSON object enumeration terminates
 
 ## Usage Notes
 
@@ -26,25 +26,22 @@ parsing. The column names use dot notation.
 ## Examples
 
 Using this record as an example, in a field `body`:
-
 ```
-  {
-    "id": 1,
-    "name": {
-      "first": "Root",
-      "last": "Joltie"
-    },
-    "age": 22,
-    "weigth": 184,
-    "height": 5.8
-  }
-
+{
+  "id": 1,
+  "name": {
+    "first": "Root",
+    "last": "Joltie"
+  },
+  "age": 22,
+  "weigth": 184,
+  "height": 5.8
+}
 ```
 
 Applying this directive:
-
 ```
-  parse-as-json body
+parse-as-json body
 ```
 
 would result in this record:
@@ -70,4 +67,3 @@ Applying the same directive, but just on the field `body_name` would result in t
 | `body_age`        | 22                                      | Integer    |
 | `body_weight`     | 184                                     | Integer    |
 | `body_height`     | 5.8                                     | Double     |
-

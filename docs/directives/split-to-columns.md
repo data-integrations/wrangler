@@ -2,30 +2,31 @@
 
 The `split-to-columns` directive splits a column based on a separator into multiple columns.
 
+
 ## Syntax
 
 ```
  split-to-columns <column> <separator>
 ```
 
-The `column` is split based on the `separator`, which can be defined as a regular
+The `<column>` is split based on the `<separator>`, which can be defined as a regular
 expression (regex).
+
 
 ## Usage Notes
 
 The `split-to-columns` directive takes a column, applies the regular expression separator,
 and then creates multiple columns from the split. The name of the columns are in the
 format:
-
 ```
-  {
-    "column": "...",
-    "column_1": "...",
-    "column_2": "...",
-    "column_3": "...",
-    ...
-    "column_n": "..."
-  }
+{
+  "column": "...",
+  "column_1": "...",
+  "column_2": "...",
+  "column_3": "...",
+  ...
+  "column_n": "..."
+}
 ```
 
 Regular expressions allows the use of complex search patterns when splitting the data in
@@ -37,14 +38,14 @@ parts of the split generated from applying this directive.
 
 **Note:** This directive can only operate on columns of type string.
 
+
 ## Examples
 
-If we have a `separator` pattern of `,` (a comma) over the string:
+If we have a `<separator>` pattern of `,` (a comma) over the string:
 
 `This will be split 1,This will be split 2,This will be split 3,Split 4`
 
 This will generate four new columns:
-
 ```
 {
   "1": "This will be split 1",
@@ -55,31 +56,30 @@ This will generate four new columns:
 ```
 
 Using this record as an example:
-
 ```
-  {
-    "id": 1,
-    "codes": "USD|AUD|AMD|XCD"
-  }
+{
+  "id": 1,
+  "codes": "USD|AUD|AMD|XCD"
+}
 ```
 
 Applying this directive:
-
 ```
-  split-to-columns codes \|
+split-to-columns codes \|
 ```
 
-**Note:** A backslash is required to escape the pipe character (`|`) as it is an optional separator in a regex pattern.
+**Note:** A backslash is required to escape the pipe character (`|`) as it is an optional
+separator in a regex pattern.
 
-This would result in four columns being generated, with each split value being assigned to the column `codes`:
-
+This would result in four columns being generated, with each split value being assigned to
+the column `codes`:
 ```
-  {
-    "id": 1,
-    "codes": "USD|AUD|AMD|XCD",
-    "codes_1": "USD",
-    "codes_2": "AUD",
-    "codes_3": "AMD",
-    "codes_4": "XCD"
-  }
+{
+  "id": 1,
+  "codes": "USD|AUD|AMD|XCD",
+  "codes_1": "USD",
+  "codes_2": "AUD",
+  "codes_3": "AMD",
+  "codes_4": "XCD"
+}
 ```

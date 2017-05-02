@@ -4,14 +4,15 @@ The `send-to-error` directive allows the filtering of records and directs the fi
 records that match a given condition to an error collector. If the error collector is not
 connected as the next stage in a pipeline, then the filtered records will be dropped.
 
+
 ## Syntax
-
 ```
- send-to-error <condition>
+send-to-error <condition>
 ```
 
-`condition` is a JEXL expression specifing the condition that governs if the record should
-be sent to the error collector.
+The `<condition>` is a JEXL expression specifing the condition that governs if the record
+should be sent to the error collector.
+
 
 ## Usage Notes
 
@@ -25,14 +26,14 @@ untouched.
 
 ## Example
 
-Assume a record that has three field:
+Assume a record that has these three fields:
 
 * Name
 * Age
 * DOB
 
-As part of a data cleansing process, you want to check that all the records being ingested
-follow these rules:
+As part of a data cleansing process, check that all the records being ingested follow
+these rules:
 
 * `Name` is not empty
 * `Age` is not empty and not less than 1 or greater 130
@@ -42,8 +43,8 @@ These directives will implement these rules; any records that match any of these
 conditions will be sent to the error collector for further investigation:
 
 ```
-  send-to-error Name == null
-  send-to-error Age.isEmpty()
-  send-to-error Age < 1 || Age > 130
-  send-to-error !date:isDate(DOB)
+send-to-error Name == null
+send-to-error Age.isEmpty()
+send-to-error Age < 1 || Age > 130
+send-to-error !date:isDate(DOB)
 ```

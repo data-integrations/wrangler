@@ -10,8 +10,8 @@ The `fill-null-or-empty` directive fills column value with a fixed value if it i
 fill-null-or-empty <column> <fixed-value>
 ```
 
-The `<fixed-value>` can only be of type string. If the `<column>` does not exist, then the
-directive will fail.
+* If the `<column>` does not exist, then the directive will fail.
+* The `<fixed-value>` can only be of type string.
 
 
 ## Usage Notes

@@ -7,10 +7,10 @@ MIME format to a string.
 ## Syntax
 
 ```
-  url-decode <column>
+url-decode <column>
 ```
 
-`column` contains an encoded URL to be decoded.
+The `<column>` contains an encoded URL to be decoded.
 
 
 ## Usage Notes

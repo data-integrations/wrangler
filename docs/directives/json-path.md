@@ -4,14 +4,15 @@ The `json-path` directive uses a DSL for reading JSON records.
 
 
 ## Syntax
-
 ```
 json-path <source-column> <destination-column> <expression>
 ```
 
-* `source-column` specifies the column in the record that should be considered as the "root member object" or "$".
-* `destination-column` is the name of the output column in the record where the results of the expression will be stored.
-* `expression` is a JSON path expression; see _Usage Notes_ below for details.
+* `<source-column>` specifies the column in the record that should be considered as the
+  "root member object" or "$"
+* `<destination-column>` is the name of the output column in the record where the results of
+  the expression will be stored
+* `<expression>` is a JSON path expression; see _Usage Notes_ below for details
 
 
 ## Usage Notes
@@ -24,13 +25,11 @@ to as `$` regardless if it is an object or an array.
 ### Notation
 
 Expressions can use either the "dot–notation":
-
 ```
 $.name.first
 ```
 
 or the "bracket–notation":
-
 ```
 $['name']['first']
 ```
@@ -68,7 +67,6 @@ of the path expression. The function output is dictated by the function itself.
 ### Filter Operators
 
 Filters are logical expressions used to filter arrays. A typical filter would be:
-
 ```
 [?(@.age>18)]
 ```
@@ -89,16 +87,15 @@ where `@` represents the current item being processed.
 | `>`             | Left is greater than right                                                |
 | `>=`            | Left is greater than or equal to right                                    |
 | `=~`            | Left matches regular expression `[?(@.name=~/foo.*?/i)]`                  |
-| `in`            | Left exists in right [?(@.size in ['S', 'M'])]                            |
+| `in`            | Left exists in right `[?(@.size in ['S', 'M'])]`                          |
 | `nin`           | Left does not exist in right                                              |
 | `size`          | Size of left (array or string) matches right                              |
 | `empty`         | Left (array or string) is empty                                           |
 
 
-## Example
+## Examples
 
-Using this JSON as an example:
-
+Using this record as an example:
 ```json
 {
     "store": {
@@ -138,6 +135,7 @@ Using this JSON as an example:
     "expensive": 10
 }
 ```
+
 
 | JSON Path (click link to test)                                                                                 | Result                                                       |
 | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |

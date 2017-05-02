@@ -5,13 +5,14 @@ parse that into an XML VTD object; that can be further queried using the
 [xpath](xpath.md), or [xpath-array](xpath.md), [xpath-attr](xpath-attr.md), or
 [xpath-array-attr](xpath-attr.md) directives.
 
+
 ## Syntax
-
 ```
-  parse-as-xml <column>
+parse-as-xml <column>
 ```
 
-`column` is the name of the column in the record that is an XML document.
+The `<column>` is the name of the column in the record that is an XML document.
+
 
 ## Usage Notes
 

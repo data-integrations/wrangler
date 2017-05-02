@@ -9,7 +9,6 @@ Use the [filter-rows-on](filter-rows-on.md) directive instead.
 
 
 ## Syntax
-
 ```
 filter-row-if-matched <column> <regex>
 ```

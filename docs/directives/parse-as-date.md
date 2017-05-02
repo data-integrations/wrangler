@@ -2,10 +2,10 @@
 
 The `parse-as-date` directive is for parsing dates using natural language processing.
 
-## Syntax
 
+## Syntax
 ```
-parse-as-date <column> [<timezone>]
+parse-as-date <column> [<time-zone>]
 ```
 
 ## Usage Notes
@@ -19,9 +19,29 @@ relative dates (`the day before next thursday`), and even date alternatives (`ne
 This directive will also search for date components within a larger block of text, detect their structure, and
 create dates.
 
+It will create a new column using the syntax `<column>_1` containing the results of parsing.
+
+If `<time-zone>` is not provided, UTC is used as the timezone.
+
+
 ## Examples
 
+Using this record as an example:
 ```
-  parse-as-date now
-  parse-as-date June 15th 2017
+{
+  "create_date": "now",
+}
+```
+
+Applying this directive:
+```
+parse-as-date create_date US/Eastern
+```
+
+would result in this record (the actual results depending on when this was run):
+```
+{
+  "create_date": "now",
+  "create_date_1": "Mon May 01 14:13:35 EDT 2017"
+}
 ```

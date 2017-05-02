@@ -5,12 +5,11 @@ MIME format.
 
 
 ## Syntax
-
 ```
-  url-encode <column>
+url-encode <column>
 ```
 
-`column` contains a URL to be encoded
+The `<column>` contains a URL to be encoded.
 
 
 ## Usage Notes

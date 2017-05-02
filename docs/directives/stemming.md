@@ -5,13 +5,15 @@ Porter stemmer has excellent trade-off between speed, readability, and accuracy.
 using a set of rules (transformations) applied in a succession of steps. Generally, it
 applies approximately 60 rules in 6 steps.
 
+
 ## Syntax
 
 ```
-  stemming <column>
+stemming <column>
 ```
 
-```column``` contains a bag of words of type string array or type string list.
+The `<column>` contains a bag of words of type string array or type string list.
+
 
 ## Usage Notes
 
@@ -19,11 +21,11 @@ The `stemming` directive applies the stemmer on a bag of tokenized words. Applyi
 directive creates an additional `<column>_porter` column. Depending on the type of the
 object the field is holding, it will be transformed appropriately.
 
+
 ## Example
 
 Using this record, a tokenized bag of words as a string array or list of strings, as an
 example:
-
 ```
 {
   "word": { "how", "are", "you", "doing", "do", "you", "have", "apples" }
@@ -31,13 +33,11 @@ example:
 ```
 
 Applying this directive:
-
 ```
-  stemming ps_word
+stemming ps_word
 ```
 
 The result would be this record:
-
 ```
 {
   "word": { "how", "are", "you", "doing", "do", "you", "have", "apples" },
