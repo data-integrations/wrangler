@@ -23,9 +23,14 @@ regex-not-match <regular-expression>
 
 ## Usage Notes
 
-The `filter-rows-on` directive applies the boolean or regular expression on a column value
-for each record. If expression matches or returns `true` for the column value, then the
-record is omitted; otherwise, it is passed on as-is to the input of the next directive.
+The `filter-rows-on` directive applies the filter type and a boolean or regular expression
+on a column value for each record. If the expression matches or returns `true` for the
+column value, then the record is omitted; otherwise, it is passed on as-is to the input of
+the next directive.
+
+Note that it is a combination of the `<filter-type>` and the options. For instance, if
+`condition-true` is used and its `<boolean-expression>` evaluates to `true`, then the row
+will be omitted and not passed on.
 
 
 ## Examples
