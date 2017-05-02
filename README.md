@@ -142,7 +142,7 @@ These directives are currently available:
 | **Date Transformations**                                               |                                                                  |
 | [Diff Date](docs/directives/diff-date.md)                              | Calculates the difference between two dates                      |
 | [Format Date](docs/directives/format-date.md)                          | Custom patterns for date-time formatting                         |
-| [Format Unix Timestamp](docs/directives/format-unix-timestamp.md)           |                                                                  |
+| [Format Unix Timestamp](docs/directives/format-unix-timestamp.md)      | Formats a UNIX timestamp as a date                               |
 | **Lookups**                                                            |                                                                  |
 | [Catalog Lookup](docs/directives/catalog-lookup.md)                    | Static catalog lookup of ICD-9, ICD-10-2016, ICD-10-2017 codes   |
 | [Table Lookup](docs/directives/table-lookup.md)                        | Performs lookups into Table datasets                             |

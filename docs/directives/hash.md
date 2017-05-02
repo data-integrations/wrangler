@@ -35,9 +35,7 @@ These algorithms are supported by the `hash` directive:
 * KECCAK-384
 * KECCAK-512
 * MD2
-* MD2
 * MD4
-* MD5
 * MD5
 * RIPEMD128
 * RIPEMD160
@@ -47,10 +45,7 @@ These algorithms are supported by the `hash` directive:
 * SHA-1
 * SHA-224
 * SHA-256
-* SHA-256
 * SHA-384
-* SHA-384
-* SHA-512
 * SHA-512
 * SHA-512/224
 * SHA-512/256
@@ -73,7 +68,6 @@ These algorithms are supported by the `hash` directive:
 * Skein-512-512
 * SM3
 * Tiger
-* TIGER
 * WHIRLPOOL
 
 

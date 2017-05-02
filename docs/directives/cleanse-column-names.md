@@ -19,9 +19,9 @@ Using this record as an example:
 ```
 {
   "COL1": 1,
-  "col:2": 2
-  "Col3": 3
-  "COLUMN4": 4
+  "col:2": 2,
+  "Col3": 3,
+  "COLUMN4": 4,
   "col!5": 5
 }
 ```
@@ -35,9 +35,9 @@ would result in this record:
 ```
 {
   "col1": 1,
-  "col_2": 2
-  "col3": 3
-  "column4": 4
+  "col_2": 2,
+  "col3": 3,
+  "column4": 4,
   "col_5": 5
 }
 ```

@@ -46,7 +46,7 @@ would result in this record:
 ```
 {
   "first": "Root",
-  "last": "Joltie"
+  "last": "Joltie",
   "fullname": "Root-Joltie"
 }
 ```

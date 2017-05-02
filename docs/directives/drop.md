@@ -8,8 +8,7 @@ The `drop` directive is used to drop a column in a record.
 drop <column>[,<column>]*
 ```
 
-The `<column>` is the name of the column in the record to be droped. If the `<column>`
-does not exist in the record, the directive fails.
+The `<column>` is the name of the column in the record to be droped.
 
 
 ## Usage Notes
