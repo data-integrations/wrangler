@@ -19,7 +19,7 @@ name. The original column name will no longer be available in the record after t
 has been applied to the record.
 
 The `rename` directive will only rename a column that exists. If the column name does not
-exist in the record, execution will fail.
+exist in the record, the operation will be ignored without an error.
 
 
 ## Example
