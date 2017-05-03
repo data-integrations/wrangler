@@ -319,6 +319,5 @@ public class ExtractRegexGroupsTest {
         Assert.assertEquals(regexInputOutput.output[j], records.get(i).getValue(j + 1));
       }
     }
-    System.out.println(regex);
   }
 }
