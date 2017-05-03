@@ -112,5 +112,4 @@ public class MaskNumberTest {
     Assert.assertEquals(1, records.size());
     Assert.assertEquals("xxx-00-xx-34-xxxx-9", records.get(0).getValue("body"));
   }
-
 }
