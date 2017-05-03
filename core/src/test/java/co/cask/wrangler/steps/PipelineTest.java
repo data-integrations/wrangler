@@ -83,6 +83,9 @@ public class PipelineTest {
     List<Record> actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
 
+    step = new MaskNumber(0, "", "ssn", "xxx-xx-####");
+    actual = step.execute(Arrays.asList(new Record("ssn", "888-99-1234")), null);
+    Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
 
     step = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
     actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
