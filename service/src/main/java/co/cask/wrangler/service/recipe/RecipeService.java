@@ -45,10 +45,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.service.directive.DirectivesService.error;
-import static co.cask.wrangler.service.directive.DirectivesService.notFound;
-import static co.cask.wrangler.service.directive.DirectivesService.sendJson;
-import static co.cask.wrangler.service.directive.DirectivesService.success;
+import static co.cask.wrangler.service.ServiceUtils.error;
+import static co.cask.wrangler.service.ServiceUtils.notFound;
+import static co.cask.wrangler.service.ServiceUtils.sendJson;
+import static co.cask.wrangler.service.ServiceUtils.success;
 
 /**
  * This service handler handles management of recipes.

@@ -16,12 +16,15 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * A interface defining the wrangle step in the wrangling pipeline.
  */
+@PublicEvolving
 public interface Step<I, O> extends Serializable {
   /**
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.

@@ -38,7 +38,7 @@ The character after the s is the delimiter. It is conventionally a slash. If you
 that contains a slash - say /usr/local/bin to /common/bin - you could use the backslash to quote the slash:
 
 ```
-  find-and-replace 's/\/usr\/local\/bin/\/common\/bin/' <old >new
+  find-and-replace column s/\/usr\/local\/bin/\/common\/bin//g
 ```
 
 
