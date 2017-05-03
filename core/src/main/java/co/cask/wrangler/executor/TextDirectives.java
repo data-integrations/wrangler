@@ -19,7 +19,6 @@ package co.cask.wrangler.executor;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.steps.language.SetCharset;
 import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
@@ -33,12 +32,13 @@ import co.cask.wrangler.steps.column.SplitToColumns;
 import co.cask.wrangler.steps.column.Swap;
 import co.cask.wrangler.steps.date.DiffDate;
 import co.cask.wrangler.steps.date.FormatDate;
+import co.cask.wrangler.steps.language.SetCharset;
 import co.cask.wrangler.steps.nlp.Stemming;
 import co.cask.wrangler.steps.parser.CsvParser;
 import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
-import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.JsParser;
+import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
@@ -212,7 +212,17 @@ public class TextDirectives implements Directives {
           String col1 = getNextToken(tokenizer, command, "first", lineno);
           String col2 = getNextToken(tokenizer, command, "second", lineno);
           String dest = getNextToken(tokenizer, command, "new-column", lineno);
-          String delimiter = getNextToken(tokenizer, command, "seperator", lineno);
+          String delimiter = getNextToken(tokenizer, "\n", command, "delimiter", lineno);
+          int start = delimiter.indexOf('\'');
+          if (start != -1) {
+            int end = delimiter.lastIndexOf('\'');
+            if (end == -1 || start == end) {
+              throw new DirectiveParseException(
+                String.format("One of the quote is missing when specifying the delimiter.")
+              );
+            }
+            delimiter = StringEscapeUtils.unescapeJava(delimiter.substring(start + 1, end));
+          }
           steps.add(new Merge(lineno, directive, col1, col2, dest, delimiter));
         }
         break;
