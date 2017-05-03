@@ -275,7 +275,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   /**
-   * Upload data to the workspace, the workspace is created automatically on fly. 
+   * Upload data to the workspace, the workspace is created automatically on fly.
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
@@ -359,13 +359,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       table.writeProperties(id, properties);
 
       JsonArray array = new JsonArray();
-      JsonObject object = new JsonObject();
-      object.addProperty(PropertyIds.ID, id);
-      object.addProperty(PropertyIds.NAME, name);
-      object.addProperty(PropertyIds.DELIMITER, delimiter);
-      object.addProperty(PropertyIds.CHARSET, charset);
-      object.addProperty(PropertyIds.CONTENT_TYPE, contentType);
-      object.addProperty(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
+      JsonObject object = (JsonObject) GSON.toJsonTree(properties);
       object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       array.add(object);
 
