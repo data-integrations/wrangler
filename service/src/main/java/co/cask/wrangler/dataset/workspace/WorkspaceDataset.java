@@ -137,7 +137,7 @@ public class WorkspaceDataset extends AbstractDataset {
   public boolean hasWorkspace(String id) throws WorkspaceException {
     try {
       Row row = table.get(toKey(id));
-      if (row != null) {
+      if (!row.isEmpty()) {
         return true;
       }
       return false;
