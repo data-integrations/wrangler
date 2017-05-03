@@ -34,7 +34,7 @@ import java.util.List;
  *
  *  <ul>
  *    <li>Use of # will include the digit from the position.</li>
- *    <li>Use x to mask the digit at that position</li>
+ *    <li>Use x/X to mask the digit at that position (converted to lowercase x in the result)</li>
  *    <li>Any other characters will be inserted as-is.</li>
  *  </ul>
  *
@@ -101,10 +101,16 @@ public class MaskNumber extends AbstractStep {
         }
         masked.append(number.charAt(index));
         index++;
-      } else if (c == 'x') {
-        masked.append(c);
+      } else if (c == 'x' || c == 'X') {
+        masked.append(Character.toLowerCase(c));
         index++;
       } else {
+        if (index < number.length()) {
+          char c1 = number.charAt(index);
+          if (c1 == c) {
+            index++;
+          }
+        }
         masked.append(c);
       }
     }
