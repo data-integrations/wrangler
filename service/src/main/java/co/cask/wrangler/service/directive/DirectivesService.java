@@ -283,29 +283,39 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Path("workspaces/{id}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("id") String id) {
-    RequestExtractor handler = new RequestExtractor(request);
-
-    // For back-ward compatibility, we check if there is delimiter specified
-    // using 'recorddelimiter' or 'delimiter'
-    String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
-    delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
-
-    // Extract charset, if not specified, default it to UTF-8.
-    String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
-
-    // Get content type - application/data-prep, application/octet-stream or text/plain.
-    String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
-
-    // Extract content.
-    byte[] content = handler.getContent();
-    if (content == null) {
-      error(responder, "Body not present, please post the file containing the records to be wrangle.");
-      return;
-    }
-
-    // Depending on content type, load data.
-    DataType type = DataType.fromString(contentType);
     try {
+      // if workspace doesn't exist, then we create the workspace before
+      // adding data to the workspace.
+      if (!table.hasWorkspace(id)) {
+        table.createWorkspaceMeta(id, id);
+        Map<String, String> properties = new HashMap<>();
+        properties.put(PropertyIds.ID, id);
+        properties.put(PropertyIds.NAME, id);
+        table.writeProperties(id, properties);
+      }
+
+      RequestExtractor handler = new RequestExtractor(request);
+
+      // For back-ward compatibility, we check if there is delimiter specified
+      // using 'recorddelimiter' or 'delimiter'
+      String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
+      delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
+
+      // Extract charset, if not specified, default it to UTF-8.
+      String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
+
+      // Get content type - application/data-prep, application/octet-stream or text/plain.
+      String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
+
+      // Extract content.
+      byte[] content = handler.getContent();
+      if (content == null) {
+        error(responder, "Body not present, please post the file containing the records to be wrangle.");
+        return;
+      }
+
+      // Depending on content type, load data.
+      DataType type = DataType.fromString(contentType);
       switch(type) {
         case TEXT: {
           // Convert the type into unicode.

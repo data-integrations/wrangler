@@ -128,6 +128,28 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   /**
+   * Checks if a workspace exists.
+   *
+   * @param id of the workspace to be checked for.
+   * @return true if workspace exists, false otherwise.
+   * @throws WorkspaceException thrown if there are any issues with workspace.
+   */
+  public boolean hasWorkspace(String id) throws WorkspaceException {
+    try {
+      Row row = table.get(toKey(id));
+      if (row != null) {
+        return true;
+      }
+      return false;
+    } catch (DataSetException e) {
+      throw new WorkspaceException(
+        String.format("Unable to check if workspace exists '%s'",
+                      e.getMessage())
+      );
+    }
+  }
+
+  /**
    * Lists all the workspaces registered.
    *
    * @return List of workspaces.
