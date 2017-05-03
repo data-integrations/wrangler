@@ -103,7 +103,7 @@ These directives are currently available:
 | Directive                                                              | Description                                                      |
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | **Parsers**                                                            |                                                                  |
-| [JSON Path](docs/directives/json-path.md)                              | Uses a DSL for reading JSON records                              |
+| [JSON Path](docs/directives/json-path.md)                              | Uses a DSL (a JSON path expression) for parsing JSON records     |
 | [Parse as CSV](docs/directives/parse-as-csv.md)                        | Parsing an input record as comma-separated values                |
 | [Parse as Date](docs/directives/parse-as-date.md)                      | Parsing dates using natural language processing                  |
 | [Parse as Fixed Length](docs/directives/parse-as-fixed-length.md)      | Parses as a fixed length record with specified widths            |
@@ -119,7 +119,7 @@ These directives are currently available:
 | [Write as JSON](docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
 | **Transformations**                                                    |                                                                  |
 | [Changing Case](docs/directives/changing-case.md)                      | Changes the case of column values                                |
-| [Cut](docs/directives/cut.md)                                          | Selects parts of a string value                                  |
+| [Cut Character](docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
 | [Set Column](docs/directives/set-column.md)                            | Sets the column value to the result of an expression execution   |
 | [Find and Replace](docs/directives/find-and-replace.md)                | Transforms string column values using a "sed"-like expression    |
 | [Index Split](docs/directives/index-split.md)                          | (_Deprecated_)                                                   |
@@ -174,7 +174,7 @@ These directives are currently available:
 | **NLP**                                                                |                                                                  |
 | [Stemming Tokenized Words](docs/directives/stemming.md)                | Applies the Porter stemmer algorithm for English words           |
 | **Functions**                                                          |                                                                  |
-| [JSON](docs/functions/json-functions.md)                               | Date functions that can be useful in transforming your data      |
+| [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
 
 

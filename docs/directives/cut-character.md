@@ -1,15 +1,15 @@
-# Cut
+# Cut Character
 
-The `cut` directive selects parts of a string value, accepting standard [cut
+The `cut-character` directive selects parts of a string value, accepting standard [cut
 options](http://man7.org/linux/man-pages/man1/cut.1.html).
 
 
 ## Syntax
 ```
-cut-character <source> <destination> <option>
+cut-character <source> <destination> <type> <range|indexes>
 ```
 
-The `<option>` is the standard [cut options](http://man7.org/linux/man-pages/man1/cut.1.html).
+The `<type> <range|indexes>` are the standard [cut options](http://man7.org/linux/man-pages/man1/cut.1.html).
 
 
 ## Usage Notes
