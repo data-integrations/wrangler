@@ -62,8 +62,18 @@ public class Rename extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
       int idx = record.find(oldcol);
+      int idxnew = record.find(newcol);
       if (idx != -1) {
-        record.setColumn(idx, newcol);
+        if (idxnew == -1) {
+          record.setColumn(idx, newcol);
+        } else {
+          throw new StepException(
+            String.format(
+              "%s : %s column exists. Apply directive 'drop %s' before renaming %s to %s", toString(),
+              newcol, newcol, oldcol, newcol
+            )
+          );
+        }
       }
     }
     return records;
