@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -43,16 +44,24 @@ public class Columns extends AbstractStep {
   // Replaces the input {@link Record} column names.
   private boolean replaceColumnNames;
 
-  public Columns(int lineno, String detail, List<String> columns) {
+  public Columns(int lineno, String detail, List<String> columns) throws DirectiveParseException {
     this(lineno, detail, columns, true);
   }
 
-  public Columns(int lineno, String detail, List<String> columns, boolean replaceColumnNames) {
+  public Columns(int lineno, String detail, List<String> columns, boolean replaceColumnNames)
+    throws DirectiveParseException {
     super(lineno, detail);
     this.replaceColumnNames = replaceColumnNames;
+    int loc = 1;
     for (String column : columns) {
       column = column.replaceAll("\"|'", "");
       column = column.trim();
+      if (column.isEmpty()) {
+        throw new DirectiveParseException(
+          String.format("Column at location %d is empty. Cannot have empty column names", loc)
+        );
+      }
+      loc++;
       this.columns.add(column);
     }
   }

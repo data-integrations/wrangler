@@ -5,19 +5,20 @@ MERGE directive merges two columns by inserting a third column into a record. Th
 ## Syntax
 
 ```
- MERGE <first> <second> <new column> <seperator>
+ MERGE <first> <second> <new column> '<seperator>'
 ```
-
-```first``` and ```second``` column values are merged using a seperator. The columns to be merged should be of type String for the merge to be successful. ```new column``` is a new column that would be added to the record. Both ```first``` and ```second``` columns have to be present and should be of type string for this directive to be successful.
 
 
 ## Usage Notes
 
+MERGE directive will merge ```first``` and ```second``` using a seperator.
+The columns to be merged should be of type String for the merge to be successful.
+```new column``` is a new column that would be added to the record.
+Both ```first``` and ```second``` columns have to be present and should be
+of type string for this directive to be successful.
 
-
-RENAME will rename the specified column name by replacing it with a new name specicified. The old column name is not more available in record after this directive has been applied on the record. 
-
-RENAME directive will only rename the column that exists. if the column name does not exist in the record, execution of this directive will fail. 
+The seperator has to be specified within a single quote.
+E.g. for specifying a space enclose them in a single quote ```' '```
 
 ## Example
 
@@ -25,32 +26,57 @@ Let's say we record as specified below:
 
 ```
 {
-  "x" : 6.3,
-  "y" : 187,
-  "codes" : {
-    "a" : "code1",
-    "b" : 2
-  }
+  "fname" : "Joltie",
+  "lname" : "Root"
 }
 ```
-applying the RENAME directive on basic type like ```y``` as follows
+applying the MERGE directive on basic type like ```y``` as follows
 
 ```
-  rename y weight
-  rename x height
+  merge fname lname name ' '
+  merge fname lname name '''
+  merge fname lname name '\u000A'
+  merge fname lname name '---'
 ```
 
-would generate the following record.
+would generate the following distinct records.
+
+Separator is space ```' '```
 
 ```
 {
-  "weight" : 6.3,
-  "height" : 187,
-  "codes" : {
-    "a" : "code1",
-    "b" : 2
-  }
+  "fname" : "Joltie",
+  "lname" : "Root",
+  "name" : "Joltie Root"
 }
 ```
+
+Separator is single quote  ```'''```
+```
+{
+  "fname" : "Joltie",
+  "lname" : "Root",
+  "name" : "Joltie'Root"
+}
+```
+
+Separator is UTF-8 Character Line Feed \u000A ```'\u000A'```
+```
+{
+  "fname" : "Joltie",
+  "lname" : "Root",
+  "name" : "Joltie\nRoot"
+}
+```
+
+Separator is multiple characters ```'---'```
+```
+{
+  "fname" : "Joltie",
+  "lname" : "Root",
+  "name" : "Joltie---Root"
+}
+```
+
 
 
