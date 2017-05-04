@@ -18,10 +18,11 @@ package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.utils.Json2Schema;
+import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.executor.TextDirectives;
 import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.utils.RecordConvertor;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -100,5 +101,62 @@ public class RecordConvertorTest {
       }
     }
     return uber;
+  }
+
+  @Test
+  public void testTypeConversions() throws Exception {
+    final Schema schema = Schema.recordOf("record",
+                                          Schema.Field.of("body_TimeStamp", Schema.of(Schema.Type.LONG)),
+                                          Schema.Field.of("i2l", Schema.of(Schema.Type.LONG)),
+                                          Schema.Field.of("sh2l", Schema.of(Schema.Type.LONG)),
+                                          Schema.Field.of("s2l", Schema.of(Schema.Type.LONG)),
+                                          Schema.Field.of("i2f", Schema.of(Schema.Type.FLOAT)),
+                                          Schema.Field.of("s2f", Schema.of(Schema.Type.FLOAT)),
+                                          Schema.Field.of("l2f", Schema.of(Schema.Type.FLOAT)),
+                                          Schema.Field.of("i2d", Schema.of(Schema.Type.DOUBLE)),
+                                          Schema.Field.of("s2d", Schema.of(Schema.Type.DOUBLE)),
+                                          Schema.Field.of("l2d", Schema.of(Schema.Type.DOUBLE)),
+                                          Schema.Field.of("f2d", Schema.of(Schema.Type.DOUBLE))
+    );
+
+    String[] directives = new String[] {
+      "parse-as-json body",
+      "drop body"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "{\"DeviceID\":\"xyz-abc\",\"SeqNo\":1000,\"TimeStamp\":123456,\"LastContact\":123456," +
+        "\"IMEI\":\"345rft567hy65\",\"MSISDN\":\"+19999999999\",\"AuthToken\":\"erdfgg34gtded\",\"Position\":" +
+        "{\"Lat\":\"20.22\",\"Lon\":\"-130.45\",\"Accuracy\":16,\"Compass\":108.22,\"TimeStamp\":123456}," +
+        "\"Battery\":50,\"Alert\":{\"Id\":26,\"Type\":\"SOS\",\"TimeStamp\":123456},\"Steps\":100,\"Calories\":15}")
+        .add("i2l", new Integer(2))
+        .add("sh2l", new Short((short)1))
+        .add("s2l", new String("2"))
+        .add("i2f", new Integer(1))
+        .add("s2f", new Short((short)2))
+        .add("l2f", new Long(1))
+        .add("i2d", new Integer(1))
+        .add("s2d", new Short((short)3))
+        .add("l2d", new Long(2))
+        .add("f2d", new Float(2.3))
+
+    );
+
+    TextDirectives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    List<StructuredRecord> results = pipeline.execute(records, schema);
+    Assert.assertEquals(1, results.size());
+    Assert.assertEquals(123456L, results.get(0).get("body_TimeStamp"));
+    Assert.assertEquals(2L, results.get(0).get("i2l"));
+    Assert.assertEquals(1L, results.get(0).get("sh2l"));
+    Assert.assertEquals(2L, results.get(0).get("s2l"));
+    Assert.assertEquals(1.0f, results.get(0).get("i2f"));
+    Assert.assertEquals(2.0f, results.get(0).get("s2f"));
+    Assert.assertEquals(1.0f, results.get(0).get("l2f"));
+    Assert.assertEquals(1.0, results.get(0).get("i2d"));
+    Assert.assertEquals(3.0, results.get(0).get("s2d"));
+    Assert.assertEquals(2.0, results.get(0).get("l2d"));
+    Assert.assertEquals(2.3, (Double)results.get(0).get("f2d"), 0.01);
   }
 }
