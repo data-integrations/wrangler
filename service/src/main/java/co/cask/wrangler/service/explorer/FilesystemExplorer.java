@@ -88,7 +88,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
    * @throws Exception
    */
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("fs/explorer")
+  @Path("explorer/fs")
   @GET
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path, @QueryParam("hidden") boolean hidden) throws Exception {
@@ -109,7 +109,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
    * @param lines number of lines to extracted from file if it's a text/plain.
    * @param sampler sampling method to be used.
    */
-  @Path("fs/explorer/read")
+  @Path("explorer/fs/read")
   @GET
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
@@ -131,7 +131,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
    * @param responder HTTP response handler.
    * @param path to the location in the filesystem.
    */
-  @Path("fs/explorer/specification")
+  @Path("explorer/fs/specification")
   @GET
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @QueryParam("path") String path) {
