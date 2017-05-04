@@ -28,7 +28,10 @@ import ca.uhn.hl7v2.model.MessageVisitor;
 import ca.uhn.hl7v2.model.MessageVisitors;
 import ca.uhn.hl7v2.model.Primitive;
 import ca.uhn.hl7v2.model.Segment;
+import ca.uhn.hl7v2.parser.GenericModelClassFactory;
+import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.Parser;
+import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.validation.impl.NoValidation;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
@@ -60,7 +63,9 @@ public class HL7Parser extends AbstractStep {
     this.depth = depth;
     context = new DefaultHapiContext();
     context.setValidationContext(new NoValidation());
-    parser = context.getGenericParser();
+    ModelClassFactory modelClassFactory = new GenericModelClassFactory();
+    parser = new PipeParser(modelClassFactory);
+    parser.getParserConfiguration().setAllowUnknownVersions(true);
   }
 
   /**
