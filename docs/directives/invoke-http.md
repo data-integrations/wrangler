@@ -6,7 +6,7 @@ with body being the fields selected.
 ## Syntax
 
 ```
-    invoke-http <url> <column>[,<column>*]
+    invoke-http <url> <column>[,<column>*] <header>[,<header>]*
 ```
 
 ```column``` specifies the value to be sent to the service in the post
@@ -30,6 +30,18 @@ currently supported.
 
 > NOTE: There is a cost associated with making HTTP calls and should not
 be used in a environment while processing a lot of data.
+
+When a HTTP Services requires one or more header to be passed, they
+can he specified as key-value pair. E.g.
+
+```
+  X-Proxy-Server=0.0.0.0,X-Auth-Type=Basic
+```
+
+> NOTE: The key and value are separated by an equal-to(=) character and
+headers are separated by comma(,)
+
+## Example
 
 Let's take a simple example to illustrate how the INVOKE-HTTP plugin
 would work. Let's assume you have a record as follows:

@@ -409,15 +409,16 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        //invoke-http <url> <column>[,<column>]
+        //invoke-http <url> <column>[,<column>] <header>[,<header>]
         case "invoke-http" : {
           String url = getNextToken(tokenizer, command, "url", lineno);
-          String columnsOpt = getNextToken(tokenizer, "\n", command, "columns", lineno, true);
+          String columnsOpt = getNextToken(tokenizer, command, "columns", lineno);
           List<String> columns = new ArrayList<>();
           for (String column : columnsOpt.split(",")) {
             columns.add(column.trim());
           }
-          steps.add(new InvokeHttp(lineno, directive, url, columns));
+          String headers = getNextToken(tokenizer, "\n", command, "headers", lineno, true);
+          steps.add(new InvokeHttp(lineno, directive, url, columns, headers));
         }
         break;
 

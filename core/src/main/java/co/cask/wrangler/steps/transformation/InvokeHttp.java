@@ -17,6 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -48,23 +49,49 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A step that implements unix cut directive.
+ * A step that invokes HTTP endpoint.
  */
 @Usage(
   directive = "invoke-http",
-  usage = "invoke-http <url> <column>[,<column>*]",
-  description = "Invokes the http endpoint passing the columns as JSON map (will be slow)."
+  usage = "invoke-http <url> <column>[,<column>*] <header>[,<header>]*",
+  description = "Experimental : Invokes the http endpoint passing the columns as JSON map (will be slow)."
 )
 public class InvokeHttp extends AbstractStep {
   private final String url;
   private final List<String> columns;
   private final Gson gson = new Gson();
-  private final CloseableHttpClient client = HttpClients.createDefault();
+  private final Map<String, String> headers = new HashMap<>();
 
-  public InvokeHttp(int lineno, String detail, String url, List<String> columns) {
+  public InvokeHttp(int lineno, String detail, String url, List<String> columns, String hdrs)
+    throws DirectiveParseException {
     super(lineno, detail);
     this.url = url;
     this.columns = columns;
+    if (hdrs != null && !hdrs.isEmpty()) {
+      String[] parsedHeaders = hdrs.split(",");
+      for (String header : parsedHeaders) {
+        String[] components = header.split("=");
+        if (components.length != 2) {
+          throw new DirectiveParseException (
+            String.format("Incorrect header '%s' specified. " +
+                            "Header should be specified as key=value pairs separated by comma(,).", header)
+          );
+        }
+        String key = components[0].trim();
+        String value = components[1].trim();
+        if (key.isEmpty()) {
+          throw new DirectiveParseException(
+            String.format("Key specified for header '%s' cannot be empty.", header)
+          );
+        }
+        if (value.isEmpty()) {
+          throw new DirectiveParseException(
+            String.format("Value specified for header '%s' cannot be empty.", header)
+          );
+        }
+        headers.put(key, value);
+      }
+    }
   }
 
   /**
@@ -87,7 +114,7 @@ public class InvokeHttp extends AbstractStep {
         }
       }
       try {
-        Map<String, Object> result = InvokeHttp(url, parameters);
+        Map<String, Object> result = InvokeHttp(url, parameters, headers);
         for(Map.Entry<String, Object> entry : result.entrySet()) {
           record.addOrSet(entry.getKey(), entry.getValue());
         }
@@ -119,12 +146,16 @@ public class InvokeHttp extends AbstractStep {
     }
   }
 
-  private Map<String, Object> InvokeHttp(String url, Map<String, Object> parameters) throws IOException {
+  private Map<String, Object> InvokeHttp(String url, Map<String, Object> parameters,
+                                         Map<String, String> headers) throws IOException {
     CloseableHttpClient client = null;
     try {
       String body = gson.toJson(parameters);
       HttpPost post = new HttpPost(url);
       post.addHeader("Content-type", "application/json; charset=UTF-8");
+      for (Map.Entry<String, String> entry : headers.entrySet()) {
+        post.addHeader(entry.getKey(), entry.getValue());
+      }
       BasicHttpEntity entity = new BasicHttpEntity();
       InputStream stream = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
       entity.setContent(stream);
