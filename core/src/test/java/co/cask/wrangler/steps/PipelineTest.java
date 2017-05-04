@@ -18,13 +18,10 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.TextDirectives;
-import co.cask.wrangler.steps.transformation.MaskNumber;
+import co.cask.wrangler.executor.TextDirectives;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;
 import com.google.common.collect.Range;
@@ -76,26 +73,6 @@ public class PipelineTest {
 
     Assert.assertEquals("1,2,a,A", actual.get(0).getValue("firstCol"));
     Assert.assertNull(actual.get(0).getValue("secondCol"));
-  }
-
-  @Test
-  public void testMaskingSubstitution() throws Exception {
-    // More characters in mask, but not enough in the input.
-    Step step = new MaskNumber(0, "", "ssn", "xxx-xx-#####");
-    List<Record> actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
-
-
-    step = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
-
-    step = new MaskNumber(0, "", "ssn", "xxx-xx-####");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
-    step = new MaskNumber(0, "", "ssn", "x-####");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("x-8899", actual.get(0).getValue("ssn"));
   }
 
   @Test
@@ -161,46 +138,6 @@ public class PipelineTest {
       rm.put(Range.closed(lower, upper), value);
     }
     Assert.assertEquals("[[0.9‥2.1]=Foo, [2.2‥3.4]=9.2]", rm.toString());
-  }
-
-  @Test
-  public void testQuanitization() throws Exception {
-    String[] directives = new String[] {
-      "set format csv , false",
-      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "quantize hrlywage wagerange 0.0:20.0=LOW,21.0:75.0=MEDIUM,75.1:200.0=HIGH",
-      "set column wagerange (wagerange == null) ? \"NOT FOUND\" : wagerange"
-    };
-
-    List<Record> records = Arrays.asList(
-      new Record("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,129.13,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,9.54,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,7.89,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,45.67,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1094,Root,Joltie,01/26/1956,windy@joltie.io,32,20.7,150 Mars Ave,Palo Alto,CA,USA,32826")
-    );
-
-    records = PipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 6);
-    int low = 0, medium = 0, high = 0, notfound = 0;
-    for (Record record : records) {
-      String v = (String) record.getValue("wagerange");
-      if (v.equalsIgnoreCase("NOT FOUND")) {
-        notfound++;
-      } else if (v.equals("LOW")) {
-        low++;
-      } else if (v.equals("MEDIUM")) {
-        medium++;
-      } else if (v.equals("HIGH")) {
-        high++;
-      }
-    }
-
-    Assert.assertEquals(3, low);
-    Assert.assertEquals(1, medium);
-    Assert.assertEquals(1, high);
-    Assert.assertEquals(1, notfound);
   }
 
   @Test

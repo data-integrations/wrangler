@@ -31,8 +31,8 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.executor.TextDirectives;
 import com.google.common.collect.Sets;
 
 import java.util.Collections;

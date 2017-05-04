@@ -11,7 +11,7 @@ STEMMING directive applies Porter Stemmer for English words. Porter Stemmer is o
   stemming <column>
 ```
 
-```column``` contains bag of words either of type string array or string list.
+```column``` contains bag of words either of type string, string array or string list.
 
 ## Usage Notes
 
@@ -28,7 +28,7 @@ or list of strings.
 
 ```
 {
-  "word" : { "how", "are", "you", "doing", "do", "you", "have", "apples" }
+  "word" : { "how are you doing ? do you have apples?" }
 }
 ```
 
@@ -41,7 +41,7 @@ would generate the following record
 
 ```
 {
-  "word" : { "how", "are", "you", "doing", "do", "you", "have", "apples" },
+  "word" : { "how are you doing ? do you have apples?" },
   "word_porter" : { "how", "ar", "you", "do", "do", "you", "have", "appl" }
 }
 ```

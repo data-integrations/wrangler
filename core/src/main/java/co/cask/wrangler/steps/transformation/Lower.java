@@ -22,7 +22,6 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +51,6 @@ public class Lower extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
-    List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {
@@ -62,19 +60,9 @@ public class Lower extends AbstractStep {
             String value = (String) object;
             record.setValue(idx, value.toLowerCase());
           }
-        } else {
-          throw new StepException(
-            String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
-                          toString(), object != null ? object.getClass().getName() : "null", col)
-          );
         }
-      } else {
-        throw new StepException(toString() + " : " +
-                                  col + " is not of type string. Please check the wrangle configuration."
-        );
       }
-      results.add(record);
     }
-    return results;
+    return records;
   }
 }
