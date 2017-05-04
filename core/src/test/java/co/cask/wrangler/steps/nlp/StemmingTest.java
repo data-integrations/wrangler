@@ -64,4 +64,21 @@ public class StemmingTest {
                         records.get(0).getValue("words_porter"));
   }
 
+  @Test
+  public void testStringStemming() throws Exception {
+    String[] directives = new String[] {
+      "stemming words",
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("words", "how are you doing ? do you have apples")
+    );
+
+    records = PipelineTest.execute(directives, records);
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals(Arrays.asList("how", "ar", "you", "do", "do", "you", "have", "appl"),
+                        records.get(0).getValue("words_porter"));
+  }
+
 }

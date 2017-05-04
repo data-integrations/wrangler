@@ -60,12 +60,16 @@ public class Stemming extends AbstractStep {
       int idx = record.find(column);
       if (idx != -1) {
         Object object = record.getValue(idx);
-        if (object != null && (object instanceof List || object instanceof String[])) {
+        if (object != null && (object instanceof List || object instanceof String[] || object instanceof String)) {
           List<String> words = null;
           if (object instanceof String[]) {
             words = Arrays.asList((String[]) object);
-          } else {
+          } else if (object instanceof List) {
             words = (List<String>) object;
+          } else {
+            String phrase = (String) object;
+            String[] w = phrase.split("\\W+");
+            words = Arrays.asList(w);
           }
           try {
             stemmed = stemmer.process(words);
@@ -78,8 +82,8 @@ public class Stemming extends AbstractStep {
           }
         } else {
           throw new StepException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String[] or List<String>.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
+            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, String[] or List<String>.",
+                          toString(), object != null ? object.getClass().getName() : "null", column)
           );
         }
       } else {
