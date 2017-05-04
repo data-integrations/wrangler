@@ -15,7 +15,7 @@ mask-number <columm> <pattern>
 ## Usage Notes
 
 Substitution masking is generally used for masking credit card or social security numbers.
-The `mask-column` applies substitution masking on the column values. This type of masking
+The MASK-NUMBER applies substitution masking on the column values. This type of masking
 is fixed masking, where the pattern is applied on the fixed length string.
 
 These rules are used for the pattern:

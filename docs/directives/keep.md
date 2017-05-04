@@ -1,7 +1,7 @@
 # Keep
 
-The `keep` directive is used to keep specified columns from the record. This is the
-opposite behavior of the [drop](drop.md) directive.
+The KEEP directive is used to keep specified columns from the record. This is the
+opposite behavior of the [DROP](drop.md) directive.
 
 
 ## Syntax
@@ -14,7 +14,7 @@ keep <column>[,<column>]
 
 ## Usage Notes
 
-After the `keep` directive is applied, the column(s) specified in the directive are
+After the KEEP directive is applied, the column(s) specified in the directive are
 preserved, and all other columns are removed from the record.
 
 

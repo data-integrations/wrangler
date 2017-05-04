@@ -1,6 +1,6 @@
 # Extract Regex Groups
 
-The `extract-regex-groups` directive extracts the data from a regex group into its own
+The EXTRACT-REGEX-GROUPS directive extracts the data from a regex group into its own
 column.
 
 

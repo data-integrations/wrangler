@@ -1,6 +1,6 @@
 # Split Email
 
-The `split-email` directive splits an email ID into an account and its domain.
+The SPLIT-EMAIL directive splits an email ID into an account and its domain.
 
 
 ## Syntax
@@ -13,7 +13,7 @@ The `<column>` is a column containing an email address.
 
 ## Usage Notes
 
-The `split-email` directive will parse email address into its constituent parts: account
+The SPLIT-EMAIL directive will parse email address into its constituent parts: account
 and domain.
 
 After splitting the email address, the directive will create two new columns, appending to

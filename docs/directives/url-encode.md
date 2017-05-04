@@ -1,6 +1,6 @@
 # URL Encode
 
-The `url-encode` directive encodes a string to the `application/x-www-form-urlencoded`
+The URL-ENCODE directive encodes a string to the `application/x-www-form-urlencoded`
 MIME format.
 
 
@@ -29,3 +29,5 @@ When encoding a string, these rules apply:
   specified, then the default encoding of the platform is used.
 
 **Note:** Uses UTF-8 as the encoding scheme for the string.
+
+See also the [URL-DECODE](url-decode.md) directive.

@@ -1,6 +1,6 @@
 # Text Distance
 
-The `text-distance` directive measures the difference between two sequences of characters,
+The TEXT-DISTANCE directive measures the difference between two sequences of characters,
 using a specified method of measuring the distance between strings.
 
 

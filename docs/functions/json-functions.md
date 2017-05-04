@@ -1,12 +1,12 @@
 # JSON Functions
 
-These are date functions that can be useful in transforming your data. All of
-these functions are used in conjunction with the `parse-as-json` directive.
+These are date functions that can be useful in transforming your data. All of these
+functions are used in conjunction with the [PARSE-AS-JSON](parse-as-json.md) directive.
 
 
 ## Pre-requisite
 
-All of these functions can be applied only after the `parse-as-json` directive has been
+All of these functions can be applied only after the PARSE-AS-JSON directive has been
 applied.
 
 

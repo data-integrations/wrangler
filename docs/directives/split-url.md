@@ -1,6 +1,6 @@
 # Split URL
 
-The `split-url` directive splits a URL into protocol, authority, host, port, path, filename, and query.
+The SPLIT-URL directive splits a URL into protocol, authority, host, port, path, filename, and query.
 
 
 ## Syntax
@@ -13,7 +13,7 @@ The `<column>` is a column containing the URL.
 
 ## Usage Notes
 
-The `split-url` directive will parse the URL into its constituents. Upon splitting the
+The SPLIT-URL directive will parse the URL into its constituents. Upon splitting the
 URL, the directive creates seven new columns by appending to the original column name:
 
 * `column_protocol`

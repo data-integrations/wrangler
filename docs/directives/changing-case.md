@@ -1,6 +1,6 @@
 # Changing Case
 
-The `uppercase`, `lowercase`, and `titlecase` directives change the case of column
+The UPPERCASE, LOWERCASE, and TITLECASE directives change the case of column
 values they are applied to.
 
 

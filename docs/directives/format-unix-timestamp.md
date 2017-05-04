@@ -1,6 +1,6 @@
 # Format UNIX Timestamp
 
-The `format-unix-timestamp` directive formats a UNIX timestamp as a date.
+The FORMAT-UNIX-TIMESTAMP directive formats a UNIX timestamp as a date.
 
 
 ## Syntax
@@ -14,10 +14,10 @@ format-unix-timestamp <column> <pattern>
 
 ## Usage Notes
 
-The `format-unix-timestamp` directive will parse a UNIX timestamp, using a pattern string.
+The FORMAT-UNIX-TIMESTAMP directive will parse a UNIX timestamp, using a pattern string.
 The `<column>` should contain valid UNIX-style timestamps.
 
 
 ## Examples
 
-See [format-date](format-date.md) for an explanation and example of these pattern strings.
+See [FORMAT-DATE](format-date.md) for an explanation and example of these pattern strings.

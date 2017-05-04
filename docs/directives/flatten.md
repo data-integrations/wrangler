@@ -1,6 +1,6 @@
 # Flatten
 
-The `flatten` directive separates the elements in a repeated field into individual records.
+The FLATTEN directive separates the elements in a repeated field into individual records.
 
 
 ## Syntax
@@ -13,10 +13,10 @@ The `<column>` is the name of a column that is a JSON array.
 
 ## Usage Notes
 
-The `flatten` directive is useful for the flexible exploration of repeated data.
+The FLATTEN directive is useful for the flexible exploration of repeated data.
 
 To maintain the association between each flattened value and the other fields in the
-record, the `flatten` directive copies all of the other columns into each new record.
+record, the FLATTEN directive copies all of the other columns into each new record.
 
 
 ## Examples

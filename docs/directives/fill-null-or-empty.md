@@ -1,6 +1,6 @@
 # Fill Null or Empty
 
-The `fill-null-or-empty` directive fills column value with a fixed value if it is either
+The FILL-NULL-OR-EMPTY directive fills column value with a fixed value if it is either
 `null` or empty ("").
 
 
@@ -16,7 +16,7 @@ fill-null-or-empty <column> <fixed-value>
 
 ## Usage Notes
 
-The `fill-null-or-empty` directive fills the column value with the `<fixed-value>` if the
+The FILL-NULL-OR-EMPTY directive fills the column value with the `<fixed-value>` if the
 column value is `null` or empty (an empty string, "").
 
 The `<fixed-value>` must be a string and cannot be an empty string value.

@@ -23,11 +23,13 @@ find-and-replace <column> s/regex/replacement/g
 This directive will replace a value of the column that matches the `regex`
 with the `replacement` value.
 
-The `s` stands for "substitute". The `g` stands for global, which means that all matching
-occurrences in the value would be replaced. The regular expression to be matched is placed
-after the first delimiting symbol (a forward-slash in this example) and the replacement
-value follows the second delimiting symbol. A forward-slash (`/`) is the conventional
-symbol used as a delimiter, and the origin of the character for "search".
+The `s` stands for "substitute". The `g` stands for "global", which means that all matching
+occurrences in the value would be replaced.
+
+The regular expression to be matched is placed after the first delimiting symbol (a
+forward-slash in this example) and the replacement value follows the second delimiting
+symbol. A forward-slash (`/`) is the conventional symbol used as a delimiter, and the
+origin of the character for "search".
 
 For example, to replace all occurrences of `hello` with `world` in the column `message`:
 ```

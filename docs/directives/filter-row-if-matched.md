@@ -1,11 +1,11 @@
 # Filter Row If Matched
 
-The `filter-row-if-matched` directive filters records that match a pattern for a column.
+The FILTER-ROW-IF-MATCHED directive filters records that match a pattern for a column.
 
 
 ## Deprecated
 
-Use the [filter-rows-on](filter-rows-on.md) directive instead.
+Use the [FILTER-ROWS-ON](filter-rows-on.md) directive instead.
 
 
 ## Syntax
@@ -18,7 +18,7 @@ The `<regex>` is a valid regular expression that is evaluated on the column valu
 
 ## Usage Notes
 
-The `filter-row-if-matched` directive applies the regular expression on a column value for
+The FILTER-ROW-IF-MATCHED directive applies the regular expression on a column value for
 every record. If the regex matches the column value, the record is omitted, otherwise it
 is passed as-is to the input of the next directive.
 

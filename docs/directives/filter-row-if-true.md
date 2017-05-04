@@ -1,11 +1,11 @@
 # Filter Row If True
 
-The `filter-row-if-true` directive filters records that match a condition.
+The FILTER-ROW-IF-TRUE directive filters records that match a condition.
 
 
 ## Deprecated
 
-Use the [filter-rows-on](filter-rows-on.md) directive instead.
+Use the [FILTER-ROWS-ON](filter-rows-on.md) directive instead.
 
 
 ## Syntax
@@ -18,7 +18,7 @@ The `<condition>` is a valid boolean expression resulting in either a `true` or 
 
 ## Usage Notes
 
-The `filter-row-if-true` directive evaluates the Boolean condition for each record. If the
+The FILTER-ROW-IF-TRUE directive evaluates the Boolean condition for each record. If the
 result of evaluation is `true`, it skips the record, otherwise it is passed as-is to the
 input of the next directive.
 

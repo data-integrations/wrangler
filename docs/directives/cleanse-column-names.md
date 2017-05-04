@@ -1,6 +1,6 @@
 # Cleanse Column Names
 
-The `cleanse-column-names` directive sanatizes column names, following these rules:
+The CLEANSE-COLUMN-NAMES directive sanatizes column names, following these rules:
 
 * Trim leading and trailing spaces
 * Lowercases the column name

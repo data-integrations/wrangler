@@ -1,6 +1,6 @@
 # Format Date
 
-The `format-date` directive allows custom patterns for date-time formatting.
+The FORMAT-DATE directive allows custom patterns for date-time formatting.
 
 
 ## Syntax
@@ -47,7 +47,7 @@ These pattern letters are defined (all other characters from 'A' to 'Z' and from
 
 ## Examples
 
-Prior to using these patterns, the directive [parse-as-date](parse-as-date.md) should be applied
+Prior to using these patterns, the directive [PARSE-AS-DATE](parse-as-date.md) should be applied
 to correctly create a complete date-time string.
 
 These examples show how date and time patterns are interpreted in the U.S. locale. If the

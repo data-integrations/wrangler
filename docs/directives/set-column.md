@@ -1,6 +1,6 @@
 # Set Column
 
-The `set-column` directive sets the column value to the result of an expression execution.
+The SET-COLUMN directive sets the column value to the result of an expression execution.
 
 
 ## Syntax
@@ -15,7 +15,7 @@ set-column <columm> <expression>
 
 ## Usage Notes
 
-The `set-column` directive sets the column value to the result of the execution of an expression.
+The SET-COLUMN directive sets the column value to the result of the execution of an expression.
 
 Expressions are written in [Apache Commons
 JEXL](http://commons.apache.org/proper/commons-jexl/reference/syntax.html) notation.

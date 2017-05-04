@@ -1,6 +1,6 @@
 # Write as JSON Map
 
-The `write-as-json-map` directive converts the record into a JSON map.
+The WRITE-AS-JSON-MAP directive converts the record into a JSON map.
 
 
 ## Syntax
@@ -13,11 +13,10 @@ The `<column>` will contain a JSON map of all the fields in the record.
 
 ## Usage Notes
 
-The `write-as-json-map` directive converts the entire record into a JSON map. If the
+The WRITE-AS-JSON-MAP directive converts the entire record into a JSON map. If the
 `<column>` already exists, it will overwrite it.
 
-Depending on the type of object a field is holding, it will be transformed
-appropriately.
+Depending on the type of object a field is holding, it will be transformed appropriately.
 
 
 ## Example

@@ -1,6 +1,6 @@
 # Drop
 
-The `drop` directive is used to drop a column in a record.
+The DROP directive is used to drop a column in a record.
 
 
 ## Syntax
@@ -13,7 +13,7 @@ The `<column>` is the name of the column in the record to be droped.
 
 ## Usage Notes
 
-After the `drop` directive is applied, the column and its associated value are removed from
+After the DROP directive is applied, the column and its associated value are removed from
 the record. Later directives will not be able to reference the dropped column.
 
 

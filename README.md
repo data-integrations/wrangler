@@ -25,9 +25,9 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
   * [SCREENCAST] [Parsing JSON file](https://youtu.be/vwnctcGDflE)
   * [SCREENCAST] [Flattening arrays](https://youtu.be/SemHxgBYIsY)
   * [SCREENCAST] [Data cleansing with send-to-error directive](https://www.youtube.com/watch?v=aZd5H8hIjDc)
-  * [SCREENCAST] [Publishing to Kafka](https://www.youtube.com/watch?v=xdc8pvvlI48) 
-  * [SCREENCAST] [Fixed length to JSON](https://www.youtube.com/watch?v=3AXu4m1swuM)  
-  
+  * [SCREENCAST] [Publishing to Kafka](https://www.youtube.com/watch?v=xdc8pvvlI48)
+  * [SCREENCAST] [Fixed length to JSON](https://www.youtube.com/watch?v=3AXu4m1swuM)
+
 * Recipes
   * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
   * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)
@@ -127,6 +127,7 @@ These directives are currently available:
 | [Set Column](docs/directives/set-column.md)                            | Sets the column value to the result of an expression execution   |
 | [Find and Replace](docs/directives/find-and-replace.md)                | Transforms string column values using a "sed"-like expression    |
 | [Index Split](docs/directives/index-split.md)                          | (_Deprecated_)                                                   |
+| [Invoke HTTP](docs/directives/invoke-http.md)                          | Invokes an HTTP Service (slow, _Experimental_)                   |
 | [Quantization](docs/directives/quantize.md)                            | Quantizes a column based on specified ranges                     |
 | [Regex Group Extractor](docs/directives/extract-regex-groups.md)       | Extracts the data from a regex group into its own column         |
 | [Setting Character Set](docs/directives/set-charset.md)                | Sets the encoding and then converts the data to a UTF-8 String   |
@@ -160,7 +161,7 @@ These directives are currently available:
 | [Filter Rows On](docs/directives/filter-rows-on.md)                    | Filters records based on a condition                             |
 | [Flatten](docs/directives/flatten.md)                                  | Separates the elements in a repeated field                       |
 | [Send to Error](docs/directives/send-to-error.md)                      | Filtering of records to an error collector                       |
-| [Split To Rows](docs/directives/split-to-rows.md)                      | Splits based on a separator into multiple records                |
+| [Split to Rows](docs/directives/split-to-rows.md)                      | Splits based on a separator into multiple records                |
 | **Column Operations**                                                  |                                                                  |
 | [Change Column Case](docs/directives/change-column-case.md)            | Changes column names to either lowercase or uppercase            |
 | [Changing Case](docs/directives/changing-case.md)                      | Change the case of column values                                 |
@@ -173,7 +174,7 @@ These directives are currently available:
 | [Merge Columns](docs/directives/merge.md)                              | Merges two columns by inserting a third column                   |
 | [Rename Column](docs/directives/rename.md)                             | Renames an existing column in the record                         |
 | [Set Column Names](docs/directives/set-columns.md)                     | Sets the names of columns, in the order they are specified       |
-| [Split To Columns](docs/directives/split-to-columns.md)                | Splits a column based on a separator into multiple columns       |
+| [Split to Columns](docs/directives/split-to-columns.md)                | Splits a column based on a separator into multiple columns       |
 | [Swap Columns](docs/directives/swap.md)                                | Swaps column names of two columns                                |
 | **NLP**                                                                |                                                                  |
 | [Stemming Tokenized Words](docs/directives/stemming.md)                | Applies the Porter stemmer algorithm for English words           |
@@ -189,10 +190,10 @@ transforming data, *DataPrep* is able to process at about 60K records per second
 rates below are specified as *records/second*. Additional details and test results
 [are available](docs/performance.md).
 
-| Directive Complexity | Column Count | Records    | Size           | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
-| -------------------- | -----------: | ---------: | -------------: | --------: | ------------: | ------------: | -------------: |
-| Medium               | 18           | 13,499,973 | 4,499,534,313  | 64,998.50 | 64,921.29     | 46,866.70     | 36,149.86      |
-| Medium               | 18           | 80,999,838 | 26,997,205,878 | 62,465.93 | 62,706.39     | 60,755.41     | 56,673.32      |
+| Directive Complexity | Column Count |    Records |           Size | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
+| -------------------- | :----------: | ---------: | -------------: | --------: | ------------: | ------------: | -------------: |
+| Medium               |      18      | 13,499,973 |  4,499,534,313 | 64,998.50 |     64,921.29 |     46,866.70 |      36,149.86 |
+| Medium               |      18      | 80,999,838 | 26,997,205,878 | 62,465.93 |     62,706.39 |     60,755.41 |      56,673.32 |
 
 
 ## Data Prep Service
@@ -226,18 +227,18 @@ As directives are executed as a step, it's a simple three-part process to implem
 provide the specifications for a directive.
 
 ### Part 1 of 3
-In order to add a new step, implement the interface 'Step':
 
+In order to add a new step, implement the interface 'Step':
 ```
 /**
  * A interface defining a Data Prep step in a pipeline.
  */
 public interface Step {
   /**
-   * Executes a Data Prep step on each {@link Row} and returns an array of wrangled {@link Row Rows}.
+   * Executes a Data Prep step on each {@link Record} and returns an array of processed {@link Record Records}.
    *
-   * @param records the list of input {@link Record Records} to be wrangled by this step
-   * @return the list of wrangled {@link Record Records}
+   * @param records the list of input {@link Record Records} to be processed by this step
+   * @return the list of processed {@link Record Records}
    * @throws StepException if a step exception occurred
    */
   List<Record> execute(List<Record> records) throws StepException;
@@ -245,31 +246,38 @@ public interface Step {
 ```
 
 ### Part 2 of 3
-Add a comprehensive test case for testing the directive that has been added.
+
+Add a comprehensive test case for the directive that has been added.
 
 ### Part 3 of 3
+
 Modify the specification to parse the directive specification and create the implementation of
 the step you have created in part 1.
 
 
 ## Build
+
 To build your plugin:
-
+```
     mvn clean package -DskipTests
+```
 
-The build will create a .jar and .json file under the `target` directory for the
-`wrangler-transform` and a .jar file for the `wrangler-service` application. These files can be used to
-deploy your plugin and the wrangler backend.
+The build will create a `.jar` and `.json` file under the `target` directory for the
+`wrangler-transform` and a `.jar` file for the `wrangler-service` application. These files
+can be used to deploy your plugin and the wrangler backend.
 
 
 ## Deployment
-You can deploy your plugin using the CDAP CLI:
 
-    > load artifact <target/wrangler-transform-<version>.jar> config-file <target/wrangler-transform-<version>.json>
+You can deploy your plugin using the CDAP CLI:
+```
+    > load artifact target/wrangler-transform-<version>.jar config-file target/wrangler-transform-<version>.json
+```
 
 For example, if your artifact is named `wrangler-transform-1.0.0-SNAPSHOT`:
-
+```
     > load artifact target/wrangler-transform-1.0.0-SNAPSHOT.jar config-file target/wrangler-transform-1.0.0-SNAPSHOT.json
+```
 
 
 ## Contact

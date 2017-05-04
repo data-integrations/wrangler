@@ -1,6 +1,6 @@
 # Table Lookup
 
-The `table-lookup` directive performs lookups into Table datasets.
+The TABLE-LOOKUP directive performs lookups into Table datasets.
 
 
 ## Syntax
@@ -14,7 +14,7 @@ table-lookup <column> <table>
 
 ## Usage Notes
 
-The `table-lookup` directive uses a column as the lookup key into a specified Table
+The TABLE-LOOKUP directive uses a column as the lookup key into a specified Table
 dataset for each record. The column should be of type string. The values in the row of the
 Table will be parsed as strings and placed in the record in new columns, the names
 constructed from combining the lookup key and the row column name with an underscore.

@@ -1,6 +1,6 @@
 # Diff Date
 
-The `diff-date` directive calculates the difference between two dates.
+The DIFF-DATE directive calculates the difference between two dates.
 
 
 ## Syntax
@@ -11,12 +11,12 @@ diff-date <column1> <column2> <destination>
 
 ## Usage Notes
 
-The `diff-date` directive calculates the difference between two Date objects (`<column1>`
+The DIFF-DATE directive calculates the difference between two Date objects (`<column1>`
 minus `<column2>`) and puts the difference (in milliseconds) into the destination column.
 
 This directive can only be applied on two columns whose date strings have already been
-parsed, either using the [parse-as-date](parse-as-date.md) or
-[parse-as-simple-date](parse-as-simple-date.md) directives.
+parsed, either using the [PARSE-AS-DATE](parse-as-date.md) or
+[PARSE-AS-SIMPLE-DATE](parse-as-simple-date.md) directives.
 
 A negative difference can be returned when the first column is an earlier date than the
 second column.

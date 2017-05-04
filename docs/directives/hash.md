@@ -1,6 +1,6 @@
 # Hash
 
-The `hash` directive generates a message digest.
+The HASH directive generates a message digest.
 
 
 ## Syntax
@@ -17,10 +17,10 @@ false.
 
 ## Usage Notes
 
-The `hash` directive, when applied on a `<column>`, will replace the content of the column
+The HASH directive, when applied on a `<column>`, will replace the content of the column
 with the message hash. No new columns are created with the application of this directive.
 
-These algorithms are supported by the `hash` directive:
+These algorithms are supported by the HASH directive:
 
 * BLAKE2B-160
 * BLAKE2B-256

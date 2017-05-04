@@ -1,6 +1,6 @@
 # Parser as Log
 
-The `parse-as-log` directive parses access log files, such as from Apache HTTPD and nginx servers.
+The PARSE-AS-LOG directive parses access log files, such as from Apache HTTPD and nginx servers.
 
 
 ## Syntax
@@ -10,7 +10,7 @@ parse-as-log <column> <format>
 
 ## Usage Notes
 
-The `parse-as-log` directive provides a generic log parser that you construct by
+The PARSE-AS-LOG directive provides a generic log parser that you construct by
 specifying the `<format>` of the log line or the format in which the file was written. The
 format, which specifies the configuration options of the log line, becomes the schema of
 the access log lines as written by the service.
@@ -37,6 +37,7 @@ In that case, `format` is a string of tokens specifying the log line format.
 For nginx, the `format` tokens are specified by
 [log_format](http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format) and
 [embedded variables](http://nginx.org/en/docs/http/ngx_http_core_module.html#variables).
+
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # Split to Columns
 
-The `split-to-columns` directive splits a column based on a separator into multiple columns.
+The SPLIT-TO-COLUMNS directive splits a column based on a separator into multiple columns.
 
 
 ## Syntax
@@ -15,7 +15,7 @@ expression (regex).
 
 ## Usage Notes
 
-The `split-to-columns` directive takes a column, applies the regular expression separator,
+The SPLIT-TO-COLUMNS directive takes a column, applies the regular expression separator,
 and then creates multiple columns from the split. The name of the columns are in the
 format:
 ```

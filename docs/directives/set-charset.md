@@ -1,6 +1,6 @@
 # Set Charset
 
-The `set-charset` directive sets the encoding of the current data and then converts it
+The SET-CHARSET directive sets the encoding of the current data and then converts it
 from that to a UTF-8 string.
 
 

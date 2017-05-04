@@ -1,6 +1,6 @@
 # Swap
 
-The `swap` directive swaps column names of two columns.
+The SWAP directive swaps column names of two columns.
 
 
 ## Syntax
@@ -10,7 +10,7 @@ swap <column-1> <colum-2>
 
 ## Usage Notes
 
-The `swap` directive renames `<column-1>` to the name of `<column-2>` and `<column-2>` to
+The SWAP directive renames `<column-1>` to the name of `<column-2>` and `<column-2>` to
 the name of `<column-1>`. If the either of the two columns are not present, execution of
 the directive fails.
 

@@ -1,6 +1,6 @@
 # JSON Path
 
-The `json-path` directive uses a DSL for reading JSON records.
+The JSON-PATH directive uses a DSL for reading JSON records.
 
 
 ## Syntax

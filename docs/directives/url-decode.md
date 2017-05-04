@@ -1,6 +1,6 @@
 # URL Decode
 
-The `url-decode` directive decodes a string from the `application/x-www-form-urlencoded`
+The URL-DECODE directive decodes a string from the `application/x-www-form-urlencoded`
 MIME format to a string.
 
 
@@ -15,7 +15,7 @@ The `<column>` contains an encoded URL to be decoded.
 
 ## Usage Notes
 
-The conversion process is the reverse of that used by the [url-encode](url-encode.md)
+The conversion process is the reverse of that used by the [URL-ENCODE](url-encode.md)
 directive. It is assumed that all characters in the encoded string are one of the
 following: `a` through `z`, `A` through `Z`, `0` through `9`, and `-`, `_`, `.`, and `*`.
 The character `%` is allowed but is interpreted as the start of a special escaped sequence.

@@ -1,6 +1,6 @@
 # Quantize
 
-The `quantize` directive quantizes a column based on specified ranges.
+The QUANTIZE directive quantizes a column based on specified ranges.
 
 
 ## Syntax
@@ -11,12 +11,12 @@ copy <source> <destination> <range_lower1:range_upper1=value>[,<range_lower2:ran
 * The `<source>` column is the column to be quantized
 * The `<destination>` column is the column where the results of the quantization are to be written
 
-The `quantize` directive quantizes based on values of the `<source>` column.
+The QUANTIZE directive quantizes based on values of the `<source>` column.
 
 
 ## Usage Notes
 
-The `quantize` directive quantizes based on values from the `<source>` column into the
+The QUANTIZE directive quantizes based on values from the `<source>` column into the
 `<destination>` column.
 
 Using the list of ranges specified in the options, it will `<value>` into the

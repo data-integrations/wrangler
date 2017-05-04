@@ -1,6 +1,6 @@
 # Parse as CSV
 
-The `parse-as-csv` is a directive for parsing an input record as comma-separated values.
+The PARSE-AS-CSV is a directive for parsing an input record as comma-separated values.
 
 
 ## Syntax

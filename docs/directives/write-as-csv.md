@@ -1,6 +1,6 @@
 # Write as CSV
 
-The `write-as-csv` directive converts a record into CSV format.
+The WRITE-AS-CSV directive converts a record into CSV format.
 
 
 ## Syntax
@@ -13,7 +13,7 @@ The `<column>` will contain the CSV representation of the record.
 
 ## Usage Notes
 
-The `write-as-csv` directive converts the entire record into CSV. If the `<column>` already
+The WRITE-AS-CSV directive converts the entire record into CSV. If the `<column>` already
 exists, it will overwrite it.
 
 

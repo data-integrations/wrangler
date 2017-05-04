@@ -1,6 +1,6 @@
 # Parse as Fixed Length
 
-The `parse-as-fixed-length` directive parses a column as a fixed length record with widths
+The PARSE-AS-FIXED-LENGTH directive parses a column as a fixed length record with widths
 for each field specified.
 
 

@@ -1,6 +1,6 @@
 # Catalog Lookup
 
-The `catalog-lookup` directive provides lookups into catalogs that are pre-loaded
+The CATALOG-LOOKUP directive provides lookups into catalogs that are pre-loaded
 (static). Currently, the directive supports looking up health care ICD-9 and
 ICD-10-{2016,2017} codes.
 
@@ -30,7 +30,7 @@ looking up:
 }
 ```
 
-Applying the `catalog-lookup` directive with the ICD-10-2016 Catalog:
+Applying the CATALOG-LOOKUP directive with the ICD-10-2016 Catalog:
 ```
 catalog-lookup ICD-10-2016 code
 ```

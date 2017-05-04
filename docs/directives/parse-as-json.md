@@ -1,6 +1,6 @@
 # Parse as JSON
 
-The `parse-as-json` directive is for parsing a JSON object. The directive can operate on
+The PARSE-AS-JSON directive is for parsing a JSON object. The directive can operate on
 String or JSONObject types. When the directive is applied, the high-level keys of the JSON
 are appended to the original column name to create new column names.
 
@@ -15,10 +15,10 @@ parse-as-json <column-name> [<depth>]
 
 ## Usage Notes
 
-The `parse-as-json` directive breaks down complex JSON into simpler
+The PARSE-AS-JSON directive breaks down complex JSON into simpler
 understandable and manageable chunks. When first applied on a JSON object, it breaks it
 down into keys and values. The value could in itself be a JSON object on which you can
-apply the `parse-as-json` directive again to flatten it out further.
+apply the PARSE-AS-JSON directive again to flatten it out further.
 
 The key names in the event object are appeneded to the column that is being applied JSON
 parsing. The column names use dot notation.

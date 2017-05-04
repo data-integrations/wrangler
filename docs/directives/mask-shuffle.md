@@ -1,6 +1,6 @@
 # Mask Shuffle
 
-The `mask-shuffle` directive applies shuffle masking on the column values.
+The MASK-SHUFFLE directive applies shuffle masking on the column values.
 
 
 ## Syntax
@@ -8,14 +8,15 @@ The `mask-shuffle` directive applies shuffle masking on the column values.
 mask-shuffle <columm>
 ```
 
-The `<column>` specifies the name of an existing column to be masked
+The `<column>` specifies the name of an existing column to be masked.
 
 
 ## Usage Notes
 
-The `mask-column` applies shuffle masking on the column values to perform obfuscation by
-using random character substitution method. This type of masking is fixed length masking,
-where the data is randomly shuffled in the column on the fixed length string.
+The MASK-SHUFFLE directive applies shuffle masking on the column values to perform
+obfuscation by using random character substitution method. This type of masking is fixed
+length masking, where the data is randomly shuffled in the column on the fixed length
+string.
 
 Note that vowels, consonants, and numerics are each shuffled separately and retain their
 case.

@@ -17,7 +17,7 @@ The `<column>` contains a bag of words of type string array or type string list.
 
 ## Usage Notes
 
-The `stemming` directive applies the stemmer on a bag of tokenized words. Applying this
+The STEMMING directive applies the stemmer on a bag of tokenized words. Applying this
 directive creates an additional `<column>_porter` column. Depending on the type of the
 object the field is holding, it will be transformed appropriately.
 
@@ -28,7 +28,7 @@ Using this record, a tokenized bag of words as a string array or list of strings
 example:
 ```
 {
-  "word" : { "how are you doing ? do you have apples?" }
+  "word" : { "how are you doing ? do you have apples ?" }
 }
 ```
 
@@ -40,7 +40,7 @@ stemming word
 The result would be this record:
 ```
 {
-  "word": { "how are you doing ? do you have apples?" },
+  "word": { "how are you doing ? do you have apples ?" },
   "word_porter": { "how", "ar", "you", "do", "do", "you", "have", "appl" }
 }
 ```

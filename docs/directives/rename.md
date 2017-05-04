@@ -1,6 +1,6 @@
 # Rename
 
-The `rename` directive renames an existing column in the record.
+The RENAME directive renames an existing column in the record.
 
 
 ## Syntax
@@ -14,11 +14,11 @@ rename <old> <new>
 
 ## Usage Notes
 
-The `rename` directive will rename the specified column name by replacing it with a new
+The RENAME directive will rename the specified column name by replacing it with a new
 name. The original column name will no longer be available in the record after this directive
 has been applied to the record.
 
-The `rename` directive will only rename a column that exists. If the column name does not
+The RENAME directive will only rename a column that exists. If the column name does not
 exist in the record, the operation will be ignored without an error.
 
 

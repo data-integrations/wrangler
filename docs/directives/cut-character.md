@@ -1,6 +1,6 @@
 # Cut Character
 
-The `cut-character` directive selects parts of a string value, accepting standard [cut
+The CUT-CHARACTER directive selects parts of a string value, accepting standard [cut
 options](http://man7.org/linux/man-pages/man1/cut.1.html).
 
 
@@ -14,7 +14,7 @@ The `<type> <range|indexes>` are the standard [cut options](http://man7.org/linu
 
 ## Usage Notes
 
-The standard options for the `cut` directive include a list of one or more ranges of characters.
+The standard options for the CUT-CHARACTER directive include a list of one or more ranges of characters.
 Each range is prefaced with a type (`-b` byte, `-c` character, `-f` field) and written as:
 
 * `N  ` The N'th byte, character, or field, counting from 1

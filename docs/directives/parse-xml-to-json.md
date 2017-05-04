@@ -1,9 +1,9 @@
 # Parse XML to JSON
 
-The `parse-xml-to-json` directive parses an XML document into a JSON structure. The
+The PARSE-XML-TO-JSON directive parses an XML document into a JSON structure. The
 directive operates on an input column of type string. Application of this directive
 transforms the XML into a JSON document, simplifying further parsing using the
-[parse-as-json](parse-as-json.md) directive.
+[PARSE-AS-JSON](parse-as-json.md) directive.
 
 
 ## Syntax
@@ -17,11 +17,11 @@ parse-xml-to-json <column-name> [<depth>]
 
 ## Usage Notes
 
-The `parse-xml-to-json` directive efficiently parses an XML document and presents it as a
+The PARSE-XML-TO-JSON directive efficiently parses an XML document and presents it as a
 JSON object for further transformation.
 
 The XML document contains elements, attributes, and content text. A sequence of similar
-elements is turned into a JSONArray, which can then be further parsed using the
-[parse-as-json](parse-as-json.md) directive.
+elements is turned into a JSON array, which can then be further parsed using the
+[PARSE-AS-JSON](parse-as-json.md) directive.
 
-During parsing, comments, prologs, DTDs and `<[[ ]]>` notations are ignored.
+During parsing, comments, prologs, DTDs, and `<[[ ]]>` notations are ignored.

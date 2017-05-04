@@ -1,6 +1,6 @@
 # Text Metric
 
-The `text-metric` directive provides a metric (from 0 to 1) measuring the difference
+The TEXT-METRIC directive provides a metric (from 0 to 1) measuring the difference
 between two sequence of characters, using a specified method of measuring the distance
 between strings.
 

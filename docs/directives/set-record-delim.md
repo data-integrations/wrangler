@@ -1,6 +1,6 @@
 # Set Record Delim
 
-The `set-record-delim` directive sets the record delimiter.
+The SET-RECORD-DELIM directive sets the record delimiter.
 
 
 ## Syntax

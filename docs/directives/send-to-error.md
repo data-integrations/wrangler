@@ -1,6 +1,6 @@
 # Send to Error
 
-The `send-to-error` directive allows the filtering of records and directs the filtered
+The SEND-TO-ERROR directive allows the filtering of records and directs the filtered
 records that match a given condition to an error collector. If the error collector is not
 connected as the next stage in a pipeline, then the filtered records will be dropped.
 
@@ -16,7 +16,7 @@ should be sent to the error collector.
 
 ## Usage Notes
 
-The most common use of the `send-to-error` directive is to filter out records that are not
+The most common use of the SEND-TO-ERROR directive is to filter out records that are not
 part of clean data. This is a data cleansing directive to remove records that do not
 conform to specified rules.
 

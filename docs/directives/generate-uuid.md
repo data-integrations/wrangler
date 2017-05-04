@@ -1,6 +1,6 @@
 # Generate UUID
 
-The `generate-uuid` directive generates a universally unique identifier (UUID) of the record.
+The GENERATE-UUID directive generates a universally unique identifier (UUID) of the record.
 
 
 ## Syntax
@@ -13,8 +13,8 @@ The `<column>` is set to the UUID generated for the record.
 
 ## Usage Notes
 
-The directive generates a type 4, pseudo-randomly generated UUID. The UUID is generated
-using a cryptographically strong pseudo-random number generator.
+The GENERATE-UUID directive generates a type 4, pseudo-randomly generated UUID. The UUID
+is generated using a cryptographically strong pseudo-random number generator.
 
 
 ## Example
@@ -33,7 +33,7 @@ Applying this directive:
 generate-uuid uuid
 ```
 
-would result in a record similar to this (the value of the `uuid` will be different):
+would result in a record similar to this (the value of `uuid` will vary):
 ```
 {
   "x": 1,
