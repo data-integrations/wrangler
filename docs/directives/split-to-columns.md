@@ -1,16 +1,17 @@
 # Split to Columns
 
-The SPLIT-TO-COLUMNS directive splits a column based on a separator into multiple columns.
+The SPLIT-TO-COLUMNS directive splits a column based on a regular expression into
+multiple columns.
 
 
 ## Syntax
 
 ```
- split-to-columns <column> <separator>
+ split-to-columns <column> <regex>
 ```
 
-The `<column>` is split based on the `<separator>`, which can be defined as a regular
-expression (regex).
+The `<column>` is split into one or more columns around matches of the specified regular 
+expression `<regex>`.
 
 
 ## Usage Notes
@@ -30,7 +31,9 @@ format:
 ```
 
 Regular expressions allows the use of complex search patterns when splitting the data in
-the column. It supports standard Java regular expression constructs.
+the column. It supports standard
+[Java regular expression](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html)
+constructs.
 
 The original column, when it is split into columns, generates new columns for the record.
 `column_1`, `column_2`, through to `column_n` are the new columns that contain the `n`
