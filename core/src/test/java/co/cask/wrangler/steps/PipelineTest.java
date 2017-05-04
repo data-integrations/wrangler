@@ -22,7 +22,6 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.executor.TextDirectives;
-import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;
 import com.google.common.collect.Range;
@@ -74,26 +73,6 @@ public class PipelineTest {
 
     Assert.assertEquals("1,2,a,A", actual.get(0).getValue("firstCol"));
     Assert.assertNull(actual.get(0).getValue("secondCol"));
-  }
-
-  @Test
-  public void testMaskingSubstitution() throws Exception {
-    // More characters in mask, but not enough in the input.
-    Step step = new MaskNumber(0, "", "ssn", "xxx-xx-#####");
-    List<Record> actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
-
-
-    step = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
-
-    step = new MaskNumber(0, "", "ssn", "xxx-xx-####");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
-    step = new MaskNumber(0, "", "ssn", "x-####");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
-    Assert.assertEquals("x-8899", actual.get(0).getValue("ssn"));
   }
 
   @Test
