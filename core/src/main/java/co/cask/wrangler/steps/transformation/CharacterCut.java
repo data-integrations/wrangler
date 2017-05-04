@@ -30,8 +30,8 @@ import java.util.List;
  */
 @Usage(
   directive = "cut-character",
-  usage = "cut-character <source> <destination> <range|indexes>",
-  description = "Unix like 'cut' directive for splitting text"
+  usage = "cut-character <source> <destination> <type> <range|indexes>",
+  description = "UNIX-like 'cut' directive for splitting text"
 )
 public class CharacterCut extends AbstractStep {
   private String source;
@@ -46,12 +46,12 @@ public class CharacterCut extends AbstractStep {
   }
 
   /**
-   * Character based cut operations
+   * Character-based 'cut' operations.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
-   * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @param records Input {@link Record} to be wrangled by this step
+   * @param context Specifies the context of the pipeline
+   * @return Transformed {@link Record}
+   * @throws StepException thrown when type of 'col' is not STRING
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {

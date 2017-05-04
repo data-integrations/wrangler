@@ -129,20 +129,29 @@ public final class UsageRegistry implements Serializable {
 
   // List of all registered directive implementations defined as steps in the pipeline.
   private final List<Class<? extends AbstractStep>> stepRegistry = Arrays.asList (
+    CatalogLookup.class,
+    ChangeColCaseNames.class,
     CharacterCut.class,
+    CleanseColumnNames.class,
     Columns.class,
+    ColumnsReplace.class,
     Copy.class,
     CsvParser.class,
+    Decode.class,
     DiffDate.class,
     Drop.class,
+    Encode.class,
     Expression.class,
+    ExtractRegexGroups.class,
     FillNullOrEmpty.class,
+    FindAndReplace.class,
     FixedLengthParser.class,
     Flatten.class,
     FormatDate.class,
     GenerateUUID.class,
     HL7Parser.class,
     IndexSplit.class,
+    InvokeHttp.class,
     JsParser.class,
     JsPath.class,
     Keep.class,
@@ -152,48 +161,37 @@ public final class UsageRegistry implements Serializable {
     Merge.class,
     MessageHash.class,
     ParseDate.class,
-    ParseSimpleDate.class,
     ParseLog.class,
+    ParseSimpleDate.class,
     Quantization.class,
     RecordConditionFilter.class,
+    RecordMissingOrNullFilter.class,
     RecordRegexFilter.class,
     Rename.class,
-    FindAndReplace.class,
+    SendToError.class,
+    SetCharset.class,
+    SetColumn.class,
+    SetRecordDelimiter.class,
     Split.class,
     SplitEmail.class,
     SplitToColumns.class,
     SplitToRows.class,
+    SplitURL.class,
+    Stemming.class,
     Swap.class,
     TableLookup.class,
+    TextDistanceMeasure.class,
+    TextMetricMeasure.class,
     TitleCase.class,
     Upper.class,
     UrlDecode.class,
     UrlEncode.class,
-    XmlToJson.class,
-    WriteAsJsonMap.class,
-    RecordMissingOrNullFilter.class,
-    CatalogLookup.class,
-    Stemming.class,
-    ColumnsReplace.class,
-    TextDistanceMeasure.class,
-    TextMetricMeasure.class,
     WriteAsCSV.class,
-    ExtractRegexGroups.class,
-    SplitURL.class,
-    GenerateUUID.class,
-    FixedLengthParser.class,
-    CleanseColumnNames.class,
+    WriteAsJsonMap.class,
     XmlParser.class,
-    XPathElement.class,
+    XmlToJson.class,
     XPathArrayElement.class,
-    SetColumn.class,
-    Encode.class,
-    Decode.class,
-    SendToError.class,
-    ChangeColCaseNames.class,
-    SetCharset.class,
-    InvokeHttp.class,
-    SetRecordDelimiter.class
+    XPathElement.class
   );
 
   public UsageRegistry() {
@@ -212,13 +210,13 @@ public final class UsageRegistry implements Serializable {
     // These are for directives that use other steps for executing.
     // we add them exclusively
     addUsage("set format", "set format csv <delimiter> <skip empty lines>",
-             "[DEPRECATED] Parses the predefined column as CSV. Use 'parse-as-csv'.");
+             "[DEPRECATED] Parses the predefined column as CSV. Use 'parse-as-csv' instead.");
     addUsage("format-unix-timestamp", "format-unix-timestamp <column> <format>",
-             "Formats a unix timestamp using the format specified.");
+             "Formats a UNIX timestamp using the specified format");
     addUsage("filter-row-if-not-matched", "filter-row-if-not-matched <column> <regex>",
-             "Filters row if regex does not match");
+             "Filters rows if the regex does not match");
     addUsage("filter-row-if-false", "filter-row-if-false <condition>",
-             "Filters row if condition evaluates to false");
+             "Filters rows if the condition evaluates to false");
   }
 
   private void addUsage(String directive, String usage, String description) {

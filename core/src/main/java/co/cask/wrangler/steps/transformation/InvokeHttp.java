@@ -53,8 +53,8 @@ import java.util.Map;
  */
 @Usage(
   directive = "invoke-http",
-  usage = "invoke-http <url> <column>[,<column>*] <header>[,<header>]*",
-  description = "Experimental : Invokes the http endpoint passing the columns as JSON map (will be slow)."
+  usage = "invoke-http <url> <column>[,<column>*] <header>[,<header>*]",
+  description = "[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow)"
 )
 public class InvokeHttp extends AbstractStep {
   private final String url;
@@ -74,7 +74,7 @@ public class InvokeHttp extends AbstractStep {
         if (components.length != 2) {
           throw new DirectiveParseException (
             String.format("Incorrect header '%s' specified. " +
-                            "Header should be specified as key=value pairs separated by comma(,).", header)
+                            "Header should be specified as 'key=value' pairs separated by a comma (,).", header)
           );
         }
         String key = components[0].trim();

@@ -30,7 +30,7 @@ import java.util.List;
  */
 @Usage(
   directive = "filter-rows-on",
-  usage="filter-rows-on empty-or-null-columns <column>[,<column>]*",
+  usage="filter-rows-on empty-or-null-columns <column>[,<column>*]",
   description = "Filters row that have empty or null columns."
 )
 public class RecordMissingOrNullFilter extends AbstractStep {
