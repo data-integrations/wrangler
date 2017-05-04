@@ -60,6 +60,7 @@ import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
 import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.InvokeHttp;
 import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
@@ -191,6 +192,7 @@ public final class UsageRegistry implements Serializable {
     SendToError.class,
     ChangeColCaseNames.class,
     SetCharset.class,
+    InvokeHttp.class,
     SetRecordDelimiter.class
   );
 
