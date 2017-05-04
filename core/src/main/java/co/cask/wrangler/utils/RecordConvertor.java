@@ -165,7 +165,7 @@ public final class RecordConvertor implements Serializable {
       case NULL:
         return null; // nothing much to do here.
       case INT:
-        if (object instanceof Integer) {
+        if (object instanceof Integer || object instanceof Short) {
           return (Integer) object;
         } else if (object instanceof String) {
           String value = (String) object;
@@ -185,6 +185,10 @@ public final class RecordConvertor implements Serializable {
       case LONG:
         if (object instanceof Long) {
           return (Long) object;
+        } else if (object instanceof Integer) {
+          return ((Integer) object).longValue();
+        } else if (object instanceof Short) {
+          return ((Short) object).longValue();
         } else if (object instanceof String) {
           String value = (String) object;
           try {
@@ -203,6 +207,12 @@ public final class RecordConvertor implements Serializable {
       case FLOAT:
         if (object instanceof Float) {
           return (Float) object;
+        } else if (object instanceof Long) {
+          return ((Long) object).floatValue();
+        } else if (object instanceof Integer) {
+          return ((Integer) object).floatValue();
+        } else if (object instanceof Short) {
+          return ((Short) object).floatValue();
         } else if (object instanceof String) {
           String value = (String) object;
           try {
@@ -221,6 +231,14 @@ public final class RecordConvertor implements Serializable {
       case DOUBLE:
         if (object instanceof Double) {
           return (Double) object;
+        } else if (object instanceof Float) {
+          return ((Float) object).doubleValue();
+        } else if (object instanceof Long) {
+          return ((Long) object).doubleValue();
+        } else if (object instanceof Integer) {
+          return ((Integer) object).doubleValue();
+        } else if (object instanceof Short) {
+          return ((Short) object).doubleValue();
         } else if (object instanceof String) {
           String value = (String) object;
           try {
