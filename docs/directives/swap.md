@@ -5,13 +5,13 @@ The SWAP directive swaps column names of two columns.
 
 ## Syntax
 ```
-swap <column-1> <colum-2>
+swap <column1> <colum2>
 ```
 
 ## Usage Notes
 
-The SWAP directive renames `<column-1>` to the name of `<column-2>` and `<column-2>` to
-the name of `<column-1>`. If the either of the two columns are not present, execution of
+The SWAP directive renames `<column1>` to the name of `<column2>` and `<column2>` to
+the name of `<column1>`. If the either of the two columns are not present, execution of
 the directive fails.
 
 
