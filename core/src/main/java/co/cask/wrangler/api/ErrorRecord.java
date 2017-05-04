@@ -16,9 +16,12 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.Public;
+
 /**
  * Specifies the structure for Error records.
  */
+@Public
 public final class ErrorRecord {
   // Actual record that is errored.
   private final Record record;

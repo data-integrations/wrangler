@@ -1,6 +1,6 @@
 # Stemming
 
-The `stemming` directive applies the Porter stemmer algorithm for English words. The
+The STEMMING directive applies the Porter stemmer algorithm for English words. The
 Porter stemmer has excellent trade-off between speed, readability, and accuracy. It stems
 using a set of rules (transformations) applied in a succession of steps. Generally, it
 applies approximately 60 rules in 6 steps.
@@ -28,19 +28,19 @@ Using this record, a tokenized bag of words as a string array or list of strings
 example:
 ```
 {
-  "word": { "how", "are", "you", "doing", "do", "you", "have", "apples" }
+  "word" : { "how are you doing ? do you have apples?" }
 }
 ```
 
 Applying this directive:
 ```
-stemming ps_word
+stemming word
 ```
 
 The result would be this record:
 ```
 {
-  "word": { "how", "are", "you", "doing", "do", "you", "have", "apples" },
+  "word": { "how are you doing ? do you have apples?" },
   "word_porter": { "how", "ar", "you", "do", "do", "you", "have", "appl" }
 }
 ```

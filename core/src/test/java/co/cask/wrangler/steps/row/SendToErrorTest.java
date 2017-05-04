@@ -18,8 +18,8 @@ package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.internal.PipelineExecutor;
-import co.cask.wrangler.internal.TextDirectives;
+import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.executor.TextDirectives;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -16,11 +16,14 @@
 
 package co.cask.wrangler.api.i18n;
 
+import co.cask.wrangler.api.annotations.Public;
+
 import java.util.Locale;
 
 /**
  * i18n Messages Factory for creating different {@link Messages}.
  */
+@Public
 public final class MessagesFactory {
 
   /**

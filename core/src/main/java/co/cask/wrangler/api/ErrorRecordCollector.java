@@ -16,12 +16,15 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.annotations.Public;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * This is a error collector, a collection of all the records that are errored.
  */
+@Public
 public class ErrorRecordCollector {
   // Array of records that are erroed.
   private final List<ErrorRecord> errors;

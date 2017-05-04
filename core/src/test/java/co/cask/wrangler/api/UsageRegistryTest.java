@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.api;
 
-import co.cask.wrangler.internal.UsageRegistry;
+import co.cask.wrangler.executor.UsageRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 

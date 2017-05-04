@@ -1,6 +1,6 @@
 # Find and Replace
 
-The `find-and-replace` directive transforms string column values using a "sed"-like
+The FIND-AND-REPLACE directive transforms string column values using a "sed"-like
 expression to find and replace text.
 
 
@@ -37,7 +37,7 @@ find-and-replace message s/hello/world/g
 If you want to change a pathname that contains a slash (such as `/usr/local/bin` to
 `/common/bin`), you can use a backslash to escape any slashes:
 ```
-find-and-replace pathname s/\/usr\/local\/bin/\/common\/bin/
+  find-and-replace column s/\/usr\/local\/bin/\/common\/bin//g
 ```
 
 

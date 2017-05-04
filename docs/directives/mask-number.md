@@ -1,6 +1,6 @@
 # Mask Number
 
-The `mask-number` directive applies substitution masking on the column values.
+The MASK-NUMBER directive applies substitution masking on the column values.
 
 
 ## Syntax

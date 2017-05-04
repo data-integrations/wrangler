@@ -5,6 +5,7 @@
 *.jar
 *.war
 *.ear
+*.versionsBackup
 
 # Intellij Files & Dir #
 *.iml

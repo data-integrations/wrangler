@@ -22,8 +22,12 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
   * [VOICE-OVER] [End-to-End Demo Video](https://youtu.be/AnhF0qRmn24)
   * [SCREENCAST] [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
   * [SCREENCAST] [Realtime HL7 CCDA XML from Kafka into Time Parititioned Parquet](https://youtu.be/0fqNmnOnD-0)
-  * [SCREENCAST] [Parsing JSON File](https://youtu.be/vwnctcGDflE)
-  * [SCREENCAST] [Flattening Arrays](https://youtu.be/SemHxgBYIsY)
+  * [SCREENCAST] [Parsing JSON file](https://youtu.be/vwnctcGDflE)
+  * [SCREENCAST] [Flattening arrays](https://youtu.be/SemHxgBYIsY)
+  * [SCREENCAST] [Data cleansing with send-to-error directive](https://www.youtube.com/watch?v=aZd5H8hIjDc)
+  * [SCREENCAST] [Publishing to Kafka](https://www.youtube.com/watch?v=xdc8pvvlI48) 
+  * [SCREENCAST] [Fixed length to JSON](https://www.youtube.com/watch?v=3AXu4m1swuM)  
+  
 * Recipes
   * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
   * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)

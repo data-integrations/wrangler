@@ -16,9 +16,12 @@
 
 package co.cask.wrangler.api.validator;
 
+import co.cask.wrangler.api.annotations.PublicEvolving;
+
 /**
  * Interface for Validating 'T' properties.
  */
+@PublicEvolving
 public interface Validator<T> {
   /**
    * Initializes the validator.
