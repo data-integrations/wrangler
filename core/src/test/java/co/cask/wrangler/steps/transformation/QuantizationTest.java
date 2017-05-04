@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Tests {@link Quantization}
-     7 */
+ */
 public class QuantizationTest {
   @Test
   public void testQuanitization() throws Exception {
