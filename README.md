@@ -135,7 +135,7 @@ These are the different directives currently available:
   * [Regex Group Extractor](docs/directives/extract-regex-groups.md)
   * [Setting Character Set](docs/directives/set-charset.md)
   * [Setting Record Delimiter](docs/directives/set-record-delim.md)
-  * [Invoke HTTP Service](docs/directives/invoke-http.md)
+  * [Experimental : Invoke HTTP Service](docs/directives/invoke-http.md)
 * **Encoders and Decoders**
   * [Encode as Base-32/64 or Hex](docs/directives/encode.md)
   * [Decode Base-32/64 or Hex](docs/directives/decode.md)
