@@ -127,7 +127,7 @@ These directives are currently available:
 | [Set Column](docs/directives/set-column.md)                            | Sets the column value to the result of an expression execution   |
 | [Find and Replace](docs/directives/find-and-replace.md)                | Transforms string column values using a "sed"-like expression    |
 | [Index Split](docs/directives/index-split.md)                          | (_Deprecated_)                                                   |
-| [Invoke HTTP](docs/directives/invoke-http.md)                          | Invokes an HTTP Service (slow, _Experimental_)                   |
+| [Invoke HTTP](docs/directives/invoke-http.md)                          | Invokes an HTTP Service (_Experimental_, potentially slow)       |
 | [Quantization](docs/directives/quantize.md)                            | Quantizes a column based on specified ranges                     |
 | [Regex Group Extractor](docs/directives/extract-regex-groups.md)       | Extracts the data from a regex group into its own column         |
 | [Setting Character Set](docs/directives/set-charset.md)                | Sets the encoding and then converts the data to a UTF-8 String   |
