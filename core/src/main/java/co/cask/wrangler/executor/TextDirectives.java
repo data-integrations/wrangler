@@ -61,6 +61,7 @@ import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
 import co.cask.wrangler.steps.transformation.IndexSplit;
+import co.cask.wrangler.steps.transformation.InvokeHttp;
 import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
@@ -403,8 +404,21 @@ public class TextDirectives implements Directives {
         //set-charset <column> <charset>
         case "set-charset" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String charset = getNextToken(tokenizer, "\n", command, "charset", lineno, false);
+          String charset = getNextToken(tokenizer, "\n", command, "charset", lineno, true);
           steps.add(new SetCharset(lineno, directive, column, charset));
+        }
+        break;
+
+        //invoke-http <url> <column>[,<column>] <header>[,<header>]
+        case "invoke-http" : {
+          String url = getNextToken(tokenizer, command, "url", lineno);
+          String columnsOpt = getNextToken(tokenizer, command, "columns", lineno);
+          List<String> columns = new ArrayList<>();
+          for (String column : columnsOpt.split(",")) {
+            columns.add(column.trim());
+          }
+          String headers = getNextToken(tokenizer, "\n", command, "headers", lineno, true);
+          steps.add(new InvokeHttp(lineno, directive, url, columns, headers));
         }
         break;
 
@@ -424,7 +438,6 @@ public class TextDirectives implements Directives {
               String.format("Limit '%s' specified is not a number.", limitStr)
             );
           }
-
         }
         break;
 

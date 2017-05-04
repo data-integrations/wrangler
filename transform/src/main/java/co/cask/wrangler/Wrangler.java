@@ -76,9 +76,17 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
+   * Configures the plugin during deployment of the pipeline that uses the plugin.
+   *
+   * <p>
+   *   <ul>
+   *     <li>Parses the directives configured. If there are any issues they will highlighted duirng deployment</li>
+   *     <li>Input schema is validated.</li>
+   *     <li>Compiles pre-condition expression.</li>
+   *   </ul>
+   * </p>
    *
    * @param configurer
-   * @throws IllegalArgumentException
    */
   @Override
   public void configurePipeline(PipelineConfigurer configurer) throws IllegalArgumentException {
@@ -136,7 +144,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   /**
    * Validates input schema.
    *
-   * @param inputSchema
+   * @param inputSchema configured for the plugin.
    */
   void validateInputSchema(Schema inputSchema) {
     if (inputSchema != null) {
@@ -158,9 +166,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
+   * Initialies the wrangler by parsing the directives and creating the runtime context.
    *
-   * @param context
-   * @throws Exception
+   * @param context framework context being passed.
    */
   @Override
   public void initialize(TransformContext context) throws Exception {
