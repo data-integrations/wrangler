@@ -21,7 +21,6 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import org.apache.commons.lang.WordUtils;
 
 import java.util.List;
 
@@ -68,7 +67,6 @@ public class TitleCase extends AbstractStep {
   }
 
   private static String toTitleCase(String input) {
-    WordUtils.capitalizeFully()
     StringBuilder titleCase = new StringBuilder();
     boolean nextTitleCase = true;
 
