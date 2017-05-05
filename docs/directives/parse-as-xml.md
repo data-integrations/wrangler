@@ -1,18 +1,20 @@
-# Parse XML.
+# Parse as XML
 
-PARSE-AS-XML is a directive for parsing an XML document. The directive operates on column to parse that into to XML VTD
- object that can then be queried using [XPATH](xpath.md) or [XPATH-ARRAY](xpath.md) or [XPATH-ATTR](xpath-attr.md) or
- [XPATH-ARRAY-ATTR](xpath-attr.md)
+The PARSE-AS-XML directive parses an XML document. The directive operates on a column to
+parse that into an XML VTD object; that can be further queried using the
+[XPATH](xpath.md), or [XPATH-ARRAY](xpath.md), [XPATH-ATTR](xpath-attr.md), or
+[XPATH-ARRAY-ATTR](xpath-attr.md) directives.
 
-## Syntax 
 
+## Syntax
 ```
-  parse-as-xml <column>
+parse-as-xml <column>
 ```
 
-```column``` name of the column in the record that is a XML document.
+The `<column>` is the name of the column in the record that is an XML document.
+
 
 ## Usage Notes
 
-PARSE-AS-XML directive efficiently parses and represents the XML document into a in-memory structure that can then be
- efficiently queried using other directives.
+The PARSE-AS-XML directive efficiently parses and represents an XML document using an
+in-memory structure that can then be queried using other directives.

@@ -1,43 +1,46 @@
 # Extract Regex Groups
 
-EXTRACT-REGEX-GROUPS directive extracts the data from regex group into it's own column.
+The EXTRACT-REGEX-GROUPS directive extracts the data from a regex group into its own
+column.
+
+
 ## Syntax
-
 ```
- extract-regex-groups <column> <regex-with-groups>
+extract-regex-groups <column> <regex-with-groups>
 ```
 
-The directive generates additional columns based on the regex groups. This ignores the $0 regex group.
+The directive generates additional columns based on the regex in `<regex-with-groups>`.
+This ignores the `$0` regex group.
+
 
 ## Usage Notes
 
-If multiple groups are matched then it creates multiple columns. The base name of the columns is
-appended with the group number the pattern is matched for.
+If multiple groups are matched, the directive creates multiple columns.
+
+The base name of the column is appended with the match count and match position the
+pattern is matched for: `<column>_<match-count>_<match-position>`.
 
 
 ## Example
 
-Let's look at how this work with an example
-
+Using this record as an example:
 ```
-  {
-    "title" : "Toy Story (1995)"
-  }
-```
-
-applying following directives
-
-```
-  extract-regex-groups title [^(]+\(([0-9]{4})\).*
+{
+  "title": "Toy Story (1995)"
+}
 ```
 
-would result in record as follows
-
+Applying this directive:
 ```
-  {
-    "title" : "Toy Story (1995)",
-    "title_1_1 : "1995"
-  }
+extract-regex-groups title [^(]+\(([0-9]{4})\).*
 ```
 
-```title_1_1``` follows the format of ```<column>_<match-count>_<match-position>```
+would result in this record:
+```
+{
+  "title": "Toy Story (1995)",
+  "title_1_1: "1995"
+}
+```
+
+The field `title_1_1` follows the format of `<column>_<match-count>_<match-position>`.

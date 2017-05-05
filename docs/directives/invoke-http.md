@@ -1,84 +1,82 @@
-# Invoke HTTP REST Call
+# Invoke HTTP
 
-INVOKE-HTTP is a experimental directive to trigger a HTTP POST request
-with body being the fields selected.
+The INVOKE-HTTP directive is an experimental directive to trigger an HTTP POST request
+with a body composed from specified fields.
+
 
 ## Syntax
-
 ```
-    invoke-http <url> <column>[,<column>*] <header>[,<header>]*
+invoke-http <url> <column>[,<column>*] <header>[,<header>*]
 ```
 
-```column``` specifies the value to be sent to the service in the post
-request.
+The `<column>`s specify the value to be sent to the service `<url>` in the POST request as
+the `body`.
+
 
 ## Usage Notes
 
-INVOKE-HTTP directive is used to apply some transformation on data using
-some of the existing REST services. This directive passes the columns
-selected in the post body as JSON Object. The keys in the JSON object
-are the column names and the values and type are derived from the object
-stored in the column.
+The INVOKE-HTTP directive is used to apply a transformation on data using an existing REST
+service. This directive passes the specified columns as the POST body as a JSON Object.
+The keys in the JSON object are the column names, with the values and their types derived
+from the objects stored in the column.
 
-Upon processing of request by the service, INVOKE-HTTP directive expects
-the data to be written back in a JSON object. The JSON object written
-is then added to the record with keys being the column name and the value
-being the value returned for the key. The types are all valid JSON types.
+Upon processing of request by the service, the INVOKE-HTTP directive expects the data to
+be written back as a JSON object. The JSON object is then added to the record with its
+keys being the column names and the values being the values returned for the keys. The
+types are all valid JSON types.
 
-Currently, the JSON response has to be simple types. No nested JSONs are
-currently supported.
+Currently, the JSON response has to be simple types. Nested JSONs are not currently
+supported.
 
-> NOTE: There is a cost associated with making HTTP calls and should not
-be used in a environment while processing a lot of data.
+*Note:* There is a significant cost associated with making an HTTP call and this directive
+should not be used in an environment which would use it to process large quantities of
+data.
 
-When a HTTP Services requires one or more header to be passed, they
-can he specified as key-value pair. E.g.
-
+When an HTTP service requires more than one header to be passed, they can be specified as
+key-value pairs. For example:
 ```
   X-Proxy-Server=0.0.0.0,X-Auth-Type=Basic
 ```
 
-> NOTE: The key and value are separated by an equal-to(=) character and
-headers are separated by comma(,)
+*Note:* The key and value are separated by an equals sign (`=`) and headers are separated
+by commas (`,`).
 
-## Example
 
-Let's take a simple example to illustrate how the INVOKE-HTTP plugin
-would work. Let's assume you have a record as follows:
+## Examples
+
+Using this record as an example:
 ```
-    {
-        "latitude" : 24.56,
-        "longitude" : -65.23,
-        "IMEI" : 212332321313,
-        "location" : "Mars City"
-    }
-```
-
-And we have a couple of service ready to go
-
-* A service to locate the zipcode given latitude and longitude and
-* A service to get manufacturer name and date given a IMEI number
-
-Following is the way to invoke the service passing in the right info.
-```
-    invoke-http http://hostname/v3/api/geo-find latitude,longitude
+{
+    "latitude": 24.56,
+    "longitude": -65.23,
+    "IMEI": 212332321313,
+    "location": "Mars City"
+}
 ```
 
-Would translate into a ```POST``` call with body as follows:
+Assume that a service to locate a postal code, given a latitude and longitude, is available at
+an address such as `http://hostname/v3/api/geo-find`.
 
+Applying this directive:
+```
+invoke-http http://hostname/v3/api/geo-find latitude,longitude
+```
+
+This would be translated into a `POST` call:
 ```
 POST v3/api/geo-find
 ```
 
-and body as
+with a body of:
 ```
-    {
-        "latitude" : 24.56,
-        "longitude" : -65.23
-    }
+{
+    "latitude": 24.56,
+    "longitude": -65.23
+}
 ```
-Note only the above two fields are sent to the backend as they are the
-only fields specified as parameters to the directive.
 
-In case of any failure, the input record is passed to the error collector
-so that it can be re-processed later. 
+Note that only the two fields specified as parameters to the directive are sent to the
+service.
+
+In case of a failure, the input record is passed to the error collector so that it can be
+re-processed later.

@@ -1,49 +1,50 @@
-# Replace or Renames Column Names in Bulk
+# Columns Replace
 
-COLUMNS-REPLACE directive provides the ability to clean up the column names in bulk.
+The COLUMNS-REPLACE directive alters column names in bulk.
+
 
 ## Syntax
-
 ```
- columns-replace <sed-expression>
-```
-
-```sed-expression``` specifies the sed expression syntax. e.g. ```s/data_//g```
-
-## Usage Notes
-
-Let's consider a simple example. Following is the record that contains
-columns that all have ```data_``` as prefix.
-
-```
-  {
-    "data_name": "root",
-    "data_first_name": "mars",
-    "data_last_name": "joltie",
-    "data_data_id": 1,
-    "data_address": "150 Mars Ave, Mars City, Mars, 8899898",
-    "mars_ssn" : "MARS-456282"
-  }
+columns-replace <sed-expression>
 ```
 
-applying the directive as follows
+The `<sed-expression>` specifies the [sed
+expression](https://www.gnu.org/software/sed/manual/html_node/Regular-Expressions.html)
+syntax, such as `s/data_//g`.
 
+
+## Example
+
+Using this record as an example, these columns all have `data_` as a prefix in their
+column names:
 ```
-  columns-replace s/^data_//g
+{
+  "data_name": "root",
+  "data_first_name": "mars",
+  "data_last_name": "joltie",
+  "data_data_id": 1,
+  "data_address": "150 Mars Ave, Mars City, Mars, 8899898",
+  "mars_ssn": "MARS-456282"
+}
 ```
 
-would result in the record that has an has column names prefix ```data_``` replaced
-with empty string, making the record look as follows:
-
+Applying this directive:
 ```
-  {
-    "name": "root",
-    "first_name": "mars",
-    "last_name": "joltie",
-    "data_id": 1,
-    "address": "150 Mars Ave, Mars City, Mars, 8899898",
-    "mars_ssn" : "MARS-456282"
-  }
+columns-replace s/^data_//g
 ```
 
-> Note: The field value is untouched during this process. This operates only on the column names.
+would result in the record having any column names that were prefixed with `data_`
+replaced with an empty string:
+```
+{
+  "name": "root",
+  "first_name": "mars",
+  "last_name": "joltie",
+  "data_id": 1,
+  "address": "150 Mars Ave, Mars City, Mars, 8899898",
+  "mars_ssn": "MARS-456282"
+}
+```
+
+**Note:** The field value is untouched during this directive. This operates only on the
+column names.

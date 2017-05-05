@@ -1,17 +1,19 @@
-# Setting Character set encoding
+# Set Charset
 
-SET-CHARSET directive sets the encoding of the current data to easily
-convert it to a String.
+The SET-CHARSET directive sets the encoding of the current data and then converts it
+from that to a UTF-8 string.
+
 
 ## Syntax
-
 ```
  set-charset <column> <charset>
 ```
 
+* `column` is the name of the column to be converted
+* `charset` is the charset to be used in converting the column
+
+
 ## Usage Notes
 
-This directive sets the character set of ```column``` that it is currently
-in. Once set, it decodes it to UTF-8. Upon conversion, the ```column```
- is then converted to UTF-8 string.
-
+This directive sets the character set of `column` to `charset`. It decodes the column
+using that `charset` and converts it to a UTF-8 String.

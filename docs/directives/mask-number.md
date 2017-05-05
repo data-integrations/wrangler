@@ -1,69 +1,67 @@
-# Mask Numbers
-MASK-NUMBER is a directive for masking SSN, Credit Card or any other senstitive numbers.
+# Mask Number
+
+The MASK-NUMBER directive applies substitution masking on the column values.
+
 
 ## Syntax
 ```
-    mask-number <column> <mask>
+mask-number <columm> <pattern>
 ```
-Masks the ```column``` data using the ```mask``` specified.
+
+* The `<column>` specifies the name of an existing column to be masked
+* The `<pattern>` is a substitution pattern to be used to mask the column values.
+
 
 ## Usage Notes
 
-MASK-NUMBER provides substitution masking which in general is used for
-masking credit card or SSN numbers. This type of masking is called fixed masking,
-where the pattern is applied on the fixed length string.
+Substitution masking is generally used for masking credit card or social security numbers.
+The MASK-NUMBER applies substitution masking on the column values. This type of masking
+is fixed masking, where the pattern is applied on the fixed length string.
 
-The mask is specified as follows:
+These rules are used for the pattern:
 
-* Use of '#' will include the digit from the position in the input string.
-* Use of x/X to make the digit at the position (X is converted to lowercase in the resulting string)
-* Any other characters will be passed to output as-is if they occur in mask.
+* Use of `#` will include the digit from the position
+* Use `x` or any other character to mask the digit at that position
 
-## Example
 
-Let's say we have a record as follows:
+## Examples
 
+Using this record as an example:
 ```
- {
-   "name" : "Joltie",
-   "ssn1"  : "000001234",
-   "ssn2"  : "000-00-1234",
- }
-```
-
-Following masking directives applied on the SSN field in the record
-```
- mask-number ssn1 xxx-xx-####
- mask-number ssn2 xxx-xx-####
+{
+  "first": "Root",
+  "last": "Joltie",
+  "ssn": "000-00-0000",
+  "cc": "4929790943424701"
+}
 ```
 
-will result in the ssn1 and ssn2 fields being masked as follows:
+Applying this directive:
 ```
- {
-   "name" : "Joltie",
-   "ssn1"  : "xxx-xx-1234",
-   "ssn2"  : "xxx-xx-1234",
- }
+mask-number ssn XXX-XX-####
 ```
 
-Masking can be complex, let's assume a another example:
-
+would result in this record:
 ```
- {
-   "number" : "0000012349898"
- }
-```
-
-applying the following directive
-
-```
- mask-number number xxx-##-xx-##-XXXX-9
+{
+  "first": "Root",
+  "last": "Joltie",
+  "ssn": "XXX-XX-0000",
+  "cc": "4929790943424701"
+}
 ```
 
-will result in the following output record.
-
+Applying this directive:
 ```
- {
-   "number" : "xxx-00-xx-34-xxxx-9"
- }
+mask-number cc XXXXXXXXXXXX####
+```
+
+would result in this record:
+```
+{
+  "first": "Root",
+  "last": "Joltie",
+  "ssn": "000-00-0000",
+  "cc": "XXXXXXXXXXXX4701"
+}
 ```

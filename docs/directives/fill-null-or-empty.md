@@ -1,56 +1,56 @@
-# Fill Null or Empty Column
+# Fill Null or Empty
 
-FILL-NULL-OR-EMPTY directive fills column value with a fixed value if it's 'null' or empty.
+The FILL-NULL-OR-EMPTY directive fills column value with a fixed value if it is either
+`null` or empty ("").
+
 
 ## Syntax
 
 ```
- fill-null-or-empty <column> <fixed value>
+fill-null-or-empty <column> <fixed-value>
 ```
 
-```fixed value``` can only be on type string. If the ```column``` does not exist, then the directive
-execution will fail.
+* If the `<column>` does not exist, then the directive will fail.
+* The `<fixed-value>` can only be of type string.
+
 
 ## Usage Notes
 
-The FILL-NULL-OR-EMPTY directive fill the column value with ```fixed value``` if the column value is
-'null' or 'empty' (if and only if it's a string).
+The FILL-NULL-OR-EMPTY directive fills the column value with the `<fixed-value>` if the
+column value is `null` or empty (an empty string, "").
 
-Also, the ```fixed value``` cannot be a empty string value.
+The `<fixed-value>` must be a string and cannot be an empty string value.
 
-When the object in the record in a JSON object and it's a 'NULL', it ensure that
-it's applied to those records too.
+When the object in the record is a JSON object and it is `null`, the directive checks that
+it is also applied to those records.
+
 
 ## Example
 
-Let's look at how this work with an example
-
+Using this record as an example:
 ```
-  {
-    "id" : 1,
-    "fname" : "root",
-    "mname" : null,
-    "lname" : "joltie",
-    "address" : ""
-  }
-```
-
-applying following FILL-NULL-OR-EMPTY directive
-
-```
-  fill-null-or-empty mname NA
-  fill-null-or-empty address No address specified
+{
+  "id": 1,
+  "fname": "root",
+  "mname": null,
+  "lname": "joltie",
+  "address": ""
+}
 ```
 
-would result in record as follows
-
+Applying these directives:
 ```
-  {
-    "id" : 1,
-    "fname" : "root",
-    "mname" : "NA",
-    "lname" : "joltie",
-    "address" : "No address specified"
-  }
+fill-null-or-empty mname NA
+fill-null-or-empty address No address specified
 ```
 
+would result in this record:
+```
+{
+  "id": 1,
+  "fname": "root",
+  "mname": "NA",
+  "lname": "joltie",
+  "address": "No address specified"
+}
+```
