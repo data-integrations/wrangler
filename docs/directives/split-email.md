@@ -1,103 +1,95 @@
 # Split Email
 
-SPLIT-EMAIL directive splits email id into 'account' and 'domain'.
+The SPLIT-EMAIL directive splits an email ID into an account and its domain.
+
 
 ## Syntax
-
 ```
-  split-email <column>
+split-email <column>
 ```
 
-```column``` is a column containing email addresses.
+The `<column>` is a column containing an email address.
+
 
 ## Usage Notes
 
-The SPLIT-EMAIL directive will parse the email address into its constituents - account and domain.
+The SPLIT-EMAIL directive will parse email address into its constituent parts: account
+and domain.
 
-Upon splitting the email address, the directive will create two new columns
-appending to the original column name.
+After splitting the email address, the directive will create two new columns, appending to
+the original column name:
 
-* column_account &
-* column_domain
+* `column_account`
+* `column_domain`
 
+If the email address cannot be parsed correctly, the additional columns will still be
+generated, but they would be set to `null` depending on the parts that could not be parsed.
 
-If the email address cannot be parsed correctly, the additional columns will be still
-generated, but they would be set to 'null' appropriately.
-
-When the email address field in the record is 'null'
-
-```
-  {
-    "email" : null
-  }
-```
-
-the directive would generate the following
-
-```
-  {
-    "email" : null,
-    "email_account" : null,
-    "email_domain" : null
-  }
-```
 
 ## Examples
 
-Let's assume a record as follows
+Using this record as an example:
 
 ```
-  {
-    "name" : "Root, Joltie",
-    "email_address" : "root@mars.com",
-  }
+{
+  "name": "Root, Joltie",
+  "email_address": "root@example.com",
+}
 ```
 
-applying the directive
-
+Applying this directive:
 ```
-  split-email email_address
-```
-
-would generate the following record
-
-```
-  {
-    "name" : "Root, Joltie",
-    "email_address" : "root@mars.com",
-    "email_address_account" : "root",
-    "email_address_domain" : "mars.com"
-  }
+split-email email_address
 ```
 
-In case of any errors parsing.
+would result in this record:
+```
+{
+  "name": "Root, Joltie",
+  "email_address": "root@example.com",
+  "email_address_account": "root",
+  "email_address_domain": "example.com"
+}
+```
 
-## Examples
+In case of any errors parsing: when the email address field in the record is `null`:
+```
+{
+  "email": null
+}
+```
 
-Let's assume a complex records of email ids
+this would result in the record:
+```
+{
+  "email": null,
+  "email_account": null,
+  "email_domain": null
+}
+```
 
+Using these records as an example, with a variety of email IDs:
 ```
 [
-  { "email" : 'root@example.org'  },
-  { "email" : 'joltie.xxx@gmail.com'  },
-  { "email" : 'joltie_xxx@hotmail.com'  },
-  { "email" : 'joltie."@."root."@".@yahoo.com'  },
-  { "email" : 'Joltie, Root <joltie.root@hotmail.com>' },
-  { "email" : 'Joltie,Root<joltie.root@hotmail.com>'  },
-  { "email" : 'Joltie,Root<joltie.root@hotmail.com'  },
+  { "email": "root@example.org" },
+  { "email": "joltie.xxx@gmail.com" },
+  { "email": "joltie_xxx@hotmail.com" },
+  { "email": "joltie.'@.'root.'@'.@yahoo.com" },
+  { "email": "Joltie, Root <joltie.root@hotmail.com>" },
+  { "email": "Joltie,Root<joltie.root@hotmail.com>" },
+  { "email": "Joltie,Root<joltie.root@hotmail.com" }
 ]
 ```
 
-running the directive would result in the following output records
-
+running the directive results in these records:
 ```
 [
-  { "email" : 'root@example.org', "email_account" : 'root', "email_domain" : 'cask.co'  },
-  { "email" : 'joltie.xxx@gmail.com', "email_account" : 'joltie.xxx', "email_domain" : 'gmail.com' },
-  { "email" : 'joltie_xxx@hotmail.com', "email_account" : 'joltie_xxx', "email_domain" : 'hotmail.com'  },
-  { "email" : 'joltie."@."root."@".@yahoo.com', "email_account" : 'joltie."@."root."@".', "email_domain" : 'yahoo.com'  },
-  { "email" : 'Joltie, Root <joltie.root@hotmail.com>', "email_account" : 'joltie.root', "email_domain" : 'hotmail.com'  },
-  { "email" : 'Joltie,Root<joltie.root@hotmail.com>', "email_account" : 'joltie.root', "email_domain" : 'hotmail.com'  },
-  { "email" : 'Joltie,Root<joltie.root@hotmail.com', "email_account" : null, "email_domain" : null  },
+  { "email": "root@example.org", "email_account": "root", "email_domain": "cask.co" },
+  { "email": "joltie.xxx@gmail.com", "email_account": "joltie.xxx", "email_domain": "gmail.com" },
+  { "email": "joltie_xxx@hotmail.com", "email_account": "joltie_xxx", "email_domain": "hotmail.com" },
+  { "email": "joltie.'@.'root.'@'.@yahoo.com", "email_account": "joltie.'@.'root.'@'.", "email_domain": "yahoo.com" },
+  { "email": "Joltie, Root <joltie.root@hotmail.com>", "email_account": "joltie.root", "email_domain": "hotmail.com" },
+  { "email": "Joltie,Root<joltie.root@hotmail.com>", "email_account": "joltie.root", "email_domain": "hotmail.com" },
+  { "email": "Joltie,Root<joltie.root@hotmail.com", "email_account": null, "email_domain": null }
 ]
 ```

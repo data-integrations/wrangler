@@ -1,62 +1,57 @@
-# Change Column case
+# Change Column Case
 
-CHANGE-COLUMN-CASE directive changes the column names to either uppercase or lowercase.
+The CHANGE-COLUMN-CASE directive changes column names to either lowercase or uppercase.
+
 
 ## Syntax
-
 ```
- change-column-case upper|lower
-```
-
-if case the type is incorrect or not specified, then it defaults to lowercase.
-
-## Example
-
-Let's look at how this work with an example
-
-```
-  {
-    "Id" : 1,
-    "Gender" : "male",
-    "FNAME" : "Root",
-    "lname" : "JOLTIE"
-    "Address" : "67 MARS AVE, MARSCIty, Marsville, Mars"
-  }
+change-column-case lower|upper
 ```
 
-applying following directives
+If the case specified is either incorrect or missing, it defaults to lowercase.
 
-```
-  change-column-case upper
-```
 
-would result in record as follows
+## Examples
 
+Using this record as an example:
 ```
-  {
-    "ID" : 1,
-    "GENDER" : "MALE",
-    "FNAME" : "Root",
-    "LNAME" : "Joltie"
-    "ADDRESS" : "67 mars ave, marscity, marsville, mars"
-  }
+{
+  "Id": 1,
+  "Gender": "male",
+  "FNAME": "Root",
+  "lname": "JOLTIE",
+  "Address": "67 MARS AVE, MARSCIty, Marsville, Mars"
+}
 ```
 
-applying following directives
-
+Applying this directive:
 ```
-  change-column-case lower
-```
-
-would result in record as follows
-
-```
-  {
-    "id" : 1,
-    "gender" : "MALE",
-    "fname" : "Root",
-    "lname" : "Joltie"
-    "address" : "67 mars ave, marscity, marsville, mars"
-  }
+change-column-case lower
 ```
 
+would result in this record:
+```
+{
+  "id": 1,
+  "gender": "MALE",
+  "fname": "Root",
+  "lname": "Joltie",
+  "address": "67 mars ave, marscity, marsville, mars"
+}
+```
+
+Applying this directive:
+```
+change-column-case upper
+```
+
+would result in this record:
+```
+{
+  "ID": 1,
+  "GENDER": "MALE",
+  "FNAME": "Root",
+  "LNAME": "Joltie",
+  "ADDRESS": "67 mars ave, marscity, marsville, mars"
+}
+```

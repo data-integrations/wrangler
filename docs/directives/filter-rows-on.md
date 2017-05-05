@@ -1,56 +1,62 @@
-# Filter Row based on Regular Expression
+# Filter Rows On
 
-FILTER-ROW-ON directive provides a way to filters records from the dataset.
+The FILTER-ROWS-ON directive filters records based on a condition.
+
 
 ## Syntax
 ```
-  filter-rows-on <filter-type> <options>
+filter-rows-on <filter-type> <options>
 ```
 
-```filter-type``` specifies the type of filter and options associated with the filter specified.
+The `<filter-type>` specifies the type of filter used and the options to be supplied to it.
+
+Supported filter types and their options:
 
 ```
-  filter-rows-on condition-true <boolean-expression>
-  filter-rows-on condition-false <boolean-expression>
-  filter-rows-on regex-match <regular-expression>
-  filter-rows-on regex-not-match <regular-expression>
-  filter-rows-on empty-or-null-columns <column>[,<column>]*
+condition-false <boolean-expression>
+condition-true <boolean-expression>
+empty-or-null-columns <column>[,<column>]*
+regex-match <regular-expression>
+regex-not-match <regular-expression>
 ```
+
 
 ## Usage Notes
 
-The FILTER-ROW-ON directive applies the regular expression on a column value for every record.
- If regex matches the column value, then the record is omitted, else it's passed as-is to the input of the
- next directive in the pipeline.
+The FILTER-ROWS-ON directive applies the filter type and a boolean or regular expression
+on a column value for each record. If the expression matches or returns `true` for the
+column value, then the record is omitted; otherwise, it is passed on as-is to the input of
+the next directive.
+
+Note that it is a combination of the `<filter-type>` and the options. For instance, if
+`condition-true` is used and its `<boolean-expression>` evaluates to `true`, then the row
+will be omitted and not passed on.
+
 
 ## Examples
 
-Let's illustrate how this directive works with a concrete example.
-Let's assume that you have input records as follows:
-
+Using this record as an example:
 ```
-  {
-    "id" : 1
-    "name" : "Joltie, Root",
-    "emailid" : "jolti@hotmail.com",
-    "hrlywage" : "12.34",
-    "gender" : "Male",
-    "country" : "US",
-  }
+{
+  "id": 1,
+  "name": "Joltie, Root",
+  "emailid": "jolti@hotmail.com",
+  "hrlywage": 12.34,
+  "gender": "Male",
+  "country": "US"
+}
 ```
 
-You want to operate only on the records where an individual is residing in ```country``` US.
-
+Applying this directive:
 ```
-  filter-row-if-true country !~ US
+filter-rows-on condition-true country !~ 'US'
 ```
+would result in filtering out records for individuals that are not in the US (where
+`country` does not match "US").
 
-Will result in filtering out records for individuals that are not in US.
-
-Low let's say you want to filter out individual within US who's ```hrlywage``` is greater than 12.
-
+Applying this directive:
 ```
-  filter-row-if-true (country !~ US && hrlywage > 12)
+filter-rows-on condition-true (country !~ 'US' && hrlywage > 12)
 ```
-
-Will result in records that have individual who reside in US and who's hourly wage is less than 12.
+would result in filtering out records for individuals that are not in the US (where
+`country` does not match "US") and whose hourly wage (`hrlywage`) is greater than 12.

@@ -1,24 +1,26 @@
 # Administration and Management Services
 
-* [Creating Workspace](#creating-workspace)
-* [Deleting Workspace](#deleting-workspace)
-* [Upload File to Workspace](#upload-file-to-workspace)
-* [Download File from Workspace](#download-file-from-workspace)
+* [Creating a Workspace](#creating-a-workspace)
+* [Deleting a Workspace](#deleting-a-workspace)
+* [Uploading a File to a Workspace](#uploading-a-file-to-a-workspace)
+* [Downloading a File from a Workspace](#downloading-a-file-from-a-workspace)
 
-**Creating Workspace**
-----
-  This REST API call creates a workspace or scratch pad for temporarily storing the data to be wrangled in the backend. 
-Workspace is identified by an identifier that can be alpha-numeric with only other allowed character as underscore(_).
+
+<a name="creating-a-workspace"></a>
+## Creating a Workspace
+
+This RESTful API call creates a workspace, a scratch pad for temporarily storing the data to be wrangled in the backend.
+A workspace is identified by a name containing either alphanumeric or underscore (_) characters.
 
 * **URL**
 
   `workspaces/:workspaceid`
 
-* **Method:**
-  
+* **Method**
+
   `PUT`
-  
-*  **URL Params**
+
+* **URL Params**
 
   _None_
 
@@ -26,36 +28,36 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
 
   _Not Applicable_
 
-* **Success Response:**
+* **Success Response**
 
-  * **Code:** 200 </br> **Content:** 
-  ```
-    { 
-      'status' : 200,
-      'message' : "Successfully created workspace ':workspaceid'"
-    }
-  ```
- 
-* **Error Response:**
+  * **Code** 200
+    **Content**
+    ```
+      {
+        'status': 200,
+        'message': "Successfully created workspace ':workspaceid'"
+      }
+    ```
 
-  * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    { 
-      'status' : 500,
-      'message' : "<appropriate error message>"
-    }
-  ```
-  **OR**
-  
-   * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    Unable to route to service <url>
-  ```
-  
+* **Error Responses**
 
-* **Sample Call:**
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      {
+        'status': 500,
+        'message': "<appropriate error message>"
+      }
+    ```
+    or
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      Unable to route to service <url>
+    ```
+
+* **Sample Call**
 
   ```
     $.ajax({
@@ -65,26 +67,28 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
       success : function(r) {
         console.log(r);
       }
-    });  
+    });
   ```
 
-* **Notes:**
+* **Notes**
 
-  API call will fail if the backend service is not started or if dataset write fails. 
-  
-**Deleting Workspace**
-----
-  This REST API call deletes the workspace or scratch pad. This will also delete any data associated with it. 
+The API call will fail if the backend service is not started or if the dataset write fails.
+
+
+<a name="deleting-a-workspace"></a>
+## Deleting a Workspace
+
+This RESTful API call deletes a workspace. This will also delete any data associated with it.
 
 * **URL**
 
   `workspaces/:workspaceid`
 
-* **Method:**
-  
+* **Method**
+
   `DELETE`
-  
-*  **URL Params**
+
+* **URL Params**
 
   _None_
 
@@ -92,36 +96,37 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
 
   _Not Applicable_
 
-* **Success Response:**
+* **Success Response**
 
-  * **Code:** 200 </br> **Content:** 
-  ```
-    { 
-      'status' : 200,
-      'message' : "Successfully deleted workspace ':workspaceid'"
-    }
-  ```
- 
-* **Error Response:**
+  * **Code** 200
+    **Content**
+    ```
+      {
+        'status': 200,
+        'message': "Successfully deleted workspace ':workspaceid'"
+      }
+    ```
 
-  * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    { 
-      'status' : 500,
-      'message' : "<appropriate error message>"
-    }
-  ```
-  **OR**
-  
-   * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    Unable to route to service <url>
-  ```
-  
+* **Error Responses**
 
-* **Sample Call:**
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      {
+        'status': 500,
+        'message': "<appropriate error message>"
+      }
+    ```
+    or
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      Unable to route to service <url>
+    ```
+
+
+* **Sample Call**
 
   ```
     $.ajax({
@@ -131,26 +136,28 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
       success : function(r) {
         console.log(r);
       }
-    });  
+    });
   ```
 
-* **Notes:**
+* **Notes**
 
-  API call will fail if the backend service is not started or if dataset write fails.   
+The API call will fail if the backend service is not started or if the dataset write fails.
 
-**Upload File to Workspace**
-----
-  This REST API call will upload a file to the workspace. The file is split into lines based on line delimiter (eol).
+
+<a name="uploading-a-file-to-a-workspace"></a>
+## Uploading a File to a Workspace
+
+This RESTful API call will upload a file to a workspace. The file is split into lines based on a line delimiter (EOL).
 
 * **URL**
 
   `workspaces/:workspaceid/upload`
 
-* **Method:**
-  
+* **Method**
+
   `POST`
-  
-*  **URL Params**
+
+* **URL Params**
 
   _None_
 
@@ -158,46 +165,47 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
 
   _Not Applicable_
 
-* **Success Response:**
+* **Success Response**
 
-  * **Code:** 200 </br> **Content:** 
-  ```
-    { 
-      'status' : 200,
-      'message' : "Successfully uploaded data to workspace ':workspaceid' (records 1000)"
-    }
-  ```
- 
-* **Error Response:**
+  * **Code** 200
+    **Content**
+    ```
+      {
+        'status': 200,
+        'message': "Successfully uploaded data to workspace ':workspaceid' (records 1000)"
+      }
+    ```
 
-  * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    { 
-      'status' : 500,
-      'message' : "Body not present, please post the file containing the records to be wrangle."
-    }
-  ```
-  **OR**
-  
-   * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    Unable to route to service <url>
-  ```
-  
-  **OR**
-  
-  * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    { 
-      'status' : 500,
-      'message' : "<appropriate error message>"
-    }
-  ```
- 
-* **Sample Call:**
+* **Error Responses**
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      {
+        'status': 500,
+        'message': "Body not present, please post the file containing the records to be wrangle."
+      }
+    ```
+    or
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      Unable to route to service <url>
+    ```
+
+    or
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      {
+        'status': 500,
+        'message': "<appropriate error message>"
+      }
+    ```
+
+* **Sample Call**
 
   ```
     $.ajax({
@@ -213,22 +221,25 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
         },
         error: function(r) {
           console.log(r);
-        });
+      }
+    });
   ```
-  
-**Download File from Workspace**
-----
-  This REST API allows to download data stores in the workspace.
+
+
+<a name="downloading-a-file-from-a-workspace"></a>
+## Downloading a File from a Workspace
+
+This RESTful API will download to a file the data stores in a workspace.
 
 * **URL**
 
   `workspaces/:workspaceid/download`
 
-* **Method:**
-  
+* **Method**
+
   `GET`
-  
-*  **URL Params**
+
+* **URL Params**
 
   _None_
 
@@ -236,43 +247,44 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
 
   _Not Applicable_
 
-* **Success Response:**
+* **Success Response**
 
-  * **Code:** 200 </br> **Content:** 
-  ```
-    <data stored in workspace>
-  ```
- 
-* **Error Response:**
+  * **Code** 200
+    **Content**
+    ```
+      <data stored in workspace>
+    ```
 
-  * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    { 
-      'status' : 500,
-      'message' : "No data exists in the workspace. Please upload the data to this workspace."
-    }
-  ```
-  **OR**
-  
-   * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    Unable to route to service <url>
-  ```
-  
-  **OR**
-  
-  * **Code:** 500 Server Error <br />
-    **Content:** 
-  ```
-    { 
-      'status' : 500,
-      'message' : "<appropriate error message>"
-    }
-  ```
- 
-* **Sample Call:**
+* **Error Responses**
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      {
+        'status': 500,
+        'message': "No data exists in the workspace. Please upload the data to this workspace."
+      }
+    ```
+    or
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      Unable to route to service <url>
+    ```
+
+    or
+
+  * **Code** 500 Server Error
+    **Content**
+    ```
+      {
+        'status': 500,
+        'message': "<appropriate error message>"
+      }
+    ```
+
+* **Sample Call**
 
   ```
     $.ajax({
@@ -283,5 +295,6 @@ Workspace is identified by an identifier that can be alpha-numeric with only oth
         },
         error: function(r) {
           console.log(r);
-        });
-  ```  
+      }
+    });
+  ```

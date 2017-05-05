@@ -2,7 +2,7 @@
 
 ## Setup
 
-Hardware used for measuring the performance. 
+Hardware used for measuring the performance:
 
 * 2.9 GHz Intel Core i5
 * 16 GB 2133 MHz LPDDR3
@@ -10,14 +10,14 @@ Hardware used for measuring the performance.
 
 ## Light Data Transformation DMD
 
-Following are the high level transformations being performed on the data
+These are the high-level transformations being performed on the data:
 
-* Parsing of CSV,
-* Drop columns,
-* Setting defaults on column,
-* Changing case, 
-* Masking data and 
-* Filtering rows based on expression
+* Parsing of CSV
+* Drop columns
+* Setting defaults on column
+* Changing case
+* Masking data
+* Filtering rows based on an expression
 
 ## Directives
 
@@ -37,15 +37,15 @@ Following are the high level transformations being performed on the data
   mask-shuffle demo_4
 ```
 
-## Experiment
+## Experiments
 
-Following are two experiments that were run one with 13M records and other with 80M.
+These two experiments were run: the first with 13M records, and the second with 80M records.
 
 ### Experiment #1
 
-* Number of records : 13,499,973
-* Number of bytes : 4,499,534,313 (~ 4GB)
-* Number of columns : 18
+* Number of records: 13,499,973
+* Number of bytes: 4,499,534,313 (~ 4GB)
+* Number of columns: 18
 
 ### Performance Numbers
 
@@ -59,10 +59,10 @@ mean rate      = 64998.50 records/second
 
 ### Experiment #2
 
-* Total Time : 1294 seconds (21.5 minutes)
-* Number of records : 80,999,838 (80M)
-* Number of bytes : 26,997,205,878 (~ 26GB)
-* Number of columns : 18
+* Number of records: 80,999,838 (80M)
+* Number of bytes: 26,997,205,878 (~ 26GB)
+* Number of columns: 18
+* Total time: 1294 seconds (21.5 minutes)
 
 ### Performance Numbers
 ```

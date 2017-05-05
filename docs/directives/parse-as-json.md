@@ -1,65 +1,69 @@
-# Parse Json.
+# Parse as JSON
 
-PARSE-AS-JSON is a directive for parsing a as json object. The directive can operate on String or JSONObject types. When the directive is applied on a String or JSONObject, the high-level keys of the json are appeneded to the original column name to create new column names. 
+The PARSE-AS-JSON directive is for parsing a JSON object. The directive can operate on
+String or JSONObject types. When the directive is applied, the high-level keys of the JSON
+are appended to the original column name to create new column names.
 
-## Syntax 
 
+## Syntax
 ```
-  parse-as-json <column-name> [<depth>]
+parse-as-json <column-name> [<depth>]
 ```
 
-```column-name``` name of the column in the record that is a json object.
-```depth``` indicates the depth at which JSON object enumeration terminates.
+* `<column-name>` is the name of the column in the record that is a JSON object
+* `<depth>` indicates the depth at which JSON object enumeration terminates
 
 ## Usage Notes
 
-PARSE-AS-JSON directive helps you break-down a complex json into simple understandable and manageable chunks. When first applied on a json object, it breaks it down into keys and values. The value could in itself be a json object on which you can apply PARSE-AS-JSON directive again to flatten it out. 
+The PARSE-AS-JSON directive breaks down complex JSON into simpler
+understandable and manageable chunks. When first applied on a JSON object, it breaks it
+down into keys and values. The value could in itself be a JSON object on which you can
+apply the PARSE-AS-JSON directive again to flatten it out further.
 
-The key names in the event object are appeneded to the column that is being applied json parsing. The column names use dot notations. 
+The key names in the event object are appeneded to the column that is being applied JSON
+parsing. The column names use dot notation.
 
 ## Examples
-To review the process of parsing let's review it with an example. Let's say you have a simple json in record with field name ```body```
 
+Using this record as an example, in a field `body`:
 ```
-  {
-    "id" : 1,
-    "name" : {
-      "first" : "Root",
-      "last"  : "Joltie"
-    },
-    "age" : 22,
-    "weigth" : 184,
-    "height" : 5.8
-  }
-
+{
+  "id": 1,
+  "name": {
+    "first": "Root",
+    "last": "Joltie"
+  },
+  "age": 22,
+  "weigth": 184,
+  "height": 5.8
+}
 ```
-The application of first directive
 
+Applying this directive:
 ```
 parse-as-json body
 ```
 
-Would generate following field names and field values
+would result in this record:
 
-| Field Name | Field Values | Field Type |
-| ------------- | ------------- | ----------------- |
-| **body** | ```{ ... }``` | String |
-| **body.id** | 1 | Integer |
-| **body.name** | ```{ "first" : "Root", "last" : "Joltie" }``` | JSONObject |
-| **body.age** | 22 | Integer |
-| **body.weight** | 184 | Integer |
-| **body.height** | 5.8 | Double |
+| Field Name    | Field Values                            | Field Type |
+| ------------- | --------------------------------------- | ---------- |
+| `body`        | `{ ... }`                               | String     |
+| `body_id`     | 1                                       | Integer    |
+| `body_name`   | `{ "first": "Root", "last": "Joltie" }` | JSONObject |
+| `body_age`    | 22                                      | Integer    |
+| `body_weight` | 184                                     | Integer    |
+| `body_height` | 5.8                                     | Double     |
 
-Applying the same directive on field ```body.name``` generates the following results
+Applying the same directive, but just on the field `body_name` would result in this record:
 
-| Field Name | Field Values | Field Type |
-| ------------- | ------------- | ----------------- |
-| **body** | ```{ ... }``` | String |
-| **body.id** | 1 | Integer |
-| **body.name** | ```{ "first" : "Root", "last" : "Joltie" }``` | JSONObject |
-| **body.age** | 22 | Integer |
-| **body.weight** | 184 | Integer |
-| **body.height** | 5.8 | Double |
-| **body.name.first** | "Root" | String |
-| **body.name.last** | "Joltie" | String |
-
+| Field Name        | Field Values                            | Field Type |
+| ----------------- | --------------------------------------- | ---------- |
+| `body`            | `{ ... }`                               | String     |
+| `body_id`         | 1                                       | Integer    |
+| `body_name`       | `{ "first": "Root", "last": "Joltie" }` | JSONObject |
+| `body_name_first` | Root                                    | String     |
+| `body_name_last`  | Joltie                                  | String     |
+| `body_age`        | 22                                      | Integer    |
+| `body_weight`     | 184                                     | Integer    |
+| `body_height`     | 5.8                                     | Double     |

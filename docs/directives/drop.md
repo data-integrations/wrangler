@@ -1,44 +1,43 @@
-# Drop Column
+# Drop
 
-DROP directive is used to drop a column from the record. 
+The DROP directive is used to drop a column in a record.
+
 
 ## Syntax
-
 ```
- drop <column>[,<column>]*
+drop <column>[,<column>]*
 ```
 
-```column``` is the name of the column in the record to be droped. If the ```column``` does not exist in the record, then the directive fails.
+The `<column>` is the name of the column in the record to be droped.
+
 
 ## Usage Notes
 
-After the DROP directive is applied, the column and it's associated value are removed from the record. Downstream directives will not be able to reference the column there after.
+After the DROP directive is applied, the column and its associated value are removed from
+the record. Later directives will not be able to reference the dropped column.
+
 
 ## Example
 
-Let's following is the record
-
+Using this record as an example:
 ```
-  {
-    "id" : 1,
-    "timestamp" : 1234434343,
-    "measurement" : 10.45,
-    "isvalid" : true
-  }
-```
-
-applying following DROP directive 
-
-```
-  drop isvalid,measurement
+{
+  "id": 1,
+  "timestamp": 1234434343,
+  "measurement": 10.45,
+  "isvalid": true
+}
 ```
 
-would result in record that no ```isvalid``` field. 
-
+Applying this directive:
 ```
-  {
-    "id" : 1,
-    "timestamp" : 1234434343
-  }
+drop isvalid,measurement
 ```
 
+would result in a record with no `isvalid` or `measurement` fields:
+```
+{
+  "id": 1,
+  "timestamp": 1234434343
+}
+```

@@ -1,24 +1,39 @@
-# HL7 CCDA XML
+# Parsing HL7 CCDA XML Files
 
-This recipe show you can use the wrangling directives to parse HL7 CCDA XML files.
+This recipe shows using data prep directives to parse a HL7 CCDA XML file.
+
 
 ## Version
-To paste this receipe AS-IS, you would need
+
+To paste this receipe as-is requires:
 
 * Wrangler Service Artifact >= 1.1.0
 
+
 ## Sample Data
 
-[Here](sample/CCDA_R2_CCD_HL7.xml) is the sample data for running these directives through.
+[Sample HL7 CCDA XML Data](sample/CCDA_R2_CCD_HL7.xml) can be used with this recipe.
+
 
 ## CDAP Pipeline
 
-* Version 4.1.0 - [Pipeline here](pipelines/parse-hl7-ccda-xml.json)
+* CDAP Version 4.1.0 - [Parse HL7 CCDA XML Pipeline](pipelines/parse-hl7-ccda-xml.json)
+
 
 ## Recipe
+
+To use this recipe in the Data Prep UI, import the sample data into a workspace.
+If necessary, rename the column the data is in (`<column-name>`) to `body` using:
+
 ```
-// CCDA XML file is incomplete and needs to be fixed, before it can be parsed as XML
-// This is very common scenario.
+rename <column-name> body
+```
+
+You can now follow the remainder of the recipe:
+
+```
+// The CCDA XML file is incomplete and needs to be adjusted before it can be parsed as XML.
+// This is a very common scenario.
 
 find-and-replace body s/[\r\n]//g
 
@@ -31,12 +46,12 @@ filter-rows-on empty-or-null-columns body_1_1
 drop body
 rename body_1_1 body
 
-// Now we are ready to parse as XML
+// Now it is ready to be parses as XML:
 
 parse-as-xml body
 
-// Use XPATH directive to extract only the elements needs.
-// Can also use XPATH-ARRAY to extract array of elements.
+// Use the `xpath` directive to extract only the required elements.
+// Alternatively, use the `xpath-array` directive to extract an array of elements.
 // Extract Custodian and Patient MRN
 
 xpath body ASGN_AUTH_NM /ClinicalDocument/custodian/assignedCustodian/representedCustodianOrganization/name
@@ -82,11 +97,11 @@ xpath body PTNT_RELIG_VAL /ClinicalDocument/recordTarget/patientRole/patient/rel
 xpath body PTNT_RELIG_DSC /ClinicalDocument/recordTarget/patientRole/patient/religiousAffiliationCode/@displayName
 xpath body PTNT_EMAIL_ADR /ClinicalDocument/recordTarget/patientRole/telecom[@use='HP']/@value
 
-// Drop body as it's not needed.
+// Drop the body as it's no longer required:
 
 drop body
 
-// Optionally you can also do the following
+// Optionally, you can specify the columns to keep:
 
 keep ASGN_AUTH_NM,MRN_ID,PTNT_FIRST_NM,PTNT_LAST_NM,PTNT_MIDDLE_NM,PTNT_SFX_NM,PTNT_LN1_ADR,PTNT_CITY_NM,PTNT_ST_CD,PTNT_ZIP_PLUS_4_CD,PTNT_BIRTH_DT_VAL,PTNT_FIRST_NM_TP_CD,PTNT_NM_TP_CD,PTNT_ADR_TP_CD,PTNT_GNDR_VAL,PTNT_GNDR_DSC,PTNT_HO_PHN_NO,PTNT_WORK_PHN_NO,PTNT_MBL_PHN_NO,PTNT_ETHN_ORIG_VAL,PTNT_ETHN_ORIG_DSC,PTNT_RACE_VAL,PTNT_RACE_DSC,PTNT_PRI_LANG_VAL,PTNT_MRTL_STS_VAL,PTNT_MRTL_STS_DSC,PTNT_RELIG_VAL,PTNT_RELIG_DSC,PTNT_EMAIL_ADR:0
 
