@@ -259,7 +259,7 @@ the step you have created in part 1.
 
 To build your plugin:
 ```
-    mvn clean package -DskipTests
+mvn clean package -DskipTests
 ```
 
 The build will create a `.jar` and `.json` file under the `target` directory for the
@@ -271,12 +271,12 @@ can be used to deploy your plugin and the wrangler backend.
 
 You can deploy your plugin using the CDAP CLI:
 ```
-    > load artifact target/wrangler-transform-<version>.jar config-file target/wrangler-transform-<version>.json
+> load artifact target/wrangler-transform-<version>.jar config-file target/wrangler-transform-<version>.json
 ```
 
 For example, if your artifact is named `wrangler-transform-1.0.0-SNAPSHOT`:
 ```
-    > load artifact target/wrangler-transform-1.0.0-SNAPSHOT.jar config-file target/wrangler-transform-1.0.0-SNAPSHOT.json
+> load artifact target/wrangler-transform-1.0.0-SNAPSHOT.jar config-file target/wrangler-transform-1.0.0-SNAPSHOT.json
 ```
 
 
