@@ -43,7 +43,7 @@ import java.util.List;
 @Usage(
   directive = "filter-row-if-true",
   usage = "filter-row-if-true <condition>",
-  description = "Filters rows if condition is evaluated to true."
+  description = "[DEPRECATED] Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead."
 )
 public class RecordConditionFilter extends AbstractStep {
   private final String condition;

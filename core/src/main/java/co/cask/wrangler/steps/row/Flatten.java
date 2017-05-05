@@ -33,8 +33,8 @@ import java.util.List;
  */
 @Usage(
   directive = "flatten",
-  usage = "flatten <column>[,<column>,<column>,...]",
-  description = "Separates array elements of a column into indvidual records. Copies rest of the columns."
+  usage = "flatten <column>[,<column>*]",
+  description = "Separates array elements of one or more columns into indvidual records, copying the other columns"
 )
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json

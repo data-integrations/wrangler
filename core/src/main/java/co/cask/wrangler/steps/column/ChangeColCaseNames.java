@@ -31,8 +31,8 @@ import java.util.List;
  */
 @Usage(
   directive = "change-column-case",
-  usage = "change-column-case <upper|lower>",
-  description = "Changes the case of the columns to lowercase or uppercase."
+  usage = "change-column-case lower|upper",
+  description = "Changes the case of column names to either lowercase or uppercase"
 )
 public class ChangeColCaseNames extends AbstractStep {
   private final boolean toLower;

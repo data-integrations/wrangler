@@ -31,7 +31,7 @@ import java.util.List;
 @Usage(
   directive = "split-to-columns",
   usage = "split-to-columns <column> <regex>",
-  description = "Split a column into one or more columns with a regex."
+  description = "Splits a column into one or more columns around matches of the specified regular expression"
 )
 public class SplitToColumns extends AbstractStep {
   // Column on which to apply mask.

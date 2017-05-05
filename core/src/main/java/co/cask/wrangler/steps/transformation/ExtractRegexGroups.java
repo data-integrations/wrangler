@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 @Usage(
   directive = "extract-regex-groups",
   usage = "extract-regex-groups <column> <regex-with-groups>",
-  description = "Extracts groups from regex into columns."
+  description = "Extracts data from a regex group into its own column"
 )
 public class ExtractRegexGroups extends AbstractStep {
   private final String column;

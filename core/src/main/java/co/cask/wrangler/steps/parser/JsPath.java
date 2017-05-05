@@ -38,8 +38,8 @@ import java.util.List;
  */
 @Usage(
   directive = "json-path",
-  usage = "json-path <source> <destination> <json path>",
-  description = "Parses JSON elements using JSON paths."
+  usage = "json-path <source> <destination> <json-path-expression>",
+  description = "Parses JSON elements using a DSL (a JSON path expression)"
 )
 public class JsPath extends AbstractStep {
   private String src;

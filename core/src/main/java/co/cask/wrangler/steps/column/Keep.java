@@ -32,8 +32,8 @@ import java.util.Set;
  */
 @Usage(
   directive = "keep",
-  usage = "keep <column>[,<column>]*",
-  description = "Keep the columns specified and drop the rest."
+  usage = "keep <column>[,<column>*]",
+  description = "Keeps the specified columns and drops all others"
 )
 public class Keep extends AbstractStep {
 

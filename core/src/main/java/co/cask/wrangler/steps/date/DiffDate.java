@@ -30,9 +30,9 @@ import java.util.List;
  */
 @Usage(
   directive = "diff-date",
-  usage = "diff-date <column> <column> <destination>",
-  description = "Return the difference in milliseconds between two Date objects." +
-    "Must use parse-simple-date or parse-date step first."
+  usage = "diff-date <column1> <column2> <destination>",
+  description = "Calculates the difference in milliseconds between two Date objects." +
+    "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first."
 )
 public class DiffDate extends AbstractStep {
   private final String column1;

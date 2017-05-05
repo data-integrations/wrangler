@@ -32,7 +32,7 @@ import java.util.List;
 @Usage(
   directive = "swap",
   usage = "swap <column1> <column2>",
-  description = "Swap the column names."
+  description = "Swaps the column names of two columns"
 )
 public class Swap extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();

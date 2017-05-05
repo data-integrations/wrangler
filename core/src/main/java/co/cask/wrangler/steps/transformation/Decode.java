@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * A Wrangler step that decodes a column that was encoded as base-64,base-32 or hex.
+ * A step that decodes a column that was encoded as base-32, base-64, or hex.
  */
 @Usage(
   directive = "decode",
-  usage = "decode <base64|base32|hex> column",
-  description = "Decodes a column"
+  usage = "decode <base32|base64|hex> <column>",
+  description = "Decodes column values using one of base32, base64, or hex"
 )
 public class Decode extends AbstractStep {
   private final Base64 base64Encode = new Base64();

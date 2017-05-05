@@ -31,8 +31,8 @@ import java.util.List;
  */
 @Usage(
   directive = "copy",
-  usage = "copy <source> <destination> [force]",
-  description = "Copy data from one column to another."
+  usage = "copy <source> <destination> [<force=true|false>]",
+  description = "Copies values from a source column into a destination column"
 )
 public class Copy extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
