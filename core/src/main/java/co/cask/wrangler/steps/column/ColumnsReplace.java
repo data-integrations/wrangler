@@ -34,7 +34,7 @@ import java.util.List;
 @Usage(
   directive = "columns-replace",
   usage = "columns-replace <sed-expression>",
-  description = "Modify column names using sed format."
+  description = "Modifies column names in bulk using a sed-format expression"
 )
 public class ColumnsReplace extends AbstractStep {
   private final String sed;

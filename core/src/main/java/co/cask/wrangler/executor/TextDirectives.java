@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016, 2017 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -401,7 +401,7 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        //set-charset <column> <charset>
+        // set-charset <column> <charset>
         case "set-charset" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String charset = getNextToken(tokenizer, "\n", command, "charset", lineno, true);
@@ -409,7 +409,7 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        //invoke-http <url> <column>[,<column>] <header>[,<header>]
+        // invoke-http <url> <column>[,<column>] <header>[,<header>]
         case "invoke-http" : {
           String url = getNextToken(tokenizer, command, "url", lineno);
           String columnsOpt = getNextToken(tokenizer, command, "columns", lineno);
@@ -658,7 +658,7 @@ public class TextDirectives implements Directives {
           steps.add(new HL7Parser(lineno, directive, column, depth));
         }
         break;
-        
+
         // split-email <column>
         case "split-email" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
@@ -717,19 +717,22 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        //filter-rows-on condition-true <boolean-expression>
-        //filter-rows-on condition-false <boolean-expression>
-        //filter-rows-on regex-match <regex>
-        //filter-rows-on regex-not-match <regex>
-        //filter-rows-on empty-or-null-columns <column>[,<column>]*
+        // filter-rows-on condition-false <boolean-expression>
+        // filter-rows-on condition-true <boolean-expression>
+        // filter-rows-on empty-or-null-columns <column>[,<column>*]
+        // filter-rows-on regex-match <regex>
+        // filter-rows-on regex-not-match <regex>
         case "filter-rows-on" : {
           String cmd = getNextToken(tokenizer, command, "command", lineno);
-          if (cmd.equalsIgnoreCase("condition-true")) {
-            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            steps.add(new RecordConditionFilter(lineno, directive, condition, true));
-          } else if (cmd.equalsIgnoreCase("condition-false")) {
+          if (cmd.equalsIgnoreCase("condition-false")) {
             String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
             steps.add(new RecordConditionFilter(lineno, directive, condition, false));
+          } else if (cmd.equalsIgnoreCase("condition-true")) {
+            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+            steps.add(new RecordConditionFilter(lineno, directive, condition, true));
+          } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
+            String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
+            steps.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
           } else if (cmd.equalsIgnoreCase("regex-match")) {
             String column = getNextToken(tokenizer, command, "column", lineno);
             String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
@@ -738,9 +741,6 @@ public class TextDirectives implements Directives {
             String column = getNextToken(tokenizer, command, "column", lineno);
             String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
             steps.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
-          } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
-            String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
-            steps.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
           } else {
             throw new DirectiveParseException(
               String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)

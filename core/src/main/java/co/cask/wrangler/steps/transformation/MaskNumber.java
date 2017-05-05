@@ -49,7 +49,7 @@ import java.util.List;
 @Usage(
   directive = "mask-number",
   usage = "mask-number <column> <pattern>",
-  description = "Masks a number using the masking pattern specified."
+  description = "Masks a column value using the specified masking pattern"
 )
 public class MaskNumber extends AbstractStep {
   // Specifies types of mask

@@ -28,12 +28,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Wrangle step for 'FindAndReplace' like transformations on the column.
+ * A Wrangle step for 'find-and-replace' transformations on the column.
  */
 @Usage(
   directive = "find-and-replace",
-  usage = "find-and-replace <column> <expression>",
-  description = "Uses a sed like syntax to find and replace."
+  usage = "find-and-replace <column> <sed-expression>",
+  description = "Finds and replaces text in column values using a sed-format expression"
 )
 public class FindAndReplace extends AbstractStep {
   private final String pattern;

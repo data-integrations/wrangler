@@ -34,7 +34,7 @@ import java.util.List;
 @Usage(
   directive = "format-date",
   usage = "format-date <column> <format>",
-  description = "Format the column using date format."
+  description = "Formats a column using a date-time format. Use 'parse-as-date` beforehand."
 )
 public class FormatDate extends AbstractStep {
   private final String format;
