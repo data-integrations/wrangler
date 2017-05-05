@@ -21,6 +21,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import org.apache.commons.lang.WordUtils;
 
 import java.util.List;
 
@@ -58,28 +59,11 @@ public class TitleCase extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, toTitleCase(value));
+            record.setValue(idx, WordUtils.capitalizeFully(value));
           }
         }
       }
     }
     return records;
-  }
-
-  private static String toTitleCase(String input) {
-    StringBuilder titleCase = new StringBuilder();
-    boolean nextTitleCase = true;
-
-    for (char c : input.toCharArray()) {
-      if (Character.isSpaceChar(c)) {
-        nextTitleCase = true;
-      } else if (nextTitleCase) {
-        c = Character.toTitleCase(c);
-        nextTitleCase = false;
-      }
-
-      titleCase.append(c);
-    }
-    return titleCase.toString();
   }
 }
