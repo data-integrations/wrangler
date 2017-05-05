@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import org.apache.commons.lang.WordUtils;
 
 import java.util.List;
 
@@ -30,10 +31,10 @@ import java.util.List;
 @Usage(
   directive = "titlecase",
   usage = "titlecase <column>",
-  description = "Changes the column value to titlecase."
+  description = "Changes the column values to title case"
 )
 public class TitleCase extends AbstractStep {
-  // Columns of the column to be lower cased.
+  // Columns of the column to be title-cased
   private String col;
 
   public TitleCase(int lineno, String detail, String col) {
@@ -46,7 +47,7 @@ public class TitleCase extends AbstractStep {
    *
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is title cased.
+   * @return Transformed {@link Record} in which the 'col' value is title-cased
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override
@@ -58,28 +59,11 @@ public class TitleCase extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, toTitleCase(value));
+            record.setValue(idx, WordUtils.capitalizeFully(value));
           }
         }
       }
     }
     return records;
-  }
-
-  private static String toTitleCase(String input) {
-    StringBuilder titleCase = new StringBuilder();
-    boolean nextTitleCase = true;
-
-    for (char c : input.toCharArray()) {
-      if (Character.isSpaceChar(c)) {
-        nextTitleCase = true;
-      } else if (nextTitleCase) {
-        c = Character.toTitleCase(c);
-        nextTitleCase = false;
-      }
-
-      titleCase.append(c);
-    }
-    return titleCase.toString();
   }
 }
