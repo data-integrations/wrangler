@@ -22,6 +22,7 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -33,11 +34,15 @@ import java.util.List;
   description = "Parses a column as AVRO record based on the schema id."
 )
 public class AvroParser extends AbstractStep {
-  private String col;
+  private final String col;
+  private final String id;
+  private boolean schemaRetrieved = false;
+  private String schema;
 
-  public AvroParser(int lineno, String detail, String col) {
+  public AvroParser(int lineno, String detail, String col, String id) {
     super(lineno, detail);
     this.col = col;
+    this.id = id;
   }
 
   /**
@@ -51,9 +56,18 @@ public class AvroParser extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context)
     throws StepException {
 
+    if (!schemaRetrieved) {
+      schema = getAVROSchema(context);
+    }
+
     for (Record record : records) {
       int idx = record.find(col);
     }
     return records;
+  }
+
+  private String getAVROSchema(PipelineContext context) {
+    URL url = context.getService("dataprep", "service");
+    String path = url.toString();
   }
 }
