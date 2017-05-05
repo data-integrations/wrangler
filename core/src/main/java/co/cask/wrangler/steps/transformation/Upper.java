@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -30,10 +30,10 @@ import java.util.List;
 @Usage(
   directive = "uppercase",
   usage = "uppercase <column>",
-  description = "Changes the column value to uppercase."
+  description = "Changes the column values to uppercase"
 )
 public class Upper extends AbstractStep {
-  // Columns of the column to be upper cased.
+  // Columns of the column to be upper-cased
   private String col;
 
   public Upper(int lineno, String detail, String col) {
@@ -46,7 +46,7 @@ public class Upper extends AbstractStep {
    *
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
+   * @return Transformed {@link Record} in which the 'col' value is upper-cased
    * @throws StepException thrown when type of 'col' is not STRING.
    */
   @Override

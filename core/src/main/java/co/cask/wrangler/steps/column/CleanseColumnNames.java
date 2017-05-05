@@ -38,7 +38,8 @@ import java.util.List;
 @Usage(
   directive = "cleanse-column-names",
   usage = "cleanse-column-names",
-  description = "Sanatizes column names -- trim, lowercase and replace non [A-Z][a-z][0-9]_ with underscore(_)."
+  description = "Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_ " +
+                  "with an underscore '_'."
 )
 public class CleanseColumnNames extends AbstractStep {
   public CleanseColumnNames(int lineno, String directive) {
