@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 @Usage(
   directive = "filter-row-if-matched",
   usage = "filter-row-if-matched <column> <regex>",
-  description = "Filters row if regex is matched."
+  description = "[DEPRECATED] Filters rows if the regex is matched. Use 'filter-rows-on' instead."
 )
 public class RecordRegexFilter extends AbstractStep {
   private final String regex;

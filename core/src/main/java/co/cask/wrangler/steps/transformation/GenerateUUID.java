@@ -27,12 +27,12 @@ import java.util.Random;
 import java.util.UUID;
 
 /**
- * A Step to generate UUID.
+ * A step to generate a UUID.
  */
 @Usage(
   directive = "generate-uuid",
   usage = "generate-uuid <column>",
-  description = "Populates a column with a universally unique identifier."
+  description = "Populates a column with a universally unique identifier (UUID) of the record"
 )
 public class GenerateUUID extends AbstractStep {
   private final String column;

@@ -31,7 +31,7 @@ import java.util.List;
 @Usage(
   directive = "indexsplit",
   usage = "indexsplit <source> <start> <end> <destination>",
-  description = "[DEPRECATED] Please use 'cut-character' directive."
+  description = "[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead"
 )
 public class IndexSplit extends AbstractStep {
   // Name of the column to be split

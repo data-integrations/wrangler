@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -34,8 +34,8 @@ import java.util.List;
  */
 @Usage(
   directive = "set columns",
-  usage = "set columns <column,column,...>",
-  description = "Sets the column names for CSV parsed records."
+  usage = "set columns <columm>[,<column>*]",
+  description = "Sets the name of columns, in the order they are specified"
 )
 public class Columns extends AbstractStep {
   // Name of the columns represented in a {@link Record}
@@ -58,7 +58,7 @@ public class Columns extends AbstractStep {
       column = column.trim();
       if (column.isEmpty()) {
         throw new DirectiveParseException(
-          String.format("Column at location %d is empty. Cannot have empty column names", loc)
+          String.format("Column at location %d is empty. Cannot have empty column names.", loc)
         );
       }
       loc++;

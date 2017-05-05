@@ -31,7 +31,7 @@ import java.util.List;
 @Usage(
   directive = "fill-null-or-empty",
   usage = "fill-null-or-empty <column> <fixed-value>",
-  description = "Fills a value of a column if it's empty or null with a fixed value."
+  description = "Fills a value of a column with a fixed value if it is either null or empty"
 )
 public class FillNullOrEmpty extends AbstractStep {
   private String column;
@@ -45,11 +45,11 @@ public class FillNullOrEmpty extends AbstractStep {
 
   /**
    * Fills the null or empty column (and missing) values with fixed value.
-   **
-   * @param records Input {@link Record} to be wrangled by this step.
-   * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   *
+   * @param records Input {@link Record} to be wrangled by this step
+   * @param context Specifies the context of the pipeline
+   * @return Transformed {@link Record}
+   * @throws StepException thrown when type of 'col' is not STRING
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {

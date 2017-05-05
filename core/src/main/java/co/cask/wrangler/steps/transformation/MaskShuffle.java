@@ -43,7 +43,7 @@ import java.util.Random;
 @Usage(
   directive = "mask-shuffle",
   usage = "mask-shuffle <column>",
-  description = "Masks a column value by shuffling characters, but keep the length intact."
+  description = "Masks a column value by shuffling characters while maintaining the same length"
 )
 public class MaskShuffle extends AbstractStep {
   // Column on which to apply mask.

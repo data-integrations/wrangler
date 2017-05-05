@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -32,7 +32,7 @@ import java.util.List;
 @Usage(
   directive = "rename",
   usage = "rename <old> <new>",
-  description = "Rename a column name."
+  description = "Renames an existing column"
 )
 public class Rename extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
@@ -69,7 +69,7 @@ public class Rename extends AbstractStep {
         } else {
           throw new StepException(
             String.format(
-              "%s : %s column exists. Apply directive 'drop %s' before renaming %s to %s", toString(),
+              "%s : %s column already exists. Apply the directive 'drop %s' before renaming %s to %s.", toString(),
               newcol, newcol, oldcol, newcol
             )
           );

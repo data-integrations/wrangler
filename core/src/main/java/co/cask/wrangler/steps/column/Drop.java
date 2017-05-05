@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,14 +26,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A Wrangle step for dropping the columns obtained form wrangling.
+ * A step for dropping columns.
  *
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
  */
 @Usage(
   directive = "drop",
-  usage = "drop <column>[,<column>]*",
+  usage = "drop <column>[,<column>*]",
   description = "Drop one or more columns."
 )
 public class Drop extends AbstractStep {
@@ -52,9 +52,9 @@ public class Drop extends AbstractStep {
   /**
    * Drops the columns specified.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
-   * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record}.
+   * @param records Input {@link Record} to be wrangled by this step
+   * @param context Specifies the context of the pipeline
+   * @return A newly-transformed {@link Record}
    * @throws StepException
    */
   @Override

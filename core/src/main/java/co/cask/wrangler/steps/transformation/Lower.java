@@ -30,7 +30,7 @@ import java.util.List;
 @Usage(
   directive = "lowercase",
   usage = "lowercase <column>",
-  description = "Changes the column value to lowercase."
+  description = "Changes the column values to lowercase"
 )
 public class Lower extends AbstractStep {
   // Columns of the column to be lower cased.

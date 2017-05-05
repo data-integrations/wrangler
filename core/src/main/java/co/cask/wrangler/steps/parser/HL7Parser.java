@@ -49,7 +49,8 @@ import java.util.List;
 @Usage(
   directive = "parse-as-hl7",
   usage = "parse-as-hl7 <column> [<depth>]",
-  description = "Parses Health Level Seven International(HL7) files (non-xml)."
+  description = "Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
+                    "JSON object enumeration terminates"
 )
 public class HL7Parser extends AbstractStep {
   private final String column;
