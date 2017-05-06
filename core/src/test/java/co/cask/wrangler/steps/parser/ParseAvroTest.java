@@ -33,6 +33,7 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.io.JsonEncoder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -45,6 +46,7 @@ import java.util.List;
 /**
  * Test {@link ParseAvro}
  */
+@Ignore
 public class ParseAvroTest {
 
   private static final String SCHEMA = "{\"namespace\": \"example.avro\",\n" +
