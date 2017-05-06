@@ -169,7 +169,7 @@ public class ParseAvroTest {
   @Test
   public void testParseAVRO() throws Exception {
     List<Record> records = Arrays.asList(
-      new Record("body", "{\"name\":\"Root\",\"favorite1_number\":{\"int\":8},\"favorite_color\":null}")
+      new Record("body", "{\"name\":\"Root\",\"favorite_number\":{\"int\":8},\"favorite_color\":null}")
     );
 
     AbstractStep step = new ParseAvro(1, "", "body", "first", "json", -1);
