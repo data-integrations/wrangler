@@ -46,7 +46,6 @@ import java.util.List;
 /**
  * Test {@link ParseAvro}
  */
-@Ignore
 public class ParseAvroTest {
 
   private static final String SCHEMA = "{\"namespace\": \"example.avro\",\n" +
@@ -166,8 +165,9 @@ public class ParseAvroTest {
     return out.toByteArray();
   }
 
+  @Ignore
   @Test
-  public void testParseAVRO() throws Exception {
+  public void testParseJsonAVRO() throws Exception {
     List<Record> records = Arrays.asList(
       new Record("body", "{\"name\":\"Root\",\"favorite_number\":{\"int\":8},\"favorite_color\":null}")
     );
