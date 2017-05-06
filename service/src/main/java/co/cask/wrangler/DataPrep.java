@@ -23,11 +23,13 @@ import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
 import co.cask.cdap.api.dataset.lib.ObjectMappedTable;
 import co.cask.cdap.api.dataset.lib.ObjectMappedTableProperties;
+import co.cask.wrangler.dataset.schema.SchemaRegistry;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
 import co.cask.wrangler.service.recipe.RecipeDatum;
 import co.cask.wrangler.service.recipe.RecipeService;
+import co.cask.wrangler.service.schema.SchemaRegistryService;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 
@@ -44,7 +46,9 @@ public class DataPrep extends AbstractApplication {
     setDescription("DataPrep Backend Service");
 
     createDataset(DirectivesService.WORKSPACE_DATASET, WorkspaceDataset.class,
-                  DatasetProperties.builder().setDescription("DataPrep Dataset").build());
+                  DatasetProperties.builder().setDescription("Dataprep Workspace Management").build());
+    createDataset(SchemaRegistryService.SCHEMA_REGISTRY_NAME, SchemaRegistry.class,
+                  DatasetProperties.builder().setDescription("DataPrep Schema Registry Management").build());
     try {
       createDataset(RecipeService.DATASET, ObjectMappedTable.class,
                     ObjectMappedTableProperties.builder()
@@ -54,17 +58,18 @@ public class DataPrep extends AbstractApplication {
     }
 
     // Used by the file service.
-    createDataset("indexds", FileSet.class, FileSetProperties.builder()
+    createDataset("dataprep", FileSet.class, FileSetProperties.builder()
       .setBasePath("dataprep/indexds")
       .setInputFormat(TextInputFormat.class)
       .setOutputFormat(TextOutputFormat.class)
-      .setDescription("Store Dataset Index files")
+      .setDescription("Store Dataprep Index files")
       .build());
 
     addService("service",
                new DirectivesService(),
                new RecipeService(),
-               new FilesystemExplorer()
+               new FilesystemExplorer(),
+               new SchemaRegistryService()
     );
 
   }

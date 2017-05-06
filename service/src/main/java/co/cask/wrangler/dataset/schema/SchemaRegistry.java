@@ -229,6 +229,21 @@ public class SchemaRegistry extends AbstractDataset {
     return false;
   }
 
+  public boolean hasSchema(String id) throws SchemaRegistryException {
+    try {
+      Row row = table.get(toIdKey(id));
+      if (row.isEmpty()) {
+        return false;
+      }
+    } catch (DataSetException e) {
+      throw new SchemaRegistryException(
+        String.format("Unable to check if schema id and version exists. '%s'",
+                      e.getMessage())
+      );
+    }
+    return true;
+  }
+
   public Set<Long> getVersions(String id) throws SchemaRegistryException {
     try {
       Row row = table.get(toIdKey(id));
@@ -377,7 +392,7 @@ public class SchemaRegistry extends AbstractDataset {
   private long getNextVersion(String id) throws SchemaRegistryException {
     try {
       long nextVersion = table.incrementAndGet(toIdKey(id), AUTO_VERSION_COL, 1);
-      return nextVersion;
+      return nextVersion - 1;
     } catch (DataSetException e) {
       throw new SchemaRegistryException(
         String.format("Unable to get next version of schema id '%s'. '%s'",
