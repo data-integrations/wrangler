@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.Set;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -193,6 +194,28 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
       }
       object.add("versions", versions);
       array.add(object);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", array.size());
+      response.add("values", array);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (SchemaRegistryException e) {
+      ServiceUtils.error(responder, e.getMessage());
+    }
+  }
+
+  @GET
+  @Path("schema/{id}/versions")
+  public void versions(HttpServiceRequest request, HttpServiceResponder responder,
+                  @PathParam("id") String id) {
+    try {
+      Set<Long> versions = registry.getVersions(id);
+      JsonObject response = new JsonObject();
+      JsonArray array = new JsonArray();
+      Iterator<Long> it = versions.iterator();
+      while(it.hasNext()) {
+        array.add(new JsonPrimitive(it.next()));
+      }
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
       response.addProperty("count", array.size());
