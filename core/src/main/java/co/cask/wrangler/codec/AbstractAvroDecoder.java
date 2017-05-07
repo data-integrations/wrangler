@@ -24,10 +24,14 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 
 /**
- * Class description here.
+ * This class {@link AbstractAvroDecoder} is implementation of {@link Decoder} interface using type {@link Record}.
+ * All implementations of AVRO decoder should extend from this class.
  */
 public abstract class AbstractAvroDecoder implements Decoder<Record> {
+  // Schema associated with record or data file being read.
   private final Schema schema;
+
+  // Reader for reading data based on the schema.
   private final DatumReader<GenericRecord> reader;
 
   protected AbstractAvroDecoder(Schema schema) {

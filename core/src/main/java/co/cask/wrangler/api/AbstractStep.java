@@ -18,8 +18,6 @@ package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
-import java.net.URL;
-
 /**
  * An abstract class for {@link Step} with added debugging capabilities.
  */
@@ -36,11 +34,6 @@ public abstract class AbstractStep implements Step<Record, Record> {
   @Override
   public String toString() {
     return String.format("[Step %d] - <%s>", lineno, detail);
-  }
-
-  protected String getSchemaRegistryService(PipelineContext context) {
-    URL url = context.getService("dataprep", "service");
-    return url.getPath() + "/schemas";
   }
 }
 

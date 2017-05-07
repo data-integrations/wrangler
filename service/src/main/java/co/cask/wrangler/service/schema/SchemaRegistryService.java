@@ -57,6 +57,18 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
   @UseDataSet("schema")
   private SchemaRegistry registry;
 
+  /**
+   * Creates an entry for Schema with id, name, description and type of schema.
+   * if the 'id' already exists, then it overwrites the data with new information.
+   * This responds with HTTP - OK (200) or Internal Error (500).
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of schema to be created.
+   * @param name for the schema id being created.
+   * @param description associated with schema.
+   * @param type of schema.
+   */
   @PUT
   @Path("schemas")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
@@ -90,6 +102,30 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Uploads a schema to be associated with the schema id.
+   * This API will automatically increment the schema version. Upon adding the schema to associated id in
+   * schema registry, it returns the version to which the uploaded schema was added to.
+   *
+   * Following is the response when it's HTTP OK(200)
+   * {
+   *   "status" : "OK",
+   *   "message" : "Success",
+   *   "count" : 1,
+   *   "values" : [
+   *      {
+   *        "id" : <id-passed-in-REST-call>
+   *        "version" : <version-schema-written-to>
+   *      }
+   *   ]
+   * }
+   *
+   * On any issues, returns error with proper error message and Internal Server error (500).
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the schema being uploaded.
+   */
   @POST
   @Path("schemas/{id}")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
@@ -127,6 +163,16 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Deletes the entire entry from the registry.
+   *
+   * Everything related to the schema id is deleted completely.
+   * All versions of schema are also deleted.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the schema to be deleted.
+   */
   @DELETE
   @Path("schemas/{id}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
@@ -143,6 +189,14 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Deletes a version of schema from the registry for a given schema id.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the schema
+   * @param version version of the schema.
+   */
   @DELETE
   @Path("schemas/{id}/versions/{version}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
@@ -159,6 +213,14 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Returns information of schema, including schema requested along with versions available and other metadata.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the schema.
+   * @param version of the schema.
+   */
   @GET
   @Path("schemas/{id}/versions/{version}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
@@ -196,6 +258,14 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Returns information of schema, including schema requested along with versions available and other metadata.
+   * This call will automatically detect the currect active version of schema to delete.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the schema.
+   */
   @GET
   @Path("schemas/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
@@ -233,6 +303,13 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Returns list of versions for a give schema id.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the schema.
+   */
   @GET
   @Path("schemas/{id}/versions")
   public void versions(HttpServiceRequest request, HttpServiceResponder responder,
