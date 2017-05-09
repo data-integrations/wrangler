@@ -495,7 +495,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         @Override
         public List<Record> apply(@Nullable List<Record> records) {
           int min = Math.min(records.size(), limit);
-          return Lists.newArrayList(new Reservoir<Record>(min).sample(records.iterator()));
+          return records.subList(0, min);
         }
       });
 
