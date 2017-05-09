@@ -113,10 +113,10 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   @GET
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
-                   @QueryParam("sampler") String sampler) {
+                   @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction) {
     RequestExtractor extractor = new RequestExtractor(request);
     if (extractor.isContentType(DataType.TEXT.getType()) || extractor.isContentType(DataType.JSON.getType())) {
-      loadTextFile(responder, path, lines, sampler);
+      loadTextFile(responder, path, lines, fraction, sampler);
     } else if(extractor.isContentType(DataType.XML.getType())) {
       loadXMLFile(responder, path);
     } else {
@@ -230,7 +230,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   }
 
   private void loadTextFile(HttpServiceResponder responder,
-                            String path, int lines, String sampler) {
+                            String path, int lines, double fraction, String sampler) {
     JsonObject response = new JsonObject();
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
@@ -254,9 +254,9 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), Charsets.UTF_8, lines);
       Iterator<String> it = blis;
       if (samplingMethod == SamplingMethod.POISSON) {
-        it = new Poisson<String>(lines).sample(blis);
+        it = new Poisson<String>(fraction).sample(blis);
       } else if (samplingMethod == SamplingMethod.BERNOULLI) {
-        it = new Bernoulli<String>(lines).sample(blis);
+        it = new Bernoulli<String>(fraction).sample(blis);
       } else if (samplingMethod == SamplingMethod.RESERVOIR) {
         it = new Reservoir<String>(lines).sample(blis);
       }
