@@ -62,3 +62,61 @@ example response when creation is successful:
     ]
 }
 ```
+## Sample Runs
+
+### Connection JSON
+
+```
+cat /Users/nitin/Work/Demo/data/mysql.connection.json
+{
+  "name":"MySQL Database",
+  "type":"DATABASE",
+  "description":"MySQL Configuration",
+  "properties" : {
+    "hostaname" : "localhost",
+    "port" : 3306
+  }
+}
+```
+
+### Create REST API call.
+```
+curl -s --data "@/Users/nitin/Work/Demo/data/mysql.connection.json" 'http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/create' | python -mjson.tool
+{
+    "count": 1,
+    "message": "Success",
+    "status": 200,
+    "values": [
+        "mysql_database"
+    ]
+}  
+```
+
+### Repeat creation will fail
+```
+curl -s --data "@/Users/nitin/Work/Demo/data/mysql.connection.json" 'http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/create' | python -mjson.tool
+{
+    "message": "Connection name 'MySQL Database' already exists.",
+    "status": 500
+}
+```
+
+### Delete Connection
+```
+curl -X DELETE "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/mysql_database" | python -mjson.tool
+{
+     "status":200,
+     "message":"Success"
+}
+```
+
+### Repeated delete will also be successful or even when the key is not found. 
+```
+curl -s -X DELETE "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/mysql_database" | python -mjson.tool
+{
+    "message": "Success",
+    "status": 200
+}
+```
+
+### 
