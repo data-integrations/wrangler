@@ -6,7 +6,7 @@ store of the dataset.
 
 These are the lifecycle operations supported by the connection service:
 
-* Create a new connection (**POST**, ```${base}/connections/create```),
+* Create a new connection (**POST**, ```${base}/connections/create```)
 * Update an entire connection (**POST**, ```${base}/connections/{id}/update```)
 * Update properties of a connection (**PUT**, ```${base}/connections/{id}/properties?key=<key>&value=<value>```)
 * Retrieve all properties of a connection (**GET**, ```${base}/connections/{id}/properties```)
