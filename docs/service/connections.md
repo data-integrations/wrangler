@@ -40,8 +40,8 @@ Here is an example of a JSON Request for creating a connection:
 ```
 {
     "name": "MySQL Database",
-    "description":"MySQL Configuration",
-    "type":"DATABASE",
+    "description": "MySQL Configuration",
+    "type": "DATABASE",
     "properties": {
         "hostaname": "localhost",
         "port": "3306"
