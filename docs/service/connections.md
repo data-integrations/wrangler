@@ -28,6 +28,7 @@ http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/meth
 These are the fields that can be in the request:
 
 * name (mandatory)
+* description (optional)
 * type (mandatory; one of:)
   * DATABASE
   * KAFKA
@@ -39,8 +40,8 @@ Here is an example of a JSON Request for creating a connection:
 ```
 {
     "name": "MySQL Database",
-    "type":"DATABASE",
     "description":"MySQL Configuration",
+    "type":"DATABASE",
     "properties": {
         "hostaname": "localhost",
         "port": "3306"
