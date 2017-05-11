@@ -6,13 +6,14 @@ store in the dataset.
 
 Following are the lifecycle operations supported by the connection service
 
-* Create a new connection,
-* Update entire connection,
-* Update properties of a connection,
-* Delete a connection,
-* Clone a connection,
-* Retrieve all the connections &
-* Retrieve information about a connection.
+* Create a new connection (**POST**, ```${base}/connections/create```),
+* Update entire connection (**POST**, ```${base}/connections/{id}/update```)
+* Update properties of a connection (**PUT**, ```${base}/connections/{id}/properties?key=<key>&value=<value>```),
+* Retrieve all properties of a connection (**GET**, ```${base}/connections/{id}/properties```)
+* Delete a connection (**DELETE**, ```${base}/connections/{id}```),
+* Clone a connection (**GET**, ```${base}/connections/{id}/clone```),
+* Retrieve all the connections (**GET**, ```${base}/connections```) &
+* Retrieve information about a connection. (**GET** ```${base}/connections/{id}```)
 
 ## Base
 
@@ -96,9 +97,9 @@ Updates a individual property of a connection.
 
 | Attribute  | Description / Example |
 | ---------- | --------------------- |
-| **HTTP Method**  |     POST  |
-| **URL**  | ```/connections/{id}/properties```     |
-| **Example** | [http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties](http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties) |
+| **HTTP Method**  |     PUT  |
+| **URL**  | ```/connections/{id}/properties?key=<key>&value=<value>```     |
+| **Example** | [http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties?key=hostname&value=localhost](http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties?key=hostname&value=localhost) |
 | **Query Params** | ```key``` of the property to be updated, ```value``` for the key to be updated. |
 | **Request Content Type** | None |
 | **Response Content Type** | JSON |
