@@ -119,4 +119,101 @@ curl -s -X DELETE "http://localhost:11015/v3/namespaces/default/apps/dataprep/se
 }
 ```
 
-### 
+### Listing Connections
+```
+curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections" | python -mjson.tool
+{
+    "count": 1,
+    "message": "Success",
+    "status": 200,
+    "values": [
+        {
+            "created": 1494527723,
+            "description": "MySQL Configuration",
+            "id": "mysql_database",
+            "name": "MySQL Database",
+            "type": "DATABASE",
+            "updated": 1494527723
+        }
+    ]
+}
+```
+
+### Info about connection
+```
+curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/mysql_database" | python -mjson.tool
+{
+    "count": 1,
+    "message": "Success",
+    "status": 200,
+    "values": [
+        {
+            "created": 1494527723,
+            "description": "MySQL Configuration",
+            "id": "mysql_database",
+            "name": "MySQL Database",
+            "properties": {
+                "hostaname": "localhost",
+                "port": 3306.0
+            },
+            "type": "DATABASE",
+            "updated": 1494527723
+        }
+    ]
+}
+```
+
+### Cloning connection
+```
+curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/mysql_database/clone" | python -mjson.tool
+{
+    "count": 1,
+    "message": "Success",
+    "status": 200,
+    "values": [
+        {
+            "created": 1494528015,
+            "description": "MySQL Configuration",
+            "name": "MySQL Database_Clone",
+            "properties": {
+                "hostaname": "localhost",
+                "port": 3306.0
+            },
+            "type": "DATABASE",
+            "updated": 1494528015
+        }
+    ]
+}
+```
+
+### Fetch only properties
+```
+curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/mysql_database/properties" | python -mjson.tool
+{
+    "count": 1,
+    "message": "Success",
+    "status": 200,
+    "values": [
+        {
+            "hostaname": "localhost",
+            "port": 3306.0
+        }
+    ]
+}
+
+### Adding new property or updating existing property
+```
+curl -X PUT -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/mysql_database/properties?key=ssl&value=true" | python -mjson.tool
+{
+    "count": 1,
+    "message": "Success",
+    "status": 200,
+    "values": [
+        {
+            "hostaname": "localhost",
+            "port": 3306.0,
+            "ssl": "true"
+        }
+    ]
+}
+```
