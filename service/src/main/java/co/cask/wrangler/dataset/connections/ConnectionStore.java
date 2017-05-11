@@ -52,8 +52,6 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
     return "c:";
   }
 
-
-
   /**
    * Creates an entry in the {@link ConnectionStore} for object {@link Connection}.
    *
