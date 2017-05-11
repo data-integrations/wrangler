@@ -2,8 +2,7 @@
 
 The PARSE-AS-XML directive parses an XML document. The directive operates on a column to
 parse that into an XML VTD object; that can be further queried using the
-[XPATH](xpath.md), or [XPATH-ARRAY](xpath.md), [XPATH-ATTR](xpath-attr.md), or
-[XPATH-ARRAY-ATTR](xpath-attr.md) directives.
+[XPATH](xpath.md) directive.
 
 
 ## Syntax
