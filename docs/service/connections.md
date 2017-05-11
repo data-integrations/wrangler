@@ -119,21 +119,41 @@ curl -s -X DELETE "http://localhost:11015/v3/namespaces/default/apps/dataprep/se
 }
 ```
 
-### Listing Connections
+### Listing All Connections
 ```
-curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections" | python -mjson.tool
+curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections?type=*" | python -mjson.tool
 {
     "count": 1,
     "message": "Success",
     "status": 200,
     "values": [
         {
-            "created": 1494527723,
+            "created": 1494529821,
             "description": "MySQL Configuration",
             "id": "mysql_database",
             "name": "MySQL Database",
             "type": "DATABASE",
-            "updated": 1494527723
+            "updated": 1494529821
+        }
+    ]
+}
+```
+
+### Listing Only connections of type Database
+```
+curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections?type=database" | python -mjson.tool
+{
+    "count": 1,
+    "message": "Success",
+    "status": 200,
+    "values": [
+        {
+            "created": 1494529821,
+            "description": "MySQL Configuration",
+            "id": "mysql_database",
+            "name": "MySQL Database",
+            "type": "DATABASE",
+            "updated": 1494529821
         }
     ]
 }
