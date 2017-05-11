@@ -200,6 +200,7 @@ curl -s "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/ser
         }
     ]
 }
+```
 
 ### Adding new property or updating existing property
 ```
