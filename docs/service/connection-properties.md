@@ -2,7 +2,7 @@
 
 Following are properties for different types of connections. 
 
-| Directive                                                              | Description                                                      |
+| Property                                                              | Description                                                      |
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | **Database**                                                            |                                                                  |
 | username                              | Username to be used in the connection   |
