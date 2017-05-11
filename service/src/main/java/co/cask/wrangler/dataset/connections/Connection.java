@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.dataset.connections;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Basic connection object.
@@ -42,7 +42,7 @@ public final class Connection {
   private long updated;
 
   // Collection of properties.
-  private Map<String, Object> properties = new TreeMap<>();
+  private Map<String, Object> properties = new HashMap<>();
 
   /**
    * @return id of the connection.
@@ -174,5 +174,21 @@ public final class Connection {
    */
   public Map<String, Object> getAllProps() {
     return properties;
+  }
+
+  /**
+   * @return string representation of object.
+   */
+  @Override
+  public String toString() {
+    return "Connection{" +
+      "id='" + id + '\'' +
+      ", name='" + name + '\'' +
+      ", type=" + type +
+      ", description='" + description + '\'' +
+      ", created=" + created +
+      ", updated=" + updated +
+      ", properties=" + properties +
+      '}';
   }
 }

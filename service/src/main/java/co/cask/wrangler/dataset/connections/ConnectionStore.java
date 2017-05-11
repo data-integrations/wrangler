@@ -41,24 +41,18 @@ import co.cask.wrangler.dataset.AbstractTableStore;
 public class ConnectionStore extends AbstractTableStore<Connection> {
 
   public ConnectionStore(Table table) {
-    super(table, Bytes.toBytes("a"));
+    super(table, Bytes.toBytes("a"), Connection.class);
   }
 
   /**
    * @return key namespace for all the objects stored in the {@link ConnectionStore}
    */
   @Override
-  public String getNamespace() {
-    return "c";
+  public String getKeySpace() {
+    return "c:";
   }
 
-  /**
-   * @return delimiter for composite key.
-   */
-  @Override
-  protected String getDelimiter() {
-    return ":";
-  }
+
 
   /**
    * Creates an entry in the {@link ConnectionStore} for object {@link Connection}.
@@ -85,7 +79,7 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
     }
     connection.setCreated(now());
     connection.setUpdated(now());
-    updateTable(mangled, connection);
+    putObject(Bytes.toBytes(mangled), connection);
     return mangled;
   }
 
@@ -102,6 +96,7 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
         String.format("Connection '%s' does not exists. Create connection before updating")
       );
     }
+    connection.setUpdated(now());
     updateTable(id, connection);
   }
 
@@ -116,7 +111,7 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
     Connection connection = get(id);
     String name = connection.getName();
     name = name + "_Clone";
-    connection.setId(mangle(name));
+    connection.setId(null);
     connection.setName(name);
     connection.setCreated(now());
     connection.setUpdated(now());

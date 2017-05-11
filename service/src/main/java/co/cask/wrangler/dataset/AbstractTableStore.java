@@ -25,7 +25,6 @@ import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,7 @@ import java.util.List;
  *   <li>
  *     Implement a few abstract methods relevant to the data being stored.
  *     <code>
- *       @Override protected String getNamespace() { ... }
+ *       @Override protected String getKeySpace() { ... }
  *       @Override protected String getDelimiter() { ... }
  *       @Override public String create(Connection connection) { ... }
  *       @Override public void update(String id, Connection connection) { ... }
@@ -58,6 +57,7 @@ import java.util.List;
  * </ul>
  */
 public abstract class AbstractTableStore<T> {
+
   // Table in which all the object data is store.
   private final Table table;
 
@@ -67,9 +67,13 @@ public abstract class AbstractTableStore<T> {
   // Column to which the data should be written.
   private final byte[] column;
 
-  protected AbstractTableStore(Table table, byte[] column) {
+  // Avoiding type erasure.
+  private final Class<T> classz;
+
+  protected AbstractTableStore(Table table, byte[] column, Class<T> classz) {
     this.table = table;
     this.column = column;
+    this.classz = classz;
     gson = new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   }
 
@@ -80,7 +84,8 @@ public abstract class AbstractTableStore<T> {
    * @return string representation of object.
    */
   protected String toJson(T object) {
-    return gson.toJson(object);
+    String json = gson.toJson(object);
+    return json;
   }
 
   /**
@@ -100,7 +105,7 @@ public abstract class AbstractTableStore<T> {
    * @return instance of type T object.
    */
   protected T fromJson(String json) {
-    return (T) gson.fromJson(json, new TypeToken<T>(){}.getType());
+    return gson.fromJson(json, classz);
   }
 
   /**
@@ -144,7 +149,7 @@ public abstract class AbstractTableStore<T> {
    */
   protected void putObject(byte[] key, T object) {
     byte[] bytes = toJsonBytes(object);
-    table.put(key, column, bytes);
+    table.put(generateKey(Bytes.toString(key)), column, bytes);
   }
 
   /**
@@ -154,7 +159,7 @@ public abstract class AbstractTableStore<T> {
    * @return composite key.
    */
   protected byte[] generateKey(String key) {
-    String compositeKey = String.format("%s%s%s", getNamespace(), getDelimiter(), key);
+    String compositeKey = String.format("%s%s", getKeySpace(), key);
     return Bytes.toBytes(compositeKey);
   }
 
@@ -184,22 +189,18 @@ public abstract class AbstractTableStore<T> {
    * Updates the table given an id and connection instance.
    *
    * @param id of the key.
-   * @param connection object to be stored.
+   * @param object object to be stored.
    */
-  protected void updateTable(String id, T connection) {
-    byte[] bytes = toJsonBytes(connection);
+  protected void updateTable(String id, T object) {
+    byte[] bytes = toJsonBytes(object);
     table.put(generateKey(id), column, bytes);
   }
 
   /**
    * @return Abstract method implemented by the extending class to provide the key namespace.
    */
-  protected abstract String getNamespace();
+  protected abstract String getKeySpace();
 
-  /**
-   * @return Abstract method implemented by the extending class to provide the delimiter for the composite key.
-   */
-  protected abstract String getDelimiter();
 
   /**
    * Scans the namespace to list all the keys applying the filter.
@@ -209,15 +210,19 @@ public abstract class AbstractTableStore<T> {
    */
   public List<T> scan(Predicate<T> filter) {
     List<T> result = new ArrayList<>();
-    byte[] startKey = Bytes.toBytes(getNamespace());
+    byte[] startKey = Bytes.toBytes(getKeySpace());
     byte[] stopKey = Bytes.stopKeyForPrefix(startKey);
     try (Scanner scan = table.scan(startKey, stopKey)) {
       Row next;
       while ((next = scan.next()) != null) {
         byte[] bytes = next.get(column);
-        T connection = fromJson(bytes);
-        if (filter != null && filter.apply(connection)) {
-          result.add(connection);
+        T object = fromJson(bytes);
+        if (filter != null) {
+          if(filter.apply(object)) {
+            result.add(object);
+          }
+        } else {
+          result.add(object);
         }
       }
     }

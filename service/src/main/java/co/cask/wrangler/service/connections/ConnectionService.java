@@ -32,8 +32,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.util.List;
@@ -54,7 +52,6 @@ import static co.cask.wrangler.service.ServiceUtils.sendJson;
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
  */
 public class ConnectionService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(ConnectionService.class);
 
   // Data Prep store which stores all the information associated with dataprep.
   @UseDataSet(DataPrep.DATAPREP_DATASET)
@@ -187,14 +184,14 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("type") final String type) {
     try {
-
       List<Connection> connections = store.scan(new Predicate<Connection>() {
         @Override
         public boolean apply(@Nullable Connection input) {
-          if (type == null || type.equalsIgnoreCase("*")) {
+          if (type == null) {
             return false;
           }
-          if(input.getType().name().equalsIgnoreCase(type)) {
+          if(type.equalsIgnoreCase("*") ||
+            input.getType().name().equalsIgnoreCase(type)) {
             return true;
           }
           return false;
@@ -220,7 +217,6 @@ public class ConnectionService extends AbstractHttpServiceHandler {
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
       error(responder, e.getMessage());
     }
   }
@@ -347,7 +343,9 @@ public class ConnectionService extends AbstractHttpServiceHandler {
         ));
         return;
       }
+
       connection.putProp(key, value);
+      store.update(id, connection);
 
       // Return the id in the response.
       JsonObject response = new JsonObject();
