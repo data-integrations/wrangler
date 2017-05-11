@@ -21,22 +21,7 @@ Following is the base URL for the service.
 
 ```http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods```
 
-## Create a new connection
-
-This REST endpoint allows one to create a new connection in the connection
-store.
-
-| Attribute  | Description / Example |
-| ---------- | --------------------- |
-| **HTTP Method**  |     POST  |
-| **URL**  | ```/connections/create```     |
-| **Example** | [http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/create](http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/create) |
-| **Query Params** | None |
-| **Request Content Type** | JSON, specification below. |
-| **Response Content Type** | JSON |
-| **Response Codes** | 200 if OK, 500 if there are any issues |
-
-### Request JSON Object
+## Request JSON Object for creation and complete update.
 
 Following are the fields that can be in the request.
 
@@ -75,32 +60,3 @@ example response when creation is successful.
     ]
 }
 ```
-
-
-## Update entire connection
-
-When a connection is retrieved using other API.
-
-| Attribute  | Description / Example |
-| ---------- | --------------------- |
-| **HTTP Method**  |     POST  |
-| **URL**  | ```/connections/{id}/update```     |
-| **Example** | [http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/update](http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/update) |
-| **Query Params** | None |
-| **Request Content Type** | JSON, specification as defined in create, but should include fields of the properties. |
-| **Response Content Type** | JSON |
-| **Response Codes** | 200 if OK, 500 if there are any issues |
-
-## Update properties of a connection
-
-Updates a individual property of a connection.
-
-| Attribute  | Description / Example |
-| ---------- | --------------------- |
-| **HTTP Method**  |     PUT  |
-| **URL**  | ```/connections/{id}/properties?key=<key>&value=<value>```     |
-| **Example** | [http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties?key=hostname&value=localhost](http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties?key=hostname&value=localhost) |
-| **Query Params** | ```key``` of the property to be updated, ```value``` for the key to be updated. |
-| **Request Content Type** | None |
-| **Response Content Type** | JSON |
-| **Response Codes** | 200 if OK, 500 if there are any issues |
