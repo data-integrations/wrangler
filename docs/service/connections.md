@@ -98,7 +98,7 @@ Updates a individual property of a connection.
 | ---------- | --------------------- |
 | **HTTP Method**  |     POST  |
 | **URL**  | ```/connections/{id}/properties```     |
-| **Example** | [http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties](http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties) |
+| **Example** | [http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties?key=hostname&value=localhost](http://localhost:11015/v3/namespaces/default/apps/datapre/services/service/methods/connections/mysql_database/properties?key=hostname&value=localhost) |
 | **Query Params** | ```key``` of the property to be updated, ```value``` for the key to be updated. |
 | **Request Content Type** | None |
 | **Response Content Type** | JSON |

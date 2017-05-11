@@ -210,7 +210,7 @@ public abstract class AbstractTableStore<T> {
   public List<T> scan(Predicate<T> filter) {
     List<T> result = new ArrayList<>();
     byte[] startKey = Bytes.toBytes(getNamespace());
-    byte[] stopKey = Bytes.toBytes(getNamespace());
+    byte[] stopKey = Bytes.stopKeyForPrefix(startKey);
     try (Scanner scan = table.scan(startKey, stopKey)) {
       Row next;
       while ((next = scan.next()) != null) {
