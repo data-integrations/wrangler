@@ -38,3 +38,4 @@ logs/
 
 # Remove release.properties
 release.properties
+dev/
