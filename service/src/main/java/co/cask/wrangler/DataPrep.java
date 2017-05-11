@@ -21,10 +21,15 @@ import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
 import co.cask.cdap.api.dataset.table.Table;
+import co.cask.cdap.api.dataset.lib.ObjectMappedTable;
+import co.cask.cdap.api.dataset.lib.ObjectMappedTableProperties;
+import co.cask.cdap.api.plugin.PluginProperties;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionService;
+import co.cask.wrangler.service.database.DBService;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
+import co.cask.wrangler.service.recipe.RecipeService;
 import co.cask.wrangler.service.schema.SchemaRegistryService;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
@@ -56,11 +61,17 @@ public class DataPrep extends AbstractApplication {
       .setDescription("Store Dataprep Index files")
       .build());
 
+    // temporary : hardcoded to use mysql, just for UI integration work.
+    usePlugin("jdbc", "mysql", "mysql", PluginProperties.builder().build());
+
     addService("service",
                new DirectivesService(),
                new SchemaRegistryService(),
                new FilesystemExplorer(),
-               new ConnectionService()
+               new ConnectionService(),
+               new RecipeService(),
+               new FilesystemExplorer(),
+               new DBService()
     );
   }
 }
