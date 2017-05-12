@@ -118,6 +118,7 @@ public final class Connection {
 
   /**
    * Sets the id for the connection.
+   *
    * @param id to be set.
    */
   public void setId(String id) {

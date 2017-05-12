@@ -20,8 +20,10 @@ These are the lifecycle operations supported by the connection service:
 This is the base URL for the service:
 
 ```
-http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods
+http://localhost:11015/v3/namespaces/<namespace>/apps/dataprep/services/service/methods
 ```
+
+> NOTE: All examples below use a 'default' namespace.
 
 ## Request JSON Object for creation and complete update
 
@@ -81,7 +83,7 @@ cat /Users/nitin/Work/Demo/data/mysql.connection.json
 
 ### Create REST API call.
 ```
-curl -s --data "@/Users/nitin/Work/Demo/data/mysql.connection.json" 'http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/create' | python -mjson.tool
+curl -s --data "@/tmp/mysql.connection.json" 'http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/connections/create' | python -mjson.tool
 {
     "count": 1,
     "message": "Success",

@@ -5,7 +5,7 @@ Following are properties for different types of connections.
 | Property                                                              | Description                                                      |
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | **Database**                                                            |                                                                  |
-| username                              | Username to be used in the connection   |
+| username                              | (String) Username to be used in the connection   |
 | password | (String) Password to be used along with username. Empty should be double-quoted |
 | hostname | (String) Hostname to connect to |
 | port | (Integer) Port number |

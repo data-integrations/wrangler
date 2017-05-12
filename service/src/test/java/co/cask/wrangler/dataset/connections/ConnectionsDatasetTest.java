@@ -13,7 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class ConnectionsDatasetTest {
 
   @Test
-  public void testEncryptionAndDecreption() throws Exception {
+  public void testEncryptionAndDecryption() throws Exception {
     try
     {
       String text = "Hello World";
@@ -34,5 +34,4 @@ public class ConnectionsDatasetTest {
       e.printStackTrace();
     }
   }
-
 }

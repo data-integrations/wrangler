@@ -110,6 +110,7 @@ public abstract class AbstractTableStore<T> {
 
   /**
    * Converts from JSON byte array to object of type T.
+   *
    * @param json byte array to be converted to object.
    * @return instance of type T object.
    */
@@ -153,7 +154,7 @@ public abstract class AbstractTableStore<T> {
   }
 
   /**
-   * Generates a composite key that is a combination of namespace, delimiter and object key.
+   * Generates a composite key that is a combination of namespace and object key.
    *
    * @param key specifies the key to be used to generate the composite key.
    * @return composite key.
@@ -290,3 +291,4 @@ public abstract class AbstractTableStore<T> {
    */
   public abstract T clone(String id);
 }
+
