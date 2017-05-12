@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.utils;
 
+import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
@@ -28,6 +29,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -275,6 +277,31 @@ public final class RecordConvertor implements Serializable {
 
       case STRING:
         return object.toString();
+
+      case BYTES:
+        if (object instanceof byte[]) {
+          return (byte[]) object;
+        } else if (object instanceof Boolean) {
+          return Bytes.toBytes((Boolean) object);
+        } else if (object instanceof Double) {
+          return Bytes.toBytes((Double) object);
+        } else if (object instanceof Float) {
+          return Bytes.toBytes((Float) object);
+        } else if (object instanceof Long) {
+          return Bytes.toBytes((Long) object);
+        } else if (object instanceof Integer) {
+          return Bytes.toBytes((Integer) object);
+        } else if (object instanceof Short) {
+          return Bytes.toBytes((Short) object);
+        } else if (object instanceof String) {
+          return Bytes.toBytes((String) object);
+        } else if (object instanceof BigDecimal) {
+          return Bytes.toBytes((BigDecimal) object);
+        } else {
+          throw new RecordConvertorException(
+            String.format("Unable to convert '%s' to bytes for field name '%s'", object.toString(), name)
+          );
+        }
     }
     throw new RecordConvertorException(
       String.format("Unable decode object '%s' with schema type '%s'.", name, type.toString())
