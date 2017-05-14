@@ -17,18 +17,15 @@
 package co.cask.wrangler;
 
 import co.cask.cdap.api.app.AbstractApplication;
-import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
-import co.cask.cdap.api.dataset.lib.ObjectMappedTable;
-import co.cask.cdap.api.dataset.lib.ObjectMappedTableProperties;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
+import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.service.connections.ConnectionService;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
-import co.cask.wrangler.service.recipe.RecipeDatum;
-import co.cask.wrangler.service.recipe.RecipeService;
 import co.cask.wrangler.service.schema.SchemaRegistryService;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
@@ -37,6 +34,8 @@ import org.apache.hadoop.mapred.TextOutputFormat;
  * Wrangler Application.
  */
 public class DataPrep extends AbstractApplication {
+  public static final String DATAPREP_DATASET = "dataprep";
+
   /**
    * Override this method to declare and configure the application.
    */
@@ -49,13 +48,8 @@ public class DataPrep extends AbstractApplication {
                   DatasetProperties.builder().setDescription("Dataprep Workspace Management").build());
     createDataset(SchemaRegistryService.SCHEMA_REGISTRY_NAME, SchemaRegistry.class,
                   DatasetProperties.builder().setDescription("DataPrep Schema Registry Management").build());
-    try {
-      createDataset(RecipeService.DATASET, ObjectMappedTable.class,
-                    ObjectMappedTableProperties.builder()
-                    .setType(RecipeDatum.class).build());
-    } catch (UnsupportedTypeException e) {
-      throw new RuntimeException("Unable to create Recipe store dataset. " + e.getMessage());
-    }
+    createDataset(DATAPREP_DATASET, Table.class,
+                  DatasetProperties.builder().setDescription("DataPrep All Store").build());
 
     // Used by the file service.
     createDataset("dataprep", FileSet.class, FileSetProperties.builder()
@@ -67,10 +61,9 @@ public class DataPrep extends AbstractApplication {
 
     addService("service",
                new DirectivesService(),
-               new RecipeService(),
+               new SchemaRegistryService(),
                new FilesystemExplorer(),
-               new SchemaRegistryService()
+               new ConnectionService()
     );
-
   }
 }

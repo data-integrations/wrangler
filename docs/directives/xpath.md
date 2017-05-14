@@ -1,25 +1,32 @@
-# XPath
+# XPath Directives
 
-XPATH and XPATH-ARRAY allows you navigate through the XML elements and attributes in a XML document.
+The XPATH and XPATH-ARRAY directives navigate the XML elements and attributes of an
+XML document.
+
 
 ## Syntax
+
 ```
-  xpath <column> <destination> <xpath>
-  xpath-array <column> <destination> <xpath>
+xpath <column> <destination> <xpath>
+xpath-array <column> <destination> <xpath>
 ```
 
-```column``` is source for navigating with XPath.
+The `<column>` is the source XML to be navigated with an XPath.
 
 
 ## Usage Notes
 
-This column should be first applied "PARSE-AS-XML" directive before applying this XPATH directive. Applying
-"PARSE-AS-XML" will generate [VTDNav](http://vtd-xml.sourceforge.net/javadoc/com/ximpleware/VTDNav.html) Object that
-you can then apply XPATH directive on. VTD Nav is the most memory efficient representation random-access XML parser.
+The source XML `<column>` should first have the [PARSE-AS-XML](parse-as-xml.md) directive
+applied before applying either of the XPATH directives.
 
-```destination``` specifies the column name for the result to be stored from the XPath navigation. If the XPath does
-not yield a value, then 'null' value is written to the column.
+Applying the PARSE-AS-XML directive will generate a
+[VTDNav](http://vtd-xml.sourceforge.net/javadoc/com/ximpleware/VTDNav.html) object that
+you can then apply an XPATH directive on. _VTD Nav_ is a memory-efficient random-access XML
+parser.
 
-XPATH-ARRAY directive should be used when the XPath could result in multiple values. The resulting ```destination```
-value is a JSON array of all the matches for the XPath.
+The `<destination>` specifies the column name to use for storing the results from the XPath
+navigation. If the XPath does not yield a value, then a `null` value is written to the
+column.
 
+The XPATH-ARRAY directive should be used when the XPath could result in multiple values.
+The resulting `<destination>` value is a JSON array of all the matches for the XPath.

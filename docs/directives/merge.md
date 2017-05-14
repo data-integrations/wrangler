@@ -1,57 +1,62 @@
-# Merge Columns
+# Merge
 
-MERGE directive merges two columns by inserting a third column into a record. The values in the third column are merged values from first and second column seperated by a delimiter specified.
+The MERGE directive merges two columns by inserting a third column into a record. The
+values in the third column are merged values from the two columns delimited by a specified
+separator.
+
 
 ## Syntax
+```
+ merge <first> <second> <new column> '<seperator>'
+```
 
-```
- MERGE <first> <second> <new column> '<seperator>'
-```
+* The `<first>` and `<second>` column values are merged using a separator. The columns to be
+  merged must both exist and should be of type string for the merge to be successful.
+
+* The `<new-column>` is the new column that will be added to the record. If the column already exists,
+  the contents will be replaced.
+
+* The `<separator>` is the character or string to be used to separate the values in the new
+  column. It is specified between single quotes. For example, a space character: `' '`.
+
+* The existing columns are not dropped by this directive.
 
 
 ## Usage Notes
 
-MERGE directive will merge ```first``` and ```second``` using a seperator.
-The columns to be merged should be of type String for the merge to be successful.
-```new column``` is a new column that would be added to the record.
-Both ```first``` and ```second``` columns have to be present and should be
-of type string for this directive to be successful.
+The columns to be merged should both be of type string.
 
-The seperator has to be specified within a single quote.
-E.g. for specifying a space enclose them in a single quote ```' '```
 
-## Example
+## Examples
 
-Let's say we record as specified below:
-
+Using this record as an example:
 ```
 {
-  "fname" : "Joltie",
-  "lname" : "Root"
-}
-```
-applying the MERGE directive on basic type like ```y``` as follows
-
-```
-  merge fname lname name ' '
-  merge fname lname name '''
-  merge fname lname name '\u000A'
-  merge fname lname name '---'
-```
-
-would generate the following distinct records.
-
-Separator is space ```' '```
-
-```
-{
-  "fname" : "Joltie",
-  "lname" : "Root",
-  "name" : "Joltie Root"
+  "first": "Root",
+  "last": "Joltie"
 }
 ```
 
-Separator is single quote  ```'''```
+Applying these directives:
+```
+merge first last fullname ' '
+merge first last fullname '''
+merge first last fullname '\u000A'
+merge first last fullname '---'
+```
+
+would result in these records:
+
+Separator is a single space character (`' '`):
+```
+{
+  "first": "Root",
+  "last": "Joltie",
+  "fullname": "Root Joltie"
+}
+```
+
+Separator is a single quote character (`'''`):
 ```
 {
   "fname" : "Joltie",
@@ -60,7 +65,7 @@ Separator is single quote  ```'''```
 }
 ```
 
-Separator is UTF-8 Character Line Feed \u000A ```'\u000A'```
+Separator is the UTF-8 Line Feed character (`'\u000A'`):
 ```
 {
   "fname" : "Joltie",
@@ -69,7 +74,7 @@ Separator is UTF-8 Character Line Feed \u000A ```'\u000A'```
 }
 ```
 
-Separator is multiple characters ```'---'```
+Separator is multiple characters (`'---'`):
 ```
 {
   "fname" : "Joltie",
@@ -77,6 +82,3 @@ Separator is multiple characters ```'---'```
   "name" : "Joltie---Root"
 }
 ```
-
-
-

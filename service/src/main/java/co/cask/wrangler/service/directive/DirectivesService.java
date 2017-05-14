@@ -246,13 +246,21 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     JsonObject response = new JsonObject();
     JsonArray values = new JsonArray();
     try {
+      byte[] bytes = table.getData(id, WorkspaceDataset.NAME_COL);
+      String name = "";
+      if (bytes != null) {
+        name = Bytes.toString(bytes);
+      }
       String data = table.getData(id, WorkspaceDataset.REQUEST_COL, DataType.TEXT);
       JsonObject req = new JsonObject();
       if (data != null) {
         req = (JsonObject) new JsonParser().parse(data);
       }
       Map<String, String> properties = table.getProperties(id);
-      req.add("properties", GSON.toJsonTree(properties));
+      JsonObject prop = (JsonObject) GSON.toJsonTree(properties);
+      prop.addProperty("name", name);
+      prop.addProperty("id", name);
+      req.add("properties", prop);
       values.add(req);
       response.addProperty("count", 1);
       response.add("values", values);
@@ -495,7 +503,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         @Override
         public List<Record> apply(@Nullable List<Record> records) {
           int min = Math.min(records.size(), limit);
-          return Lists.newArrayList(new Reservoir<Record>(min).sample(records.iterator()));
+          return records.subList(0, min);
         }
       });
 
@@ -595,7 +603,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         @Override
         public List<Record> apply(@Nullable List<Record> records) {
           int min = Math.min(records.size(), limit);
-          return Lists.newArrayList(new Reservoir<Record>(min).sample(records.iterator()));
+          return records.subList(0, min);
         }
       });
 

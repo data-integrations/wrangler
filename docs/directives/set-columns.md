@@ -1,78 +1,115 @@
 # Set Columns
 
-SET COLUMNS directive sets the name of the columns as specified in the order they were specified.
+The SET COLUMNS directive sets the names of columns, in the order they are specified.
+
 
 ## Syntax
-
 ```
- set columns <columm>[,<column>]*
+set columns <columm>[,<column>*]
 ```
 
-```column``` specifies the name of the column to be set.
+The `<column>` specifies the new name of an existing column or columns.
+
 
 ## Usage Notes
 
-The most common use of SET COLUMNS directive is to set the name of columns when
-we parse a CSV file. The column names will be applied to the record start from
-field zero in the order they were specified.
-
-Let's take a simple example, let's say you have parsed a 'body' using [PARSE-AS-CSV](csv-parser.md)
-directive and then you are applying SET COLUMNS directive.
+The most common use of the SET COLUMNS directive is to set the name of columns when a
+CSV file is parsed. The column names will be applied to the record starting from the first
+field, in the order that they are specified.
 
 
-```
-  {
-    "body" : "1,2,3,4,5"
-  }
-```
+## Examples
 
-Applying the directives below
-
-```
-  parse-as-csv body , true
-  set columns a,b,c,d,e
-```
-
-Would generate record that has the column names assigned as follows:
-
+Using this record as an example:
 ```
 {
-  "a" : "1,2,3,4,5",
-  "b" : "1",
-  "c" : "2",
-  "d" : "3",
-  "e" : "4",
-  "body_5" : "5"   ---> Note this was not assigned the name as expected.
+  "body": "1,2,3,4,5"
 }
 ```
 
-In order to make this right, you would have to add a [DROP](drop.md) directive to the mix. So, it would be as follows:
-
+If you have parsed this `body` using the [PARSE-AS-CSV](parse-as-csv.md)
+directive:
 ```
-  parse-as-csv body , true
-  drop body
-  set columns a,b,c,d,e
+parse-as-csv body , false
 ```
 
-Now, you'r record would look as follows:
-
+the resulting record would be:
 ```
 {
-  "a" : "1",
-  "b" : "2",
-  "c" : "3",
-  "d" : "4",
-  "e" : "5"
+  "body": "1,2,3,4,5",
+  "body_1": "1",
+  "body_2": "2",
+  "body_3": "3",
+  "body_4": "4",
+  "body_5": "5"
 }
 ```
 
-### Most common mistake
+If you then apply the SET COLUMNS directive:
+```
+set columns a,b,c,d,e
+```
 
-When using SET COLUMNS directive, the number of fields in the record should be same
-as number of column names in the SET COLUMNS directive. If they are not, then this
-directive will partially name the record fields.
+This would generate a record that has these column names:
+```
+{
+  "a": "1,2,3,4,5",
+  "b": "1",
+  "c": "2",
+  "d": "3",
+  "e": "4",
+  "body_5": "5"
+}
+```
 
-So, when this directive is executed in the Wrangler Transform and if the field "Name of field"
-to be transformed is set to '*' then all fields are added to the record causing issues with
-naming of the columns -- as it would also include column names that are coming from the
+Note that the last field (`body_5`) was not assigned the expected name.
+
+In order to correct this, either rename all the columns using:
+```
+parse-as-csv body , false
+set columns body,a,b,c,d,e
+```
+resulting in this record:
+```
+{
+  "body": "1,2,3,4,5",
+  "a": "1",
+  "b": "2",
+  "c": "3",
+  "d": "4",
+  "e": "5"
+}
+```
+
+or use a [DROP](drop.md) directive:
+```
+parse-as-csv body , false
+drop body
+set columns a,b,c,d,e
+```
+
+The result would then be this record:
+```
+{
+  "a": "1",
+  "b": "2",
+  "c": "3",
+  "d": "4",
+  "e": "5"
+}
+```
+
+
+## Common Mistakes
+
+When using the SET COLUMNS directive, the number of fields in the record should be same as
+number of column names in the SET COLUMNS directive. If they are not, then this directive
+will partially name the record fields.
+
+The names of the columns are in a single option, separated by commas. Separating by spaces
+will set only the name of the first column.
+
+When this directive is executed in a pipeline and the field "Name of field" to be
+transformed is set to `*`, then all fields are added to the record causing issues with the
+naming of the columns, as it would also include column names that are coming from the
 input.
