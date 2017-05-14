@@ -16,24 +16,13 @@
 
 package co.cask.wrangler.clients;
 
-import co.cask.wrangler.clients.entities.ErrorMessage;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.JsonObjectParser;
-import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.ExponentialBackOff;
-import com.google.api.client.util.Key;
+import co.cask.cdap.internal.guava.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,68 +32,169 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * This class {@link SchemaRegistryClient} provides client API to interate with Schema Register Service.
+ * This class {@link SchemaRegistryClient} is a client API for the SchemaRegistry service.
+ *
+ * Client allows only read-only access to service. It doesn't support the ability to mutate
+ * the service.
+ *
+ * Example usage of the client.
+ * <code>
+ *   ...
+ *   SchemaRegistryClient client = new SchemaRegistryClient(<baseurl>);
+ *   ...
+ *   client.setAcceptEncoding("application/json");
+ *   client.setConnectionTimeout(2000); // 2 seconds of connect timeout.
+ *   client.setReadTimeout(1000); // 1 second of read timeout.
+ *   try {
+ *    Response<SchemaInfo> info = client.getSchema("test", 2);
+ *   } catch (IOException e) {
+ *     ...
+ *   } catch (URIException e) {
+ *     ...
+ *   } catch (RestClientException e) {
+ *     ...
+ *   }
+ *   ...
+ * </code>
  */
 public final class SchemaRegistryClient {
   private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistryClient.class);
-  private final String base;
-  private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-  static final JsonFactory JSON_FACTORY = new GsonFactory();
-  private final HttpRequestFactory requestFactory;
+  private final Gson gson;
 
-  public static class DailyMotionUrl extends GenericUrl {
-    public DailyMotionUrl(String encodedUrl) {
-      super(encodedUrl);
+  // Defines the service base url.
+  private final String baseUrl;
+
+  // Connections settings.
+  private int connectionTimeout; // Timeout to connect specified in milliseconds.
+  private int readTimeout; // Timeout to read from socket in milliseconds.
+  private String acceptEncoding; // Accepting content type.
+
+  public SchemaRegistryClient(String baseUrl) {
+    this.baseUrl = baseUrl;
+    this.connectionTimeout = 2000;
+    this.readTimeout = 1000;
+    this.acceptEncoding = "application/json";
+    this.gson = new GsonBuilder().create();
+  }
+
+  /**
+   * Retrieves schema provided a schema id and version of the schema.
+   *
+   * @param id of the schema.
+   * @param version of the schema.
+   * @return {@link Response} of the schema.
+   * @throws URISyntaxException thrown if there are issue with construction of url.
+   * @throws IOException throw when there are issues connecting to the service.
+   * @throws RestClientException thrown when there are issues with request or response returned.
+   */
+  public String getSchema(String id, long version)
+    throws URISyntaxException, IOException, RestClientException {
+    URIBuilder urlBuilder = new URIBuilder(baseUrl);
+    urlBuilder.setPath(String.format("/schemas/%s/versions/%d", id, version));
+    URL url = urlBuilder.build().toURL();
+    Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
+    return response.getValues().get(0).getSpecification();
+  }
+
+  /**
+   * Retrieves schema provided a schema id. It provides the latest, current version of schema.
+   *
+   * @param id of the schema.
+   * @return {@link SchemaInfo} of the schema if ok, else null.
+   * @throws URISyntaxException thrown if there are issue with construction of url.
+   * @throws IOException throw when there are issues connecting to the service.
+   * @throws RestClientException thrown when there are issues with request or response returned.
+   */
+  public SchemaInfo getSchema(String id)
+    throws URISyntaxException, IOException, RestClientException {
+    URIBuilder urlBuilder = new URIBuilder(baseUrl);
+    urlBuilder.setPath(String.format("/schemas/%s", id));
+    URL url = urlBuilder.build().toURL();
+    Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
+    if (response.getCount() == 1) {
+      return response.getValues().get(0);
     }
-
-    @Key
-    public String fields;
+    return null;
   }
 
-  public SchemaRegistryClient(String base, final ExponentialBackOff backoff) {
-    this.base = base;
-    requestFactory =
-      HTTP_TRANSPORT.createRequestFactory(new HttpRequestInitializer() {
-        @Override
-        public void initialize(HttpRequest request) {
-          request.setParser(new JsonObjectParser(JSON_FACTORY));
-          request.setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(backoff));
-        }
-      });
+  /**
+   * Gets all the versions of schemas given a schema id.
+   *
+   * @param id of the schema.
+   * @return a list of schema versions.
+   * @throws URISyntaxException thrown if there are issue with construction of url.
+   * @throws IOException throw when there are issues connecting to the service.
+   * @throws RestClientException thrown when there are issues with request or response returned.
+   */
+  public List<Long> getVersions(String id)
+    throws URISyntaxException, IOException, RestClientException {
+    URIBuilder urlBuilder = new URIBuilder(baseUrl);
+    urlBuilder.setPath(String.format("/schemas/%s/versions", id));
+    URL url = urlBuilder.build().toURL();
+    Response<Long> response = request(url, "GET", new TypeToken<Response<Long>>(){}.getType());
+    return response.getValues();
   }
 
-  public SchemaRegistryClient(String base) {
-    this(base, new ExponentialBackOff.Builder()
-      .setInitialIntervalMillis(500)
-      .setMaxElapsedTimeMillis(900000)
-      .setMaxIntervalMillis(6000)
-      .setMultiplier(1.5)
-      .setRandomizationFactor(0.5)
-      .build());
+  /**
+   * @return Accept encoding currently setup for the client.
+   */
+  public String getAcceptEncoding() {
+    return acceptEncoding;
   }
 
-  public List<Long> getSchemaVersions(String id) throws IOException, RestClientException {
-    DailyMotionUrl url = new DailyMotionUrl("https://api.dailymotion.com/videos/");
-    url.fields = "id,tags,title,url";
-    HttpRequest request = requestFactory.buildGetRequest(url);
-    String requestUrl = String.format("%s/schemas/%s/versions", base, id);
-    JsonObject object = sendRequest(requestUrl, "GET", null, new HashMap<String, String>(), JsonObject.class);
-    JsonArray array = (JsonArray) object.get("values");
-    List<Long> result = new Gson().fromJson(array, List.class);
-    return result;
+  /**
+   * @param acceptEncoding sets the accept encoding for the client.
+   */
+  public void setAcceptEncoding(String acceptEncoding) {
+    this.acceptEncoding = acceptEncoding;
   }
 
-  private <T> T sendRequest(String requestUrl, String method, byte[] body,
+  /**
+   * @return the timeout set for connection in milliseconds.
+   */
+  public int getConnectionTimeout() {
+    return connectionTimeout;
+  }
+
+  /**
+   * Sets the connection timeout in milliseconds.
+   * @param connectionTimeout specified in milliseconds.
+   */
+  public void setConnectionTimeout(int connectionTimeout) {
+    this.connectionTimeout = connectionTimeout;
+  }
+
+  /**
+   * @return the read timeout in milliseconds.
+   */
+  public int getReadTimeout() {
+    return readTimeout;
+  }
+
+  /**
+   * Sets the read timeout in milliseconds.
+   * @param readTimeout
+   */
+  public void setReadTimeout(int readTimeout) {
+    this.readTimeout = readTimeout;
+  }
+
+  private <T> T request(URL url, String method, Type classz) throws IOException, RestClientException {
+    return request(url, method, null, new HashMap<String, String>(), classz);
+  }
+
+  private <T> T request(URL url, String method, byte[] body,
                             Map<String, String> headers, Type classz) throws IOException, RestClientException {
     HttpURLConnection connection = null;
     try {
-      URL url = new URL(requestUrl);
       connection = (HttpURLConnection) url.openConnection();
       connection.setRequestMethod(method);
 
@@ -112,12 +202,18 @@ public final class SchemaRegistryClient {
       // On the other hand, leaving this out breaks nothing.
       connection.setDoInput(true);
 
+      // Include the headers in the request.
       for (Map.Entry<String, String> entry : headers.entrySet()) {
         connection.setRequestProperty(entry.getKey(), entry.getValue());
       }
 
+      // Set the connection settings.
+      connection.setConnectTimeout(connectionTimeout);
+      connection.setReadTimeout(readTimeout);
       connection.setUseCaches(false);
+      connection.setRequestProperty("Accept", acceptEncoding);
 
+      // set the body if available.
       if (body != null) {
         connection.setDoOutput(true);
         OutputStream os = null;
@@ -126,7 +222,6 @@ public final class SchemaRegistryClient {
           os.write(body);
           os.flush();
         } catch (IOException e) {
-          LOG.error("Failed to send HTTP request to endpoint: " + url, e);
           throw e;
         } finally {
           if (os != null) {
@@ -135,27 +230,32 @@ public final class SchemaRegistryClient {
         }
       }
 
+      // Request, check status code and convert the response into object.
       int responseCode = connection.getResponseCode();
       if (responseCode == HttpURLConnection.HTTP_OK) {
         InputStream is = connection.getInputStream();
-        T result =  new Gson().fromJson(new InputStreamReader(is), classz);
+        T result =  gson.fromJson(new InputStreamReader(is), classz);
         is.close();
         return result;
       } else if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
         return null;
+      } else if (responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
+        InputStream es = connection.getErrorStream();
+        Response message;
+        try {
+          message = gson.fromJson(new InputStreamReader(es), Response.class);
+        } catch (JsonSyntaxException | JsonIOException e) {
+          throw new RestClientException(responseCode, e.getMessage());
+        } finally {
+          es.close();
+        }
+        throw new RestClientException(message.getStatus(), message.getMessage());
       } else {
         InputStream es = connection.getErrorStream();
-        ErrorMessage errorMessage;
-        try {
-          errorMessage = new Gson().fromJson(new InputStreamReader(es), ErrorMessage.class);
-        } catch (JsonSyntaxException | JsonIOException e) {
-          errorMessage = new ErrorMessage(8, e.getMessage());
-        }
+        String response = IOUtils.toString(es, StandardCharsets.UTF_8);
         es.close();
-        throw new RestClientException(errorMessage.getMessage(), responseCode,
-                                      errorMessage.getStatus());
+        throw new RestClientException(responseCode, response);
       }
-
     } finally {
       if (connection != null) {
         connection.disconnect();

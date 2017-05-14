@@ -20,7 +20,6 @@ import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
-import co.cask.wrangler.dataset.schema.SchemaRegistry;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionService;
@@ -46,8 +45,6 @@ public class DataPrep extends AbstractApplication {
 
     createDataset(DirectivesService.WORKSPACE_DATASET, WorkspaceDataset.class,
                   DatasetProperties.builder().setDescription("Dataprep Workspace Management").build());
-    createDataset(SchemaRegistryService.SCHEMA_REGISTRY_NAME, SchemaRegistry.class,
-                  DatasetProperties.builder().setDescription("DataPrep Schema Registry Management").build());
     createDataset(DATAPREP_DATASET, Table.class,
                   DatasetProperties.builder().setDescription("DataPrep All Store").build());
 

@@ -14,34 +14,11 @@
  * the License.
  */
 
-package co.cask.wrangler.clients;
+package co.cask.wrangler.service.schema;
 
 /**
- * This is exception thrown when there is issue with request or response.
+ * Tests {@link SchemaRegistryService}
  */
-public class RestClientException extends Exception {
-  // Status of the response.
-  private final int status;
-
-  // Message associated with the code.
-  private final String message;
-
-  public RestClientException(final int status, final String message) {
-    this.status = status;
-    this.message = message;
-  }
-
-  /**
-   * @return status code.
-   */
-  public int getStatus() {
-    return status;
-  }
-
-  /**
-   * @return status message.
-   */
-  public String getMessage() {
-    return message;
-  }
+public class SchemaRegistryServiceTest {
+  // NOTE: Once, we fix the issue with the guava inclusion in TestBase, need to add tests here.
 }

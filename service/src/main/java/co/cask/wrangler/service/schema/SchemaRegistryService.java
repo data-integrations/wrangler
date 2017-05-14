@@ -18,10 +18,14 @@ package co.cask.wrangler.service.schema;
 
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.common.Bytes;
+import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
+import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.dataset.schema.SchemaDescriptorType;
+import co.cask.wrangler.dataset.schema.SchemaEntry;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
 import co.cask.wrangler.dataset.schema.SchemaRegistryException;
 import com.google.gson.JsonArray;
@@ -42,10 +46,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.service.ServiceUtils.error;
-import static co.cask.wrangler.service.ServiceUtils.notFound;
-import static co.cask.wrangler.service.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.ServiceUtils.success;
+import static co.cask.wrangler.ServiceUtils.error;
+import static co.cask.wrangler.ServiceUtils.notFound;
+import static co.cask.wrangler.ServiceUtils.sendJson;
+import static co.cask.wrangler.ServiceUtils.success;
 
 /**
  * This class {@link SchemaRegistryService} provides schema management service.
@@ -54,8 +58,23 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistryService.class);
   public static final String SCHEMA_REGISTRY_NAME = "schema";
 
-  @UseDataSet("schema")
+  @UseDataSet(DataPrep.DATAPREP_DATASET)
+  private Table table;
+
   private SchemaRegistry registry;
+
+  /**
+   * An implementation of HttpServiceHandler#initialize(HttpServiceContext). Stores the context
+   * so that it can be used later.
+   *
+   * @param context the HTTP service runtime context
+   * @throws Exception
+   */
+  @Override
+  public void initialize(HttpServiceContext context) throws Exception {
+    super.initialize(context);
+    registry = new SchemaRegistry(table);
+  }
 
   /**
    * Creates an entry for Schema with id, name, description and type of schema.
@@ -230,7 +249,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
         notFound(responder, "Id " + id + " version " + version + " not found.");
         return;
       }
-      SchemaRegistry.SchemaEntry entry = registry.get(id, version);
+      SchemaEntry entry = registry.get(id, version);
       JsonObject response = new JsonObject();
       JsonArray array = new JsonArray();
       JsonObject object = new JsonObject();
@@ -275,7 +294,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
         notFound(responder, "Id " + id + " not found.");
         return;
       }
-      SchemaRegistry.SchemaEntry entry = registry.get(id);
+      SchemaEntry entry = registry.get(id);
       JsonObject response = new JsonObject();
       JsonArray array = new JsonArray();
       JsonObject object = new JsonObject();

@@ -26,7 +26,7 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.ConnectionType;
+import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.api.PipelineContext;
@@ -86,10 +86,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.service.ServiceUtils.error;
-import static co.cask.wrangler.service.ServiceUtils.notFound;
-import static co.cask.wrangler.service.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.ServiceUtils.success;
+import static co.cask.wrangler.ServiceUtils.error;
+import static co.cask.wrangler.ServiceUtils.notFound;
+import static co.cask.wrangler.ServiceUtils.sendJson;
+import static co.cask.wrangler.ServiceUtils.success;
 
 /**
  * Service for managing workspaces and also application of directives on to the workspace.

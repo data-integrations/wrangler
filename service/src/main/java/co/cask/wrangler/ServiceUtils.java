@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler;
 
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import com.google.common.base.Charsets;

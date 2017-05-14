@@ -17,31 +17,26 @@
 package co.cask.wrangler.dataset.schema;
 
 import co.cask.cdap.api.common.Bytes;
-import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.DataSetException;
-import co.cask.cdap.api.dataset.DatasetSpecification;
-import co.cask.cdap.api.dataset.lib.AbstractDataset;
-import co.cask.cdap.api.dataset.module.EmbeddedDataset;
 import co.cask.cdap.api.dataset.table.Row;
-import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import com.google.common.base.Charsets;
-import com.google.common.collect.HashBasedTable;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * This class {@link SchemaRegistry} is a {@link co.cask.cdap.api.dataset.Dataset} that is responsible
  * for managing the schema registry store.
  */
-public class SchemaRegistry extends AbstractDataset {
-  private final Gson gson;
+public final class SchemaRegistry  {
+  // Table in which all the information of the schema is stored.
   private final Table table;
+
+  // Key space for all the schema storage.
+  private static final String KEY_SPACE = "schema:";
+
+  // Following are the column names stored in the table for schema registry.
   private static final byte[] NAME_COL             = Bytes.toBytes("name");
   private static final byte[] DESC_COL             = Bytes.toBytes("description");
   private static final byte[] CREATED_COL          = Bytes.toBytes("created");
@@ -50,62 +45,7 @@ public class SchemaRegistry extends AbstractDataset {
   private static final byte[] AUTO_VERSION_COL     = Bytes.toBytes("auto");
   private static final byte[] ACTIVE_VERSION_COL   = Bytes.toBytes("current");
 
-  /**
-   * Schema Entry/
-   */
-  public static final class SchemaEntry {
-    private final String id;
-    private final String name;
-    private final String description;
-    private final SchemaDescriptorType type;
-    private final Set<Long> versions;
-    private final byte[] specification;
-    private final long current;
-
-    public SchemaEntry(String id, String name, String description, SchemaDescriptorType type,
-                       Set<Long> versions, byte[] specification, long current) {
-      this.id = id;
-      this.name = name;
-      this.description = description;
-      this.type = type;
-      this.versions = versions;
-      this.specification = specification;
-      this.current = current;
-    }
-
-    public String getId() {
-      return id;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public String getDescription() {
-      return description;
-    }
-
-    public SchemaDescriptorType getType() {
-      return type;
-    }
-
-    public Set<Long> getVersions() {
-      return versions;
-    }
-
-    public byte[] getSpecification() {
-      return specification;
-    }
-
-    public long getCurrent() {
-      return current;
-    }
-  }
-
-  public SchemaRegistry(DatasetSpecification specification,
-                        @EmbeddedDataset("schema") Table table) {
-    super(specification.getName(), table);
-    this.gson = new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+  public SchemaRegistry(Table table) {
     this.table = table;
   }
 
@@ -158,10 +98,10 @@ public class SchemaRegistry extends AbstractDataset {
   }
 
   /**
-   * Adds a new version of schema.
+   * Adds a new version of schema to an existing schema entry.
    *
    * @param id of the schema.
-   * @param specification
+   * @param specification of the schema to be added.
    * @throws SchemaRegistryException
    */
   public long add(String id,  byte[] specification) throws SchemaRegistryException {
@@ -229,6 +169,12 @@ public class SchemaRegistry extends AbstractDataset {
     return false;
   }
 
+  /**
+   * Checks if there is a schema entry, its not necessary that there are any version of schema registered.
+   *
+   * @param id of the schema to be checked for.
+   * @return true if it exists, false otherwise.
+   */
   public boolean hasSchema(String id) throws SchemaRegistryException {
     try {
       Row row = table.get(toIdKey(id));
@@ -244,6 +190,12 @@ public class SchemaRegistry extends AbstractDataset {
     return true;
   }
 
+  /**
+   * Given an id, returns all the versions of schema.
+   *
+   * @param id of schema for which all version of registered schema versions should be returned.
+   * @return list of schema versions.
+   */
   public Set<Long> getVersions(String id) throws SchemaRegistryException {
     try {
       Row row = table.get(toIdKey(id));
@@ -269,6 +221,12 @@ public class SchemaRegistry extends AbstractDataset {
     }
   }
 
+  /**
+   * Given an id, returns the name of the schema.
+   *
+   * @param id of the schema for which name needs to be returned.
+   * @return string value for the id.
+   */
   public String getName(String id) throws SchemaRegistryException {
     try {
       return Bytes.toString(table.get(toIdKey(id), NAME_COL));
@@ -366,29 +324,6 @@ public class SchemaRegistry extends AbstractDataset {
     }
   }
 
-  public com.google.common.collect.Table<String, String, String> list() throws SchemaRegistryException {
-    com.google.common.collect.Table<String, String, String> result = HashBasedTable.create();
-
-    Row row;
-    try (Scanner scanner = table.scan(null, null)) {
-      while((row = scanner.next()) != null) {
-        byte[] key = row.getRow();
-        String id = Bytes.toString(key);
-        Map<byte[], byte[]> columns = row.getColumns();
-        for (Map.Entry<byte[], byte[]> column : columns.entrySet()) {
-          String name = Bytes.toString(column.getKey());
-          String value = Bytes.toString(column.getValue());
-          result.put(id, name, value);
-        }
-      }
-      return result;
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to list schemas. ", e.getMessage())
-      );
-    }
-  }
-
   private long getNextVersion(String id) throws SchemaRegistryException {
     try {
       long nextVersion = table.incrementAndGet(toIdKey(id), AUTO_VERSION_COL, 1);
@@ -402,7 +337,7 @@ public class SchemaRegistry extends AbstractDataset {
   }
 
   private byte[] toIdKey(String id) {
-    return id.getBytes(Charsets.UTF_8);
+    return Bytes.toBytes(String.format("%s%s", KEY_SPACE, id));
   }
 
   private byte[] toVersionColumn(long version) {

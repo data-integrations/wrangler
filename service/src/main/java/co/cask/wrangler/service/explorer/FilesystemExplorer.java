@@ -26,7 +26,7 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.ConnectionType;
+import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
@@ -36,7 +36,7 @@ import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
-import co.cask.wrangler.service.ServiceUtils;
+import co.cask.wrangler.ServiceUtils;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -60,8 +60,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.service.ServiceUtils.error;
-import static co.cask.wrangler.service.ServiceUtils.sendJson;
+import static co.cask.wrangler.ServiceUtils.error;
+import static co.cask.wrangler.ServiceUtils.sendJson;
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
