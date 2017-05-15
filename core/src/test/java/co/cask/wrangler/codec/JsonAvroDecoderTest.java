@@ -78,10 +78,8 @@ public class JsonAvroDecoderTest {
     JsonAvroDecoder decoder = new JsonAvroDecoder(schema);
     List<Record> records = decoder.decode(bytes, "body");
     Assert.assertEquals(2, records.size());
-    Assert.assertEquals("{\"name\":\"Root\",\"favorite_number\":{\"int\":8},\"favorite_color\":null}",
-                        records.get(0).getValue("body"));
-    Assert.assertEquals("{\"name\":\"Ben\",\"favorite_number\":{\"int\":7},\"favorite_color\":{\"string\":\"red\"}}",
-                        records.get(1).getValue("body"));
+    Assert.assertEquals("Root", records.get(0).getValue("name"));
+    Assert.assertEquals("Ben", records.get(1).getValue("name"));
   }
 
 }

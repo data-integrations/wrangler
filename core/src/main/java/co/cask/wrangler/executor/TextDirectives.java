@@ -39,6 +39,7 @@ import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.JsPath;
+import co.cask.wrangler.steps.parser.ParseAvro;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
@@ -389,6 +390,31 @@ public class TextDirectives implements Directives {
             }
           }
           steps.add(new JsParser(lineno, directive, column, depth));
+        }
+        break;
+
+        // parse-as-avro <column> <schema-id> <json|binary> [version]
+        case "parse-as-avro" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String schemaId = getNextToken(tokenizer, command, "schema-id", lineno);
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
+           throw new DirectiveParseException(
+             String.format("Parsing AVRO can be either of type 'json' or 'binary'")
+           );
+          }
+          String versionOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int version = -1;
+          if (versionOpt != null && !versionOpt.isEmpty()) {
+            try {
+              version = Integer.parseInt(versionOpt);
+            } catch (NumberFormatException e) {
+              throw new DirectiveParseException(
+                String.format("Version '%s' specified is not a valid number.", versionOpt)
+              );
+            }
+          }
+          steps.add(new ParseAvro(lineno, directive, column, schemaId, type, version));
         }
         break;
 

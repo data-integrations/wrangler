@@ -18,35 +18,30 @@ package co.cask.wrangler.codec;
 
 import co.cask.wrangler.api.DecoderException;
 import co.cask.wrangler.api.Record;
-import com.google.common.base.Charsets;
+import com.google.gson.Gson;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonDecoder;
-import org.apache.avro.io.JsonEncoder;
+import org.apache.avro.util.Utf8;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class {@link JsonAvroDecoder} decodes a byte array of AVRO Json Records into the {@link Record} structure.
  */
 public class JsonAvroDecoder extends AbstractAvroDecoder {
-  private final DatumWriter<GenericRecord> writer;
-  private final ByteArrayOutputStream out;
+  private final Gson gson;
 
   public JsonAvroDecoder(Schema schema) {
     super(schema);
-    writer = new GenericDatumWriter<>(schema);
-    out = new ByteArrayOutputStream();
+    this.gson = new Gson();
   }
 
   @Override
@@ -58,13 +53,20 @@ public class JsonAvroDecoder extends AbstractAvroDecoder {
       decoder = DecoderFactory.get().jsonDecoder(getSchema(), in);
       while (true) {
         try {
-          out.reset();
-          JsonEncoder encoder = EncoderFactory.get().jsonEncoder(getSchema(), out);
           GenericRecord gRecord = getReader().read(null, decoder);
-          writer.write(gRecord, encoder);
-          encoder.flush();
-          out.close();
-          records.add(new Record(column, new String(out.toByteArray(), Charsets.UTF_8)));
+          List<Schema.Field> fields = getSchema().getFields();
+          Record r = new Record();
+          for (Schema.Field field : fields) {
+            Object object = gRecord.get(field.name());
+            if (object instanceof Utf8) {
+              Utf8 o = (Utf8) object;
+              object = o.toString();
+            } else if (object instanceof Map || object instanceof List) {
+              object = gson.toJson(object);
+            }
+            r.add(field.name(), object);
+          }
+          records.add(r);
         } catch (EOFException e) {
           break; // Reached end of buffer.
         }

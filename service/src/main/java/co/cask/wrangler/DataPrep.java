@@ -49,8 +49,8 @@ public class DataPrep extends AbstractApplication {
                   DatasetProperties.builder().setDescription("DataPrep All Store").build());
 
     // Used by the file service.
-    createDataset("dataprep", FileSet.class, FileSetProperties.builder()
-      .setBasePath("dataprep/indexds")
+    createDataset("dataprepfs", FileSet.class, FileSetProperties.builder()
+      .setBasePath("dataprepfs/indexds")
       .setInputFormat(TextInputFormat.class)
       .setOutputFormat(TextOutputFormat.class)
       .setDescription("Store Dataprep Index files")

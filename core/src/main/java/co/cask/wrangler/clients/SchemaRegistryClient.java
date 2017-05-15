@@ -17,12 +17,12 @@
 package co.cask.wrangler.clients;
 
 import co.cask.cdap.internal.guava.reflect.TypeToken;
+import co.cask.wrangler.api.PipelineContext;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +32,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -86,6 +88,16 @@ public final class SchemaRegistryClient {
   }
 
   /**
+   * Returns a instance of {@link SchemaRegistryClient} initialized with service url.
+   *
+   * @param context of the pipeline in which this client is invoked.
+   * @return instance of this class.
+   */
+  public static SchemaRegistryClient getInstance(PipelineContext context) {
+    return new SchemaRegistryClient(context.getService("dataprep", "service").toString());
+  }
+
+  /**
    * Retrieves schema provided a schema id and version of the schema.
    *
    * @param id of the schema.
@@ -97,11 +109,12 @@ public final class SchemaRegistryClient {
    */
   public String getSchema(String id, long version)
     throws URISyntaxException, IOException, RestClientException {
-    URIBuilder urlBuilder = new URIBuilder(baseUrl);
-    urlBuilder.setPath(String.format("/schemas/%s/versions/%d", id, version));
-    URL url = urlBuilder.build().toURL();
+    URL url = concat(new URI(baseUrl), String.format("schemas/%s/versions/%d", id, version)).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
-    return response.getValues().get(0).getSpecification();
+    if (response.getCount() == 1) {
+      return response.getValues().get(0).getSpecification();
+    }
+    return null;
   }
 
   /**
@@ -113,14 +126,12 @@ public final class SchemaRegistryClient {
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public SchemaInfo getSchema(String id)
+  public String getSchema(String id)
     throws URISyntaxException, IOException, RestClientException {
-    URIBuilder urlBuilder = new URIBuilder(baseUrl);
-    urlBuilder.setPath(String.format("/schemas/%s", id));
-    URL url = urlBuilder.build().toURL();
+    URL url = concat(new URI(baseUrl), String.format("schemas/%s", id)).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
     if (response.getCount() == 1) {
-      return response.getValues().get(0);
+      return response.getValues().get(0).getSpecification();
     }
     return null;
   }
@@ -136,11 +147,16 @@ public final class SchemaRegistryClient {
    */
   public List<Long> getVersions(String id)
     throws URISyntaxException, IOException, RestClientException {
-    URIBuilder urlBuilder = new URIBuilder(baseUrl);
-    urlBuilder.setPath(String.format("/schemas/%s/versions", id));
-    URL url = urlBuilder.build().toURL();
+    URL url = concat(new URI(baseUrl), String.format("schemas/%s/versions", id)).toURL();
     Response<Long> response = request(url, "GET", new TypeToken<Response<Long>>(){}.getType());
     return response.getValues();
+  }
+
+  /**
+   * @return the base url set for this client.
+   */
+  public String getBaseUrl() {
+    return baseUrl;
   }
 
   /**
@@ -185,6 +201,13 @@ public final class SchemaRegistryClient {
    */
   public void setReadTimeout(int readTimeout) {
     this.readTimeout = readTimeout;
+  }
+
+  private URI concat(URI uri, String extraPath)
+    throws URISyntaxException, MalformedURLException {
+    String newPath = uri.getPath() + '/' + extraPath;
+    URI newUri = uri.resolve(newPath);
+    return newUri;
   }
 
   private <T> T request(URL url, String method, Type classz) throws IOException, RestClientException {

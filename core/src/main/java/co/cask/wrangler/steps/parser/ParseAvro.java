@@ -23,31 +23,33 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.clients.RestClientException;
+import co.cask.wrangler.clients.SchemaRegistryClient;
+import co.cask.wrangler.codec.BinaryAvroDecoder;
 import co.cask.wrangler.codec.JsonAvroDecoder;
+import com.github.rholder.retry.RetryException;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.WaitStrategies;
 import com.google.common.base.Charsets;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.apache.avro.Schema;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A Step to parse AVRO.
  */
 @Usage(
   directive = "parse-as-avro",
-  usage = "parse-as-avro <column> <json|binary> <schema-id> [version]",
+  usage = "parse-as-avro <column> <schema-id> <json|binary> [version]",
   description = "Parses column as AVRO Generic Record."
 )
 public class ParseAvro extends AbstractStep {
@@ -58,7 +60,7 @@ public class ParseAvro extends AbstractStep {
   private final long version;
   private Decoder<Record> decoder;
   private boolean decoderInitialized = false;
-  private final Gson gson = new Gson();
+  private SchemaRegistryClient client;
 
   public ParseAvro(int lineno, String directive, String column, String schemaId, String type, long version) {
     super(lineno, directive);
@@ -76,14 +78,59 @@ public class ParseAvro extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, final PipelineContext context) throws StepException {
     List<Record> results = new ArrayList<>();
 
     if (!decoderInitialized) {
-      String path = "http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/schemas";
-      //getSchemaRegistryService(context);
-      decoder = initializeDecoder(schemaId, type, version, path);
-      decoderInitialized = true;
+      // Retryer callable, that allows this step attempt to connect to schema registry service
+      // before giving up.
+      Callable<Decoder<Record>> decoderCallable = new Callable<Decoder<Record>>() {
+        @Override
+        public Decoder<Record> call() throws Exception {
+          client = SchemaRegistryClient.getInstance(context);
+          String schemaString;
+          if (version != -1) {
+            schemaString = client.getSchema(schemaId, version);
+          } else {
+            schemaString = client.getSchema(schemaId);
+          }
+          Schema.Parser parser = new Schema.Parser();
+          Schema schema = parser.parse(schemaString);
+          if ("json".equalsIgnoreCase(type)) {
+            return new JsonAvroDecoder(schema);
+          } else if ("binary".equalsIgnoreCase(type)) {
+            return new BinaryAvroDecoder(schema);
+          }
+          return null;
+        }
+      };
+
+      // Retryer that retries when there is connection issue or any request / response
+      // issue. It would exponentially back-off till wait time of 10 seconds is reached
+      // for 5 attempts.
+      Retryer<Decoder<Record>> retryer = RetryerBuilder.<Decoder<Record>>newBuilder()
+        .retryIfExceptionOfType(IOException.class)
+        .retryIfExceptionOfType(RestClientException.class)
+        .withWaitStrategy(WaitStrategies.exponentialWait(10, TimeUnit.SECONDS))
+        .withStopStrategy(StopStrategies.stopAfterAttempt(5))
+        .build();
+
+      try {
+        decoder = retryer.call(decoderCallable);
+        if (decoder != null) {
+          decoderInitialized = true;
+        } else {
+          throw new StepException("Unsupported decoder types. Supports only 'json' or 'binary'");
+        }
+      } catch (ExecutionException e) {
+        throw new StepException(
+          String.format("Unable to retrieve schema from schema registry. %s", e.getCause())
+        );
+      } catch (RetryException e) {
+        throw new StepException(
+          String.format("Issue in retrieving schema from schema registry. %s", e.getCause())
+        );
+      }
     }
 
     try {
@@ -107,39 +154,6 @@ public class ParseAvro extends AbstractStep {
       throw new StepException(toString() + " Issue decoding Avro record. Check schema version '" +
                                 (version == -1 ? "latest" : version) + "'. " + e.getMessage());
     }
-    return records;
-  }
-
-  private Decoder<Record> initializeDecoder(String schemaId, String type, long version, String url) {
-    if (version != -1) {
-      url = String.format("%s/%s/versions/%d", url, schemaId, version);
-    } else {
-      url = String.format("%s/%s", url, schemaId);
-    }
-
-    LOG.trace("Requesting schema registry with url '" + url + "'");
-    HttpClient client = HttpClientBuilder.create().build();
-    HttpGet request = new HttpGet(url);
-    try {
-      HttpResponse response = client.execute(request);
-      BufferedReader rd = new BufferedReader(
-        new InputStreamReader(response.getEntity().getContent()));
-
-      StringBuffer result = new StringBuffer();
-      String line = "";
-      while ((line = rd.readLine()) != null) {
-        result.append(line);
-      }
-
-      JsonObject object = gson.fromJson(result.toString(), JsonObject.class);
-      JsonArray array = (JsonArray) object.get("values");
-      JsonObject o = (JsonObject) array.get(0);
-      Schema.Parser parser = new Schema.Parser();
-      Schema schema = parser.parse(o.get("specification").getAsString());
-      return new JsonAvroDecoder(schema);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return null;
+    return results;
   }
 }
