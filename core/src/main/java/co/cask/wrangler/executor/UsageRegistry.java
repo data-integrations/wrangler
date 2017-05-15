@@ -41,6 +41,7 @@ import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseAvro;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
+import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.parser.XmlToJson;
@@ -193,7 +194,8 @@ public final class UsageRegistry implements Serializable {
     XmlToJson.class,
     XPathArrayElement.class,
     XPathElement.class,
-    ParseAvro.class
+    ParseAvro.class,
+    ParseProtobuf.class
   );
 
   public UsageRegistry() {

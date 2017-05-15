@@ -76,7 +76,7 @@ public class JsonAvroDecoderTest {
     byte[] bytes = out.toByteArray();
 
     JsonAvroDecoder decoder = new JsonAvroDecoder(schema);
-    List<Record> records = decoder.decode(bytes, "body");
+    List<Record> records = decoder.decode(bytes);
     Assert.assertEquals(2, records.size());
     Assert.assertEquals("Root", records.get(0).getValue("name"));
     Assert.assertEquals("Ben", records.get(1).getValue("name"));

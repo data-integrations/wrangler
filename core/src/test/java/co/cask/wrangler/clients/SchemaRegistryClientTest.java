@@ -5,12 +5,9 @@ import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;
 import co.cask.http.NettyHttpService;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.reflect.TypeToken;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.After;
@@ -19,12 +16,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
@@ -103,7 +99,7 @@ public class SchemaRegistryClientTest {
       object.addProperty("description", "Foo Description");
       object.addProperty("type", "avro");
       object.addProperty("current", 1);
-      object.addProperty("specification", "{\"foo\" : \"test\"}");
+      object.addProperty("specification", Bytes.toHexString("{\"foo\" : \"test\"}".getBytes(StandardCharsets.UTF_8)));
       JsonArray versions = new JsonArray();
       Set<Long> vs = new HashSet<>();
       vs.add(2L);
@@ -141,23 +137,14 @@ public class SchemaRegistryClientTest {
       response.add("values", array);
       responder.sendJson(HttpResponseStatus.OK, response);
     }
-
-    private Map<String, Object> postRequest(HttpRequest request) throws JsonParseException {
-      ByteBuffer content = request.getContent().toByteBuffer();
-      if (content != null && content.hasRemaining()) {
-        Map<String, Object> req =
-          new Gson().fromJson(Bytes.toString(content), new TypeToken<Map<String, Object>>(){}.getType());
-        return req;
-      }
-      return null;
-    }
   }
 
   @Test
   public void testGetSchema() throws Exception {
-    String schema = client.getSchema("foo", 1);
-    Assert.assertNotNull(schema);
-    Assert.assertEquals("{\"foo\" : \"test\"}", schema);
+    byte[] bytes = client.getSchema("foo", 1);
+    Assert.assertNotNull(bytes);
+    String str = Bytes.toString(bytes);
+    Assert.assertEquals("{\"foo\" : \"test\"}", str);
   }
 
   @Test

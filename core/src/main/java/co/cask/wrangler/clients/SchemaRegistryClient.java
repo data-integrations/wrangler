@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.clients;
 
+import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.wrangler.api.PipelineContext;
 import com.google.gson.Gson;
@@ -107,12 +108,12 @@ public final class SchemaRegistryClient {
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public String getSchema(String id, long version)
+  public byte[] getSchema(String id, long version)
     throws URISyntaxException, IOException, RestClientException {
     URL url = concat(new URI(baseUrl), String.format("schemas/%s/versions/%d", id, version)).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
     if (response.getCount() == 1) {
-      return response.getValues().get(0).getSpecification();
+      return Bytes.fromHexString(response.getValues().get(0).getSpecification());
     }
     return null;
   }
@@ -126,12 +127,12 @@ public final class SchemaRegistryClient {
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public String getSchema(String id)
+  public byte[] getSchema(String id)
     throws URISyntaxException, IOException, RestClientException {
     URL url = concat(new URI(baseUrl), String.format("schemas/%s", id)).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
     if (response.getCount() == 1) {
-      return response.getValues().get(0).getSpecification();
+      return Bytes.fromHexString(response.getValues().get(0).getSpecification());
     }
     return null;
   }

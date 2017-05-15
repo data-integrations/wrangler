@@ -67,10 +67,11 @@ public final class SchemaRegistry  {
       Bytes.toBytes(name),
       Bytes.toBytes(description),
       Bytes.toBytes(System.currentTimeMillis() / 1000),
-      Bytes.toBytes(type.toString()),
+      Bytes.toBytes(type.getType()),
       Bytes.toBytes(1L),
       Bytes.toBytes(1L)
     };
+
     try {
       table.put(toIdKey(id), columns, data);
     } catch (DataSetException e) {

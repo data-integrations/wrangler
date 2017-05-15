@@ -42,6 +42,7 @@ import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseAvro;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
+import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.parser.XmlToJson;
@@ -415,6 +416,26 @@ public class TextDirectives implements Directives {
             }
           }
           steps.add(new ParseAvro(lineno, directive, column, schemaId, type, version));
+        }
+        break;
+
+        // parse-as-protobuf <column> <schema-id> <record-name> [version]
+        case "parse-as-protobuf" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String schemaId = getNextToken(tokenizer, command, "schema-id", lineno);
+          String recordName = getNextToken(tokenizer, command, "record-name", lineno);
+          String versionOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int version = -1;
+          if (versionOpt != null && !versionOpt.isEmpty()) {
+            try {
+              version = Integer.parseInt(versionOpt);
+            } catch (NumberFormatException e) {
+              throw new DirectiveParseException(
+                String.format("Version '%s' specified is not a valid number.", versionOpt)
+              );
+            }
+          }
+          steps.add(new ParseProtobuf(lineno, directive, column, schemaId, recordName, version));
         }
         break;
 

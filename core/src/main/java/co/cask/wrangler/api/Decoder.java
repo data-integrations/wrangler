@@ -23,5 +23,5 @@ import java.util.List;
  * Decoder interface for decoding the data.
  */
 public interface Decoder<T> {
-  List<T> decode(byte[] bytes, String column) throws DecoderException;
+  List<T> decode(byte[] bytes) throws DecoderException;
 }

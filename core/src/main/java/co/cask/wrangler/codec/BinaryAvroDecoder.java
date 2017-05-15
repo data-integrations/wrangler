@@ -45,7 +45,7 @@ public class BinaryAvroDecoder extends AbstractAvroDecoder {
   }
 
   @Override
-  public List<Record> decode(byte[] bytes, String column) throws DecoderException {
+  public List<Record> decode(byte[] bytes) throws DecoderException {
     List<Record> records = new ArrayList<>();
     BinaryDecoder decoder = null;
     ByteArrayInputStream in = new ByteArrayInputStream(bytes);

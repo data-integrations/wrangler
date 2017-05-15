@@ -76,7 +76,7 @@ public class BinaryAvroDecoderTest {
     byte[] bytes = out.toByteArray();
 
     BinaryAvroDecoder decoder = new BinaryAvroDecoder(schema);
-    List<Record> records = decoder.decode(bytes, "body");
+    List<Record> records = decoder.decode(bytes);
     Assert.assertEquals(2, records.size());
     Assert.assertEquals("Root", records.get(0).getValue("name"));
     Assert.assertEquals("Ben", records.get(1).getValue("name"));

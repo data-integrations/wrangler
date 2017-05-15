@@ -110,7 +110,7 @@ public class ParseAvroTest {
     Schema schema = getSchema();
     byte[] bytes = encodeAsJsonGenericRecord();
     JsonAvroDecoder jsonAvroDecoder = new JsonAvroDecoder(schema);
-    List<Record> r = jsonAvroDecoder.decode(bytes, "body");
+    List<Record> r = jsonAvroDecoder.decode(bytes);
     Assert.assertEquals(2, r.size());
 
     // Read from byte array.

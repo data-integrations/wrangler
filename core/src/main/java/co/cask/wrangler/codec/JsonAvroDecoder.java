@@ -45,7 +45,7 @@ public class JsonAvroDecoder extends AbstractAvroDecoder {
   }
 
   @Override
-  public List<Record> decode(byte[] bytes, String column) throws DecoderException {
+  public List<Record> decode(byte[] bytes) throws DecoderException {
     List<Record> records = new ArrayList<>();
     JsonDecoder decoder = null;
     ByteArrayInputStream in = new ByteArrayInputStream(bytes);

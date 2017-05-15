@@ -111,9 +111,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
         return;
       }
       registry.create(id, name, description, SchemaDescriptorType.fromString(type));
-      success(responder,
-                           String.format("Successfully created schema entry with id '%s', name '%s'", id, name)
-      );
+      success(responder, String.format("Successfully created schema entry with id '%s', name '%s'", id, name));
     } catch (IllegalArgumentException e) {
       error(responder, e.getMessage());
     } catch (SchemaRegistryException e) {
@@ -259,7 +257,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
       object.addProperty("description", entry.getDescription());
       object.addProperty("type", entry.getType().getType());
       object.addProperty("current", entry.getCurrent());
-      object.addProperty("specification", Bytes.toString(entry.getSpecification()));
+      object.addProperty("specification", Bytes.toHexString(entry.getSpecification()));
       JsonArray versions = new JsonArray();
       Iterator<Long> it = entry.getVersions().iterator();
       while(it.hasNext()) {
@@ -304,7 +302,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
       object.addProperty("description", entry.getDescription());
       object.addProperty("type", entry.getType().getType());
       object.addProperty("current", entry.getCurrent());
-      object.addProperty("specification", Bytes.toString(entry.getSpecification()));
+      object.addProperty("specification", Bytes.toHexString(entry.getSpecification()));
       JsonArray versions = new JsonArray();
       Iterator<Long> it = entry.getVersions().iterator();
       while(it.hasNext()) {

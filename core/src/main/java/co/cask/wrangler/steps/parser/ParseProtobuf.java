@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Decoder;
 import co.cask.wrangler.api.DecoderException;
@@ -26,15 +25,12 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.clients.RestClientException;
 import co.cask.wrangler.clients.SchemaRegistryClient;
-import co.cask.wrangler.codec.BinaryAvroDecoder;
-import co.cask.wrangler.codec.JsonAvroDecoder;
+import co.cask.wrangler.codec.ProtobufDecoderUsingDescriptor;
 import com.github.rholder.retry.RetryException;
 import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.github.rholder.retry.WaitStrategies;
-import com.google.common.base.Charsets;
-import org.apache.avro.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,28 +42,28 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A step to parse AVRO json or binary format.
+ * A step to parse Protobuf encoded memory representations.
  */
 @Usage(
-  directive = "parse-as-avro",
-  usage = "parse-as-avro <column> <schema-id> <json|binary> [version]",
-  description = "Parses column as AVRO generic record."
+  directive = "parse-as-protobuf",
+  usage = "parse-as-protobuf <column> <schema-id> <record-name> [version]",
+  description = "Parses column as protobuf encoded memory representations."
 )
-public class ParseAvro extends AbstractStep {
-  private static final Logger LOG = LoggerFactory.getLogger(ParseAvro.class);
+public class ParseProtobuf extends AbstractStep {
+  private static final Logger LOG = LoggerFactory.getLogger(ParseProtobuf.class);
   private final String column;
   private final String schemaId;
-  private final String type;
+  private final String recordName;
   private final long version;
   private Decoder<Record> decoder;
   private boolean decoderInitialized = false;
   private SchemaRegistryClient client;
 
-  public ParseAvro(int lineno, String directive, String column, String schemaId, String type, long version) {
+  public ParseProtobuf(int lineno, String directive, String column, String schemaId, String recordName, long version) {
     super(lineno, directive);
     this.column = column;
     this.schemaId = schemaId;
-    this.type = type;
+    this.recordName = recordName;
     this.version = version;
   }
 
@@ -95,14 +91,8 @@ public class ParseAvro extends AbstractStep {
           } else {
             bytes = client.getSchema(schemaId);
           }
-          Schema.Parser parser = new Schema.Parser();
-          Schema schema = parser.parse(Bytes.toString(bytes));
-          if ("json".equalsIgnoreCase(type)) {
-            return new JsonAvroDecoder(schema);
-          } else if ("binary".equalsIgnoreCase(type)) {
-            return new BinaryAvroDecoder(schema);
-          }
-          return null;
+
+          return new ProtobufDecoderUsingDescriptor(bytes, recordName);
         }
       };
 
@@ -121,15 +111,15 @@ public class ParseAvro extends AbstractStep {
         if (decoder != null) {
           decoderInitialized = true;
         } else {
-          throw new StepException("Unsupported decoder types. Supports only 'json' or 'binary'");
+          throw new StepException("Unsupported protobuf decoder type");
         }
       } catch (ExecutionException e) {
         throw new StepException(
-          String.format("Unable to retrieve schema from schema registry. %s", e.getCause())
+          String.format("Unable to retrieve protobuf descriptor from schema registry. %s", e.getCause())
         );
       } catch (RetryException e) {
         throw new StepException(
-          String.format("Issue in retrieving schema from schema registry. %s", e.getCause())
+          String.format("Issue in retrieving protobuf descriptor from schema registry. %s", e.getCause())
         );
       }
     }
@@ -142,17 +132,13 @@ public class ParseAvro extends AbstractStep {
           if (object instanceof byte[]) {
             byte[] bytes = (byte[]) object;
             results.addAll(decoder.decode(bytes));
-          } else if (object instanceof String) {
-            String body = (String) object;
-            byte[] bytes = body.getBytes(Charsets.UTF_8);
-            results.addAll(decoder.decode(bytes));
           } else {
-            throw new StepException(toString() + " : column " + column + " should be of type string or byte array");
+            throw new StepException(toString() + " : column " + column + " should be of type byte array");
           }
         }
       }
     } catch (DecoderException e) {
-      throw new StepException(toString() + " Issue decoding Avro record. Check schema version '" +
+      throw new StepException(toString() + " Issue decoding Protobuf record. Check schema version '" +
                                 (version == -1 ? "latest" : version) + "'. " + e.getMessage());
     }
     return results;
