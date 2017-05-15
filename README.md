@@ -27,6 +27,8 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
   * [SCREENCAST] [Data cleansing with send-to-error directive](https://www.youtube.com/watch?v=aZd5H8hIjDc)
   * [SCREENCAST] [Publishing to Kafka](https://www.youtube.com/watch?v=xdc8pvvlI48)
   * [SCREENCAST] [Fixed length to JSON](https://www.youtube.com/watch?v=3AXu4m1swuM)
+  * [SCREENCAST] [Quantize Column](https://www.youtube.com/watch?v=VczkYX5SRtY)
+  * [SCREENCAST] [Parsing Binary Coded AVRO Messages](https://www.youtube.com/watch?v=Ix_lPo-PDJY)
 
 * Recipes
   * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
