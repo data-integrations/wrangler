@@ -16,9 +16,14 @@
 package co.cask.wrangler.service.database;
 
 import co.cask.cdap.api.annotation.UseDataSet;
+import co.cask.cdap.api.artifact.ArtifactInfo;
+import co.cask.cdap.api.artifact.ArtifactRange;
+import co.cask.cdap.api.artifact.ArtifactScope;
+import co.cask.cdap.api.artifact.CloseableClassLoader;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.data.schema.UnsupportedTypeException;
+import co.cask.cdap.api.plugin.PluginClass;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
@@ -28,6 +33,7 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -35,6 +41,7 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.sql.Connection;
@@ -50,7 +57,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
@@ -60,6 +69,11 @@ import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DAT
 public class DBService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
   private static final Gson GSON = new Gson();
+  private static final Map<String, String> MAP_CLASSNAME_TO_DRIVER_NAME =
+    ImmutableMap.of("com.microsoft.sqlserver.jdbc.SQLServerDriver", "MSSQL",
+                    "com.mysql.jdbc.Driver", "MySQL",
+                    "org.netezza.Driver", "Netezza",
+                    "org.postgresql.Driver", "PostGres");
 
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
@@ -76,29 +90,52 @@ public class DBService extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
     DriverCleanup driverCleanup = null;
     try {
-      Class<? extends Driver> driverClass = getContext().loadPluginClass("mysql");
-      String body = Bytes.toString(request.getContent());
-      ListTablesRequest listTablesRequest = GSON.fromJson(body, ListTablesRequest.class);
+      List<ArtifactInfo> artifactInfos = getContext().getAdmin().listArtifacts();
+      ArtifactInfo targetArtifactInfo = null;
+      for (ArtifactInfo artifactInfo : artifactInfos) {
+        Set<PluginClass> pluginClassSet = artifactInfo.getClasses().getPlugins();
+        for (PluginClass plugin : pluginClassSet) {
+          if (plugin.getType().equals("jdbc") && plugin.getName().equals("mysql")) {
+            targetArtifactInfo = artifactInfo;
+            break;
+          }
+        }
+        if (targetArtifactInfo != null) {
+          break;
+        }
+      }
 
-      driverCleanup = ensureJDBCDriverIsAvailable(driverClass, listTablesRequest.connectionString, "jdbc", "mysql");
-      Connection connection;
-      if (listTablesRequest.userName == null) {
-        connection = DriverManager.getConnection(listTablesRequest.connectionString);
-      } else {
-        connection = DriverManager.getConnection(listTablesRequest.connectionString, listTablesRequest.userName,
-                                                 listTablesRequest.password);
+      if (targetArtifactInfo == null) {
+        responder.sendError(400, "Unable to find artifact with mysql plugin");
       }
-      DatabaseMetaData metaData = connection.getMetaData();
-      ResultSet resultSet = metaData.getTables(null, null, "%", null);
-      List<TableInfo> tables = new ArrayList<>();
-      while (resultSet.next()) {
-        Statement statement = connection.createStatement();
-        statement.setMaxRows(1);
-        ResultSet queryResult =
-          statement.executeQuery(String.format("select * from %s where 1=0", resultSet.getString(3)));
-        tables.add(new TableInfo(resultSet.getString(3), queryResult.getMetaData().getColumnCount()));
+
+      try (CloseableClassLoader closeableClassLoader =
+        getContext().getAdmin().createClassLoader(targetArtifactInfo, null)) {
+        Class<? extends Driver> driverClass = (Class<? extends Driver>)
+          closeableClassLoader.loadClass("com.mysql.jdbc.Driver");
+        String body = Bytes.toString(request.getContent());
+        ListTablesRequest listTablesRequest = GSON.fromJson(body, ListTablesRequest.class);
+
+        driverCleanup = ensureJDBCDriverIsAvailable(driverClass, listTablesRequest.connectionString, "jdbc", "mysql");
+        Connection connection;
+        if (listTablesRequest.userName == null) {
+          connection = DriverManager.getConnection(listTablesRequest.connectionString);
+        } else {
+          connection = DriverManager.getConnection(listTablesRequest.connectionString, listTablesRequest.userName,
+                                                   listTablesRequest.password);
+        }
+        DatabaseMetaData metaData = connection.getMetaData();
+        ResultSet resultSet = metaData.getTables(null, null, "%", null);
+        List<TableInfo> tables = new ArrayList<>();
+        while (resultSet.next()) {
+          Statement statement = connection.createStatement();
+          statement.setMaxRows(1);
+          ResultSet queryResult =
+            statement.executeQuery(String.format("select * from %s where 1=0", resultSet.getString(3)));
+          tables.add(new TableInfo(resultSet.getString(3), queryResult.getMetaData().getColumnCount()));
+        }
+        responder.sendString(HttpURLConnection.HTTP_OK, new Gson().toJson(tables), Charsets.UTF_8);
       }
-      responder.sendString(HttpURLConnection.HTTP_OK, new Gson().toJson(tables), Charsets.UTF_8);
     } catch (Exception e) {
       LOG.error("Exception while getting tables", e);
       responder.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
@@ -108,6 +145,64 @@ public class DBService extends AbstractHttpServiceHandler {
       }
     }
   }
+
+  class DriverInfo {
+    String artifactName;
+    String artifactVersion;
+    ArtifactScope artifactScope;
+    String pluginName;
+    String pluginType;
+    String pluginClassName;
+    Set<ArtifactRange> parentArtifacts;
+
+    DriverInfo(ArtifactInfo artifactInfo, PluginClass pluginClass) {
+      this.artifactName = artifactInfo.getName();
+      this.artifactVersion = artifactInfo.getVersion();
+      this.artifactScope = artifactInfo.getScope();
+      this.pluginName = pluginClass.getName();
+      this.pluginType = pluginClass.getType();
+      this.pluginClassName = pluginClass.getClassName();
+      this.parentArtifacts = artifactInfo.getParents();
+    }
+  }
+
+  /**
+   * Return the list of tables and the number of columns in each of them.
+   *
+   * @param request HTTP Request Handler
+   * @param responder HTTP Response Handler
+   * @throws Exception
+   */
+  @Path("list/drivers")
+  @GET
+  public void driversList(HttpServiceRequest request, HttpServiceResponder responder) {
+    try {
+      Map<String, List<DriverInfo>> driverNameToInfoMap = new HashMap<>();
+
+      List<ArtifactInfo> artifactInfos = getContext().getAdmin().listArtifacts();
+      for (ArtifactInfo artifactInfo : artifactInfos) {
+        Set<PluginClass> pluginClassSet = artifactInfo.getClasses().getPlugins();
+        for (PluginClass plugin : pluginClassSet) {
+          if (plugin.getType().equals("jdbc")) {
+            if (MAP_CLASSNAME_TO_DRIVER_NAME.containsKey(plugin.getClassName())) {
+              String driverName = MAP_CLASSNAME_TO_DRIVER_NAME.get(plugin.getClassName());
+              if (!driverNameToInfoMap.containsKey(driverName)) {
+                driverNameToInfoMap.put(driverName, new ArrayList<DriverInfo>());
+              }
+              driverNameToInfoMap.get(driverName).add(new DriverInfo(artifactInfo, plugin));
+            } else {
+              LOG.warn("Found JDBC driver of unrecognized classname {}", plugin.getClassName());
+              continue;
+            }
+          }
+        }
+      }
+      responder.sendJson(200, driverNameToInfoMap);
+    } catch (IOException e) {
+      responder.sendError(500, String.format("Error while listing drivers %s", e.getMessage()));
+    }
+  }
+
 
   class ListTablesRequest {
     String connectionString;
