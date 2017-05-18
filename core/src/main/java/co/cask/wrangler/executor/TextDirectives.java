@@ -51,34 +51,7 @@ import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SendToError;
 import co.cask.wrangler.steps.row.SetRecordDelimiter;
 import co.cask.wrangler.steps.row.SplitToRows;
-import co.cask.wrangler.steps.transformation.CatalogLookup;
-import co.cask.wrangler.steps.transformation.CharacterCut;
-import co.cask.wrangler.steps.transformation.Decode;
-import co.cask.wrangler.steps.transformation.Encode;
-import co.cask.wrangler.steps.transformation.Expression;
-import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
-import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
-import co.cask.wrangler.steps.transformation.FindAndReplace;
-import co.cask.wrangler.steps.transformation.GenerateUUID;
-import co.cask.wrangler.steps.transformation.IndexSplit;
-import co.cask.wrangler.steps.transformation.InvokeHttp;
-import co.cask.wrangler.steps.transformation.Lower;
-import co.cask.wrangler.steps.transformation.MaskNumber;
-import co.cask.wrangler.steps.transformation.MaskShuffle;
-import co.cask.wrangler.steps.transformation.MessageHash;
-import co.cask.wrangler.steps.transformation.Quantization;
-import co.cask.wrangler.steps.transformation.SetColumn;
-import co.cask.wrangler.steps.transformation.Split;
-import co.cask.wrangler.steps.transformation.SplitEmail;
-import co.cask.wrangler.steps.transformation.SplitURL;
-import co.cask.wrangler.steps.transformation.TableLookup;
-import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
-import co.cask.wrangler.steps.transformation.TextMetricMeasure;
-import co.cask.wrangler.steps.transformation.TitleCase;
-import co.cask.wrangler.steps.transformation.Upper;
-import co.cask.wrangler.steps.transformation.UrlEncode;
-import co.cask.wrangler.steps.transformation.XPathArrayElement;
-import co.cask.wrangler.steps.transformation.XPathElement;
+import co.cask.wrangler.steps.transformation.*;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -888,6 +861,30 @@ public class TextDirectives implements Directives {
           steps.add(new Decode(lineno, directive, Decode.Type.valueOf(type), column));
         }
         break;
+
+        //trim <col>
+        case "trim": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          steps.add(new Trim(lineno, directive, col));
+        }
+        break;
+
+        //ltrim <col>
+        case "ltrim": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          steps.add(new LeftTrim(lineno, directive, col));
+        }
+        break;
+
+        //rtrim <col>
+        case "rtrim": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          steps.add(new RightTrim(lineno, directive, col));
+        }
+        break;
+
+
+
 
         default:
           throw new DirectiveParseException(
