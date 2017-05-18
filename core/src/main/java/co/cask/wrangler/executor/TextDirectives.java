@@ -785,7 +785,7 @@ public class TextDirectives implements Directives {
             throw new IllegalArgumentException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10-2016 " +
                                                  "or ICD-10-2017).");
           } else {
-            ICDCatalog catalog = new ICDCatalog(type);
+            ICDCatalog catalog = new ICDCatalog(type.toLowerCase());
             if (!catalog.configure()) {
               throw new DirectiveParseException(
                 String.format("Failed to configure ICD StaticCatalog. Check with your administrator")

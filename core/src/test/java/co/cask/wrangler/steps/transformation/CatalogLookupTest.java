@@ -33,7 +33,9 @@ public class CatalogLookupTest {
   public void testICDCodeLookup() throws Exception {
     String[] directives = new String[] {
       "catalog-lookup icd-10-2016 code",
+      "catalog-lookup ICD-10-2017 code",
     };
+
 
     List<Record> records = Arrays.asList(
       new Record("code", "A0100"),
@@ -47,8 +49,9 @@ public class CatalogLookupTest {
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 6);
     Assert.assertEquals("code_icd_10_2016_description", records.get(0).getColumn(1));
+    Assert.assertEquals("code_icd_10_2017_description", records.get(0).getColumn(2));
     for (int i = 0; i < 6; ++i) {
-      Assert.assertEquals(2, records.get(i).length());
+      Assert.assertEquals(3, records.get(i).length());
     }
   }
 
