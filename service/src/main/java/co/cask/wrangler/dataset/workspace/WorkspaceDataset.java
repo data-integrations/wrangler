@@ -143,8 +143,8 @@ public class WorkspaceDataset extends AbstractDataset {
       return false;
     } catch (DataSetException e) {
       throw new WorkspaceException(
-        String.format("Unable to check if workspace exists '%s'",
-                      e.getMessage())
+        String.format("Unable to check if workspace '%s' exists '%s'",
+                      id, e.getMessage())
       );
     }
   }
