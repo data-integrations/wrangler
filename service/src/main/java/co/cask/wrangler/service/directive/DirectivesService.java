@@ -103,6 +103,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public static final String WORKSPACE_DATASET = "workspace";
   private static final String resourceName = ".properties";
 
+  private static final String COLUMN_NAME = "body";
   private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   private static final String DELIMITER_HEADER = "delimiter";
 
@@ -286,12 +287,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
     try {
       String name = request.getHeader(PropertyIds.FILE_NAME);
-      String id = ServiceUtils.generateMD5(request.getHeader(name));
+      String id = ServiceUtils.generateMD5(name);
 
       // if workspace doesn't exist, then we create the workspace before
       // adding data to the workspace.
       if (!table.hasWorkspace(id)) {
-        table.createWorkspaceMeta(id, id);
+        table.createWorkspaceMeta(id, name);
       }
 
       RequestExtractor handler = new RequestExtractor(request);
@@ -310,7 +311,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       // Extract content.
       byte[] content = handler.getContent();
       if (content == null) {
-        error(responder, "Body not present, please post the file containing the records to be wrangle.");
+        error(responder, "Body not present, please post the file containing the records to be wrangled.");
         return;
       }
 
@@ -329,7 +330,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
           List<Record> records = new ArrayList<>();
           for (String line : body.split(delimiter)) {
-            records.add(new Record(id, line));
+            records.add(new Record(COLUMN_NAME, line));
           }
           String data = GSON.toJson(records);
           table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
