@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Usage(
   directive = "rtrim",
-  usage = "rtrim <column-name>",
+  usage = "rtrim <column>",
   description = "Trimming whitespace from right side of a string"
 )
 public class RightTrim extends AbstractStep {
