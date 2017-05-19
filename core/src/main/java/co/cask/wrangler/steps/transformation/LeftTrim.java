@@ -59,7 +59,7 @@ public class LeftTrim extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, StringUtils.stripStart(value, " "));
+            record.setValue(idx, Trimmer.ltrim(value));
           }
         }
       }
