@@ -30,7 +30,7 @@ import java.util.List;
  */
 @Usage(
   directive = "trim",
-  usage = "trim <column-name>",
+  usage = "trim <column>",
   description = "Trimming whitespace from both sides of a string"
 )
 public class Trim extends AbstractStep {
