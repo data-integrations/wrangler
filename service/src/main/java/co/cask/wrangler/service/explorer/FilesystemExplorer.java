@@ -314,7 +314,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
     this.explorer = new Explorer(new DatasetProvider() {
       @Override
       public Dataset acquire() {
-        return ctx.getDataset("indexds");
+        return ctx.getDataset("dataprepfs");
       }
 
       @Override
