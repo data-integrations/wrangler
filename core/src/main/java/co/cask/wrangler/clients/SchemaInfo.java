@@ -22,13 +22,13 @@ import java.util.Set;
  * This class is POJO that provides information about the schema being requested.
  */
 final class SchemaInfo {
-  // Id of the schema.
+  // Id of the schema being stored in the schema repository.
   private String id;
 
-  // Name of the schema.
+  // Each id of the schema is associated with name.
   private String name;
 
-  // Version of schema being requested and returned.
+  // Each schema can have multiple versions, so this will show the version that is being retrieved.
   private long version;
 
   // Schema description.

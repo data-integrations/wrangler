@@ -46,6 +46,7 @@ import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.parser.XmlToJson;
+import co.cask.wrangler.steps.row.Fail;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
@@ -800,6 +801,13 @@ public class TextDirectives implements Directives {
         case "send-to-error": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
           steps.add(new SendToError(lineno, directive, condition));
+        }
+        break;
+
+        // fail <condition>
+        case "fail": {
+          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+          steps.add(new Fail(lineno, directive, condition));
         }
         break;
 

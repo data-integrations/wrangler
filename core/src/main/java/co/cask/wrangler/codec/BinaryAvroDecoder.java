@@ -44,6 +44,18 @@ public class BinaryAvroDecoder extends AbstractAvroDecoder {
     this.gson = new Gson();
   }
 
+  /**
+   * Decodes byte array of binary encoded AVRO into list of {@link Record}.
+   * This method will iterate through each of the AVRO schema fields and translate
+   * them into columns within the {@link Record}.
+   *
+   * If the field is instance of {@link List} or {@link Map} it is converted into JSON
+   * representation. In order to flatten or expand such columns other directives need
+   * to be used.
+   *
+   * @param bytes array of bytes that contains binary encoded AVRO record.
+   * @return list of {@link Record} that are converted from AVRO encoded binary messages.
+   */
   @Override
   public List<Record> decode(byte[] bytes) throws DecoderException {
     List<Record> records = new ArrayList<>();
@@ -74,7 +86,7 @@ public class BinaryAvroDecoder extends AbstractAvroDecoder {
     } catch (AvroTypeException e) {
       throw new DecoderException(e.getMessage());
     } catch (IOException e) {
-      throw new DecoderException("Issue create json decoder, verify the schema");
+      throw new DecoderException("Issue creating AVRO binary decoder. Verify the schema.");
     } finally {
       try {
         in.close();

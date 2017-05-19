@@ -63,13 +63,6 @@ public class ProtobufDecoderUsingDescriptor implements Decoder<Record> {
     return records;
   }
 
-  /**
-   * Recursively decodes the message into individual fields.
-   *
-   * @param message
-   * @param record
-   * @param root
-   */
   private void decodeMessage(Message message, Record record, String root) {
     for (Map.Entry<Descriptors.FieldDescriptor, Object> field : message.getAllFields().entrySet()) {
       String name = field.getKey().getName();

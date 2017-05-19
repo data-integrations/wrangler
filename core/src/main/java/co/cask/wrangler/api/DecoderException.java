@@ -17,7 +17,7 @@
 package co.cask.wrangler.api;
 
 /**
- * Class description here.
+ * This exception is thrown when there are issues related decoder.
  */
 public class DecoderException extends Exception {
   public DecoderException(String message) {
