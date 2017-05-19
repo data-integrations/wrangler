@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Usage(
   directive = "ltrim",
-  usage = "ltrim <column-name>",
+  usage = "ltrim <column>",
   description = "Trimming whitespace from left side of a string"
 )
 public class LeftTrim extends AbstractStep {
