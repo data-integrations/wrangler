@@ -39,11 +39,14 @@ import co.cask.wrangler.steps.parser.FixedLengthParser;
 import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.JsPath;
+import co.cask.wrangler.steps.parser.ParseAvro;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
+import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.parser.XmlToJson;
+import co.cask.wrangler.steps.row.Fail;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
@@ -395,6 +398,51 @@ public class TextDirectives implements Directives {
             }
           }
           steps.add(new JsParser(lineno, directive, column, depth));
+        }
+        break;
+
+        // parse-as-avro <column> <schema-id> <json|binary> [version]
+        case "parse-as-avro" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String schemaId = getNextToken(tokenizer, command, "schema-id", lineno);
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
+           throw new DirectiveParseException(
+             String.format("Parsing AVRO can be either of type 'json' or 'binary'")
+           );
+          }
+          String versionOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int version = -1;
+          if (versionOpt != null && !versionOpt.isEmpty()) {
+            try {
+              version = Integer.parseInt(versionOpt);
+            } catch (NumberFormatException e) {
+              throw new DirectiveParseException(
+                String.format("Version '%s' specified is not a valid number.", versionOpt)
+              );
+            }
+          }
+          steps.add(new ParseAvro(lineno, directive, column, schemaId, type, version));
+        }
+        break;
+
+        // parse-as-protobuf <column> <schema-id> <record-name> [version]
+        case "parse-as-protobuf" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String schemaId = getNextToken(tokenizer, command, "schema-id", lineno);
+          String recordName = getNextToken(tokenizer, command, "record-name", lineno);
+          String versionOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
+          int version = -1;
+          if (versionOpt != null && !versionOpt.isEmpty()) {
+            try {
+              version = Integer.parseInt(versionOpt);
+            } catch (NumberFormatException e) {
+              throw new DirectiveParseException(
+                String.format("Version '%s' specified is not a valid number.", versionOpt)
+              );
+            }
+          }
+          steps.add(new ParseProtobuf(lineno, directive, column, schemaId, recordName, version));
         }
         break;
 
@@ -762,6 +810,13 @@ public class TextDirectives implements Directives {
         }
         break;
 
+        // fail <condition>
+        case "fail": {
+          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+          steps.add(new Fail(lineno, directive, condition));
+        }
+        break;
+
         // text-distance <method> <column1> <column2> <destination>
         case "text-distance" : {
           String method = getNextToken(tokenizer, command, "method", lineno);
@@ -791,7 +846,7 @@ public class TextDirectives implements Directives {
             throw new IllegalArgumentException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10-2016 " +
                                                  "or ICD-10-2017).");
           } else {
-            ICDCatalog catalog = new ICDCatalog(type);
+            ICDCatalog catalog = new ICDCatalog(type.toLowerCase());
             if (!catalog.configure()) {
               throw new DirectiveParseException(
                 String.format("Failed to configure ICD StaticCatalog. Check with your administrator")

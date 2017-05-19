@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,24 +16,12 @@
 
 package co.cask.wrangler.api;
 
-import co.cask.wrangler.api.annotations.PublicEvolving;
+
+import java.util.List;
 
 /**
- * An abstract class for {@link Step} with added debugging capabilities.
+ * Decoder interface for decoding the data.
  */
-@PublicEvolving
-public abstract class AbstractStep implements Step<Record, Record> {
-  private int lineno;
-  private String detail;
-
-  protected AbstractStep(int lineno, String detail) {
-    this.lineno = lineno;
-    this.detail = detail;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("[Step %d] - <%s>", lineno, detail);
-  }
+public interface Decoder<T> {
+  List<T> decode(byte[] bytes) throws DecoderException;
 }
-

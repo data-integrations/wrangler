@@ -21,10 +21,12 @@ import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.PipelineContext;
 
+import java.net.URL;
 import java.util.Map;
 
 /**
- * Class description here.
+ * This class {@link WranglerPipelineContext} is a runtime context that is provided for each
+ * {@link co.cask.wrangler.api.Step} execution.
  */
 class WranglerPipelineContext implements PipelineContext {
   private final Environment environment;
@@ -74,11 +76,23 @@ class WranglerPipelineContext implements PipelineContext {
   }
 
   /**
+   * Returns a valid service url.
    *
-   * @param s
-   * @param map
-   * @param <T>
-   * @return
+   * @param applicationId id of the application to which a service url.
+   * @param serviceId     id of the service within application.
+   * @return URL if service exists, else null.
+   */
+  @Override
+  public URL getService(String applicationId, String serviceId) {
+    return context.getServiceURL(applicationId, serviceId);
+  }
+
+  /**
+   * Provides a handle to dataset for lookup.
+   *
+   * @param s name of the dataset.
+   * @param map properties associated with dataset.
+   * @return handle to dataset for lookup.
    */
   @Override
   public <T> Lookup<T> provide(String s, Map<String, String> map) {
