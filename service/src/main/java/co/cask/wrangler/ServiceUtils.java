@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler;
 
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import com.google.common.base.Charsets;

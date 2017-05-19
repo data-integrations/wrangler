@@ -38,4 +38,6 @@ logs/
 
 # Remove release.properties
 release.properties
+
+# Remove dev directory.
 dev/

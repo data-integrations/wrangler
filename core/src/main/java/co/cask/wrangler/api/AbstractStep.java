@@ -26,7 +26,7 @@ public abstract class AbstractStep implements Step<Record, Record> {
   private int lineno;
   private String detail;
 
-  public AbstractStep(int lineno, String detail) {
+  protected AbstractStep(int lineno, String detail) {
     this.lineno = lineno;
     this.detail = detail;
   }

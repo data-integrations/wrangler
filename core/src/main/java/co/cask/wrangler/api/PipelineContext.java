@@ -21,6 +21,7 @@ import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -28,6 +29,10 @@ import java.util.Map;
  */
 @PublicEvolving
 public interface PipelineContext extends LookupProvider, Serializable {
+
+  /**
+   * Specifies the environment in which wrangler is running.
+   */
   public enum Environment {
     SERVICE,
     TRANSFORM
@@ -52,4 +57,13 @@ public interface PipelineContext extends LookupProvider, Serializable {
    * @return Properties associated with run and pipeline.
    */
   public Map<String, String> getProperties();
+
+  /**
+   * Returns a valid service url.
+   *
+   * @param applicationId id of the application to which a service url.
+   * @param serviceId id of the service within application.
+   * @return URL if service exists, else null.
+   */
+  public URL getService(String applicationId, String serviceId);
 }

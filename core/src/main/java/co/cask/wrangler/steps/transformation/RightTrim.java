@@ -21,9 +21,10 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+
 
 /**
  * A Wrangler step for trimming whitespace from right side of a string

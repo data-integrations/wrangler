@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
@@ -59,7 +60,7 @@ public class InvokeHttpTest {
     httpService = NettyHttpService.builder("Services")
       .addHttpHandlers(handlers)
       .build();
-    httpService.startAsync().awaitRunning();
+    httpService.startAsync().awaitRunning(10L, TimeUnit.SECONDS);
     int port = httpService.getBindAddress().getPort();
     baseURL = "http://localhost:" + port;
   }
@@ -168,7 +169,7 @@ public class InvokeHttpTest {
 
   @After
   public void stopService() throws Exception {
-    httpService.stopAsync().awaitTerminated();
+    httpService.stopAsync().awaitTerminated(10L, TimeUnit.SECONDS);
   }
 
 }
