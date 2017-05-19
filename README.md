@@ -181,6 +181,7 @@ These directives are currently available:
 | **Functions**                                                          |                                                                  |
 | [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
+| [Trim](docs/directives/trim.md)                                        | Functions for trimming white spaces around string data           |
 
 
 ## Performance
