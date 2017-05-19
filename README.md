@@ -144,6 +144,7 @@ These directives are currently available:
 | [Text Metric (Fuzzy String Match)](docs/directives/text-metric.md)     | Measures the difference between two sequences of characters      |
 | [URL Decode](docs/directives/url-decode.md)                            | Decodes from the `application/x-www-form-urlencoded` MIME format |
 | [URL Encode](docs/directives/url-encode.md)                            | Encodes to the `application/x-www-form-urlencoded` MIME format   |
+| [Trim](docs/directives/trim.md)                                        | Functions for trimming white spaces around string data           |
 | **Encoders and Decoders**                                              |                                                                  |
 | [Decode](docs/directives/decode.md)                                    | Decodes a column value as one of `base32`, `base64`, or `hex`    |
 | [Encode](docs/directives/encode.md)                                    | Encodes a column value as one of `base32`, `base64`, or `hex`    |
@@ -190,7 +191,6 @@ These directives are currently available:
 | [DDL](docs/functions/ddl-functions.md)                                 | Functions that can manipulate definition of data                 |
 | [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
-| [Trim](docs/directives/trim.md)                                        | Functions for trimming white spaces around string data           |
 
 
 ## Performance
