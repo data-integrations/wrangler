@@ -23,6 +23,7 @@ import co.cask.cdap.etl.common.DatasetContextLookupProvider;
 import co.cask.cdap.etl.common.NoopMetrics;
 import co.cask.wrangler.api.PipelineContext;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.Map;
 
@@ -70,6 +71,18 @@ class ServicePipelineContext implements PipelineContext {
   @Override
   public Map<String, String> getProperties() {
     return Collections.emptyMap();
+  }
+
+  /**
+   * Returns a valid service url.
+   *
+   * @param applicationId id of the application to which a service url.
+   * @param serviceId     id of the service within application.
+   * @return URL if service exists, else null.
+   */
+  @Override
+  public URL getService(String applicationId, String serviceId) {
+    return serviceContext.getServiceURL(applicationId, serviceId);
   }
 
   /**

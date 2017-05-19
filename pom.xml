@@ -98,7 +98,11 @@
     <httpclient.version>4.5.3</httpclient.version>
     <netty-http.version>0.16.0</netty-http.version>
     <commons-math3.version>3.6.1</commons-math3.version>
+    <avro.version>1.8.1</avro.version>
     <slf4j.version>1.7.5</slf4j.version>
+    <google.http.client.version>1.22.0</google.http.client.version>
+    <protobuf.version>3.3.0</protobuf.version>
+    <guava.retrying.version>2.0.0</guava.retrying.version>
   </properties>
 
   <repositories>
