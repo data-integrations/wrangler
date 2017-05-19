@@ -21,7 +21,6 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -59,20 +58,11 @@ public class RightTrim extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, rtrim(value));
+            record.setValue(idx, Trimmer.rtrim(value));
           }
         }
       }
     }
     return records;
-  }
-
-  /**
-   * Helper function to trim white spaces from right
-   * @param str string input to trim
-   * @return result string after trimming
-   */
-  private String rtrim(String str) {
-    return StringUtils.stripEnd(str, " ");
   }
 }
