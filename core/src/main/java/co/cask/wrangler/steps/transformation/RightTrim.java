@@ -43,7 +43,7 @@ public class RightTrim extends AbstractStep {
   }
 
   /**
-   * Trimming white spaces from left side of a column value
+   * Trimming white spaces from right side of a column value
    *
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
@@ -59,20 +59,11 @@ public class RightTrim extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, rtrim(value));
+            record.setValue(idx, StringUtils.stripEnd(value, " "));
           }
         }
       }
     }
     return records;
-  }
-
-  /**
-   * Helper function to trim white spaces from right
-   * @param str string input to trim
-   * @return result string after trimming
-   */
-  private String rtrim(String str) {
-    return StringUtils.stripEnd(str, " ");
   }
 }

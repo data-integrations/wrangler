@@ -26,7 +26,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * A Wrangler step for trimming whitespace from both sides of a string
+ * A Wrangler step for trimming whitespace from left side of a string
  */
 @Usage(
   directive = "ltrim",
@@ -59,21 +59,11 @@ public class LeftTrim extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, ltrim(value));
+            record.setValue(idx, StringUtils.stripStart(value, " "));
           }
         }
       }
     }
     return records;
   }
-
-  /**
-   * Helper function to trim white spaces from left
-   * @param str string input to trim
-   * @return result string after trimming
-   */
-  private static String ltrim(String str) {
-    return StringUtils.stripStart(str, " ");
-  }
-
 }
