@@ -26,9 +26,10 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.ConnectionType;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
+import co.cask.wrangler.SamplingMethod;
+import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.statistics.Statistics;
@@ -43,6 +44,7 @@ import co.cask.wrangler.executor.UsageRegistry;
 import co.cask.wrangler.internal.xpath.XPathUtil;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.sampling.Reservoir;
+import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.RecordConvertorException;
@@ -86,10 +88,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.service.ServiceUtils.error;
-import static co.cask.wrangler.service.ServiceUtils.notFound;
-import static co.cask.wrangler.service.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.ServiceUtils.success;
+import static co.cask.wrangler.ServiceUtils.error;
+import static co.cask.wrangler.ServiceUtils.notFound;
+import static co.cask.wrangler.ServiceUtils.sendJson;
+import static co.cask.wrangler.ServiceUtils.success;
 
 /**
  * Service for managing workspaces and also application of directives on to the workspace.
@@ -101,6 +103,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public static final String WORKSPACE_DATASET = "workspace";
   private static final String resourceName = ".properties";
 
+  private static final String COLUMN_NAME = "body";
   private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   private static final String DELIMITER_HEADER = "delimiter";
 
@@ -273,6 +276,106 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * Upload data to the workspace, the workspace is created automatically on fly.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   */
+  @POST
+  @Path("workspaces")
+  public void upload(HttpServiceRequest request, HttpServiceResponder responder) {
+
+    try {
+      String name = request.getHeader(PropertyIds.FILE_NAME);
+      String id = ServiceUtils.generateMD5(name);
+
+      // if workspace doesn't exist, then we create the workspace before
+      // adding data to the workspace.
+      if (!table.hasWorkspace(id)) {
+        table.createWorkspaceMeta(id, name);
+      }
+
+      RequestExtractor handler = new RequestExtractor(request);
+
+      // For back-ward compatibility, we check if there is delimiter specified
+      // using 'recorddelimiter' or 'delimiter'
+      String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
+      delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
+
+      // Extract charset, if not specified, default it to UTF-8.
+      String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
+
+      // Get content type - application/data-prep, application/octet-stream or text/plain.
+      String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
+
+      // Extract content.
+      byte[] content = handler.getContent();
+      if (content == null) {
+        error(responder, "Body not present, please post the file containing the records to be wrangled.");
+        return;
+      }
+
+      // Depending on content type, load data.
+      DataType type = DataType.fromString(contentType);
+      switch(type) {
+        case TEXT: {
+          // Convert the type into unicode.
+          String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, Bytes.toBytes(body));
+          break;
+        }
+
+        case RECORDS: {
+          delimiter = StringEscapeUtils.unescapeJava(delimiter);
+          String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+          List<Record> records = new ArrayList<>();
+          for (String line : body.split(delimiter)) {
+            records.add(new Record(COLUMN_NAME, line));
+          }
+          String data = GSON.toJson(records);
+          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+          break;
+        }
+
+        case BINARY: {
+          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, content);
+          break;
+        }
+
+        default: {
+          error(responder, "Invalid content type. Supports text/plain, application/octet-stream " +
+            "and application/data-prep");
+          break;
+        }
+      }
+
+      // Write properties for workspace.
+      Map<String, String> properties = new HashMap<>();
+      properties.put(PropertyIds.ID, id);
+      properties.put(PropertyIds.NAME, name);
+      properties.put(PropertyIds.DELIMITER, delimiter);
+      properties.put(PropertyIds.CHARSET, charset);
+      properties.put(PropertyIds.CONTENT_TYPE, contentType);
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
+      table.writeProperties(id, properties);
+
+      JsonArray array = new JsonArray();
+      JsonObject object = (JsonObject) GSON.toJsonTree(properties);
+      object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+      array.add(object);
+
+      JsonObject response = new JsonObject();
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", array.size());
+      response.add("values", array);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (WorkspaceException e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
    * Upload data to the workspace.
    *
    * @param request Handler for incoming request.
@@ -283,29 +386,29 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Path("workspaces/{id}/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("id") String id) {
-    RequestExtractor handler = new RequestExtractor(request);
-
-    // For back-ward compatibility, we check if there is delimiter specified
-    // using 'recorddelimiter' or 'delimiter'
-    String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
-    delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
-
-    // Extract charset, if not specified, default it to UTF-8.
-    String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
-
-    // Get content type - application/data-prep, application/octet-stream or text/plain.
-    String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
-
-    // Extract content.
-    byte[] content = handler.getContent();
-    if (content == null) {
-      error(responder, "Body not present, please post the file containing the records to be wrangle.");
-      return;
-    }
-
-    // Depending on content type, load data.
-    DataType type = DataType.fromString(contentType);
     try {
+      RequestExtractor handler = new RequestExtractor(request);
+
+      // For back-ward compatibility, we check if there is delimiter specified
+      // using 'recorddelimiter' or 'delimiter'
+      String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
+      delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
+
+      // Extract charset, if not specified, default it to UTF-8.
+      String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
+
+      // Get content type - application/data-prep, application/octet-stream or text/plain.
+      String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
+
+      // Extract content.
+      byte[] content = handler.getContent();
+      if (content == null) {
+        error(responder, "Body not present, please post the file containing the records to be wrangle.");
+        return;
+      }
+
+      // Depending on content type, load data.
+      DataType type = DataType.fromString(contentType);
       switch(type) {
         case TEXT: {
           // Convert the type into unicode.

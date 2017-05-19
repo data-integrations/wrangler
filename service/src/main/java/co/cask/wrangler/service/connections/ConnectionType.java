@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler;
+package co.cask.wrangler.service.connections;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
 

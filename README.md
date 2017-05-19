@@ -27,6 +27,9 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
   * [SCREENCAST] [Data cleansing with send-to-error directive](https://www.youtube.com/watch?v=aZd5H8hIjDc)
   * [SCREENCAST] [Publishing to Kafka](https://www.youtube.com/watch?v=xdc8pvvlI48)
   * [SCREENCAST] [Fixed length to JSON](https://www.youtube.com/watch?v=3AXu4m1swuM)
+  * [SCREENCAST] [Quantize Column](https://www.youtube.com/watch?v=VczkYX5SRtY)
+  * [SCREENCAST] [Parsing Binary Coded AVRO Messages](https://www.youtube.com/watch?v=Ix_lPo-PDJY)
+  * [SCREENCAST] [Parsing Binary Coded AVRO Messages & Protobuf messages using schema registry](https://www.youtube.com/watch?v=LVLIdWnUX1k)
 
 * Recipes
   * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
@@ -108,12 +111,14 @@ These directives are currently available:
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | **Parsers**                                                            |                                                                  |
 | [JSON Path](docs/directives/json-path.md)                              | Uses a DSL (a JSON path expression) for parsing JSON records     |
+| [Parse as AVRO](docs/directives/parse-as-avro.md)                      | Parsing an AVRO encoded message - either as binary or json       |
 | [Parse as CSV](docs/directives/parse-as-csv.md)                        | Parsing an input record as comma-separated values                |
 | [Parse as Date](docs/directives/parse-as-date.md)                      | Parsing dates using natural language processing                  |
 | [Parse as Fixed Length](docs/directives/parse-as-fixed-length.md)      | Parses as a fixed length record with specified widths            |
 | [Parse as HL7](docs/directives/parse-as-hl7.md)                        | Parsing Health Level 7 Version 2 (HL7 V2) messages               |
 | [Parse as JSON](docs/directives/parse-as-json.md)                      | Parsing a JSON object                                            |
 | [Parse as Log](docs/directives/parse-as-log.md)                        | Parses access log files as from Apache HTTPD and nginx servers   |
+| [Parse as Protobuf](docs/directives/parse-as-log.md)                   | Parses an Protobuf encoded in-memory message using descriptor    |
 | [Parse as Simple Date](docs/directives/parse-as-simple-date.md)        | Parses date strings                                              |
 | [Parse as XML](docs/directives/parse-as-xml.md)                        | Parses an XML document                                           |
 | [Parse XML To JSON](docs/directives/parse-xml-to-json.md)              | Parses an XML document into a JSON structure                     |
@@ -160,6 +165,7 @@ These directives are currently available:
 | [Filter Row if True](docs/directives/filter-row-if-true.md)            | (_Deprecated_)                                                   |
 | [Filter Rows On](docs/directives/filter-rows-on.md)                    | Filters records based on a condition                             |
 | [Flatten](docs/directives/flatten.md)                                  | Separates the elements in a repeated field                       |
+| [Fail on condition](docs/directives/fail.md)                           | Fails processing when the condition is evaluated to true.        |
 | [Send to Error](docs/directives/send-to-error.md)                      | Filtering of records to an error collector                       |
 | [Split to Rows](docs/directives/split-to-rows.md)                      | Splits based on a separator into multiple records                |
 | **Column Operations**                                                  |                                                                  |
@@ -179,6 +185,9 @@ These directives are currently available:
 | **NLP**                                                                |                                                                  |
 | [Stemming Tokenized Words](docs/directives/stemming.md)                | Applies the Porter stemmer algorithm for English words           |
 | **Functions**                                                          |                                                                  |
+| [Data Quality](docs/functions/dq-functions.md)                         | Data quality check functions. Checks for date, time, etc.        |
+| [Date Manipulations](docs/functions/date-functions.md)                 | Functions that can manipulate date                               |
+| [DDL](docs/functions/ddl-functions.md)                                 | Functions that can manipulate definition of data                 |
 | [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
 | [Trim](docs/directives/trim.md)                                        | Functions for trimming white spaces around string data           |
