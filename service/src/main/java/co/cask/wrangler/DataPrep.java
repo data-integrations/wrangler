@@ -25,6 +25,7 @@ import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionService;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
+import co.cask.wrangler.service.schema.SchemaRegistryService;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 
@@ -43,23 +44,23 @@ public class DataPrep extends AbstractApplication {
     setDescription("DataPrep Backend Service");
 
     createDataset(DirectivesService.WORKSPACE_DATASET, WorkspaceDataset.class,
-                  DatasetProperties.builder().setDescription("DataPrep Directive Store").build());
+                  DatasetProperties.builder().setDescription("Dataprep Workspace Management").build());
     createDataset(DATAPREP_DATASET, Table.class,
                   DatasetProperties.builder().setDescription("DataPrep All Store").build());
 
     // Used by the file service.
-    createDataset("indexds", FileSet.class, FileSetProperties.builder()
-      .setBasePath("dataprep/indexds")
+    createDataset("dataprepfs", FileSet.class, FileSetProperties.builder()
+      .setBasePath("dataprepfs/indexds")
       .setInputFormat(TextInputFormat.class)
       .setOutputFormat(TextOutputFormat.class)
-      .setDescription("Store Dataset Index files")
+      .setDescription("Store Dataprep Index files")
       .build());
 
     addService("service",
                new DirectivesService(),
+               new SchemaRegistryService(),
                new FilesystemExplorer(),
                new ConnectionService()
     );
-
   }
 }

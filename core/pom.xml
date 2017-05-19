@@ -42,6 +42,16 @@
       <version>${joda-time.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.github.rholder</groupId>
+      <artifactId>guava-retrying</artifactId>
+      <version>${guava.retrying.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>${protobuf.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.unix4j</groupId>
       <artifactId>unix4j-command</artifactId>
       <version>${unix4j.version}</version>
@@ -67,6 +77,11 @@
       <artifactId>cdap-etl-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
