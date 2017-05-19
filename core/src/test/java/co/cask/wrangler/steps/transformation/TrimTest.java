@@ -29,50 +29,50 @@ import java.util.List;
  */
 public class TrimTest {
 
-    @Test
-    public void testSingleWordTrim() throws Exception {
-        String[] directives = new String[] {
-                "trim body",
-        };
+  @Test
+  public void testSingleWordTrim() throws Exception {
+    String[] directives = new String[] {
+      "trim body",
+    };
 
-        List<Record> records = Arrays.asList(
-                new Record("body", "TITLE"),
-                new Record("body", "  TITLE"),
-                new Record("body", "TITLE  "),
-                new Record("body", " TITLE "),
-                new Record("body", "  TITLE  ")
-        );
+    List<Record> records = Arrays.asList(
+      new Record("body", "TITLE"),
+      new Record("body", "  TITLE"),
+      new Record("body", "TITLE  "),
+      new Record("body", " TITLE "),
+      new Record("body", "  TITLE  ")
+    );
 
-        records = TestUtil.run(directives, records);
-        Assert.assertEquals(5, records.size());
-        Assert.assertEquals("TITLE", records.get(0).getValue("body"));
-        Assert.assertEquals("TITLE", records.get(1).getValue("body"));
-        Assert.assertEquals("TITLE", records.get(2).getValue("body"));
-        Assert.assertEquals("TITLE", records.get(3).getValue("body"));
-        Assert.assertEquals("TITLE", records.get(4).getValue("body"));
-    }
+    records = TestUtil.run(directives, records);
+    Assert.assertEquals(5, records.size());
+    Assert.assertEquals("TITLE", records.get(0).getValue("body"));
+    Assert.assertEquals("TITLE", records.get(1).getValue("body"));
+    Assert.assertEquals("TITLE", records.get(2).getValue("body"));
+    Assert.assertEquals("TITLE", records.get(3).getValue("body"));
+    Assert.assertEquals("TITLE", records.get(4).getValue("body"));
+  }
 
-    @Test
-    public void testSentenceTrim() throws Exception {
-        String[] directives = new String[] {
-                "trim body",
-        };
+  @Test
+  public void testSentenceTrim() throws Exception {
+    String[] directives = new String[] {
+      "trim body",
+    };
 
-        List<Record> records = Arrays.asList(
-                new Record("body", "TITLE IS TITLE"),
-                new Record("body", "    TITLE IS TITLE"),
-                new Record("body", "TITLE IS TITLE    "),
-                new Record("body", " TITLE    IS TITLE "),
-                new Record("body", "   TITLE IS TITLE   ")
+    List<Record> records = Arrays.asList(
+      new Record("body", "TITLE IS TITLE"),
+      new Record("body", "    TITLE IS TITLE"),
+      new Record("body", "TITLE IS TITLE    "),
+      new Record("body", " TITLE    IS TITLE "),
+      new Record("body", "   TITLE IS TITLE   ")
 
-        );
+    );
 
-        records = TestUtil.run(directives, records);
-        Assert.assertEquals(5, records.size());
-        Assert.assertEquals("TITLE IS TITLE", records.get(0).getValue("body"));
-        Assert.assertEquals("TITLE IS TITLE", records.get(1).getValue("body"));
-        Assert.assertEquals("TITLE IS TITLE", records.get(2).getValue("body"));
-        Assert.assertEquals("TITLE    IS TITLE", records.get(3).getValue("body"));
-        Assert.assertEquals("TITLE IS TITLE", records.get(4).getValue("body"));
-    }
+    records = TestUtil.run(directives, records);
+    Assert.assertEquals(5, records.size());
+    Assert.assertEquals("TITLE IS TITLE", records.get(0).getValue("body"));
+    Assert.assertEquals("TITLE IS TITLE", records.get(1).getValue("body"));
+    Assert.assertEquals("TITLE IS TITLE", records.get(2).getValue("body"));
+    Assert.assertEquals("TITLE    IS TITLE", records.get(3).getValue("body"));
+    Assert.assertEquals("TITLE IS TITLE", records.get(4).getValue("body"));
+  }
 }

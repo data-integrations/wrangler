@@ -21,6 +21,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -28,9 +29,9 @@ import java.util.List;
  * A Wrangler step for trimming whitespace from right side of a string
  */
 @Usage(
-        directive = "rtrim",
-        usage = "rtrim <column-name>",
-        description = "Trimming whitespace from right side of a string"
+  directive = "rtrim",
+  usage = "rtrim <column-name>",
+  description = "Trimming whitespace from right side of a string"
 )
 public class RightTrim extends AbstractStep {
   // Columns of the column to be upper-cased
@@ -68,14 +69,10 @@ public class RightTrim extends AbstractStep {
 
   /**
    * Helper function to trim white spaces from right
-   * @param s string input to trim
+   * @param str string input to trim
    * @return result string after trimming
    */
-  private static String rtrim(String s) {
-    int i = s.length()-1;
-    while (i >= 0 && Character.isWhitespace(s.charAt(i))) {
-      i--;
-    }
-    return s.substring(0,i+1);
+  private String rtrim(String str) {
+    return StringUtils.stripEnd(str, " ");
   }
 }

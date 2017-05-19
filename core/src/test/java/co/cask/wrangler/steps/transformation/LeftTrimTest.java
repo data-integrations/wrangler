@@ -31,16 +31,16 @@ public class LeftTrimTest {
 
   @Test
   public void testSingleWordLeftTrim() throws Exception {
-    String[] directives = new String[] {
-            "ltrim body",
+    String[] directives = new String[]{
+      "ltrim body",
     };
 
     List<Record> records = Arrays.asList(
-            new Record("body", "TITLE"),
-            new Record("body", "  TITLE"),
-            new Record("body", "TITLE  "),
-            new Record("body", " TITLE "),
-            new Record("body", "  TITLE  ")
+      new Record("body", "TITLE"),
+      new Record("body", "  TITLE"),
+      new Record("body", "TITLE  "),
+      new Record("body", " TITLE "),
+      new Record("body", "  TITLE  ")
     );
 
     records = TestUtil.run(directives, records);
@@ -54,17 +54,16 @@ public class LeftTrimTest {
 
   @Test
   public void testSentenceLeftTrim() throws Exception {
-    String[] directives = new String[] {
-            "ltrim body",
+    String[] directives = new String[]{
+      "ltrim body",
     };
 
     List<Record> records = Arrays.asList(
-            new Record("body", "TITLE IS TITLE"),
-            new Record("body", "    TITLE IS TITLE"),
-            new Record("body", "TITLE IS TITLE    "),
-            new Record("body", " TITLE    IS TITLE "),
-            new Record("body", "   TITLE IS TITLE   ")
-
+      new Record("body", "TITLE IS TITLE"),
+      new Record("body", "    TITLE IS TITLE"),
+      new Record("body", "TITLE IS TITLE    "),
+      new Record("body", " TITLE    IS TITLE "),
+      new Record("body", "   TITLE IS TITLE   ")
     );
 
     records = TestUtil.run(directives, records);

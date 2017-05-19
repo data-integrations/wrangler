@@ -29,41 +29,41 @@ import java.util.List;
  * A Wrangler step for trimming whitespace from both sides of a string
  */
 @Usage(
-        directive = "trim",
-        usage = "trim <column-name>",
-        description = "Trimming whitespace from both sides of a string"
+  directive = "trim",
+  usage = "trim <column-name>",
+  description = "Trimming whitespace from both sides of a string"
 )
 public class Trim extends AbstractStep {
-    // Columns of the column to be upper-cased
-    private String col;
+  // Columns of the column to be upper-cased
+  private String col;
 
-    public Trim(int lineno, String detail, String col) {
-        super(lineno, detail);
-        this.col = col;
-    }
+  public Trim(int lineno, String detail, String col) {
+    super(lineno, detail);
+    this.col = col;
+  }
 
-    /**
-     * Trimming white spaces from both sides of a column value
-     *
-     * @param records Input {@link Record} to be wrangled by this step.
-     * @param context Specifies the context of the pipeline.
-     * @return Transformed {@link Record} in which the 'col' value after trimming
-     * @throws StepException thrown when type of 'col' is not STRING.
-     */
-    @Override
-    public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
-        for (Record record : records) {
-            int idx = record.find(col);
-            if (idx != -1) {
-                Object object = record.getValue(idx);
-                if (object instanceof String) {
-                    if (object != null) {
-                        String value = (String) object;
-                        record.setValue(idx, value.trim());
-                    }
-                }
-            }
+  /**
+   * Trimming white spaces from both sides of a column value
+   *
+   * @param records Input {@link Record} to be wrangled by this step.
+   * @param context Specifies the context of the pipeline.
+   * @return Transformed {@link Record} in which the 'col' value after trimming
+   * @throws StepException thrown when type of 'col' is not STRING.
+   */
+  @Override
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+    for (Record record : records) {
+      int idx = record.find(col);
+      if (idx != -1) {
+        Object object = record.getValue(idx);
+        if (object instanceof String) {
+          if (object != null) {
+            String value = (String) object;
+            record.setValue(idx, value.trim());
+          }
         }
-        return records;
+      }
     }
+    return records;
+  }
 }

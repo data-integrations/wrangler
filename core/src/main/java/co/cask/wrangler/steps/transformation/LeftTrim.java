@@ -23,14 +23,15 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A Wrangler step for trimming whitespace from both sides of a string
  */
 @Usage(
-        directive = "ltrim",
-        usage = "ltrim <column-name>",
-        description = "Trimming whitespace from left side of a string"
+  directive = "ltrim",
+  usage = "ltrim <column-name>",
+  description = "Trimming whitespace from left side of a string"
 )
 public class LeftTrim extends AbstractStep {
   // Columns of the column to be upper-cased
@@ -68,14 +69,11 @@ public class LeftTrim extends AbstractStep {
 
   /**
    * Helper function to trim white spaces from left
-   * @param s string input to trim
+   * @param str string input to trim
    * @return result string after trimming
    */
-  private static String ltrim(String s) {
-    int i = 0;
-    while (i < s.length() && Character.isWhitespace(s.charAt(i))) {
-      i++;
-    }
-    return s.substring(i);
+  private static String ltrim(String str) {
+    return StringUtils.stripStart(str, " ");
   }
+
 }
