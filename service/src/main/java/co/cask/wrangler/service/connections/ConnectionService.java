@@ -44,9 +44,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.service.ServiceUtils.error;
-import static co.cask.wrangler.service.ServiceUtils.notFound;
-import static co.cask.wrangler.service.ServiceUtils.sendJson;
+import static co.cask.wrangler.ServiceUtils.error;
+import static co.cask.wrangler.ServiceUtils.notFound;
+import static co.cask.wrangler.ServiceUtils.sendJson;
 
 /**
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.

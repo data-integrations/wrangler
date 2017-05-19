@@ -59,7 +59,7 @@ public class Trim extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, value.trim());
+            record.setValue(idx, Trimmer.trim(value));
           }
         }
       }
