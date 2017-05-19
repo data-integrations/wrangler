@@ -32,15 +32,15 @@ public class RightTrimTest {
   @Test
   public void testSingleWordRightTrim() throws Exception {
     String[] directives = new String[] {
-            "rtrim body",
+      "rtrim body",
     };
 
     List<Record> records = Arrays.asList(
-            new Record("body", "TITLE"),
-            new Record("body", "  TITLE"),
-            new Record("body", "TITLE  "),
-            new Record("body", " TITLE "),
-            new Record("body", "  TITLE  ")
+      new Record("body", "TITLE"),
+      new Record("body", "  TITLE"),
+      new Record("body", "TITLE  "),
+      new Record("body", " TITLE "),
+      new Record("body", "  TITLE  ")
     );
 
     records = TestUtil.run(directives, records);
@@ -55,16 +55,15 @@ public class RightTrimTest {
   @Test
   public void testSentenceRightTrim() throws Exception {
     String[] directives = new String[] {
-            "rtrim body",
+      "rtrim body",
     };
 
     List<Record> records = Arrays.asList(
-            new Record("body", "TITLE IS TITLE"),
-            new Record("body", "    TITLE IS TITLE"),
-            new Record("body", "TITLE IS TITLE    "),
-            new Record("body", " TITLE    IS TITLE "),
-            new Record("body", "   TITLE IS TITLE   ")
-
+      new Record("body", "TITLE IS TITLE"),
+      new Record("body", "    TITLE IS TITLE"),
+      new Record("body", "TITLE IS TITLE    "),
+      new Record("body", " TITLE    IS TITLE "),
+      new Record("body", "   TITLE IS TITLE   ")
     );
 
     records = TestUtil.run(directives, records);
