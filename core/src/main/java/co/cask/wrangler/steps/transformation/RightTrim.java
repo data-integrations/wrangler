@@ -60,7 +60,7 @@ public class RightTrim extends AbstractStep {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, StringUtils.stripEnd(value, " "));
+            record.setValue(idx, Trimmer.rtrim(value));
           }
         }
       }
