@@ -40,6 +40,7 @@ import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseAvro;
+import co.cask.wrangler.steps.parser.ParseAvroFile;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseProtobuf;
@@ -800,6 +801,13 @@ public class TextDirectives implements Directives {
               String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
             );
           }
+        }
+        break;
+
+        // parse-as-avro-file <column>
+        case "parse-as-avro-file": {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new ParseAvroFile(lineno, directive, column));
         }
         break;
 

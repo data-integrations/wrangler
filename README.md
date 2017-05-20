@@ -112,6 +112,7 @@ These directives are currently available:
 | **Parsers**                                                            |                                                                  |
 | [JSON Path](docs/directives/json-path.md)                              | Uses a DSL (a JSON path expression) for parsing JSON records     |
 | [Parse as AVRO](docs/directives/parse-as-avro.md)                      | Parsing an AVRO encoded message - either as binary or json       |
+| [Parse as AVRO File](docs/directives/parse-as-avro-file.md)            | Parsing an AVRO data file                                        |
 | [Parse as CSV](docs/directives/parse-as-csv.md)                        | Parsing an input record as comma-separated values                |
 | [Parse as Date](docs/directives/parse-as-date.md)                      | Parsing dates using natural language processing                  |
 | [Parse as Fixed Length](docs/directives/parse-as-fixed-length.md)      | Parses as a fixed length record with specified widths            |
