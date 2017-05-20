@@ -80,7 +80,7 @@ public class ParseAvroFile extends AbstractStep {
               results.add(newRecord);
             }
           } catch (IOException e) {
-            throw new StepException(e.getMessage());
+            throw new StepException(toString() + " : Failed to parse Avro data file." + e.getMessage());
           } finally {
             if (reader != null) {
               try {
@@ -91,14 +91,20 @@ public class ParseAvroFile extends AbstractStep {
             }
           }
         } else {
-          throw new StepException(toString() + " : column " + column + " should be of type byte array");
+          throw new StepException(toString() + " : column " + column + " should be of type byte array avro file.");
         }
       }
     }
     return results;
   }
 
-
+  /**
+   * Flattens the {@link GenericRecord}.
+   *
+   * @param genericRecord to be flattened.
+   * @param record to be flattened into
+   * @param name of the field to be flattened.
+   */
   private void add(GenericRecord genericRecord, Record record, String name) {
     List<Schema.Field> fields = genericRecord.getSchema().getFields();
     String colname;
