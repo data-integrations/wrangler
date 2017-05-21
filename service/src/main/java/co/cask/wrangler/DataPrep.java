@@ -70,7 +70,6 @@ public class DataPrep extends AbstractApplication {
                new FilesystemExplorer(),
                new ConnectionService(),
                new RecipeService(),
-               new FilesystemExplorer(),
                new DBService()
     );
   }
