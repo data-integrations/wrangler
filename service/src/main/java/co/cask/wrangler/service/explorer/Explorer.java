@@ -232,6 +232,10 @@ public final class Explorer {
    * @return type of the file.
    */
   private String detectFileType(Location location) throws IOException {
+    if (!location.getPermissions().startsWith("-")) {
+      return DEVICE;
+    }
+
     if (operatingSystem.indexOf("mac") != -1 && location.toString().startsWith("/dev")) {
       return DEVICE;
     }
