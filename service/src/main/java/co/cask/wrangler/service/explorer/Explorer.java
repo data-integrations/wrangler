@@ -136,7 +136,8 @@ public final class Explorer {
    */
   private boolean isWrangleable(String type) {
     if ("text/plain".equalsIgnoreCase(type) || "application/json".equalsIgnoreCase(type)
-      || "application/xml".equalsIgnoreCase(type)) {
+      || "application/xml".equalsIgnoreCase(type) || "application/avro".equalsIgnoreCase(type)
+      || "application/protobuf".equalsIgnoreCase(type)) {
       return true;
     }
     return false;
