@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -76,13 +75,17 @@ public final class KafkaService extends AbstractHttpServiceHandler {
     store = new ConnectionStore(table);
   }
 
-  @PUT
+  @GET
   @Path("connections/kafka/{id}/test")
   public void test(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("id") String id) {
     try {
       // Retrieve connection information for Kafka.
       Connection connection = store.get(id);
+      if (connection == null) {
+        error(responder, String.format("Invalid connection id '%s' specified or connection does not exist.", id));
+        return;
+      }
       KafkaConfiguration config = new KafkaConfiguration(connection);
       Properties props = config.get();
 
@@ -106,6 +109,11 @@ public final class KafkaService extends AbstractHttpServiceHandler {
     try {
       // Retrieve connection information for Kafka.
       Connection connection = store.get(id);
+      if (connection == null) {
+        error(responder, String.format("Invalid connection id '%s' specified or connection does not exist.", id));
+        return;
+      }
+
       KafkaConfiguration config = new KafkaConfiguration(connection);
       Properties props = config.get();
 
@@ -140,6 +148,11 @@ public final class KafkaService extends AbstractHttpServiceHandler {
                    @PathParam("id") String id, @QueryParam("lines") int lines) {
     try {
       Connection connection = store.get(id);
+      if (connection == null) {
+        error(responder, String.format("Invalid connection id '%s' specified or connection does not exist.", id));
+        return;
+      }
+
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(config.getTopic()));
@@ -156,8 +169,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
             rec.add("timestamp", record.timestamp());
             rec.add("key", record.key());
             rec.add("offset", record.offset());
-            rec.add("partition", record.partition());
-            rec.add("value", record.value());
+            rec.add("body", record.value());
             recs.add(rec);
             if (count < 0) {
               break;
@@ -166,8 +178,11 @@ public final class KafkaService extends AbstractHttpServiceHandler {
           }
           running = false;
         }
+
         // Set all properties and write to workspace.
         Map<String, String> properties = new HashMap<>();
+        properties.put(PropertyIds.ID, uuid);
+        properties.put(PropertyIds.NAME, id);
         properties.put(PropertyIds.TOPIC, config.getTopic());
         properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
         ws.writeProperties(id, properties);

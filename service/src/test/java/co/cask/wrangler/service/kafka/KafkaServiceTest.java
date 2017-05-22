@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.UUID;
  */
 public class KafkaServiceTest {
 
+  @Ignore
   @Test
   public void testFoo() throws Exception {
     Properties props = new Properties();
