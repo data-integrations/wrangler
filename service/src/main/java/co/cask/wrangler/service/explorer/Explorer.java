@@ -19,8 +19,6 @@ package co.cask.wrangler.service.explorer;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import com.j256.simplemagic.ContentInfo;
-import com.j256.simplemagic.ContentInfoUtil;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -136,7 +134,8 @@ public final class Explorer {
    */
   private boolean isWrangleable(String type) {
     if ("text/plain".equalsIgnoreCase(type) || "application/json".equalsIgnoreCase(type)
-      || "application/xml".equalsIgnoreCase(type)) {
+      || "application/xml".equalsIgnoreCase(type) || "application/avro".equalsIgnoreCase(type)
+      || "application/protobuf".equalsIgnoreCase(type)) {
       return true;
     }
     return false;
@@ -216,6 +215,7 @@ public final class Explorer {
               topType = top.getElement();
             }
           }
+          return topType;
         }
       }
     } catch (IOException e) {
@@ -231,19 +231,10 @@ public final class Explorer {
    * @return type of the file.
    */
   private String detectFileType(Location location) throws IOException {
-    if (operatingSystem.indexOf("mac") != -1 && location.toString().startsWith("/dev")) {
-      return DEVICE;
-    }
     // We first attempt to detect the type of file based on extension.
     String extension = FilenameUtils.getExtension(location.getName());
     if (extensions.containsKey(extension)) {
       return extensions.get(extension);
-    }
-
-    ContentInfoUtil util = new ContentInfoUtil();
-    ContentInfo info = util.findMatch(location.getInputStream());
-    if (info != null) {
-      return info.getContentType().getMimeType();
     }
     return UNKNOWN;
   }

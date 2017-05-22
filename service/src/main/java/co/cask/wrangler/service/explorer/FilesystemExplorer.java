@@ -115,10 +115,12 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
                    @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction) {
     RequestExtractor extractor = new RequestExtractor(request);
-    if (extractor.isContentType(DataType.TEXT.getType()) || extractor.isContentType(DataType.JSON.getType())) {
-      loadTextFile(responder, path, lines, fraction, sampler);
-    } else if(extractor.isContentType(DataType.XML.getType())) {
-      loadXMLFile(responder, path);
+    if (extractor.isContentType("text/plain") || extractor.isContentType("application/json")) {
+      loadSamplableFile(responder, path, lines, fraction, sampler);
+    } else if (extractor.isContentType("application/xml")) {
+      loadFile(responder, path, DataType.RECORDS);
+    } else if (extractor.isContentType("application/avro") || extractor.isContentType("application/protobuf")) {
+      loadFile(responder, path, DataType.BINARY);
     } else {
       error(responder, "Currently doesn't support wrangling of this type of file.");
     }
@@ -161,8 +163,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
     }
   }
 
-  private void loadXMLFile(HttpServiceResponder responder, String path) {
-    List<Record> records = new ArrayList<>();
+  private void loadFile(HttpServiceResponder responder, String path, DataType type) {
     JsonObject response = new JsonObject();
     BufferedInputStream stream = null;
     try {
@@ -177,6 +178,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
         return;
       }
 
+      // Creates workspace.
       String name = location.getName();
       String id = String.format("%s:%s", location.getName(), location.toURI().getPath());
       id = ServiceUtils.generateMD5(id);
@@ -185,7 +187,6 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       stream = new BufferedInputStream(location.getInputStream());
       byte[] bytes = new byte[(int)location.length() + 1];
       stream.read(bytes);
-      records.add(new Record(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
 
       // Set all properties and write to workspace.
       Map<String, String> properties = new HashMap<>();
@@ -197,8 +198,14 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       table.writeProperties(id, properties);
 
       // Write records to workspace.
-      String data = gson.toJson(records);
-      table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+      if(type == DataType.RECORDS) {
+        List<Record> records = new ArrayList<>();
+        records.add(new Record(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
+        String data = gson.toJson(records);
+        table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+      } else if (type == DataType.BINARY) {
+        table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
+      }
 
       // Preparing return response to include mandatory fields : id and name.
       JsonArray values = new JsonArray();
@@ -229,8 +236,8 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
     }
   }
 
-  private void loadTextFile(HttpServiceResponder responder,
-                            String path, int lines, double fraction, String sampler) {
+  private void loadSamplableFile(HttpServiceResponder responder,
+                                 String path, int lines, double fraction, String sampler) {
     JsonObject response = new JsonObject();
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {

@@ -39,6 +39,7 @@ import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseAvro;
+import co.cask.wrangler.steps.parser.ParseAvroFile;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseProtobuf;
@@ -64,11 +65,13 @@ import co.cask.wrangler.steps.transformation.FindAndReplace;
 import co.cask.wrangler.steps.transformation.GenerateUUID;
 import co.cask.wrangler.steps.transformation.IndexSplit;
 import co.cask.wrangler.steps.transformation.InvokeHttp;
+import co.cask.wrangler.steps.transformation.LeftTrim;
 import co.cask.wrangler.steps.transformation.Lower;
 import co.cask.wrangler.steps.transformation.MaskNumber;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import co.cask.wrangler.steps.transformation.Quantization;
+import co.cask.wrangler.steps.transformation.RightTrim;
 import co.cask.wrangler.steps.transformation.SetColumn;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
@@ -77,6 +80,7 @@ import co.cask.wrangler.steps.transformation.TableLookup;
 import co.cask.wrangler.steps.transformation.TextDistanceMeasure;
 import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
+import co.cask.wrangler.steps.transformation.Trim;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
@@ -146,6 +150,7 @@ public final class UsageRegistry implements Serializable {
     Encode.class,
     Expression.class,
     ExtractRegexGroups.class,
+    Fail.class,
     FillNullOrEmpty.class,
     FindAndReplace.class,
     FixedLengthParser.class,
@@ -159,10 +164,14 @@ public final class UsageRegistry implements Serializable {
     JsPath.class,
     Keep.class,
     Lower.class,
+    LeftTrim.class,
     MaskNumber.class,
     MaskShuffle.class,
     Merge.class,
     MessageHash.class,
+    ParseAvro.class,
+    ParseAvroFile.class,
+    ParseProtobuf.class,
     ParseDate.class,
     ParseLog.class,
     ParseSimpleDate.class,
@@ -171,6 +180,7 @@ public final class UsageRegistry implements Serializable {
     RecordMissingOrNullFilter.class,
     RecordRegexFilter.class,
     Rename.class,
+    RightTrim.class,
     SendToError.class,
     SetCharset.class,
     SetColumn.class,
@@ -186,6 +196,7 @@ public final class UsageRegistry implements Serializable {
     TextDistanceMeasure.class,
     TextMetricMeasure.class,
     TitleCase.class,
+    Trim.class,
     Upper.class,
     UrlDecode.class,
     UrlEncode.class,
@@ -194,10 +205,7 @@ public final class UsageRegistry implements Serializable {
     XmlParser.class,
     XmlToJson.class,
     XPathArrayElement.class,
-    XPathElement.class,
-    ParseAvro.class,
-    ParseProtobuf.class,
-    Fail.class
+    XPathElement.class
   );
 
   public UsageRegistry() {
