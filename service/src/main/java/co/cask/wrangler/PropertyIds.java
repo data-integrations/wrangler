@@ -49,4 +49,7 @@ public final class PropertyIds {
 
   // Content Type of content being stored.
   public static final String CONTENT_TYPE = "Content-Type";
+
+  // Topic.
+  public static final String TOPIC = "topic";
 }

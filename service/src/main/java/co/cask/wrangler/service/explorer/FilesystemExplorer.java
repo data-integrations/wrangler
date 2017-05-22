@@ -224,7 +224,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e){
-
+      error(responder, e.getMessage());
     } finally {
       if (stream != null) {
         try {
