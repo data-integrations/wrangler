@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Tests {@link co.cask.wrangler.steps.transformation.TableLookup}.
  */
-@Ignore
+
 public class TableLookupTest extends WranglerServiceTestBase {
 
   @Test

@@ -149,6 +149,65 @@
     <enabled>true</enabled>
   </finder>
   <finder>
+    <name>Credit Card</name>
+    <pattern> ^4\d{15}$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+
+  <finder>
+    <name>Credit Card</name>
+    <pattern> ^4\d{3}([\ \-]?)\d{4}\1\d{4}\1\d{4}$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern> ^4\d{3}([\ \-]?)(?:\d{4}\1){2}\d(?:\d{3})?$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern> ^4(\d{3})(?!\1{3})([\ \-]?)(?!(\d)\3{3})(\d{4})\2(?!\4|(\d)\5{3}|1234|2345|3456|5678|7890)(\d{4})\2(?!\6|(\d)\7{3}|1234|3456)\d{4}$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern> </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern> ^5[1-5]\d{14}$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern> ^4\d{3}([\ \-]?)\d{4}\1\d{4}\1\d{4}$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern> ^5[1-5]\d{2}([\ \-]?)\d{4}\1\d{4}\1\d{4}$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern>^6(?:011\d\d|5\d{4}|4[4-9]\d{3}|22(?:1(?:2[6-9]|[3-9]\d)|[2-8]\d\d|9(?:[01]\d|2[0-5])))\d{10}$ </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern>^4\d{3}([\ \-]?)\d{4}\1\d{4}\1\d{4}$</pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern>^6(?:011|22(?:1(?=[\ \-]?(?:2[6-9]|[3-9]))|[2-8]|9(?=[\ \-]?(?:[01]|2[0-5])))|4[4-9]\d|5\d\d)([\ \-]?)\d{4}\1\d{4}\1\d{4}$</pattern>
+    <enabled>true</enabled>
+  </finder>
+
+
+
+  <finder>
     <name>ISBN</name>
     <pattern><![CDATA[^(?:ISBN(?:-1[03])?:?●)?(?=[0-9X]{10}$|(?=(?:[0-9]+[-●]){3})[-●0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[-●]){4})[-●0-9]{17}$)(?:97[89][-●]?)?[0-9]{1,5}[-●]?[0-9]+[-●]?[0-9]+[-●]?[0-9X]$]]></pattern>
     <enabled>true</enabled>
@@ -161,6 +220,11 @@
   <finder>
     <name>Zip Code</name>
     <pattern>^\d{5}(?:[-\s]\d{4})?$</pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Zip Code</name>
+    <pattern>^\d{5}-\d{4}|\d{5}|[A-Z]\d[A-Z] \d[A-Z]\d$</pattern>
     <enabled>true</enabled>
   </finder>
   <finder>
@@ -198,4 +262,31 @@
     <pattern>^\D?\s*\d*([,.]?\d{3})*[,.]\d{2}$</pattern>
     <enabled>true</enabled>
   </finder>
+
+  <finder>
+    <name>Longitude</name>>
+    <pattern>^-?([1]?[1-7][1-9]|[1]?[1-8][0]|[1-9]?[0-9])\.{1}\d{1,6}</pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Latitude</name>>
+    <pattern>^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}</pattern>
+    <enabled>true</enabled>
+  </finder>>
+
+
+
+
+
+
+
+
+
+  <!--
+  <finder>
+    <name>Currency</name>
+    <pattern>(-1(?:(0)|3))?:?\x20+(?(1)(?(2)(?:(?=.{13}$)\d{1,5}([ -])\d{1,7}\3\d{1,6}\3(?:\d|x)$)|(?:(?=.{17}$)97(?:8|9)([ -])\d{1,5}\4\d{1,7}\4\d{1,6}\4\d$))|(?(.{13}$)(?:\d{1,5}([ -])\d{1,7}\5\d{1,6}\5(?:\d|x)$)|(?:(?=.{17}$)97(?:8|9)([ -])\d{1,5}\6\d{1,7}\6\d{1,6}\6\d$)))</pattern>
+  <enabled>true</enabled>
+  </finder>
+  -->
 </finders>

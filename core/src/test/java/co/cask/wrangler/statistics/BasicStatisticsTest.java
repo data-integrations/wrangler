@@ -43,10 +43,24 @@ public class BasicStatisticsTest {
     mock1.add("phone", "7-(524)722-4546");
     mock1.add("address", "478 Macpherson Drive");
     mock1.add("zip_code", "659600");
+
     mock1.add("credit_card_number", "5893038608281613");
-    mock1.add("credit_card_type", "mastercard");
+    mock1.add("VISA_1", "4111111111111111");
+    mock1.add("VISA_2","4012888888881881");
+    mock1.add("VISA_3","4222222222222");
+
+    mock1.add("MasterCard_1","5555555555554444");
+    mock1.add("MasterCard_2","5105105105105100");
+
+    mock1.add ("Discover", "6011 0000 0000 0004");
+    mock1.add("AmericanExpress", "3400 0000 0000 009");
+
+
+
+
     mock1.add("ssn", "723-47-4824");
-    mock1.add("ISBN", "182084447-1");
+    mock1.add("ISBN_10", "0-345-50113-6");
+    mock1.add("ISBN_13", "978-0-345-50113-4");
     mock1.add("money", "$93110.95");
     mock1.add("latitude", "52.30447");
     mock1.add("longitude", "85.0785");
@@ -54,9 +68,6 @@ public class BasicStatisticsTest {
     mock1.add("IPv6", "ac68:ff5b:bcdb:e52b:f13d:5642:f97a:3d73");
     mock1.add("MAC address", "B9-27-8E-CE-77-8A");
     mock1.add("other", "荣");
-
-
-
 
     Record record1 = new Record ("phone", "217-418-5708");
     record1.add("address", "lincoln");
@@ -73,6 +84,9 @@ public class BasicStatisticsTest {
     List<Record> records = Arrays.asList(
       mock1, record1, record2, record3, record4
     );
+
+
+
 
     Statistics statisticsGen = new BasicStatistics();
     Record summary = statisticsGen.aggregate(records);

@@ -57,9 +57,14 @@ public class BasicStatistics implements Statistics {
           if (value.isEmpty()) {
             stats.increment(column, "empty");
           } else {
+
             Map<String, List<String>> finds = engine.findWithType(value);
             for (String find : finds.keySet()) {
               types.increment(column, find);
+            }
+            //regex can't do street address, so do this separately
+            if (isStreetAddress(value)) {
+              types.increment(column, "Street Address");
             }
           }
         }
@@ -82,5 +87,13 @@ public class BasicStatistics implements Statistics {
     record.add("total", count);
 
     return record;
+  }
+
+  //TODO: Might need refactoring
+  private boolean isStreetAddress(String input) {
+    if (input != null) {
+      return true;
+    }
+    return false;
   }
 }

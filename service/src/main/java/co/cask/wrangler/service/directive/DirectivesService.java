@@ -46,7 +46,6 @@ import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.statistics.BasicStatistics;
-import co.cask.wrangler.statistics.TypeStatistics;
 import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.RecordConvertorException;
 import co.cask.wrangler.validator.ColumnNameValidator;
@@ -682,10 +681,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           object.add("types", o);
         }
       }
-
-
-      //TODO: test
-      System.out.println(statistics.toString());
 
 
       // Put the statistics along with validation rules.

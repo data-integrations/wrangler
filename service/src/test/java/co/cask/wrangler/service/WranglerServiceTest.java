@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * Tests for {@link DirectivesService}.
  */
-@Ignore
+
 public class WranglerServiceTest extends WranglerServiceTestBase {
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
