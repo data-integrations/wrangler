@@ -21,15 +21,13 @@ import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
 import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.dataset.lib.ObjectMappedTable;
-import co.cask.cdap.api.dataset.lib.ObjectMappedTableProperties;
 import co.cask.cdap.api.plugin.PluginProperties;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionService;
 import co.cask.wrangler.service.database.DBService;
+import co.cask.wrangler.service.database.DatabaseService;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
-import co.cask.wrangler.service.recipe.RecipeService;
 import co.cask.wrangler.service.schema.SchemaRegistryService;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
@@ -69,8 +67,8 @@ public class DataPrep extends AbstractApplication {
                new SchemaRegistryService(),
                new FilesystemExplorer(),
                new ConnectionService(),
-               new RecipeService(),
-               new DBService()
+               new DBService(),
+               new DatabaseService()
     );
   }
 }

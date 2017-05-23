@@ -90,7 +90,7 @@ public class DBService extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
     DriverCleanup driverCleanup = null;
     try {
-      List<ArtifactInfo> artifactInfos = getContext().getAdmin().listArtifacts();
+      List<ArtifactInfo> artifactInfos = getContext().listArtifacts();
       ArtifactInfo targetArtifactInfo = null;
       for (ArtifactInfo artifactInfo : artifactInfos) {
         Set<PluginClass> pluginClassSet = artifactInfo.getClasses().getPlugins();
@@ -110,7 +110,7 @@ public class DBService extends AbstractHttpServiceHandler {
       }
 
       try (CloseableClassLoader closeableClassLoader =
-        getContext().getAdmin().createClassLoader(targetArtifactInfo, null)) {
+        getContext().createClassLoader(targetArtifactInfo, null)) {
         Class<? extends Driver> driverClass = (Class<? extends Driver>)
           closeableClassLoader.loadClass("com.mysql.jdbc.Driver");
         String body = Bytes.toString(request.getContent());
@@ -179,7 +179,7 @@ public class DBService extends AbstractHttpServiceHandler {
     try {
       Map<String, List<DriverInfo>> driverNameToInfoMap = new HashMap<>();
 
-      List<ArtifactInfo> artifactInfos = getContext().getAdmin().listArtifacts();
+      List<ArtifactInfo> artifactInfos = getContext().listArtifacts();
       for (ArtifactInfo artifactInfo : artifactInfos) {
         Set<PluginClass> pluginClassSet = artifactInfo.getClasses().getPlugins();
         for (PluginClass plugin : pluginClassSet) {
@@ -299,10 +299,6 @@ public class DBService extends AbstractHttpServiceHandler {
     }
   }
 
-  // todo : based on type add to record
-  private void addToRecord(Record record, ResultSet resultSet) {
-
-  }
 
   public static List<Schema.Field> getSchemaFields(ResultSet resultSet) throws SQLException {
     List<Schema.Field> schemaFields = Lists.newArrayList();
