@@ -82,7 +82,7 @@ public class BasicStatisticsTest {
     record4.add("address", "green");
 
     List<Record> records = Arrays.asList(
-      mock1, record1, record2, record3, record4
+      mock1, mock1, mock1, record1, record2, record3, record4
     );
 
 
