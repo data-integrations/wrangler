@@ -72,13 +72,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -601,6 +595,18 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
+
+
+
+      //TODO: Use hard coded record now, should get type infos
+      Record mock1 = new Record();
+      mock1.add("phone", "7-(524)722-4546");
+      mock1.add("address", "478 Macpherson Drive");
+      mock1.add("zip_code", "659600");
+      List<Record> records = Arrays.asList(mock1);
+
+
+      /*
       List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
@@ -609,6 +615,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           return records.subList(0, min);
         }
       });
+      */
 
       // Final response object.
       JsonObject response = new JsonObject();
@@ -696,6 +703,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       error(responder, e.getMessage());
     }
   }
+
 
   @POST
   @Path("workspaces/{id}/schema")

@@ -58,9 +58,6 @@ public class BasicStatsOneRowTest {
     mock1.add("phone", "7-(524)722-4546");
     mock1.add("address", "478 Macpherson Drive");
     mock1.add("zip_code", "659600");
-
-
-
     List<Record> records = Arrays.asList(mock1);
 
 
