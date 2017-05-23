@@ -103,6 +103,7 @@
     <google.http.client.version>1.22.0</google.http.client.version>
     <protobuf.version>3.3.0</protobuf.version>
     <guava.retrying.version>2.0.0</guava.retrying.version>
+    <geogson.version>1.1.97</geogson.version>
   </properties>
 
   <repositories>
