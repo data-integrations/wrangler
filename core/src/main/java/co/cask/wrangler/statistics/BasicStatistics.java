@@ -31,7 +31,8 @@ public class BasicStatistics implements Statistics {
   private final FinderEngine engine;
 
   public BasicStatistics() throws Exception {
-    engine = new FinderEngine("wrangler-finder-1.xml", true, true);
+    engine = new FinderEngine("wrangler-finder-1.xml", true, false);
+
   }
 
   @Override
@@ -61,10 +62,6 @@ public class BasicStatistics implements Statistics {
             Map<String, List<String>> finds = engine.findWithType(value);
             for (String find : finds.keySet()) {
               types.increment(column, find);
-            }
-            //regex can't do street address, so do this separately
-            if (isStreetAddress(value)) {
-              types.increment(column, "Street Address");
             }
           }
         }
