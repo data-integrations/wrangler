@@ -29,11 +29,13 @@ import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
+import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import com.google.common.base.Charsets;
@@ -73,6 +75,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -129,11 +132,14 @@ public class DatabaseService extends AbstractHttpServiceHandler {
               break;
             }
           }
-          if (info == null) {
-            throw new IllegalArgumentException(
-              String.format("Database driver '%s' not found.", name)
-            );
+          if (info != null) {
+            break;
           }
+        }
+        if (info == null) {
+          throw new IllegalArgumentException(
+            String.format("Database driver '%s' not found.", name)
+          );
         }
         CloseableClassLoader closeableClassLoader = getContext().createClassLoader(info, null);
         return closeableClassLoader;
@@ -246,7 +252,6 @@ public class DatabaseService extends AbstractHttpServiceHandler {
               JsonArray required = new JsonArray();
               List<String> fields = getMacros(info.getJdbcUrlPattern());
               fields.add("url");
-              fields.add("advanced");
               for (String field : fields) {
                 required.add(new JsonPrimitive(field));
               }
@@ -323,15 +328,22 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *
    * @param request  HTTP request handler.
    * @param responder HTTP response handler.
-   * @param id Connection id to be used for testing the connection.
    */
-  @GET
-  @Path("connections/{id}/jdbc/test")
-  public void testConnection(HttpServiceRequest request, final HttpServiceResponder responder,
-                             @PathParam("id") String id) {
+  @POST
+  @Path("connections/jdbc/test")
+  public void testConnection(HttpServiceRequest request, final HttpServiceResponder responder) {
     DriverCleanup cleanup = null;
     try {
-      cleanup = loadAndExecute(id, new Executor() {
+      // Extract the body of the request and transform it to the Connection object.
+      RequestExtractor extractor = new RequestExtractor(request);
+      Connection connection = extractor.getContent("utf-8", Connection.class);
+
+      if (ConnectionType.from(connection.getType().getType()) == ConnectionType.UNDEFINED) {
+        error(responder, "Invalid connection type set.");
+        return;
+      }
+
+      cleanup = loadAndExecute(connection, new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
           connection.getMetaData();
@@ -413,9 +425,13 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             while (resultSet.next()) {
               Statement statement = connection.createStatement();
               statement.setMaxRows(1);
+              String name = resultSet.getString(3);
+              if (name.contains("$")) {
+                name = name.replaceAll("$", "\\$");
+              }
               ResultSet queryResult =
                 statement.executeQuery(
-                  String.format("select * from %s where 1=0", resultSet.getString(3))
+                  String.format("select * from %s where 1=0", name)
                 );
               JsonObject object = new JsonObject();
               object.addProperty("name", resultSet.getString(3));
@@ -464,8 +480,19 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             int count = lines;
             while(result.next() && count > 0) {
               Record record = new Record();
-              for (int i = 0; i < meta.getColumnCount(); ++i) {
-                record.add(meta.getColumnName(i), result.getObject(i));
+              for (int i = 1; i < meta.getColumnCount() + 1; ++i) {
+                Object object = result.getObject(i);
+                if (object instanceof java.sql.Date) {
+                  java.sql.Date dt = (java.sql.Date) object;
+                  object = dt.toString();
+                } else if (object instanceof java.sql.Time) {
+                  java.sql.Timestamp dt = (java.sql.Timestamp) object;
+                  object = dt.toString();
+                } else if (object instanceof java.sql.Time) {
+                  java.sql.Time dt = (java.sql.Time) object;
+                  object = dt.toString();
+                }
+                record.add(meta.getColumnName(i), object);
               }
               records.add(record);
               count--;
@@ -525,9 +552,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param id of the connection to be connected to.
    * @return pair of connection and the driver cleanup.
    */
-  private DriverCleanup loadAndExecute(String id, Executor executor)
-    throws Exception {
-    DriverCleanup cleanup = null;
+  private DriverCleanup loadAndExecute(String id, Executor executor) throws Exception {
     Connection connection = store.get(id);
     if (connection == null) {
       throw new IllegalArgumentException(
@@ -535,7 +560,11 @@ public class DatabaseService extends AbstractHttpServiceHandler {
           "Invalid connection id '%s' specified or connection does not exist.", id)
       );
     }
+    return loadAndExecute(connection, executor);
+  }
 
+  private DriverCleanup loadAndExecute(Connection connection, Executor executor) throws Exception {
+    DriverCleanup cleanup = null;
     String name = connection.getProp("name");
     String classz = connection.getProp("class");
     String url = connection.getProp("url");
