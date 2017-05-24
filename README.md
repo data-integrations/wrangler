@@ -112,6 +112,7 @@ These directives are currently available:
 | **Parsers**                                                            |                                                                  |
 | [JSON Path](docs/directives/json-path.md)                              | Uses a DSL (a JSON path expression) for parsing JSON records     |
 | [Parse as AVRO](docs/directives/parse-as-avro.md)                      | Parsing an AVRO encoded message - either as binary or json       |
+| [Parse as AVRO File](docs/directives/parse-as-avro-file.md)            | Parsing an AVRO data file                                        |
 | [Parse as CSV](docs/directives/parse-as-csv.md)                        | Parsing an input record as comma-separated values                |
 | [Parse as Date](docs/directives/parse-as-date.md)                      | Parsing dates using natural language processing                  |
 | [Parse as Fixed Length](docs/directives/parse-as-fixed-length.md)      | Parses as a fixed length record with specified widths            |
@@ -144,6 +145,7 @@ These directives are currently available:
 | [Text Metric (Fuzzy String Match)](docs/directives/text-metric.md)     | Measures the difference between two sequences of characters      |
 | [URL Decode](docs/directives/url-decode.md)                            | Decodes from the `application/x-www-form-urlencoded` MIME format |
 | [URL Encode](docs/directives/url-encode.md)                            | Encodes to the `application/x-www-form-urlencoded` MIME format   |
+| [Trim](docs/directives/trim.md)                                        | Functions for trimming white spaces around string data           |
 | **Encoders and Decoders**                                              |                                                                  |
 | [Decode](docs/directives/decode.md)                                    | Decodes a column value as one of `base32`, `base64`, or `hex`    |
 | [Encode](docs/directives/encode.md)                                    | Encodes a column value as one of `base32`, `base64`, or `hex`    |

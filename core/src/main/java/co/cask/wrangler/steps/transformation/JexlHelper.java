@@ -21,6 +21,7 @@ import co.cask.wrangler.steps.transformation.functions.Conversions;
 import co.cask.wrangler.steps.transformation.functions.DDL;
 import co.cask.wrangler.steps.transformation.functions.DataQuality;
 import co.cask.wrangler.steps.transformation.functions.Dates;
+import co.cask.wrangler.steps.transformation.functions.GeoFences;
 import co.cask.wrangler.steps.transformation.functions.JSON;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
@@ -61,6 +62,7 @@ public final class JexlHelper {
     functions.put("arrays", Arrays.class);
     functions.put("dq", DataQuality.class);
     functions.put("ddl", DDL.class);
+    functions.put("geo", GeoFences.class);
     return functions;
   }
 }

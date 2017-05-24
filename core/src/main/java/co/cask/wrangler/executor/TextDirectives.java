@@ -40,6 +40,7 @@ import co.cask.wrangler.steps.parser.HL7Parser;
 import co.cask.wrangler.steps.parser.JsParser;
 import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseAvro;
+import co.cask.wrangler.steps.parser.ParseAvroFile;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseProtobuf;
@@ -54,6 +55,7 @@ import co.cask.wrangler.steps.row.RecordRegexFilter;
 import co.cask.wrangler.steps.row.SendToError;
 import co.cask.wrangler.steps.row.SetRecordDelimiter;
 import co.cask.wrangler.steps.row.SplitToRows;
+
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Decode;
@@ -82,6 +84,11 @@ import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlEncode;
 import co.cask.wrangler.steps.transformation.XPathArrayElement;
 import co.cask.wrangler.steps.transformation.XPathElement;
+import co.cask.wrangler.steps.transformation.Trim;
+import co.cask.wrangler.steps.transformation.LeftTrim;
+import co.cask.wrangler.steps.transformation.RightTrim;
+
+
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -797,6 +804,13 @@ public class TextDirectives implements Directives {
         }
         break;
 
+        // parse-as-avro-file <column>
+        case "parse-as-avro-file": {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          steps.add(new ParseAvroFile(lineno, directive, column));
+        }
+        break;
+
         // send-to-error <condition>
         case "send-to-error": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
@@ -943,6 +957,30 @@ public class TextDirectives implements Directives {
           steps.add(new Decode(lineno, directive, Decode.Type.valueOf(type), column));
         }
         break;
+
+        //trim <column>
+        case "trim": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          steps.add(new Trim(lineno, directive, col));
+        }
+        break;
+
+        //ltrim <column>
+        case "ltrim": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          steps.add(new LeftTrim(lineno, directive, col));
+        }
+        break;
+
+        //rtrim <column>
+        case "rtrim": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          steps.add(new RightTrim(lineno, directive, col));
+        }
+        break;
+
+
+
 
         default:
           throw new DirectiveParseException(
