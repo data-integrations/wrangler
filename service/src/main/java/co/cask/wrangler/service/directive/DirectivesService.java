@@ -599,10 +599,17 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
 
       //TODO: Use hard coded record now, should get type infos
+
+
       Record mock1 = new Record();
-      mock1.add("phone", "7-(524)722-4546");
-      mock1.add("address", "478 Macpherson Drive");
-      mock1.add("zip_code", "659600");
+      //mock1.add("phone", "7-(524)722-4546");
+      mock1.add("address1", "478 Macpherson Drive");
+      mock1.add("address2", "6707 Eagan Street");
+      mock1.add("address3", "59 Farwell Avenue");
+      mock1.add("address4", "27472 Bunting Avenue");
+
+
+      //mock1.add("zip_code", "659600");
       List<Record> records = Arrays.asList(mock1);
 
 
@@ -616,6 +623,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         }
       });
       */
+
 
       // Final response object.
       JsonObject response = new JsonObject();

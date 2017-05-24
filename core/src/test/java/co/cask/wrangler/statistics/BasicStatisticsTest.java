@@ -37,6 +37,14 @@ public class BasicStatisticsTest {
   public void testBasicStatistics() throws Exception {
 
     Record mock1 = new Record();
+    //mock1.add("phone", "7-(524)722-4546");
+    mock1.add("address1", "478 Macpherson Drive");
+    mock1.add("address2", "6707 Eagan Street");
+    mock1.add("address3", "59 Farwell Avenue");
+    mock1.add("address4", "27472 Bunting Avenue");
+    List<Record> records = Arrays.asList(mock1);
+
+    /*
     mock1.add("id", "1");
     mock1.add("first_name", "Paulina");
     mock1.add("last_name", "Wynne");
@@ -54,9 +62,6 @@ public class BasicStatisticsTest {
 
     mock1.add ("Discover", "6011 0000 0000 0004");
     mock1.add("AmericanExpress", "3400 0000 0000 009");
-
-
-
 
     mock1.add("ssn", "723-47-4824");
     mock1.add("ISBN_10", "0-345-50113-6");
@@ -81,12 +86,11 @@ public class BasicStatisticsTest {
     Record record4 = new Record ("phone", "217-898-0185");
     record4.add("address", "green");
 
+
     List<Record> records = Arrays.asList(
       mock1, mock1, mock1, record1, record2, record3, record4
     );
-
-
-
+    */
 
     Statistics statisticsGen = new BasicStatistics();
     Record summary = statisticsGen.aggregate(records);
@@ -95,18 +99,12 @@ public class BasicStatisticsTest {
     Record types = (Record) summary.getValue("types");
 
     //System.out.println(types);
-
-
-      /*
-      //TODO: Need fix this Ken Test for type display
-      TypeStatistics typeStatistics = new TypeStatistics();
-      //System.out.println(typeStatistics.typeRecordToStr(types));
-      types = typeStatistics.aggregate(records);
-      */
-
-
-
-
+    /*
+    //TODO: Need fix this Ken Test for type display
+    TypeStatistics typeStatistics = new TypeStatistics();
+    //System.out.println(typeStatistics.typeRecordToStr(types));
+    types = typeStatistics.aggregate(records);
+    */
 
     // Serialize the results into JSON.
     List<KeyValue<String, Object>> fields = stats.getFields();

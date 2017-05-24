@@ -185,6 +185,13 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
       </resource>
+      <!-- Otherwise, a tag like the following gets replaced and the xml file becomes invalid XML:
+           <pattern>^F-?\d{5}$</pattern>
+      -->
+      <resource>
+        <directory>src/main/resources-unfiltered</directory>
+        <filtering>false</filtering>
+      </resource>
     </resources>
     <plugins>
       <plugin>
