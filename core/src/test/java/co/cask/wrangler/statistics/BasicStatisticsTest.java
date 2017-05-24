@@ -98,13 +98,6 @@ public class BasicStatisticsTest {
     Record stats = (Record) summary.getValue("stats");
     Record types = (Record) summary.getValue("types");
 
-    //System.out.println(types);
-    /*
-    //TODO: Need fix this Ken Test for type display
-    TypeStatistics typeStatistics = new TypeStatistics();
-    //System.out.println(typeStatistics.typeRecordToStr(types));
-    types = typeStatistics.aggregate(records);
-    */
 
     // Serialize the results into JSON.
     List<KeyValue<String, Object>> fields = stats.getFields();
@@ -136,10 +129,6 @@ public class BasicStatisticsTest {
         object.add("types", o);
       }
     }
-
-
-    //TODO: test
-    //System.out.println(statistics.toString());
 
     // Final response object.
     JsonObject response = new JsonObject();

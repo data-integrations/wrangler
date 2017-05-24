@@ -596,24 +596,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
 
-
-
-      //TODO: Use hard coded record now, should get type infos
-
-
-      Record mock1 = new Record();
-      //mock1.add("phone", "7-(524)722-4546");
-      mock1.add("address1", "478 Macpherson Drive");
-      mock1.add("address2", "6707 Eagan Street");
-      mock1.add("address3", "59 Farwell Avenue");
-      mock1.add("address4", "27472 Bunting Avenue");
-
-
-      //mock1.add("zip_code", "659600");
-      List<Record> records = Arrays.asList(mock1);
-
-
-      /*
       List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
@@ -622,7 +604,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           return records.subList(0, min);
         }
       });
-      */
 
 
       // Final response object.
@@ -657,9 +638,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       result.add("validation", columnValidationResult);
 
       // Generate General and Type related Statistics for each column.
-
-
-
       Statistics statsGenerator = new BasicStatistics();
       Record summary = statsGenerator.aggregate(records);
 

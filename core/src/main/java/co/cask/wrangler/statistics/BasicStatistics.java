@@ -31,13 +31,7 @@ public class BasicStatistics implements Statistics {
   private final FinderEngine engine;
 
   public BasicStatistics() throws Exception {
-
-    //engine = new FinderEngine("src/main/resources-unfiltered/wrangler-finder-1.xml", false, false);
-
-    engine = new FinderEngine("wrangler-finder-1.xml", true, false);
-
-
-
+    engine = new FinderEngine("wrangler-finder-1.xml", true, true);
   }
 
   @Override
