@@ -1,7 +1,22 @@
+/*
+ * Copyright © 2017 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package co.cask.wrangler.service.database;
 
 import co.cask.cdap.api.artifact.ArtifactInfo;
-import co.cask.cdap.api.artifact.CloseableClassLoader;
 import co.cask.cdap.api.plugin.PluginClass;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import org.slf4j.Logger;
@@ -53,39 +68,7 @@ public final class JDBCDriverManager {
     return targetArtifactInfo;
   }
 
-  public void loadDriver(ArtifactInfo info, String name)
-    throws IOException, IllegalAccessException, SQLException, InstantiationException, ClassNotFoundException {
-    if (cleanup == null) {
-      try (CloseableClassLoader closeableClassLoader =
-             context.createClassLoader(info, null)) {
-        Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
-        LOG.info("Loaded class {}", driverClass.getName());
-        cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
-      }
-    }
-  }
-
-  public Connection loadDriver(ArtifactInfo info, String name, String username, String password)
-    throws IOException, IllegalAccessException, SQLException, InstantiationException, ClassNotFoundException {
-    if (cleanup == null) {
-      try (CloseableClassLoader closeableClassLoader =
-             context.createClassLoader(info, null)) {
-        Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
-        LOG.info("Loaded class {}", driverClass.getName());
-        cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
-        connection = DriverManager.getConnection(url, username, password);
-        return connection;
-      }
-    }
-    return null;
-  }
-
-  public Connection getConnection(String username, String password) throws SQLException {
-    connection = DriverManager.getConnection(url, username, password);
-    return connection;
-  }
-
-  private static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
+  public static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
     throws IllegalAccessException, InstantiationException, SQLException {
     try {
       DriverManager.getDriver(url);
@@ -107,7 +90,7 @@ public final class JDBCDriverManager {
   /**
    * De-register all SQL drivers that are associated with the class
    */
-  private static void deregisterAllDrivers(Class<? extends Driver> classz)
+  public static void deregisterAllDrivers(Class<? extends Driver> classz)
     throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
     Field field = DriverManager.class.getDeclaredField("registeredDrivers");
     field.setAccessible(true);
