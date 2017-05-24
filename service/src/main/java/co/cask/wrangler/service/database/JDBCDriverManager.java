@@ -59,9 +59,25 @@ public final class JDBCDriverManager {
       try (CloseableClassLoader closeableClassLoader =
              context.createClassLoader(info, null)) {
         Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
-        cleanup = ensureJDBCDriverIsAvailable(driverClass, url, "jdbc", name);
+        LOG.info("Loaded class {}", driverClass.getName());
+        cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
       }
     }
+  }
+
+  public Connection loadDriver(ArtifactInfo info, String name, String username, String password)
+    throws IOException, IllegalAccessException, SQLException, InstantiationException, ClassNotFoundException {
+    if (cleanup == null) {
+      try (CloseableClassLoader closeableClassLoader =
+             context.createClassLoader(info, null)) {
+        Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
+        LOG.info("Loaded class {}", driverClass.getName());
+        cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
+        connection = DriverManager.getConnection(url, username, password);
+        return connection;
+      }
+    }
+    return null;
   }
 
   public Connection getConnection(String username, String password) throws SQLException {
@@ -69,34 +85,29 @@ public final class JDBCDriverManager {
     return connection;
   }
 
-  private static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> jdbcDriverClass,
-                                                           String connectionString,
-                                                           String jdbcPluginType, String jdbcPluginName)
+  private static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
     throws IllegalAccessException, InstantiationException, SQLException {
-
     try {
-      DriverManager.getDriver(connectionString);
+      DriverManager.getDriver(url);
       return new DriverCleanup(null);
     } catch (SQLException e) {
-      // Driver not found. We will try to register it with the DriverManager.
-      LOG.debug("Plugin Type: {} and Plugin Name: {}; Driver Class: {} not found. Registering JDBC driver via shim {} ",
-                jdbcPluginType, jdbcPluginName, jdbcDriverClass.getName(),
-                JDBCDriverShim.class.getName());
-      final JDBCDriverShim driverShim = new JDBCDriverShim(jdbcDriverClass.newInstance());
+      Driver driver = classz.newInstance();
+      final JDBCDriverShim shim = new JDBCDriverShim(driver);
       try {
-        deregisterAllDrivers(jdbcDriverClass);
+        deregisterAllDrivers(classz);
+        DriverManager.registerDriver(shim);
+        return new DriverCleanup(shim);
       } catch (NoSuchFieldException | ClassNotFoundException e1) {
-        LOG.error("Unable to deregister JDBC Driver class {}", jdbcDriverClass);
+        LOG.warn("Unable to deregister JDBC Driver class {}", classz);
       }
-      DriverManager.registerDriver(driverShim);
-      return new DriverCleanup(driverShim);
+      return null;
     }
   }
 
   /**
    * De-register all SQL drivers that are associated with the class
    */
-  private static void deregisterAllDrivers(Class<? extends Driver> driverClass)
+  private static void deregisterAllDrivers(Class<? extends Driver> classz)
     throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
     Field field = DriverManager.class.getDeclaredField("registeredDrivers");
     field.setAccessible(true);
@@ -110,16 +121,12 @@ public final class JDBCDriverManager {
         LOG.debug("Found null driver object in drivers list. Ignoring.");
         continue;
       }
-      LOG.debug("Removing non-null driver object from drivers list.");
       ClassLoader registeredDriverClassLoader = d.getClass().getClassLoader();
       if (registeredDriverClassLoader == null) {
-        LOG.debug("Found null classloader for default driver {}. Ignoring since this may be using system classloader.",
-                  d.getClass().getName());
         continue;
       }
       // Remove all objects in this list that were created using the classloader of the caller.
-      if (d.getClass().getClassLoader().equals(driverClass.getClassLoader())) {
-        LOG.debug("Removing default driver {} from registeredDrivers", d.getClass().getName());
+      if (d.getClass().getClassLoader().equals(classz.getClassLoader())) {
         list.remove(driverInfo);
       }
     }
@@ -128,6 +135,7 @@ public final class JDBCDriverManager {
   public void release() {
     if (cleanup != null) {
       cleanup.destroy();
+      cleanup = null;
     }
   }
 }

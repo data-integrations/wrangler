@@ -16,7 +16,7 @@ Microsoft SQL Server (JTurbo Driver),com.ashna.jturbo.driver.Driver,jdbc:JTurbo:
 Microsoft SQL Server (Sprinta Driver),com.inet.tds.TdsDriver,jdbc:inetdae:${hostname}:${port}?database=${database}
 Microsoft SQL Server 2000 (Microsoft Driver),com.microsoft.sqlserver.jdbc.SQLServerDriver,jdbc:microsoft:sqlserver://${hostname}:${port};DatabaseName=${database}
 MySQL (MM.MySQL Driver),org.gjt.mm.mysql.Driver,jdbc:mysql://${hostname}:${port}/${database}
-MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database}?user=${username}&password=${password}
+MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database}
 Oracle OCI 8i,oracle.jdbc.driver.OracleDriver,jdbc:oracle:oci8:@${SID}
 Oracle OCI 9i,oracle.jdbc.driver.OracleDriver,jdbc:oracle:oci:@${SID}
 PostgreSQL (v6.5 and earlier),postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database}

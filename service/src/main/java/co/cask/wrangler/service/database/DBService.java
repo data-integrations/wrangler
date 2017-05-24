@@ -107,6 +107,7 @@ public class DBService extends AbstractHttpServiceHandler {
 
       if (targetArtifactInfo == null) {
         responder.sendError(400, "Unable to find artifact with mysql plugin");
+        return;
       }
 
       try (CloseableClassLoader closeableClassLoader =
@@ -409,6 +410,7 @@ public class DBService extends AbstractHttpServiceHandler {
       } catch (NoSuchFieldException | ClassNotFoundException e1) {
         LOG.error("Unable to deregister JDBC Driver class {}", jdbcDriverClass);
       }
+      LOG.info("Registering driver {} with Driver Manager", driverShim.getClass().getCanonicalName());
       DriverManager.registerDriver(driverShim);
       return new DriverCleanup(driverShim);
     }

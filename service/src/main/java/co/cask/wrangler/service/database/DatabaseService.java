@@ -38,6 +38,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
+import static co.cask.wrangler.ServiceUtils.success;
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
@@ -254,6 +255,43 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       }
       manager.loadDriver(info, name);
       java.sql.Connection conn = manager.getConnection(username, password);
+      conn.getMetaData();
+      success(responder, "Success");
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    } finally {
+      if (manager != null) {
+        manager.release();
+      }
+    }
+  }
+
+  @GET
+  @Path("connections/{id}/databases/list")
+  public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("id") String id) {
+    JDBCDriverManager manager = null;
+    try {
+      Connection connection = store.get(id);
+      if (connection == null) {
+        error(responder, String.format(
+          "Invalid connection id '%s' specified or connection does not exist.", id)
+        );
+        return;
+      }
+      String name = connection.getProp("name");
+      String classz = connection.getProp("class");
+      String url = connection.getProp("url");
+      String username = connection.getProp("username");
+      String password = connection.getProp("password");
+      manager = new JDBCDriverManager(classz, getContext(), url);
+      ArtifactInfo info = manager.getArtifactInfo(name);
+      if (info == null) {
+        error(responder, String.format("Unable to find plugin '%s' for connection '%s'.", name, id));
+        return;
+      }
+      java.sql.Connection conn = manager.loadDriver(info, name, username, password);
+      //java.sql.Connection conn = manager.getConnection(username, password);
       DatabaseMetaData metaData = conn.getMetaData();
       ResultSet resultSet = metaData.getTables(null, null, "%", null);
       while (resultSet.next()) {
@@ -274,11 +312,5 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         manager.release();
       }
     }
-  }
-
-  @GET
-  @Path("connections/{id}/databases/list")
-  public void listTables(HttpServiceRequest request, HttpServiceResponder responder) {
-
   }
 }
