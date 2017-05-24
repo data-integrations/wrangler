@@ -19,18 +19,32 @@ package co.cask.wrangler.service.database;
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.artifact.CloseableClassLoader;
-import co.cask.cdap.api.dataset.lib.KeyValue;
+import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.plugin.PluginClass;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.DataPrep;
+import co.cask.wrangler.PropertyIds;
+import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import com.google.common.base.Charsets;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+import com.google.common.io.Closeables;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -43,11 +57,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -55,9 +71,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.ServiceUtils.sendJson;
@@ -80,6 +98,48 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   // Abstraction over the table defined above for managing connections.
   private ConnectionStore store;
 
+  private static final Gson gson =
+    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+
+  // Driver class loaders cached.
+  private final LoadingCache<String, CloseableClassLoader> cache = CacheBuilder.newBuilder()
+    .expireAfterAccess(60, TimeUnit.MINUTES)
+    .removalListener(new RemovalListener<String, CloseableClassLoader>() {
+      @Override
+      public void onRemoval(RemovalNotification<String, CloseableClassLoader> removalNotification) {
+        CloseableClassLoader value = removalNotification.getValue();
+        if (value != null) {
+          try {
+            Closeables.close(value, true);
+          } catch (IOException e) {
+            // never happens.
+          }
+        }
+      }
+    }).build(new CacheLoader<String, CloseableClassLoader>() {
+      @Override
+      public CloseableClassLoader load(String name) throws Exception {
+        List<ArtifactInfo> artifacts = getContext().listArtifacts();
+        ArtifactInfo info = null;
+        for (ArtifactInfo artifact : artifacts) {
+          Set<PluginClass> pluginClassSet = artifact.getClasses().getPlugins();
+          for (PluginClass plugin : pluginClassSet) {
+            if (JDBC.equalsIgnoreCase(plugin.getType()) && plugin.getName().equals(name)) {
+              info = artifact;
+              break;
+            }
+          }
+          if (info == null) {
+            throw new IllegalArgumentException(
+              String.format("Database driver '%s' not found.", name)
+            );
+          }
+        }
+        CloseableClassLoader closeableClassLoader = getContext().createClassLoader(info, null);
+        return closeableClassLoader;
+      }
+    });
+
   private final class DriverInfo {
     private String jdbcUrlPattern;
     private String name;
@@ -99,7 +159,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   }
 
   public interface Executor {
-    public void execute(java.sql.Connection connection);
+    public void execute(java.sql.Connection connection) throws Exception;
   }
 
   private static final Map<String, DriverInfo> drivers = new HashMap<>();
@@ -161,7 +221,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param responder HTTP response handler.
    */
   @GET
-  @Path("databases/drivers")
+  @Path("jdbc/drivers")
   public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
       JsonObject response = new JsonObject();
@@ -229,7 +289,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param responder HTTP response handler.
    */
   @GET
-  @Path("databases/available")
+  @Path("jdbc/allowed")
   public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
     JsonObject response = new JsonObject();
     JsonArray values = new JsonArray();
@@ -266,26 +326,61 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param id Connection id to be used for testing the connection.
    */
   @GET
-  @Path("connections/{id}/databases/test")
-  public void testConnection(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("connections/{id}/jdbc/test")
+  public void testConnection(HttpServiceRequest request, final HttpServiceResponder responder,
                              @PathParam("id") String id) {
     DriverCleanup cleanup = null;
     try {
-      cleanup = getConnection(id, new Executor() {
+      cleanup = loadAndExecute(id, new Executor() {
         @Override
-        public void execute(java.sql.Connection connection) {
-
+        public void execute(java.sql.Connection connection) throws Exception {
+          connection.getMetaData();
+          JsonObject response = new JsonObject();
+          response.addProperty("status", HttpURLConnection.HTTP_OK);
+          response.addProperty("message", "Successfully connected to database.");
+          sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
         }
       });
-      if (handle != null) {
-        handle.getKey().getMetaData();
-        JsonObject response = new JsonObject();
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "Successfully connected to database.");
-        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-      } else {
-        error(responder, "Unable to connect to database.");
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    } finally {
+      if (cleanup != null) {
+        cleanup.destroy();
       }
+    }
+  }
+
+  /**
+   * Lists all databases.
+   *
+   * @param request HTTP requets handler.
+   * @param responder HTTP response handler.
+   * @param id Connection id for which all the databses should be listed.
+   */
+  @GET
+  @Path("connections/{id}/databases")
+  public void listDatabases(HttpServiceRequest request, final HttpServiceResponder responder,
+                         @PathParam("id") String id) {
+    final JsonObject response = new JsonObject();
+    final JsonArray values = new JsonArray();
+    DriverCleanup cleanup = null;
+    try {
+      cleanup = loadAndExecute(id, new Executor() {
+        @Override
+        public void execute(java.sql.Connection connection) throws Exception {
+          DatabaseMetaData metaData = connection.getMetaData();
+          try(ResultSet resultSet = metaData.getCatalogs()) {
+            while (resultSet.next()) {
+              values.add(new JsonPrimitive(resultSet.getString("TABLE_CAT")));
+            }
+            response.addProperty("status", HttpURLConnection.HTTP_OK);
+            response.addProperty("message", "Success.");
+            response.addProperty("count", values.size());
+            response.add("values", values);
+            sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+          }
+        }
+      });
     } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {
@@ -303,43 +398,104 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param id Connection id for which the tables need to be listed from database.
    */
   @GET
-  @Path("connections/{id}/databases/list")
-  public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("connections/{id}/tables")
+  public void listTables(HttpServiceRequest request, final HttpServiceResponder responder,
                          @PathParam("id") String id) {
-    JsonObject response = new JsonObject();
-    JsonArray values = new JsonArray();
-    KeyValue<java.sql.Connection, DriverCleanup> handle = null;
+    final JsonObject response = new JsonObject();
+    final JsonArray values = new JsonArray();
+    DriverCleanup cleanup = null;
     try {
-      handle = getConnection(id);
-      if (handle != null) {
-        java.sql.Connection conn = handle.getKey();
-        DatabaseMetaData metaData = conn.getMetaData();
-        ResultSet resultSet = metaData.getTables(null, null, "%", null);
-        while (resultSet.next()) {
-          Statement statement = conn.createStatement();
-          statement.setMaxRows(1);
-          ResultSet queryResult =
-            statement.executeQuery(
-              String.format("select * from %s where 1=0", resultSet.getString(3))
-            );
-          JsonObject object = new JsonObject();
-          object.addProperty("name", resultSet.getString(3));
-          object.addProperty("count", queryResult.getMetaData().getColumnCount());
-          values.add(object);
+      cleanup = loadAndExecute(id, new Executor() {
+        @Override
+        public void execute(java.sql.Connection connection) throws Exception {
+          DatabaseMetaData metaData = connection.getMetaData();
+          try (ResultSet resultSet = metaData.getTables(null, null, "%", null)) {
+            while (resultSet.next()) {
+              Statement statement = connection.createStatement();
+              statement.setMaxRows(1);
+              ResultSet queryResult =
+                statement.executeQuery(
+                  String.format("select * from %s where 1=0", resultSet.getString(3))
+                );
+              JsonObject object = new JsonObject();
+              object.addProperty("name", resultSet.getString(3));
+              object.addProperty("count", queryResult.getMetaData().getColumnCount());
+              values.add(object);
+            }
+            response.addProperty("status", HttpURLConnection.HTTP_OK);
+            response.addProperty("message", "Success");
+            response.addProperty("count", values.size());
+            response.add("values", values);
+            sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+          }
         }
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "Successfully connected to database.");
-        response.addProperty("count", values.size());
-        response.add("values", values);
-        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-      } else {
-        error(responder, "Unable to connect to database.");
-      }
+      });
     } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {
-      if (handle != null && handle.getValue() != null) {
-        handle.getValue().destroy();
+      if (cleanup != null) {
+        cleanup.destroy();
+      }
+    }
+  }
+
+  /**
+   * Lists all the tables within a database.
+   *
+   * @param request HTTP requets handler.
+   * @param responder HTTP response handler.
+   * @param id Connection id for which the tables need to be listed from database.
+   */
+  @GET
+  @Path("connections/{id}/tables/{table}/read")
+  public void read(HttpServiceRequest request, final HttpServiceResponder responder,
+                   @PathParam("id") String id, @PathParam("table") final String table,
+                   @QueryParam("lines") final int lines) {
+    final JsonObject response = new JsonObject();
+    DriverCleanup cleanup = null;
+    try {
+      cleanup = loadAndExecute(id, new Executor() {
+        @Override
+        public void execute(java.sql.Connection connection) throws Exception {
+          try (Statement statement = connection.createStatement();
+               ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
+            List<Record> records = new ArrayList<>();
+            ResultSetMetaData meta = result.getMetaData();
+            int count = lines;
+            while(result.next() && count > 0) {
+              Record record = new Record();
+              for (int i = 0; i < meta.getColumnCount(); ++i) {
+                record.add(meta.getColumnName(i), result.getObject(i));
+              }
+              records.add(record);
+              count--;
+            }
+
+            String identifier = ServiceUtils.generateMD5(table);
+            ws.createWorkspaceMeta(identifier, table);
+            String data = gson.toJson(records);
+            ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL,
+                                DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+
+            JsonArray values = new JsonArray();
+            JsonObject object = new JsonObject();
+            object.addProperty(PropertyIds.ID, identifier);
+            object.addProperty(PropertyIds.NAME, table);
+            object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+            values.add(object);
+            response.addProperty("status", HttpURLConnection.HTTP_OK);
+            response.addProperty("message", "Success");
+            response.addProperty("count", values.size());
+            response.add("values", values);
+            sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+          }
+        }
+      });
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    } finally {
+      if (cleanup != null) {
+        cleanup.destroy();
       }
     }
   }
@@ -369,8 +525,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param id of the connection to be connected to.
    * @return pair of connection and the driver cleanup.
    */
-  private DriverCleanup getConnection(String id, Executor executor)
-    throws IOException, IllegalAccessException, SQLException, InstantiationException, ClassNotFoundException {
+  private DriverCleanup loadAndExecute(String id, Executor executor)
+    throws Exception {
     DriverCleanup cleanup = null;
     Connection connection = store.get(id);
     if (connection == null) {
@@ -386,21 +542,58 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     String username = connection.getProp("username");
     String password = connection.getProp("password");
 
-    JDBCDriverManager manager = new JDBCDriverManager(classz, getContext(), url);
-    ArtifactInfo info = manager.getArtifactInfo(name);
-    if (info == null) {
-      throw new IllegalArgumentException(
-        String.format("Unable to find plugin '%s' for connection '%s'.", name, id)
-      );
-    }
+    CloseableClassLoader closeableClassLoader = cache.get(name);
+    Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
+    cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
+    java.sql.Connection conn = DriverManager.getConnection(url, username, password);
+    executor.execute(conn);
+    return cleanup;
+  }
 
-    try (CloseableClassLoader closeableClassLoader =
-           getContext().createClassLoader(info, null)) {
-      Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
-      cleanup = JDBCDriverManager.ensureJDBCDriverIsAvailable(driverClass, url);
-      java.sql.Connection conn = DriverManager.getConnection(url, username, password);
-      executor.execute(conn);
-      return cleanup;
+  public static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
+    throws IllegalAccessException, InstantiationException, SQLException {
+    try {
+      DriverManager.getDriver(url);
+      return new DriverCleanup(null);
+    } catch (SQLException e) {
+      Driver driver = classz.newInstance();
+      final JDBCDriverShim shim = new JDBCDriverShim(driver);
+      try {
+        deregisterAllDrivers(classz);
+        DriverManager.registerDriver(shim);
+        return new DriverCleanup(shim);
+      } catch (NoSuchFieldException | ClassNotFoundException e1) {
+        LOG.warn("Unable to deregister JDBC Driver class {}", classz);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * De-register all SQL drivers that are associated with the class
+   */
+  public static void deregisterAllDrivers(Class<? extends Driver> classz)
+    throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
+    Field field = DriverManager.class.getDeclaredField("registeredDrivers");
+    field.setAccessible(true);
+    List<?> list = (List<?>) field.get(null);
+    for (Object driverInfo : list) {
+      Class<?> driverInfoClass = DBService.class.getClassLoader().loadClass("java.sql.DriverInfo");
+      Field driverField = driverInfoClass.getDeclaredField("driver");
+      driverField.setAccessible(true);
+      Driver d = (Driver) driverField.get(driverInfo);
+      if (d == null) {
+        LOG.debug("Found null driver object in drivers list. Ignoring.");
+        continue;
+      }
+      ClassLoader registeredDriverClassLoader = d.getClass().getClassLoader();
+      if (registeredDriverClassLoader == null) {
+        continue;
+      }
+      // Remove all objects in this list that were created using the classloader of the caller.
+      if (d.getClass().getClassLoader().equals(classz.getClassLoader())) {
+        list.remove(driverInfo);
+      }
     }
   }
 }
