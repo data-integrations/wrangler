@@ -10,6 +10,7 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import com.google.gson.JsonArray;
@@ -24,6 +25,9 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +37,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
@@ -107,13 +112,20 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *      {
    *        "label": "MySQL",
    *        "version": "5.1.39"
+   *        "url": "jdbc:mysql://${hostname}:${port}/${database}?user=${username}&password=${password}"
    *        "properties": {
    *          "class": "com.mysql.jdbc.Driver",
    *          "name": "mysql",
    *          "type": "jdbc",
-   *          "url": "jdbc:mysql://${hostname}:${port}/${database}?user=${username}&password=${password}"
    *        },
-   *
+   *        "required" : [
+   *          "hostname",
+   *          "port",
+   *          "database",
+   *          "username",
+   *          "password",
+   *          "url"
+   *        ]
    *      }
    *    ]
    * }
@@ -147,11 +159,12 @@ public class DatabaseService extends AbstractHttpServiceHandler {
               JsonArray required = new JsonArray();
               List<String> fields = getMacros(info.getJdbcUrlPattern());
               fields.add("url");
+              fields.add("advanced");
               for (String field : fields) {
                 required.add(new JsonPrimitive(field));
               }
               object.add("properties", properties);
-              object.add("required", required);
+              object.add("fields", required);
               values.add(object);
             }
           }
@@ -163,10 +176,45 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       response.add("values", values);
       ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
+      error(responder, e.getMessage());
     }
   }
 
+  /**
+   * List all the possible drivers supported.
+   *
+   * @param request  request HTTP request handler.
+   * @param responder request HTTP response handler.
+   */
+  @GET
+  @Path("databases/available")
+  public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
+    JsonObject response = new JsonObject();
+    JsonArray values = new JsonArray();
+    for(Map.Entry<String, DriverInfo> driver : drivers.entrySet()) {
+      JsonObject object = new JsonObject();
+      object.addProperty("class", driver.getKey());
+      object.addProperty("label", driver.getValue().getName());
+      String name = driver.getValue().getName();
+      name = name.trim();
+      name = name.toLowerCase();
+      name = name.replaceAll("[^a-zA-Z0-9_]", "");
+      object.addProperty("name",name);
+      values.add(object);
+    }
+    response.addProperty("status", HttpURLConnection.HTTP_OK);
+    response.addProperty("message", "Success");
+    response.addProperty("count", values.size());
+    response.add("values", values);
+    ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+  }
+
+  /**
+   * Extracts all the macros within a string expression.
+   *
+   * @param expression specifies the expression.
+   * @return list of macros present within an expression.
+   */
   private List<String> getMacros(String expression) {
     final List<String> variables = new ArrayList<>();
     StrSubstitutor substitutor = new StrSubstitutor(new StrLookup() {
@@ -184,7 +232,48 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   @Path("connections/{id}/databases/test")
   public void testConnection(HttpServiceRequest request, HttpServiceResponder responder,
                              @PathParam("id") String id) {
-
+    JDBCDriverManager manager = null;
+    try {
+      Connection connection = store.get(id);
+      if (connection == null) {
+        error(responder, String.format(
+          "Invalid connection id '%s' specified or connection does not exist.", id)
+        );
+        return;
+      }
+      String name = connection.getProp("name");
+      String classz = connection.getProp("class");
+      String url = connection.getProp("url");
+      String username = connection.getProp("username");
+      String password = connection.getProp("password");
+      manager = new JDBCDriverManager(classz, getContext(), url);
+      ArtifactInfo info = manager.getArtifactInfo(name);
+      if (info == null) {
+        error(responder, String.format("Unable to find plugin '%s' for connection '%s'.", name, id));
+        return;
+      }
+      manager.loadDriver(info, name);
+      java.sql.Connection conn = manager.getConnection(username, password);
+      DatabaseMetaData metaData = conn.getMetaData();
+      ResultSet resultSet = metaData.getTables(null, null, "%", null);
+      while (resultSet.next()) {
+        Statement statement = conn.createStatement();
+        statement.setMaxRows(1);
+        ResultSet queryResult =
+          statement.executeQuery(
+            String.format("select * from %s where 1=0", resultSet.getString(3))
+          );
+        JsonObject object = new JsonObject();
+        object.addProperty("name", resultSet.getString(3));
+        object.addProperty("count", queryResult.getMetaData().getColumnCount());
+      }
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    } finally {
+      if (manager != null) {
+        manager.release();
+      }
+    }
   }
 
   @GET
@@ -192,5 +281,4 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder) {
 
   }
-
 }
