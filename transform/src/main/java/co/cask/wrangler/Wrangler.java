@@ -62,7 +62,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private Pipeline pipeline;
 
   // Output Schema associated with transform output.
-  private Schema oSchema;
+  private Schema oSchema = null;
 
   // Error counter.
   private long errorCounter;
@@ -93,21 +93,21 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     super.configurePipeline(configurer);
 
     Schema iSchema = configurer.getStageConfigurer().getInputSchema();
-
-    if (!config.field.equalsIgnoreCase("*")) {
+    if (!config.containsMacro("field") && !config.field.equalsIgnoreCase("*")) {
       validateInputSchema(iSchema);
     }
 
     // Validate the DSL by parsing DSL.
-    Directives directives = new TextDirectives(config.directives);
-    try {
-      directives.getSteps();
-    } catch (DirectiveParseException e) {
-      throw new IllegalArgumentException(e);
+    if(!config.containsMacro("directives")) {
+      Directives directives = new TextDirectives(config.directives);
+      try {
+        directives.getSteps();
+      } catch (DirectiveParseException e) {
+        throw new IllegalArgumentException(e);
+      }
     }
 
     // Based on the configuration create output schema.
-
     try {
       if (!config.containsMacro("schema")) {
         oSchema = Schema.parseJson(config.schema);
@@ -118,8 +118,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Check if configured field is present in the input schema.
     Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-    if (!(config.field.equals("*") || config.field.equals("#") ) &&
-      (inputSchema !=null && inputSchema.getField(config.field) == null)) {
+    if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#") ) &&
+      (inputSchema != null && inputSchema.getField(config.field) == null)) {
       throw new IllegalArgumentException(
         String.format("Field '%s' configured to wrangler is not present in the input. " +
                         "Only specify fields present in the input", config.field == null ? "null" : config.field)
@@ -127,11 +127,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     // Check if pre-condition is not null or empty and if so compile expression.
-    if (config.precondition != null && !config.precondition.trim().isEmpty()) {
-      try {
-        new Precondition(config.precondition);
-      } catch (PreconditionException e) {
-        throw new IllegalArgumentException(e.getMessage());
+    if(!config.containsMacro("precondition")) {
+      if (config.precondition != null && !config.precondition.trim().isEmpty()) {
+        try {
+          new Precondition(config.precondition);
+        } catch (PreconditionException e) {
+          throw new IllegalArgumentException(e.getMessage());
+        }
       }
     }
 
