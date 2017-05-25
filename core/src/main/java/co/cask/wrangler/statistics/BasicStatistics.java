@@ -86,8 +86,4 @@ public class BasicStatistics implements Statistics {
     return record;
   }
 
-  //TODO: Might need this
-  private boolean isStreetAddress(String input) {
-    return false;
-  }
 }

@@ -140,11 +140,13 @@
       <artifactId>hapi-structures-v26</artifactId>
       <version>${hl7.version}</version>
     </dependency>
+
     <dependency>
       <groupId>io.dataapps.chlorine</groupId>
       <artifactId>chlorine-finder</artifactId>
       <version>${chlorine.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.github.mpkorstanje</groupId>
       <artifactId>simmetrics-core</artifactId>
