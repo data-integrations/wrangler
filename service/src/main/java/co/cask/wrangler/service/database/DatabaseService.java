@@ -420,21 +420,34 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       cleanup = loadAndExecute(id, new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
-          DatabaseMetaData metaData = connection.getMetaData();
-          try (ResultSet resultSet = metaData.getTables(null, null, "%", null)) {
+          String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
+          ResultSet resultSet;
+          if(product.equalsIgnoreCase("oracle")) {
+            Statement statement = connection.createStatement();
+            resultSet = statement.executeQuery("SELECT table_name FROM users_tables");
+          } else {
+            DatabaseMetaData metaData = connection.getMetaData();
+            resultSet = metaData.getTables(null, null, "%", null);
+          }
+          try {
             while (resultSet.next()) {
+              String name;
+              if(product.equalsIgnoreCase("oracle")) {
+                name = resultSet.getString("table_name");
+                if(name.contains("$")) {
+                  continue;
+                }
+              } else {
+                name = resultSet.getString(3);
+              }
               Statement statement = connection.createStatement();
               statement.setMaxRows(1);
-              String name = resultSet.getString(3);
-              if (name.contains("$")) {
-                name = name.replaceAll("$", "\\$");
-              }
               ResultSet queryResult =
                 statement.executeQuery(
                   String.format("select * from %s where 1=0", name)
                 );
               JsonObject object = new JsonObject();
-              object.addProperty("name", resultSet.getString(3));
+              object.addProperty("name", name);
               object.addProperty("count", queryResult.getMetaData().getColumnCount());
               values.add(object);
             }
@@ -443,6 +456,10 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             response.addProperty("count", values.size());
             response.add("values", values);
             sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+          } finally {
+            if(resultSet != null) {
+              resultSet.close();
+            }
           }
         }
       });
