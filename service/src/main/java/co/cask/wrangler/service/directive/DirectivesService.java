@@ -537,6 +537,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       JsonArray values = new JsonArray();
       JsonArray headers = new JsonArray();
+      JsonObject types = new JsonObject();
       Set<String> header = new HashSet<>();
 
       // Iterate through all the new records.
@@ -553,6 +554,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           // If not present in header, add it to header.
           if (!header.contains(field.getKey())) {
             headers.add(new JsonPrimitive(field.getKey()));
+            types.addProperty(field.getKey(), field.getValue().getClass().getSimpleName().toLowerCase());
             header.add(field.getKey());
           }
           Object object = field.getValue();
@@ -576,7 +578,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
       response.addProperty("count", values.size());
-      response.add("header", headers);
+      response.add("header", headers); // TODO: Remove this later. 
+      response.add("types", types);
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (JsonParseException e) {

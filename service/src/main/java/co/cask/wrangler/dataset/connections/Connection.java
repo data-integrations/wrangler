@@ -102,7 +102,7 @@ public final class Connection {
    * @param key to be retrieved.
    * @return the value for the key, else null.
    */
-  protected <T> T getProp(String key) {
+  public <T> T getProp(String key) {
     return (T) properties.get(key);
   }
 
@@ -112,7 +112,7 @@ public final class Connection {
    * @param key to be checked for presence.
    * @return true if present, else false.
    */
-  protected boolean hasProperty(String key) {
+  public boolean hasProperty(String key) {
     return properties.containsKey(key);
   }
 
