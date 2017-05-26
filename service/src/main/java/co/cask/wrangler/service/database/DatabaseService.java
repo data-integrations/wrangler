@@ -559,6 +559,50 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * Specification for the source.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the connection.
+   * @param table in the database.
+   */
+  @Path("connections/{id}/tables/{table}/specification")
+  @GET
+  public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
+                            @PathParam("id") String id, @PathParam("table") final String table) {
+    JsonObject response = new JsonObject();
+    try {
+      Connection conn = store.get(id);
+      JsonObject value = new JsonObject();
+      JsonObject database = new JsonObject();
+
+      Map<String, String> properties = new HashMap<>();
+      properties.put("connectionString", (String) conn.getProp("url"));
+      properties.put("referenceName", table);
+      properties.put("username", (String) conn.getProp("username"));
+      properties.put("password", (String) conn.getProp("password"));
+      properties.put("importQuery", String.format("SELECT * FROM %s", table));
+      properties.put("jdbcPluginName", (String) conn.getProp("name"));
+      properties.put("jdbcPluginType", (String) conn.getProp("type"));
+
+      database.add("properties", gson.toJsonTree(properties));
+      database.addProperty("name", String.format("Database - %s", table));
+      database.addProperty("type", "source");
+      value.add("Database", database);
+
+      JsonArray values = new JsonArray();
+      values.add(value);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
    * Extracts all the macros within a string expression.
    *
    * @param expression specifies the expression.
