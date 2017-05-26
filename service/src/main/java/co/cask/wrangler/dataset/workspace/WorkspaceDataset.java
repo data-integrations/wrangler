@@ -29,8 +29,8 @@ import co.cask.cdap.api.dataset.module.EmbeddedDataset;
 import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.api.Record;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
@@ -38,6 +38,7 @@ import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -285,9 +286,13 @@ public class WorkspaceDataset extends AbstractDataset {
       String value = Bytes.toString(bytes);
       return (T) value;
     } else if (type == DataType.RECORDS){
-      String value = Bytes.toString(bytes);
-      List<Record> records = gson.fromJson(value, new TypeToken<List<Record>>(){}.getType());
-      return (T) records;
+      ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
+      try {
+        List<Record> records = serDe.toObject(bytes);
+        return (T) records;
+      } catch (IOException | ClassNotFoundException e) {
+        throw new WorkspaceException(e.getMessage());
+      }
     } else {
       throw new WorkspaceException("Unknown retrieval type");
     }
