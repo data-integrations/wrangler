@@ -32,12 +32,14 @@ public class BasicStatistics implements Statistics {
   private final FinderEngine engine;
   private final PhoneNumberFinder phoneNumberFinder;
   private final ISBNFinder isbnFinder;
+  private final AddressFinder addressFinder;
 
 
   public BasicStatistics() throws Exception {
     engine = new FinderEngine("wrangler-finder-1.xml", true, false);
     phoneNumberFinder = new PhoneNumberFinder();
     isbnFinder = new ISBNFinder();
+    addressFinder = new AddressFinder();
   }
 
   @Override
@@ -77,11 +79,14 @@ public class BasicStatistics implements Statistics {
             //IBAN, ISBN, Zip_Code, Currency, Longitude, Latitude, Street_Address
 
 
-            //TODO: Street_Address
+            //TODO: Street_Address need improve
             //Date_Time, Month, Time, Month/Year, Date
+            if (addressFinder.isUSAddress(value)) {
+              types.increment(column, "Street_Address");
+            }
 
             //Boolean
-            if (keySet.contains("Boolean")) {
+            else if (keySet.contains("Boolean")) {
               types.increment(column, "Boolean");
             }
             //URL

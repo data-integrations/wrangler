@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <finders>
+  <!-- address, not complete-->
+  <!--
+  <finder>
+    <name>Street_Address</name>>
+    <pattern>\d+[ ](?:[A-Za-z0-9.-]+[ ]?)+(?:Avenue|Lane|Road|Boulevard|Drive|Street|Ave|Dr|Rd|Blvd|Ln|St)\.?</pattern>
+    <enabled>true</enabled>
+  </finder>
+  -->
 
   <!-- credit card types-->
   <finder>
@@ -204,11 +212,6 @@
     <pattern>^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}</pattern>
     <enabled>true</enabled>
   </finder>>
-  <finder>
-    <name>Street_Address</name>>
-    <pattern>\d+[ ](?:[A-Za-z0-9.-]+[ ]?)+(?:Avenue|Lane|Road|Boulevard|Drive|Street|Ave|Dr|Rd|Blvd|Ln|St)\.?</pattern>
-    <enabled>true</enabled>
-  </finder>
   <finder>
     <name>Integer</name>
     <pattern><![CDATA[(?<=\s|^)\d+(?=\s|$)]]></pattern>
