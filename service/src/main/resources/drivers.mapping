@@ -1,25 +1,12 @@
-IBM database2 App,com.ibm.db2.jdbc.net.database2Driver,jdbc:db2://${hostname}:${port}/${database}
-IBM database2 Net,com.ibm.db2.jdbc.app.database2Driver,jdbc:db2://${hostname}:${port}/${database}
-JdatabaseC-OdatabaseC Bridge,sun.jdbc.odbc.JdbcOdbcDriver,jdbc:odbc:${database}
-Microsoft SQL Server,weblogic.jdbc.mssqlserver4.Driver,jdbc:weblogic:mssqlserver4:${database}@${hostname}:${port}
-Oracle Thin,oracle.jdbc.driver.OracleDriver,jdbc:oracle:thin:@${hostname}:${port}:${database}
-PointBase Embedded Server,com.pointbase.jdbc.jdbcUniversalDriver,jdbc:pointbase://embedded:${port}/${database}
-Cloudscape,com.cloudscape.core.JdatabaseCDriver,jdbc:cloudscape:${database}
-Cloudscape RMI,rmiJdbc.RJDriver,jdbc:rmi://${hostname}:${port}/jdbc:cloudscape:${database}
-Firebird (JCA/JdatabaseC Driver),org.firebirdsql.jdbc.FBDriver,jdbc:firebirdsql://${hostname}:${port}/${database}
-Instantdatabase (v3.13 and earlier),jdbc.idbDriver,jdbc:idb:${database}
-Instantdatabase (v3.14 and later),org.enhydra.instantdb.jdbc.idbDriver,jdbc:idb:${database}
-Interbase (InterClient Driver),interbase.interclient.Driver,jdbc:interbase://${hostname}/${database}
-Hypersonic SQL (v1.2 and earlier),hSql.hDriver,jdbc:HypersonicSQL:${database}
-Hypersonic SQL (v1.3 and later),org.hsql.jdbcDriver,jdbc:HypersonicSQL:${database}
-Microsoft SQL Server (JTurbo Driver),com.ashna.jturbo.driver.Driver,jdbc:JTurbo://${hostname}:${port}/${database}
-Microsoft SQL Server (Sprinta Driver),com.inet.tds.TdsDriver,jdbc:inetdae:${hostname}:${port}?database=${database}
-Microsoft SQL Server 2000 (Microsoft Driver),com.microsoft.sqlserver.jdbc.SQLServerDriver,jdbc:microsoft:sqlserver://${hostname}:${port};DatabaseName=${database}
-MySQL (MM.MySQL Driver),org.gjt.mm.mysql.Driver,jdbc:mysql://${hostname}:${port}/${database}
-MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database}
-PostgreSQL (v6.5 and earlier),postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database}
-PostgreSQL (v7.0 and later),org.postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database}
-Sybase (jConnect 4.2 and earlier),com.sybase.jdbc.SybDriver,jdbc:sybase:Tds:${hostname}:${port}
-Sybase (jConnect 5.2),com.sybase.jdbc2.jdbc.SybDriver,jdbc:sybase:Tds:${hostname}:${port}
-Netezza,org.netezza.Driver,jdbc:netezza://${hostname}:${port}/${database};user=${username};password=${password}
-Teradata,com.teradata.jdbc.TeraDriver,jdbc:teradata://${hostname}/database=${database},tmode=ANSI,charset=UTF8
+IBM DB2,com.ibm.db2.jdbc.net.database2Driver,jdbc:db2://${hostname}:${port}/${database},db2
+Microsoft SQL Server,weblogic.jdbc.mssqlserver4.Driver,jdbc:weblogic:mssqlserver4:${database}@${hostname}:${port},mssql
+Oracle Thin,oracle.jdbc.driver.OracleDriver,jdbc:oracle:thin:@${hostname}:${port}:${database},oracle
+Microsoft SQL Server (JTurbo Driver),com.ashna.jturbo.driver.Driver,jdbc:JTurbo://${hostname}:${port}/${database},mssql
+Microsoft SQL Server (Sprinta Driver),com.inet.tds.TdsDriver,jdbc:inetdae:${hostname}:${port}?database=${database},mssql
+Microsoft SQL Server 2000 (Microsoft Driver),com.microsoft.sqlserver.jdbc.SQLServerDriver,jdbc:microsoft:sqlserver://${hostname}:${port};DatabaseName=${database},mssql
+MySQL (MM.MySQL Driver),org.gjt.mm.mysql.Driver,jdbc:mysql://${hostname}:${port}/${database},mysql
+MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database},mysql
+PostgreSQL (v6.5 and earlier),postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql
+PostgreSQL (v7.0 and later),org.postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql
+IBM Netezza,org.netezza.Driver,jdbc:netezza://${hostname}:${port}/${database};user=${username};password=${password},netezza
+Teradata,com.teradata.jdbc.TeraDriver,jdbc:teradata://${hostname}/database=${database},tmode=ANSI,charset=UTF8,teradata

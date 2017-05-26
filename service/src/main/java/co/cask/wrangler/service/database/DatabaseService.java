@@ -35,9 +35,9 @@ import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
-import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.service.connections.ConnectionType;
 import com.google.common.base.Charsets;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -149,10 +149,12 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   private final class DriverInfo {
     private String jdbcUrlPattern;
     private String name;
+    private String tag;
 
-    public DriverInfo(String name, String jdbcUrlPattern) {
+    public DriverInfo(String name, String jdbcUrlPattern, String tag) {
       this.name = name;
       this.jdbcUrlPattern = jdbcUrlPattern;
+      this.tag = tag;
     }
 
     public String getJdbcUrlPattern() {
@@ -161,6 +163,10 @@ public class DatabaseService extends AbstractHttpServiceHandler {
 
     public String getName() {
       return name;
+    }
+
+    public String getTag() {
+      return tag;
     }
   }
 
@@ -180,8 +186,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       String line;
       while((line = br.readLine()) != null) {
         String[] columns = line.split(",");
-        if (columns.length == 3) {
-          DriverInfo info = new DriverInfo(columns[0], columns[2]);
+        if (columns.length == 4) {
+          DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3]);
           drivers.put(columns[1].trim(), info);
         }
       }
@@ -302,6 +308,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       JsonObject object = new JsonObject();
       object.addProperty("class", driver.getKey());
       object.addProperty("label", driver.getValue().getName());
+      object.addProperty("tag", driver.getValue().getTag());
       String name = driver.getValue().getName();
       name = name.trim();
       name = name.toLowerCase();
@@ -338,7 +345,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       RequestExtractor extractor = new RequestExtractor(request);
       Connection connection = extractor.getContent("utf-8", Connection.class);
 
-      if (ConnectionType.from(connection.getType().getType()) == ConnectionType.UNDEFINED) {
+      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
         error(responder, "Invalid connection type set.");
         return;
       }
@@ -367,17 +374,19 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
-   * @param id Connection id for which all the databses should be listed.
    */
-  @GET
-  @Path("connections/{id}/databases")
-  public void listDatabases(HttpServiceRequest request, final HttpServiceResponder responder,
-                         @PathParam("id") String id) {
+  @POST
+  @Path("connections/databases")
+  public void listDatabases(HttpServiceRequest request, final HttpServiceResponder responder) {
     final JsonObject response = new JsonObject();
     final JsonArray values = new JsonArray();
     DriverCleanup cleanup = null;
     try {
-      cleanup = loadAndExecute(id, new Executor() {
+      // Extract the body of the request and transform it to the Connection object.
+      RequestExtractor extractor = new RequestExtractor(request);
+      Connection connection = extractor.getContent("utf-8", Connection.class);
+
+      cleanup = loadAndExecute(connection, new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
           DatabaseMetaData metaData = connection.getMetaData();
@@ -482,7 +491,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   @GET
   @Path("connections/{id}/tables/{table}/read")
   public void read(HttpServiceRequest request, final HttpServiceResponder responder,
-                   @PathParam("id") String id, @PathParam("table") final String table,
+                   @PathParam("id") final String id, @PathParam("table") final String table,
                    @QueryParam("lines") final int lines) {
     final JsonObject response = new JsonObject();
     DriverCleanup cleanup = null;
@@ -521,6 +530,14 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL,
                                 DataType.RECORDS, data.getBytes(Charsets.UTF_8));
 
+            Map<String, String> properties = new HashMap<>();
+            properties.put(PropertyIds.ID, identifier);
+            properties.put(PropertyIds.NAME, table);
+            properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
+            properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+            properties.put(PropertyIds.CONNECTION_ID, id);
+            ws.writeProperties(identifier, properties);
+
             JsonArray values = new JsonArray();
             JsonObject object = new JsonObject();
             object.addProperty(PropertyIds.ID, identifier);
@@ -541,6 +558,50 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       if (cleanup != null) {
         cleanup.destroy();
       }
+    }
+  }
+
+  /**
+   * Specification for the source.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param id of the connection.
+   * @param table in the database.
+   */
+  @Path("connections/{id}/tables/{table}/specification")
+  @GET
+  public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
+                            @PathParam("id") String id, @PathParam("table") final String table) {
+    JsonObject response = new JsonObject();
+    try {
+      Connection conn = store.get(id);
+      JsonObject value = new JsonObject();
+      JsonObject database = new JsonObject();
+
+      Map<String, String> properties = new HashMap<>();
+      properties.put("connectionString", (String) conn.getProp("url"));
+      properties.put("referenceName", table);
+      properties.put("username", (String) conn.getProp("username"));
+      properties.put("password", (String) conn.getProp("password"));
+      properties.put("importQuery", String.format("SELECT * FROM %s", table));
+      properties.put("jdbcPluginName", (String) conn.getProp("name"));
+      properties.put("jdbcPluginType", (String) conn.getProp("type"));
+
+      database.add("properties", gson.toJsonTree(properties));
+      database.addProperty("name", String.format("Database - %s", table));
+      database.addProperty("type", "source");
+      value.add("Database", database);
+
+      JsonArray values = new JsonArray();
+      values.add(value);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
+      error(responder, e.getMessage());
     }
   }
 
@@ -624,7 +685,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     field.setAccessible(true);
     List<?> list = (List<?>) field.get(null);
     for (Object driverInfo : list) {
-      Class<?> driverInfoClass = DBService.class.getClassLoader().loadClass("java.sql.DriverInfo");
+      Class<?> driverInfoClass = DatabaseService.class.getClassLoader().loadClass("java.sql.DriverInfo");
       Field driverField = driverInfoClass.getDeclaredField("driver");
       driverField.setAccessible(true);
       Driver d = (Driver) driverField.get(driverInfo);

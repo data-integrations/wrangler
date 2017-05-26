@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.dataset.connections;
 
+import co.cask.wrangler.service.connections.ConnectionType;
+
 import java.util.HashMap;
 import java.util.Map;
 
