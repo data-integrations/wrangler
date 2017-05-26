@@ -60,7 +60,7 @@ public class CharacterCut extends AbstractStep {
       if (idx != -1) {
         Object value = record.getValue(idx);
         if (value instanceof String) {
-          String result = Unix4j.echo((String) value).cut("-c", range).toStringResult();
+          String result = Unix4j.fromString((String) value).cut("-c", range).toStringResult();
           record.addOrSet(destination, result);
         } else {
           throw new StepException(
