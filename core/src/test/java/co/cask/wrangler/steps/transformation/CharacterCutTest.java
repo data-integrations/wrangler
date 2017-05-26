@@ -18,7 +18,6 @@ package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.steps.transformation.CharacterCut;
 import org.junit.Assert;
 import org.junit.Test;
 
