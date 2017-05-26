@@ -685,7 +685,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     field.setAccessible(true);
     List<?> list = (List<?>) field.get(null);
     for (Object driverInfo : list) {
-      Class<?> driverInfoClass = DBService.class.getClassLoader().loadClass("java.sql.DriverInfo");
+      Class<?> driverInfoClass = DatabaseService.class.getClassLoader().loadClass("java.sql.DriverInfo");
       Field driverField = driverInfoClass.getDeclaredField("driver");
       driverField.setAccessible(true);
       Driver d = (Driver) driverField.get(driverInfo);
