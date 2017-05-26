@@ -520,7 +520,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    */
   @POST
   @Path("workspaces/{id}/execute")
-  public void directive(HttpServiceRequest request, HttpServiceResponder responder,
+  public void execute(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("id") String id) {
     try {
       RequestExtractor handler = new RequestExtractor(request);
@@ -553,6 +553,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           // If not present in header, add it to header.
           if (!header.contains(field.getKey())) {
             headers.add(new JsonPrimitive(field.getKey()));
+            Object object = field.getValue();
+            if (object != null) {
+              types.addProperty(field.getKey(), object.getClass().getSimpleName().toLowerCase());
+            }
             header.add(field.getKey());
           }
           Object object = field.getValue();
@@ -576,12 +580,15 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
       response.addProperty("count", values.size());
-      response.add("header", headers);
+      response.add("header", headers); // TODO: Remove this later.
+      response.add("types", types);
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (JsonParseException e) {
+      LOG.error(e.getMessage(), e);
       error(responder, "Issue parsing request. " + e.getMessage());
     } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
       error(responder, e.getMessage());
     }
   }
