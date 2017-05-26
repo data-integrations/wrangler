@@ -374,17 +374,19 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
-   * @param id Connection id for which all the databses should be listed.
    */
-  @GET
-  @Path("connections/{id}/databases")
-  public void listDatabases(HttpServiceRequest request, final HttpServiceResponder responder,
-                         @PathParam("id") String id) {
+  @POST
+  @Path("connections/databases")
+  public void listDatabases(HttpServiceRequest request, final HttpServiceResponder responder) {
     final JsonObject response = new JsonObject();
     final JsonArray values = new JsonArray();
     DriverCleanup cleanup = null;
     try {
-      cleanup = loadAndExecute(id, new Executor() {
+      // Extract the body of the request and transform it to the Connection object.
+      RequestExtractor extractor = new RequestExtractor(request);
+      Connection connection = extractor.getContent("utf-8", Connection.class);
+
+      cleanup = loadAndExecute(connection, new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
           DatabaseMetaData metaData = connection.getMetaData();
@@ -489,7 +491,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   @GET
   @Path("connections/{id}/tables/{table}/read")
   public void read(HttpServiceRequest request, final HttpServiceResponder responder,
-                   @PathParam("id") String id, @PathParam("table") final String table,
+                   @PathParam("id") final String id, @PathParam("table") final String table,
                    @QueryParam("lines") final int lines) {
     final JsonObject response = new JsonObject();
     DriverCleanup cleanup = null;
@@ -533,6 +535,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             properties.put(PropertyIds.NAME, table);
             properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
             properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+            properties.put(PropertyIds.CONNECTION_ID, id);
             ws.writeProperties(identifier, properties);
 
             JsonArray values = new JsonArray();

@@ -50,5 +50,5 @@ public final class PropertyIds {
   // Content Type of content being stored.
   public static final String CONTENT_TYPE = "Content-Type";
 
-  public static final String DB_CONFIG = "databaseConfig";
+  public static final String CONNECTION_ID = "connectionid";
 }
