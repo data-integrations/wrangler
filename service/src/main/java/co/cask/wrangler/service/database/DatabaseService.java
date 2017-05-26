@@ -150,11 +150,13 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     private String jdbcUrlPattern;
     private String name;
     private String tag;
+    private String port;
 
-    public DriverInfo(String name, String jdbcUrlPattern, String tag) {
+    public DriverInfo(String name, String jdbcUrlPattern, String tag, String port) {
       this.name = name;
       this.jdbcUrlPattern = jdbcUrlPattern;
       this.tag = tag;
+      this.port = port;
     }
 
     public String getJdbcUrlPattern() {
@@ -167,6 +169,10 @@ public class DatabaseService extends AbstractHttpServiceHandler {
 
     public String getTag() {
       return tag;
+    }
+
+    public String getPort() {
+      return port;
     }
   }
 
@@ -186,8 +192,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       String line;
       while((line = br.readLine()) != null) {
         String[] columns = line.split(",");
-        if (columns.length == 4) {
-          DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3]);
+        if (columns.length == 5) {
+          DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3], columns[4]);
           drivers.put(columns[1].trim(), info);
         }
       }
@@ -201,35 +207,36 @@ public class DatabaseService extends AbstractHttpServiceHandler {
 
   /**
    * Lists all the JDBC drivers installed.
-   *
+   * <p>
    * Following is JSON Response
    * {
-   *    "count": 1,
-   *    "message": "Success",
-   *    "status": 200,
-   *    "values": [
-   *      {
-   *        "label": "MySQL",
-   *        "version": "5.1.39"
-   *        "url": "jdbc:mysql://${hostname}:${port}/${database}?user=${username}&password=${password}"
-   *        "properties": {
-   *          "class": "com.mysql.jdbc.Driver",
-   *          "name": "mysql",
-   *          "type": "jdbc",
-   *        },
-   *        "required" : [
-   *          "hostname",
-   *          "port",
-   *          "database",
-   *          "username",
-   *          "password",
-   *          "url"
-   *        ]
-   *      }
-   *    ]
+   *  "count": 1,
+   *  "message": "Success",
+   *  "status": 200,
+   *  "values": [
+   *    {
+   *      "label": "MySQL",
+   *      "version": "5.1.39"
+   *      "url": "jdbc:mysql://${hostname}:${port}/${database}?user=${username}&password=${password}"
+   *      "default.port" : "3306",
+   *      "properties": {
+   *        "class": "com.mysql.jdbc.Driver",
+   *        "name": "mysql",
+   *        "type": "jdbc",
+   *      },
+   *      "required" : [
+   *        "hostname",
+   *        "port",
+   *        "database",
+   *        "username",
+   *        "password",
+   *        "url"
+   *      ]
+   *    }
+   *   ]
    * }
    *
-   * @param request HTTP request handler.
+   * @param request   HTTP request handler.
    * @param responder HTTP response handler.
    */
   @GET
@@ -243,7 +250,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         for (PluginClass plugin : plugins) {
           String type = plugin.getType();
-          if(JDBC.equalsIgnoreCase(type)) {
+          if (JDBC.equalsIgnoreCase(type)) {
             JsonObject object = new JsonObject();
             String className = plugin.getClassName();
             if (drivers.containsKey(className)) {
@@ -251,6 +258,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
               object.addProperty("label", info.getName());
               object.addProperty("version", artifact.getVersion());
               object.addProperty("url", info.getJdbcUrlPattern());
+              object.addProperty("default.port", info.getPort());
+
               JsonObject properties = new JsonObject();
               properties.addProperty("class", plugin.getClassName());
               properties.addProperty("type", plugin.getType());
@@ -309,6 +318,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       object.addProperty("class", driver.getKey());
       object.addProperty("label", driver.getValue().getName());
       object.addProperty("tag", driver.getValue().getTag());
+      object.addProperty("default.port", driver.getValue().getPort());
       String name = driver.getValue().getName();
       name = name.trim();
       name = name.toLowerCase();
