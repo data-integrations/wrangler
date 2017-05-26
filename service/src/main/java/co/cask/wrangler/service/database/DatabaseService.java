@@ -582,7 +582,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       Map<String, String> properties = new HashMap<>();
       properties.put("connectionString", (String) conn.getProp("url"));
       properties.put("referenceName", table);
-      properties.put("username", (String) conn.getProp("username"));
+      properties.put("user", (String) conn.getProp("username"));
       properties.put("password", (String) conn.getProp("password"));
       properties.put("importQuery", String.format("SELECT * FROM %s", table));
       properties.put("jdbcPluginName", (String) conn.getProp("name"));
