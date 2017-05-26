@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * Base class which exposes utility functions for interacting with {@link DirectivesService}.
  */
-
+@Ignore
 public class WranglerServiceTestBase extends TestBase {
 
   protected static final class ExecuteResponse {

@@ -17,6 +17,7 @@
 package co.cask.wrangler.statistics;
 
 import io.dataapps.chlorine.finder.FinderEngine;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.Map;
 /**
  * Created by kewang on 5/23/17.
  */
+@Ignore
 public class ChlorineFinderTest {
 
   private final FinderEngine engine;
@@ -48,6 +50,5 @@ public class ChlorineFinderTest {
       }
       result.append("\n");
     }
-    System.out.println(result.toString());
   }
 }

@@ -34,43 +34,21 @@ import java.util.List;
  *
  */
 @Ignore
-public class BasicStatisticsTest {
+public class ZipcodeTest {
   @Test
-  public void testBasicStatistics() throws Exception {
+  public void testZipcode() throws Exception {
 
     Record mock1 = new Record();
 
-    mock1.add("id", "1");
-    mock1.add("first_name", "Paulina");
-    mock1.add("last_name", "Wynne");
-    mock1.add("phone", "7-(524)722-4546");
-    mock1.add("address", "478 Macpherson Drive");
-    mock1.add("zip_code", "659600");
-
-    mock1.add("VISA_1", "4111111111111111");
-    mock1.add("VISA_2","4012888888881881");
-
-    mock1.add("MasterCard_1","5555555555554444");
-    mock1.add("MasterCard_2","5105105105105100");
-
-    mock1.add ("Discover", "6011000000000004");
-    mock1.add("AmericanExpress", "340000000000009");
-
-    mock1.add("ssn", "723-47-4824");
-    mock1.add("ISBN_10", "0-345-50113-6");
-    mock1.add("ISBN_13", "978-0-345-50113-4");
-    mock1.add("money", "$93110.95");
-    mock1.add("latitude", "52.30447");
-    mock1.add("longitude", "85.0785");
-    mock1.add("IPv4", "84.150.101.246");
-    mock1.add("IPv6", "ac68:ff5b:bcdb:e52b:f13d:5642:f97a:3d73");
-    mock1.add("MAC address", "B9-27-8E-CE-77-8A");
-    mock1.add("other", "荣");
+    mock1.add("zip_code_1", "659600");
+    mock1.add("zip_code_2", "61801");
+    mock1.add("zip_code_3", "61820");
+    mock1.add("zip_code_4", "030002");
+    mock1.add("zip_code_5", "030001");
 
     //no use
-
     List<Record> records = Arrays.asList(
-      mock1, mock1, mock1
+            mock1, mock1, mock1
     );
 
     Statistics statisticsGen = new BasicStatistics();
