@@ -23,6 +23,7 @@ import co.cask.wrangler.api.annotations.PublicEvolving;
  */
 @PublicEvolving
 public enum ConnectionType {
+  UNDEFINED("undefined"),
   UPLOAD("upload"),
   FILE("file"),
   DATABASE("database"),

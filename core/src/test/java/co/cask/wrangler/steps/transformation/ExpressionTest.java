@@ -20,22 +20,10 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.PipelineTest;
-import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
-import com.github.filosganga.geogson.model.Coordinates;
-import com.github.filosganga.geogson.model.Feature;
-import com.github.filosganga.geogson.model.FeatureCollection;
-import com.github.filosganga.geogson.model.Polygon;
-import com.github.filosganga.geogson.model.positions.AreaPositions;
-import com.github.filosganga.geogson.model.positions.LinearPositions;
-import com.github.filosganga.geogson.model.positions.SinglePosition;
-import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -206,7 +194,6 @@ public class ExpressionTest {
 
   @Test(expected = StepException.class)
   public void testMalformedGeoFence() throws Exception {
-
     String geoJsonFence = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{}," +
         "\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.05870628356934,37.37943348292772]," +
         "[-122.05724716186525,37.374727268782294],[-122.04634666442871,37.37493189292912]," +
