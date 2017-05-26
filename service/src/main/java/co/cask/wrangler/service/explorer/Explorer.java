@@ -102,7 +102,7 @@ public final class Explorer {
       // Iterate through each file.
       for(Location location : locations) {
         // If hidden is true, then hide all the files that start with . (dot)
-        if(hidden && location.toURI().toString().startsWith(".")) {
+        if(hidden && location.getName().toString().startsWith(".")) {
           continue;
         }
         Map<String, Object> object = locationInfo(location);

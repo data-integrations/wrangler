@@ -584,7 +584,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       properties.put("referenceName", table);
       properties.put("user", (String) conn.getProp("username"));
       properties.put("password", (String) conn.getProp("password"));
-      properties.put("importQuery", String.format("SELECT * FROM %s", table));
+      properties.put("importQuery", String.format("SELECT * FROM %s WHERE $CONDITIONS", table));
+      properties.put("numSplits", "1");
       properties.put("jdbcPluginName", (String) conn.getProp("name"));
       properties.put("jdbcPluginType", (String) conn.getProp("type"));
 
