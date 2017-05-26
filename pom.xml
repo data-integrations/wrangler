@@ -104,6 +104,8 @@
     <protobuf.version>3.3.0</protobuf.version>
     <guava.retrying.version>2.0.0</guava.retrying.version>
     <geogson.version>1.1.97</geogson.version>
+    <kafka.clients.version>0.10.2.1</kafka.clients.version>
+    <aws.sdk.version>1.9.6</aws.sdk.version>
   </properties>
 
   <repositories>

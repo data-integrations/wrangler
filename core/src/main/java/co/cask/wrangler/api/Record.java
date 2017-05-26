@@ -233,8 +233,6 @@ public class Record implements Serializable {
     }
   }
 
-
-
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(getClass())
