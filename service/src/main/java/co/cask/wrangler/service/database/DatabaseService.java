@@ -32,13 +32,13 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionType;
-import com.google.common.base.Charsets;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -482,7 +482,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   }
 
   /**
-   * Lists all the tables within a database.
+   * Reads a table into workspace.
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
@@ -526,9 +526,9 @@ public class DatabaseService extends AbstractHttpServiceHandler {
 
             String identifier = ServiceUtils.generateMD5(table);
             ws.createWorkspaceMeta(identifier, table);
-            String data = gson.toJson(records);
-            ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL,
-                                DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+            ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
+            byte[] data = serDe.toByteArray(records);
+            ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
             Map<String, String> properties = new HashMap<>();
             properties.put(PropertyIds.ID, identifier);

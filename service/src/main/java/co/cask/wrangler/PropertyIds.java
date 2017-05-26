@@ -50,5 +50,11 @@ public final class PropertyIds {
   // Content Type of content being stored.
   public static final String CONTENT_TYPE = "Content-Type";
 
+  // Topic.
+  public static final String TOPIC = "topic";
+
   public static final String CONNECTION_ID = "connectionid";
+  public static final String BROKER = "brokers";
+  public static final String KEY_DESERIALIZER = "key.deserializer";
+  public static final String VALUE_DESERIALIZER = "value.deserializer";
 }

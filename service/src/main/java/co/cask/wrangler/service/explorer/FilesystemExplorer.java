@@ -26,6 +26,7 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
@@ -201,8 +202,9 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       if(type == DataType.RECORDS) {
         List<Record> records = new ArrayList<>();
         records.add(new Record(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
-        String data = gson.toJson(records);
-        table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+        ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
+        byte[] data = serDe.toByteArray(records);
+        table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
       } else if (type == DataType.BINARY) {
         table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
       }
@@ -224,7 +226,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e){
-
+      error(responder, e.getMessage());
     } finally {
       if (stream != null) {
         try {
@@ -281,8 +283,9 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       table.writeProperties(id, properties);
 
       // Write records to workspace.
-      String data = gson.toJson(records);
-      table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data.getBytes(Charsets.UTF_8));
+      ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
+      byte[] data = serDe.toByteArray(records);
+      table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
       // Preparing return response to include mandatory fields : id and name.
       JsonArray values = new JsonArray();
