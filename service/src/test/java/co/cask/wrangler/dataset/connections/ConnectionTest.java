@@ -16,9 +16,15 @@
 
 package co.cask.wrangler.dataset.connections;
 
+import co.cask.wrangler.service.connections.ConnectionType;
 import com.google.gson.Gson;
+import org.apache.commons.lang.text.StrLookup;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests {@link Connection}
@@ -54,5 +60,19 @@ public class ConnectionTest {
     int p = port.intValue();
     Assert.assertEquals(3306, p);
     Assert.assertTrue(true);
+  }
+
+  @Test
+  public void testStringSub() throws Exception {
+    final List<String> variables = new ArrayList<>();
+    StrSubstitutor substitutor = new StrSubstitutor(new StrLookup() {
+      @Override
+      public String lookup(String s) {
+        variables.add(s);
+        return s;
+      }
+    });
+    substitutor.replace("${username}:${password}");
+    Assert.assertEquals(2, variables.size());
   }
 }

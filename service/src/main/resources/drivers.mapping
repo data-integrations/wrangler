@@ -1,0 +1,12 @@
+IBM DB2,com.ibm.db2.jdbc.net.database2Driver,jdbc:db2://${hostname}:${port}/${database},db2
+Microsoft SQL Server,weblogic.jdbc.mssqlserver4.Driver,jdbc:weblogic:mssqlserver4:${database}@${hostname}:${port},mssql
+Oracle Thin,oracle.jdbc.driver.OracleDriver,jdbc:oracle:thin:@${hostname}:${port}:${database},oracle
+Microsoft SQL Server (JTurbo Driver),com.ashna.jturbo.driver.Driver,jdbc:JTurbo://${hostname}:${port}/${database},mssql
+Microsoft SQL Server (Sprinta Driver),com.inet.tds.TdsDriver,jdbc:inetdae:${hostname}:${port}?database=${database},mssql
+Microsoft SQL Server 2000 (Microsoft Driver),com.microsoft.sqlserver.jdbc.SQLServerDriver,jdbc:microsoft:sqlserver://${hostname}:${port};DatabaseName=${database},mssql
+MySQL (MM.MySQL Driver),org.gjt.mm.mysql.Driver,jdbc:mysql://${hostname}:${port}/${database},mysql
+MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database},mysql
+PostgreSQL (v6.5 and earlier),postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql
+PostgreSQL (v7.0 and later),org.postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql
+IBM Netezza,org.netezza.Driver,jdbc:netezza://${hostname}:${port}/${database};user=${username};password=${password},netezza
+Teradata,com.teradata.jdbc.TeraDriver,jdbc:teradata://${hostname}/database=${database},tmode=ANSI,charset=UTF8,teradata

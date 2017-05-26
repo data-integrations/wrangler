@@ -169,5 +169,47 @@ public class ExpressionTest {
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 0);
   }
+
+  @Test
+  public void testGeoFence() throws Exception {
+
+    String geoJsonFence = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{}," +
+        "\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.05870628356934,37.37943348292772]," +
+        "[-122.05724716186525,37.374727268782294],[-122.04634666442871,37.37493189292912]," +
+        "[-122.04608917236328,37.38175237839049],[-122.05870628356934,37.37943348292772]]]}}]}";
+
+    String[] directives = new String[]{
+        "set column result geo:inFence(lat,lon,fences)"
+    };
+
+    List<Record> records = Arrays.asList(
+        new Record("id", 123)
+            .add("lon", -462.49145507812494)
+            .add("lat", 43.46089378008257)
+            .add("fences", geoJsonFence)
+    );
+    records = PipelineTest.execute(directives, records);
+    Assert.assertFalse((Boolean) records.get(0).getValue("result"));
+  }
+
+  @Test(expected = StepException.class)
+  public void testMalformedGeoFence() throws Exception {
+    String geoJsonFence = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{}," +
+        "\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.05870628356934,37.37943348292772]," +
+        "[-122.05724716186525,37.374727268782294],[-122.04634666442871,37.37493189292912]," +
+        "[-122.04608917236328,37.38175237839049]]]}}]}";
+
+    String[] directives = new String[]{
+        "set column result geo:inFence(lat,lon,fences)"
+    };
+
+    List<Record> records = Arrays.asList(
+        new Record("id", 123)
+            .add("lon", -462.49145507812494)
+            .add("lat", 43.46089378008257)
+            .add("fences", geoJsonFence)
+    );
+    PipelineTest.execute(directives, records);
+  }
 }
 

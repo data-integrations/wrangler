@@ -27,7 +27,6 @@ import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
-import co.cask.wrangler.dataset.connections.ConnectionType;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -99,7 +98,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
       RequestExtractor extractor = new RequestExtractor(request);
       Connection connection = extractor.getContent("utf-8", Connection.class);
 
-      if (ConnectionType.from(connection.getType().getType()) == ConnectionType.UNDEFINED) {
+      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
         error(responder, "Invalid connection type set.");
         return;
       }
@@ -154,7 +153,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
       RequestExtractor extractor = new RequestExtractor(request);
       Connection connection = extractor.getContent("utf-8", Connection.class);
 
-      if (ConnectionType.from(connection.getType().getType()) == ConnectionType.UNDEFINED) {
+      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
         error(responder, "Invalid connection type set.");
         return;
       }

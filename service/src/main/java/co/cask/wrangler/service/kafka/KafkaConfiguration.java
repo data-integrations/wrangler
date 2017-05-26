@@ -1,7 +1,23 @@
+/*
+ * Copyright © 2017 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package co.cask.wrangler.service.kafka;
 
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.service.connections.ConnectionType;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.DoubleDeserializer;
@@ -14,17 +30,19 @@ import java.util.Properties;
 import java.util.UUID;
 
 /**
- * Class description here.
+ * A class for managing configurations of Kafka.
  */
 public final class KafkaConfiguration {
   private final boolean isZookeeperConnection;
   private final String connection;
-  private final String topic;
   private final Properties props;
 
+  private String keyDeserializer;
+  private String valueDeserializer;
+
   public KafkaConfiguration(Connection conn) {
-    String keyDeserializer = StringDeserializer.class.getName();
-    String valueDeserializer = keyDeserializer;
+    keyDeserializer = StringDeserializer.class.getName();
+    valueDeserializer = keyDeserializer;
 
     if (conn.getType() != ConnectionType.KAFKA) {
       throw new IllegalArgumentException(
@@ -48,12 +66,6 @@ public final class KafkaConfiguration {
       }
     }
 
-    if(properties.containsKey("topic")) {
-      topic = (String) properties.get("topic");
-    } else {
-      topic = null;
-    }
-
     if(properties.containsKey("key.type")) {
       keyDeserializer = deserialize((String) properties.get("key.type"));
     }
@@ -71,6 +83,20 @@ public final class KafkaConfiguration {
       props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer);
       props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);
     }
+  }
+
+  /**
+   * @return String representation of key deserializer of kafka topic.
+   */
+  public String getKeyDeserializer() {
+    return keyDeserializer;
+  }
+
+  /**
+   * @return String representation of value deserializer of kafka topic.
+   */
+  public String getValueDeserializer() {
+    return valueDeserializer;
   }
 
   private String deserialize(String type) {
@@ -98,18 +124,16 @@ public final class KafkaConfiguration {
     }
   }
 
-  public boolean isZookeeper() {
-    return isZookeeperConnection;
-  }
-
+  /**
+   * @return connection information of kafka.
+   */
   public String getConnection() {
     return connection;
   }
 
-  public String getTopic() {
-    return topic;
-  }
-
+  /**
+   * @return Kafka connection property.
+   */
   public Properties get() {
     return props;
   }
