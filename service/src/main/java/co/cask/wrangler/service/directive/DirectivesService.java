@@ -554,14 +554,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           // If not present in header, add it to header.
           if (!header.contains(field.getKey())) {
             headers.add(new JsonPrimitive(field.getKey()));
-            Object object = field.getValue();
-            if (object != null) {
-              types.addProperty(field.getKey(), object.getClass().getSimpleName().toLowerCase());
-            }
             header.add(field.getKey());
           }
           Object object = field.getValue();
+
           if (object != null) {
+            types.addProperty(field.getKey(), object.getClass().getSimpleName().toLowerCase());
             if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
               value.addProperty(field.getKey(), object.toString());
             } else {

@@ -57,4 +57,20 @@ public class CharacterCutTest {
     Assert.assertEquals("one", records.get(0).getValue("six"));
     Assert.assertEquals("one t", records.get(0).getValue("seven"));
   }
+
+  @Test
+  public void testDollarIncludedInString() throws Exception {
+    String[] directives = new String[] {
+      "cut-character body value 2-"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "$734.77")
+    );
+
+    records = PipelineTest.execute(directives, records);
+
+    Assert.assertTrue(records.size() == 1);
+    Assert.assertEquals("734.77", records.get(0).getValue("value"));
+  }
 }
