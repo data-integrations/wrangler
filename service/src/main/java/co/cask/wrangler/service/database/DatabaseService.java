@@ -30,13 +30,14 @@ import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
+import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
-import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.service.connections.ConnectionType;
 import com.google.common.base.Charsets;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -248,7 +249,6 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             if (drivers.containsKey(className)) {
               DriverInfo info = drivers.get(className);
               object.addProperty("label", info.getName());
-              object.addProperty("tag", info.getTag());
               object.addProperty("version", artifact.getVersion());
               object.addProperty("url", info.getJdbcUrlPattern());
               JsonObject properties = new JsonObject();
@@ -308,6 +308,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       JsonObject object = new JsonObject();
       object.addProperty("class", driver.getKey());
       object.addProperty("label", driver.getValue().getName());
+      object.addProperty("tag", driver.getValue().getTag());
       String name = driver.getValue().getName();
       name = name.trim();
       name = name.toLowerCase();
@@ -344,7 +345,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       RequestExtractor extractor = new RequestExtractor(request);
       Connection connection = extractor.getContent("utf-8", Connection.class);
 
-      if (ConnectionType.from(connection.getType().getType()) == ConnectionType.UNDEFINED) {
+      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
         error(responder, "Invalid connection type set.");
         return;
       }
@@ -524,17 +525,21 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             String identifier = ServiceUtils.generateMD5(table);
             ws.createWorkspaceMeta(identifier, table);
             String data = gson.toJson(records);
-            LOG.info("Data {}", data);
             ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL,
                                 DataType.RECORDS, data.getBytes(Charsets.UTF_8));
 
-            // Add more properties.
+            Map<String, String> properties = new HashMap<>();
+            properties.put(PropertyIds.ID, identifier);
+            properties.put(PropertyIds.NAME, table);
+            properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
+            properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+            ws.writeProperties(identifier, properties);
 
             JsonArray values = new JsonArray();
             JsonObject object = new JsonObject();
             object.addProperty(PropertyIds.ID, identifier);
             object.addProperty(PropertyIds.NAME, table);
-            object.addProperty(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.toString());
+            object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
             values.add(object);
             response.addProperty("status", HttpURLConnection.HTTP_OK);
             response.addProperty("message", "Success");
