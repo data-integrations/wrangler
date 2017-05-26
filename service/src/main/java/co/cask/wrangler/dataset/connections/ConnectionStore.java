@@ -91,7 +91,7 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
   public void update(String id, Connection connection) {
     if(!hasKey(id)) {
       throw new IllegalArgumentException(
-        String.format("Connection '%s' does not exists. Create connection before updating")
+        String.format("Connection '%s' does not exists. Create connection before updating", id)
       );
     }
     connection.setUpdated(now());
