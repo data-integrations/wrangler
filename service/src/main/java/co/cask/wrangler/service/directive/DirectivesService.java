@@ -910,7 +910,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       case TEXT: {
         String data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.TEXT);
         if (data != null) {
-          records.add(new Record(id, data));
+          records.add(new Record("body", data));
         }
         break;
       }
@@ -918,7 +918,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       case BINARY: {
         byte[] data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.BINARY);
         if (data != null) {
-          records.add(new Record(id, data));
+          records.add(new Record("body", data));
         }
         break;
       }
