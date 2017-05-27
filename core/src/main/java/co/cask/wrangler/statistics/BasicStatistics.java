@@ -66,21 +66,21 @@ public class BasicStatistics implements Statistics {
             stats.increment(column, "empty");
           }
 
-          //only after other finders all failed, we use default regex finders
           else {
+            //Type inferring using regex
             Map<String, List<String>> finds = engine.findWithType(value);
-
-            //types:
             Set<String> keySet = finds.keySet();
 
-            //all types
-            //Integer, Mastercard, Visa, AMEX, Discover, JCB, URL, France_Postal_Code, Canadian_Postal_Code, Email
-            //Date_Time, Month, Time, Month/Year, Date, Mac_Address, IPV4, US_Postal_Codes, US_State, SSN, IPV6, Text, Gender, Boolean
-            //IBAN, ISBN, Zip_Code, Currency, Longitude, Latitude, Street_Address
+            /*
+            All regex recognizable types:
+            Integer, Mastercard, Visa, AMEX, Discover, JCB, URL, France_Postal_Code, Canadian_Postal_Code, Email
+            Date_Time, Month, Time, Month/Year, Date, Mac_Address, IPV4, US_Postal_Codes, US_State, SSN, IPV6, Text, Gender, Boolean
+            IBAN, ISBN, Zip_Code, Currency, Longitude, Latitude, Street_Address
+            */
 
+            //Need to check the types in certain order, to make some checkers's results dominate others
 
-            //TODO: Street_Address need improve
-            //Date_Time, Month, Time, Month/Year, Date
+            //TODO: Street_Address need improve. For now just uses regex matching, which can't recognize all addresses
             if (addressFinder.isUSAddress(value)) {
               types.increment(column, "Street_Address");
             }
@@ -113,7 +113,7 @@ public class BasicStatistics implements Statistics {
               types.increment(column, "Mac_Address");
             }
 
-            //ISBN
+            //For ISBN, use ISBN validator
             else if (isbnFinder.isISBN(value)) {
               types.increment(column, "ISBN");
             }
@@ -132,7 +132,6 @@ public class BasicStatistics implements Statistics {
             }
 
             //Mastercard, Visa, AMEX, Discover, JCB
-            //TODO: Maybe shouldn't exclusive
             else if (keySet.contains("Mastercard")) {
               types.increment(column, "Mastercard");
             }
@@ -150,12 +149,10 @@ public class BasicStatistics implements Statistics {
             }
 
             //Longitude, Latitude
-            //TODO: might need to distinguish
             else if (keySet.contains("Longitude") || keySet.contains("Latitude")) {
               types.increment(column, "Longitude_Latitude");
             }
 
-            //TODO: They ARE zip code though
             //France_Postal_Code, Canadian_Postal_Code, US_Postal_Codes
             else if (keySet.contains("US_Postal_Codes")) {
               types.increment(column, "US_Postal_Codes");
@@ -168,6 +165,7 @@ public class BasicStatistics implements Statistics {
             }
 
             //Zip_Code
+            //Works for these countries so far: US, Canada, Mexico, China, India
             else if (keySet.contains("Zip_Code")) {
               types.increment(column, "Zip_Code");
             }
@@ -177,9 +175,30 @@ public class BasicStatistics implements Statistics {
               types.increment(column, "Text");
             }
 
-            //Phone number comes second last, otherwise it can easily mess up with other types cause so many phone number format to match
+            //Phone number validating comes in the end, otherwise it can easily mess up with other types
+            //cause there are so many phone number format (different countries) to match
+            //this problem can be solved if it matches fewer phone number format, but that way it can only
+            //recognize numbers from a few countries
+
             else if (phoneNumberFinder.isValidPhone(value)) {
               types.increment(column, "Phone");
+            }
+
+            //Date_Time, Month, Time, Month/Year, Date
+            else if (keySet.contains("Date_Time")) {
+              types.increment(column, "Date_Time");
+            }
+            else if (keySet.contains("Month")) {
+              types.increment(column, "Month");
+            }
+            else if (keySet.contains("Time")) {
+              types.increment(column, "Time");
+            }
+            else if (keySet.contains("Month/Year")) {
+              types.increment(column, "Month/Year");
+            }
+            else if (keySet.contains("Date")) {
+              types.increment(column, "Date");
             }
 
             //Integer comes last

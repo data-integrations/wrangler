@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by kewang on 5/25/17.
+ * Tests for {@link PhoneNumberFinder}
  */
 public class PhoneNumberTest {
   private PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
@@ -66,6 +66,10 @@ public class PhoneNumberTest {
     return null;
   }
 
+  /**
+   * Test phone number validating using phone numbers from a csv file
+   * @throws Exception
+   */
   @Test
   public void testValidPhoneNumber() throws Exception {
     for (String str : phoneNumbers) {
@@ -73,16 +77,19 @@ public class PhoneNumberTest {
     }
   }
 
+  //TODO: Due to too many phone number formats to match (many countries), it tends to recognize other content as phone numbers
   @Ignore
   @Test
   public void testInvalidPhoneNumber() throws Exception {
 
     for (String str : nonPhoneNumbers) {
+      /*
       boolean valid = finder.isValidPhone(str);
       if (valid) {
         System.out.println(str);
       }
-      //Assert.assertFalse(finder.isValidPhone(str));
+      */
+      Assert.assertFalse(finder.isValidPhone(str));
     }
   }
 }

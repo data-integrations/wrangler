@@ -30,8 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by kewang on 5/19/17.
- *
+ * Not asserting anything
+ * Just a helper class to print out statistics info of records in json format
  */
 @Ignore
 public class BasicStatisticsTest {

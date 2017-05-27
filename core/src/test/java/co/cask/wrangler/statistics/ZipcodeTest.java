@@ -31,8 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by kewang on 5/19/17.
- *
+ * Test zip code regex detecting. See {@link BasicStatistics} for Regex pattern definitions
  */
 public class ZipcodeTest {
   @Test

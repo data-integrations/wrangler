@@ -20,17 +20,26 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by kewang on 5/26/17.
+ * Street address string detector
  */
 public class AddressFinder {
   private String US_REGEX_PATTERN = "\\d+[ ](?:[A-Za-z0-9.-]+[ ]?)+(?:Avenue|Lane|Road|Boulevard|Drive|Street|Ave|Parkway|Way|Circle|Plaza|Dr|Rd|Blvd|Ln|St|)\\.?";
 
+  /**
+   * Check if the input is in valid US address format
+   * @param str
+   * @return
+   */
   public boolean isUSAddress(String str) {
     return matchKeyWords(str);
-
-    //parse street address to number, street name, city, state
+    //TODO: Need more powerful way to validate address
   }
 
+  /**
+   * Match string input with regular expression pattern for street address
+   * @param str
+   * @return
+   */
   private boolean matchKeyWords(String str) {
     Pattern pattern = Pattern.compile(US_REGEX_PATTERN);
     Matcher matcher = pattern.matcher(str);

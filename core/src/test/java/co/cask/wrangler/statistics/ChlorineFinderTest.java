@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by kewang on 5/23/17.
+ * Not asserting anything
+ * Just a helper class to print out output of ChlorineFinder
  */
 @Ignore
 public class ChlorineFinderTest {

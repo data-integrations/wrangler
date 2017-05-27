@@ -20,16 +20,26 @@ import org.apache.commons.validator.routines.ISBNValidator;
 import java.util.ArrayList;
 
 /**
- * Created by kewang on 5/25/17.
+ * ISBN string detector
  */
 public class ISBNFinder {
+
+  //ISBN validator from external library
   private ISBNValidator validator;
 
   public ISBNFinder() {
     validator = new ISBNValidator();
   }
 
+  /**
+   * Check if the input string is ISBN
+   * @param str
+   * @return
+   */
   public boolean isISBN(String str) {
+    //Need to format the input before validating
+
+    //Extract only digits from string, without other characters
     ArrayList<Integer> intList = new ArrayList<>();
     char [] s = str.toCharArray();
     for (int i = 0; i < s.length; i ++) {
@@ -43,7 +53,7 @@ public class ISBNFinder {
     int len = intList.size();
 
     if (len == 10) {
-      //format as ISBN-10 "0-345-50113-6"
+      //format the digits as ISBN-10 form, "0-345-50113-6"
       StringBuilder sb = new StringBuilder();
       sb.append(intList.get(0));
       sb.append('-');
@@ -61,7 +71,7 @@ public class ISBNFinder {
     }
 
     else if (len == 13) {
-      //format as ISBN-13 "978-0-345-50113-4"
+      //format the digits as ISBN-13 form, "978-0-345-50113-4"
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < 3; i ++) {
         sb.append(intList.get(i));

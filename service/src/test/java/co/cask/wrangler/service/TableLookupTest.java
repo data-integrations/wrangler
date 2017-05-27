@@ -33,6 +33,7 @@ import java.util.List;
 /**
  * Tests {@link co.cask.wrangler.steps.transformation.TableLookup}.
  */
+//Test utility classes in CDAP core need to be fixed to make this test work
 @Ignore
 public class TableLookupTest extends WranglerServiceTestBase {
 

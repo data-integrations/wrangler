@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Created by kewang on 5/25/17.
+ * Tests for {@link ISBNFinder}
  */
 public class ISBNFinderTest {
   String [] codeList;

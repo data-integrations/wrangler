@@ -26,21 +26,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by kewang on 5/25/17.
+ * Phone number string detector
  */
 public class PhoneNumberFinder {
   private PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
   private final String COUNTRY_CODE_FILE = "country_codes.csv";
   private List<String> countryCodes = null;
 
-  //private final String COUNTRY = "US";
-  //private final String [] COUNTRIES = new String[] {"US", "CN", "IN"};
-
   public PhoneNumberFinder() {
-    //read csv numbers
+    //read country codes from csv file, so we can be flexible on which countries' phone number to recognize
     countryCodes = readFromCsv(COUNTRY_CODE_FILE);
   }
 
+  /**
+   * Check if a string is valid phone number in certain given countries
+   * @param str
+   * @return
+   */
   public boolean isValidPhone(String str) {
     return isValidPhoneHelper(str, countryCodes);
   }

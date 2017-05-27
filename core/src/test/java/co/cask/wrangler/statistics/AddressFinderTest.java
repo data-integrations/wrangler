@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Created by kewang on 5/26/17.
+ * Tests for {@link AddressFinder}, using only US addresses for now
  */
 public class AddressFinderTest {
   private AddressFinder finder;
@@ -28,7 +28,7 @@ public class AddressFinderTest {
 
   public AddressFinderTest() {
     finder = new AddressFinder();
-    //Focus on US address for now
+    //TODO: Complicated International address format is not recognizable for now
     addressList = new String[] {"1905 N. Lincoln Ave Apt 125, Urbana IL 61801",
             "510 E. Clark St Apt 26, Champaign IL 61820",
             "150 Grant Ave, Palo Alto, CA 94306", "92 Wucheng Rd, Xiaodian Qu, Taiyuan Shi, Shanxi Sheng, China",
