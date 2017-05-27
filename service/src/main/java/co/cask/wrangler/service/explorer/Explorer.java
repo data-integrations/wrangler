@@ -133,9 +133,13 @@ public final class Explorer {
    * @return true if it's wrangle-able, false otherwise.
    */
   private boolean isWrangleable(String type) {
-    if ("text/plain".equalsIgnoreCase(type) || "application/json".equalsIgnoreCase(type)
-      || "application/xml".equalsIgnoreCase(type) || "application/avro".equalsIgnoreCase(type)
-      || "application/protobuf".equalsIgnoreCase(type)) {
+    if ("text/plain".equalsIgnoreCase(type)
+        || "application/json".equalsIgnoreCase(type)
+        || "application/xml".equalsIgnoreCase(type)
+        || "application/avro".equalsIgnoreCase(type)
+        || "application/protobuf".equalsIgnoreCase(type)
+        || "application/excel".equalsIgnoreCase(type)
+      ) {
       return true;
     }
     return false;

@@ -42,6 +42,7 @@ import co.cask.wrangler.steps.parser.JsPath;
 import co.cask.wrangler.steps.parser.ParseAvro;
 import co.cask.wrangler.steps.parser.ParseAvroFile;
 import co.cask.wrangler.steps.parser.ParseDate;
+import co.cask.wrangler.steps.parser.ParseExcel;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
@@ -559,6 +560,14 @@ public class TextDirectives implements Directives {
         case "parse-as-xml" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new XmlParser(lineno, directive, column));
+        }
+        break;
+
+        // parse-as-excel <column> <sheet number | sheet name>
+        case "parse-as-excel" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String sheet = getNextToken(tokenizer, command, "sheet", lineno);
+          steps.add(new ParseExcel(lineno, directive, column, sheet));
         }
         break;
 
