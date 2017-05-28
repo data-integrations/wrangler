@@ -41,7 +41,7 @@ import java.util.List;
  */
 @Usage(
   directive = "parse-as-excel",
-  usage = "parse-as-excel <column> <sheet number | sheet name>",
+  usage = "parse-as-excel <column> [<sheet number | sheet name>]",
   description = "Parses column as Excel file."
 )
 public class ParseExcel extends AbstractStep {
@@ -52,7 +52,11 @@ public class ParseExcel extends AbstractStep {
   public ParseExcel(int lineno, String directive, String column, String sheet) {
     super(lineno, directive);
     this.column = column;
-    this.sheet = sheet;
+    if (sheet == null) {
+      this.sheet = "0";
+    } else {
+      this.sheet = sheet;
+    }
   }
 
   /**
@@ -81,14 +85,20 @@ public class ParseExcel extends AbstractStep {
             } else {
               excelsheet = book.getSheet(sheet);
             }
+
+            int last = excelsheet.getLastRowNum();
+
             Iterator<Row> it = excelsheet.iterator();
+            int rows = 0;
             while(it.hasNext()) {
               Row row = it.next();
               Iterator<Cell> cellIterator = row.cellIterator();
               Record newRecord = new Record();
+              newRecord.add("fwd", rows);
+              newRecord.add("bkd", last - rows - 1);
               while (cellIterator.hasNext())  {
                 Cell cell = cellIterator.next();
-                String name = Integer.toString(cell.getAddress().getColumn());
+                String name = columnName(cell.getAddress().getColumn());
                 switch (cell.getCellTypeEnum()) {
                   case STRING:
                     newRecord.add(name, cell.getStringCellValue());
@@ -101,13 +111,12 @@ public class ParseExcel extends AbstractStep {
                   case BOOLEAN:
                     newRecord.add(name, cell.getBooleanCellValue());
                     break;
-
-                  case BLANK:
-                    newRecord.add(name, null);
-                    break;
                 }
               }
-              results.add(newRecord);
+              if (newRecord.length() > 0) {
+                results.add(newRecord);
+                rows++;
+              }
             }
           } else {
             throw new StepException(toString() + " : column " + column + " is not excel file type.");
@@ -122,5 +131,17 @@ public class ParseExcel extends AbstractStep {
       }
     }
     return results;
+  }
+
+  private String columnName(int number) {
+    final StringBuilder sb = new StringBuilder();
+
+    int num = number;
+    while (num >=  0) {
+      int numChar = (num % 26)  + 65;
+      sb.append((char)numChar);
+      num = (num  / 26) - 1;
+    }
+    return sb.reverse().toString();
   }
 }
