@@ -566,7 +566,7 @@ public class TextDirectives implements Directives {
         // parse-as-excel <column> <sheet number | sheet name>
         case "parse-as-excel" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String sheet = getNextToken(tokenizer, command, "sheet", lineno);
+          String sheet = getNextToken(tokenizer, "\n", command, "sheet", lineno, true);
           steps.add(new ParseExcel(lineno, directive, column, sheet));
         }
         break;
