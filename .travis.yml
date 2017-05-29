@@ -20,7 +20,7 @@ jdk:
   - oraclejdk8
 
 env:
-  - MAVEN_OPTS="-Xmx4096m -XX:MaxPermSize=128m" HADOOP_VERSION="2.4.1"
+  - MAVEN_OPTS="-Xmx4096m -XX:MaxPermSize=256m" HADOOP_VERSION="2.4.1"
 
 sudo: false
 
