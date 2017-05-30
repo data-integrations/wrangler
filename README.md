@@ -115,6 +115,7 @@ These directives are currently available:
 | [Parse as AVRO File](docs/directives/parse-as-avro-file.md)            | Parsing an AVRO data file                                        |
 | [Parse as CSV](docs/directives/parse-as-csv.md)                        | Parsing an input record as comma-separated values                |
 | [Parse as Date](docs/directives/parse-as-date.md)                      | Parsing dates using natural language processing                  |
+| [Parse as Excel](docs/directives/parse-as-excel.md)                    | Parsing excel file.                                              |
 | [Parse as Fixed Length](docs/directives/parse-as-fixed-length.md)      | Parses as a fixed length record with specified widths            |
 | [Parse as HL7](docs/directives/parse-as-hl7.md)                        | Parsing Health Level 7 Version 2 (HL7 V2) messages               |
 | [Parse as JSON](docs/directives/parse-as-json.md)                      | Parsing a JSON object                                            |

@@ -92,7 +92,8 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   @Path("explorer/fs")
   @GET
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("path") String path, @QueryParam("hidden") boolean hidden) throws Exception {
+                   @QueryParam("path") String path,
+                   @QueryParam("hidden") boolean hidden) throws Exception {
     try {
       Map<String, Object> listing = explorer.browse(path, hidden);
       sendJson(responder, HttpURLConnection.HTTP_OK, gson.toJson(listing));
@@ -120,7 +121,9 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       loadSamplableFile(responder, path, lines, fraction, sampler);
     } else if (extractor.isContentType("application/xml")) {
       loadFile(responder, path, DataType.RECORDS);
-    } else if (extractor.isContentType("application/avro") || extractor.isContentType("application/protobuf")) {
+    } else if (extractor.isContentType("application/avro")
+      || extractor.isContentType("application/protobuf")
+      || extractor.isContentType("application/excel")) {
       loadFile(responder, path, DataType.BINARY);
     } else {
       error(responder, "Currently doesn't support wrangling of this type of file.");
