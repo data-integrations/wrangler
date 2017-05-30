@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.statistics;
 
+import au.com.bytecode.opencsv.CSVReader;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.TestUtil;
 import co.cask.wrangler.api.Record;
@@ -25,6 +26,10 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +39,8 @@ import java.util.List;
  * Test zip code regex detecting. See {@link BasicStatistics} for Regex pattern definitions
  */
 public class ZipcodeTest {
+  private static final String DATA_FILE = "MOCK_DATA.csv";
+
   @Test
   public void testZipcode() throws Exception {
 
@@ -66,5 +73,58 @@ public class ZipcodeTest {
       Assert.assertEquals(types.size(), 1);
       Assert.assertEquals(types.get(0).getKey(), "Zip_Code");
     }
+  }
+
+  @Test
+  public void testNonZipcode() throws Exception {
+
+    List<Record> records = new ArrayList<>();
+
+    List<String> cardNumbers = readCreditCardFromCsv(DATA_FILE);
+    for (String cardNumber : cardNumbers) {
+      Record record = new Record();
+      record.add("card_number", cardNumber);
+      records.add(record);
+    }
+
+    Statistics statisticsGen = new BasicStatistics();
+    Record summary = statisticsGen.aggregate(records);
+    Record typesList = (Record) summary.getValue("types");
+
+    for (int i = 0; i < typesList.length(); i ++) {
+      ArrayList<KeyValue> types = (ArrayList<KeyValue>) typesList.getValue(i);
+      for (KeyValue keyValue : types) {
+        /*
+        Assert.assertFalse(keyValue.getKey().equals("CN_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("IN_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("US_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("MX_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("CA_Code"));
+        */
+        Assert.assertFalse(keyValue.getKey().equals("Zip_Code"));
+      }
+    }
+  }
+
+
+
+  private List<String> readCreditCardFromCsv(String fileName) {
+    List<String> list = new ArrayList<>();
+    CSVReader reader = null;
+    try {
+      BufferedReader bReader = new BufferedReader(new InputStreamReader(
+              this.getClass().getResourceAsStream("/" + fileName)));
+      reader = new CSVReader(bReader);
+      String [] nextLine;
+      while ((nextLine = reader.readNext()) != null) {
+          list.add(nextLine[6]);
+      }
+      return list;
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }

@@ -166,6 +166,22 @@ public class BasicStatistics implements Statistics {
 
             //Zip_Code
             //Works for these countries so far: US, Canada, Mexico, China, India
+            //TODO: for now don't distinguish countries
+            else if (keySet.contains("US_Zip_Code")) {
+              types.increment(column, "Zip_Code");
+            }
+            else if (keySet.contains("CA_Zip_Code")) {
+              types.increment(column, "Zip_Code");
+            }
+            else if (keySet.contains("MX_Zip_Code")) {
+              types.increment(column, "Zip_Code");
+            }
+            else if (keySet.contains("CN_Zip_Code")) {
+              types.increment(column, "Zip_Code");
+            }
+            else if (keySet.contains("IN_Zip_Code")) {
+              types.increment(column, "Zip_Code");
+            }
             else if (keySet.contains("Zip_Code")) {
               types.increment(column, "Zip_Code");
             }
