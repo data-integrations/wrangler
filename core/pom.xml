@@ -213,6 +213,18 @@
       <version>1.6</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.github.steveash.addr</groupId>
+      <artifactId>us-address-parser</artifactId>
+      <version>0.1</version>
+    </dependency>
+
+
+
+
+
+
+
 
   </dependencies>
 
