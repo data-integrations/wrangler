@@ -1,20 +1,4 @@
-/*
- * Copyright © 2016-2017 Cask Data, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
-package co.cask.wrangler.steps.row;
+package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
@@ -29,48 +13,43 @@ import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Wrangle step for erroring the record if
+ * A directive that defines a transient variable who's life-expectancy is only within the record.
  *
- * <p>
- *   This step will evaluate the condition, if the condition evaluates to
- *   true, then the row will be skipped. If the condition evaluates to
- *   false, then the row will be accepted.
- * </p>
+ * The value set as transient variable is available to all the directives after that. But, it's
+ * not available beyond the input record.
  */
 @Usage(
-  directive = "send-to-error",
-  usage = "send-to-error <condition>",
-  description = "Send records that match condition to the error collector."
+  directive = "set-variable",
+  usage = "set-variable <variable> <expression>",
+  description = "Sets the value for a transient variable for the record being processed."
 )
-public class SendToError extends AbstractStep {
-  private final String condition;
+public class SetComputedVariable extends AbstractStep {
+  private final String variable;
+  private final String expression;
   private final JexlEngine engine;
   private final JexlScript script;
 
-  public SendToError(int lineno, String detail, String condition) {
+  public SetComputedVariable(int lineno, String detail, String variable, String expression) {
     super(lineno, detail);
-    this.condition = condition;
-    // Create and build the script.
+    this.variable = variable;
+    this.expression = expression;
     engine = JexlHelper.getEngine();
-    script = engine.createScript(condition);
+    script = engine.createScript(this.expression);
   }
 
   /**
-   * Filters a record based on the condition.
+   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
-   * @param context Specifies the context of the pipeline.
-   * @return the input {@link Record}, if condition is false
-   * @throws StepException if there are any issues with processing the condition
+   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param context {@link PipelineContext} passed to each step.
+   * @return Wrangled List of {@link Record}.
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
     throws StepException, ErrorRecordException {
-    List<Record> results = new ArrayList<>();
     for (Record record : records) {
       // Move the fields from the record into the context.
       JexlContext ctx = new MapContext();
@@ -78,6 +57,7 @@ public class SendToError extends AbstractStep {
       for (int i = 0; i < record.length(); ++i) {
         ctx.set(record.getColumn(i), record.getValue(i));
       }
+
       // Transient variables are added.
       if (context != null) {
         for (String variable : context.getTransientStore().getVariables()) {
@@ -88,10 +68,8 @@ public class SendToError extends AbstractStep {
       // Execution of the script / expression based on the record data
       // mapped into context.
       try {
-        boolean result = (Boolean) script.execute(ctx);
-        if (result) {
-          throw new ErrorRecordException(toString(), 1);
-        }
+        Object result = script.execute(ctx);
+        context.getTransientStore().set(variable, result);
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
         // to check if there is a inner exception, if there is wrap it in 'StepException'
@@ -115,8 +93,7 @@ public class SendToError extends AbstractStep {
           throw new StepException(toString() + " : " + e.getMessage());
         }
       }
-      results.add(record);
     }
-    return results;
+    return records;
   }
 }

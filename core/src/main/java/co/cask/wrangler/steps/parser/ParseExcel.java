@@ -113,10 +113,8 @@ public class ParseExcel extends AbstractStep {
                     break;
                 }
               }
-              if (newRecord.length() > 0) {
-                results.add(newRecord);
-                rows++;
-              }
+              results.add(newRecord);
+              rows++;
             }
           } else {
             throw new StepException(toString() + " : column " + column + " is not excel file type.");

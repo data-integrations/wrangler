@@ -34,8 +34,10 @@ import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.PipelineExecutor;
 import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.steps.DefaultTransientStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +71,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   // Precondition application
   private Precondition condition = null;
+
+  // Transient Store
+  private TransientStore store;
 
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
@@ -178,7 +183,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     Directives directives = new TextDirectives(config.directives);
-    PipelineContext ctx = new WranglerPipelineContext(PipelineContext.Environment.TRANSFORM, context);
+    PipelineContext ctx = new WranglerPipelineContext(PipelineContext.Environment.TRANSFORM, context, store);
 
     // Create the pipeline executor with context being set.
     pipeline = new PipelineExecutor();
@@ -200,6 +205,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     }
 
+    store = new DefaultTransientStore();
     // Initialize the error counter.
     errorCounter = 0;
   }
@@ -236,6 +242,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           return; // Expression evaluated to true, so we skip the record.
         }
       }
+
+      // Reset record aggregation store.
+      store.reset();
 
       start = System.nanoTime();
       records = pipeline.execute(Arrays.asList(row), oSchema);

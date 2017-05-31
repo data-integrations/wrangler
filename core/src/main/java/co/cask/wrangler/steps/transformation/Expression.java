@@ -96,6 +96,12 @@ public class Expression extends AbstractStep {
       for (int i = 0; i < record.length(); ++i) {
         ctx.set(record.getColumn(i), record.getValue(i));
       }
+      // Transient variables are added.
+      if (context != null) {
+        for (String variable : context.getTransientStore().getVariables()) {
+          ctx.set(variable, context.getTransientStore().get(variable));
+        }
+      }
 
       // Execution of the script / expression based on the record data
       // mapped into context.

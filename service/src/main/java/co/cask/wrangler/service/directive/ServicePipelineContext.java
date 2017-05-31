@@ -22,6 +22,7 @@ import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.common.DatasetContextLookupProvider;
 import co.cask.cdap.etl.common.NoopMetrics;
 import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.TransientStore;
 
 import java.net.URL;
 import java.util.Collections;
@@ -34,11 +35,14 @@ class ServicePipelineContext implements PipelineContext {
   private PipelineContext.Environment environment;
   private final HttpServiceContext serviceContext;
   private final DatasetContextLookupProvider lookupProvider;
+  private final TransientStore store;
 
-  public ServicePipelineContext(Environment environment, HttpServiceContext serviceContext) {
+  public ServicePipelineContext(Environment environment, HttpServiceContext serviceContext,
+                                TransientStore store) {
     this.environment = environment;
     this.serviceContext = serviceContext;
     this.lookupProvider = new DatasetContextLookupProvider(serviceContext);
+    this.store = store;
   }
 
   /**
@@ -83,6 +87,11 @@ class ServicePipelineContext implements PipelineContext {
   @Override
   public URL getService(String applicationId, String serviceId) {
     return serviceContext.getServiceURL(applicationId, serviceId);
+  }
+
+  @Override
+  public TransientStore getTransientStore() {
+    return store;
   }
 
   /**

@@ -32,6 +32,7 @@ import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
@@ -46,6 +47,7 @@ import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.statistics.BasicStatistics;
+import co.cask.wrangler.steps.DefaultTransientStore;
 import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.RecordConvertorException;
 import co.cask.wrangler.validator.ColumnNameValidator;
@@ -946,10 +948,13 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       throw new Exception("Request is empty. Please check if the request is sent as HTTP POST body.");
     }
 
+    TransientStore store = new DefaultTransientStore();
     // Extract records from the workspace.
     List<Record> records = fromWorkspace(id);
     // Execute the pipeline.
-    PipelineContext context = new ServicePipelineContext(PipelineContext.Environment.SERVICE, getContext());
+    PipelineContext context = new ServicePipelineContext(PipelineContext.Environment.SERVICE,
+                                                         getContext(),
+                                                         store);
     PipelineExecutor executor = new PipelineExecutor();
     executor.configure(new TextDirectives(user.getRecipe().getDirectives()), context);
     return executor.execute(sample.apply(records));
