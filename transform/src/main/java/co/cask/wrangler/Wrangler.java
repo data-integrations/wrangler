@@ -182,6 +182,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     super.initialize(context);
 
     // Parse DSL and initialize the wrangle pipeline.
+    store = new DefaultTransientStore();
     Directives directives = new TextDirectives(config.directives);
     PipelineContext ctx = new WranglerPipelineContext(PipelineContext.Environment.TRANSFORM, context, store);
 
@@ -205,7 +206,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     }
 
-    store = new DefaultTransientStore();
     // Initialize the error counter.
     errorCounter = 0;
   }
