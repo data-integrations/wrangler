@@ -46,7 +46,7 @@ public class AddressFinder {
 
   private String US_ZIP_REGEX = "^\\d{5}(-\\d{4})?$";
   private String US_STATE_REGEX = "^(AL|Alabama|AK|Alaska|AZ|Arizona|AR|Arkansas|CA|California|CO|Colorado|CT|Connecticut|DE|Delaware|FL|Florida|GA|Georgia|HI|Hawaii|ID|Idaho|IL|Illinois|IN|Indiana|IA|Iowa|KS|Kansas|KY|Kentucky|LA|Louisiana|ME|Maine|MD|Maryland|MA|Massachusetts|MI|Michigan|MN|Minnesota|MS|Mississippi|MO|Missouri|MT|Montana|NE|Nebraska|NV|Nevada|NH|New Hampshire|NJ|New Jersey|NM|New Mexico|NY|New York|NC|North Carolina|ND|North Dakota|OH|Ohio|OK|Oklahoma|OR|Oregon|PA|Pennsylvania|RI|Rhode Island|SC|South Carolina|SD|South Dakota|TN|Tennessee|TX|Texas|UT|Utah|VT|Vermont|VA|Virginia|WA|Washington|WV|West Virginia|WI|Wisconsin|WY|Wyoming)$";
-  private String STREET_SUFFIX_REGEX = "^(Avenue|Lane|Road|Boulevard|Drive|Street|Ave|Parkway|Way|Circle|Plaza|Dr|Rd|Blvd|Ln|St)$";
+  private String STREET_SUFFIX_REGEX = "^(Avenue|Lane|Road|Boulevard|Drive|Street|Ave|Parkway|Way|Circle|Plaza|Mall|Dr|Rd|Blvd|Ln|St)$";
   private String STREET_PREFIX_REGEX = "^(North|South|East|West|north|south|east|west|NORTH|SOUTH|WEST|EAST|N|S|E|W)$";
   private String UNIT_NAME_REGEX = "^(Room|ROOM|room|RM|Apt|APT|apt|Unit|UNIT|unit)$";
 

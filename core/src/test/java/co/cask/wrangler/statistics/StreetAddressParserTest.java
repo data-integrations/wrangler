@@ -15,10 +15,6 @@
  */
 
 package co.cask.wrangler.statistics;
-
-import com.skovalenko.geocoder.address_parser.ParsedUsAddress;
-import com.skovalenko.geocoder.address_parser.UnparsedAddress;
-import com.skovalenko.geocoder.address_parser.us.UsAddressParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,24 +29,10 @@ public class StreetAddressParserTest {
   }
 
   @Test
-  public void testParse() {
-    /*
-    String[] strs = parser.parseToArr("1905 N Lincoln Ave Apt 125 Urbana IL 61801");
-    for (String s : strs) {
-      System.out.println(s);
-    }
-    */
-
-    //AddressParser.parseAddress("123 FISH AND GAME rd philadelphia pa 12345");
-
-    /*
-    UsAddressParser parser = new UsAddressParser();
-    ParsedUsAddress address = parser.parse(new UnparsedAddress("1905 N Lincoln Ave Apt 125", "Urbana", "61801"));
-    System.out.println(address);
-    */
-    Address desiredResult = new Address("1905", "N", "Lincoln", "Ave",
+  public void testStandardParse() {
+    Address standardResult = new Address("1905", "N", "Lincoln", "Ave",
             "Apt", "125", "Urbana", "IL", "61801");
-    String[] inputs = new String[]{
+    String[] standardInputs = new String[]{
             "1905 N Lincoln Ave Apt 125 Urbana IL 61801",
             "1905 N Lincoln Ave Apt 125 Urbana IL",
             "1905 N Lincoln Ave Apt 125 Urbana",
@@ -72,14 +54,36 @@ public class StreetAddressParserTest {
     };
 
 
-    for (String str : inputs) {
+    for (String str : standardInputs) {
       Address result = parser.parse(str);
-
-      Assert.assertTrue(result.sameAs(desiredResult));
 
       //System.out.println("Input: " + str);
       //System.out.println(result + "\n");
-    }
 
+      Assert.assertTrue(result.sameAs(standardResult));
+    }
+  }
+
+
+  @Test
+  public void testNonStandardParse() {
+    String[] nonStandardInputs = new String[]{
+            "5000 Forbes Ave Pittsburgh PA 15213",
+            "6500 Soquel Dr",
+            "419 Boston Ave Medford MA 02155",
+            "Madison WI 53706",
+            "450 Serra Mall Stanford CA 94305",
+            "6500 Soquel Dr Aptos CA 95003"
+    };
+
+
+    /*
+    for (String str : nonStandardInputs) {
+      Address result = parser.parse(str);
+
+      System.out.println("Input: " + str);
+      System.out.println(result + "\n");
+    }
+    */
   }
 }
