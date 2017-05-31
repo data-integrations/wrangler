@@ -251,13 +251,21 @@ public final class Explorer {
     response.put("directory", location.isDirectory());
     response.put("path", location.toURI().getPath());
     response.put("name", location.getName());
-    response.put("group", location.getGroup());
-    response.put("owner", location.getOwner());
-    response.put("permission", location.getPermissions());
+    String group = isWindows() ? "-" : location.getGroup();
+    String owner = isWindows() ? "-" : location.getOwner();
+    String permissions = isWindows() ? "-" : location.getPermissions();
+    response.put("group", group);
+    response.put("owner", owner);
+    response.put("permission", permissions);
     response.put("size", location.length());
     response.put("last-modified", location.lastModified());
     response.put("uri", location.toURI().toString());
     return response;
+  }
+
+  private boolean isWindows() {
+    String os = System.getProperty("os.name").toLowerCase();
+    return os.contains("win");
   }
 
   /**
