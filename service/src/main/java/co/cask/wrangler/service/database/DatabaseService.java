@@ -64,6 +64,7 @@ import java.net.HttpURLConnection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -190,7 +191,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     try {
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
       String line;
-      while((line = br.readLine()) != null) {
+      while ((line = br.readLine()) != null) {
         String[] columns = line.split(",");
         if (columns.length == 5) {
           DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3], columns[4]);
@@ -236,7 +237,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *   ]
    * }
    *
-   * @param request   HTTP request handler.
+   * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
   @GET
@@ -305,7 +306,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *   ]
    * }
    *
-   * @param request  HTTP request handler.
+   * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
   @GET
@@ -313,7 +314,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
     JsonObject response = new JsonObject();
     JsonArray values = new JsonArray();
-    for(Map.Entry<String, DriverInfo> driver : drivers.entrySet()) {
+    for (Map.Entry<String, DriverInfo> driver : drivers.entrySet()) {
       JsonObject object = new JsonObject();
       object.addProperty("class", driver.getKey());
       object.addProperty("label", driver.getValue().getName());
@@ -323,7 +324,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       name = name.trim();
       name = name.toLowerCase();
       name = name.replaceAll("[^a-zA-Z0-9_]", "");
-      object.addProperty("name",name);
+      object.addProperty("name", name);
       values.add(object);
     }
     response.addProperty("status", HttpURLConnection.HTTP_OK);
@@ -343,7 +344,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *   "message" : "Successfully connected to database."
    * }
    *
-   * @param request  HTTP request handler.
+   * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
   @POST
@@ -400,16 +401,31 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
           DatabaseMetaData metaData = connection.getMetaData();
-          try(ResultSet resultSet = metaData.getCatalogs()) {
+          ResultSet resultSet;
+          PreparedStatement ps = null;
+          if ("postgresql".equals(connection.getMetaData().getDatabaseProductName().toLowerCase().trim())) {
+            ps = connection.prepareStatement(
+              "SELECT datname AS TABLE_CAT FROM pg_database WHERE datistemplate = false;"
+            );
+            resultSet = ps.executeQuery();
+          } else {
+            resultSet = metaData.getCatalogs();
+          }
+          try {
             while (resultSet.next()) {
               values.add(new JsonPrimitive(resultSet.getString("TABLE_CAT")));
             }
-            response.addProperty("status", HttpURLConnection.HTTP_OK);
-            response.addProperty("message", "Success.");
-            response.addProperty("count", values.size());
-            response.add("values", values);
-            sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+          } finally {
+            resultSet.close();
+            if (ps != null) {
+              ps.close();
+            }
           }
+          response.addProperty("status", HttpURLConnection.HTTP_OK);
+          response.addProperty("message", "Success.");
+          response.addProperty("count", values.size());
+          response.add("values", values);
+          sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
         }
       });
     } catch (Exception e) {
@@ -441,7 +457,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         public void execute(java.sql.Connection connection) throws Exception {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
           ResultSet resultSet;
-          if(product.equalsIgnoreCase("oracle")) {
+          if (product.equalsIgnoreCase("oracle")) {
             Statement statement = connection.createStatement();
             resultSet = statement.executeQuery("SELECT table_name FROM all_tables");
           } else {
@@ -451,9 +467,9 @@ public class DatabaseService extends AbstractHttpServiceHandler {
           try {
             while (resultSet.next()) {
               String name;
-              if(product.equalsIgnoreCase("oracle")) {
+              if (product.equalsIgnoreCase("oracle")) {
                 name = resultSet.getString("table_name");
-                if(name.contains("$")) {
+                if (name.contains("$")) {
                   continue;
                 }
               } else {
@@ -471,7 +487,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             response.add("values", values);
             sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
           } finally {
-            if(resultSet != null) {
+            if (resultSet != null) {
               resultSet.close();
             }
           }
@@ -509,7 +525,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             List<Record> records = new ArrayList<>();
             ResultSetMetaData meta = result.getMetaData();
             int count = lines;
-            while(result.next() && count > 0) {
+            while (result.next() && count > 0) {
               Record record = new Record();
               for (int i = 1; i < meta.getColumnCount() + 1; ++i) {
                 Object object = result.getObject(i);
