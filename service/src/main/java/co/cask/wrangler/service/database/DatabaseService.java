@@ -443,7 +443,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
           ResultSet resultSet;
           if(product.equalsIgnoreCase("oracle")) {
             Statement statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT table_name FROM users_tables");
+            resultSet = statement.executeQuery("SELECT table_name FROM all_tables");
           } else {
             DatabaseMetaData metaData = connection.getMetaData();
             resultSet = metaData.getTables(null, null, "%", null);
@@ -459,15 +459,10 @@ public class DatabaseService extends AbstractHttpServiceHandler {
               } else {
                 name = resultSet.getString(3);
               }
-              Statement statement = connection.createStatement();
-              statement.setMaxRows(1);
-              ResultSet queryResult =
-                statement.executeQuery(
-                  String.format("select * from %s where 1=0", name)
-                );
               JsonObject object = new JsonObject();
               object.addProperty("name", name);
-              object.addProperty("count", queryResult.getMetaData().getColumnCount());
+              // TODO: For compatibility. Please remove after 4.2, after the UI is fixed.
+              object.addProperty("count", 0);
               values.add(object);
             }
             response.addProperty("status", HttpURLConnection.HTTP_OK);
