@@ -1,8 +1,4 @@
-IBM DB2,com.ibm.db2.jdbc.net.database2Driver,jdbc:db2://${hostname}:${port}/${database},db2,50000
 Oracle Thin,oracle.jdbc.driver.OracleDriver,jdbc:oracle:thin:@${hostname}:${port}:${database},oracle,1521
-Microsoft SQL Server Driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,jdbc:microsoft:sqlserver://${hostname}:${port};DatabaseName=${database},mssql,1433
 MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database},mysql,3306
 PostgreSQL (v6.5 and earlier),postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql,5432
 PostgreSQL (v7.0 and later),org.postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql,5432
-IBM Netezza,org.netezza.Driver,jdbc:netezza://${hostname}:${port}/${database};user=${username};password=${password},netezza,5480
-Teradata,com.teradata.jdbc.TeraDriver,jdbc:teradata://${hostname}/database=${database},teradata,1025
