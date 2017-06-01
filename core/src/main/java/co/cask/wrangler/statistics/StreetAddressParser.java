@@ -21,7 +21,8 @@ import org.apache.commons.lang3.builder.ToStringExclude;
 import static org.apache.commons.lang.math.NumberUtils.isNumber;
 
 /**
- * Created by kewang on 5/30/17.
+ * US street address parser, that can parse string into structured address info
+ * Including street number, street name, city, state, zip code
  */
 public class StreetAddressParser {
 

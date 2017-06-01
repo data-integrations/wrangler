@@ -181,6 +181,7 @@ public class BasicStatisticsTest {
     records = pipeline.execute(records);
 
     Statistics meta = new BasicStatistics();
+
     Record summary = meta.aggregate(records);
 
     Record stats = (Record) summary.getValue("stats");

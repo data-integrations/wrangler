@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Created by kewang on 5/30/17.
+ * Tests for {@link StreetAddressParser}
  */
 public class StreetAddressParserTest {
 
@@ -53,12 +53,14 @@ public class StreetAddressParserTest {
 
     };
 
+    System.out.println("testetstett");
+
 
     for (String str : standardInputs) {
       Address result = parser.parse(str);
 
-      //System.out.println("Input: " + str);
-      //System.out.println(result + "\n");
+      System.out.println("Input: " + str);
+      System.out.println(result + "\n");
 
       Assert.assertTrue(result.sameAs(standardResult));
     }
@@ -77,13 +79,12 @@ public class StreetAddressParserTest {
     };
 
 
-    /*
+
     for (String str : nonStandardInputs) {
       Address result = parser.parse(str);
 
       System.out.println("Input: " + str);
       System.out.println(result + "\n");
     }
-    */
   }
 }

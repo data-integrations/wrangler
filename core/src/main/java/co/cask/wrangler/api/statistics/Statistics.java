@@ -32,5 +32,13 @@ public interface Statistics {
    * @param records to be aggregated.
    * @return Summary in the form of {@link Record}
    */
-  public Record aggregate(List<Record> records);
+  Record aggregate(List<Record> records);
+
+  /**
+   * Used for manually setting type for a column
+   * @param column
+   * @param typeName
+   * @return
+   */
+  boolean setType(String column, String typeName);
 }

@@ -16,23 +16,27 @@
 
 package co.cask.wrangler.statistics;
 
+import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.statistics.ColumnMetric;
 import co.cask.wrangler.api.statistics.Statistics;
 import io.dataapps.chlorine.finder.FinderEngine;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Created by nitin on 2/4/17.
+ * To generate statistics of list of Records
  */
 public class BasicStatistics implements Statistics {
+
+
+
   private final FinderEngine engine;
   private final PhoneNumberFinder phoneNumberFinder;
   private final ISBNFinder isbnFinder;
   private final AddressFinder addressFinder;
+
+  private Map<String, List<KeyValue<String, Double>>> manualTypes;
 
 
   public BasicStatistics() throws Exception {
@@ -40,7 +44,17 @@ public class BasicStatistics implements Statistics {
     phoneNumberFinder = new PhoneNumberFinder();
     isbnFinder = new ISBNFinder();
     addressFinder = new AddressFinder();
+    manualTypes = new HashMap<>();
   }
+
+  @Override
+  public boolean setType(String column, String typeName) {
+    KeyValue<String, Double> type = new KeyValue<>(typeName, 1.0);
+    List<KeyValue<String, Double>> types = new ArrayList<>(Arrays.asList(type));
+    manualTypes.put(column, types);
+    return true;
+  }
+
 
   @Override
   public Record aggregate(List<Record> records) {
@@ -229,9 +243,19 @@ public class BasicStatistics implements Statistics {
       }
     }
 
+
+
+
     Record recordTypes = new Record();
     for (String column : types.getColumns()) {
-      recordTypes.add(column, types.percentage(column, count));
+      //take the manually set type
+      if (manualTypes.containsKey(column)) {
+        recordTypes.add(column, manualTypes.get(column));
+      }
+      //if type is not manually set, detect it
+      else {
+        recordTypes.add(column, types.percentage(column, count));
+      }
     }
 
     Record recordStats = new Record();
@@ -246,5 +270,7 @@ public class BasicStatistics implements Statistics {
 
     return record;
   }
+
+
 
 }

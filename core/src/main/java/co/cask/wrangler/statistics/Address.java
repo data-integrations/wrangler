@@ -17,7 +17,7 @@
 package co.cask.wrangler.statistics;
 
 /**
- * Created by kewang on 5/30/17.
+ * Store structured US address
  */
 public class Address {
 
@@ -42,6 +42,7 @@ public class Address {
     this.state = null;
     this.zipCode = null;
   }
+
 
   public Address(String streetNumber, String streetPrefix, String streetName, String streetSuffix,
                  String unitName, String unitNumber, String city, String state, String zipCode) {

@@ -32,10 +32,14 @@ import java.util.regex.Pattern;
 import static org.apache.commons.lang.math.NumberUtils.isNumber;
 
 /**
- * Street address string detector
+ * Street address detector
+ * Recognize address components like city, state, street name, street number etc.
  * 1905 N Lincoln Ave Apt 125 Urbana IL 61801
  */
 public class AddressFinder {
+
+  //not in use because address parser is not accurate
+  private StreetAddressParser addressParser;
 
   private Set<String> words;
   private String DICT_FILE = "words.txt";
@@ -52,6 +56,7 @@ public class AddressFinder {
 
 
   public AddressFinder() {
+
     words = readFromCsv(DICT_FILE);
   }
 
@@ -62,8 +67,8 @@ public class AddressFinder {
    * @return
    */
   public boolean isUSAddress(String str) {
+
     return matchKeyWords(str);
-    //TODO: Need more powerful way to validate address
   }
 
   /**
@@ -119,12 +124,6 @@ public class AddressFinder {
     return matcher.matches();
   }
 
-
-
-
-
-
-
   private Set<String> readFromCsv(String fileName) {
     Set<String> set = new HashSet<>();
     CSVReader reader = null;
@@ -146,8 +145,4 @@ public class AddressFinder {
     }
     return null;
   }
-
-
-
-
 }

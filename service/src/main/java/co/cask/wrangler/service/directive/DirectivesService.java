@@ -601,6 +601,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       // Generate General and Type related Statistics for each column.
       Statistics statsGenerator = new BasicStatistics();
+
       Record summary = statsGenerator.aggregate(records);
 
       Record stats = (Record) summary.getValue("stats");
