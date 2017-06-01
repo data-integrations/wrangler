@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.executor;
 
+import au.com.bytecode.opencsv.CSVReader;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.Pipeline;
@@ -27,8 +28,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +37,9 @@ import java.util.List;
  * Tests {@link BasicStatistics}
  */
 public class BasicStatisticsTest {
+
+  private final String DATA_FILE_1 = "/Users/nitin/Work/Demo/data/customer_no_header.csv";
+  private final String DATA_FILE_2 = "MOCK_DATA.csv";
 
   @Test
   public void testMetaBasic() throws Exception {
@@ -98,10 +101,10 @@ public class BasicStatisticsTest {
     String[] directives = new String[] {
       "parse-as-csv body , true",
       "drop body"
-    };
+  };
 
     List<Record> records = new ArrayList<>();
-    try(BufferedReader br = new BufferedReader(new FileReader("/Users/nitin/Work/Demo/data/customer_no_header.csv"))) {
+    try(BufferedReader br = new BufferedReader(new FileReader(DATA_FILE_1))) {
       String line;
       while ((line = br.readLine()) != null) {
         records.add(new Record("body", line));
@@ -145,6 +148,73 @@ public class BasicStatisticsTest {
         if(percentage < 20) {
           continue;
         }
+        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+      }
+    }
+  }
+
+
+  @Test
+  public void testResourceFile() throws Exception {
+    String[] directives = new String[] {
+            "parse-as-csv body , true",
+            "drop body"
+    };
+
+    List<Record> records = new ArrayList<>();
+
+    try {
+      BufferedReader bReader = new BufferedReader(new InputStreamReader(
+              this.getClass().getResourceAsStream("/" + DATA_FILE_2)));
+      String line;
+      while ((line = bReader.readLine()) != null) {
+        records.add(new Record("body", line));
+      }
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(new TextDirectives(directives), null);
+    records = pipeline.execute(records);
+
+    Statistics meta = new BasicStatistics();
+    Record summary = meta.aggregate(records);
+
+    Record stats = (Record) summary.getValue("stats");
+    Record types = (Record) summary.getValue("types");
+
+
+    System.out.println("General Statistics");
+    System.out.println("Total number of records : " + summary.getValue("total"));
+    System.out.println();
+    List<KeyValue<String, Object>> fields = stats.getFields();
+    for (KeyValue<String, Object> field : fields) {
+      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
+      for (KeyValue<String, Double> value : values) {
+        Double percentage = value.getValue() * 100;
+        if(percentage < 20) {
+          continue;
+        }
+        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+      }
+    }
+
+    System.out.println();
+    System.out.println("Type Statistics");
+    System.out.println();
+    fields = types.getFields();
+    for (KeyValue<String, Object> field : fields) {
+      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
+      for (KeyValue<String, Double> value : values) {
+        Double percentage = value.getValue() * 100;
+        /*
+        if(percentage < 20) {
+          continue;
+        }
+        */
         System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
       }
     }

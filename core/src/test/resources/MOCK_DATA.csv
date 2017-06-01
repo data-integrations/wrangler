@@ -1,4 +1,4 @@
-id,first_name,last_name,phone,address,zip_code,credit_card_number,credit_card_type,ssn,ISBN,money,latitude,longitude,IPv4,IPv6,MAC address,other
+id,first_name,last_name,phone,address,zip_code,card_number,card_type,ssn,ISBN,money,latitude,longitude,IPv4,IPv6,MAC address,other
 1,Paulina,Wynne,7-(524)722-4546,478 Macpherson Drive,659600,5893038608281613,maestro,723-47-4824,182084447-1,$93110.95,52.30447,85.0785,84.150.101.246,ac68:ff5b:bcdb:e52b:f13d:5642:f97a:3d73,B9-27-8E-CE-77-8A,荣
 2,Jermain,Campkin,62-(686)504-8010,3595 Welch Circle,,3565674942828867,jcb,638-95-6091,240675162-7,$89156.02,-8.1298,113.7416,70.182.48.89,6ab1:18bf:97a8:8d37:9710:272b:e540:8be0,76-A0-A2-32-70-1B,逄
 3,Bartel,Iaduccelli,81-(176)487-0151,91781 Hermina Plaza,386-0404,30341406015109,diners-club-carte-blanche,124-65-0611,841688805-1,$36527.03,36.31865,138.2733,230.149.249.90,9376:12f5:47a0:58da:e48:eb9c:a816:9cb1,76-FA-DE-C9-0C-6E,廖
