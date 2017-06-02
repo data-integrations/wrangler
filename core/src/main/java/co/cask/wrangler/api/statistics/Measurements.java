@@ -93,7 +93,10 @@ public final class Measurements {
     List<KeyValue<String, Double>> percentages = new ArrayList<>();
     for (Map.Entry<String, MutableDouble> entry : metrics.entrySet()) {
       double percentage = entry.getValue().get() / sum;
-      percentages.add(new KeyValue<String, Double>(entry.getKey(), percentage));
+      if (percentage > 100.0) {
+        percentage = 100;
+      }
+      percentages.add(new KeyValue<>(entry.getKey(), percentage));
     }
     return percentages;
   }
