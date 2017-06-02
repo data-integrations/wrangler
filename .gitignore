@@ -40,4 +40,4 @@ logs/
 release.properties
 
 # Remove dev directory.
-dev/
+dev

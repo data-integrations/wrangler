@@ -187,6 +187,9 @@ These directives are currently available:
 | [Swap Columns](docs/directives/swap.md)                                | Swaps column names of two columns                                |
 | **NLP**                                                                |                                                                  |
 | [Stemming Tokenized Words](docs/directives/stemming.md)                | Applies the Porter stemmer algorithm for English words           |
+| **Transient Aggregators & Setters**                                    |                                                                  |
+| [Increment Variable](docs/directives/increment-variable.md)            | Increments a transient variable with a record of processing.     |
+| [Set Variable](docs/directives/set-variable.md)                        | Sets a transient variable with a record of processing.     |
 | **Functions**                                                          |                                                                  |
 | [Data Quality](docs/functions/dq-functions.md)                         | Data quality check functions. Checks for date, time, etc.        |
 | [Date Manipulations](docs/functions/date-functions.md)                 | Functions that can manipulate date                               |
