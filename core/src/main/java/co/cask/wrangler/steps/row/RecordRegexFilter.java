@@ -93,6 +93,8 @@ public class RecordRegexFilter extends AbstractStep {
           );
         }
         results.add(record);
+      } else {
+        results.add(record);
       }
     }
     return results;
