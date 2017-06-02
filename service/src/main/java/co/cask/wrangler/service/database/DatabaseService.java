@@ -318,13 +318,10 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       JsonObject object = new JsonObject();
       object.addProperty("class", driver.getKey());
       object.addProperty("label", driver.getValue().getName());
-      object.addProperty("tag", driver.getValue().getTag());
+      String shortTag = driver.getValue().getTag();
+      object.addProperty("tag", shortTag);
+      object.addProperty("name", shortTag);
       object.addProperty("default.port", driver.getValue().getPort());
-      String name = driver.getValue().getName();
-      name = name.trim();
-      name = name.toLowerCase();
-      name = name.replaceAll("[^a-zA-Z0-9_]", "");
-      object.addProperty("name", name);
       values.add(object);
     }
     response.addProperty("status", HttpURLConnection.HTTP_OK);
