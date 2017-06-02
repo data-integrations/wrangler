@@ -30,7 +30,10 @@ import com.google.gson.JsonPrimitive;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -189,6 +192,14 @@ public final class RecordConvertor implements Serializable {
           return (Long) object;
         } else if (object instanceof Integer) {
           return ((Integer) object).longValue();
+        } else if (object instanceof Date) {
+          return ((Date) object).getTime() / 1000; // Converts from milli-seconds to seconds.
+        } else if (object instanceof java.sql.Date) {
+          return ((java.sql.Date) object).getTime() / 1000;
+        } else if (object instanceof Time) {
+          return ((Time) object).getTime() / 1000;
+        } else if (object instanceof Timestamp) {
+          return ((Timestamp) object).getTime() / 1000;
         } else if (object instanceof Short) {
           return ((Short) object).longValue();
         } else if (object instanceof String) {
@@ -233,6 +244,8 @@ public final class RecordConvertor implements Serializable {
       case DOUBLE:
         if (object instanceof Double) {
           return (Double) object;
+        } else if (object instanceof BigDecimal) {
+          return ((BigDecimal) object).doubleValue();
         } else if (object instanceof Float) {
           return ((Float) object).doubleValue();
         } else if (object instanceof Long) {
