@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -75,8 +76,18 @@ public class ParseExcel extends AbstractStep {
         int idx = record.find(column);
         if (idx != -1) {
           Object object = record.getValue(idx);
+          byte[] bytes = null;
           if (object instanceof byte[]) {
-            byte[] bytes = (byte[]) object;
+            bytes = (byte[]) object;
+          } else if (object instanceof ByteBuffer) {
+            ByteBuffer buffer = (ByteBuffer) object;
+            bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+          } else {
+            throw new StepException(toString() + " : column " + column + " is not byte array or byte buffer.");
+          }
+
+          if (bytes != null) {
             input = new ByteArrayInputStream(bytes);
             XSSFWorkbook book = new XSSFWorkbook(input);
             XSSFSheet excelsheet;
@@ -90,13 +101,13 @@ public class ParseExcel extends AbstractStep {
 
             Iterator<Row> it = excelsheet.iterator();
             int rows = 0;
-            while(it.hasNext()) {
+            while (it.hasNext()) {
               Row row = it.next();
               Iterator<Cell> cellIterator = row.cellIterator();
               Record newRecord = new Record();
               newRecord.add("fwd", rows);
               newRecord.add("bkd", last - rows - 1);
-              while (cellIterator.hasNext())  {
+              while (cellIterator.hasNext()) {
                 Cell cell = cellIterator.next();
                 String name = columnName(cell.getAddress().getColumn());
                 switch (cell.getCellTypeEnum()) {
@@ -113,13 +124,9 @@ public class ParseExcel extends AbstractStep {
                     break;
                 }
               }
-              if (newRecord.length() > 0) {
-                results.add(newRecord);
-                rows++;
-              }
+              results.add(newRecord);
+              rows++;
             }
-          } else {
-            throw new StepException(toString() + " : column " + column + " is not excel file type.");
           }
         }
       }
