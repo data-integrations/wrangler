@@ -25,23 +25,17 @@ cache:
   directories:
     - $HOME/.m2
 
-
 # Do not exceed Travis memory capacity
 before_install: echo "MAVEN_OPTS='-Xmx2048m -XX:MaxPermSize=512m'" > ~/.mavenrc
 
 after_success:
   bash <(curl -s https://codecov.io/bash)
 
-
-
 env:
   global:
    #  The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "eO/53rGr4qALsyLc+1mlg03NDRSrk703Svjp2lD1e2ibZTwmAwnIs+LSnh0AfHURaQD4EAIMjlFEQYrgZH9IgBr3oAIaBw+A3A9kzdvM+PrbdWHFoYDahh9t2TOerzgrvrjGC3j+h+9LqXCHjERT5BVVu8l0K8mSln/2eoWz0I790uHegdhVVDqTTiEL36zte52ox4OHhpy6B73QLv33BHsPVVQyr3lWsZcSyPcgCbPxcJOUTTxZ+cFSDROp3mccHh/V9kU993YPzhdXb6XvurL1Yw4fTtvYrahm8Dot7p0r+H1wVa338tkHNPP9w84ms1ZwwojfitjYB9tNmW8ZPPPbUagKkvlcm2siaDUBjGHAGNZJQWuxEUbE/3fdfyoZHs5vEpsowAa/hdvaazTbTQMV2MPk/BJG2N1PGTGmhu1eBKaaf2ZxU4WUYMJpmujCbZLcmWZvMBsu1RZYrkynKdDcCHqpcAXoolZQ4Ua8tFg6sxJzIkHEedEQGneAYbi9OTELraCWCpJggU+/qVaQRxl/LMnbfhQP2Ct5wE/wzJExUAL+5u1h5UD6KJxa0cASEj/zzXC6C2fkviCeY9KoGmLuPt/UcEeLjduAoxisI7AuC6vf/MAtcnMsjpaJQLdWQL/OtrCqp2Tr87lK1FXthT50HCFpWagNTgyE9AfzlvY="
-  matrix:
-   - HADOOP_VERSION="2.4.1"
-
 
 addons:
   coverity_scan:
