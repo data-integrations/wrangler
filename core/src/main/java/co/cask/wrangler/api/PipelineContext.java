@@ -29,7 +29,6 @@ import java.util.Map;
  */
 @PublicEvolving
 public interface PipelineContext extends LookupProvider, Serializable {
-
   /**
    * Specifies the environment in which wrangler is running.
    */
@@ -66,4 +65,6 @@ public interface PipelineContext extends LookupProvider, Serializable {
    * @return URL if service exists, else null.
    */
   public URL getService(String applicationId, String serviceId);
+
+  public TransientStore getTransientStore();
 }

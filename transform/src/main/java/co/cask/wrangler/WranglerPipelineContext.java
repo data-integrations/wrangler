@@ -20,6 +20,7 @@ import co.cask.cdap.etl.api.Lookup;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.TransientStore;
 
 import java.net.URL;
 import java.util.Map;
@@ -31,16 +32,19 @@ import java.util.Map;
 class WranglerPipelineContext implements PipelineContext {
   private final Environment environment;
   private final TransformContext context;
+
+  private final TransientStore store;
   private StageMetrics metrics;
   private String name;
   private Map<String, String> properties;
 
-  WranglerPipelineContext(Environment environment, TransformContext context) {
+  WranglerPipelineContext(Environment environment, TransformContext context, TransientStore store) {
     this.environment = environment;
     this.metrics = context.getMetrics();
     this.name = context.getStageName();
     this.properties = context.getPluginProperties().getProperties();
     this.context = context;
+    this.store = store;
   }
 
   /**
@@ -85,6 +89,11 @@ class WranglerPipelineContext implements PipelineContext {
   @Override
   public URL getService(String applicationId, String serviceId) {
     return context.getServiceURL(applicationId, serviceId);
+  }
+
+  @Override
+  public TransientStore getTransientStore() {
+    return store;
   }
 
   /**

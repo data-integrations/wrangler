@@ -30,7 +30,11 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import org.json.JSONException;
 
+import java.math.BigDecimal;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +82,17 @@ public final class Json2Schema {
             String.format("Unable to convert field '%s' to basic type.", name)
           );
         }
+      }
+
+      if (value instanceof BigDecimal) {
+        Schema schema = Schema.nullableOf(Schema.of(Schema.Type.DOUBLE));
+        fields.add(Schema.Field.of(name, schema));
+      }
+
+      if (value instanceof Date || value instanceof java.sql.Date || value instanceof Time
+        || value instanceof Timestamp) {
+        Schema schema = Schema.nullableOf(Schema.of(Schema.Type.LONG));
+        fields.add(Schema.Field.of(name, schema));
       }
 
       if (value instanceof Map) {
