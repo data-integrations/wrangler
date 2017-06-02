@@ -19,9 +19,6 @@ jdk:
   - oraclejdk7
   - oraclejdk8
 
-env:
-  - MAVEN_OPTS="-Xmx2048m -XX:MaxPermSize=512m" HADOOP_VERSION="2.4.1"
-
 sudo: false
 
 cache:
@@ -32,6 +29,7 @@ after_success:
   bash <(curl -s https://codecov.io/bash)
 
 env:
+  - MAVEN_OPTS="-Xmx2048m -XX:MaxPermSize=512m" HADOOP_VERSION="2.4.1"
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
