@@ -19,8 +19,8 @@ package co.cask.wrangler.executor;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.steps.IncrementComputedVariable;
-import co.cask.wrangler.steps.SetComputedVariable;
+import co.cask.wrangler.steps.IncrementTransientVariable;
+import co.cask.wrangler.steps.SetTransientVariable;
 import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
@@ -318,7 +318,7 @@ public class TextDirectives implements Directives {
         case "set-variable": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          steps.add(new SetComputedVariable(lineno, directive, column, expression));
+          steps.add(new SetTransientVariable(lineno, directive, column, expression));
         }
         break;
 
@@ -327,7 +327,7 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String value = getNextToken(tokenizer, command, "value", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          steps.add(new IncrementComputedVariable(lineno, directive, column, value, expression));
+          steps.add(new IncrementTransientVariable(lineno, directive, column, value, expression));
         }
         break;
 

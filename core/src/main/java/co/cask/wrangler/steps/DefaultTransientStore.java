@@ -34,16 +34,12 @@ import java.util.Set;
 public class DefaultTransientStore implements TransientStore {
   private final Map<String, Object> variables = new HashMap<>();
 
-  @Override
-  public <T> T get(String name) {
-    return (T) variables.get(name);
-  }
-
-  @Override
-  public void set(String name, Object value) {
-    variables.put(name, value);
-  }
-
+  /**
+   * Increments a value of the variable.
+   *
+   * @param name  of the variable.
+   * @param value associated with the variable.
+   */
   @Override
   public void increment(String name, long value) {
     Long count = get(name);
@@ -53,6 +49,11 @@ public class DefaultTransientStore implements TransientStore {
     set(name, count + value);
   }
 
+  /**
+   * Set of all the variables.
+   *
+   * @return list of all the variables.
+   */
   @Override
   public Set<String> getVariables() {
     if(variables == null) {
@@ -61,9 +62,33 @@ public class DefaultTransientStore implements TransientStore {
     return variables.keySet();
   }
 
+  /**
+   * Resets the state of this store.
+   */
   @Override
   public void reset() {
     variables.clear();
   }
 
+  /**
+   * A value associated with the variable in the transient store.
+   *
+   * @param name of the variable to be retrieved.
+   * @return instance of object of type T.
+   */
+  @Override
+  public <T> T get(String name) {
+    return (T) variables.get(name);
+  }
+
+  /**
+   * Sets the value of the object for variable named 'name'.
+   *
+   * @param name  of the variable for which the value needs to be set.
+   * @param value of the variable.
+   */
+  @Override
+  public void set(String name, Object value) {
+    variables.put(name, value);
+  }
 }

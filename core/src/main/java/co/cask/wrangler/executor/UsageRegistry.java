@@ -18,8 +18,8 @@ package co.cask.wrangler.executor;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.steps.IncrementComputedVariable;
-import co.cask.wrangler.steps.SetComputedVariable;
+import co.cask.wrangler.steps.IncrementTransientVariable;
+import co.cask.wrangler.steps.SetTransientVariable;
 import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
@@ -210,8 +210,8 @@ public final class UsageRegistry implements Serializable {
     XPathArrayElement.class,
     XPathElement.class,
     ParseExcel.class,
-    SetComputedVariable.class,
-    IncrementComputedVariable.class
+    SetTransientVariable.class,
+    IncrementTransientVariable.class
   );
 
   public UsageRegistry() {

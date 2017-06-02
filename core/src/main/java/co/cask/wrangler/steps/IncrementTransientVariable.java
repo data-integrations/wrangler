@@ -7,6 +7,7 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlHelper;
+import co.cask.wrangler.steps.transformation.functions.Types;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -16,28 +17,31 @@ import org.apache.commons.jexl3.MapContext;
 import java.util.List;
 
 /**
- * A directive that defines a transient variable who's life-expectancy is only within the record.
- *
- * The value set as transient variable is available to all the directives after that. But, it's
- * not available beyond the input record.
+ * Class description here.
  */
 @Usage(
-  directive = "set-variable",
-  usage = "set-variable <variable> <expression>",
-  description = "Sets the value for a transient variable for the record being processed."
+  directive = "increment-variable",
+  usage = "increment-variable <variable> <value> <expression>",
+  description = "Increments the computed variable when expression is true by the value specified"
 )
-public class SetComputedVariable extends AbstractStep {
+public class IncrementTransientVariable extends AbstractStep {
   private final String variable;
+  private final long incrementBy;
   private final String expression;
   private final JexlEngine engine;
   private final JexlScript script;
 
-  public SetComputedVariable(int lineno, String detail, String variable, String expression) {
+  public IncrementTransientVariable(int lineno, String detail, String variable, String value, String expression) {
     super(lineno, detail);
     this.variable = variable;
     this.expression = expression;
     engine = JexlHelper.getEngine();
     script = engine.createScript(this.expression);
+    if (Types.isNumber(value)) {
+      incrementBy = Long.parseLong(value);
+    } else {
+      incrementBy = 1;
+    }
   }
 
   /**
@@ -68,8 +72,10 @@ public class SetComputedVariable extends AbstractStep {
       // Execution of the script / expression based on the record data
       // mapped into context.
       try {
-        Object result = script.execute(ctx);
-        context.getTransientStore().set(variable, result);
+        boolean result = (Boolean) script.execute(ctx);
+        if (result) {
+          context.getTransientStore().increment(variable, incrementBy);
+        }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
         // to check if there is a inner exception, if there is wrap it in 'StepException'
