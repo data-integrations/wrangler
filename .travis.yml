@@ -31,6 +31,10 @@ before_install: echo "MAVEN_OPTS='-Xmx2048m -XX:MaxPermSize=512m'" > ~/.mavenrc
 after_success:
   bash <(curl -s https://codecov.io/bash)
 
+script: mvn -U clean test
+
+install: mvn -U install -DskipTests=true -q
+
 env:
   global:
    #  The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
