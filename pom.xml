@@ -247,6 +247,11 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.7</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -260,10 +265,14 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
     </plugins>
   </build>
 
-   <!-- Profile for release. Includes signing of jars. -->
+  <!-- Profile for release. Includes signing of jars. -->
   <profiles>
     <profile>
       <id>release</id>
@@ -355,23 +364,8 @@
               <stagingProfileId>655dc88dc770c3</stagingProfileId>
             </configuration>
           </plugin>
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
-            <executions>
-              <execution>
-                <id>default-resources</id>
-                <configuration>
-                  <nonFilteredFileExtensions>
-                    <nonFilteredFileExtension>xml</nonFilteredFileExtension>
-                  </nonFilteredFileExtensions>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
         </plugins>
       </build>
     </profile>
   </profiles>
 </project>
-
