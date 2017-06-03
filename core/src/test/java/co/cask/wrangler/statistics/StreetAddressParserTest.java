@@ -16,11 +16,13 @@
 
 package co.cask.wrangler.statistics;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for {@link StreetAddressParser}
  */
+@Ignore
 public class StreetAddressParserTest {
 
   private StreetAddressParser parser = null;
@@ -55,17 +57,13 @@ public class StreetAddressParserTest {
 
     System.out.println("testetstett");
 
-
     for (String str : standardInputs) {
       Address result = parser.parse(str);
-
       System.out.println("Input: " + str);
       System.out.println(result + "\n");
-
       Assert.assertTrue(result.sameAs(standardResult));
     }
   }
-
 
   @Test
   public void testNonStandardParse() {
@@ -77,8 +75,6 @@ public class StreetAddressParserTest {
             "450 Serra Mall Stanford CA 94305",
             "6500 Soquel Dr Aptos CA 95003"
     };
-
-
 
     for (String str : nonStandardInputs) {
       Address result = parser.parse(str);

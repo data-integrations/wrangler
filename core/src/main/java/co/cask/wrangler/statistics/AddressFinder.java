@@ -41,8 +41,8 @@ public class AddressFinder {
   //not in use because address parser is not accurate
   private StreetAddressParser addressParser;
 
-  //private Set<String> words;
-  //private String DICT_FILE = "words.txt";
+  private Set<String> words;
+  private String DICT_FILE = "words.txt";
 
 
   private String US_REGEX_PATTERN = "\\d+[ ](?:[A-Za-z0-9.-]+[ ]?)+(?:Avenue|Lane|Road|Boulevard|Drive|Street|Ave|Parkway|Way|Circle|Plaza|Dr|Rd|Blvd|Ln|St|)\\.?";
@@ -56,8 +56,7 @@ public class AddressFinder {
 
 
   public AddressFinder() {
-
-    //words = readFromCsv(DICT_FILE);
+    words = readFromCsv(DICT_FILE);
   }
 
 
@@ -95,12 +94,6 @@ public class AddressFinder {
   }
 
   public boolean isCity(String str) {
-
-    return false;
-
-    //comment out for debug
-
-    /*
     if (isNumber(str)) {
       return false;
     }
@@ -110,7 +103,6 @@ public class AddressFinder {
     else {
       return false;
     }
-    */
   }
 
   public boolean isSuffix(String str) {

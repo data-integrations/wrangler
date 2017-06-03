@@ -16,45 +16,31 @@
 
 package co.cask.wrangler.statistics;
 
-import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.statistics.ColumnMetric;
 import co.cask.wrangler.api.statistics.Statistics;
 import io.dataapps.chlorine.finder.FinderEngine;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * To generate statistics of list of Records
  */
 public class BasicStatistics implements Statistics {
 
-
-
   private final FinderEngine engine;
   private final PhoneNumberFinder phoneNumberFinder;
   private final ISBNFinder isbnFinder;
   private final AddressFinder addressFinder;
-
-  private Map<String, List<KeyValue<String, Double>>> manualTypes;
-
 
   public BasicStatistics() throws Exception {
     engine = new FinderEngine("wrangler-finder-1.xml", true, false);
     phoneNumberFinder = new PhoneNumberFinder();
     isbnFinder = new ISBNFinder();
     addressFinder = new AddressFinder();
-    manualTypes = new HashMap<>();
   }
-
-  @Override
-  public boolean setType(String column, String typeName) {
-    KeyValue<String, Double> type = new KeyValue<>(typeName, 1.0);
-    List<KeyValue<String, Double>> types = new ArrayList<>(Arrays.asList(type));
-    manualTypes.put(column, types);
-    return true;
-  }
-
 
   @Override
   public Record aggregate(List<Record> records) {
@@ -93,8 +79,8 @@ public class BasicStatistics implements Statistics {
             */
 
             //Need to check the types in certain order, to make some checkers's results dominate others
-
-            //TODO: Street_Address need improve. For now just uses regex matching, which can't recognize all addresses
+            //Street_Address is hard to detect. For now just uses regex matching, which can't recognize all addresses
+            //We rely on manually setting type for street address now
             if (addressFinder.isUSAddress(value)) {
               types.increment(column, "Street_Address");
             }
@@ -243,19 +229,9 @@ public class BasicStatistics implements Statistics {
       }
     }
 
-
-
-
     Record recordTypes = new Record();
     for (String column : types.getColumns()) {
-      //take the manually set type
-      if (manualTypes.containsKey(column)) {
-        recordTypes.add(column, manualTypes.get(column));
-      }
-      //if type is not manually set, detect it
-      else {
-        recordTypes.add(column, types.percentage(column, count));
-      }
+      recordTypes.add(column, types.percentage(column, count));
     }
 
     Record recordStats = new Record();
@@ -270,7 +246,5 @@ public class BasicStatistics implements Statistics {
 
     return record;
   }
-
-
 
 }

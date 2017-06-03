@@ -15,7 +15,6 @@
  */
 
 package co.cask.wrangler.statistics;
-import org.apache.commons.validator.routines.ISBNValidator;
 import org.junit.Assert;
 import org.junit.Test;
 

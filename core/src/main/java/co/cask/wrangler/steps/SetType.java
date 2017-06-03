@@ -16,7 +16,11 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.*;
+import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.api.i18n.Messages;
 import co.cask.wrangler.api.i18n.MessagesFactory;
 
@@ -31,15 +35,15 @@ import java.util.List;
 @Usage(
   directive = "set-type",
   usage = "set-type <column> <type>",
-  description = "Manually indicate the type of a column"
+  description = "Manually indicate the type of a column."
 )
 public class SetType extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
 
-  // Columns of the columns that needs to be renamed.
+  //column to set type for
   private String col;
 
-  // Columns of the column to be renamed to.
+  //set column to be this type
   private String type;
 
   public SetType(int lineno, String detail, String col, String type) {

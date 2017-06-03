@@ -17,12 +17,14 @@
 package co.cask.wrangler.statistics;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +32,6 @@ import java.util.List;
  * Tests for {@link PhoneNumberFinder}
  */
 public class PhoneNumberTest {
-  private PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
   private final String NUMBERS_FILE = "phone.csv";
   private final String NON_NUMBERS_FILE = "mock_one_line.csv";
   private final PhoneNumberFinder finder;
@@ -78,6 +79,7 @@ public class PhoneNumberTest {
   }
 
   //TODO: Due to too many phone number formats to match (many countries), it tends to recognize other content as phone numbers
+  //This test fails
   @Ignore
   @Test
   public void testInvalidPhoneNumber() throws Exception {

@@ -16,8 +16,6 @@
 
 package co.cask.wrangler.statistics;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
-
 import static org.apache.commons.lang.math.NumberUtils.isNumber;
 
 /**

@@ -18,19 +18,15 @@ package co.cask.wrangler.statistics;
 
 import au.com.bytecode.opencsv.CSVReader;
 import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.wrangler.TestUtil;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.statistics.Statistics;
-import com.google.gson.JsonObject;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -105,7 +101,6 @@ public class ZipcodeTest {
       }
     }
   }
-
 
 
   private List<String> readCreditCardFromCsv(String fileName) {

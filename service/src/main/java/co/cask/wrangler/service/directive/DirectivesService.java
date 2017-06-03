@@ -73,7 +73,13 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -619,6 +625,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       Set<String> vars = store.getVariables();
       for (int i = 0; i < types.length(); i ++) {
         String col = types.getColumn(i);
+        //encode the transient variable name as <column>_data_type
+        //it's value is name of the type as a string
         String transientVarName = col + "_data_type";
         if (vars.contains(transientVarName)) {
           String storedType = store.get(transientVarName);
@@ -959,6 +967,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param id data to be used for executing directives.
    * @param user request passed on http.
    * @param sample sampling function.
+   * @param store transient store for transient variables.
    * @return records generated from the directives.
    */
   private List<Record> executeDirectives(String id, @Nullable Request user,

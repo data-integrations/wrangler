@@ -28,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,7 +154,10 @@ public class BasicStatisticsTest {
     }
   }
 
-
+  /**
+   * Test type detection using data from a 1000 line Mockaroo generated csv file
+   * @throws Exception
+   */
   @Test
   public void testResourceFile() throws Exception {
     String[] directives = new String[] {

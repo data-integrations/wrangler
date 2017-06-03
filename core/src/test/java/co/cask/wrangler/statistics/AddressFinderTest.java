@@ -28,7 +28,7 @@ public class AddressFinderTest {
 
   public AddressFinderTest() {
     finder = new AddressFinder();
-    //TODO: Complicated International address format is not recognizable for now
+    //Complicated International address or unformatted US address is not recognizable
     addressList = new String[] {"1905 N. Lincoln Ave Apt 125, Urbana IL 61801",
             "510 E. Clark St Apt 26, Champaign IL 61820",
             "150 Grant Ave, Palo Alto, CA 94306", "92 Wucheng Rd, Xiaodian Qu, Taiyuan Shi, Shanxi Sheng, China",
