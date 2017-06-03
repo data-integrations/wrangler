@@ -189,7 +189,8 @@ These directives are currently available:
 | [Stemming Tokenized Words](docs/directives/stemming.md)                | Applies the Porter stemmer algorithm for English words           |
 | **Transient Aggregators & Setters**                                    |                                                                  |
 | [Increment Variable](docs/directives/increment-variable.md)            | Increments a transient variable with a record of processing.     |
-| [Set Variable](docs/directives/set-variable.md)                        | Sets a transient variable with a record of processing.     |
+| [Set Variable](docs/directives/set-variable.md)                        | Sets a transient variable with a record of processing.           |
+| [Set Column Type](docs/directives/set-type.md)                         | Manually set a data type of the column.                           |
 | **Functions**                                                          |                                                                  |
 | [Data Quality](docs/functions/dq-functions.md)                         | Data quality check functions. Checks for date, time, etc.        |
 | [Date Manipulations](docs/functions/date-functions.md)                 | Functions that can manipulate date                               |

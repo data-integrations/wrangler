@@ -73,13 +73,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -484,6 +478,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
+      TransientStore store = new DefaultTransientStore();
       List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
@@ -491,7 +486,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
         }
-      });
+      }, store);
 
       JsonArray values = new JsonArray();
       JsonArray headers = new JsonArray();
@@ -566,6 +561,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
 
+      //create a store here instead, so we can access data from the store within summary method
+      TransientStore store = new DefaultTransientStore();
+
       List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
@@ -573,7 +571,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
         }
-      });
+      }, store);
 
 
       // Final response object.
@@ -614,6 +612,21 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       Record stats = (Record) summary.getValue("stats");
       Record types = (Record) summary.getValue("types");
+
+
+      //add or override col type info to types
+      //manually set types are stored in the TransientStore
+      Set<String> vars = store.getVariables();
+      for (int i = 0; i < types.length(); i ++) {
+        String col = types.getColumn(i);
+        String transientVarName = col + "_data_type";
+        if (vars.contains(transientVarName)) {
+          String storedType = store.get(transientVarName);
+          ArrayList<KeyValue<String, Double>> setTypes = new ArrayList<>();
+          setTypes.add(new KeyValue<>(storedType, 1.0));
+          types.setValue(i, setTypes);
+        }
+      }
 
       // Serialize the results into JSON.
       List<KeyValue<String, Object>> fields = stats.getFields();
@@ -670,6 +683,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
+      TransientStore store = new DefaultTransientStore();
       List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
@@ -677,7 +691,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
         }
-      });
+      },store);
 
       // generate a schema based upon the first record
       Json2Schema json2Schema = new Json2Schema();
@@ -776,6 +790,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       final int limit = reqBody.getSampling().getLimit();
+      TransientStore store = new DefaultTransientStore();
       List<Record> newRecords = executeDirectives(ws, reqBody, new Function<List<Record>, List<Record>>() {
         @Nullable
         @Override
@@ -783,7 +798,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           int min = Math.min(records.size(), limit);
           return Lists.newArrayList(new Reservoir<Record>(min).sample(records.iterator()));
         }
-      });
+      },store);
 
 
       Record firstRow = newRecords.get(0);
@@ -947,13 +962,13 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @return records generated from the directives.
    */
   private List<Record> executeDirectives(String id, @Nullable Request user,
-                                         Function<List<Record>, List<Record>> sample)
+                                         Function<List<Record>, List<Record>> sample,
+                                         TransientStore store)
     throws Exception {
     if (user == null) {
       throw new Exception("Request is empty. Please check if the request is sent as HTTP POST body.");
     }
 
-    TransientStore store = new DefaultTransientStore();
     // Extract records from the workspace.
     List<Record> records = fromWorkspace(id);
     // Execute the pipeline.

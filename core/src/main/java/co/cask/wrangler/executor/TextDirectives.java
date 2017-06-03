@@ -21,17 +21,7 @@ import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.steps.IncrementTransientVariable;
 import co.cask.wrangler.steps.SetTransientVariable;
-import co.cask.wrangler.steps.column.ChangeColCaseNames;
-import co.cask.wrangler.steps.column.CleanseColumnNames;
-import co.cask.wrangler.steps.column.Columns;
-import co.cask.wrangler.steps.column.ColumnsReplace;
-import co.cask.wrangler.steps.column.Copy;
-import co.cask.wrangler.steps.column.Drop;
-import co.cask.wrangler.steps.column.Keep;
-import co.cask.wrangler.steps.column.Merge;
-import co.cask.wrangler.steps.column.Rename;
-import co.cask.wrangler.steps.column.SplitToColumns;
-import co.cask.wrangler.steps.column.Swap;
+import co.cask.wrangler.steps.column.*;
 import co.cask.wrangler.steps.date.DiffDate;
 import co.cask.wrangler.steps.date.FormatDate;
 import co.cask.wrangler.steps.language.SetCharset;
@@ -92,6 +82,7 @@ import co.cask.wrangler.steps.transformation.LeftTrim;
 import co.cask.wrangler.steps.transformation.RightTrim;
 
 
+import co.cask.wrangler.steps.SetType;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -1007,8 +998,13 @@ public class TextDirectives implements Directives {
         }
         break;
 
-
-
+        //set-type <column> <type>
+        case "set-type": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          steps.add(new SetType(lineno, directive, col, type));
+        }
+        break;
 
         default:
           throw new DirectiveParseException(
