@@ -90,7 +90,7 @@ public class JsParser extends AbstractStep {
           JsonElement element = null;
           if(value instanceof String) {
             String document = (String) value;
-            element = parser.parse(document);
+            element = parser.parse(document.trim());
           } else if (value instanceof JsonObject || value instanceof JsonArray) {
             element = (JsonElement) value;
           } else {
