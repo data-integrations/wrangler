@@ -72,7 +72,8 @@ public class RecordRegexFilter extends AbstractStep {
       if (idx != -1) {
         Object object = record.getValue(idx);
         if (object == null) {
-          continue;
+          if(!match)
+            continue;
         } else if (object instanceof JSONObject) {
           if (pattern == null && JSONObject.NULL.equals(object)) {
             continue;
@@ -92,8 +93,6 @@ public class RecordRegexFilter extends AbstractStep {
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );
         }
-        results.add(record);
-      } else {
         results.add(record);
       }
     }
