@@ -25,44 +25,41 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by archilshah on 6/2/17.
+ * Tests {@link RecordRegexFilter}
  */
 public class RecordRegexFilterTest {
+  @Test
+  public void testFilterKeepDoesntKeepNullValues() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , false",
+      "filter-rows-on regex-not-match body_3 .*pot.*"
+    };
 
-    @Test
-    public void testFilterKeepDoesntKeepNullValues() throws Exception {
-        String[] directives = new String[] {
-                "parse-as-csv body , false",
-                "filter-rows-on regex-not-match body_3 .*pot.*"
-        };
+    List<Record> records = Arrays.asList(
+      new Record("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
+      new Record("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
+      new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
+    );
 
-        List<Record> records = Arrays.asList(
-                new Record("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
-                new Record("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
-                new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
-        );
-
-        records = PipelineTest.execute(directives, records);
-
-        Assert.assertTrue(records.size() == 1);
-    }
+    records = PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 1);
+  }
 
 
-    @Test
-    public void testFilterRemoveDoesntDropNullValues() throws Exception {
-        String[] directives = new String[] {
-                "parse-as-csv body , false",
-                "filter-rows-on regex-match body_3 .*pot.*"
-        };
+  @Test
+  public void testFilterRemoveDoesntDropNullValues() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , false",
+      "filter-rows-on regex-match body_3 .*pot.*"
+    };
 
-        List<Record> records = Arrays.asList(
-            new Record("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
-            new Record("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
-            new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
-         );
+    List<Record> records = Arrays.asList(
+      new Record("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
+      new Record("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
+      new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
+    );
 
-        records = PipelineTest.execute(directives, records);
-
-        Assert.assertTrue(records.size() == 2);
-    }
+    records = PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 2);
+  }
 }
