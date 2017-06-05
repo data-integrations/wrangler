@@ -16,11 +16,7 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.PipelineContext;
-import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.*;
 import co.cask.wrangler.api.i18n.Messages;
 import co.cask.wrangler.api.i18n.MessagesFactory;
 
@@ -60,6 +56,17 @@ public class Rename extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+
+    //change the type variable in transient store
+    TransientStore store = context.getTransientStore();
+    String oldVarName = oldcol + "_data_type";
+    String newVarName = newcol + "_data_type";
+    String oldType = store.get(oldVarName);
+    if (oldType != null) {
+      store.delete(oldVarName);
+      store.set(newVarName, oldType);
+    }
+
     for (Record record : records) {
       int idx = record.find(oldcol);
       int idxnew = record.find(newcol);
