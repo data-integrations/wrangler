@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -33,12 +36,11 @@ import java.util.regex.Pattern;
 /**
  * A Wrangler step for quantizing a column.
  */
-@Usage(
-  directive = "quantize",
-  usage = "quantize <source> <destination> " +
-  "<[range1:range2)=value>,[<range1:range2=value>]*",
-  description = "Quanitize the range of numbers into label values."
-)
+@Plugin(type = "udd")
+@Name("quantize")
+@Usage("quantize <source> <destination> " +
+  "<[range1:range2)=value>,[<range1:range2=value>]*")
+@Description("Quanitize the range of numbers into label values.")
 public class Quantization extends AbstractStep {
   private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();

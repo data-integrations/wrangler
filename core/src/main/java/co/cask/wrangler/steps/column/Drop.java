@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -31,11 +34,11 @@ import java.util.List;
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
  */
-@Usage(
-  directive = "drop",
-  usage = "drop <column>[,<column>*]",
-  description = "Drop one or more columns."
-)
+
+@Plugin(type = "udd")
+@Name("drop")
+@Usage("drop <column>[,<column>*]")
+@Description("Drop one or more columns")
 public class Drop extends AbstractStep {
   // Columns to be dropped.
   private List<String> columns;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A Split on Stage for splitting the string into multiple {@link Record}s.
  */
-@Usage(
-  directive = "split-to-rows",
-  usage = "split-to-rows <column> <separator>",
-  description = "Splits a column into multiple rows, copies the rest of the columns."
-)
+@Plugin(type = "udd")
+@Name("split-to-rows")
+@Usage("split-to-rows <column> <separator>")
+@Description("Splits a column into multiple rows, copies the rest of the columns.")
 public class SplitToRows extends AbstractStep {
   // Column on which to apply mask.
   private final String column;

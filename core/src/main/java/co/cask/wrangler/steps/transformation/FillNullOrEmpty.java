@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A step to fill null or empty column values with a fixed value.
  */
-@Usage(
-  directive = "fill-null-or-empty",
-  usage = "fill-null-or-empty <column> <fixed-value>",
-  description = "Fills a value of a column with a fixed value if it is either null or empty"
-)
+@Plugin(type = "udd")
+@Name("fill-null-or-empty")
+@Usage("fill-null-or-empty <column> <fixed-value>")
+@Description("Fills a value of a column with a fixed value if it is either null or empty")
 public class FillNullOrEmpty extends AbstractStep {
   private String column;
   private String value;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -31,11 +34,10 @@ import java.util.List;
 /**
  * A directive that Flattens a record
  */
-@Usage(
-  directive = "flatten",
-  usage = "flatten <column>[,<column>*]",
-  description = "Separates array elements of one or more columns into indvidual records, copying the other columns"
-)
+@Plugin(type = "udd")
+@Name("flatten")
+@Usage("flatten <column>[,<column>*]")
+@Description("Separates array elements of one or more columns into indvidual records, copying the other columns")
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;

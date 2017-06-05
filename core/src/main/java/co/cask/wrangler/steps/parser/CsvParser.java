@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -36,11 +39,10 @@ import java.util.Set;
 /**
  * A CSV Parser Stage for parsing the {@link Record} provided based on configuration.
  */
-@Usage(
-  directive = "parse-as-csv",
-  usage = "parse-as-csv <column> <delimiter> [<header=true|false>]",
-  description = "Parses a column as CSV (comma-separated values)"
-)
+@Plugin(type = "udd")
+@Name("parse-as-csv")
+@Usage("parse-as-csv <column> <delimiter> [<header=true|false>]")
+@Description("Parses a column as CSV (comma-separated values)")
 public class CsvParser extends AbstractStep {
   // Column within the input row that needs to be parsed as CSV
   private String col;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A Wrangler step for splitting a col into two additional columns based on a start and end.
  */
-@Usage(
-  directive = "indexsplit",
-  usage = "indexsplit <source> <start> <end> <destination>",
-  description = "[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead"
-)
+@Plugin(type = "udd")
+@Name("indexsplit")
+@Usage("indexsplit <source> <start> <end> <destination>")
+@Description("[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead")
 public class IndexSplit extends AbstractStep {
   // Name of the column to be split
   private String col;

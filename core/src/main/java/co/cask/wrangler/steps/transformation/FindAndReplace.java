@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -30,11 +33,10 @@ import java.util.List;
 /**
  * A Wrangle step for 'find-and-replace' transformations on the column.
  */
-@Usage(
-  directive = "find-and-replace",
-  usage = "find-and-replace <column> <sed-expression>",
-  description = "Finds and replaces text in column values using a sed-format expression"
-)
+@Plugin(type = "udd")
+@Name("find-and-replace")
+@Usage("find-and-replace <column> <sed-expression>")
+@Description("Finds and replaces text in column values using a sed-format expression")
 public class FindAndReplace extends AbstractStep {
   private final String pattern;
   private final String column;

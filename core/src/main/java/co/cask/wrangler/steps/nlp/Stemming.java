@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.nlp;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -31,11 +34,10 @@ import java.util.List;
 /**
  * Step for stemming the words provided using Porter Stemming.
  */
-@Usage(
-  directive = "stemming",
-  usage = "stemming <column>",
-  description = "Apply Porter Stemming on the column value."
-)
+@Plugin(type = "udd")
+@Name("stemming")
+@Usage("stemming <column>")
+@Description("Apply Porter Stemming on the column value.")
 public class Stemming extends AbstractStep {
   private final String column;
   private final PorterStemmer stemmer;

@@ -26,7 +26,6 @@ import java.util.List;
  * Tests {@link UsageRegistry}
  */
 public class UsageRegistryTest {
-
   @Test
   public void testUsageRegistry() throws Exception {
     UsageRegistry registry = new UsageRegistry();

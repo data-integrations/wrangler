@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.date;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,12 +31,11 @@ import java.util.List;
 /**
  * A Wrangle step for taking difference in Dates.
  */
-@Usage(
-  directive = "diff-date",
-  usage = "diff-date <column1> <column2> <destination>",
-  description = "Calculates the difference in milliseconds between two Date objects." +
-    "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first."
-)
+@Plugin(type = "udd")
+@Name("diff-date")
+@Usage("diff-date <column1> <column2> <destination>")
+@Description("Calculates the difference in milliseconds between two Date objects." +
+  "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
 public class DiffDate extends AbstractStep {
   private final String column1;
   private final String column2;

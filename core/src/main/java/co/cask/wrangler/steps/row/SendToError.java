@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -41,11 +44,10 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
-@Usage(
-  directive = "send-to-error",
-  usage = "send-to-error <condition>",
-  description = "Send records that match condition to the error collector."
-)
+@Plugin(type = "udd")
+@Name("send-to-error")
+@Usage("send-to-error <condition>")
+@Description("Send records that match condition to the error collector.")
 public class SendToError extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;

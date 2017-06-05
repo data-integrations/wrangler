@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.StaticCatalog;
 import co.cask.wrangler.api.PipelineContext;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * Looks ICD Code from the catalog.
  */
-@Usage(
-  directive = "catalog-lookup",
-  usage = "catalog-lookup <catalog> <column>",
-  description = "Looks-up values from pre-loaded (static) catalogs"
-)
+@Plugin(type = "udd")
+@Name("catalog-lookup")
+@Usage("catalog-lookup <catalog> <column>")
+@Description("Looks-up values from pre-loaded (static) catalogs")
 public class CatalogLookup extends AbstractStep {
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;

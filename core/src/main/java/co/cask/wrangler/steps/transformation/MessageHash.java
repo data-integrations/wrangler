@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -25,19 +28,16 @@ import com.google.common.collect.ImmutableSet;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * A Step to generate a message digest or hash of a column value. .
  */
-@Usage(
-  directive = "hash",
-  usage = "hash <column> <algorithm> [<encode=true|false>]",
-  description = "Creates a message digest for the column using algorithm, replacing the column value"
-)
+@Plugin(type = "udd")
+@Name("hash")
+@Usage("hash <column> <algorithm> [<encode=true|false>]")
+@Description("Creates a message digest for the column using algorithm, replacing the column value")
 public class MessageHash extends AbstractStep {
   private static final Set<String> algorithms = ImmutableSet.of(
     "BLAKE2B-160",

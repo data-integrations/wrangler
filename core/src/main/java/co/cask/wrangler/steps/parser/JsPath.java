@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -36,11 +39,10 @@ import java.util.List;
 /**
  * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
  */
-@Usage(
-  directive = "json-path",
-  usage = "json-path <source> <destination> <json-path-expression>",
-  description = "Parses JSON elements using a DSL (a JSON path expression)"
-)
+@Plugin(type = "udd")
+@Name("json-path")
+@Usage("json-path <source> <destination> <json-path-expression>")
+@Description("Parses JSON elements using a DSL (a JSON path expression)")
 public class JsPath extends AbstractStep {
   private String src;
   private String dest;

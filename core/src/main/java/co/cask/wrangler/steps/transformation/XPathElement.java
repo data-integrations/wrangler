@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -38,11 +41,10 @@ import java.util.List;
  * </p>
  *
  */
-@Usage(
-  directive = "xpath",
-  usage = "xpath <column> <destination> <xpath>",
-  description = "Extract a single XML element or attribute using XPath"
-)
+@Plugin(type = "udd")
+@Name("xpath")
+@Usage("xpath <column> <destination> <xpath>")
+@Description("Extract a single XML element or attribute using XPath")
 public class XPathElement extends AbstractStep {
   private final String column;
   private final String destination;

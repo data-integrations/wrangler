@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A step that implements unix cut directive.
  */
-@Usage(
-  directive = "cut-character",
-  usage = "cut-character <source> <destination> <type> <range|indexes>",
-  description = "UNIX-like 'cut' directive for splitting text"
-)
+@Plugin(type = "udd")
+@Name("cut-character")
+@Usage("cut-character <source> <destination> <type> <range|indexes>")
+@Description("UNIX-like 'cut' directive for splitting text")
 public class CharacterCut extends AbstractStep {
   private String source;
   private String destination;

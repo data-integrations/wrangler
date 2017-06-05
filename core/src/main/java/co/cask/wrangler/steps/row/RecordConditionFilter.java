@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -40,11 +43,10 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
-@Usage(
-  directive = "filter-row-if-true",
-  usage = "filter-row-if-true <condition>",
-  description = "[DEPRECATED] Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead."
-)
+@Plugin(type = "udd")
+@Name("filter-row-if-true")
+@Usage("filter-row-if-true <condition>")
+@Description("[DEPRECATED] Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead.")
 public class RecordConditionFilter extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;

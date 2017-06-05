@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.language;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -34,11 +37,10 @@ import java.util.List;
  * This directive will convert the data from {@link Byte[]} or {@link ByteBuffer}
  * to {@link String}. This conversion is through the character set encoding.
  */
-@Usage(
-  directive = "set-charset",
-  usage = "set-charset <column> <charset>",
-  description = "Sets the character set decoding to UTF-8."
-)
+@Plugin(type = "udd")
+@Name("set-charset")
+@Usage("set-charset <column> <charset>")
+@Description("Sets the character set decoding to UTF-8.")
 public class SetCharset extends AbstractStep {
   private final String column;
   private final String charset;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -40,11 +43,10 @@ import java.util.Random;
  *   </blockquote>
  * </p>
  */
-@Usage(
-  directive = "mask-shuffle",
-  usage = "mask-shuffle <column>",
-  description = "Masks a column value by shuffling characters while maintaining the same length"
-)
+@Plugin(type = "udd")
+@Name("mask-shuffle")
+@Usage("mask-shuffle <column>")
+@Description("Masks a column value by shuffling characters while maintaining the same length")
 public class MaskShuffle extends AbstractStep {
   // Column on which to apply mask.
   private final String column;

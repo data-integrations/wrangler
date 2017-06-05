@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.writer;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
@@ -31,11 +34,10 @@ import java.util.Map;
 /**
  * A step to write the record fields as JSON.
  */
-@Usage(
-  directive = "write-as-json-map",
-  usage = "write-as-json-map <column>",
-  description = "Writes all record columns as JSON map."
-)
+@Plugin(type = "udd")
+@Name("write-as-json-map")
+@Usage("write-as-json-map <column>")
+@Description("Writes all record columns as JSON map.")
 public class WriteAsJsonMap extends AbstractStep {
   private final String column;
   private final Gson gson;

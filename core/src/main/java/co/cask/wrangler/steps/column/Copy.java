@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A step to copy data from one column to another.
  */
-@Usage(
-  directive = "copy",
-  usage = "copy <source> <destination> [<force=true|false>]",
-  description = "Copies values from a source column into a destination column"
-)
+@Plugin(type = "udd")
+@Name("copy")
+@Usage("copy <source> <destination> [<force=true|false>]")
+@Description("Copies values from a source column into a destination column")
 public class Copy extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private String source;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -27,11 +30,10 @@ import java.util.List;
 /**
  * A Wrangler step for lower casing the 'col' value of type String.
  */
-@Usage(
-  directive = "lowercase",
-  usage = "lowercase <column>",
-  description = "Changes the column values to lowercase"
-)
+@Plugin(type = "udd")
+@Name("lowercase")
+@Usage("lowercase <column>")
+@Description("Changes the column values to lowercase")
 public class Lower extends AbstractStep {
   // Columns of the column to be lower cased.
   private String col;

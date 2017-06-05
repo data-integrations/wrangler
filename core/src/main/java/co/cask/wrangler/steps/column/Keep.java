@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
@@ -30,11 +33,10 @@ import java.util.Set;
 /**
  * A step that implements the opposite of {@link Drop} columns.
  */
-@Usage(
-  directive = "keep",
-  usage = "keep <column>[,<column>*]",
-  description = "Keeps the specified columns and drops all others"
-)
+@Plugin(type = "udd")
+@Name("keep")
+@Usage("keep <column>[,<column>*]")
+@Description("Keeps the specified columns and drops all others")
 public class Keep extends AbstractStep {
 
   private final Set<String> keep = new HashSet<>();

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A Fixed length Parser Stage for parsing the {@link Record} provided based on configuration.
  */
-@Usage(
-  directive = "parse-as-fixed-length",
-  usage = "parse-as-fixed-length <column> <width>[,<width>*] [<padding-character>]",
-  description = "Parses fixed-length records using the specified widths and padding-character"
-)
+@Plugin(type = "udd")
+@Name("parse-as-fixed-length")
+@Usage("parse-as-fixed-length <column> <width>[,<width>*] [<padding-character>]")
+@Description("Parses fixed-length records using the specified widths and padding-character")
 public final class FixedLengthParser extends AbstractStep {
   private final int[] widths;
   private final String col;

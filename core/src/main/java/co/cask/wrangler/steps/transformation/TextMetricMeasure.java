@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * Step for implementing the directive for measuring the metrics between two sequence of characters.
  */
-@Usage(
-  directive = "text-metric",
-  usage = "text-metric <method> <column1> <column2> <destination>",
-  description = "Calculates the metric for comparing two string values."
-)
+@Plugin(type = "udd")
+@Name("text-metric")
+@Usage("text-metric <method> <column1> <column2> <destination>")
+@Description("Calculates the metric for comparing two string values.")
 public class TextMetricMeasure extends AbstractStep {
   private final String column1;
   private final String column2;

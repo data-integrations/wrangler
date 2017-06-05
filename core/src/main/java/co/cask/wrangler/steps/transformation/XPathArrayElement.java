@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -41,11 +44,10 @@ import java.util.List;
  * </p>
  *
  */
-@Usage(
-  directive = "xpath-array",
-  usage = "xpath-array <column> <destination> <xpath>",
-  description = "Extract XML element or attributes as JSON array using XPath."
-)
+@Plugin(type = "udd")
+@Name("xpath-array")
+@Usage("xpath-array <column> <destination> <xpath>")
+@Description("Extract XML element or attributes as JSON array using XPath.")
 public class XPathArrayElement extends AbstractStep {
   private final String column;
   private final String destination;

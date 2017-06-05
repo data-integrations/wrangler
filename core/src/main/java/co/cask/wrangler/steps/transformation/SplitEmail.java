@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A Step to split email address into account and domain.
  */
-@Usage(
-  directive = "split-email",
-  usage = "split-email <column>",
-  description = "Split a email into account and domain."
-)
+@Plugin(type = "udd")
+@Name("split-email")
+@Usage("split-email <column>")
+@Description("Split a email into account and domain.")
 public class SplitEmail extends AbstractStep {
   private final String column;
 

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A step for parsing a string into record using the record delimiter.
  */
-@Usage(
-  directive = "set-record-delim",
-  usage = "set-record-delim <column> <delimiter> [<limit>]",
-  description = "Sets the record delimiter."
-)
+@Plugin(type = "udd")
+@Name("set-record-delim")
+@Usage("set-record-delim <column> <delimiter> [<limit>]")
+@Description("Sets the record delimiter.")
 public class SetRecordDelimiter extends AbstractStep {
   private final String column;
   private final String delimiter;

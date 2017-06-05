@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A Wrangler step for title casing the 'col' value of type String.
  */
-@Usage(
-  directive = "titlecase",
-  usage = "titlecase <column>",
-  description = "Changes the column values to title case"
-)
+@Plugin(type = "udd")
+@Name("titlecase")
+@Usage("titlecase <column>")
+@Description("Changes the column values to title case")
 public class TitleCase extends AbstractStep {
   // Columns of the column to be title-cased
   private String col;

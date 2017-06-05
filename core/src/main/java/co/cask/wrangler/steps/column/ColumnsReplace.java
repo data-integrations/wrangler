@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -31,11 +34,11 @@ import java.util.List;
  *
  * This directive helps clearing out the columns names to make it more readable.
  */
-@Usage(
-  directive = "columns-replace",
-  usage = "columns-replace <sed-expression>",
-  description = "Modifies column names in bulk using a sed-format expression"
-)
+
+@Plugin(type = "udd")
+@Name("columns-replace")
+@Usage("columns-replace <sed-expression>")
+@Description("Modifies column names in bulk using a sed-format expression")
 public class ColumnsReplace extends AbstractStep {
   private final String sed;
 

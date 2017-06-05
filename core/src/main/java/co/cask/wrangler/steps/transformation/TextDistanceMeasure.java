@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * Step for implementing the directive for measuring the difference between two sequence of characters.
  */
-@Usage(
-  directive = "text-distance",
-  usage = "text-distance <method> <column1> <column2> <destination>",
-  description = "Calculates a text distance measure between two columns containing string."
-)
+@Plugin(type = "udd")
+@Name("text-distance")
+@Usage("text-distance <method> <column1> <column2> <destination>")
+@Description("Calculates a text distance measure between two columns containing string.")
 public class TextDistanceMeasure extends AbstractStep {
   private final String column1;
   private final String column2;

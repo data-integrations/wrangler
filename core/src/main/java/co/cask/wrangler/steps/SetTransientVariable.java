@@ -1,5 +1,8 @@
 package co.cask.wrangler.steps;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -21,11 +24,10 @@ import java.util.List;
  * The value set as transient variable is available to all the directives after that. But, it's
  * not available beyond the input record.
  */
-@Usage(
-  directive = "set-variable",
-  usage = "set-variable <variable> <expression>",
-  description = "Sets the value for a transient variable for the record being processed."
-)
+@Plugin(type = "udd")
+@Name("set-variable")
+@Usage("set-variable <variable> <expression>")
+@Description("Sets the value for a transient variable for the record being processed.")
 public class SetTransientVariable extends AbstractStep {
   private final String variable;
   private final String expression;

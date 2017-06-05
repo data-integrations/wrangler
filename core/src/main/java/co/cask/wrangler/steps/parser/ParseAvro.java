@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Decoder;
@@ -48,11 +51,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * A step to parse AVRO json or binary format.
  */
-@Usage(
-  directive = "parse-as-avro",
-  usage = "parse-as-avro <column> <schema-id> <json|binary> [version]",
-  description = "Parses column as AVRO generic record."
-)
+@Plugin(type = "udd")
+@Name("parse-as-avro")
+@Usage("parse-as-avro <column> <schema-id> <json|binary> [version]")
+@Description("Parses column as AVRO generic record.")
 public class ParseAvro extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(ParseAvro.class);
   private final String column;

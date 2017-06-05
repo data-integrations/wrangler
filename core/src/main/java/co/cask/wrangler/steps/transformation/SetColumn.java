@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -31,11 +34,10 @@ import co.cask.wrangler.api.Usage;
  *   Step step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
-@Usage(
-  directive = "set-column",
-  usage = "set-column <column> <expression>",
-  description = "Sets a column the result of expression execution."
-)
+@Plugin(type = "udd")
+@Name("set-column")
+@Usage("set-column <column> <expression>")
+@Description("Sets a column the result of expression execution.")
 public class SetColumn extends Expression {
   public SetColumn(int lineno, String detail, String column, String expression) {
     super(lineno, detail, column, expression);

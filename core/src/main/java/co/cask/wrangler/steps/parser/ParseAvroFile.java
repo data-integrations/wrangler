@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -38,11 +41,10 @@ import java.util.Map;
 /**
  * A step to parse AVRO File.
  */
-@Usage(
-  directive = "parse-as-avro-file",
-  usage = "parse-as-avro-file <column>",
-  description = "Parses as AVRO File record."
-)
+@Plugin(type = "udd")
+@Name("parse-as-avro-file")
+@Usage("parse-as-avro-file <column>")
+@Description("parse-as-avro-file <column>")
 public class ParseAvroFile extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(ParseAvroFile.class);
   private final String column;

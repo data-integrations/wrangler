@@ -137,7 +137,7 @@ public class PipelineTest {
       String value = m.group(3);
       rm.put(Range.closed(lower, upper), value);
     }
-    Assert.assertEquals("[[0.9‥2.1]=Foo, [2.2‥3.4]=9.2]", rm.toString());
+    Assert.assertEquals("[[0.9..2.1]=Foo, [2.2..3.4]=9.2]", rm.toString());
   }
 
   @Test

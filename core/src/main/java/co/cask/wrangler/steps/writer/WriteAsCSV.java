@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.writer;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.PipelineContext;
@@ -36,11 +39,10 @@ import java.util.List;
 /**
  * A step to write the record fields as CSV.
  */
-@Usage(
-  directive = "write-as-csv",
-  usage = "write-as-csv <column>",
-  description = "Writes the records files as well-formatted CSV"
-)
+@Plugin(type = "udd")
+@Name("write-as-csv")
+@Usage("write-as-csv <column>")
+@Description("Writes the records files as well-formatted CSV")
 public class WriteAsCSV extends AbstractStep {
   private final String column;
   private final CSVPrinter writer;

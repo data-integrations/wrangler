@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
@@ -51,11 +54,10 @@ import java.util.Map;
 /**
  * A step that invokes HTTP endpoint.
  */
-@Usage(
-  directive = "invoke-http",
-  usage = "invoke-http <url> <column>[,<column>*] <header>[,<header>*]",
-  description = "[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow)"
-)
+@Plugin(type = "udd")
+@Name("invoke-http")
+@Usage("invoke-http <url> <column>[,<column>*] <header>[,<header>*]")
+@Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow)")
 public class InvokeHttp extends AbstractStep {
   private final String url;
   private final List<String> columns;

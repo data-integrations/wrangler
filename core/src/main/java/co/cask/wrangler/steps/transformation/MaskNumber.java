@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -46,11 +49,10 @@ import java.util.List;
  *  </blockquote>
  * </p>
  */
-@Usage(
-  directive = "mask-number",
-  usage = "mask-number <column> <pattern>",
-  description = "Masks a column value using the specified masking pattern"
-)
+@Plugin(type = "udd")
+@Name("mask-number")
+@Usage("mask-number <column> <pattern>")
+@Description("Masks a column value using the specified masking pattern")
 public class MaskNumber extends AbstractStep {
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;

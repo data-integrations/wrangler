@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -42,11 +45,10 @@ import java.util.Map;
 /**
  * A JSON Parser Stage for parsing the provided {@link Record} based on the configuration.
  */
-@Usage(
-  directive = "parse-as-json",
-  usage = "parse-as-json <column> [<depth>]",
-  description = "Parses a column as JSON."
-)
+@Plugin(type = "udd")
+@Name("parse-as-json")
+@Usage("parse-as-json <column> [<depth>]")
+@Description("Parses a column as JSON.")
 public class JsParser extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;

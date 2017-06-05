@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A Split on Stage for splitting the columns into multiple columns.
  */
-@Usage(
-  directive = "split-to-columns",
-  usage = "split-to-columns <column> <regex>",
-  description = "Splits a column into one or more columns around matches of the specified regular expression"
-)
+@Plugin(type = "udd")
+@Name("split-to-columns")
+@Usage("split-to-columns <column> <regex>")
+@Description("Splits a column into one or more columns around matches of the specified regular expression")
 public class SplitToColumns extends AbstractStep {
   // Column on which to apply mask.
   private final String column;

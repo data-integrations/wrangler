@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,11 @@ import java.util.List;
  *
  * This directive helps clearing out the columns names to make it more readable.
  */
-@Usage(
-  directive = "change-column-case",
-  usage = "change-column-case lower|upper",
-  description = "Changes the case of column names to either lowercase or uppercase"
-)
+
+@Plugin(type = "udd")
+@Name("change-column-case")
+@Usage("change-column-case lower|upper")
+@Description("Changes the case of column names to either lowercase or uppercase")
 public class ChangeColCaseNames extends AbstractStep {
   private final boolean toLower;
 

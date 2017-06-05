@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A step for swapping the column names.
  */
-@Usage(
-  directive = "swap",
-  usage = "swap <column1> <column2>",
-  description = "Swaps the column names of two columns"
-)
+@Plugin(type = "udd")
+@Name("swap")
+@Usage("swap <column1> <column2>")
+@Description("Swaps the column names of two columns")
 public class Swap extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private final String column1;

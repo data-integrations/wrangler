@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * Filters records if they don't have all the columns specified or they have null values or combination.
  */
-@Usage(
-  directive = "filter-rows-on",
-  usage="filter-rows-on empty-or-null-columns <column>[,<column>*]",
-  description = "Filters row that have empty or null columns."
-)
+@Plugin(type = "udd")
+@Name("filter-rows-on")
+@Usage("filter-rows-on empty-or-null-columns <column>[,<column>*]")
+@Description("Filters row that have empty or null columns.")
 public class RecordMissingOrNullFilter extends AbstractStep {
   private final String[] columns;
 

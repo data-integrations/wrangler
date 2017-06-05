@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -35,12 +38,12 @@ import java.util.List;
  *   </ul>
  * </p>
  */
-@Usage(
-  directive = "cleanse-column-names",
-  usage = "cleanse-column-names",
-  description = "Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_ " +
-                  "with an underscore '_'."
-)
+
+@Plugin(type = "udd")
+@Name("cleanse-column-name")
+@Usage("cleanse-column-names")
+@Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_ " +
+  "with an underscore '_'.")
 public class CleanseColumnNames extends AbstractStep {
   public CleanseColumnNames(int lineno, String directive) {
     super(lineno, directive);

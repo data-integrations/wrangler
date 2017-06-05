@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -40,11 +43,10 @@ import java.util.List;
 /**
  * A step to parse Excel files.
  */
-@Usage(
-  directive = "parse-as-excel",
-  usage = "parse-as-excel <column> [<sheet number | sheet name>]",
-  description = "Parses column as Excel file."
-)
+@Plugin(type = "udd")
+@Name("parse-as-excel")
+@Usage("parse-as-excel <column> [<sheet number | sheet name>]")
+@Description("Parses column as Excel file.")
 public class ParseExcel extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(ParseExcel.class);
   private final String column;

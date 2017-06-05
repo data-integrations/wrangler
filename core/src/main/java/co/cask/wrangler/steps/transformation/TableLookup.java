@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.DatasetInstantiationException;
 import co.cask.cdap.api.dataset.table.Row;
@@ -33,11 +36,10 @@ import java.util.Map;
 /**
  * An AbstractStep that performs a lookup into a Table Dataset and adds the row values into the record.
  */
-@Usage(
-  directive = "table-lookup",
-  usage = "table-lookup <column> <table>",
-  description = "Uses the given column as a key to perform a lookup into the specified table."
-)
+@Plugin(type = "udd")
+@Name("table-lookup")
+@Usage("table-lookup <column> <table>")
+@Description("Uses the given column as a key to perform a lookup into the specified table.")
 public class TableLookup extends AbstractStep {
 
   private final String column;

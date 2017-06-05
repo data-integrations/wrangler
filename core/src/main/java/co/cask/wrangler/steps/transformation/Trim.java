@@ -17,6 +17,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * A Wrangler step for trimming whitespace from both sides of a string
  */
-@Usage(
-  directive = "trim",
-  usage = "trim <column>",
-  description = "Trimming whitespace from both sides of a string"
-)
+@Plugin(type = "udd")
+@Name("trim")
+@Usage("trim <column>")
+@Description("Trimming whitespace from both sides of a string")
 public class Trim extends AbstractStep {
   // Columns of the column to be upper-cased
   private String col;

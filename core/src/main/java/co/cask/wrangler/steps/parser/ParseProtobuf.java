@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Decoder;
 import co.cask.wrangler.api.DecoderException;
@@ -44,11 +47,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * A step to parse Protobuf encoded memory representations.
  */
-@Usage(
-  directive = "parse-as-protobuf",
-  usage = "parse-as-protobuf <column> <schema-id> <record-name> [version]",
-  description = "Parses column as protobuf encoded memory representations."
-)
+@Plugin(type = "udd")
+@Name("parse-as-protobuf")
+@Usage("parse-as-protobuf")
+@Description("parse-as-protobuf")
 public class ParseProtobuf extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(ParseProtobuf.class);
   private final String column;

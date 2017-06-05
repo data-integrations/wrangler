@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -32,11 +35,10 @@ import java.util.Locale;
 /**
  * A step that encodes a column as base-32, base-64, or hex.
  */
-@Usage(
-  directive = "encode",
-  usage = "encode <base32|base64|hex> <column>",
-  description = "Encodes column values using one of base32, base64, or hex"
-)
+@Plugin(type = "udd")
+@Name("encode")
+@Usage("encode <base32|base64|hex> <column>")
+@Description("Encodes column values using one of base32, base64, or hex")
 public class Encode extends AbstractStep {
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();

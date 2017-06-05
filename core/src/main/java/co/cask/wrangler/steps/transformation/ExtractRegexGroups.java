@@ -17,6 +17,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -30,11 +33,10 @@ import java.util.regex.Pattern;
 /**
  * Extracts regex groups into separate columns.
  */
-@Usage(
-  directive = "extract-regex-groups",
-  usage = "extract-regex-groups <column> <regex-with-groups>",
-  description = "Extracts data from a regex group into its own column"
-)
+@Plugin(type = "udd")
+@Name("extract-regex-groups")
+@Usage("extract-regex-groups <column> <regex-with-groups>")
+@Description("Extracts data from a regex group into its own column")
 public class ExtractRegexGroups extends AbstractStep {
   private final String column;
   private final String regex;

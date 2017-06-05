@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A Step to encode a column with url encoding.
  */
-@Usage(
-  directive = "url-encode",
-  usage = "url-encode <column>",
-  description = "URL encode a column value."
-)
+@Plugin(type = "udd")
+@Name("url-encode")
+@Usage("url-encode <column>")
+@Description("URL encode a column value.")
 public class UrlEncode extends AbstractStep {
   private final String column;
 

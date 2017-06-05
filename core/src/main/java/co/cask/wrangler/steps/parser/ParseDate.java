@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -31,12 +34,11 @@ import java.util.TimeZone;
 /**
  * A Step to parse date.
  */
-@Usage(
-  directive = "parse-as-date",
-  usage = "parse-as-date <column> [<timezone>]",
-  description = "Parses column values as dates using natural language processing and " +
-                    "automatically identifying the format (expensive in terms of time consumed)"
-)
+@Plugin(type = "udd")
+@Name("parse-as-date")
+@Usage("parse-as-date <column> [<timezone>]")
+@Description("Parses column values as dates using natural language processing and " +
+  "automatically identifying the format (expensive in terms of time consumed)")
 public class ParseDate extends AbstractStep {
   private final String column;
   private final String timezone;

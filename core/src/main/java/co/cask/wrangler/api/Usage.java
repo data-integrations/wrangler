@@ -29,12 +29,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Usage {
-  // Specifies the actual directive
-  String directive();
-
-  // Specifies the usage for the directive mentioned above.
-  String usage();
-
-  // Specifies the description for the directive.
-  String description();
+  String value() default "";
 }

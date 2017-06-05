@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -30,11 +33,10 @@ import java.util.regex.Pattern;
 /**
  * A Wrangle step for filtering rows that match the pattern specified on the column.
  */
-@Usage(
-  directive = "filter-row-if-matched",
-  usage = "filter-row-if-matched <column> <regex>",
-  description = "[DEPRECATED] Filters rows if the regex is matched. Use 'filter-rows-on' instead."
-)
+@Plugin(type = "udd")
+@Name("filter-row-if-matched")
+@Usage("filter-row-if-matched <column> <regex>")
+@Description("[DEPRECATED] Filters rows if the regex is matched. Use 'filter-rows-on' instead.")
 public class RecordRegexFilter extends AbstractStep {
   private final String regex;
   private final String column;

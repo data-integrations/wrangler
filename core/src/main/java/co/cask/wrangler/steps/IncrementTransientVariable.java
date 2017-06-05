@@ -1,5 +1,8 @@
 package co.cask.wrangler.steps;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -19,11 +22,10 @@ import java.util.List;
 /**
  * Class description here.
  */
-@Usage(
-  directive = "increment-variable",
-  usage = "increment-variable <variable> <value> <expression>",
-  description = "Increments the computed variable when expression is true by the value specified"
-)
+@Plugin(type = "udd")
+@Name("increment-variable")
+@Usage("increment-variable <variable> <value> <expression>")
+@Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class IncrementTransientVariable extends AbstractStep {
   private final String variable;
   private final long incrementBy;

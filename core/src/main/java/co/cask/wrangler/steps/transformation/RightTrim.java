@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -23,17 +26,15 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 
 
 /**
  * A Wrangler step for trimming whitespace from right side of a string
  */
-@Usage(
-  directive = "rtrim",
-  usage = "rtrim <column>",
-  description = "Trimming whitespace from right side of a string"
-)
+@Plugin(type = "udd")
+@Name("rtrim")
+@Usage("rtrim <column>")
+@Description("Trimming whitespace from right side of a string")
 public class RightTrim extends AbstractStep {
   // Columns of the column to be upper-cased
   private String col;

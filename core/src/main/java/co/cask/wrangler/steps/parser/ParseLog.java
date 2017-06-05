@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A Step for parsing Apache HTTPD and NGINX log files.
  */
-@Usage(
-  directive = "parse-as-log",
-  usage = "parse-as-log <column> <format>",
-  description = "Parses Apache HTTPD and NGINX logs."
-)
+@Plugin(type = "udd")
+@Name("parse-as-log")
+@Usage("parse-as-log <column> <format>")
+@Description("parse-as-log")
 public class ParseLog extends AbstractStep {
   private final String column;
   private final String format;

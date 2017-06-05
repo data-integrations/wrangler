@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.PipelineContext;
@@ -32,11 +35,11 @@ import java.util.List;
  * This step will create a copy of the input {@link Record} and clears
  * all previous column names and add new column names.
  */
-@Usage(
-  directive = "set columns",
-  usage = "set columns <columm>[,<column>*]",
-  description = "Sets the name of columns, in the order they are specified"
-)
+
+@Plugin(type = "udd")
+@Name("set columns")
+@Usage("set columns <columm>[,<column>*]")
+@Description("Sets the name of columns, in the order they are specified")
 public class Columns extends AbstractStep {
   // Name of the columns represented in a {@link Record}
   private List<String> columns = new ArrayList<>();

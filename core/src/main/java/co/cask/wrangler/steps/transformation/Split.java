@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A Wrangler step for splitting a col into two additional columns based on a delimiter.
  */
-@Usage(
-  directive = "split",
-  usage = "split <source> <delimiter> <new-column-1> <new-column-2>",
-  description = "[DEPRECATED] Use 'split-to-columns' or 'split-to-rows'."
-)
+@Plugin(type = "udd")
+@Name("split")
+@Usage("split <source> <delimiter> <new-column-1> <new-column-2>")
+@Description("[DEPRECATED] Use 'split-to-columns' or 'split-to-rows'.")
 public class Split extends AbstractStep {
   // Name of the column to be split
   private String col;

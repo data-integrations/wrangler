@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -30,11 +33,10 @@ import java.util.List;
 /**
  * A XML to Json Parser Stage.
  */
-@Usage(
-  directive = "parse-xml-to-json",
-  usage = "parse-xml-to-json <column> [<depth>]",
-  description = "Parses a XML document to JSON representation."
-)
+@Plugin(type = "udd")
+@Name("parse-xml-to-json")
+@Usage("parse-xml-to-json <column> [<depth>]")
+@Description("Parses a XML document to JSON representation.")
 public class XmlToJson extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String col;

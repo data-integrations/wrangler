@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -43,11 +46,10 @@ import java.util.Map;
  *   Step step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
-@Usage(
-  directive = "set column",
-  usage = "set column <column> <jexl-expression>",
-  description = "Sets a column by evaluating a JEXL expression."
-)
+@Plugin(type = "udd")
+@Name("set column")
+@Usage("set column <column> <jexl-expression>")
+@Description("Sets a column by evaluating a JEXL expression.")
 public class Expression extends AbstractStep {
   // Column to which the result of experience is applied to.
   private final String column;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A Step to parse date into Date object.
  */
-@Usage(
-  directive = "parse-as-simple-date",
-  usage = "parse-as-simple-date <column> <format>",
-  description = "Parses a column as date using format."
-)
+@Plugin(type = "udd")
+@Name("parse-as-simple-date")
+@Usage("parse-as-simple-date <column> <format>")
+@Description("Parses a column as date using format.")
 public class ParseSimpleDate extends AbstractStep {
   private final String column;
   private final SimpleDateFormat format;

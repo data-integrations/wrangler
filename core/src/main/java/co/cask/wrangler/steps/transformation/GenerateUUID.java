@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.UUID;
 /**
  * A step to generate a UUID.
  */
-@Usage(
-  directive = "generate-uuid",
-  usage = "generate-uuid <column>",
-  description = "Populates a column with a universally unique identifier (UUID) of the record"
-)
+@Plugin(type = "udd")
+@Name("generate-uuid")
+@Usage("generate-uuid <column>")
+@Description("Populates a column with a universally unique identifier (UUID) of the record")
 public class GenerateUUID extends AbstractStep {
   private final String column;
   private final Random random;

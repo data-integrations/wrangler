@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * Wrangle Step for renaming a column.
  */
-@Usage(
-  directive = "rename",
-  usage = "rename <old> <new>",
-  description = "Renames an existing column"
-)
+@Plugin(type = "udd")
+@Name("rename")
+@Usage("rename <old> <new>")
+@Description("Renames an existing column")
 public class Rename extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
 

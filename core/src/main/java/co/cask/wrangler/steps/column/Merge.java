@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -28,11 +31,10 @@ import java.util.List;
 /**
  * Wrangle Step that merges two columns and creates a third column.
  */
-@Usage(
-  directive = "merge",
-  usage = "merge <column1> <column2> <new-column> <separator>",
-  description = "Merges values from two columns using a separator into a new column"
-)
+@Plugin(type = "udd")
+@Name("merge")
+@Usage("merge <column1> <column2> <new-column> <separator>")
+@Description("Merges values from two columns using a separator into a new column")
 public class Merge extends AbstractStep {
   // Source column1
   private String col1;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.row;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.PipelineContext;
@@ -34,11 +37,10 @@ import java.util.List;
 /**
  * A Wrangle step for erroring the processing if condition is set to true.
  */
-@Usage(
-  directive = "fail",
-  usage = "fail <condition>",
-  description = "Fails when the condition is evaluated to true."
-)
+@Plugin(type = "udd")
+@Name("fail")
+@Usage("fail <condition>")
+@Description("Fails when the condition is evaluated to true.")
 public class Fail extends AbstractStep {
   private final String condition;
   private final JexlEngine engine;

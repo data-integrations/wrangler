@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -37,11 +40,10 @@ import java.util.List;
  *   the plugin framework.
  * </p>
  */
-@Usage(
-  directive = "parse-as-xml",
-  usage = "parse-as-xml <column>",
-  description = "Parses a column as XML."
-)
+@Plugin(type = "udd")
+@Name("parse-as-xml")
+@Usage("parse-as-xml <column>")
+@Description("Parses a column as XML.")
 public class XmlParser extends AbstractStep {
   // Column within the input row that needs to be parsed as CSV
   private String col;

@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.steps.transformation;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -29,11 +32,10 @@ import java.util.List;
 /**
  * A Step to split a URL into it's components.
  */
-@Usage(
-  directive = "split-url",
-  usage = "split-url <column>",
-  description = "Split a url into it's components host,protocol,port,etc."
-)
+@Plugin(type = "udd")
+@Name("split-url")
+@Usage("split-url <column>")
+@Description("Split a url into it's components host,protocol,port,etc.")
 public class SplitURL extends AbstractStep {
   private final String column;
 

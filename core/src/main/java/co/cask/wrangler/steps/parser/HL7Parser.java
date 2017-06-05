@@ -33,6 +33,9 @@ import ca.uhn.hl7v2.parser.ModelClassFactory;
 import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.parser.PipeParser;
 import ca.uhn.hl7v2.validation.impl.NoValidation;
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -46,12 +49,11 @@ import java.util.List;
 /**
  * A step for parsing the HL7 Message.
  */
-@Usage(
-  directive = "parse-as-hl7",
-  usage = "parse-as-hl7 <column> [<depth>]",
-  description = "Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
-                    "JSON object enumeration terminates"
-)
+@Plugin(type = "udd")
+@Name("parse-as-hl7")
+@Usage("parse-as-hl7 <column> [<depth>]")
+@Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
+  "JSON object enumeration terminates")
 public class HL7Parser extends AbstractStep {
   private final String column;
   private final HapiContext context;

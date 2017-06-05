@@ -21,7 +21,6 @@ import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
 import co.cask.wrangler.service.directive.DirectivesService;
-import com.google.common.base.Joiner;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -50,11 +49,11 @@ public class WranglerServiceTestBase extends TestBase {
   protected void createAndUploadWorkspace(URL baseURL, String workspace, List<String> lines) throws Exception {
     HttpResponse response = HttpRequests.execute(HttpRequest.put(new URL(baseURL, "workspaces/" + workspace)).build());
     Assert.assertEquals(200, response.getResponseCode());
-    response = HttpRequests.execute(
-      HttpRequest.post(new URL(baseURL, "workspaces/" + workspace +"/upload"))
-        .withBody(Joiner.on(URLEncoder.encode("\n", "UTF-8")).join(lines))
-        .addHeader("recorddelimiter", URLEncoder.encode("\n", "UTF-8"))
-        .build());
+//    response = HttpRequests.execute(
+//      HttpRequest.post(new URL(baseURL, "workspaces/" + workspace +"/upload"))
+//        .withBody(Joiner.on(URLEncoder.encode("\n", "UTF-8")).join(lines))
+//        .addHeader("recorddelimiter", URLEncoder.encode("\n", "UTF-8"))
+//        .build());
     Assert.assertEquals(200, response.getResponseCode());
   }
 
