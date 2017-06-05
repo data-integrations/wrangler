@@ -18,21 +18,23 @@ package co.cask.wrangler.statistics;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Tests for {@link StreetAddressParser}
+ * Tests for {@link USAddressParser}
  */
 @Ignore
-public class StreetAddressParserTest {
-
-  private StreetAddressParser parser = null;
-  public StreetAddressParserTest() {
-    parser = new StreetAddressParser();
+public class USAddressParserTest {
+  private static final Logger LOG = LoggerFactory.getLogger(USAddressParserTest.class);
+  private USAddressParser parser = null;
+  public USAddressParserTest() {
+    parser = new USAddressParser();
   }
 
   @Test
   public void testStandardParse() {
-    Address standardResult = new Address("1905", "N", "Lincoln", "Ave",
+    USAddress standardResult = new USAddress("1905", "N", "Lincoln", "Ave",
             "Apt", "125", "Urbana", "IL", "61801");
     String[] standardInputs = new String[]{
             "1905 N Lincoln Ave Apt 125 Urbana IL 61801",
@@ -43,24 +45,19 @@ public class StreetAddressParserTest {
             "1905 N Lincoln",
             "1905 N",
             "1905",
-
             "61801",
             "IL 61801",
             "Urbana IL 61801",
-            //"125 Urbana IL 61801",
             "Apt 125 Urbana IL 61801",
             "Ave Apt 125 Urbana IL 61801",
             "Lincoln Ave Apt 125 Urbana IL 61801",
             "N Lincoln Ave Apt 125 Urbana IL 61801"
-
     };
 
-    System.out.println("testetstett");
-
     for (String str : standardInputs) {
-      Address result = parser.parse(str);
-      System.out.println("Input: " + str);
-      System.out.println(result + "\n");
+      USAddress result = parser.parse(str);
+      LOG.info("Input: " + str);
+      LOG.info(result + "\n");
       Assert.assertTrue(result.sameAs(standardResult));
     }
   }
@@ -77,10 +74,9 @@ public class StreetAddressParserTest {
     };
 
     for (String str : nonStandardInputs) {
-      Address result = parser.parse(str);
-
-      System.out.println("Input: " + str);
-      System.out.println(result + "\n");
+      USAddress result = parser.parse(str);
+      LOG.info("Input: " + str);
+      LOG.info(result + "\n");
     }
   }
 }

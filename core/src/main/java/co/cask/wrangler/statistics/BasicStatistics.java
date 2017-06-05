@@ -36,7 +36,7 @@ public class BasicStatistics implements Statistics {
   private final AddressFinder addressFinder;
 
   public BasicStatistics() throws Exception {
-    engine = new FinderEngine("wrangler-finder-1.xml", true, false);
+    engine = new FinderEngine("wrangler-finder.xml", true, false);
     phoneNumberFinder = new PhoneNumberFinder();
     isbnFinder = new ISBNFinder();
     addressFinder = new AddressFinder();

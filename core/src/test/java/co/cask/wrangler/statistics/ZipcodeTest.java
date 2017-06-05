@@ -22,6 +22,8 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.statistics.Statistics;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -35,13 +37,12 @@ import java.util.List;
  * Test zip code regex detecting. See {@link BasicStatistics} for Regex pattern definitions
  */
 public class ZipcodeTest {
+  private static final Logger LOG = LoggerFactory.getLogger(ZipcodeTest.class);
   private static final String DATA_FILE = "MOCK_DATA.csv";
 
   @Test
   public void testZipcode() throws Exception {
-
     Record mock1 = new Record();
-
     //US and Mexico
     mock1.add("zip_code_1", "94105-0011");
     mock1.add("zip_code_2", "61801");
@@ -55,7 +56,6 @@ public class ZipcodeTest {
     //Canada
     mock1.add("zip_code_7", "V6T 1Z4");
     mock1.add("zip_code_8", "N2L 3G1");
-
     //no use
     List<Record> records = Arrays.asList(
             mock1, mock1, mock1
@@ -73,35 +73,23 @@ public class ZipcodeTest {
 
   @Test
   public void testNonZipcode() throws Exception {
-
     List<Record> records = new ArrayList<>();
-
     List<String> cardNumbers = readCreditCardFromCsv(DATA_FILE);
     for (String cardNumber : cardNumbers) {
       Record record = new Record();
       record.add("card_number", cardNumber);
       records.add(record);
     }
-
     Statistics statisticsGen = new BasicStatistics();
     Record summary = statisticsGen.aggregate(records);
     Record typesList = (Record) summary.getValue("types");
-
     for (int i = 0; i < typesList.length(); i ++) {
       ArrayList<KeyValue> types = (ArrayList<KeyValue>) typesList.getValue(i);
       for (KeyValue keyValue : types) {
-        /*
-        Assert.assertFalse(keyValue.getKey().equals("CN_Code"));
-        Assert.assertFalse(keyValue.getKey().equals("IN_Code"));
-        Assert.assertFalse(keyValue.getKey().equals("US_Code"));
-        Assert.assertFalse(keyValue.getKey().equals("MX_Code"));
-        Assert.assertFalse(keyValue.getKey().equals("CA_Code"));
-        */
         Assert.assertFalse(keyValue.getKey().equals("Zip_Code"));
       }
     }
   }
-
 
   private List<String> readCreditCardFromCsv(String fileName) {
     List<String> list = new ArrayList<>();
@@ -116,9 +104,9 @@ public class ZipcodeTest {
       }
       return list;
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      LOG.error("Data file for ZipcodeTest not found", e);
     }catch (IOException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage(), e);
     }
     return null;
   }

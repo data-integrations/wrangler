@@ -26,7 +26,6 @@ public class ISBNFinder {
 
   //ISBN validator from external library
   private ISBNValidator validator;
-
   public ISBNFinder() {
     validator = new ISBNValidator();
   }
@@ -38,7 +37,6 @@ public class ISBNFinder {
    */
   public boolean isISBN(String str) {
     //Need to format the input before validating
-
     //Extract only digits from string, without other characters
     ArrayList<Integer> intList = new ArrayList<>();
     char [] s = str.toCharArray();
@@ -49,9 +47,7 @@ public class ISBNFinder {
         intList.add(value);
       }
     }
-
     int len = intList.size();
-
     if (len == 10) {
       //format the digits as ISBN-10 form, "0-345-50113-6"
       StringBuilder sb = new StringBuilder();

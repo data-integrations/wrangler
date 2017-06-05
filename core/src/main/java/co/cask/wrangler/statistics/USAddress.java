@@ -19,7 +19,7 @@ package co.cask.wrangler.statistics;
 /**
  * Store structured US address
  */
-public class Address {
+public class USAddress {
 
   private String streetNumber = null;
   private String streetPrefix = null;
@@ -31,7 +31,7 @@ public class Address {
   private String state = null;
   private String zipCode = null;
 
-  public Address() {
+  public USAddress() {
     this.streetNumber = null;
     this.streetPrefix = null;
     this.streetName = null;
@@ -44,8 +44,8 @@ public class Address {
   }
 
 
-  public Address(String streetNumber, String streetPrefix, String streetName, String streetSuffix,
-                 String unitName, String unitNumber, String city, String state, String zipCode) {
+  public USAddress(String streetNumber, String streetPrefix, String streetName, String streetSuffix,
+                   String unitName, String unitNumber, String city, String state, String zipCode) {
     this.streetNumber = streetNumber;
     this.streetPrefix = streetPrefix;
     this.streetName = streetName;
@@ -131,7 +131,7 @@ public class Address {
 
   @Override
   public String toString() {
-    return "Address{" + '\n' +
+    return "USAddress{" + '\n' +
             "streetNumber='" + streetNumber + '\'' + '\n' +
             ", streetPrefix='" + streetPrefix + '\'' + '\n' +
             ", streetName='" + streetName + '\'' + '\n' +
@@ -145,7 +145,7 @@ public class Address {
   }
 
 
-  public boolean sameAs(Address other) {
+  public boolean sameAs(USAddress other) {
     if (streetNumber != null && other.getStreetNumber() != null) {
       if (!streetNumber.equals(other.getStreetNumber())) {
         return false;

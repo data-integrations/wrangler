@@ -20,6 +20,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -32,6 +34,7 @@ import java.util.List;
  * Phone number string detector
  */
 public class PhoneNumberFinder {
+  private static final Logger LOG = LoggerFactory.getLogger(PhoneNumberFinder.class);
   private PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
   private final String COUNTRY_CODE_FILE = "country_codes.csv";
   private List<String> countryCodes = null;
@@ -65,11 +68,11 @@ public class PhoneNumberFinder {
       }
       return list;
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      LOG.error("Country code file not found ", e);
     }catch (IOException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage(), e);
     }
-    return null;
+    return list;
   }
 
   private boolean isValidPhoneHelper(String str, List<String> countries) {
@@ -81,7 +84,7 @@ public class PhoneNumberFinder {
           return true;
         }
       } catch (NumberParseException e) {
-        //e.printStackTrace();
+
       }
     }
     return false;

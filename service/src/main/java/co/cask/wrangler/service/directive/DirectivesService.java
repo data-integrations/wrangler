@@ -608,17 +608,13 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         }
         columnValidationResult.add(name, columnResult);
       }
-
       result.add("validation", columnValidationResult);
-
       // Generate General and Type related Statistics for each column.
       Statistics statsGenerator = new BasicStatistics();
 
       Record summary = statsGenerator.aggregate(records);
-
       Record stats = (Record) summary.getValue("stats");
       Record types = (Record) summary.getValue("types");
-
 
       //add or override col type info to types
       //manually set types are stored in the TransientStore
@@ -626,7 +622,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       for (int i = 0; i < types.length(); i ++) {
         String col = types.getColumn(i);
         //encode the transient variable name as <column>_data_type
-        //it's value is name of the type as a string
+        //its value is name of the type as a string
         String transientVarName = col + "_data_type";
         if (vars.contains(transientVarName)) {
           String storedType = store.get(transientVarName);
@@ -666,8 +662,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           object.add("types", o);
         }
       }
-
-
       // Put the statistics along with validation rules.
       result.add("statistics", statistics);
       response.addProperty("status", HttpURLConnection.HTTP_OK);
@@ -699,7 +693,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
         }
-      },store);
+      }, store);
 
       // generate a schema based upon the first record
       Json2Schema json2Schema = new Json2Schema();
@@ -806,7 +800,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           int min = Math.min(records.size(), limit);
           return Lists.newArrayList(new Reservoir<Record>(min).sample(records.iterator()));
         }
-      },store);
+      }, store);
 
 
       Record firstRow = newRecords.get(0);
@@ -944,7 +938,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         }
         break;
       }
-
       case BINARY: {
         byte[] data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.BINARY);
         if (data != null) {
@@ -952,7 +945,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         }
         break;
       }
-
       case RECORDS: {
         records = table.getData(id, WorkspaceDataset.DATA_COL, DataType.RECORDS);
         break;
@@ -977,13 +969,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     if (user == null) {
       throw new Exception("Request is empty. Please check if the request is sent as HTTP POST body.");
     }
-
     // Extract records from the workspace.
     List<Record> records = fromWorkspace(id);
     // Execute the pipeline.
     PipelineContext context = new ServicePipelineContext(PipelineContext.Environment.SERVICE,
-                                                         getContext(),
-                                                         store);
+                                                         getContext(), store);
     PipelineExecutor executor = new PipelineExecutor();
     executor.configure(new TextDirectives(user.getRecipe().getDirectives()), context);
     return executor.execute(sample.apply(records));

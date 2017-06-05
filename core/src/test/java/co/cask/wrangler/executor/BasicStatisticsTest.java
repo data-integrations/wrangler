@@ -16,20 +16,24 @@
 
 package co.cask.wrangler.executor;
 
-import au.com.bytecode.opencsv.CSVReader;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.statistics.AddressFinder;
 import co.cask.wrangler.statistics.BasicStatistics;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,9 +42,8 @@ import java.util.List;
  * Tests {@link BasicStatistics}
  */
 public class BasicStatisticsTest {
-
-  private final String DATA_FILE_1 = "/Users/nitin/Work/Demo/data/customer_no_header.csv";
-  private final String DATA_FILE_2 = "MOCK_DATA.csv";
+  private static final Logger LOG = LoggerFactory.getLogger(BasicStatisticsTest.class);
+  private final String DATA_FILE = "MOCK_DATA.csv";
 
   @Test
   public void testMetaBasic() throws Exception {
@@ -73,24 +76,20 @@ public class BasicStatisticsTest {
     Assert.assertEquals(7, stats.length());
     Assert.assertEquals(7, types.length());
 
-    System.out.println("General Statistics");
-    System.out.println();
+    LOG.info("General Statistics\n");
     List<KeyValue<String, Object>> fields = stats.getFields();
     for (KeyValue<String, Object> field : fields) {
       List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
       for (KeyValue<String, Double> value : values) {
-        System.out.println(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        LOG.info(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
       }
     }
-
-    System.out.println();
-    System.out.println("Type Statistics");
-    System.out.println();
+    LOG.info("\nType Statistics\n");
     fields = types.getFields();
     for (KeyValue<String, Object> field : fields) {
       List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
       for (KeyValue<String, Double> value : values) {
-        System.out.println(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        LOG.info(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
       }
     }
   }
@@ -105,7 +104,7 @@ public class BasicStatisticsTest {
   };
 
     List<Record> records = new ArrayList<>();
-    try(BufferedReader br = new BufferedReader(new FileReader(DATA_FILE_1))) {
+    try(BufferedReader br = new BufferedReader(new FileReader("/Users/nitin/Work/Demo/data/customer_no_header.csv"))) {
       String line;
       while ((line = br.readLine()) != null) {
         records.add(new Record("body", line));
@@ -123,9 +122,8 @@ public class BasicStatisticsTest {
     Record types = (Record) summary.getValue("types");
 
 
-    System.out.println("General Statistics");
-    System.out.println("Total number of records : " + summary.getValue("total"));
-    System.out.println();
+    LOG.info("General Statistics");
+    LOG.info("Total number of records : " + summary.getValue("total") + "\n");
     List<KeyValue<String, Object>> fields = stats.getFields();
     for (KeyValue<String, Object> field : fields) {
       List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
@@ -134,13 +132,10 @@ public class BasicStatisticsTest {
         if(percentage < 20) {
           continue;
         }
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        LOG.info(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
       }
     }
-
-    System.out.println();
-    System.out.println("Type Statistics");
-    System.out.println();
+    LOG.info("\nType Statistics\n");
     fields = types.getFields();
     for (KeyValue<String, Object> field : fields) {
       List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
@@ -149,7 +144,7 @@ public class BasicStatisticsTest {
         if(percentage < 20) {
           continue;
         }
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        LOG.info(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
       }
     }
   }
@@ -169,15 +164,15 @@ public class BasicStatisticsTest {
 
     try {
       BufferedReader bReader = new BufferedReader(new InputStreamReader(
-              this.getClass().getResourceAsStream("/" + DATA_FILE_2)));
+              this.getClass().getResourceAsStream("/" + DATA_FILE)));
       String line;
       while ((line = bReader.readLine()) != null) {
         records.add(new Record("body", line));
       }
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      LOG.error("Test file for BasicStatistics not found", e);
     }catch (IOException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage(), e);
     }
 
     Pipeline pipeline = new PipelineExecutor();
@@ -192,9 +187,8 @@ public class BasicStatisticsTest {
     Record types = (Record) summary.getValue("types");
 
 
-    System.out.println("General Statistics");
-    System.out.println("Total number of records : " + summary.getValue("total"));
-    System.out.println();
+    LOG.info("General Statistics");
+    LOG.info("Total number of records : " + summary.getValue("total") + "\n");
     List<KeyValue<String, Object>> fields = stats.getFields();
     for (KeyValue<String, Object> field : fields) {
       List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
@@ -203,24 +197,16 @@ public class BasicStatisticsTest {
         if(percentage < 20) {
           continue;
         }
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        LOG.info(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
       }
     }
-
-    System.out.println();
-    System.out.println("Type Statistics");
-    System.out.println();
+    LOG.info("\nType Statistics\n");
     fields = types.getFields();
     for (KeyValue<String, Object> field : fields) {
       List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
       for (KeyValue<String, Double> value : values) {
         Double percentage = value.getValue() * 100;
-        /*
-        if(percentage < 20) {
-          continue;
-        }
-        */
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        LOG.info(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), percentage));
       }
     }
   }

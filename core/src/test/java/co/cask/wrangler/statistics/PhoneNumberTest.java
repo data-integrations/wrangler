@@ -20,6 +20,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -32,6 +34,7 @@ import java.util.List;
  * Tests for {@link PhoneNumberFinder}
  */
 public class PhoneNumberTest {
+  private static final Logger LOG = LoggerFactory.getLogger(PhoneNumberTest.class);
   private final String NUMBERS_FILE = "phone.csv";
   private final String NON_NUMBERS_FILE = "mock_one_line.csv";
   private final PhoneNumberFinder finder;
@@ -60,11 +63,11 @@ public class PhoneNumberTest {
       }
       return list;
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      LOG.error("Phone number file for testing not found", e);
     }catch (IOException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage(), e);
     }
-    return null;
+    return list;
   }
 
   /**
@@ -83,14 +86,11 @@ public class PhoneNumberTest {
   @Ignore
   @Test
   public void testInvalidPhoneNumber() throws Exception {
-
     for (String str : nonPhoneNumbers) {
-      /*
       boolean valid = finder.isValidPhone(str);
       if (valid) {
-        System.out.println(str);
+        LOG.error("Non phone number recognized as phone number: " + str);
       }
-      */
       Assert.assertFalse(finder.isValidPhone(str));
     }
   }

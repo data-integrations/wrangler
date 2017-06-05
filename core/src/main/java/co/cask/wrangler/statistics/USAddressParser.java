@@ -21,16 +21,17 @@ import static org.apache.commons.lang.math.NumberUtils.isNumber;
 /**
  * US street address parser, that can parse string into structured address info
  * Including street number, street name, city, state, zip code
+ * Not in use for now.
  */
-public class StreetAddressParser {
+public class USAddressParser {
 
   private AddressFinder finder;
 
-  public StreetAddressParser() {
+  public USAddressParser() {
     finder = new AddressFinder();
   }
 
-  public Address parse(String str) {
+  public USAddress parse(String str) {
     return parseToAddress(parseToArr(str));
   }
 
@@ -40,8 +41,8 @@ public class StreetAddressParser {
     return strArray;
   }
 
-  private Address parseToAddress (String [] strArray) {
-    Address address = new Address();
+  private USAddress parseToAddress(String [] strArray) {
+    USAddress address = new USAddress();
     int streetNameIndex = -1;
     if (strArray.length > 0) {
       String firstStr = strArray[0];
@@ -84,7 +85,6 @@ public class StreetAddressParser {
             address.setCity(str);
           }
         }
-        //1905 N Lincoln Ave Apt 125 Urbana IL 61801
         else if (isNumber(str)) {
           if (address.getUnitNumber() == null && i != streetNameIndex) {
             address.setUnitNumber(str);
@@ -101,7 +101,6 @@ public class StreetAddressParser {
         address.setStreetName(strArray[streetNameIndex]);
       }
     }
-
     return address;
   }
 
