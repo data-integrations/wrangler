@@ -20,7 +20,6 @@ import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.statistics.AddressFinder;
 import co.cask.wrangler.statistics.BasicStatistics;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -76,7 +75,7 @@ public class BasicStatisticsTest {
     Assert.assertEquals(7, stats.length());
     Assert.assertEquals(7, types.length());
 
-    LOG.info("General Statistics\n");
+    LOG.info("General Statistics");
     List<KeyValue<String, Object>> fields = stats.getFields();
     for (KeyValue<String, Object> field : fields) {
       List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
@@ -185,7 +184,6 @@ public class BasicStatisticsTest {
 
     Record stats = (Record) summary.getValue("stats");
     Record types = (Record) summary.getValue("types");
-
 
     LOG.info("General Statistics");
     LOG.info("Total number of records : " + summary.getValue("total") + "\n");
