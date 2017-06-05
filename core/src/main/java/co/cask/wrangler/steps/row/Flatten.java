@@ -37,7 +37,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("flatten")
 @Usage("flatten <column>[,<column>*]")
-@Description("Separates array elements of one or more columns into indvidual records, copying the other columns")
+@Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
 public class Flatten extends AbstractStep {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;

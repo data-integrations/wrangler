@@ -46,7 +46,7 @@ import java.util.Random;
 @Plugin(type = "udd")
 @Name("mask-shuffle")
 @Usage("mask-shuffle <column>")
-@Description("Masks a column value by shuffling characters while maintaining the same length")
+@Description("Masks a column value by shuffling characters while maintaining the same length.")
 public class MaskShuffle extends AbstractStep {
   // Column on which to apply mask.
   private final String column;

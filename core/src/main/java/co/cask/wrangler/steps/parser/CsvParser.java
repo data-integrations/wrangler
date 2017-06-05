@@ -42,7 +42,7 @@ import java.util.Set;
 @Plugin(type = "udd")
 @Name("parse-as-csv")
 @Usage("parse-as-csv <column> <delimiter> [<header=true|false>]")
-@Description("Parses a column as CSV (comma-separated values)")
+@Description("Parses a column as CSV (comma-separated values).")
 public class CsvParser extends AbstractStep {
   // Column within the input row that needs to be parsed as CSV
   private String col;

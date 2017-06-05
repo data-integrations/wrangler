@@ -42,7 +42,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("cleanse-column-name")
 @Usage("cleanse-column-names")
-@Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_ " +
+@Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +
   "with an underscore '_'.")
 public class CleanseColumnNames extends AbstractStep {
   public CleanseColumnNames(int lineno, String directive) {

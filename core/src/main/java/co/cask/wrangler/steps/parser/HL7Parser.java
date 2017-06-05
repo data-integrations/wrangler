@@ -53,7 +53,7 @@ import java.util.List;
 @Name("parse-as-hl7")
 @Usage("parse-as-hl7 <column> [<depth>]")
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
-  "JSON object enumeration terminates")
+  "JSON object enumeration terminates.")
 public class HL7Parser extends AbstractStep {
   private final String column;
   private final HapiContext context;

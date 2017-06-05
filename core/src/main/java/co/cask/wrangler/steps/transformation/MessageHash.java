@@ -37,7 +37,7 @@ import java.util.Set;
 @Plugin(type = "udd")
 @Name("hash")
 @Usage("hash <column> <algorithm> [<encode=true|false>]")
-@Description("Creates a message digest for the column using algorithm, replacing the column value")
+@Description("Creates a message digest for the column using algorithm, replacing the column value.")
 public class MessageHash extends AbstractStep {
   private static final Set<String> algorithms = ImmutableSet.of(
     "BLAKE2B-160",

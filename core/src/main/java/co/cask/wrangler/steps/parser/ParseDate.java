@@ -38,7 +38,7 @@ import java.util.TimeZone;
 @Name("parse-as-date")
 @Usage("parse-as-date <column> [<timezone>]")
 @Description("Parses column values as dates using natural language processing and " +
-  "automatically identifying the format (expensive in terms of time consumed)")
+  "automatically identifying the format (expensive in terms of time consumed).")
 public class ParseDate extends AbstractStep {
   private final String column;
   private final String timezone;

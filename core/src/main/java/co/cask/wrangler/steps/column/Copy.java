@@ -35,7 +35,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("copy")
 @Usage("copy <source> <destination> [<force=true|false>]")
-@Description("Copies values from a source column into a destination column")
+@Description("Copies values from a source column into a destination column.")
 public class Copy extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private String source;

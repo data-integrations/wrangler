@@ -36,7 +36,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("change-column-case")
 @Usage("change-column-case lower|upper")
-@Description("Changes the case of column names to either lowercase or uppercase")
+@Description("Changes the case of column names to either lowercase or uppercase.")
 public class ChangeColCaseNames extends AbstractStep {
   private final boolean toLower;
 

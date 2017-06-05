@@ -38,7 +38,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("columns-replace")
 @Usage("columns-replace <sed-expression>")
-@Description("Modifies column names in bulk using a sed-format expression")
+@Description("Modifies column names in bulk using a sed-format expression.")
 public class ColumnsReplace extends AbstractStep {
   private final String sed;
 

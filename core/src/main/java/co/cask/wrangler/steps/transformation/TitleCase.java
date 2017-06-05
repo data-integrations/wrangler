@@ -34,7 +34,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("titlecase")
 @Usage("titlecase <column>")
-@Description("Changes the column values to title case")
+@Description("Changes the column values to title case.")
 public class TitleCase extends AbstractStep {
   // Columns of the column to be title-cased
   private String col;

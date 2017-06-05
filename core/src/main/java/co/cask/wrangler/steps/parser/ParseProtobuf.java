@@ -49,8 +49,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Plugin(type = "udd")
 @Name("parse-as-protobuf")
-@Usage("parse-as-protobuf")
-@Description("parse-as-protobuf")
+@Usage("parse-as-protobuf <column> <schema-id> <record-name> [version]")
+@Description("Parses column as protobuf encoded memory representations.")
 public class ParseProtobuf extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(ParseProtobuf.class);
   private final String column;

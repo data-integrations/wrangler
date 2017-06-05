@@ -52,7 +52,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("mask-number")
 @Usage("mask-number <column> <pattern>")
-@Description("Masks a column value using the specified masking pattern")
+@Description("Masks a column value using the specified masking pattern.")
 public class MaskNumber extends AbstractStep {
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;

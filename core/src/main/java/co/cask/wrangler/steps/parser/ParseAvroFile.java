@@ -44,7 +44,7 @@ import java.util.Map;
 @Plugin(type = "udd")
 @Name("parse-as-avro-file")
 @Usage("parse-as-avro-file <column>")
-@Description("parse-as-avro-file <column>")
+@Description("parse-as-avro-file <column>.")
 public class ParseAvroFile extends AbstractStep {
   private static final Logger LOG = LoggerFactory.getLogger(ParseAvroFile.class);
   private final String column;

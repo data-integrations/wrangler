@@ -39,7 +39,7 @@ import java.util.Locale;
 @Plugin(type = "udd")
 @Name("decode")
 @Usage("decode <base32|base64|hex> <column>")
-@Description("Decodes column values using one of base32, base64, or hex")
+@Description("Decodes column values using one of base32, base64, or hex.")
 public class Decode extends AbstractStep {
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();

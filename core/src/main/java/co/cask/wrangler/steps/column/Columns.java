@@ -39,7 +39,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("set columns")
 @Usage("set columns <columm>[,<column>*]")
-@Description("Sets the name of columns, in the order they are specified")
+@Description("Sets the name of columns, in the order they are specified.")
 public class Columns extends AbstractStep {
   // Name of the columns represented in a {@link Record}
   private List<String> columns = new ArrayList<>();

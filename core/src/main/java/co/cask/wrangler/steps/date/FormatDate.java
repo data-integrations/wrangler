@@ -37,7 +37,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("format-date")
 @Usage("format-date <column> <format>")
-@Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand")
+@Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")
 public class FormatDate extends AbstractStep {
   private final String format;
   private final String column;

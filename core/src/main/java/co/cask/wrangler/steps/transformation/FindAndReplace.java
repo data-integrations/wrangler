@@ -36,7 +36,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("find-and-replace")
 @Usage("find-and-replace <column> <sed-expression>")
-@Description("Finds and replaces text in column values using a sed-format expression")
+@Description("Finds and replaces text in column values using a sed-format expression.")
 public class FindAndReplace extends AbstractStep {
   private final String pattern;
   private final String column;

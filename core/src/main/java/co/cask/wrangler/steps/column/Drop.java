@@ -38,7 +38,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("drop")
 @Usage("drop <column>[,<column>*]")
-@Description("Drop one or more columns")
+@Description("Drop one or more columns.")
 public class Drop extends AbstractStep {
   // Columns to be dropped.
   private List<String> columns;

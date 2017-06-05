@@ -34,7 +34,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("fill-null-or-empty")
 @Usage("fill-null-or-empty <column> <fixed-value>")
-@Description("Fills a value of a column with a fixed value if it is either null or empty")
+@Description("Fills a value of a column with a fixed value if it is either null or empty.")
 public class FillNullOrEmpty extends AbstractStep {
   private String column;
   private String value;

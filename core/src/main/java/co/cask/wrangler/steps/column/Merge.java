@@ -34,7 +34,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("merge")
 @Usage("merge <column1> <column2> <new-column> <separator>")
-@Description("Merges values from two columns using a separator into a new column")
+@Description("Merges values from two columns using a separator into a new column.")
 public class Merge extends AbstractStep {
   // Source column1
   private String col1;

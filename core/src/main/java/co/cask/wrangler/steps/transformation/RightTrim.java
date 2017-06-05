@@ -34,7 +34,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("rtrim")
 @Usage("rtrim <column>")
-@Description("Trimming whitespace from right side of a string")
+@Description("Trimming whitespace from right side of a string.")
 public class RightTrim extends AbstractStep {
   // Columns of the column to be upper-cased
   private String col;

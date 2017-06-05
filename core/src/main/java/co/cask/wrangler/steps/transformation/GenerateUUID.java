@@ -35,7 +35,7 @@ import java.util.UUID;
 @Plugin(type = "udd")
 @Name("generate-uuid")
 @Usage("generate-uuid <column>")
-@Description("Populates a column with a universally unique identifier (UUID) of the record")
+@Description("Populates a column with a universally unique identifier (UUID) of the record.")
 public class GenerateUUID extends AbstractStep {
   private final String column;
   private final Random random;

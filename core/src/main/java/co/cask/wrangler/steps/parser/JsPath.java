@@ -42,7 +42,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("json-path")
 @Usage("json-path <source> <destination> <json-path-expression>")
-@Description("Parses JSON elements using a DSL (a JSON path expression)")
+@Description("Parses JSON elements using a DSL (a JSON path expression).")
 public class JsPath extends AbstractStep {
   private String src;
   private String dest;

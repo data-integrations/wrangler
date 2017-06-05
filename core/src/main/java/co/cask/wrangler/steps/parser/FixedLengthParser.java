@@ -35,7 +35,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("parse-as-fixed-length")
 @Usage("parse-as-fixed-length <column> <width>[,<width>*] [<padding-character>]")
-@Description("Parses fixed-length records using the specified widths and padding-character")
+@Description("Parses fixed-length records using the specified widths and padding-character.")
 public final class FixedLengthParser extends AbstractStep {
   private final int[] widths;
   private final String col;

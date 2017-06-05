@@ -57,7 +57,7 @@ import java.util.Map;
 @Plugin(type = "udd")
 @Name("invoke-http")
 @Usage("invoke-http <url> <column>[,<column>*] <header>[,<header>*]")
-@Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow)")
+@Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
 public class InvokeHttp extends AbstractStep {
   private final String url;
   private final List<String> columns;

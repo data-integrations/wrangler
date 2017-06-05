@@ -35,7 +35,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("swap")
 @Usage("swap <column1> <column2>")
-@Description("Swaps the column names of two columns")
+@Description("Swaps the column names of two columns.")
 public class Swap extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
   private final String column1;

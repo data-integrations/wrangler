@@ -34,7 +34,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("catalog-lookup")
 @Usage("catalog-lookup <catalog> <column>")
-@Description("Looks-up values from pre-loaded (static) catalogs")
+@Description("Looks-up values from pre-loaded (static) catalogs.")
 public class CatalogLookup extends AbstractStep {
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;

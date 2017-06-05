@@ -33,7 +33,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("ltrim")
 @Usage("ltrim <column>")
-@Description("Trimming whitespace from left side of a string")
+@Description("Trimming whitespace from left side of a string.")
 public class LeftTrim extends AbstractStep {
   // Columns of the column to be upper-cased
   private String col;

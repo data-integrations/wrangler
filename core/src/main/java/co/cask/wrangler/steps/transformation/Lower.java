@@ -33,7 +33,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("lowercase")
 @Usage("lowercase <column>")
-@Description("Changes the column values to lowercase")
+@Description("Changes the column values to lowercase.")
 public class Lower extends AbstractStep {
   // Columns of the column to be lower cased.
   private String col;

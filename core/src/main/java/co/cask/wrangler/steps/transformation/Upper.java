@@ -33,7 +33,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("uppercase")
 @Usage("uppercase <column>")
-@Description("Changes the column values to uppercase")
+@Description("Changes the column values to uppercase.")
 public class Upper extends AbstractStep {
   // Columns of the column to be upper-cased
   private String col;

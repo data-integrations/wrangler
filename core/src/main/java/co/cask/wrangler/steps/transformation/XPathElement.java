@@ -44,7 +44,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("xpath")
 @Usage("xpath <column> <destination> <xpath>")
-@Description("Extract a single XML element or attribute using XPath")
+@Description("Extract a single XML element or attribute using XPath.")
 public class XPathElement extends AbstractStep {
   private final String column;
   private final String destination;

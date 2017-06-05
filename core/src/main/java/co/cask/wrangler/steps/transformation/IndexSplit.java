@@ -34,7 +34,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("indexsplit")
 @Usage("indexsplit <source> <start> <end> <destination>")
-@Description("[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead")
+@Description("[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead.")
 public class IndexSplit extends AbstractStep {
   // Name of the column to be split
   private String col;

@@ -34,7 +34,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("cut-character")
 @Usage("cut-character <source> <destination> <type> <range|indexes>")
-@Description("UNIX-like 'cut' directive for splitting text")
+@Description("UNIX-like 'cut' directive for splitting text.")
 public class CharacterCut extends AbstractStep {
   private String source;
   private String destination;

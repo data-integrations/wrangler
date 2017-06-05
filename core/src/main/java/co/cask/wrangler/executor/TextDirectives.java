@@ -159,6 +159,13 @@ public class TextDirectives implements Directives {
       String command = tokenizer.nextToken();
 
       switch (command) {
+        case "load-directives" : {
+          String library = getNextToken(tokenizer, command, "library", lineno);
+          String version = getNextToken(tokenizer, command, "version", lineno);
+          String directives = getNextToken(tokenizer, "\n", command, "directives", lineno);
+        }
+        break;
+
         case "set": {
           switch (tokenizer.nextToken()) {
             // set format [csv|json] <delimiter> <skip empty lines>
@@ -1006,9 +1013,6 @@ public class TextDirectives implements Directives {
           steps.add(new RightTrim(lineno, directive, col));
         }
         break;
-
-
-
 
         default:
           throw new DirectiveParseException(

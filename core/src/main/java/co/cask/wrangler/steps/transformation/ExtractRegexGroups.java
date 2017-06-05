@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 @Plugin(type = "udd")
 @Name("extract-regex-groups")
 @Usage("extract-regex-groups <column> <regex-with-groups>")
-@Description("Extracts data from a regex group into its own column")
+@Description("Extracts data from a regex group into its own column.")
 public class ExtractRegexGroups extends AbstractStep {
   private final String column;
   private final String regex;

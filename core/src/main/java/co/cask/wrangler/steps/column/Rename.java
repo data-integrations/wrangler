@@ -35,7 +35,7 @@ import java.util.List;
 @Plugin(type = "udd")
 @Name("rename")
 @Usage("rename <old> <new>")
-@Description("Renames an existing column")
+@Description("Renames an existing column.")
 public class Rename extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
 

@@ -36,7 +36,7 @@ import java.util.Set;
 @Plugin(type = "udd")
 @Name("keep")
 @Usage("keep <column>[,<column>*]")
-@Description("Keeps the specified columns and drops all others")
+@Description("Keeps the specified columns and drops all others.")
 public class Keep extends AbstractStep {
 
   private final Set<String> keep = new HashSet<>();
