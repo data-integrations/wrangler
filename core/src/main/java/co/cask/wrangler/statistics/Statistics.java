@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.api.statistics;
+package co.cask.wrangler.statistics;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.annotations.PublicEvolving;

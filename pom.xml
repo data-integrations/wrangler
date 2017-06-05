@@ -30,6 +30,7 @@
     <module>transform</module>
     <module>service</module>
     <module>core</module>
+    <module>api</module>
   </modules>
 
   <licenses>

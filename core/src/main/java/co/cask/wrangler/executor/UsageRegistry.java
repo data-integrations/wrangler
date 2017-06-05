@@ -37,69 +37,67 @@ import java.util.Set;
 public final class UsageRegistry implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(UsageRegistry.class);
 
-  public class UsageDatum {
+  /**
+   * A {@link UsageEntry} defines the information about the directives that are available.
+   */
+  public class UsageEntry {
     private final String directive;
     private final String usage;
     private final String description;
 
-    public UsageDatum(String directive, String usage, String description) {
+    public UsageEntry(String directive, String usage, String description) {
       this.directive = directive;
       this.usage = usage;
       this.description = description;
     }
 
+    /**
+     * @return Name of the directive.
+     */
     public String getDirective() {
       return directive;
     }
 
+    /**
+     * @return Usage of the directive.
+     */
     public String getUsage() {
       return usage;
     }
 
+    /**
+     * @return Description for the directive.
+     */
     public String getDescription() {
       return description;
     }
   }
 
   // Mapping of specification usages.
-  private final Map<String, UsageDatum> usages = new HashMap<>();
+  private final Map<String, UsageEntry> usages = new HashMap<>();
 
   // Listing.
-  private final List<UsageDatum> usageList = new ArrayList<>();
+  private final List<UsageEntry> usageList = new ArrayList<>();
 
   public UsageRegistry() {
-    // Iterate through registry of steps to collect the
-    // directive and usage.
-    Reflections reflections = new Reflections("co.cask.wrangler");
-    Set<Class<? extends AbstractStep>> steps = reflections.getSubTypesOf(AbstractStep.class);
-    for (Class<? extends AbstractStep> step : steps) {
-      Name name = step.getAnnotation(Name.class);
-      Description description = step.getAnnotation(Description.class);
-      Usage usage = step.getAnnotation(Usage.class);
-      if (usage == null || name == null || description == null) {
-        LOG.warn("Usage or Name or Description annotation for directive '{}' missing.", step.getSimpleName());
-        continue;
-      }
-      usages.put(name.value(), new UsageDatum(name.value(), usage.value(), description.value()));
-      usageList.add(new UsageDatum(name.value(), usage.value(), description.value()));
-    }
-
-    // These are for directives that use other steps for executing.
-    // we add them exclusively
-    addUsage("set format", "set format csv <delimiter> <skip empty lines>",
-             "[DEPRECATED] Parses the predefined column as CSV. Use 'parse-as-csv' instead.");
-    addUsage("format-unix-timestamp", "format-unix-timestamp <column> <format>",
-             "Formats a UNIX timestamp using the specified format");
-    addUsage("filter-row-if-not-matched", "filter-row-if-not-matched <column> <regex>",
-             "Filters rows if the regex does not match");
-    addUsage("filter-row-if-false", "filter-row-if-false <condition>",
-             "Filters rows if the condition evaluates to false");
+    addDefaultDirectives();
   }
 
-  private void addUsage(String directive, String usage, String description) {
-    UsageDatum d = new UsageDatum(directive, usage, description);
-    usages.put(directive, d);
-    usageList.add(d);
+  /**
+   * Adds a class that extends from {@link AbstractStep} to usage registry.
+   *
+   * @param classz representing an {@link AbstractStep} implementation.
+   */
+  public void addUsage(Class<? extends AbstractStep> classz) {
+    Name name = classz.getAnnotation(Name.class);
+    Description description = classz.getAnnotation(Description.class);
+    Usage usage = classz.getAnnotation(Usage.class);
+    if (usage == null || name == null || description == null) {
+      LOG.warn("Usage or Name or Description annotation for directive '{}' missing.", classz.getSimpleName());
+      return;
+    }
+    usages.put(name.value(), new UsageEntry(name.value(), usage.value(), description.value()));
+    usageList.add(new UsageEntry(name.value(), usage.value(), description.value()));
   }
 
   /**
@@ -129,9 +127,39 @@ public final class UsageRegistry implements Serializable {
   }
 
   /**
-   * @return A map of directive to {@link UsageDatum}.
+   * @return A map of directive to {@link UsageEntry}.
    */
-  public List<UsageDatum> getAll() {
+  public List<UsageEntry> getAll() {
     return usageList;
+  }
+
+  private void addUsage(String directive, String usage, String description) {
+    UsageEntry d = new UsageEntry(directive, usage, description);
+    usages.put(directive, d);
+    usageList.add(d);
+  }
+
+  /**
+   * Loads all the default system directives that are available with the system.
+   */
+  private void addDefaultDirectives() {
+    // Iterate through registry of steps to collect the
+    // directive and usage.
+    Reflections reflections = new Reflections("co.cask.wrangler");
+    Set<Class<? extends AbstractStep>> steps = reflections.getSubTypesOf(AbstractStep.class);
+    for (Class<? extends AbstractStep> step : steps) {
+      addUsage(step);
+    }
+
+    // These are for directives that use other steps for executing.
+    // we add them exclusively
+    addUsage("set format", "set format csv <delimiter> <skip empty lines>",
+             "[DEPRECATED] Parses the predefined column as CSV. Use 'parse-as-csv' instead.");
+    addUsage("format-unix-timestamp", "format-unix-timestamp <column> <format>",
+             "Formats a UNIX timestamp using the specified format");
+    addUsage("filter-row-if-not-matched", "filter-row-if-not-matched <column> <regex>",
+             "Filters rows if the regex does not match");
+    addUsage("filter-row-if-false", "filter-row-if-false <condition>",
+             "Filters rows if the condition evaluates to false");
   }
 }

@@ -17,8 +17,6 @@
 package co.cask.wrangler.statistics;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.statistics.ColumnMetric;
-import co.cask.wrangler.api.statistics.Statistics;
 import io.dataapps.chlorine.finder.FinderEngine;
 
 import java.util.List;

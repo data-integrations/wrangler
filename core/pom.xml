@@ -11,7 +11,13 @@
 
   <artifactId>wrangler-core</artifactId>
 
+
   <dependencies>
+    <dependency>
+      <groupId>co.cask.wrangler</groupId>
+      <artifactId>wrangler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>

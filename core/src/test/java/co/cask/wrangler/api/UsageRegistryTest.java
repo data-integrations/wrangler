@@ -29,7 +29,7 @@ public class UsageRegistryTest {
   @Test
   public void testUsageRegistry() throws Exception {
     UsageRegistry registry = new UsageRegistry();
-    List<UsageRegistry.UsageDatum> usages = registry.getAll();
+    List<UsageRegistry.UsageEntry> usages = registry.getAll();
     Assert.assertTrue(usages.size() > 1);
   }
 }

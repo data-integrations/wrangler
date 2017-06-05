@@ -33,7 +33,7 @@ import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
-import co.cask.wrangler.api.statistics.Statistics;
+import co.cask.wrangler.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
 import co.cask.wrangler.dataset.workspace.DataType;
@@ -830,12 +830,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
       UsageRegistry registry = new UsageRegistry();
-      List<UsageRegistry.UsageDatum> usages = registry.getAll();
+      List<UsageRegistry.UsageEntry> usages = registry.getAll();
 
       JsonObject response = new JsonObject();
       int count = 0;
       JsonArray values = new JsonArray();
-      for (UsageRegistry.UsageDatum entry : usages) {
+      for (UsageRegistry.UsageEntry entry : usages) {
         JsonObject usage = new JsonObject();
         usage.addProperty("directive", entry.getDirective());
         usage.addProperty("usage", entry.getUsage());
