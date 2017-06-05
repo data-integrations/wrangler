@@ -58,13 +58,15 @@ public class Rename extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
 
     //change the type variable in transient store
-    TransientStore store = context.getTransientStore();
-    String oldVarName = oldcol + "_data_type";
-    String newVarName = newcol + "_data_type";
-    String oldType = store.get(oldVarName);
-    if (oldType != null) {
-      store.delete(oldVarName);
-      store.set(newVarName, oldType);
+    if (context != null) {
+      TransientStore store = context.getTransientStore();
+      String oldVarName = oldcol + "_data_type";
+      String newVarName = newcol + "_data_type";
+      String oldType = store.get(oldVarName);
+      if (oldType != null) {
+        store.delete(oldVarName);
+        store.set(newVarName, oldType);
+      }
     }
 
     for (Record record : records) {

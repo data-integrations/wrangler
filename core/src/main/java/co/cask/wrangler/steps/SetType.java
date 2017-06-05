@@ -16,11 +16,7 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.PipelineContext;
-import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.api.TransientStore;
+import co.cask.wrangler.api.*;
 import co.cask.wrangler.api.i18n.Messages;
 import co.cask.wrangler.api.i18n.MessagesFactory;
 
@@ -58,9 +54,21 @@ public class SetType extends AbstractStep {
    * @param records List of input {@link Record} to be wrangled by this step.
    * @param context {@link PipelineContext} passed to each step.
    * @return same records as input
+   * @throws StepException Thrown when the column to set type for doesn't exist.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException{
+    for (Record record : records) {
+      int idx = record.find(col);
+      if (idx == -1) {
+        throw new StepException(
+          String.format(
+            "%s : %s column doesn't exist", toString(), col
+          )
+        );
+      }
+    }
+
     //set type in transient store
     TransientStore store = context.getTransientStore();
     String transientVarName = col + "_data_type";
