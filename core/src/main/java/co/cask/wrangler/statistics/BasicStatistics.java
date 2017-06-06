@@ -166,7 +166,7 @@ public class BasicStatistics implements Statistics {
 
             //Zip_Code
             //Works for these countries so far: US, Canada, Mexico, China, India
-            //TODO: for now don't distinguish countries
+            //TODO: for now don't distinguish countries (JIRA: CDAP-11853)
             else if (keySet.contains("US_Zip_Code")) {
               types.increment(column, "Zip_Code");
             }
@@ -229,7 +229,6 @@ public class BasicStatistics implements Statistics {
       }
     }
 
-    //TODO: For percentage, instead of total row count, should use number of non-null data for each column?
     Record recordTypes = new Record();
     for (String column : types.getColumns()) {
       recordTypes.add(column, types.percentage(column, count));

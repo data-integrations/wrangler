@@ -1,10 +1,10 @@
-# Set the data type of a column
+# Set the information type of a column
 
-The SET-TYPE directive manually set the data type of the column
+The SET-INFO-TYPE directive manually set the data type of the column
 
 ## Syntax
 ```
-set-type <column> <type>
+set-info-type <column> <type>
 ```
 
 ## Usage Notes

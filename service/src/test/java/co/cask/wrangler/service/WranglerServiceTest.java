@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * Tests for {@link DirectivesService}.
  */
-//TODO: Test utility classes in CDAP core need to be fixed to make this test work
+//TODO: Test utility classes in CDAP core need to be fixed to make this test work (JIRA: CDAP-11854)
 @Ignore
 public class WranglerServiceTest extends WranglerServiceTestBase {
   private static final Gson GSON =

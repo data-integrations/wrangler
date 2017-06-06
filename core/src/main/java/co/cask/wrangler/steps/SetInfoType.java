@@ -23,17 +23,17 @@ import co.cask.wrangler.api.i18n.MessagesFactory;
 import java.util.List;
 
 /**
- * A directive that defines a data type of the column who's life-expectancy is only within the record.
+ * A directive that defines a information type of the column who's life-expectancy is only within the record.
  *
  * The type set as transient variable is available to all the directives after that. But, it's
  * not available beyond the input record.
  */
 @Usage(
-  directive = "set-type",
-  usage = "set-type <column> <type>",
-  description = "Manually indicate the type of a column."
+  directive = "set-info-type",
+  usage = "set-info-type <column> <type>",
+  description = "Manually indicate the information type of a column."
 )
-public class SetType extends AbstractStep {
+public class SetInfoType extends AbstractStep {
   private static final Messages MSG = MessagesFactory.getMessages();
 
   //column to set type for
@@ -42,7 +42,7 @@ public class SetType extends AbstractStep {
   //set column to be this type
   private String type;
 
-  public SetType(int lineno, String detail, String col, String type) {
+  public SetInfoType(int lineno, String detail, String col, String type) {
     super(lineno, detail);
     this.col = col;
     this.type = type;

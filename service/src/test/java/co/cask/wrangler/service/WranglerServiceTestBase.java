@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * Base class which exposes utility functions for interacting with {@link DirectivesService}.
  */
-//Test utility classes in CDAP core need to be fixed to make this test work
+//Test utility classes in CDAP core need to be fixed to make this test work (JIRA: CDAP-11854)
 @Ignore
 public class WranglerServiceTestBase extends TestBase {
 
