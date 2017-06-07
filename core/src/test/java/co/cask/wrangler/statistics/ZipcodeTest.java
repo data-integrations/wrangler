@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Test zip code regex detecting. See {@link BasicStatistics} for Regex pattern definitions
@@ -39,6 +41,9 @@ import java.util.List;
 public class ZipcodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(ZipcodeTest.class);
   private static final String DATA_FILE = "MOCK_DATA.csv";
+  public static final Set<String> ZIPCODE_TYPES = new HashSet<String>(Arrays.asList(new String[]{
+    "Zip_Code", "US_Zip_Code", "CN_Zip_Code", "IN_Zip_Code", "MX_Zip_Code", "CA_Zip_Code"
+  }));
 
   @Test
   public void testZipcode() throws Exception {
@@ -67,7 +72,7 @@ public class ZipcodeTest {
     for (int i = 0; i < typesList.length(); i ++) {
       ArrayList<KeyValue> types = (ArrayList<KeyValue>) typesList.getValue(i);
       Assert.assertEquals(types.size(), 1);
-      Assert.assertEquals(types.get(0).getKey(), "Zip_Code");
+      Assert.assertTrue(ZIPCODE_TYPES.contains(types.get(0).getKey()));
     }
   }
 
@@ -87,6 +92,11 @@ public class ZipcodeTest {
       ArrayList<KeyValue> types = (ArrayList<KeyValue>) typesList.getValue(i);
       for (KeyValue keyValue : types) {
         Assert.assertFalse(keyValue.getKey().equals("Zip_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("CN_Zip_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("US_Zip_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("IN_Zip_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("MX_Zip_Code"));
+        Assert.assertFalse(keyValue.getKey().equals("CA_Zip_Code"));
       }
     }
   }

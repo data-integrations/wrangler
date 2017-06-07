@@ -153,10 +153,7 @@ public class BasicStatistics implements Statistics {
               types.increment(column, "Longitude_Latitude");
             }
 
-            //France_Postal_Code, Canadian_Postal_Code, US_Postal_Codes
-            else if (keySet.contains("US_Postal_Codes")) {
-              types.increment(column, "US_Postal_Codes");
-            }
+            //France_Postal_Code, Canadian_Postal_Code
             else if (keySet.contains("France_Postal_Code")) {
               types.increment(column, "France_Postal_Code");
             }
@@ -165,22 +162,21 @@ public class BasicStatistics implements Statistics {
             }
 
             //Zip_Code
-            //Works for these countries so far: US, Canada, Mexico, China, India
-            //TODO: for now don't distinguish countries (JIRA: CDAP-11853)
+            //Distinguish zip code for these countries: US, Canada, Mexico, China, India
             else if (keySet.contains("US_Zip_Code")) {
-              types.increment(column, "Zip_Code");
+              types.increment(column, "US_Zip_Code");
             }
             else if (keySet.contains("CA_Zip_Code")) {
-              types.increment(column, "Zip_Code");
+              types.increment(column, "CA_Zip_Code");
             }
             else if (keySet.contains("MX_Zip_Code")) {
-              types.increment(column, "Zip_Code");
+              types.increment(column, "MX_Zip_Code");
             }
             else if (keySet.contains("CN_Zip_Code")) {
-              types.increment(column, "Zip_Code");
+              types.increment(column, "CN_Zip_Code");
             }
             else if (keySet.contains("IN_Zip_Code")) {
-              types.increment(column, "Zip_Code");
+              types.increment(column, "IN_Zip_Code");
             }
             else if (keySet.contains("Zip_Code")) {
               types.increment(column, "Zip_Code");
