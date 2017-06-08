@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.cdap.api.dataset.lib.KeyValue;
+import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.PipelineExecutor;
@@ -33,138 +33,229 @@ import java.util.List;
 public class SetTypeTest {
 
   @Test
-  public void testSetToString() throws Exception {
-    String[] directives = new String[] {
-      "set-type str_col string", "set-type int_col string", "set-type double_col string",
-      "set-type true_col string", "set-type false_col string"
-    };
+  public void testToInt() throws Exception {
     List<Record> records = Arrays.asList(
-      new Record("str_col", "100").add("int_col", 1).add("double_col", 1.0).
-        add("true_col", true).add("false_col", false)
+      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+        .add("bytes_col", new byte[]{0, 0, 39, 16})
     );
+    String[] directives = new String[] {
+      "set-type str_col int", "set-type int_col i64", "set-type double_col integer",
+      "set-type short_col INT", "set-type long_col I64", "set-type float_col Integer", "set-type bytes_col INTEGER"
+    };
     TextDirectives d = new TextDirectives(directives);
     Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
 
-    for (KeyValue<String, Object> keyValue : record.getFields()) {
-      Assert.assertTrue(keyValue.getValue() instanceof String);
+    for (int i = 0; i < record.length(); i ++) {
+      Object object = record.getValue(i);
+      Assert.assertTrue(object instanceof Integer);
+      Integer intValue = (Integer) object;
+      Assert.assertTrue(intValue.equals(10000));
     }
-
-    String value1 = (String)record.getValue("str_col");
-    String value2 = (String)record.getValue("int_col");
-    String value3 = (String)record.getValue("double_col");
-    String value4 = (String)record.getValue("true_col");
-    String value5 = (String)record.getValue("false_col");
-
-    Assert.assertEquals(value1, "100");
-    Assert.assertEquals(value2, "1");
-    Assert.assertEquals(value3, "1.0");
-    Assert.assertEquals(value4, "true");
-    Assert.assertEquals(value5, "false");
   }
 
   @Test
-  public void testSetToInt() throws Exception {
-    String[] directives = new String[] {
-      "set-type str_col int", "set-type int_col int", "set-type double_col int",
-      "set-type true_col int", "set-type false_col int"
-    };
+  public void testToShort() throws Exception {
     List<Record> records = Arrays.asList(
-      new Record("str_col", "100").add("int_col", 1).add("double_col", 1.0).
-        add("true_col", true).add("false_col", false)
+      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+        .add("bytes_col", new byte[]{39, 16})
     );
+    String[] directives = new String[] {
+      "set-type str_col short", "set-type int_col i32", "set-type double_col Short",
+      "set-type short_col I32", "set-type long_col SHORT", "set-type float_col short", "set-type bytes_col short"
+    };
     TextDirectives d = new TextDirectives(directives);
     Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
 
-    for (KeyValue<String, Object> keyValue : record.getFields()) {
-      Assert.assertTrue(keyValue.getValue() instanceof Integer);
+    for (int i = 0; i < record.length(); i ++) {
+      Object object = record.getValue(i);
+      Assert.assertTrue(object instanceof Short);
+      Short value = (Short) object;
+      Assert.assertTrue(value.equals(new Short("10000")));
     }
-
-    Integer value1 = (Integer)record.getValue("str_col");
-    Integer value2 = (Integer)record.getValue("int_col");
-    Integer value3 = (Integer)record.getValue("double_col");
-    Integer value4 = (Integer)record.getValue("true_col");
-    Integer value5 = (Integer)record.getValue("false_col");
-
-    Assert.assertTrue(value1.equals(100));
-    Assert.assertTrue(value2.equals(1));
-    Assert.assertTrue(value3.equals(1));
-    Assert.assertTrue(value4.equals(1));
-    Assert.assertTrue(value5.equals(0));
   }
 
   @Test
-  public void testSetToDouble() throws Exception {
-    String[] directives = new String[] {
-      "set-type str_col double", "set-type int_col double", "set-type double_col double",
-      "set-type true_col double", "set-type false_col double"
-    };
+  public void testToLong() throws Exception {
     List<Record> records = Arrays.asList(
-      new Record("str_col", "100").add("int_col", 1).add("double_col", 1.0).
-        add("true_col", true).add("false_col", false)
+      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+        .add("bytes_col", new byte[]{0, 0, 0, 0 , 0, 0, 39, 16})
     );
+    String[] directives = new String[] {
+      "set-type str_col long", "set-type int_col Long", "set-type double_col LONG",
+      "set-type short_col long", "set-type long_col Long", "set-type float_col LONG", "set-type bytes_col long"
+    };
     TextDirectives d = new TextDirectives(directives);
     Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
 
-    for (KeyValue<String, Object> keyValue : record.getFields()) {
-      Assert.assertTrue(keyValue.getValue() instanceof Double);
+    for (int i = 0; i < record.length(); i ++) {
+      Object object = record.getValue(i);
+      Assert.assertTrue(object instanceof Long);
+      Long value = (Long) object;
+      Assert.assertTrue(value.equals(new Long(10000)));
     }
-
-    Double value1 = (Double)record.getValue("str_col");
-    Double value2 = (Double)record.getValue("int_col");
-    Double value3 = (Double)record.getValue("double_col");
-    Double value4 = (Double)record.getValue("true_col");
-    Double value5 = (Double)record.getValue("false_col");
-
-    Assert.assertTrue(value1.equals(100.0));
-    Assert.assertTrue(value2.equals(1.0));
-    Assert.assertTrue(value3.equals(1.0));
-    Assert.assertTrue(value4.equals(1.0));
-    Assert.assertTrue(value5.equals(0.0));
   }
 
   @Test
-  public void testSetToBoolean() throws Exception {
-    String[] directives = new String[] {
-      "set-type str_true boolean", "set-type str_false boolean",
-      "set-type int_col boolean", "set-type double_col boolean",
-      "set-type true_col boolean", "set-type false_col boolean"
-    };
+  public void testToFloat() throws Exception {
     List<Record> records = Arrays.asList(
-      new Record("str_true", "true").add("str_false", "false")
-        .add("int_col", 1).add("double_col", 0.0).
-        add("true_col", true).add("false_col", false)
+      new Record("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+        .add("bytes_col", new byte[]{70, 28, 64, 0})
     );
+    String[] directives = new String[] {
+      "set-type str_col float", "set-type int_col Float", "set-type double_col FLOAT",
+      "set-type short_col float", "set-type long_col Float", "set-type float_col FLOAT", "set-type bytes_col float"
+    };
     TextDirectives d = new TextDirectives(directives);
     Pipeline pipeline = new PipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
 
-    for (KeyValue<String, Object> keyValue : record.getFields()) {
-      Assert.assertTrue(keyValue.getValue() instanceof Boolean);
+    for (int i = 0; i < record.length(); i ++) {
+      Object object = record.getValue(i);
+      Assert.assertTrue(object instanceof Float);
+      Float value = (Float) object;
+      Assert.assertTrue(value.equals(new Float(10000)));
     }
+  }
 
-    Boolean value1 = (Boolean)record.getValue("str_true");
-    Boolean value2 = (Boolean)record.getValue("str_false");
-    Boolean value3 = (Boolean)record.getValue("int_col");
-    Boolean value4 = (Boolean)record.getValue("double_col");
-    Boolean value5 = (Boolean)record.getValue("true_col");
-    Boolean value6 = (Boolean)record.getValue("false_col");
+  @Test
+  public void testToDouble() throws Exception {
+    List<Record> records = Arrays.asList(
+      new Record("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+        .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0})
+    );
+    String[] directives = new String[] {
+      "set-type str_col double", "set-type int_col Double", "set-type double_col DOUBLE",
+      "set-type short_col double", "set-type long_col Double", "set-type float_col DOUBLE", "set-type bytes_col double"
+    };
+    TextDirectives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    List<Record> results = pipeline.execute(records);
+    Record record = results.get(0);
 
-    Assert.assertTrue(value1.equals(true));
-    Assert.assertTrue(value2.equals(false));
-    Assert.assertTrue(value3.equals(true));
-    Assert.assertTrue(value4.equals(false));
-    Assert.assertTrue(value5.equals(true));
-    Assert.assertTrue(value6.equals(false));
+    for (int i = 0; i < record.length(); i ++) {
+      Object object = record.getValue(i);
+      Assert.assertTrue(object instanceof Double);
+      Double value = (Double) object;
+      Assert.assertTrue(value.equals(new Double(10000)));
+    }
+  }
+
+  @Test
+  public void testToBoolean() throws Exception {
+    List<Record> trueRecords = Arrays.asList(
+      new Record("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
+        .add("int_col", 10000).add("double_col", new Double(10000.00))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000))
+        .add("float_col", new Float(10000.0)).add("true_col", true)
+    );
+    List<Record> falseRecords = Arrays.asList(
+      new Record("str_1", "false").add("str_2", "False").add("str_3", "FALSE")
+        .add("int_col", -10000).add("double_col", new Double(-10000.00))
+        .add("short_col", new Short("-10000")).add("long_col", new Long(-10000))
+        .add("float_col", new Float(-10000.0)).add("false_col", false)
+    );
+    String[] directives = new String[] {
+      "set-type str_1 bool", "set-type str_2 bool", "set-type str_3 bool", "set-type int_col Bool", "set-type double_col BOOL",
+      "set-type short_col boolean", "set-type long_col Boolean", "set-type float_col BOOLEAN", "set-type bytes_col bool"
+    };
+    TextDirectives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    List<Record> trueResults = pipeline.execute(trueRecords);
+    List<Record> falseResults = pipeline.execute(falseRecords);
+    Record trueRecord = trueResults.get(0);
+    Record falseRecord = falseResults.get(0);
+
+    for (int i = 0; i < trueRecord.length(); i ++) {
+      Object trueObject = trueRecord.getValue(i);
+      Object falseObject = falseRecord.getValue(i);
+      Assert.assertTrue(trueObject instanceof Boolean);
+      Assert.assertTrue(falseObject instanceof Boolean);
+      Boolean trueValue = (Boolean) trueObject;
+      Boolean falseValue = (Boolean) falseObject;
+      Assert.assertTrue(trueValue);
+      Assert.assertFalse(falseValue);
+    }
+  }
+
+  @Test
+  public void testToString() throws Exception {
+    List<Record> records = Arrays.asList(
+      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000))
+        .add("bytes_col", new byte[]{49, 48, 48, 48, 48})
+    );
+    String[] directives = new String[] {
+      "set-type str_col string", "set-type int_col String", "set-type double_col STRING",
+      "set-type short_col string", "set-type long_col String", "set-type float_col STRING", "set-type bytes_col string"
+    };
+    TextDirectives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    List<Record> results = pipeline.execute(records);
+    Record record = results.get(0);
+
+    for (int i = 0; i < record.length(); i ++) {
+      Object object = record.getValue(i);
+      Assert.assertTrue(object instanceof String);
+      String value = (String) object;
+      if (i == 2 || i == 5) {
+        Assert.assertTrue(value.equals("10000.0"));
+      }
+      else {
+        Assert.assertTrue(value.equals("10000"));
+      }
+    }
+  }
+
+  @Test
+  public void testToBytes() throws Exception {
+    List<Record> records = Arrays.asList(
+      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.00))
+        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+        .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0})
+    );
+    byte[][] bytesResults = new byte[][] {
+      new byte[] {49, 48, 48, 48, 48},
+      new byte[] {0, 0, 39, 16},
+      new byte[] {64, -61, -120, 0, 0, 0, 0, 0},
+      new byte[] {39, 16},
+      new byte[] {0, 0, 0, 0, 0, 0, 39, 16},
+      new byte[] {70, 28, 64, 0},
+      new byte[] {64, -61, -120, 0, 0, 0, 0, 0}
+    };
+    String[] directives = new String[] {
+      "set-type str_col bytes", "set-type int_col Bytes", "set-type double_col BYTES",
+      "set-type short_col bytes", "set-type long_col Bytes", "set-type float_col BYTES", "set-type bytes_col bytes"
+    };
+    TextDirectives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    List<Record> results = pipeline.execute(records);
+    Record record = results.get(0);
+
+    for (int i = 0; i < record.length(); i ++) {
+      Object object = record.getValue(i);
+      Assert.assertTrue(object instanceof byte[]);
+      byte [] value = (byte[]) object;
+      Assert.assertEquals(0, Bytes.compareTo(value, bytesResults[i]));
+    }
   }
 }
