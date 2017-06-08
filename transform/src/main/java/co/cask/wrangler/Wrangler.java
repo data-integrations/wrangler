@@ -314,7 +314,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Name("threshold")
     @Description("Max number of event failures in wrangling after which to stop the pipeline of processing. " +
       "Threshold is not aggregate across all instance, but is applied for each running instances. " +
-      "Set to -1 to specify unlimited number of acceptable errors. ")
+      "Set to -1 to specify unlimited number of acceptable errors.")
     @Macro
     private final int threshold;
 
