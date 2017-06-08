@@ -1,18 +1,12 @@
-# Trimming Spaces
+# Set Type
 
-The TRIM, LTRIM, and RTRIM directives trim whitespace from both sides,
-left side or right side of a string values they are applied to.
-
+Convert data type of a column 
 
 ## Syntax
 ```
 set-type <column> <int|double|string|boolean>
 ```
-
-The directive performs an in-place trimming of space in the value specified
-by the `<column>`
-
-## Usage
+The `<column>` is converted to one of the types in `<int|double|string|boolean>`.
 
 
 
