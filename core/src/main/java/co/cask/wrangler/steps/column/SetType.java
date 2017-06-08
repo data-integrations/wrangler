@@ -27,15 +27,14 @@ import java.util.List;
 
 /**
  * A Wrangler step for converting data type of a column
- * Accepted types are: int, double, string and boolean
+ * Accepted types are: int, short, long, double, float, string, boolean and bytes
  */
 @Usage(
   directive = "set-type",
-  usage = "set-type <column> <int|double|string|boolean>",
+  usage = "set-type <column> <type>",
   description = "Converting data type of a column"
 )
 public class SetType extends AbstractStep {
-  // Columns of the column to be upper-cased
   private String col;
   private String type;
 
@@ -67,7 +66,7 @@ public class SetType extends AbstractStep {
   }
 
   private Object convertType(String toType, Object object) throws Exception {
-    toType = toType.toLowerCase();
+    toType = toType.toUpperCase();
     switch (toType) {
       case "INTEGER":
       case "I64":
@@ -80,17 +79,16 @@ public class SetType extends AbstractStep {
           return ((Float) object).intValue();
         } else if (object instanceof Double) {
           return ((Double) object).intValue();
-        } else if (object instanceof Number) {
-          return ((Double) object).intValue();
         } else if (object instanceof Integer) {
           return object;
         } else if (object instanceof Long) {
           return ((Long) object).intValue();
         } else if (object instanceof byte[]) {
           return Bytes.toInt((byte[]) object);
+        } else {
+          return object;
         }
       }
-      break;
 
       case "I32":
       case "SHORT": {
@@ -102,17 +100,16 @@ public class SetType extends AbstractStep {
           return ((Float) object).shortValue();
         } else if (object instanceof Double) {
           return ((Double) object).shortValue();
-        } else if (object instanceof Number) {
-          return ((Double) object).shortValue();
         } else if (object instanceof Integer) {
           return ((Integer) object).shortValue();
         } else if (object instanceof Long) {
           return ((Long) object).shortValue();
         } else if (object instanceof byte[]) {
           return Bytes.toShort((byte[]) object);
+        } else {
+          return object;
         }
       }
-      break;
 
       case "LONG": {
         if(object instanceof String) {
@@ -123,17 +120,16 @@ public class SetType extends AbstractStep {
           return ((Float) object).longValue();
         } else if (object instanceof Double) {
           return ((Double) object).longValue();
-        } else if (object instanceof Number) {
-          return ((Double) object).longValue();
         } else if (object instanceof Integer) {
           return ((Integer) object).longValue();
         } else if (object instanceof Long) {
           return object;
         } else if (object instanceof byte[]) {
           return Bytes.toLong((byte[]) object);
+        } else {
+          return object;
         }
       }
-      break;
 
       case "BOOL":
       case "BOOLEAN": {
@@ -145,17 +141,16 @@ public class SetType extends AbstractStep {
           return ((Float) object) > 0 ? true : false;
         } else if (object instanceof Double) {
           return ((Double) object)  > 0 ? true : false;
-        } else if (object instanceof Number) {
-          return ((Double) object)  > 0 ? true : false;
         } else if (object instanceof Integer) {
           return ((Integer) object)  > 0 ? true : false;
         } else if (object instanceof Long) {
           return ((Long) object)  > 0 ? true : false;
         } else if (object instanceof byte[]) {
           return Bytes.toBoolean((byte[]) object);
+        } else {
+          return object;
         }
       }
-      break;
 
       case "STRING": {
         if(object instanceof String) {
@@ -172,9 +167,12 @@ public class SetType extends AbstractStep {
           return Long.toString((Long) object);
         } else if (object instanceof byte[]) {
           return Bytes.toString((byte[]) object);
+        } else if (object instanceof Boolean){
+          return Boolean.toString((Boolean) object);
+        } else {
+          return object;
         }
       }
-      break;
 
       case "FLOAT": {
         if(object instanceof String) {
@@ -185,17 +183,16 @@ public class SetType extends AbstractStep {
           return object;
         } else if (object instanceof Double) {
           return ((Double) object).floatValue();
-        } else if (object instanceof Number) {
-          return ((Double) object).floatValue();
         } else if (object instanceof Integer) {
           return ((Integer) object).floatValue();
         } else if (object instanceof Long) {
-          return ((Long) object).longValue();
+          return ((Long) object).floatValue();
         } else if (object instanceof byte[]) {
           return Bytes.toFloat((byte[]) object);
+        } else {
+          return object;
         }
       }
-      break;
 
       case "DOUBLE": {
         if(object instanceof String) {
@@ -206,17 +203,16 @@ public class SetType extends AbstractStep {
           return ((Float) object).doubleValue();
         } else if (object instanceof Double) {
           return object;
-        } else if (object instanceof Number) {
-          return ((Double) object).doubleValue();
         } else if (object instanceof Integer) {
           return ((Integer) object).doubleValue();
         } else if (object instanceof Long) {
           return ((Long) object).doubleValue();
         } else if (object instanceof byte[]) {
           return Bytes.toDouble((byte[]) object);
+        } else {
+          return object;
         }
       }
-      break;
 
       case "BYTES": {
         if(object instanceof String) {
@@ -227,19 +223,22 @@ public class SetType extends AbstractStep {
           return Bytes.toBytes((Float) object);
         } else if (object instanceof Double) {
           return Bytes.toBytes((Double) object);
-        } else if (object instanceof Number) {
-          return Bytes.toBytes((Double) object);
         } else if (object instanceof Integer) {
           return Bytes.toBytes((Integer) object);
         } else if (object instanceof Long) {
           return Bytes.toBytes((Long) object);
         } else if (object instanceof byte[]) {
           return object;
+        } else {
+          return object;
         }
       }
-      break;
 
+      default:
+        throw new StepException(
+          String.format("Unknown data type '%s' found in the directive. " +
+                  "Accepted types are: int, short, long, double, boolean, string, bytes", toType)
+        );
     }
-
   }
 }
