@@ -251,7 +251,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
-        getContext().getMetrics().count("errors", 1);
+        getContext().getMetrics().count("errors", errors.size());
         ErrorRecord error = errors.get(0);
         emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
       }
