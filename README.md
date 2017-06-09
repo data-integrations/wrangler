@@ -185,6 +185,7 @@ These directives are currently available:
 | [Set Column Names](docs/directives/set-columns.md)                     | Sets the names of columns, in the order they are specified       |
 | [Split to Columns](docs/directives/split-to-columns.md)                | Splits a column based on a separator into multiple columns       |
 | [Swap Columns](docs/directives/swap.md)                                | Swaps column names of two columns                                |
+| [Set Column Data Type](docs/directives/set-type.md)                    | Convert data type of a column                                    |
 | **NLP**                                                                |                                                                  |
 | [Stemming Tokenized Words](docs/directives/stemming.md)                | Applies the Porter stemmer algorithm for English words           |
 | **Transient Aggregators & Setters**                                    |                                                                  |
