@@ -258,8 +258,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     } catch (Exception e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;
-      // If error threshold is reached, then terminate processing.
-      if (errorCounter > config.threshold) {
+      // If error threshold is reached, then terminate processing
+      // If threshold is set to -1, it tolerant unlimited errors
+      if (config.threshold != -1 && errorCounter > config.threshold) {
         LOG.error("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
         throw new Exception(String.format("Reached error threshold %d, terminating processing.", config.threshold));
       }
@@ -311,8 +312,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     private final String field;
 
     @Name("threshold")
-    @Description("Max number of event failures in wrangling after which to stop the pipeline of processing." +
-      "Threshold is not aggregate across all instance, but is applied for each running instances")
+    @Description("Max number of event failures in wrangling after which to stop the pipeline of processing. " +
+      "Threshold is not aggregate across all instance, but is applied for each running instances. " +
+      "Set to -1 to specify unlimited number of acceptable errors.")
     @Macro
     private final int threshold;
 
