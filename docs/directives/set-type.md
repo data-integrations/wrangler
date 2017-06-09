@@ -4,6 +4,7 @@ Convert data type of a column
 
 ## Syntax
 ```
-set-type <column> <int|double|string|boolean>
+set-type <column> <type>
 ```
-The `<column>` is converted to one of the types in `<int|double|string|boolean>`.
+The `<column>` is converted to the type in `<typpe>`.
+Acceptable types are: int, short, long, float, double, string, bytes, boolean
