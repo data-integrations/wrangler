@@ -29,6 +29,7 @@ import co.cask.wrangler.steps.column.Drop;
 import co.cask.wrangler.steps.column.Keep;
 import co.cask.wrangler.steps.column.Merge;
 import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.column.SetType;
 import co.cask.wrangler.steps.column.SplitToColumns;
 import co.cask.wrangler.steps.column.Swap;
 import co.cask.wrangler.steps.date.DiffDate;
@@ -188,6 +189,7 @@ public final class UsageRegistry implements Serializable {
     SetCharset.class,
     SetColumn.class,
     SetRecordDelimiter.class,
+    SetType.class,
     Split.class,
     SplitEmail.class,
     SplitToColumns.class,
