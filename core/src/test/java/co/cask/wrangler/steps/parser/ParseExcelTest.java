@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
+import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.PipelineExecutor;
 import co.cask.wrangler.executor.TextDirectives;
@@ -34,10 +35,10 @@ public class ParseExcelTest {
 
   @Test
   public void testBasicExcel() throws Exception {
-    try(InputStream stream = ParseAvroFileTest.class.getClassLoader().getResourceAsStream("titanic.xlsx")) {
+    try (InputStream stream = ParseAvroFileTest.class.getClassLoader().getResourceAsStream("titanic.xlsx")) {
       byte[] data = IOUtils.toByteArray(stream);
 
-      String[] directives = new String[] {
+      String[] directives = new String[]{
         "parse-as-excel body 0",
       };
 
@@ -50,4 +51,23 @@ public class ParseExcelTest {
       Assert.assertEquals(892, results.size());
     }
   }
+
+  @Test(expected = PipelineException.class)
+  public void testNoSheetName() throws Exception {
+    try (InputStream stream = ParseAvroFileTest.class.getClassLoader().getResourceAsStream("titanic.xlsx")) {
+      byte[] data = IOUtils.toByteArray(stream);
+
+      String[] directives = new String[]{
+        "parse-as-excel body wrong_error",
+      };
+
+      List<Record> records = new ArrayList<>();
+      records.add(new Record("body", data));
+
+      PipelineExecutor executor = new PipelineExecutor();
+      executor.configure(new TextDirectives(directives), null);
+      executor.execute(records);
+    }
+  }
 }
+
