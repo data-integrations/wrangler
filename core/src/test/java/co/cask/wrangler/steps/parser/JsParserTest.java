@@ -142,4 +142,18 @@ public class JsParserTest {
     records = PipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
+
+  @Test
+  public void testParsingExtraCharacters() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-json body"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", "[1,2,3,4,5]             ")
+    );
+
+    records = PipelineTest.execute(directives, records);
+    Assert.assertTrue(records.size() == 5);
+  }
 }
