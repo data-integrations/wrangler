@@ -30,6 +30,7 @@ import co.cask.wrangler.steps.column.Drop;
 import co.cask.wrangler.steps.column.Keep;
 import co.cask.wrangler.steps.column.Merge;
 import co.cask.wrangler.steps.column.Rename;
+import co.cask.wrangler.steps.column.SetType;
 import co.cask.wrangler.steps.column.SplitToColumns;
 import co.cask.wrangler.steps.column.Swap;
 import co.cask.wrangler.steps.date.DiffDate;
@@ -211,6 +212,14 @@ public class TextDirectives implements Directives {
           String oldcol = getNextToken(tokenizer,  command, "old", lineno);
           String newcol = getNextToken(tokenizer, command, "new", lineno);
           steps.add(new Rename(lineno, directive, oldcol, newcol));
+        }
+        break;
+
+        //set-type <column> <type>
+        case "set-type": {
+          String col = getNextToken(tokenizer,  command, "col", lineno);
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          steps.add(new SetType(lineno, directive, col, type));
         }
         break;
 
