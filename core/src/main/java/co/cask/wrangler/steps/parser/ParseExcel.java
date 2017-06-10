@@ -97,6 +97,12 @@ public class ParseExcel extends AbstractStep {
               excelsheet = book.getSheet(sheet);
             }
 
+            if (excelsheet == null) {
+              throw new StepException(
+                String.format("Failed to extract sheet '%s' from the excel. Sheet '%s' does not exist.", sheet, sheet)
+              );
+            }
+
             int last = excelsheet.getLastRowNum();
 
             Iterator<Row> it = excelsheet.iterator();
