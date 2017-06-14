@@ -285,6 +285,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       properties.put("topic", topic);
       properties.put("referenceName", topic);
       properties.put("brokers", (String) conn.getProp(PropertyIds.BROKER));
+      properties.put("kafkaBrokers", (String) conn.getProp(PropertyIds.BROKER));
       properties.put("keyField", (String) conn.getProp(PropertyIds.KEY_DESERIALIZER));
       properties.put("format", "binary");
 
