@@ -204,7 +204,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
-      String uuid = ServiceUtils.generateMD5(id);
+      String uuid = ServiceUtils.generateMD5(String.format("%s.%s", id, topic));
       ws.createWorkspaceMeta(uuid, topic);
 
       try {
@@ -236,6 +236,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
         Map<String, String> properties = new HashMap<>();
         properties.put(PropertyIds.ID, uuid);
         properties.put(PropertyIds.NAME, topic);
+        properties.put(PropertyIds.CONNECTION_ID, id);
         properties.put(PropertyIds.TOPIC, topic);
         properties.put(PropertyIds.BROKER, config.getConnection());
         properties.put(PropertyIds.CONNECTION_TYPE, connection.getType().getType());
@@ -288,6 +289,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       properties.put("kafkaBrokers", (String) conn.getProp(PropertyIds.BROKER));
       properties.put("keyField", (String) conn.getProp(PropertyIds.KEY_DESERIALIZER));
       properties.put("format", "binary");
+      properties.put("tableName", "kafka_offset");
 
       kafka.add("properties", gson.toJsonTree(properties));
       kafka.addProperty("name", "Kafka");
