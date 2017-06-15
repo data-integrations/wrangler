@@ -1,0 +1,13 @@
+{
+	"exclusions" : [
+		"parse-as-csv",
+		"parse-as-excel",
+		"set",
+		"invoke-http"
+	],
+
+	"aliases" : {
+		"json-parser" : "parse-as-json",
+		"js-parser" : "parse-as-json"
+	}
+}

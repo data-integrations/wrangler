@@ -293,7 +293,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
-   * Configuration for the plugin.
+   * Config for the plugin.
    */
   public static class Config extends PluginConfig {
     @Name("precondition")

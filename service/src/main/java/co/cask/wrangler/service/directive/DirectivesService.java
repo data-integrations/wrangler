@@ -36,6 +36,7 @@ import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
+import co.cask.wrangler.config.Config;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
@@ -873,6 +874,47 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
     response.add("values", array);
     sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+  }
+
+  /**
+   * Updates the configuration.
+   *
+   * @param request to gather information of the request.
+   * @param responder to respond to the service request.
+   */
+  @POST
+  @Path("config")
+  public void uploadConfig(HttpServiceRequest request, HttpServiceResponder responder) {
+    try {
+      // Read the request body
+      RequestExtractor handler = new RequestExtractor(request);
+      Config config = handler.getContent("UTF-8", Config.class);
+      if (config == null) {
+        error(responder, "Config is empty. Please check if the request is sent as HTTP POST body.");
+        return;
+      }
+      table.updateConfig(config);
+      success(responder, "Successfully updated configuration.");
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
+   * Updates the configuration.
+   *
+   * @param request to gather information of the request.
+   * @param responder to respond to the service request.
+   */
+  @GET
+  @Path("config")
+  public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
+    try {
+      String response = table.getConfigString();
+      sendJson(responder, HttpURLConnection.HTTP_OK, response);
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    }
   }
 
   /**

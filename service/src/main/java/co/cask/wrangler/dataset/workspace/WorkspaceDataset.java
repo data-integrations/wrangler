@@ -32,6 +32,7 @@ import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.config.Config;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -160,11 +161,15 @@ public class WorkspaceDataset extends AbstractDataset {
   public List<KeyValue<String, String>> getWorkspaces() throws WorkspaceException {
     List<KeyValue<String, String>> values = new ArrayList<>();
     Row row;
-    try (Scanner scanner = table.scan(null, null)) {
+    byte[] start = Bytes.toBytes("ws:");
+    byte[] end = Bytes.stopKeyForPrefix(start);
+    try (Scanner scanner = table.scan(start, end)) {
       while((row = scanner.next()) != null) {
         byte[] key = row.getRow();
+        String ws = Bytes.toString(key);
+        String[] split = ws.split(":");
         byte[] name = row.get(NAME_COL);
-        values.add(new KeyValue<>(Bytes.toString(key), Bytes.toString(name)));
+        values.add(new KeyValue<>(split[1], Bytes.toString(name)));
       }
     } catch (DataSetException e) {
       throw new WorkspaceException(
@@ -255,6 +260,29 @@ public class WorkspaceDataset extends AbstractDataset {
     updateWorkspace(id, PROPERTIES_COL, toJsonBytes(properties));
   }
 
+  @WriteOnly
+  public void updateConfig(Config config) {
+    byte[] bytes = Bytes.toBytes(gson.toJson(config));
+    table.put(Bytes.toBytes("config"), Bytes.toBytes("ws"), bytes);
+  }
+
+  @ReadOnly
+  public Config getConfig() {
+    byte[] bytes = table.get(Bytes.toBytes("config"), Bytes.toBytes("ws"));
+    String json = Bytes.toString(bytes);
+    Config config = gson.fromJson(json, Config.class);
+    return config;
+  }
+
+  @ReadOnly
+  public String getConfigString() {
+    byte[] bytes = table.get(Bytes.toBytes("config"), Bytes.toBytes("ws"));
+    if (bytes == null) {
+      return "{}";
+    }
+    return Bytes.toString(bytes);
+  }
+
   @ReadOnly
   public Map<String, String> getProperties(String id) throws WorkspaceException {
     byte[] bytes = table.get(Bytes.toBytes(id), PROPERTIES_COL);
@@ -315,6 +343,7 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   private byte[] toKey(String value) {
+    value = String.format("%s:%s", "ws", value);
     return Bytes.toBytes(value);
   }
 

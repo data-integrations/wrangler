@@ -95,8 +95,8 @@ import co.cask.wrangler.steps.transformation.RightTrim;
 
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
