@@ -20,6 +20,7 @@ import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * A specification for how {@link Pipeline} will process.
@@ -27,7 +28,7 @@ import java.util.List;
 @PublicEvolving
 public interface Directives extends Serializable {
   // Column definition for the start of processing.
-  public static final String STARTING_COLUMN = "__col";
+  String STARTING_COLUMN = "__col";
 
   /**
    * Generates a configured set of {@link Step} to be executed.
@@ -35,4 +36,12 @@ public interface Directives extends Serializable {
    * @return List of {@link Step}.
    */
   List<Step> getSteps() throws DirectiveParseException;
+
+  /**
+   * Initialises the directive with a {@link DirectiveContext}.
+   *
+   * @param context, instance of context object or null.
+   */
+  @Nullable
+  void initialize(DirectiveContext context);
 }

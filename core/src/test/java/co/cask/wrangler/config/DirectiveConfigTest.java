@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * Tests {@link Config}
  */
-public class ConfigTest {
+public class DirectiveConfigTest {
 
   private static final String SPECIFICATION = "{\n" +
     "\t\"exclusions\" : [\n" +

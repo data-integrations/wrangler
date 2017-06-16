@@ -21,8 +21,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,7 +37,8 @@ public class PipelineExecutorTest {
   public void testPipeline() throws Exception {
 
     String[] commands = new String[] {
-      "set format csv , true",
+      "parse-as-csv __col ,",
+      "drop __col",
       "set columns \"a\",\" b\",'c ',d,e,f,g",
       "rename a first",
       "drop b"
@@ -75,7 +75,8 @@ public class PipelineExecutorTest {
   public void testPipelineWithMoreSimpleTypes() throws Exception {
 
     String[] commands = new String[] {
-      "set format csv , true",
+      "parse-as-csv __col ,",
+      "drop __col",
       "set columns first,last,email,timestamp,weight"
     };
     // Output schema
@@ -102,7 +103,4 @@ public class PipelineExecutorTest {
     Assert.assertEquals(1481666448L, record.get("timestamp"));
     Assert.assertEquals(186.66f, record.get("weight"));
   }
-
-
-
 }

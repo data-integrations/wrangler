@@ -14,13 +14,13 @@
  * the License.
  */
 
-package co.cask.wrangler.config;
+package co.cask.wrangler.api;
 
 import java.util.Map;
 import java.util.Set;
 
 /**
- * This class {@link Config} defines the configuration for the Wrangler.
+ * This class {@link DirectiveConfig} defines the configuration for the Wrangler.
  * It specifies the directive exclusions -- meaning directives that should
  * not be accessible to the users and as well as directive aliases.
  *
@@ -37,7 +37,7 @@ import java.util.Set;
  *   }
  *  }
  */
-public final class Config {
+public final class DirectiveConfig {
   // Directives to be excluded or made non-accessible.
   private Set<String> exclusions;
 
@@ -64,7 +64,7 @@ public final class Config {
    * @param directive to checked for alias.
    * @return
    */
-  public boolean isAliased(String directive) {
+  public boolean hasAlias(String directive) {
     if (aliases != null && aliases.containsKey(directive)) {
       return true;
     }
@@ -77,8 +77,8 @@ public final class Config {
    * @param directive to be dereferenced.
    * @return dereferenced directive or the directive itself.
    */
-  public String dereferenceAlias(String directive) {
-    if (isAliased(directive)) {
+  public String getAlias(String directive) {
+    if (hasAlias(directive)) {
       return aliases.get(directive);
     }
     return directive;

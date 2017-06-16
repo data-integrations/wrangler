@@ -28,6 +28,7 @@ import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
+import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.ErrorRecord;
@@ -36,12 +37,28 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.ConfigDirectiveContext;
+import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.DefaultTransientStore;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -186,10 +203,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     Directives directives = new TextDirectives(config.directives);
     PipelineContext ctx = new WranglerPipelineContext(PipelineContext.Environment.TRANSFORM, context, store);
 
-    // Create the pipeline executor with context being set.
-    pipeline = new PipelineExecutor();
-    pipeline.configure(directives, ctx);
-
     // Based on the configuration create output schema.
     try {
       oSchema = Schema.parseJson(config.schema);
@@ -205,6 +218,24 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         throw new IllegalArgumentException(e.getMessage());
       }
     }
+
+    URL url = context.getServiceURL("datapre", "service");
+    CloseableHttpClient client = null;
+    try {
+      HttpGet get = new HttpGet(url.toString());
+      get.addHeader("Content-type", "application/json; charset=UTF-8");
+      client = HttpClients.createDefault();
+      DirectiveConfig config = client.execute(get, new ServiceResponseHandler());
+      directives.initialize(new ConfigDirectiveContext(config));
+    } finally {
+      if (client != null) {
+        client.close();
+      }
+    }
+
+    // Create the pipeline executor with context being set.
+    pipeline = new PipelineExecutor();
+    pipeline.configure(directives, ctx);
 
     // Initialize the error counter.
     errorCounter = 0;
@@ -289,6 +320,26 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         }
       }
       emitter.emit(builder.build());
+    }
+  }
+
+  private class ServiceResponseHandler implements ResponseHandler<DirectiveConfig> {
+    @Override
+    public DirectiveConfig handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+      StatusLine statusLine = response.getStatusLine();
+      HttpEntity entity = response.getEntity();
+      if (statusLine.getStatusCode() >= 300) {
+        throw new HttpResponseException(
+          statusLine.getStatusCode(),
+          statusLine.getReasonPhrase());
+      }
+      if (entity == null) {
+        throw new ClientProtocolException("Response contains no content");
+      }
+      Gson gson = new GsonBuilder().create();
+      Reader reader = new InputStreamReader(entity.getContent(), Charset.forName("UTF-8"));
+      DirectiveConfig config = gson.fromJson(reader, DirectiveConfig.class);
+      return config;
     }
   }
 

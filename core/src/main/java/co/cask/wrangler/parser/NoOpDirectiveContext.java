@@ -14,23 +14,27 @@
  * the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.parser;
 
-import co.cask.wrangler.parser.UsageRegistry;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.List;
+import co.cask.wrangler.api.DirectiveContext;
 
 /**
- * Tests {@link UsageRegistry}
+ * Class description here.
  */
-public class UsageRegistryTest {
+public class NoOpDirectiveContext implements DirectiveContext {
 
-  @Test
-  public void testUsageRegistry() throws Exception {
-    UsageRegistry registry = new UsageRegistry();
-    List<UsageRegistry.UsageDatum> usages = registry.getAll();
-    Assert.assertTrue(usages.size() > 1);
+  @Override
+  public boolean hasAlias(String directive) {
+    return false;
+  }
+
+  @Override
+  public String getAlias(String directive) {
+    return directive;
+  }
+
+  @Override
+  public boolean isExcluded(String directive) {
+    return false;
   }
 }
