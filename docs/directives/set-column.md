@@ -8,7 +8,7 @@ The SET-COLUMN directive sets the column value to the result of an expression ex
 set-column <columm> <expression>
 ```
 
-* The `<column>` specifies the name of an existing column
+* The `<column>` specifies the name of a column. If the column exists already, its value will be overwritten with the result of the specified expression. If the column does not exist, a new column will be created with the result of the specified expression.
 * The `<expression>` is a valid [Apache Commons JEXL
   expression](http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
 
