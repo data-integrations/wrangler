@@ -19,6 +19,8 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
 
 ## Demo Videos and Recipes
 
+More Videos [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl4n7zU4TWmIr)
+
 * Videos
   * [SCREENCAST] [Creating Lookup Dataset and Joining](https://www.youtube.com/watch?v=Nc1b0rsELHQ)
   * [SCREENCAST] [Restricted Directives](https://www.youtube.com/watch?v=71EcMQU714U)
