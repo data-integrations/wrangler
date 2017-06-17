@@ -14,23 +14,34 @@
  * the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.parser;
 
-import co.cask.wrangler.parser.UsageRegistry;
+import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.Step;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
 
 /**
- * Tests {@link UsageRegistry}
+ * Tests {@link NoOpDirectiveContext}
  */
-public class UsageRegistryTest {
+public class NoOpDirectiveContextTest {
 
   @Test
-  public void testUsageRegistry() throws Exception {
-    UsageRegistry registry = new UsageRegistry();
-    List<UsageRegistry.UsageDatum> usages = registry.getAll();
-    Assert.assertTrue(usages.size() > 1);
+  public void testNoFilteringHappening() throws Exception {
+    String[] text = new String[] {
+      "parse-as-csv body , true",
+      "drop body",
+      "drop Cabin",
+      "drop Embarked",
+      "fill-null-or-empty Age 0",
+      "filter-row-if-true Fare < 8.06"
+    };
+
+    Directives directives = new TextDirectives(text);
+    List<Step> steps = directives.getSteps();
+    Assert.assertEquals(6, steps.size());
   }
+
 }

@@ -32,30 +32,31 @@ public interface PipelineContext extends LookupProvider, Serializable {
   /**
    * Specifies the environment in which wrangler is running.
    */
-  public enum Environment {
+  enum Environment {
     SERVICE,
-    TRANSFORM
+    TRANSFORM,
+    MICROSERVICE
   };
 
   /**
    * @return Environment this context is prepared for.
    */
-  public Environment getEnvironment();
+  Environment getEnvironment();
 
   /**
    * @return Measurements handler.
    */
-  public StageMetrics getMetrics();
+  StageMetrics getMetrics();
 
   /**
    * @return Context name.
    */
-  public String getContextName();
+  String getContextName();
 
   /**
    * @return Properties associated with run and pipeline.
    */
-  public Map<String, String> getProperties();
+  Map<String, String> getProperties();
 
   /**
    * Returns a valid service url.
@@ -64,7 +65,10 @@ public interface PipelineContext extends LookupProvider, Serializable {
    * @param serviceId id of the service within application.
    * @return URL if service exists, else null.
    */
-  public URL getService(String applicationId, String serviceId);
+  URL getService(String applicationId, String serviceId);
 
-  public TransientStore getTransientStore();
+  /**
+   * @return A transient store.
+   */
+  TransientStore getTransientStore();
 }

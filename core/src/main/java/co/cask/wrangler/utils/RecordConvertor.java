@@ -183,7 +183,7 @@ public final class RecordConvertor implements Serializable {
           }
         } else {
           throw new RecordConvertorException(
-            String.format("Schema specifies field '%s' is integer, but the value is nor a integer or string. " +
+            String.format("Schema specifies field '%s' is integer, but the value is not a integer or string. " +
                             "It is of type '%s'", name, object.getClass().getName())
           );
         }

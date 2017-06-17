@@ -107,6 +107,7 @@
     <kafka.clients.version>0.10.2.1</kafka.clients.version>
     <aws.sdk.version>1.9.6</aws.sdk.version>
     <poi.version>3.16</poi.version>
+    <hadoop.version>2.4.0</hadoop.version>
   </properties>
 
   <repositories>
@@ -121,6 +122,12 @@
   </repositories>
 
   <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>

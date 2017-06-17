@@ -31,7 +31,8 @@ public class QuantizationTest {
   @Test
   public void testQuanitization() throws Exception {
     String[] directives = new String[] {
-      "set format csv , false",
+      "parse-as-csv __col ,",
+      "drop __col",
       "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
       "quantize hrlywage wagerange 0.0:20.0=LOW,21.0:75.0=MEDIUM,75.1:200.0=HIGH",
       "set column wagerange (wagerange == null) ? \"NOT FOUND\" : wagerange"

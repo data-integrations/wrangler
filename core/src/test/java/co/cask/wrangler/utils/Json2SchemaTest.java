@@ -21,7 +21,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.format.StructuredRecordStringConverter;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;

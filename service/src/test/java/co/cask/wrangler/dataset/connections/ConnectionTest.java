@@ -37,7 +37,7 @@ public class ConnectionTest {
     Connection connection = new Connection();
     connection.setName("MySQL Database");
     connection.setType(ConnectionType.DATABASE);
-    connection.setDescription("MySQL Configuration");
+    connection.setDescription("MySQL Config");
     connection.setCreated(System.currentTimeMillis()/1000);
     connection.setUpdated(System.currentTimeMillis()/1000);
     connection.putProp("hostname", "localhost");
@@ -47,7 +47,7 @@ public class ConnectionTest {
     String to = "{\n" +
       "\t\"name\":\"MySQL Database\",\n" +
       "\t\"type\":\"DATABASE\",\n" +
-      "\t\"description\":\"MySQL Configuration\",\n" +
+      "\t\"description\":\"MySQL Config\",\n" +
       "\t\"created\":1494505014,\n" +
       "\t\"updated\":1494505014,\n" +
       "\t\"properties\" : {\n" +

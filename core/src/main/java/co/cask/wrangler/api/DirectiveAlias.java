@@ -16,21 +16,24 @@
 
 package co.cask.wrangler.api;
 
-import co.cask.wrangler.parser.UsageRegistry;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.List;
-
 /**
- * Tests {@link UsageRegistry}
+ * This interface {@link DirectiveAlias} provides a way to check if a directive
+ * is aliased and if there it is aliased to what it is being aliased.
  */
-public class UsageRegistryTest {
+public interface DirectiveAlias {
 
-  @Test
-  public void testUsageRegistry() throws Exception {
-    UsageRegistry registry = new UsageRegistry();
-    List<UsageRegistry.UsageDatum> usages = registry.getAll();
-    Assert.assertTrue(usages.size() > 1);
-  }
+  /**
+   * Checks if the directive is aliased.
+   *
+   * @param directive to be checked for aliasing.
+   * @return true if the directive has an alias, false otherwise.
+   */
+  boolean hasAlias(String directive);
+
+  /**
+   * Returns the root directive aliasee
+   * @param directive
+   * @return
+   */
+  String getAlias(String directive);
 }

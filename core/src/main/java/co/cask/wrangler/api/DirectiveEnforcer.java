@@ -16,21 +16,17 @@
 
 package co.cask.wrangler.api;
 
-import co.cask.wrangler.parser.UsageRegistry;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.List;
-
 /**
- * Tests {@link UsageRegistry}
+ * This class defines the interfaces that would provide the ability to
+ * check whether the user should be provided access to the directive being used.
  */
-public class UsageRegistryTest {
+public interface DirectiveEnforcer {
 
-  @Test
-  public void testUsageRegistry() throws Exception {
-    UsageRegistry registry = new UsageRegistry();
-    List<UsageRegistry.UsageDatum> usages = registry.getAll();
-    Assert.assertTrue(usages.size() > 1);
-  }
+  /**
+   * Checks if the directive is being excluded from being used.
+   *
+   * @param directive to be checked for exclusion.
+   * @return true if excluded, false otherwise.
+   */
+  boolean isExcluded(String directive);
 }

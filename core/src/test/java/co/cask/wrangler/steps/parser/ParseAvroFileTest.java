@@ -19,7 +19,7 @@ package co.cask.wrangler.steps.parser;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 import com.google.common.base.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
