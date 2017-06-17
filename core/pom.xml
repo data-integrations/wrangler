@@ -150,11 +150,13 @@
       <artifactId>hapi-structures-v26</artifactId>
       <version>${hl7.version}</version>
     </dependency>
+
     <dependency>
       <groupId>io.dataapps.chlorine</groupId>
       <artifactId>chlorine-finder</artifactId>
       <version>${chlorine.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.github.mpkorstanje</groupId>
       <artifactId>simmetrics-core</artifactId>
@@ -187,6 +189,43 @@
       <version>${netty-http.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- dependencies for type inferring-->
+
+    <!-- https://mvnrepository.com/artifact/com.googlecode.libphonenumber/libphonenumber -->
+    <dependency>
+      <groupId>com.googlecode.libphonenumber</groupId>
+      <artifactId>libphonenumber</artifactId>
+      <version>8.4.3</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/au.com.bytecode/opencsv -->
+    <dependency>
+      <groupId>au.com.bytecode</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>2.4</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
+    <dependency>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>1.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.steveash.addr</groupId>
+      <artifactId>us-address-parser</artifactId>
+      <version>0.1</version>
+    </dependency>
+
+
+
+
+
+
+
+
   </dependencies>
 
   <build>
@@ -194,6 +233,13 @@
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
+      </resource>
+      <!-- Otherwise, a tag like the following gets replaced and the xml file becomes invalid XML:
+           <pattern>^F-?\d{5}$</pattern>
+      -->
+      <resource>
+        <directory>src/main/resources-unfiltered</directory>
+        <filtering>false</filtering>
       </resource>
     </resources>
     <plugins>

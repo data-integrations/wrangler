@@ -62,6 +62,11 @@ public class DefaultTransientStore implements TransientStore {
     return variables.keySet();
   }
 
+  @Override
+  public <T> T delete(String name) {
+    return (T) variables.remove(name);
+  }
+
   /**
    * Resets the state of this store.
    */

@@ -34,7 +34,7 @@ public interface TransientStore {
    *
    * @param name of the variable to be retrieved.
    * @param <T> type of the value to be returned.
-   * @return instance of object of type T.
+   * @return instance of object of type T. return null if variable doesn't exist.
    */
   <T> T get(String name);
 
@@ -60,4 +60,12 @@ public interface TransientStore {
    * @return list of all the variables.
    */
   Set<String> getVariables();
+
+  /**
+   * Delete a variable
+   *
+   * @param name
+   * @return previous value of this variable, or null if it doesn't exist
+   */
+  <T> T delete(String name);
 }

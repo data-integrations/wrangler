@@ -20,6 +20,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.IncrementTransientVariable;
 import co.cask.wrangler.steps.SetTransientVariable;
+import co.cask.wrangler.steps.SetInfoType;
 import co.cask.wrangler.steps.column.ChangeColCaseNames;
 import co.cask.wrangler.steps.column.CleanseColumnNames;
 import co.cask.wrangler.steps.column.Columns;
@@ -213,7 +214,8 @@ public final class UsageRegistry implements Serializable {
     XPathElement.class,
     ParseExcel.class,
     SetTransientVariable.class,
-    IncrementTransientVariable.class
+    IncrementTransientVariable.class,
+    SetInfoType.class
   );
 
   public UsageRegistry() {

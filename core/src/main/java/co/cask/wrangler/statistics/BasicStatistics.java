@@ -23,15 +23,23 @@ import io.dataapps.chlorine.finder.FinderEngine;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * Created by nitin on 2/4/17.
+ * To generate statistics of list of Records
  */
 public class BasicStatistics implements Statistics {
+
   private final FinderEngine engine;
+  private final PhoneNumberFinder phoneNumberFinder;
+  private final ISBNFinder isbnFinder;
+  private final AddressFinder addressFinder;
 
   public BasicStatistics() throws Exception {
     engine = new FinderEngine("wrangler-finder.xml", true, false);
+    phoneNumberFinder = new PhoneNumberFinder();
+    isbnFinder = new ISBNFinder();
+    addressFinder = new AddressFinder();
   }
 
   @Override
@@ -56,10 +64,161 @@ public class BasicStatistics implements Statistics {
           String value = ((String) object);
           if (value.isEmpty()) {
             stats.increment(column, "empty");
-          } else {
+          }
+
+          else {
+            //Type inferring using regex
             Map<String, List<String>> finds = engine.findWithType(value);
-            for (String find : finds.keySet()) {
-              types.increment(column, find);
+            Set<String> keySet = finds.keySet();
+
+            /*
+            All regex recognizable types:
+            Integer, Mastercard, Visa, AMEX, Discover, JCB, URL, France_Postal_Code, Canadian_Postal_Code, Email
+            Date_Time, Month, Time, Month/Year, Date, Mac_Address, IPV4, US_Postal_Codes, US_State, SSN, IPV6, Text, Gender, Boolean
+            IBAN, ISBN, Zip_Code, Currency, Longitude, Latitude, Street_Address
+            */
+
+            //Need to check the types in certain order, to make some checkers's results dominate others
+            //Street_Address is hard to detect. For now just uses regex matching, which can't recognize all addresses
+            //We rely on manually setting type for street address now
+            if (addressFinder.isUSAddress(value)) {
+              types.increment(column, "Street_Address");
+            }
+
+            //Boolean
+            else if (keySet.contains("Boolean")) {
+              types.increment(column, "Boolean");
+            }
+            //URL
+            else if (keySet.contains("URL")) {
+              types.increment(column, "URL");
+            }
+            //US_State
+            else if (keySet.contains("US_State")) {
+              types.increment(column, "US_State");
+            }
+            //Gender
+            else if (keySet.contains("Gender")) {
+              types.increment(column, "Gender");
+            }
+            //IPV4, IPV6
+            else if (keySet.contains("IPV6")) {
+              types.increment(column, "IPV6");
+            }
+            else if (keySet.contains("IPV4")) {
+              types.increment(column, "IPV4");
+            }
+            //MAC address
+            else if (keySet.contains("Mac_Address")) {
+              types.increment(column, "Mac_Address");
+            }
+
+            //For ISBN, use ISBN validator
+            else if (isbnFinder.isISBN(value)) {
+              types.increment(column, "ISBN");
+            }
+
+            //Currency
+            else if (keySet.contains("Currency")) {
+              types.increment(column, "Currency");
+            }
+            //Email
+            else if (keySet.contains("Email")) {
+              types.increment(column, "Email");
+            }
+            //SSN
+            else if (keySet.contains("SSN")) {
+              types.increment(column, "SSN");
+            }
+
+            //Mastercard, Visa, AMEX, Discover, JCB
+            else if (keySet.contains("Mastercard")) {
+              types.increment(column, "Mastercard");
+            }
+            else if (keySet.contains("Visa")) {
+              types.increment(column, "Visa");
+            }
+            else if (keySet.contains("AMEX")) {
+              types.increment(column, "AMEX");
+            }
+            else if (keySet.contains("Discover")) {
+              types.increment(column, "Discover");
+            }
+            else if (keySet.contains("JCB")) {
+              types.increment(column, "JCB");
+            }
+
+            //Longitude, Latitude
+            else if (keySet.contains("Longitude") || keySet.contains("Latitude")) {
+              types.increment(column, "Longitude_Latitude");
+            }
+
+            //France_Postal_Code, Canadian_Postal_Code
+            else if (keySet.contains("France_Postal_Code")) {
+              types.increment(column, "France_Postal_Code");
+            }
+            else if (keySet.contains("Canadian_Postal_Code")) {
+              types.increment(column, "Canadian_Postal_Code");
+            }
+
+            //Zip_Code
+            //Distinguish zip code for these countries: US, Canada, Mexico, China, India
+            else if (keySet.contains("US_Zip_Code")) {
+              types.increment(column, "US_Zip_Code");
+            }
+            else if (keySet.contains("CA_Zip_Code")) {
+              types.increment(column, "CA_Zip_Code");
+            }
+            else if (keySet.contains("MX_Zip_Code")) {
+              types.increment(column, "MX_Zip_Code");
+            }
+            else if (keySet.contains("CN_Zip_Code")) {
+              types.increment(column, "CN_Zip_Code");
+            }
+            else if (keySet.contains("IN_Zip_Code")) {
+              types.increment(column, "IN_Zip_Code");
+            }
+            else if (keySet.contains("Zip_Code")) {
+              types.increment(column, "Zip_Code");
+            }
+
+            //Text
+            else if (keySet.contains("Text")) {
+              types.increment(column, "Text");
+            }
+
+            //Phone number validating comes in the end, otherwise it can easily mess up with other types
+            //cause there are so many phone number format (different countries) to match
+            //this problem can be solved if it matches fewer phone number format, but that way it can only
+            //recognize numbers from a few countries
+
+            else if (phoneNumberFinder.isValidPhone(value)) {
+              types.increment(column, "Phone");
+            }
+
+            //Date_Time, Month, Time, Month/Year, Date
+            else if (keySet.contains("Date_Time")) {
+              types.increment(column, "Date_Time");
+            }
+            else if (keySet.contains("Month")) {
+              types.increment(column, "Month");
+            }
+            else if (keySet.contains("Time")) {
+              types.increment(column, "Time");
+            }
+            else if (keySet.contains("Month/Year")) {
+              types.increment(column, "Month/Year");
+            }
+            else if (keySet.contains("Date")) {
+              types.increment(column, "Date");
+            }
+
+            //Integer comes last
+            else if (keySet.contains("Integer")) {
+              types.increment(column, "Integer");
+            }
+            else {
+              types.increment(column, "Unknown");
             }
           }
         }
@@ -83,4 +242,5 @@ public class BasicStatistics implements Statistics {
 
     return record;
   }
+
 }

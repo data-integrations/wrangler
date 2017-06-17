@@ -32,5 +32,5 @@ public interface Statistics {
    * @param records to be aggregated.
    * @return Summary in the form of {@link Record}
    */
-  public Record aggregate(List<Record> records);
+  Record aggregate(List<Record> records);
 }

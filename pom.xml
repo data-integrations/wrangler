@@ -272,7 +272,7 @@
     </plugins>
   </build>
 
-   <!-- Profile for release. Includes signing of jars. -->
+  <!-- Profile for release. Includes signing of jars. -->
   <profiles>
     <profile>
       <id>release</id>
@@ -369,4 +369,3 @@
     </profile>
   </profiles>
 </project>
-

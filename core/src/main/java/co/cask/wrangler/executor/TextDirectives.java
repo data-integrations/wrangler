@@ -93,6 +93,7 @@ import co.cask.wrangler.steps.transformation.LeftTrim;
 import co.cask.wrangler.steps.transformation.RightTrim;
 
 
+import co.cask.wrangler.steps.SetInfoType;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -1016,8 +1017,13 @@ public class TextDirectives implements Directives {
         }
         break;
 
-
-
+        //set-info-type <column> <type>
+        case "set-info-type": {
+          String col = getNextToken(tokenizer, command, "col", lineno);
+          String type = getNextToken(tokenizer, command, "type", lineno);
+          steps.add(new SetInfoType(lineno, directive, col, type));
+        }
+        break;
 
         default:
           throw new DirectiveParseException(
