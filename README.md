@@ -136,7 +136,7 @@ These directives are currently available:
 ## Restricting and Aliasing
 
 A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
-More information on configuring can be found (here)[docs/exclusion-and-aliasing.md)
+More information on configuring can be found [here](docs/exclusion-and-aliasing.md)
 
 ## Performance
 
@@ -149,66 +149,6 @@ rates below are specified as *records/second*. Additional details and test resul
 | -------------------- | :----------: | ---------: | -------------: | --------: | ------------: | ------------: | -------------: |
 | Medium               |      18      | 13,499,973 |  4,499,534,313 | 64,998.50 |     64,921.29 |     46,866.70 |      36,149.86 |
 | Medium               |      18      | 80,999,838 | 26,997,205,878 | 62,465.93 |     62,706.39 |     60,755.41 |      56,673.32 |
-
-
-## Data Prep Service
-
-Data Prep is integrated as a CDAP Service to support HTTP RESTful-based interactive
-wrangling of data. The main objective of this service is to make it simple and easy to
-interactively apply the directives required for parsing a given data set. The service is
-not intended to replace full-scale big data processing; it is primarily used to
-interactively apply directives on a sample of your data.
-
-The base endpoint is:
-
-```
-http://<hostname>:11015/v3/namespaces/<namespace>/apps/dataprep/services/service/methods
-```
-
-These services are provided:
-
-* [Administration and Management](docs/service/admin.md)
-* [Directive Execution](docs/service/execution.md)
-* [Column Type Detection and Statistics](docs/service/statistics.md)
-* [Column Name Validation](docs/service/validation.md)
-
-The [Request Format Specification](docs/service/request.md) describes the format that is used for sending
-a request to the back-end.
-
-
-## Building New Directives
-
-As directives are executed as a step, it's a simple three-part process to implement the step and
-provide the specifications for a directive.
-
-### Part 1 of 3
-
-In order to add a new step, implement the interface 'Step':
-```
-/**
- * A interface defining a Data Prep step in a pipeline.
- */
-public interface Step {
-  /**
-   * Executes a Data Prep step on each {@link Record} and returns an array of processed {@link Record Records}.
-   *
-   * @param records the list of input {@link Record Records} to be processed by this step
-   * @return the list of processed {@link Record Records}
-   * @throws StepException if a step exception occurred
-   */
-  List<Record> execute(List<Record> records) throws StepException;
-}
-```
-
-### Part 2 of 3
-
-Add a comprehensive test case for the directive that has been added.
-
-### Part 3 of 3
-
-Modify the specification to parse the directive specification and create the implementation of
-the step you have created in part 1.
-
 
 ## Build
 
