@@ -12,8 +12,10 @@ cleansing, transformation, and filtering using a set of data manipulation instru
 (directives). These instructions are either generated using an interative visual tool or
 are manually created.
 
-The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
+Data Prep defines few concepts that might be useful if you are just getting started with it.
+ Learn about them [here](docs/concepts.md)
 
+The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
 
 ## Demo Videos and Recipes
 
@@ -35,72 +37,6 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
   * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
   * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)
   * [Parsing HL7 CCDA XML Files](demos/parsing-hl7-ccda-xml-files.md)
-
-
-## Concepts
-
-This implementation of Data Prep uses the concepts of _Record_, _Column_, _Directive_,
-_Step_, and _Pipeline_.
-
-### Record
-
-A *Record* is a collection of field names and field values.
-
-### Column
-
-A *Column* is a data value of any of the supported Java types, one for each record.
-
-### Directive
-
-A *Directive* is a single data manipulation instruction, specified to either transform,
-filter, or pivot a single record into zero or more records. A directive can generate one
-or more *steps* to be executed by a pipeline.
-
-### Step
-
-A *Step* is an implementation of a data transformation function, operating on a single
-record or set of records. A step can generate zero or more records from the application of
-a function.
-
-### Pipeline
-
-A *Pipeline* is a collection of steps to be applied on a record. The record(s) outputed
-from a step are passed to the next step in the pipeline.
-
-## Notations
-
-### Directives
-
-A directive can be represented in text in this format:
-
-```
-<command> <argument-1> <argument-2> ... <argument-n>
-```
-
-### Record
-
-A record in this documentation will be shown as a JSON object with an object key
-representing the column names and a value shown by the plain representation of the
-the data, without any mention of types.
-
-For example:
-
-```
-{
-  "id": 1,
-  "fname": "root",
-  "lname": "joltie",
-  "address": {
-    "housenumber": "678",
-    "street": "Mars Street",
-    "city": "Marcity",
-    "state": "Maregon",
-    "country": "Mari"
-  },
-  "gender": "M"
-}
-```
-
 
 ## Available Directives
 
@@ -197,12 +133,10 @@ These directives are currently available:
 | [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
 
-
 ## Restricting and Aliasing
 
 A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
 More information on configuring can be found (here)[docs/exclusion-and-aliasing.md)
-
 
 ## Performance
 
