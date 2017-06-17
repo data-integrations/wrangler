@@ -150,30 +150,6 @@ rates below are specified as *records/second*. Additional details and test resul
 | Medium               |      18      | 13,499,973 |  4,499,534,313 | 64,998.50 |     64,921.29 |     46,866.70 |      36,149.86 |
 | Medium               |      18      | 80,999,838 | 26,997,205,878 | 62,465.93 |     62,706.39 |     60,755.41 |      56,673.32 |
 
-## Build
-
-To build your plugin:
-```
-mvn clean package -DskipTests
-```
-
-The build will create a `.jar` and `.json` file under the `target` directory for the
-`wrangler-transform` and a `.jar` file for the `wrangler-service` application. These files
-can be used to deploy your plugin and the wrangler backend.
-
-
-## Deployment
-
-You can deploy your plugin using the CDAP CLI:
-```
-> load artifact target/wrangler-transform-<version>.jar config-file target/wrangler-transform-<version>.json
-```
-
-For example, if your artifact is named `wrangler-transform-1.0.0-SNAPSHOT`:
-```
-> load artifact target/wrangler-transform-1.0.0-SNAPSHOT.jar config-file target/wrangler-transform-1.0.0-SNAPSHOT.json
-```
-
 
 ## Contact
 
