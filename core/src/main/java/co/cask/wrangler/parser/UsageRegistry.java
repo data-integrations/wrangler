@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.executor;
+package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Usage;
