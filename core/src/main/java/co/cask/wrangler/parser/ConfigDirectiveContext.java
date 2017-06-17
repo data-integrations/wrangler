@@ -37,7 +37,9 @@ import java.net.URL;
 import java.nio.charset.Charset;
 
 /**
- * Class description here.
+ * This class {@link ConfigDirectiveContext} manages the context for directive
+ * by either retrieving the configuration from a service or from a provided
+ * instance of {@link DirectiveConfig}.
  */
 public class ConfigDirectiveContext implements DirectiveContext {
   private DirectiveConfig config;
@@ -65,21 +67,37 @@ public class ConfigDirectiveContext implements DirectiveContext {
     this.config = gson.fromJson(json, DirectiveConfig.class);
   }
 
+  /**
+   * Checks if the directive is aliased.
+   *
+   * @param directive to be checked for aliasing.
+   * @return true if the directive has an alias, false otherwise.
+   */
   @Override
   public boolean hasAlias(String directive) {
     return config.hasAlias(directive);
   }
 
+  /**
+   * Returns the root directive aliasee
+   * @param directive
+   * @return
+   */
   @Override
   public String getAlias(String directive) {
     return config.getAliasName(directive);
   }
 
+  /**
+   * Checks if the directive is being excluded from being used.
+   *
+   * @param directive to be checked for exclusion.
+   * @return true if excluded, false otherwise.
+   */
   @Override
   public boolean isExcluded(String directive) {
     return config.isExcluded(directive);
   }
-
 
   private class ServiceResponseHandler implements ResponseHandler<DirectiveConfig> {
     @Override

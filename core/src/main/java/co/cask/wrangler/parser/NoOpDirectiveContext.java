@@ -19,20 +19,38 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.DirectiveContext;
 
 /**
- * Class description here.
+ * This class {@link NoOpDirectiveContext} is a pass through implementation of
+ * {@link DirectiveContext}.
  */
 public class NoOpDirectiveContext implements DirectiveContext {
 
+  /**
+   * Checks if the directive is aliased.
+   *
+   * @param directive to be checked for aliasing.
+   * @return true if the directive has an alias, false otherwise.
+   */
   @Override
   public boolean hasAlias(String directive) {
     return false;
   }
 
+  /**
+   * Returns the root directive aliasee
+   * @param directive
+   * @return
+   */
   @Override
   public String getAlias(String directive) {
     return directive;
   }
 
+  /**
+   * Checks if the directive is being excluded from being used.
+   *
+   * @param directive to be checked for exclusion.
+   * @return true if excluded, false otherwise.
+   */
   @Override
   public boolean isExcluded(String directive) {
     return false;
