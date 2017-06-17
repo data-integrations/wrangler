@@ -16,10 +16,10 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.config.Config;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class ConfigDirectiveContextTest {
     };
 
     Gson gson = new Gson();
-    Config config = gson.fromJson(CONFIG, Config.class);
+    DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
     Directives directives = new TextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
@@ -69,7 +69,7 @@ public class ConfigDirectiveContextTest {
     };
 
     Gson gson = new Gson();
-    Config config = gson.fromJson(CONFIG, Config.class);
+    DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
     Directives directives = new TextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
@@ -83,7 +83,7 @@ public class ConfigDirectiveContextTest {
     };
 
     Gson gson = new Gson();
-    Config config = gson.fromJson(CONFIG, Config.class);
+    DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
     Directives directives = new TextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
@@ -99,7 +99,7 @@ public class ConfigDirectiveContextTest {
     };
 
     Gson gson = new Gson();
-    Config config = gson.fromJson(EMPTY, Config.class);
+    DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
     Directives directives = new TextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
@@ -115,7 +115,7 @@ public class ConfigDirectiveContextTest {
     };
 
     Gson gson = new Gson();
-    Config config = gson.fromJson(EMPTY, Config.class);
+    DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
     Directives directives = new TextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));

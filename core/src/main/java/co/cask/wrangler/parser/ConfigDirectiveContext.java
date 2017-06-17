@@ -19,6 +19,22 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveContext;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.nio.charset.Charset;
 
 /**
  * Class description here.
@@ -28,6 +44,20 @@ public class ConfigDirectiveContext implements DirectiveContext {
 
   public ConfigDirectiveContext(DirectiveConfig config) {
     this.config = config;
+  }
+
+  public ConfigDirectiveContext(URL url) throws IOException {
+    CloseableHttpClient client = null;
+    try {
+      HttpGet get = new HttpGet(url.toString());
+      get.addHeader("Content-type", "application/json; charset=UTF-8");
+      client = HttpClients.createDefault();
+      this.config = client.execute(get, new ServiceResponseHandler());
+    } finally {
+      if (client != null) {
+        client.close();
+      }
+    }
   }
 
   public ConfigDirectiveContext(String json) {
@@ -42,11 +72,32 @@ public class ConfigDirectiveContext implements DirectiveContext {
 
   @Override
   public String getAlias(String directive) {
-    return config.getAlias(directive);
+    return config.getAliasName(directive);
   }
 
   @Override
   public boolean isExcluded(String directive) {
     return config.isExcluded(directive);
+  }
+
+
+  private class ServiceResponseHandler implements ResponseHandler<DirectiveConfig> {
+    @Override
+    public DirectiveConfig handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+      StatusLine statusLine = response.getStatusLine();
+      HttpEntity entity = response.getEntity();
+      if (statusLine.getStatusCode() >= 300) {
+        throw new HttpResponseException(
+          statusLine.getStatusCode(),
+          statusLine.getReasonPhrase());
+      }
+      if (entity == null) {
+        throw new ClientProtocolException("Response contains no content");
+      }
+      Gson gson = new GsonBuilder().create();
+      Reader reader = new InputStreamReader(entity.getContent(), Charset.forName("UTF-8"));
+      DirectiveConfig config = gson.fromJson(reader, DirectiveConfig.class);
+      return config;
+    }
   }
 }

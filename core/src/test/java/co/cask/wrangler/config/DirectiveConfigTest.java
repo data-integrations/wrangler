@@ -1,5 +1,6 @@
 package co.cask.wrangler.config;
 
+import co.cask.wrangler.api.DirectiveConfig;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,7 +45,7 @@ public class DirectiveConfigTest {
 
   @Test
   public void testParsingOfConfiguration() throws Exception {
-    Config config = new Gson().fromJson(SPECIFICATION, Config.class);
+    DirectiveConfig config = new Gson().fromJson(SPECIFICATION, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertEquals(4, config.getExclusions().size());
     Assert.assertEquals(2, config.getAliases().size());
@@ -52,7 +53,7 @@ public class DirectiveConfigTest {
 
   @Test
   public void testParsingOnlyExclusions() throws Exception {
-    Config config = new Gson().fromJson(ONLY_EXCLUSIONS, Config.class);
+    DirectiveConfig config = new Gson().fromJson(ONLY_EXCLUSIONS, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertEquals(4, config.getExclusions().size());
     Assert.assertNull(config.getAliases());
@@ -60,7 +61,7 @@ public class DirectiveConfigTest {
 
   @Test
   public void testParsingOnlyAliases() throws Exception {
-    Config config = new Gson().fromJson(ONLY_ALIASES, Config.class);
+    DirectiveConfig config = new Gson().fromJson(ONLY_ALIASES, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertEquals(2, config.getAliases().size());
     Assert.assertNull(config.getExclusions());
@@ -68,7 +69,7 @@ public class DirectiveConfigTest {
 
   @Test
   public void testParsingEmpty() throws Exception {
-    Config config = new Gson().fromJson(EMPTY, Config.class);
+    DirectiveConfig config = new Gson().fromJson(EMPTY, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertNull(config.getAliases());
     Assert.assertNull(config.getExclusions());

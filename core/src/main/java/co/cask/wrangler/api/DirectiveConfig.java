@@ -16,6 +16,11 @@
 
 package co.cask.wrangler.api;
 
+import com.google.common.base.MoreObjects;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,16 +49,10 @@ public final class DirectiveConfig {
   // Directives to be aliased.
   private Map<String, String> aliases;
 
-  /**
-   * @return Set of directives that are excluded.
-   */
   public Set<String> getExclusions() {
     return exclusions;
   }
 
-  /**
-   * @return Map of directives aliased.
-   */
   public Map<String, String> getAliases() {
     return aliases;
   }
@@ -77,11 +76,29 @@ public final class DirectiveConfig {
    * @param directive to be dereferenced.
    * @return dereferenced directive or the directive itself.
    */
-  public String getAlias(String directive) {
+  public String getAliasName(String directive) {
     if (hasAlias(directive)) {
       return aliases.get(directive);
     }
     return directive;
+  }
+
+  public Map<String, List<String>> getReverseAlias() {
+    Map<String, List<String>> reverse = new HashMap<>();
+    if (aliases == null) {
+      return reverse;
+    }
+    for(Map.Entry<String, String> alias : aliases.entrySet()) {
+      List<String> list;
+      if(reverse.containsKey(alias.getValue())) {
+        list = reverse.get(alias.getValue());
+      } else {
+        list = new ArrayList<>();
+      }
+      list.add(alias.getKey());
+      reverse.put(alias.getValue(), list);
+    }
+    return reverse;
   }
 
   /**
@@ -105,5 +122,13 @@ public final class DirectiveConfig {
    */
   public boolean isIncluded(String directive) {
     return !isExcluded(directive);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("aliases", aliases)
+      .add("exclusions", exclusions)
+      .toString();
   }
 }

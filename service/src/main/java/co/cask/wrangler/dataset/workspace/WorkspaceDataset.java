@@ -30,9 +30,9 @@ import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.config.Config;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -52,6 +52,8 @@ public class WorkspaceDataset extends AbstractDataset {
   private static final Logger LOG = LoggerFactory.getLogger(WorkspaceDataset.class);
   private final Table table;
   private final Gson gson;
+  public static final byte[] CONFIG_KEY     = Bytes.toBytes("__config__");
+  public static final byte[] CONFIG_COL     = Bytes.toBytes("__ws__");
   public static final byte[] DATA_COL       = Bytes.toBytes("data");
   public static final byte[] NAME_COL       = Bytes.toBytes("name");
   public static final byte[] TYPE_COL       = Bytes.toBytes("type");
@@ -161,15 +163,15 @@ public class WorkspaceDataset extends AbstractDataset {
   public List<KeyValue<String, String>> getWorkspaces() throws WorkspaceException {
     List<KeyValue<String, String>> values = new ArrayList<>();
     Row row;
-    byte[] start = Bytes.toBytes("ws:");
-    byte[] end = Bytes.stopKeyForPrefix(start);
-    try (Scanner scanner = table.scan(start, end)) {
+    try (Scanner scanner = table.scan(null, null)) {
       while((row = scanner.next()) != null) {
         byte[] key = row.getRow();
-        String ws = Bytes.toString(key);
-        String[] split = ws.split(":");
+        String id = Bytes.toString(key);
+        if (excludedKey(id)) {
+          continue;
+        }
         byte[] name = row.get(NAME_COL);
-        values.add(new KeyValue<>(split[1], Bytes.toString(name)));
+        values.add(new KeyValue<>(id, Bytes.toString(name)));
       }
     } catch (DataSetException e) {
       throw new WorkspaceException(
@@ -177,6 +179,13 @@ public class WorkspaceDataset extends AbstractDataset {
       );
     }
     return values;
+  }
+
+  private boolean excludedKey(String id) {
+    if (id.equalsIgnoreCase(Bytes.toString(CONFIG_KEY))) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -261,22 +270,26 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   @WriteOnly
-  public void updateConfig(Config config) {
+  public void updateConfig(DirectiveConfig config) {
     byte[] bytes = Bytes.toBytes(gson.toJson(config));
-    table.put(Bytes.toBytes("config"), Bytes.toBytes("ws"), bytes);
+    table.put(CONFIG_KEY, CONFIG_COL, bytes);
   }
 
   @ReadOnly
-  public Config getConfig() {
-    byte[] bytes = table.get(Bytes.toBytes("config"), Bytes.toBytes("ws"));
-    String json = Bytes.toString(bytes);
-    Config config = gson.fromJson(json, Config.class);
-    return config;
+  public DirectiveConfig getConfig() {
+    byte[] bytes = table.get(CONFIG_KEY, CONFIG_COL);
+    String json;
+    if(bytes == null) {
+      json = "{}";
+    } else {
+      json = Bytes.toString(bytes);
+    }
+    return gson.fromJson(json, DirectiveConfig.class);
   }
 
   @ReadOnly
   public String getConfigString() {
-    byte[] bytes = table.get(Bytes.toBytes("config"), Bytes.toBytes("ws"));
+    byte[] bytes = table.get(CONFIG_KEY, CONFIG_COL);
     if (bytes == null) {
       return "{}";
     }
@@ -285,7 +298,7 @@ public class WorkspaceDataset extends AbstractDataset {
 
   @ReadOnly
   public Map<String, String> getProperties(String id) throws WorkspaceException {
-    byte[] bytes = table.get(Bytes.toBytes(id), PROPERTIES_COL);
+    byte[] bytes = table.get(toKey(id), PROPERTIES_COL);
     return fromJsonBytes(bytes);
   }
 
@@ -337,13 +350,13 @@ public class WorkspaceDataset extends AbstractDataset {
    */
   @ReadOnly
   public DataType getType(String id)  {
-    byte[] bytes = table.get(Bytes.toBytes(id), TYPE_COL);
+    byte[] bytes = table.get(toKey(id), TYPE_COL);
     DataType type = DataType.fromString(Bytes.toString(bytes));
     return type;
   }
 
   private byte[] toKey(String value) {
-    value = String.format("%s:%s", "ws", value);
+    value = String.format("%s", value);
     return Bytes.toBytes(value);
   }
 

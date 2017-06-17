@@ -28,7 +28,6 @@ import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
-import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.ErrorRecord;
@@ -40,25 +39,14 @@ import co.cask.wrangler.executor.PipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.DefaultTransientStore;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -74,6 +62,12 @@ import java.util.List;
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
+
+  // Configuration specifying the dataprep application and service name.
+  private static final String APPLICATION_NAME = "dataprep";
+  private static final String SERVICE_NAME = "service";
+  private static final String CONFIG_METHOD = "config";
+
   // Plugin configuration.
   private final Config config;
 
@@ -219,18 +213,19 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     }
 
-    URL url = context.getServiceURL("datapre", "service");
-    CloseableHttpClient client = null;
+    // Make a call to retrieve the directive config and create a context.
+    // In this plugin, a call is made to the service at runtime.
+    // NOTE: This has to be moved to pre-start-plugin phase so that the information
+    // it's not heavily parallelized to crash the service.
     try {
-      HttpGet get = new HttpGet(url.toString());
-      get.addHeader("Content-type", "application/json; charset=UTF-8");
-      client = HttpClients.createDefault();
-      DirectiveConfig config = client.execute(get, new ServiceResponseHandler());
-      directives.initialize(new ConfigDirectiveContext(config));
-    } finally {
-      if (client != null) {
-        client.close();
-      }
+      URL url = getDPServiceURL(CONFIG_METHOD);
+      ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
+      directives.initialize(dContext);
+    } catch (IOException | URISyntaxException e) {
+      // If there is a issue, we need to fail the pipeline that has the plugin.
+      throw new IllegalArgumentException(
+        String.format("Issue in retrieving the configuration from the service. %s", e.getMessage())
+      );
     }
 
     // Create the pipeline executor with context being set.
@@ -323,24 +318,17 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
   }
 
-  private class ServiceResponseHandler implements ResponseHandler<DirectiveConfig> {
-    @Override
-    public DirectiveConfig handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-      StatusLine statusLine = response.getStatusLine();
-      HttpEntity entity = response.getEntity();
-      if (statusLine.getStatusCode() >= 300) {
-        throw new HttpResponseException(
-          statusLine.getStatusCode(),
-          statusLine.getReasonPhrase());
-      }
-      if (entity == null) {
-        throw new ClientProtocolException("Response contains no content");
-      }
-      Gson gson = new GsonBuilder().create();
-      Reader reader = new InputStreamReader(entity.getContent(), Charset.forName("UTF-8"));
-      DirectiveConfig config = gson.fromJson(reader, DirectiveConfig.class);
-      return config;
-    }
+  /**
+   * Retrieves the base url from the context and appends method to get to the final url.
+   *
+   * @param method to be invoked.
+   * @return fully formed url to the method.
+     */
+  private URL getDPServiceURL(String method) throws URISyntaxException, MalformedURLException {
+    URL url = getContext().getServiceURL(APPLICATION_NAME, SERVICE_NAME);
+    URI uri = url.toURI();
+    String path = uri.getPath() + method;
+    return uri.resolve(path).toURL();
   }
 
   /**

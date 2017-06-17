@@ -1,7 +1,8 @@
 package co.cask.wrangler.api;
 
 /**
- * Class description here.
+ * {@link DirectiveContext} provides the context object to the processing of
+ * directives.
  */
 public interface DirectiveContext extends DirectiveEnforcer, DirectiveAlias {
 }

@@ -29,6 +29,9 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.DirectiveConfig;
+import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.ObjectSerDe;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -36,14 +39,13 @@ import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.api.statistics.Statistics;
 import co.cask.wrangler.api.validator.Validator;
 import co.cask.wrangler.api.validator.ValidatorException;
-import co.cask.wrangler.config.Config;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
 import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.parser.UsageRegistry;
-import co.cask.wrangler.utils.XPathUtil;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.connections.ConnectionType;
@@ -51,6 +53,7 @@ import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.steps.DefaultTransientStore;
 import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.RecordConvertorException;
+import co.cask.wrangler.utils.XPathUtil;
 import co.cask.wrangler.validator.ColumnNameValidator;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -543,8 +546,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (JsonParseException e) {
-      LOG.error(e.getMessage(), e);
+      LOG.warn(e.getMessage(), e);
       error(responder, "Issue parsing request. " + e.getMessage());
+    } catch (DirectiveParseException e) {
+      LOG.warn(e.getMessage(), e);
+      error(responder, e.getMessage());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       error(responder, e.getMessage());
@@ -833,23 +839,47 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       UsageRegistry registry = new UsageRegistry();
       List<UsageRegistry.UsageDatum> usages = registry.getAll();
 
+      DirectiveConfig config = table.getConfig();
+      Map<String, List<String>> aliases = config.getReverseAlias();
       JsonObject response = new JsonObject();
-      int count = 0;
       JsonArray values = new JsonArray();
+      int count = 0;
+
       for (UsageRegistry.UsageDatum entry : usages) {
         JsonObject usage = new JsonObject();
-        usage.addProperty("directive", entry.getDirective());
+        String directive = entry.getDirective();
+        usage.addProperty("directive", directive);
         usage.addProperty("usage", entry.getUsage());
         usage.addProperty("description", entry.getDescription());
+        usage.addProperty("excluded", config.isExcluded(directive));
+        usage.addProperty("alias", false);
         values.add(usage);
+
+        // For this directive we find all aliases and add them to the
+        // description.
+        if (aliases.containsKey(directive)) {
+          List<String> list = aliases.get(directive);
+          for(String alias : list) {
+            JsonObject aliasUsage = new JsonObject();
+            aliasUsage.addProperty("directive", alias);
+            aliasUsage.addProperty("usage", entry.getUsage());
+            aliasUsage.addProperty("description", entry.getDescription());
+            aliasUsage.addProperty("excluded", config.isExcluded(alias));
+            aliasUsage.addProperty("alias", true);
+            values.add(aliasUsage);
+            count++;
+          }
+        }
         count++;
       }
+
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
       response.addProperty("count", count);
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
       error(responder, e.getMessage());
     }
   }
@@ -888,7 +918,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     try {
       // Read the request body
       RequestExtractor handler = new RequestExtractor(request);
-      Config config = handler.getContent("UTF-8", Config.class);
+      DirectiveConfig config = handler.getContent("UTF-8", DirectiveConfig.class);
       if (config == null) {
         error(responder, "Config is empty. Please check if the request is sent as HTTP POST body.");
         return;
@@ -998,7 +1028,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
                                                          getContext(),
                                                          store);
     PipelineExecutor executor = new PipelineExecutor();
-    executor.configure(new TextDirectives(user.getRecipe().getDirectives()), context);
+    Directives directives = new TextDirectives(user.getRecipe().getDirectives());
+    directives.initialize(new ConfigDirectiveContext(table.getConfigString()));
+    executor.configure(directives, context);
     return executor.execute(sample.apply(records));
   }
 

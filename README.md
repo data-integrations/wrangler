@@ -67,7 +67,6 @@ a function.
 A *Pipeline* is a collection of steps to be applied on a record. The record(s) outputed
 from a step are passed to the next step in the pipeline.
 
-
 ## Notations
 
 ### Directives
@@ -197,6 +196,12 @@ These directives are currently available:
 | [DDL](docs/functions/ddl-functions.md)                                 | Functions that can manipulate definition of data                 |
 | [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
+
+
+## Restricting and Aliasing
+
+A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
+More information on configuring can be found (here)[docs/exclusion-and-aliasing.md)
 
 
 ## Performance
