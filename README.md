@@ -20,6 +20,7 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
 ## Demo Videos and Recipes
 
 * Videos
+  * [SCREENCAST] [Creating Lookup Dataset and Joining](https://www.youtube.com/watch?v=Nc1b0rsELHQ)
   * [SCREENCAST] [Restricted Directives](https://www.youtube.com/watch?v=71EcMQU714U)
   * [SCREENCAST] [Parse Excel files in CDAP](https://www.youtube.com/watch?v=su5L1noGlEk)
   * [SCREENCAST] [Parse File As AVRO File](https://www.youtube.com/watch?v=tmwAw4dKUNc)
