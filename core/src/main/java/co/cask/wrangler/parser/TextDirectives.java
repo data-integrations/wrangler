@@ -97,6 +97,7 @@ import co.cask.wrangler.steps.transformation.RightTrim;
 
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
+import co.cask.wrangler.steps.writer.WriteAsJsonObject;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -799,10 +800,28 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // write-as-json <column>
+        // write-as-json-map <column>
         case "write-as-json-map" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new WriteAsJsonMap(lineno, directive, column));
+        }
+        break;
+
+        // write-as-json-object <dest-column> [<src-column>[,<src-column>]
+        case "write-as-json-object" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String columnsStr = getNextToken(tokenizer, "\n", command, "columns", lineno);
+          if (columnsStr != null) {
+            List<String> columns = new ArrayList<>();
+            for (String col : columnsStr.split(",")) {
+              columns.add(col.trim());
+            }
+            steps.add(new WriteAsJsonObject(lineno, directive, column, columns));
+          } else {
+            throw new DirectiveParseException(
+              String.format("")
+            );
+          }
         }
         break;
 

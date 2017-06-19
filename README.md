@@ -71,6 +71,7 @@ These directives are currently available:
 | **Output Formatters**                                                  |                                                                  |
 | [Write as CSV](docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
+| [Write JSON Object](docs/directives/write-as-json-object.md)           | Composes a JSON object based on the fields specified.            |
 | **Transformations**                                                    |                                                                  |
 | [Changing Case](docs/directives/changing-case.md)                      | Changes the case of column values                                |
 | [Cut Character](docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
