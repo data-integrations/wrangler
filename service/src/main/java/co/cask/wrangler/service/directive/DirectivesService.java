@@ -752,9 +752,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    *   "status" : 200,
    *   "message" : "Success",
    *   "xmlpaths" : [
-   *     /ns1:SabreASDS/ns1:PNRSummary
-   *     /ns1:SabreASDS/ns1:ChangeIndicators/ns1:Itinerary
-   *     /ns1:SabreASDS/ns1:ChangeIndicators/ns1:Name
+   *     /ns1:XYZ/ns1:Summary
+   *     /ns1:XYZ/ns1:ChangeIndicators/ns1:Itinerary
+   *     /ns1:XYZ/ns1:ChangeIndicators/ns1:Name
    *   ]
    * }
    *
