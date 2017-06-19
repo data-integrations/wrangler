@@ -33,7 +33,6 @@ import java.util.UUID;
  * A class for managing configurations of Kafka.
  */
 public final class KafkaConfiguration {
-  private final boolean isZookeeperConnection;
   private final String connection;
   private final Properties props;
 
@@ -55,15 +54,10 @@ public final class KafkaConfiguration {
       throw new IllegalArgumentException("Kafka properties are not defined. Check connection setting.");
     }
 
-    isZookeeperConnection = properties.containsKey("zookeeper_quorum") ? true : false;
-    if (isZookeeperConnection) {
-      connection = (String) properties.get("zookeeper_quorum");
+    if(properties.containsKey("brokers")) {
+      connection = (String) properties.get("brokers");
     } else {
-      if(properties.containsKey("brokers")) {
-        connection = (String) properties.get("brokers");
-      } else {
-        connection = null;
-      }
+      throw new IllegalArgumentException("Kafka Brokers not defined.");
     }
 
     if(properties.containsKey("key.type")) {
@@ -75,14 +69,13 @@ public final class KafkaConfiguration {
     }
 
     props = new Properties();
-    if (!isZookeeperConnection) {
-      props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connection);
-      props.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
-      props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-      props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-      props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer);
-      props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);
-    }
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connection);
+    props.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);
+    props.put(ConsumerConfig.EXCLUDE_INTERNAL_TOPICS_CONFIG, "true");
   }
 
   /**
