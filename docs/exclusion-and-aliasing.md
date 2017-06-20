@@ -1,6 +1,6 @@
 # Excluding (Restricting) and Aliasing Directives
 
-When a organization wants to exposes data prep tool to it's end users,
+When an organization wants to expose the data prep tool to it's end users,
 they would like to have the ability to restrict (exclude) directives
 that are not considered "safe". Safe is very subjective and varies from
 organization to organization. Also, the "Safe"ness of an data operation
