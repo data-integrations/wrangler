@@ -109,6 +109,8 @@
     <aws.sdk.version>1.9.6</aws.sdk.version>
     <poi.version>3.16</poi.version>
     <hadoop.version>2.4.0</hadoop.version>
+    <antlr4.version>4.7</antlr4.version>
+    <antlr4-maven-plugin.version>4.7</antlr4-maven-plugin.version>
   </properties>
 
   <repositories>

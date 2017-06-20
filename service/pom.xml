@@ -20,6 +20,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
       <groupId>co.cask.wrangler</groupId>
       <artifactId>wrangler-api</artifactId>
       <version>${project.version}</version>
@@ -38,11 +43,6 @@
       <groupId>co.cask.cdap</groupId>
       <artifactId>cdap-etl-core</artifactId>
       <version>${cdap.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

@@ -20,9 +20,13 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.ParallelPipelineExecutor;
 import co.cask.wrangler.executor.PipelineExecutor;
+import co.cask.wrangler.parser.DirectivesLexer;
 import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.transformation.functions.DDL;
 import com.google.common.io.Resources;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Token;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -103,5 +107,39 @@ public class InputFileTest {
     schema = DDL.drop(schema, "Product", "Air", "Vehicle", "Hotel", "General");
 
     Assert.assertNotNull(schema);
+  }
+
+  @Test
+  public void testLexer() throws Exception {
+    String[] directives = new String[] {
+      "rename old new; rename new old",
+      "flatten col1,col2,col3,col4",
+      "parse-as-csv body , header=true, failonerror=false",
+      "test-window (abc, window > 10)",
+      "split a:b:c 'delimiter' new-column-1 new-column-2",
+      "set-variable variable { window < 10 }",
+      "send-to-error { a < 10 } window",
+      "send-to-error { a < 10 }",
+      "send-to-error !dq:isNumber(value) window",
+      "send-to-error { !dq:isNumber(value) } window",
+      "if(dq:isNumber(value) { set-column foo 2; set-column boo koo; set-column coo 2.6 }",
+      "!udd1 abc efg lmnop",
+      "set-columns a, b   , c, d,e , f"
+    };
+
+    for (int i = 0; i < directives.length; ++i) {
+      CharStream stream = new ANTLRInputStream(directives[i]);
+      DirectivesLexer lexer = new DirectivesLexer(stream);
+      String[] ruleNames = lexer.getRuleNames();
+      Token token = lexer.nextToken();
+      System.out.println("\n" + directives[i]);
+      while (token.getType() != Token.EOF) {
+        System.out.println(
+          String.format("  TOKEN:%-30s = %20s", ruleNames[token.getType() - 1] , token.getText())
+        );
+        token = lexer.nextToken();
+      }
+    }
+    Assert.assertTrue(true);
   }
 }
