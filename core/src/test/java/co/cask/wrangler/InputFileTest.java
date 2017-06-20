@@ -20,7 +20,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.ParallelPipelineExecutor;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.transformation.functions.DDL;
 import com.google.common.io.Resources;
 import org.junit.Assert;
@@ -32,9 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -106,17 +104,4 @@ public class InputFileTest {
 
     Assert.assertNotNull(schema);
   }
-
-  @Ignore
-  @Test
-  public void testDateToUnixTimestamp() throws Exception {
-    String date = "10/24/1997";
-    SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-    Date d = df.parse(date);
-    long time = d.getTime() / 1000;
-    Date d1 = new Date();
-    long t1 = d1.getTime() / 1000;
-    Assert.assertTrue(true);
-  }
-
 }

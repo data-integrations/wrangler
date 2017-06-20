@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.writer;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -59,8 +59,8 @@ public class WriteAsJsonMap extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
       Map<String, Object> toJson = new HashMap<>();
-      for (KeyValue<String, Object> entry : record.getFields()) {
-        toJson.put(entry.getKey(), entry.getValue());
+      for (Pair<String, Object> entry : record.getFields()) {
+        toJson.put(entry.getFirst(), entry.getSecond());
       }
       record.addOrSet(column, gson.toJson(toJson));
     }

@@ -24,6 +24,7 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.utils.TypeConvertor;
 
 import java.util.List;
 
@@ -83,7 +84,11 @@ public class MaskNumber extends AbstractStep {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {
-        record.setValue(idx, maskNumber((String) record.getValue(idx), mask));
+        String value = TypeConvertor.toString(record.getValue(idx));
+        if (value == null) {
+          continue;
+        }
+        record.setValue(idx, maskNumber(value, mask));
       } else {
         record.add(column, new String(""));
       }

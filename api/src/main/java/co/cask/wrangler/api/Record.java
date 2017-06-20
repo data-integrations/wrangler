@@ -16,10 +16,7 @@
 
 package co.cask.wrangler.api;
 
-import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.annotations.PublicEvolving;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +28,7 @@ import java.util.List;
  * Record defines the schema and data on which the wrangler will operate upon.
  */
 @PublicEvolving
-public class Record implements Serializable {
+public final class Record implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(Record.class);
 
   // Name of the columns held by the row.
@@ -208,11 +205,11 @@ public class Record implements Serializable {
   /**
    * @return List of fields of record.
    */
-  public List<KeyValue<String, Object>> getFields() {
-    List<KeyValue<String, Object>> v = new ArrayList<>();
+  public List<Pair<String, Object>> getFields() {
+    List<Pair<String, Object>> v = new ArrayList<>();
     int i = 0;
     for (String column : columns) {
-      v.add(new KeyValue<>(column, values.get(i)));
+      v.add(new Pair<>(column, values.get(i)));
       ++i;
     }
     return v;
@@ -231,35 +228,5 @@ public class Record implements Serializable {
     } else {
       add(name, value);
     }
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(getClass())
-      .add("column-size", columns.size())
-      .add("values-size", values.size())
-      .add("columns", columns)
-      .add("values", values)
-      .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    Record that = (Record) o;
-
-    return Objects.equal(this.values, that.values) &&
-      Objects.equal(this.columns, that.columns);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(values, columns);
   }
 }

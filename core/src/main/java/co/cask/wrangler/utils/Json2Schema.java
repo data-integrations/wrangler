@@ -18,9 +18,9 @@ package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.data.schema.UnsupportedTypeException;
-import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.AbstractSchemaGenerator;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.steps.parser.JsParser;
 import com.google.gson.JsonArray;
@@ -67,9 +67,9 @@ public final class Json2Schema {
     List<Schema.Field> fields = new ArrayList<>();
 
     // Iterate through each field in the record.
-    for (KeyValue<String, Object> column : record.getFields()) {
-      String name = column.getKey();
-      Object value = column.getValue();
+    for (Pair<String, Object> column : record.getFields()) {
+      String name = column.getFirst();
+      Object value = column.getSecond();
 
       // First, we check if object is of simple type.
       if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Short ||

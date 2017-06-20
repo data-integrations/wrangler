@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.statistics;
 
-import co.cask.cdap.api.dataset.lib.KeyValue;
+import co.cask.wrangler.api.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +79,7 @@ public final class ColumnMetric {
    * @param sum denonminator for calculating percentages.
    * @return List of measures and their respective percentages.
    */
-  public List<KeyValue<String, Double>> percentage(String column, Double sum) {
+  public List<Pair<String, Double>> percentage(String column, Double sum) {
     if (measures.containsKey(column)) {
       return measures.get(column).percentage(sum);
     }

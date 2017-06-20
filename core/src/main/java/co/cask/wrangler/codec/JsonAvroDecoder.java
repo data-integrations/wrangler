@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.DecoderException;
 import co.cask.wrangler.api.Record;
 import com.google.gson.Gson;
 import org.apache.avro.AvroTypeException;

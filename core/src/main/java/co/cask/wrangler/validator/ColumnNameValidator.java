@@ -16,9 +16,6 @@
 
 package co.cask.wrangler.validator;
 
-import co.cask.wrangler.api.validator.Validator;
-import co.cask.wrangler.api.validator.ValidatorException;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;

@@ -16,11 +16,12 @@
 
 package co.cask.wrangler.executor;
 
-import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.wrangler.statistics.Statistics;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.statistics.BasicStatistics;
+import co.cask.wrangler.statistics.Statistics;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -69,11 +70,12 @@ public class BasicStatisticsTest {
 
     System.out.println("General Statistics");
     System.out.println();
-    List<KeyValue<String, Object>> fields = stats.getFields();
-    for (KeyValue<String, Object> field : fields) {
-      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
-      for (KeyValue<String, Double> value : values) {
-        System.out.println(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+    List<Pair<String, Object>> fields = stats.getFields();
+    for (Pair<String, Object> field : fields) {
+      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+      for (Pair<String, Double> value : values) {
+        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
+                                         value.getSecond() * 100));
       }
     }
 
@@ -81,10 +83,11 @@ public class BasicStatisticsTest {
     System.out.println("Type Statistics");
     System.out.println();
     fields = types.getFields();
-    for (KeyValue<String, Object> field : fields) {
-      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
-      for (KeyValue<String, Double> value : values) {
-        System.out.println(String.format("%-20s %20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+    for (Pair<String, Object> field : fields) {
+      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+      for (Pair<String, Double> value : values) {
+        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
+                                         value.getSecond() * 100));
       }
     }
   }
@@ -120,15 +123,16 @@ public class BasicStatisticsTest {
     System.out.println("General Statistics");
     System.out.println("Total number of records : " + summary.getValue("total"));
     System.out.println();
-    List<KeyValue<String, Object>> fields = stats.getFields();
-    for (KeyValue<String, Object> field : fields) {
-      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
-      for (KeyValue<String, Double> value : values) {
-        Double percentage = value.getValue() * 100;
+    List<Pair<String, Object>> fields = stats.getFields();
+    for (Pair<String, Object> field : fields) {
+      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+      for (Pair<String, Double> value : values) {
+        Double percentage = value.getSecond() * 100;
         if(percentage < 20) {
           continue;
         }
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        System.out.println(String.format("%10s %-20s %3.2f%%", field.getFirst(), value.getSecond(),
+                                         value.getSecond() * 100));
       }
     }
 
@@ -136,14 +140,15 @@ public class BasicStatisticsTest {
     System.out.println("Type Statistics");
     System.out.println();
     fields = types.getFields();
-    for (KeyValue<String, Object> field : fields) {
-      List<KeyValue<String, Double>> values = (List<KeyValue<String, Double>>) field.getValue();
-      for (KeyValue<String, Double> value : values) {
-        Double percentage = value.getValue() * 100;
+    for (Pair<String, Object> field : fields) {
+      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+      for (Pair<String, Double> value : values) {
+        Double percentage = value.getSecond() * 100;
         if(percentage < 20) {
           continue;
         }
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getKey(), value.getKey(), value.getValue() * 100));
+        System.out.println(String.format("%10s %-20s %3.2f%%", field.getFirst(), value.getSecond(),
+                                         value.getSecond() * 100));
       }
     }
   }

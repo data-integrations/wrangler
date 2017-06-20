@@ -35,7 +35,8 @@ public class ExpressionTest {
   @Test
   public void testApplyExpr() throws Exception {
     String[] directives = new String[] {
-      "set format csv , false",
+      "parse-as-csv __col ,",
+      "drop __col",
       "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
       "set column name concat(last, \", \", first)",
       "set column isteen age < 15 ? 'yes' : 'no'",
@@ -63,7 +64,8 @@ public class ExpressionTest {
   @Test(expected = StepException.class)
   public void testNegativeConditionApply() throws Exception {
     String[] directives = new String[] {
-      "set format csv , false",
+      "parse-as-csv __col ,",
+      "drop __col",
       "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
       "set column email string:reverse(email1)" // email1 not defined in the record.
     };

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.statistics;
 
-import co.cask.cdap.api.dataset.lib.KeyValue;
+import co.cask.wrangler.api.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,14 +89,14 @@ public final class Measurements {
    * @param sum denominator for computing the percentages.
    * @return List of measures and associated percentages.
    */
-  public List<KeyValue<String, Double>> percentage(Double sum) {
-    List<KeyValue<String, Double>> percentages = new ArrayList<>();
+  public List<Pair<String, Double>> percentage(Double sum) {
+    List<Pair<String, Double>> percentages = new ArrayList<>();
     for (Map.Entry<String, MutableDouble> entry : metrics.entrySet()) {
       double percentage = entry.getValue().get() / sum;
       if (percentage > 100.0) {
         percentage = 100;
       }
-      percentages.add(new KeyValue<>(entry.getKey(), percentage));
+      percentages.add(new Pair<>(entry.getKey(), percentage));
     }
     return percentages;
   }

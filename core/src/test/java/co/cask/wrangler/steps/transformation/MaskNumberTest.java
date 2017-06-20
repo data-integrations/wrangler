@@ -21,7 +21,7 @@ import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -112,4 +112,85 @@ public class MaskNumberTest {
     Assert.assertEquals(1, records.size());
     Assert.assertEquals("xxx-00-xx-34-xxxx-9", records.get(0).getValue("body"));
   }
+
+  @Test
+  public void testIntegerTypeMasking() throws Exception {
+    String[] directives = new String[] {
+      "mask-number body xx-xx-#"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", 12345),
+      new Record("body", 123),
+      new Record("body", 123456)
+    );
+
+    Directives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    records = pipeline.execute(records);
+
+    Assert.assertEquals(3, records.size());
+    Assert.assertEquals("xx-xx-5", records.get(0).getValue("body"));
+    Assert.assertEquals("xx-xx-", records.get(1).getValue("body"));
+    Assert.assertEquals("xx-xx-5", records.get(2).getValue("body"));
+  }
+
+  @Test
+  public void testWithOtherCharacters() throws Exception {
+    String[] directives = new String[] {
+      "mask-number body xx-xx-TESTING-#"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", 12345)
+    );
+
+    Directives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    records = pipeline.execute(records);
+
+    Assert.assertEquals(1, records.size());
+    Assert.assertEquals("xx-xx-TESTING-5", records.get(0).getValue("body"));
+  }
+
+  @Test
+  public void testWithLong() throws Exception {
+    String[] directives = new String[] {
+      "mask-number body xx-xx-#"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", 12345L)
+    );
+
+    Directives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    records = pipeline.execute(records);
+
+    Assert.assertEquals(1, records.size());
+    Assert.assertEquals("xx-xx-5", records.get(0).getValue("body"));
+  }
+
+  @Test
+  public void testWithFloat() throws Exception {
+    String[] directives = new String[] {
+      "mask-number body x#.x#"
+    };
+
+    List<Record> records = Arrays.asList(
+      new Record("body", 12.34)
+    );
+
+    Directives d = new TextDirectives(directives);
+    Pipeline pipeline = new PipelineExecutor();
+    pipeline.configure(d, null);
+    records = pipeline.execute(records);
+
+    Assert.assertEquals(1, records.size());
+    Assert.assertEquals("x2.x4", records.get(0).getValue("body"));
+  }
 }
+

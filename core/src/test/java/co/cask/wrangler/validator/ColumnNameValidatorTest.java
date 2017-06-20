@@ -16,9 +16,6 @@
 
 package co.cask.wrangler.validator;
 
-import co.cask.wrangler.api.validator.Validator;
-import co.cask.wrangler.api.validator.ValidatorException;
-import co.cask.wrangler.validator.ColumnNameValidator;
 import org.junit.Test;
 
 /**

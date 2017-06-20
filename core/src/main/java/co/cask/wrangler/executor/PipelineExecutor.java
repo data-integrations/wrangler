@@ -20,8 +20,6 @@ import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.ErrorRecord;
-import co.cask.wrangler.api.ErrorRecordCollector;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;

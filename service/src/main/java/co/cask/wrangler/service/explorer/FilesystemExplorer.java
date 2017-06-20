@@ -26,7 +26,7 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.api.ObjectSerDe;
+import co.cask.wrangler.utils.ObjectSerDe;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
@@ -117,10 +117,12 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
                    @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction) {
     RequestExtractor extractor = new RequestExtractor(request);
-    if (extractor.isContentType("text/plain") || extractor.isContentType("application/json")) {
+    if (extractor.isContentType("text/plain")) {
       loadSamplableFile(responder, path, lines, fraction, sampler);
     } else if (extractor.isContentType("application/xml")) {
       loadFile(responder, path, DataType.RECORDS);
+    } else if (extractor.isContentType("application/json")) {
+      loadFile(responder, path, DataType.TEXT);
     } else if (extractor.isContentType("application/avro")
       || extractor.isContentType("application/protobuf")
       || extractor.isContentType("application/excel")) {
@@ -208,8 +210,8 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
         ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(records);
         table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
-      } else if (type == DataType.BINARY) {
-        table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
+      } else if (type == DataType.BINARY || type == DataType.TEXT) {
+        table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, type, bytes);
       }
 
       // Preparing return response to include mandatory fields : id and name.

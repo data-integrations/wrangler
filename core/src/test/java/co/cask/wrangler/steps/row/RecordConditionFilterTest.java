@@ -33,7 +33,8 @@ public class RecordConditionFilterTest {
   @Test
   public void testRowFilterRegex() throws Exception {
     String[] directives = new String[] {
-      "set format csv , false",
+      "parse-as-csv __col ,",
+      "drop __col",
       "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
       "filter-row-if-matched email NULL",
       "filter-row-if-matched email .*@joltie.io",
@@ -57,7 +58,7 @@ public class RecordConditionFilterTest {
   @Test(expected = StepException.class)
   public void testRHSLHSTypeDisconnect() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body ,",
       "drop body",
       "set columns PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
       "filter-row-if-true Fare < 10" // RHS is double, but it's not converted. Check next test case.
@@ -77,7 +78,7 @@ public class RecordConditionFilterTest {
   @Test
   public void testSameRHSAndLHSType() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv body , true",
+      "parse-as-csv body ,",
       "drop body",
       "set columns PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
       "filter-row-if-true Fare < 10.0" // RHS is changed to double, so LHS will also be changed.

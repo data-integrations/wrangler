@@ -21,13 +21,12 @@ import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Step;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -98,26 +97,6 @@ public class PipelineTest {
     steps.addAll(specification.getSteps());
     records = PipelineTest.execute(steps, records);
     return records;
-  }
-
-  @Test
-  public void testEscapedStrings() throws Exception {
-    List<Step> steps = new ArrayList<>();
-    List<Record> records = Arrays.asList(new Record("__col", StringEscapeUtils.unescapeJava("1\\ta")));
-
-    TextDirectives ts = new TextDirectives("set format csv \\t false\n" +
-                                                   "set columns column1,column2\n" +
-                                                   "rename column1 id\n" +
-                                                   "rename column2 useragent\n" +
-                                                   "uppercase useragent");
-    // Define all the steps in the wrangler.
-    steps.addAll(ts.getSteps());
-
-    // Run through the wrangling steps.
-    records = execute(steps, records);
-
-    Assert.assertEquals("1", records.get(0).getValue("id"));
-    Assert.assertEquals("A", records.get(0).getValue("useragent"));
   }
 
   @Test

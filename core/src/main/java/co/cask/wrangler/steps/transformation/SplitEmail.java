@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -65,9 +65,9 @@ public class SplitEmail extends AbstractStep {
           String emailAddress = (String) object;
           int nameIdx = emailAddress.lastIndexOf("<"); // Joltie, Root <joltie.root@yahoo.com>
           if (nameIdx == -1) {
-            KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
-            record.add(column + "_account", components.getKey());
-            record.add(column + "_domain", components.getValue());
+            Pair<String, String> components = extractDomainAndAccount(emailAddress);
+            record.add(column + "_account", components.getFirst());
+            record.add(column + "_domain", components.getSecond());
           } else {
             String name = emailAddress.substring(0, nameIdx);
             int endIdx = emailAddress.lastIndexOf(">");
@@ -76,9 +76,9 @@ public class SplitEmail extends AbstractStep {
               record.add(column + "_domain", null);
             } else {
               emailAddress = emailAddress.substring(nameIdx + 1, endIdx);
-              KeyValue<String, String> components = extractDomainAndAccount(emailAddress);
-              record.add(column + "_account", components.getKey());
-              record.add(column + "_domain", components.getValue());
+              Pair<String, String> components = extractDomainAndAccount(emailAddress);
+              record.add(column + "_account", components.getFirst());
+              record.add(column + "_domain", components.getSecond());
             }
           }
         } else {
@@ -94,12 +94,12 @@ public class SplitEmail extends AbstractStep {
     return records;
   }
 
-  private KeyValue<String, String> extractDomainAndAccount(String emailId) {
+  private Pair<String, String> extractDomainAndAccount(String emailId) {
     int lastidx = emailId.lastIndexOf("@");
     if (lastidx == -1) {
-      return new KeyValue<>(null, null);
+      return new Pair<>(null, null);
     } else {
-      return new KeyValue<>(emailId.substring(0, lastidx), emailId.substring(lastidx + 1));
+      return new Pair<>(emailId.substring(0, lastidx), emailId.substring(lastidx + 1));
     }
   }
 }

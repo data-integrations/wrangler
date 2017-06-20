@@ -24,8 +24,8 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import co.cask.wrangler.api.i18n.Messages;
-import co.cask.wrangler.api.i18n.MessagesFactory;
+import co.cask.wrangler.i18n.Messages;
+import co.cask.wrangler.i18n.MessagesFactory;
 
 import java.util.List;
 

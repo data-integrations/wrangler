@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Decoder;
 import co.cask.wrangler.api.Record;
 import com.example.tutorial.AddressBookProtos;
 import org.apache.commons.io.IOUtils;

@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.sampling;
 
-import co.cask.wrangler.api.Sampler;
 import com.google.common.base.Preconditions;
 
 import java.util.Iterator;

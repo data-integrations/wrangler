@@ -16,8 +16,6 @@
 
 package co.cask.wrangler.sampling;
 
-import co.cask.wrangler.api.Sampler;
-import co.cask.wrangler.api.SamplingIterator;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.distribution.PoissonDistribution;
 

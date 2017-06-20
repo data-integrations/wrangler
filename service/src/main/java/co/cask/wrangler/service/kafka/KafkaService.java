@@ -29,7 +29,7 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
-import co.cask.wrangler.api.ObjectSerDe;
+import co.cask.wrangler.utils.ObjectSerDe;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
@@ -204,7 +204,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
-      String uuid = ServiceUtils.generateMD5(id);
+      String uuid = ServiceUtils.generateMD5(String.format("%s.%s", id, topic));
       ws.createWorkspaceMeta(uuid, topic);
 
       try {
@@ -215,10 +215,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
           ConsumerRecords<String, String> records = consumer.poll(10000);
           for(ConsumerRecord<String, String> record : records) {
             Record rec = new Record();
-            rec.add("timestamp", record.timestamp());
-            rec.add("key", record.key());
-            rec.add("offset", record.offset());
-            rec.add("body", record.value());
+            rec.add("message", record.value());
             recs.add(rec);
             if (count < 0) {
               break;
@@ -236,6 +233,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
         Map<String, String> properties = new HashMap<>();
         properties.put(PropertyIds.ID, uuid);
         properties.put(PropertyIds.NAME, topic);
+        properties.put(PropertyIds.CONNECTION_ID, id);
         properties.put(PropertyIds.TOPIC, topic);
         properties.put(PropertyIds.BROKER, config.getConnection());
         properties.put(PropertyIds.CONNECTION_TYPE, connection.getType().getType());
@@ -285,8 +283,10 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       properties.put("topic", topic);
       properties.put("referenceName", topic);
       properties.put("brokers", (String) conn.getProp(PropertyIds.BROKER));
+      properties.put("kafkaBrokers", (String) conn.getProp(PropertyIds.BROKER));
       properties.put("keyField", (String) conn.getProp(PropertyIds.KEY_DESERIALIZER));
       properties.put("format", "binary");
+      properties.put("tableName", "kafka_offset");
 
       kafka.add("properties", gson.toJsonTree(properties));
       kafka.addProperty("name", "Kafka");

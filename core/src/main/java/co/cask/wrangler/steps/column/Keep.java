@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
@@ -59,8 +59,8 @@ public class Keep extends AbstractStep {
   public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
     for (Record record : records) {
       int idx = 0;
-      for (KeyValue<String, Object> v : record.getFields()) {
-        if (!keep.contains(v.getKey())) {
+      for (Pair<String, Object> v : record.getFields()) {
+        if (!keep.contains(v.getFirst())) {
           record.remove(idx);
         } else {
           ++idx;

@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Decoder;
 import co.cask.wrangler.api.Record;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;

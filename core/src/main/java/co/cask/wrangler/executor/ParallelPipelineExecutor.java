@@ -20,7 +20,6 @@ import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.PipelineException;
