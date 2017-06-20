@@ -114,9 +114,10 @@ public class InputFileTest {
     String[] directives = new String[] {
       "rename old new; rename new old",
       "flatten col1,col2,col3,col4",
-      "parse-as-csv body , header=true, failonerror=false",
+      "parse-as-csv body ',' header=true, failonerror=false",
       "test-window (abc, window > 10)",
       "split a:b:c 'delimiter' new-column-1 new-column-2",
+      "quantize column column range1:range2=value,range1:range2=value",
       "set-variable variable { window < 10 }",
       "send-to-error { a < 10 } window",
       "send-to-error { a < 10 }",
@@ -127,12 +128,12 @@ public class InputFileTest {
       "set-columns a, b   , c, d,e , f"
     };
 
+    String[] ruleNames = DirectivesLexer.ruleNames;
     for (int i = 0; i < directives.length; ++i) {
       CharStream stream = new ANTLRInputStream(directives[i]);
       DirectivesLexer lexer = new DirectivesLexer(stream);
-      String[] ruleNames = lexer.getRuleNames();
       Token token = lexer.nextToken();
-      System.out.println("\n" + directives[i]);
+      System.out.println("\n" + directives[i] + "\n");
       while (token.getType() != Token.EOF) {
         System.out.println(
           String.format("  TOKEN:%-30s = %20s", ruleNames[token.getType() - 1] , token.getText())

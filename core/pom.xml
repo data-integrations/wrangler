@@ -14,20 +14,14 @@
 
   <dependencies>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
-      <artifactId>wrangler-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-api</artifactId>
-      <version>${cdap.version}</version>
-      <scope>provided</scope>
+      <groupId>co.cask.wrangler</groupId>
+      <artifactId>wrangler-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
@@ -103,11 +97,6 @@
       <version>${commons-math3.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-csv</artifactId>
-      <version>${commons-csv.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.joestelmach</groupId>
       <artifactId>natty</artifactId>
       <version>${natty.version}</version>
@@ -133,21 +122,6 @@
       <version>${protobuf.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.unix4j</groupId>
-      <artifactId>unix4j-command</artifactId>
-      <version>${unix4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-jexl3</artifactId>
-      <version>${commons-jexl.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>${commons-lang.version}</version>
-    </dependency>
-    <dependency>
       <groupId>co.cask.cdap</groupId>
       <artifactId>cdap-api</artifactId>
       <version>${cdap.version}</version>
@@ -163,11 +137,6 @@
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
       <version>${avro.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
@@ -273,8 +242,7 @@
         <version>${antlr4-maven-plugin.version}</version>
         <configuration>
           <arguments>
-            <argument>-visitor</argument>
-            <!-- <argument>-Dlanguage=JavaScript</argument> -->
+            <argument>-no-visitor</argument>
           </arguments>
         </configuration>
         <executions>
