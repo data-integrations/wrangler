@@ -1,14 +1,14 @@
 # Excluding (Restricting) and Aliasing Directives
 
-When a organization wants to exposes data prep tool to it's end users,
+When an organization wants to expose the data prep tool to its end users,
 they would like to have the ability to restrict (exclude) directives
-that are not considered "safe". Safe is very subjective and varies from
-organization to organization. Also, the "Safe"ness of an data operation
-could go through approval process and later excluded from the restricted
-list. So, in short, the capability to restrict and un-restrict has be
+that are not considered "safe". Safe is a very subjective term and its specification varies from
+organization to organization. Also, the "safe"ness of an data operation
+could go through an approval process, and later be excluded from the restricted
+list. So, in short, the capability to restrict and un-restrict some directives has be
 easily configurable.
 
-Second common use-case we have seen is that an organization is accustomed
+The second common use-case we have seen is that an organization is accustomed
 to a organizational jargon and it's hard to adapt, it's not impossible, it
 just hard.
 
