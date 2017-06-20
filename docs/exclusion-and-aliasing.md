@@ -8,8 +8,8 @@ could go through an approval process, and later be excluded from the restricted
 list. So, in short, the capability to restrict and un-restrict some directives has be
 easily configurable.
 
-The second common use-case we have seen is that an organization is accustomed
-to a organizational jargon and it's hard to adapt, it's not impossible, it
+A second common use-case we have seen is that an organization is accustomed
+to a organizational jargon and it is hard to adapt - not impossible - it is
 just hard.
 
 In order to support these kind of usage, Data Prep has added the
