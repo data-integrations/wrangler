@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Wrangle Pipeline executes steps in the order they are specified.
+ * Pipeline executes steps in the order they are specified.
  */
 @PublicEvolving
 public interface Pipeline<I, O, E> extends Serializable {
