@@ -18,25 +18,18 @@ package co.cask.wrangler;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.parser.ParsedTokens;
 import co.cask.wrangler.executor.ParallelPipelineExecutor;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.DirectivesBaseVisitor;
-import co.cask.wrangler.parser.DirectivesLexer;
-import co.cask.wrangler.parser.DirectivesParser;
-import co.cask.wrangler.parser.DirectivesVisitor;
+import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.transformation.functions.DDL;
+import com.google.common.base.Joiner;
 import com.google.common.io.Resources;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -122,220 +115,21 @@ public class InputFileTest {
       "send-to-error exp:{ window < 10 } ;",
       "parse-as-simple-date :col 'yyyy-mm-dd' :col 'test' :col2,:col4,:col9 10 exp:{test < 10};",
       "send-to-error exp:{ if(window < 10) { true } else {false} };",
-      "!udd1 :col1 :col2 'test';"
+      "!udd1 :col1 :col2 'test';",
+      "quantize 1:3=test,1:4='test';",
+      "send-to-error exp : {\n\tif (window < 10) {\n\t\ttest\n" +
+        "\t} else {\n" +
+        "\t\twindow\n" +
+        "\t}\n" +
+        "};",
+      "fail exp:{ age > 10 };",
+      "set-column :test exp:{ \"welcome\" }"
     };
 
-    String[] ruleNames = DirectivesLexer.ruleNames;
-    for (int i = 0; i < directives.length; ++i) {
-      CharStream stream = new ANTLRInputStream(new StringReader(directives[i]));
-      DirectivesLexer lexer = new DirectivesLexer(stream);
-      DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
-      ParseTree tree = parser.directives();
-      parser.setBuildParseTree(false);
-      DirectivesVisitor visitor = new MyVisitor();
-      visitor.visit(tree);
-    }
-
-    Assert.assertTrue(true);
-  }
-
-
-
-  private final class ParsedDirective {
-
-  }
-
-  private final class MyVisitor extends DirectivesBaseVisitor<ParsedDirective> {
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitDirective(DirectivesParser.DirectiveContext ctx) {
-      System.out.println("\nDirective " + ctx.getText());
-      return super.visitDirective(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitNumberrange(DirectivesParser.NumberrangeContext ctx) {
-      return super.visitNumberrange(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitEcommand(DirectivesParser.EcommandContext ctx) {
-      System.out.println("ECommand : " + ctx.Identifier().getText());
-      return super.visitEcommand(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitColumn(DirectivesParser.ColumnContext ctx) {
-      System.out.println("Column : " + ctx.Column().getText());
-      return new ParsedDirective();
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitText(DirectivesParser.TextContext ctx) {
-      System.out.println("Text : " + ctx.String().getText());
-      return super.visitText(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitNumber(DirectivesParser.NumberContext ctx) {
-      System.out.println("Number : " + ctx.Number().getText());
-      return super.visitNumber(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitBool(DirectivesParser.BoolContext ctx) {
-      System.out.println("Boolean : " + ctx.Bool().getText());
-      return super.visitBool(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitCondition(DirectivesParser.ConditionContext ctx) {
-      int childCount = ctx.getChildCount();
-      StringBuilder sb = new StringBuilder();
-      for (int i = 1; i < childCount - 1; ++i) {
-        ParseTree child = ctx.getChild(i);
-        sb.append(child.getText()).append(" ");
-      }
-      System.out.println("Condition " + sb.toString());
-      return new ParsedDirective();
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitCommand(DirectivesParser.CommandContext ctx) {
-      System.out.println("Command : " + ctx.getText());
-      return super.visitCommand(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitCollist(DirectivesParser.CollistContext ctx) {
-      List<TerminalNode> columns = ctx.Column();
-      System.out.println("Column List");
-      for (TerminalNode column : columns) {
-        System.out.println("  - " + column);
-      }
-      return new ParsedDirective();
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitNumberlist(DirectivesParser.NumberlistContext ctx) {
-      System.out.println("Number List : " + ctx.getText());
-      return super.visitNumberlist(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitBoollist(DirectivesParser.BoollistContext ctx) {
-      System.out.println("Boolean List : " + ctx.getText());
-      return super.visitBoollist(ctx);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     *
-     * @param ctx
-     */
-    @Override
-    public ParsedDirective visitStringlist(DirectivesParser.StringlistContext ctx) {
-      System.out.println("String List : " + ctx.getText());
-      return super.visitStringlist(ctx);
-    }
-
+    String recipe = Joiner.on("\n").join(directives);
+    System.out.println(recipe);
+    RecipeCompiler compiler = new RecipeCompiler();
+    ParsedTokens tokens = compiler.compile(recipe);
+    System.out.println(tokens);
   }
 }

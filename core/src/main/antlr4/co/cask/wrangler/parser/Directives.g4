@@ -64,7 +64,11 @@ numberranges
  ;
 
 numberrange
- : Number ':' Number '=' (Identifier | String | Number | Column)
+ : Number ':' Number '=' value
+ ;
+
+value
+ : Identifier | String | Number | Column
  ;
 
 
@@ -93,7 +97,7 @@ bool
  ;
 
 codeblock
- : 'exp:' condition
+ : 'exp' Space* ':' condition
  ;
 
 condition
@@ -175,7 +179,7 @@ Comment
  ;
 
 Space
- : [ \t\r\n\u000C] -> skip
+ : [ \t\r\n\u000C]+ -> skip
  ;
 
 fragment Int
