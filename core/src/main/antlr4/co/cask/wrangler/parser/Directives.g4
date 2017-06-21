@@ -43,90 +43,83 @@ recipe
  ;
 
 directives
- : (statement)*?
+ : (directive)*?
  ;
 
-statement
- : assignment ';'
- | functionCall ';'
- | ifStatement
+directive
+ : (command | ecommand) config* SColon
+ | (command | ecommand) (text | number | bool | column | collist | numberlist | boollist | stringlist | numberranges)* (codeblock)* SColon
+ | (command | ecommand) codeblock (Identifier | text | number | bool | column | numberlist | boollist | stringlist | numberranges)* SColon
+ | (command | ecommand) config* SColon
+ | '#pragma' args
  ;
 
-assignment
- : Identifier indexes? '=' expression
+args
+ : (Identifier | text | number | bool | column | collist | numberlist | boollist | stringlist | numberranges)*
+ | 'load-udd' Identifier Identifier Identifier
  ;
 
-functionCall
- : Identifier '(' exprList? ')' #identifierFunctionCall
+numberranges
+ : numberrange ( ',' numberrange)*
  ;
 
-ifStatement
- : ifStat elseIfStat* elseStat? End
+numberrange
+ : Number ':' Number '=' (Identifier | String | Number | Column)
  ;
 
-ifStat
- : If expression Do directives
+
+ecommand
+ : '!' Identifier
  ;
 
-elseIfStat
- : Else If expression Do directives
+config
+ : Identifier
  ;
 
-elseStat
- : Else Do directives
+column
+ : Column
  ;
 
-idList
- : Identifier (',' Identifier)*
+text
+ : String
  ;
 
-exprList
- : expression (',' expression)*
+number
+ : Number
  ;
 
-expression
- : '-' expression                           #unaryMinusExpression
- | '!' expression                           #notExpression
- | expression '^' expression                #powerExpression
- | expression '*' expression                #multiplyExpression
- | expression '/' expression                #divideExpression
- | expression '%' expression                #modulusExpression
- | expression '+' expression                #addExpression
- | expression '-' expression                #subtractExpression
- | expression '>=' expression               #gtEqExpression
- | expression '<=' expression               #ltEqExpression
- | expression '>' expression                #gtExpression
- | expression '<' expression                #ltExpression
- | expression '==' expression               #eqExpression
- | expression '!=' expression               #notEqExpression
- | expression '&&' expression               #andExpression
- | expression '||' expression               #orExpression
- | expression '?' expression ':' expression #ternaryExpression
- | Number                                   #numberExpression
- | Bool                                     #boolExpression
- | Null                                     #nullExpression
- | functionCall indexes?                    #functionCallExpression
- | list indexes?                            #listExpression
- | Identifier indexes?                      #identifierExpression
- | String indexes?                          #stringExpression
- | '(' expression ')' indexes?              #expressionExpression
+bool
+ : Bool
  ;
 
-list
- : '[' exprList? ']'
+codeblock
+ : 'exp:' condition
  ;
 
-indexes
- : ('[' expression ']')+
+condition
+ : OBrace (~CBrace | condition)* CBrace
  ;
 
-If       : 'if';
-Else     : 'else';
-Return   : 'return';
-To       : 'to';
-Do       : 'do';
-End      : 'end';
-Null     : 'null';
+command
+ : Identifier
+ ;
+
+collist
+ : Column (','  Column)+
+ ;
+
+numberlist
+ : Number (',' Number)+
+ ;
+
+boollist
+ : Bool (',' Bool)+
+ ;
+
+stringlist
+ : String (',' String)+
+ ;
+
 
 Or       : '||';
 And      : '&&';
@@ -165,7 +158,15 @@ Number
  ;
 
 Identifier
- : [:a-zA-Z_\-] [:a-zA-Z_0-9\-]*
+ : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
+ ;
+
+DirectiveName
+ : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
+ ;
+
+Column
+ : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
  ;
 
 String
@@ -174,7 +175,7 @@ String
  ;
 
 Comment
- : ('//' ~[\r\n]* | '/*' .*? '*/') -> skip
+ : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ) -> skip
  ;
 
 Space
