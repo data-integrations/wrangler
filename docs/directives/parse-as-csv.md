@@ -9,8 +9,8 @@ parse-as-csv <column> <delimiter> [<header=true|false>]
 ```
 
 The `<column>` specifies the column in the record that should be parsed as CSV using
-the specified `<delimiter>`. If there are empty lines in the input that need to be
-skipped, set `<header>` to `true`; by default, it is set to `false`.
+the specified `<delimiter>`. If the values in the first record of the input need to be set as column
+headers, set `<header>` to `true`; by default, it is set to `false`.
 
 
 ## Examples
