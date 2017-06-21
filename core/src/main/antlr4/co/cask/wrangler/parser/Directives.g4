@@ -121,6 +121,9 @@ stringlist
  ;
 
 
+OBrace   : '{';
+CBrace   : '}';
+SColon   : ';';
 Or       : '||';
 And      : '&&';
 Equals   : '==';
@@ -136,13 +139,10 @@ Subtract : '-';
 Multiply : '*';
 Divide   : '/';
 Modulus  : '%';
-OBrace   : '{';
-CBrace   : '}';
 OBracket : '[';
 CBracket : ']';
 OParen   : '(';
 CParen   : ')';
-SColon   : ';';
 Assign   : '=';
 Comma    : ',';
 QMark    : '?';
@@ -158,10 +158,6 @@ Number
  ;
 
 Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
- ;
-
-DirectiveName
  : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
  ;
 
