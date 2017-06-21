@@ -72,10 +72,10 @@ would result in this record:
 ```
 {
   "body": "07/29/2013,Consumer Loan,Vehicle Loan,Managing the loan or lease,Wells Fargo & Company"
-  "body_1": "07/29/2013",
-  "body_2": "Consumer Loan",
-  "body_3": "Vehicle Loan",
-  "body_4": "Managing the loan or lease",
-  "body_5": "Wells Fargo & Company"
+  "Date": "07/29/2013",
+  "Type": "Consumer Loan",
+  "Item": "Vehicle Loan",
+  "Action": "Managing the loan or lease",
+  "Company": "Wells Fargo & Company"
 }
 ```
