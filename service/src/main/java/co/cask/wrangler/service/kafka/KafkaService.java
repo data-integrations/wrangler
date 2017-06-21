@@ -215,10 +215,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
           ConsumerRecords<String, String> records = consumer.poll(10000);
           for(ConsumerRecord<String, String> record : records) {
             Record rec = new Record();
-            rec.add("timestamp", record.timestamp());
-            rec.add("key", record.key());
-            rec.add("offset", record.offset());
-            rec.add("body", record.value());
+            rec.add("message", record.value());
             recs.add(rec);
             if (count < 0) {
               break;
