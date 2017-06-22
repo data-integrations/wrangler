@@ -17,6 +17,7 @@
 package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
+import co.cask.wrangler.api.pipeline.PipelineContext;
 
 import java.io.Serializable;
 import java.util.List;

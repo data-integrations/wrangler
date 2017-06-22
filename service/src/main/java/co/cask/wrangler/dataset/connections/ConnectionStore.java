@@ -30,7 +30,7 @@ import co.cask.wrangler.dataset.AbstractTableStore;
  *  ConnectionStore store = new ConnectionStore(table);
  *  String id = store.create(connection);
  *  if(!store.hasKey(id)) {
- *    Connection connection = store.get(id);
+ *    Connection connection = store.value(id);
  *    connection.setUpdated(System.currentTimeMillis());
  *    store.update(id, connection);
  *  }

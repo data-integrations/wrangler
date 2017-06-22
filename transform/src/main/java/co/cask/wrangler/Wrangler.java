@@ -32,7 +32,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.api.Pipeline;
-import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.PipelineExecutor;
@@ -319,7 +319,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
-   * Retrieves the base url from the context and appends method to get to the final url.
+   * Retrieves the base url from the context and appends method to value to the final url.
    *
    * @param method to be invoked.
    * @return fully formed url to the method.

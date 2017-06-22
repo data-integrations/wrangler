@@ -18,7 +18,7 @@ package co.cask.wrangler.clients;
 
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
-import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.pipeline.PipelineContext;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;

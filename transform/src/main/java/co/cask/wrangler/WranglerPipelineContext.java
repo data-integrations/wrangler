@@ -19,7 +19,7 @@ package co.cask.wrangler;
 import co.cask.cdap.etl.api.Lookup;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.TransformContext;
-import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.TransientStore;
 
 import java.net.URL;

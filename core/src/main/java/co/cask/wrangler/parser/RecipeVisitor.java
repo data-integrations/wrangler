@@ -9,7 +9,7 @@ import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.NumericList;
-import co.cask.wrangler.api.parser.ParsedTokens;
+import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TextList;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -20,15 +20,28 @@ import java.util.List;
 /**
  * Class description here.
  */
-public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Builder> {
-  private ParsedTokens.Builder tokens = new ParsedTokens.Builder();
+public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Builder> {
+  private CompiledUnit.Builder tokens = new CompiledUnit.Builder();
 
-  public ParsedTokens getTokens() {
+  public CompiledUnit getTokens() {
     return tokens.build();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * <p>The default implementation returns the result of calling
+   * {@link #visitChildren} on {@code ctx}.</p>
+   *
+   * @param ctx
+   */
   @Override
-  public ParsedTokens.Builder visitNumberranges(DirectivesParser.NumberrangesContext ctx) {
+  public CompiledUnit.Builder visitRecipe(DirectivesParser.RecipeContext ctx) {
+    return super.visitRecipe(ctx);
+  }
+
+  @Override
+  public CompiledUnit.Builder visitNumberranges(DirectivesParser.NumberrangesContext ctx) {
     List<DirectivesParser.NumberrangeContext> ranges = ctx.numberrange();
     for(DirectivesParser.NumberrangeContext range : ranges) {
       List<TerminalNode> numbers = range.Number();
@@ -41,13 +54,13 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
 
 
   @Override
-  public ParsedTokens.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
+  public CompiledUnit.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
     System.out.println("ECommand : " + ctx.Identifier().getText());
     return super.visitEcommand(ctx);
   }
 
   @Override
-  public ParsedTokens.Builder visitColumn(DirectivesParser.ColumnContext ctx) {
+  public CompiledUnit.Builder visitColumn(DirectivesParser.ColumnContext ctx) {
     tokens.add(new ColumnName(ctx.Column().getText().substring(1)));
     return super.visitColumn(ctx);
   }
@@ -61,9 +74,9 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitText(DirectivesParser.TextContext ctx) {
+  public CompiledUnit.Builder visitText(DirectivesParser.TextContext ctx) {
     String value = ctx.String().getText();
-    tokens.add(new ColumnName(value.substring(1, value.length()-1)));
+    tokens.add(new Text(value.substring(1, value.length()-1)));
     return super.visitText(ctx);
   }
 
@@ -76,7 +89,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitNumber(DirectivesParser.NumberContext ctx) {
+  public CompiledUnit.Builder visitNumber(DirectivesParser.NumberContext ctx) {
     LazyNumber number = new LazyNumber(ctx.Number().getText());
     tokens.add(new Numeric(number));
     return super.visitNumber(ctx);
@@ -91,7 +104,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitBool(DirectivesParser.BoolContext ctx) {
+  public CompiledUnit.Builder visitBool(DirectivesParser.BoolContext ctx) {
     tokens.add(new Bool(Boolean.parseBoolean(ctx.Bool().getText())));
     return super.visitBool(ctx);
   }
@@ -105,7 +118,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitCondition(DirectivesParser.ConditionContext ctx) {
+  public CompiledUnit.Builder visitCondition(DirectivesParser.ConditionContext ctx) {
     int childCount = ctx.getChildCount();
     StringBuilder sb = new StringBuilder();
     for (int i = 1; i < childCount - 1; ++i) {
@@ -125,7 +138,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitCommand(DirectivesParser.CommandContext ctx) {
+  public CompiledUnit.Builder visitCommand(DirectivesParser.CommandContext ctx) {
     tokens.add(new DirectiveName(ctx.Identifier().getText()));
     return super.visitCommand(ctx);
   }
@@ -139,9 +152,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitCollist(DirectivesParser.CollistContext ctx) {
+  public CompiledUnit.Builder visitCollist(DirectivesParser.CollistContext ctx) {
     List<TerminalNode> columns = ctx.Column();
-    System.out.println("Column List");
     List<String> names = new ArrayList<>();
     for (TerminalNode column : columns) {
       names.add(column.getText().substring(1));
@@ -159,7 +171,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitNumberlist(DirectivesParser.NumberlistContext ctx) {
+  public CompiledUnit.Builder visitNumberlist(DirectivesParser.NumberlistContext ctx) {
     List<TerminalNode> numbers = ctx.Number();
     List<LazyNumber> numerics = new ArrayList<>();
     for (TerminalNode number : numbers) {
@@ -178,7 +190,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitBoollist(DirectivesParser.BoollistContext ctx) {
+  public CompiledUnit.Builder visitBoollist(DirectivesParser.BoollistContext ctx) {
     List<TerminalNode> bools = ctx.Bool();
     List<Boolean> booleans = new ArrayList<>();
     for (TerminalNode bool : bools) {
@@ -197,7 +209,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<ParsedTokens.Buil
    * @param ctx
    */
   @Override
-  public ParsedTokens.Builder visitStringlist(DirectivesParser.StringlistContext ctx) {
+  public CompiledUnit.Builder visitStringlist(DirectivesParser.StringlistContext ctx) {
     List<TerminalNode> strings = ctx.String();
     List<String> strs = new ArrayList<>();
     for (TerminalNode string : strings) {

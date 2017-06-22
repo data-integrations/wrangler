@@ -149,7 +149,7 @@ public class XMLTest {
         "      <price>4.95</price>\n" +
         "      <publish_date>2000-09-02</publish_date>\n" +
         "      <description>When Carla meets Paul at an ornithology \n" +
-        "      conference, tempers fly as feathers get ruffled.</description>\n" +
+        "      conference, tempers fly as feathers value ruffled.</description>\n" +
         "   </book>\n" +
         "   <book id=\"bk107\">\n" +
         "      <author>Thurman, Paula</author>\n" +

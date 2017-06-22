@@ -32,7 +32,7 @@ import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.PipelineContext;
+import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.dataset.workspace.DataType;
@@ -589,7 +589,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       Validator<String> validator = new ColumnNameValidator();
       validator.initialize();
 
-      // Iterate through columns to get a set
+      // Iterate through columns to value a set
       Set<String> uniqueColumns = new HashSet<>();
       for (Record record : records) {
         for (int i = 0; i < record.length(); ++i) {

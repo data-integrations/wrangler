@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.TestUtil;
-import co.cask.wrangler.api.PipelineException;
+import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
 import org.junit.Assert;
 import org.junit.Test;

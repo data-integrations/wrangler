@@ -18,13 +18,10 @@ package co.cask.wrangler;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.parser.ParsedTokens;
 import co.cask.wrangler.executor.ParallelPipelineExecutor;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.transformation.functions.DDL;
-import com.google.common.base.Joiner;
 import com.google.common.io.Resources;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -106,30 +103,5 @@ public class InputFileTest {
     schema = DDL.drop(schema, "Product", "Air", "Vehicle", "Hotel", "General");
 
     Assert.assertNotNull(schema);
-  }
-
-  @Test
-  public void testLexer() throws Exception {
-    String[] directives = new String[] {
-      "set-column :abc, :edf;",
-      "send-to-error exp:{ window < 10 } ;",
-      "parse-as-simple-date :col 'yyyy-mm-dd' :col 'test' :col2,:col4,:col9 10 exp:{test < 10};",
-      "send-to-error exp:{ if(window < 10) { true } else {false} };",
-      "!udd1 :col1 :col2 'test';",
-      "quantize 1:3=test,1:4='test';",
-      "send-to-error exp : {\n\tif (window < 10) {\n\t\ttest\n" +
-        "\t} else {\n" +
-        "\t\twindow\n" +
-        "\t}\n" +
-        "};",
-      "fail exp:{ age > 10 };",
-      "set-column :test exp:{ \"welcome\" }"
-    };
-
-    String recipe = Joiner.on("\n").join(directives);
-    System.out.println(recipe);
-    RecipeCompiler compiler = new RecipeCompiler();
-    ParsedTokens tokens = compiler.compile(recipe);
-    System.out.println(tokens);
   }
 }

@@ -19,7 +19,7 @@ package co.cask.wrangler;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Pipeline;
-import co.cask.wrangler.api.PipelineException;
+import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.PipelineExecutor;
 import co.cask.wrangler.parser.TextDirectives;

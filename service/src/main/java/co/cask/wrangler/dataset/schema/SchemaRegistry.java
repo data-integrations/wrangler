@@ -319,7 +319,7 @@ public final class SchemaRegistry  {
       return Bytes.toLong(bytes);
     } catch (DataSetException e) {
       throw new SchemaRegistryException(
-        String.format("Unable to get current version of schema id '%s'. '%s'",
+        String.format("Unable to value current version of schema id '%s'. '%s'",
                       id, e.getMessage())
       );
     }
@@ -331,7 +331,7 @@ public final class SchemaRegistry  {
       return nextVersion - 1;
     } catch (DataSetException e) {
       throw new SchemaRegistryException(
-        String.format("Unable to get next version of schema id '%s'. '%s'",
+        String.format("Unable to value next version of schema id '%s'. '%s'",
                       id, e.getMessage())
       );
     }

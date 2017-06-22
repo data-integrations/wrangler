@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.api.pipeline;
 
 /**
  * A Pipeline specific exception used for communicating issues with execution of pipeline.

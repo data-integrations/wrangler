@@ -48,7 +48,7 @@ directives
 
 directive
  : (command | ecommand) config* SColon
- | (command | ecommand) (text | number | bool | column | collist | numberlist | boollist | stringlist | numberranges)* (codeblock)* SColon
+ | (command | ecommand) (Identifier | text | number | bool | column | collist | numberlist | boollist | stringlist | numberranges)* (codeblock)* SColon
  | (command | ecommand) codeblock (Identifier | text | number | bool | column | numberlist | boollist | stringlist | numberranges)* SColon
  | (command | ecommand) config* SColon
  | '#pragma' args
@@ -70,7 +70,6 @@ numberrange
 value
  : Identifier | String | Number | Column
  ;
-
 
 ecommand
  : '!' Identifier

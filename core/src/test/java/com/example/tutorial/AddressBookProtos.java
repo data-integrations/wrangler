@@ -207,7 +207,7 @@ public final class AddressBookProtos {
       public final int getNumber() {
         if (this == UNRECOGNIZED) {
           throw new java.lang.IllegalArgumentException(
-              "Can't get the number of an unknown enum value.");
+              "Can't value the number of an unknown enum value.");
         }
         return value;
       }

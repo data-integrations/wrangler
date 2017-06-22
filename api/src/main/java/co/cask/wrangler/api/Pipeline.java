@@ -18,6 +18,8 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.annotations.PublicEvolving;
+import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.pipeline.PipelineException;
 
 import java.io.Serializable;
 import java.util.List;
