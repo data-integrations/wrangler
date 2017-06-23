@@ -8,31 +8,31 @@ could go through an approval process, and later be excluded from the restricted
 list. So, in short, the capability to restrict and un-restrict some directives has be
 easily configurable.
 
-The second common use-case we have seen is that an organization is accustomed
-to a organizational jargon and it's hard to adapt, it's not impossible, it
+A second common use-case we have seen is that an organization is accustomed
+to a organizational jargon and it is hard to adapt - not impossible - it is
 just hard.
 
-In order to support this kind of usage, CDAP's Data Prep has added the
-capability to exclude, and as well as alias a directive with a simple
+In order to support these kind of usage, Data Prep has added the
+capability to exclude and as well as alias a directive with a simple
 configuration.
 
 ## Feature
 
-There are two configurations supported by Data Prep now:
+There are two configuration supported by Data Prep now
 
 * Exclusion (a.k.a Restriction) and
 * Aliasing
 
-Exclusion allows administrators to specify a list of directives, either
-root or aliased directives, that should be restricted from
-invocation, and as well as application.
+Exclusion allows administrators to specify a list of directives either
+root directive or aliased directive that should be restricted from
+invocation and as well as application.
 
 Aliasing allows one to create a new name for a root directive.
 
 ## Scope
 
 Both Exclusion and Aliasing are namespace wide - meaning they are applicable
-only within the namespace where the configuration has been applied.
+only within the namespace were the configuration has been applied.
 
 ## Configuration
 
@@ -42,7 +42,7 @@ namely
 * `exclusions`
 * `aliases`
 
-Below we show you a high-level JSON object:
+Following is a high-level JSON object
 
 ```
 {
@@ -62,12 +62,12 @@ Below we show you a high-level JSON object:
 
 ### Exclusion
 
-It is an array of directives that are either loaded by default or can be
-loaded as UDD (User Defined Directives); they can also be aliased directives.
+It's a array of directives that are either loaded by default or could be
+loaded as UDD (User Defined Directives) or they can also be aliased directives.
 
 ## Aliases
 
-Aliases are maps of aliased directives and the actual directive name to which it is aliased.
+Is map of aliased directive and the actual directive name to which it's aliased.
 
 ## Applying Configuration
 
@@ -79,7 +79,7 @@ curl -s -X POST @<path-to-json>/<filename.json> \
  "http://<hostname>:11015/v3/namespaces/<namepsace>/apps/dataprep/services/service/methods/config"
 ```
 
-An example would be
+And example would be
 
 ```
 curl -s -X POST --data-binary @/tmp/wrangler-config.json \
