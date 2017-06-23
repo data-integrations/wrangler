@@ -24,9 +24,6 @@ import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.parser.TextDirectives;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeMap;
-import com.google.common.collect.TreeRangeMap;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -34,6 +31,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -101,22 +100,35 @@ public class PipelineTest {
 
   @Test
   public void testQuantizationRangeAndPattern() throws Exception {
-    RangeMap<Double, String> rangeMap = TreeRangeMap.create();
-    rangeMap.put(Range.closed(0.1, 0.9), "A");
-    rangeMap.put(Range.closed(2.0, 3.9), "B");
-    rangeMap.put(Range.closed(4.0, 5.9), "C");
-    String s = rangeMap.get(2.2);
+    TreeMap<Double, String> rangeMap = new TreeMap<>();
+    rangeMap.put(0.1, "A");
+    rangeMap.put(0.9, null);
+    rangeMap.put(2.0, "B");
+    rangeMap.put(3.9, null);
+    rangeMap.put(4.0, "C");
+    rangeMap.put(5.9, null);
+
+    String s = mappedValue(rangeMap, 2.2);
     Assert.assertEquals("B", s);
 
     Matcher m = Pattern.compile("([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)").matcher("0.9:2.1=Foo,2.2:3.4=9.2");
-    RangeMap<String, String> rm = TreeRangeMap.create();
+    TreeMap<String, String> stringRangeMap = new TreeMap<>();
     while(m.find()) {
       String lower = m.group(1);
       String upper = m.group(2);
       String value = m.group(3);
-      rm.put(Range.closed(lower, upper), value);
+      stringRangeMap.put(lower, value);
+      stringRangeMap.put(upper, null);
     }
-    Assert.assertEquals("[[0.9‥2.1]=Foo, [2.2‥3.4]=9.2]", rm.toString());
+    Assert.assertEquals("{0.9=Foo, 2.1=null, 2.2=9.2, 3.4=null}", stringRangeMap.toString());
+  }
+
+  private static <K, V> V mappedValue(TreeMap<K, V> rangeMap, K key) {
+    Map.Entry<K, V> e = rangeMap.floorEntry(key);
+    if (e != null && e.getValue() == null) {
+      e = rangeMap.lowerEntry(key);
+    }
+    return e == null ? null : e.getValue();
   }
 
   @Test

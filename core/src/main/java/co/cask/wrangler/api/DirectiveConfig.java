@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.api;
 
-import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -126,7 +126,7 @@ public final class DirectiveConfig {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
+    return Objects.toStringHelper(this)
       .add("aliases", aliases)
       .add("exclusions", exclusions)
       .toString();

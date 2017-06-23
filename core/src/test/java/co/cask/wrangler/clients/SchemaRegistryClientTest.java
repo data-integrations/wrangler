@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -45,7 +44,7 @@ public class SchemaRegistryClientTest {
     httpService = NettyHttpService.builder("SchemaService")
       .addHttpHandlers(handlers)
       .build();
-    httpService.startAsync().awaitRunning(10L, TimeUnit.SECONDS);
+    httpService.startAndWait();
     int port = httpService.getBindAddress().getPort();
     baseURL = "http://localhost:" + port;
     client = new SchemaRegistryClient(baseURL);
@@ -161,6 +160,6 @@ public class SchemaRegistryClientTest {
 
   @After
   public void stopService() throws Exception {
-    httpService.stopAsync().awaitTerminated(10L, TimeUnit.SECONDS);
+    httpService.stopAndWait();
   }
 }

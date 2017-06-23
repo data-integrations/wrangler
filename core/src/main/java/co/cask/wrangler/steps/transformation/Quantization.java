@@ -21,12 +21,10 @@ import co.cask.wrangler.api.PipelineContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeMap;
-import com.google.common.collect.TreeRangeMap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +39,7 @@ import java.util.regex.Pattern;
 )
 public class Quantization extends AbstractStep {
   private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
-  private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();
+  private final TreeMap<Double, String> rangeMap = new TreeMap<>();
 
   private String col1;
   private String col2;
@@ -55,7 +53,9 @@ public class Quantization extends AbstractStep {
     while(matcher.find()) {
       double lower = Double.parseDouble(matcher.group(1));
       double upper = Double.parseDouble(matcher.group(2));
-      rangeMap.put(Range.closed(lower, upper), matcher.group(3));
+      rangeMap.put(lower, matcher.group(3));
+      // store null in place of upper bound
+      rangeMap.put(upper, null);
     }
   }
 

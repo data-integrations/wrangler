@@ -17,8 +17,6 @@
 package co.cask.wrangler.steps.transformation.functions;
 
 import co.cask.wrangler.api.Record;
-import com.google.common.collect.BoundType;
-import com.google.common.collect.Range;
 
 /**
  * Data Quality Checks consolidated.
@@ -58,8 +56,7 @@ public class DataQuality extends Types {
    * @return true if in range, false otherwise.
    */
   public static boolean inrange(double value, double lower, double upper) {
-    Range<Double> range = Range.range(lower, BoundType.CLOSED, upper, BoundType.CLOSED);
-    if (range.contains(value)) {
+    if (value >= lower && value <= upper) {
       return true;
     }
     return false;
