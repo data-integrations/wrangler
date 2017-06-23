@@ -16,7 +16,7 @@ the `body`.
 ## Usage Notes
 
 The INVOKE-HTTP directive is used to apply a transformation on data using an existing REST
-service. This directive passes the specified columns as the POST body as a JSON Object.
+service. This directive passes the specified columns as the POST body in the form of a JSON Object.
 The keys in the JSON object are the column names, with the values and their types derived
 from the objects stored in the column.
 
