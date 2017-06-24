@@ -1,0 +1,89 @@
+/*
+ *  Copyright © 2017 Cask Data, Inc.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License. You may obtain a copy of
+ *  the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
+ */
+
+package co.cask.udd;
+
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
+import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.parser.ColumnName;
+import co.cask.wrangler.api.parser.TokenType;
+import co.cask.wrangler.api.parser.UsageDefinition;
+import co.cask.wrangler.api.pipeline.PipelineContext;
+
+import java.util.List;
+
+/**
+ * Class description here.
+ */
+@Plugin(type = UDD.Type)
+@Name(Rename.DIRECTIVE_NAME)
+@Usage("rename :source :target")
+@Description("Renames a column 'source' to 'target'")
+public final class Rename implements UDD {
+  public static final String DIRECTIVE_NAME = "rename";
+  private ColumnName source;
+  private ColumnName target;
+
+  @Override
+  public UsageDefinition define() {
+    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    builder.define("source", TokenType.COLUMN_NAME);
+    builder.define("target", TokenType.COLUMN_NAME);
+    return builder.build();
+  }
+
+  @Override
+  public void initialize(Arguments args) throws DirectiveParseException {
+    source = args.value("source");
+    target = args.value("target");
+  }
+
+  /**
+   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   *
+   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param context {@link PipelineContext} passed to each step.
+   * @return Wrangled List of {@link Record}.
+   */
+  @Override
+  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException, ErrorRecordException {
+    for (Record record : records) {
+      int idx = record.find(source.value());
+      int idxnew = record.find(target.value());
+      if (idx != -1) {
+        if (idxnew == -1) {
+          record.setColumn(idx, target.value());
+        } else {
+          throw new StepException(
+            String.format(
+              "%s : %s column already exists. Apply the directive 'drop %s' before renaming %s to %s.", toString(),
+              target.value(), target.value(), source.value(), source.value()
+            )
+          );
+        }
+      }
+    }
+    return records;
+  }
+}

@@ -21,6 +21,9 @@ import com.google.gson.JsonElement;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Tests {@link UsageDefinition}
  */
@@ -29,13 +32,54 @@ public class UsageDefinitionTest {
   @Test
   public void testUsageDefinitionCreation() throws Exception {
     UsageDefinition.Builder builder = UsageDefinition.builder("test");
-    builder.addToken("col1", TokenType.COLUMN_NAME);
-    builder.addToken("col2", TokenType.COLUMN_NAME, Optional.TRUE);
-    builder.addToken("condition", TokenType.EXPRESSION, Optional.TRUE);
+    builder.define("fname", TokenType.COLUMN_NAME);
+    builder.define("lname", TokenType.COLUMN_NAME, Optional.TRUE);
+    builder.define("condition", TokenType.EXPRESSION, Optional.TRUE);
     UsageDefinition definition = builder.build();
-    Assert.assertEquals("test", definition.getDirective());
+    Assert.assertEquals("test", definition.getName());
     JsonElement element = definition.toJsonObject();
-    System.out.println(element.toString());
+    System.out.println(definition.toString());
+  }
+
+  @Test
+  public void testUsageStringCreation() throws Exception {
+    List<String> usages = new ArrayList<>();
+
+    UsageDefinition.Builder builder = UsageDefinition.builder("rename");
+    builder.define("source", TokenType.COLUMN_NAME);
+    builder.define("destination", TokenType.COLUMN_NAME);
+    String usage = builder.build().toString();
+    Assert.assertEquals("rename :source :destination ", usage);
+    usages.add(usage);
+
+    builder = UsageDefinition.builder("parse-as-csv");
+    builder.define("col", TokenType.COLUMN_NAME);
+    builder.define("delimiter", TokenType.TEXT, Optional.TRUE);
+    builder.define("header", TokenType.BOOLEAN, Optional.TRUE);
+    usage = builder.build().toString();
+    Assert.assertEquals("parse-as-csv :col  ['delimiter'] [header (true/false)]", usage);
+    usages.add(usage);
+
+    builder = UsageDefinition.builder("send-to-error");
+    builder.define("expr", TokenType.EXPRESSION);
+    builder.define("metric", TokenType.TEXT, Optional.TRUE);
+    usage = builder.build().toString();
+    Assert.assertEquals("send-to-error exp:{<expr>}  ['metric']", usage);
+    usages.add(usage);
+
+    builder = UsageDefinition.builder("set-columns");
+    builder.define("cols", TokenType.COLUMN_NAME_LIST);
+    usage = builder.build().toString();
+    Assert.assertEquals("set-columns :cols [,:cols ...]* ", usage);
+    usages.add(usage);
+
+    for(String usg : usages) {
+      System.out.println(usg);
+    }
+
+    Assert.assertTrue(true);
+
+
   }
 
 

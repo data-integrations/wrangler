@@ -41,19 +41,19 @@ public final class TokenDefinition {
     this(name, type, ordinal, false);
   }
 
-  public int getOrdinal() {
+  public int ordinal() {
     return ordinal;
   }
 
-  public boolean isOptional() {
+  public boolean optional() {
     return optional;
   }
 
-  public String getName() {
+  public String name() {
     return name;
   }
 
-  public TokenType getType() {
+  public TokenType type() {
     return type;
   }
 

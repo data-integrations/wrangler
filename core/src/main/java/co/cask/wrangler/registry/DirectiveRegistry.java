@@ -14,18 +14,11 @@
  *  the License.
  */
 
-package co.cask.wrangler.api;
-
-import co.cask.wrangler.api.parser.TokenType;
-import com.google.gson.JsonElement;
+package co.cask.wrangler.registry;
 
 /**
  * Class description here.
  */
-public interface Arguments {
-  int size();
-  boolean contains(String name);
-  <T> T value(String name);
-  TokenType type(String name);
-  public JsonElement toJsonObject();
+public interface DirectiveRegistry<F> {
+  Class<? extends F> get(String name);
 }

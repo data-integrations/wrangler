@@ -14,18 +14,20 @@
  *  the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.registry;
 
-import co.cask.wrangler.api.parser.TokenType;
-import com.google.gson.JsonElement;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * Class description here.
+ * Tests {@link InternalRegistry}
  */
-public interface Arguments {
-  int size();
-  boolean contains(String name);
-  <T> T value(String name);
-  TokenType type(String name);
-  public JsonElement toJsonObject();
+public class InternalRegistryTest {
+
+  @Test
+  public void testLoadingDefaults() throws Exception {
+    InternalRegistry registry = new InternalRegistry();
+    Assert.assertTrue(true);
+  }
+
 }

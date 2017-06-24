@@ -14,18 +14,13 @@
  *  the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.registry;
 
-import co.cask.wrangler.api.parser.TokenType;
-import com.google.gson.JsonElement;
+import co.cask.wrangler.api.Step;
 
 /**
  * Class description here.
  */
-public interface Arguments {
-  int size();
-  boolean contains(String name);
-  <T> T value(String name);
-  TokenType type(String name);
-  public JsonElement toJsonObject();
+public interface DirectiveLoader {
+  Class<? extends Step> load(String artifact, String version, String name);
 }

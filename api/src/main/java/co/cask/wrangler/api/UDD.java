@@ -19,11 +19,11 @@ package co.cask.wrangler.api;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
 /**
- * UDD is a user defined directive.
+ * UDD is a user defined directive. DIE - Define, Initialize & Execute - Pattern
  */
 public interface UDD extends Step<Record, Record> {
   String Type = "udd";
 
   UsageDefinition define();
-  void initialize(Arguments tokens) throws DirectiveParseException;
+  void initialize(Arguments args) throws DirectiveParseException;
 }

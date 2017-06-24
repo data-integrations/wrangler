@@ -51,12 +51,45 @@ public final class UsageDefinition {
     this.tokens = tokens;
   }
 
-  public String getDirective() {
+  public String getName() {
     return directive;
   }
 
   public List<TokenDefinition> getTokens() {
     return tokens;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(directive).append(" ");
+    for (TokenDefinition token : tokens) {
+      if(token.optional()) {
+        sb.append(" [");
+      }
+      if (token.type().equals(TokenType.DIRECTIVE_NAME)) {
+        sb.append(token.name());
+      } else if (token.type().equals(TokenType.COLUMN_NAME)) {
+        sb.append(":").append(token.name());
+      } else if (token.type().equals(TokenType.COLUMN_NAME_LIST)) {
+        sb.append(":").append(token.name()).append(" [,:").append(token.name()).append(" ...]*");
+      } else if (token.type().equals(TokenType.BOOLEAN)) {
+        sb.append(token.name()).append(" (true/false)");
+      } else if (token.type().equals(TokenType.TEXT)) {
+        sb.append("'").append(token.name()).append("'");
+      } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
+          || token.type().equals(TokenType.TEXT_LIST)) {
+        sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
+      } else if (token.type().equals(TokenType.EXPRESSION)) {
+        sb.append("exp:{<").append(token.name()).append(">}");
+      }
+      if(token.optional()) {
+        sb.append("]");
+      } else {
+        sb.append(" ");
+      }
+    }
+    return sb.toString();
   }
 
   public static UsageDefinition.Builder builder(String directive) {
@@ -74,24 +107,24 @@ public final class UsageDefinition {
       this.tokens = new ArrayList<>();
     }
 
-    public void addToken(String name, TokenType type) {
+    public void define(String name, TokenType type) {
       TokenDefinition spec = new TokenDefinition(name, type, currentOrdinal);
       currentOrdinal++;
       tokens.add(spec);
     }
 
-    public void addToken(String name, TokenType type, boolean optional) {
+    public void define(String name, TokenType type, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, currentOrdinal, optional);
       currentOrdinal++;
       tokens.add(spec);
     }
 
-    public void addToken(String name, TokenType type, int ordinal) {
+    public void define(String name, TokenType type, int ordinal) {
       TokenDefinition spec = new TokenDefinition(name, type, ordinal, false);
       tokens.add(spec);
     }
 
-    public void addToken(String name, TokenType type, boolean optional, int ordinal) {
+    public void define(String name, TokenType type, boolean optional, int ordinal) {
       TokenDefinition spec = new TokenDefinition(name, type, ordinal, optional);
       tokens.add(spec);
     }

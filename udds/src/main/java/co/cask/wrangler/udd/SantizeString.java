@@ -39,11 +39,11 @@ public final class SantizeString implements UDD {
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = new UsageDefinition.Builder(SantizeString.DIRECTIVE_NAME);
-    builder.addToken("col1", TokenType.COLUMN_NAME);
-    builder.addToken("col2", TokenType.COLUMN_NAME);
-    builder.addToken("expr", TokenType.EXPRESSION, Optional.TRUE);
-    builder.addToken("number", TokenType.NUMERIC);
-    builder.addToken("columns", TokenType.COLUMN_NAME_LIST);
+    builder.define("col1", TokenType.COLUMN_NAME);
+    builder.define("col2", TokenType.COLUMN_NAME);
+    builder.define("expr", TokenType.EXPRESSION, Optional.TRUE);
+    builder.define("number", TokenType.NUMERIC);
+    builder.define("columns", TokenType.COLUMN_NAME_LIST);
     return builder.build();
   }
 

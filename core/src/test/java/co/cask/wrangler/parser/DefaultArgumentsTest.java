@@ -36,8 +36,8 @@ public class DefaultArgumentsTest {
     CompiledUnit unit = compiler.compile("rename :fname :lname;");
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
-    builder.addToken("col1", TokenType.COLUMN_NAME);
-    builder.addToken("col2", TokenType.COLUMN_NAME);
+    builder.define("col1", TokenType.COLUMN_NAME);
+    builder.define("col2", TokenType.COLUMN_NAME);
 
     Iterator<TokenGroup> iterator = unit.iterator();
     Arguments arguments = new DefaultArguments(builder.build(), iterator.next());
@@ -52,8 +52,8 @@ public class DefaultArgumentsTest {
     CompiledUnit unit = compiler.compile("rename :fname;");
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
-    builder.addToken("col1", TokenType.COLUMN_NAME);
-    builder.addToken("col2", TokenType.COLUMN_NAME, Optional.TRUE);
+    builder.define("col1", TokenType.COLUMN_NAME);
+    builder.define("col2", TokenType.COLUMN_NAME, Optional.TRUE);
 
     Iterator<TokenGroup> iterator = unit.iterator();
     Arguments arguments = new DefaultArguments(builder.build(), iterator.next());
@@ -71,10 +71,10 @@ public class DefaultArgumentsTest {
     CompiledUnit unit4 = compiler.compile("parse-as-csv :body exp: { type == '002' };");
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
-    builder.addToken("col1", TokenType.COLUMN_NAME);
-    builder.addToken("col2", TokenType.TEXT, Optional.TRUE);
-    builder.addToken("col3", TokenType.BOOLEAN, Optional.TRUE);
-    builder.addToken("col4", TokenType.EXPRESSION, Optional.TRUE);
+    builder.define("col1", TokenType.COLUMN_NAME);
+    builder.define("col2", TokenType.TEXT, Optional.TRUE);
+    builder.define("col3", TokenType.BOOLEAN, Optional.TRUE);
+    builder.define("col4", TokenType.EXPRESSION, Optional.TRUE);
 
     Iterator<TokenGroup> iterator = unit1.iterator();
     Arguments arguments = new DefaultArguments(builder.build(), iterator.next());
@@ -97,7 +97,6 @@ public class DefaultArgumentsTest {
     Assert.assertEquals(true, arguments.contains("col2"));
     Assert.assertEquals(true, arguments.contains("col3"));
     Assert.assertEquals(true, arguments.contains("col4"));
-    String o = arguments.toJsonObject().toString();
 
     iterator = unit4.iterator();
     arguments = new DefaultArguments(builder.build(), iterator.next());

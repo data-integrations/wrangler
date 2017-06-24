@@ -165,6 +165,11 @@ public class TextDirectives implements Directives {
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
 
+      // Support for external command.
+      if (command.startsWith("!")) {
+        command = command.substring(1);
+      }
+
       // Check if a directive has been aliased and if it's aliased then retrieve root command it's mapped
       // to.
       String root = command;
@@ -188,13 +193,6 @@ public class TextDirectives implements Directives {
       }
 
       switch (root) {
-        case "load-directives" : {
-          String library = getNextToken(tokenizer, command, "library", lineno);
-          String version = getNextToken(tokenizer, command, "version", lineno);
-          String directives = getNextToken(tokenizer, "\n", command, "directives", lineno);
-        }
-        break;
-
         case "set": {
           switch (tokenizer.nextToken()) {
             // set column <column-name> <jexl-expression>

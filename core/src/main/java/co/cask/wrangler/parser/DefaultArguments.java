@@ -32,17 +32,12 @@ import java.util.Map;
 
 /**
  * Class description here.
- *
- * Specification : COLUMN_NAME [COLUMN_NAME]
- * Token Group : :col1 [:col2]
  */
 public class DefaultArguments implements Arguments {
   private final Map<String, Token> tokens;
-  private final UsageDefinition definition;
 
   public DefaultArguments(UsageDefinition definition, TokenGroup group) throws DirectiveParseException {
     this.tokens = new HashMap<>();
-    this.definition = definition;
 
     List<TokenDefinition> specifications = definition.getTokens();
     Iterator<Token> it = group.iterator();
@@ -52,25 +47,23 @@ public class DefaultArguments implements Arguments {
       Token token = it.next();
       while(pos < specifications.size()) {
         TokenDefinition specification = specifications.get(pos);
-        if (!specification.isOptional()) {
-          if (!specification.getType().equals(token.type())) {
+        if (!specification.optional()) {
+          if (!specification.type().equals(token.type())) {
             throw new DirectiveParseException(
               String.format("Expected argument '%s' to be of type '%s', but it is of type '%s'",
-                            specification.getName(), specification.getType().name(),
+                            specification.name(), specification.type().name(),
                             token.type().name())
             );
           } else {
-            tokens.put(specification.getName(), token);
+            tokens.put(specification.name(), token);
             pos++;
             break;
           }
         } else {
-          if (specification.getType().equals(token.type())) {
-            tokens.put(specification.getName(), token);
-            pos++;
+          pos = pos + 1;
+          if (specification.type().equals(token.type())) {
+            tokens.put(specification.name(), token);
             break;
-          } else {
-            pos++;
           }
         }
       }
@@ -95,11 +88,6 @@ public class DefaultArguments implements Arguments {
   @Override
   public TokenType type(String name) {
     return tokens.get(name).type();
-  }
-
-  @Override
-  public UsageDefinition definition() {
-    return definition;
   }
 
   @Override
