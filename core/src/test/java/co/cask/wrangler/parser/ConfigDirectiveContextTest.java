@@ -16,10 +16,10 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.ParseDirectives;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,9 +57,9 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    Directives directives = new TextDirectives(text);
+    ParseDirectives directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
-    directives.getSteps();
+    directives.parse();
   }
 
   @Test(expected = DirectiveParseException.class)
@@ -71,9 +71,9 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    Directives directives = new TextDirectives(text);
+    ParseDirectives directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
-    directives.getSteps();
+    directives.parse();
   }
 
   @Test
@@ -85,10 +85,10 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    Directives directives = new TextDirectives(text);
+    ParseDirectives directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Step> steps = directives.getSteps();
+    List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 
@@ -101,10 +101,10 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    Directives directives = new TextDirectives(text);
+    ParseDirectives directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Step> steps = directives.getSteps();
+    List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 
@@ -117,10 +117,10 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    Directives directives = new TextDirectives(text);
+    ParseDirectives directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Step> steps = directives.getSteps();
+    List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 

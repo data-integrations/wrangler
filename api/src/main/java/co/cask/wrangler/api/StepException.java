@@ -17,7 +17,7 @@
 package co.cask.wrangler.api;
 
 /**
- * A Step specific exception used for communicating issues with execution of pipeline in that step.
+ * A Directive specific exception used for communicating issues with execution of pipeline in that step.
  */
 public class StepException extends Exception {
   public StepException(Exception e) {

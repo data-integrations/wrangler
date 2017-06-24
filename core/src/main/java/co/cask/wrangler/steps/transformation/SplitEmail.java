@@ -29,7 +29,7 @@ import co.cask.wrangler.api.Usage;
 import java.util.List;
 
 /**
- * A Step to split email address into account and domain.
+ * A Directive to split email address into account and domain.
  */
 @Plugin(type = "udd")
 @Name("split-email")

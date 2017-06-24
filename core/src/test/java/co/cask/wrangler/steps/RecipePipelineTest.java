@@ -19,9 +19,9 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;
 import com.google.common.collect.Range;
@@ -40,19 +40,19 @@ import java.util.regex.Pattern;
 /**
  * Tests different directives that are available within wrangling.
  */
-public class PipelineTest {
+public class RecipePipelineTest {
 
   @Test
   public void testSplit() throws Exception {
-    List<Step> steps = new ArrayList<>();
+    List<Directive> directives = new ArrayList<>();
     List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
 
-    // Define all the steps in the wrangler.
-    steps.add(new Split(0, "", "col", ",", "firstCol", "secondCol"));
+    // Define all the directives in the wrangler.
+    directives.add(new Split(0, "", "col", ",", "firstCol", "secondCol"));
 
-    // Run through the wrangling steps.
-    for (Step step : steps) {
-      records = step.execute(records, null);
+    // Run through the wrangling directives.
+    for (Directive directive : directives) {
+      records = directive.execute(records, null);
     }
 
     Assert.assertEquals("1", records.get(0).getValue("firstCol"));
@@ -65,10 +65,10 @@ public class PipelineTest {
     List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
 
     // Define all the steps in the wrangler.
-    Step step = new Split(0,"","col","|","firstCol","secondCol");
+    Directive directive = new Split(0, "", "col", "|", "firstCol", "secondCol");
 
     // Run through the wrangling steps.
-    List<Record> actual = step.execute(records, null);
+    List<Record> actual = directive.execute(records, null);
 
     Assert.assertEquals("1,2,a,A", actual.get(0).getValue("firstCol"));
     Assert.assertNull(actual.get(0).getValue("secondCol"));
@@ -77,25 +77,25 @@ public class PipelineTest {
   @Test
   public void testMaskSuffle() throws Exception {
     List<Record> records = Arrays.asList(new Record("address", "150 Mars Street, Mar City, MAR, 783735"));
-    Step step = new MaskShuffle(0, "", "address");
-    Record actual = (Record) step.execute(records, null).get(0);
+    Directive directive = new MaskShuffle(0, "", "address");
+    Record actual = (Record) directive.execute(records, null).get(0);
     Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
   }
 
 
-  public static List<Record> execute(List<Step> steps, List<Record> records) throws StepException, ErrorRecordException {
-    for (Step step : steps) {
-      records = step.execute(records, null);
+  public static List<Record> execute(List<Directive> directives, List<Record> records) throws StepException, ErrorRecordException {
+    for (Directive directive : directives) {
+      records = directive.execute(records, null);
     }
     return records;
   }
 
   public static List<Record> execute(String[] directives, List<Record> records)
     throws StepException, DirectiveParseException, ErrorRecordException {
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
-    records = PipelineTest.execute(steps, records);
+    SimpleTextDirectives specification = new SimpleTextDirectives(directives);
+    List<Directive> steps = new ArrayList<>();
+    steps.addAll(specification.parse());
+    records = RecipePipelineTest.execute(steps, records);
     return records;
   }
 
@@ -133,7 +133,7 @@ public class PipelineTest {
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("07/29/2013,Debt collection,Other (i.e. phone, health club, etc.),Cont'd " +
@@ -162,7 +162,7 @@ public class PipelineTest {
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("07/29/2013", records.get(0).getValue("date"));
   }
@@ -177,7 +177,7 @@ public class PipelineTest {
       new Record("body", "AABBCDE\nEEFFFF")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("AABBCDE", records.get(0).getValue("body_1"));

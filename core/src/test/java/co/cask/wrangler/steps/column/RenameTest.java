@@ -16,11 +16,11 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -41,8 +41,8 @@ public class RenameTest {
       new Record("C1", "A").add("C2", "B").add("C3", "C").add("C4", "D").add("C5", "E")
     );
 
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     pipeline.execute(records);
   }

@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -63,7 +63,7 @@ public class ParseLogTest {
         "ers.html")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals(91, records.get(0).length());
   }
@@ -79,7 +79,7 @@ public class ParseLogTest {
       new Record("body", "127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] \"GET /apache_pb.gif HTTP/1.0\" 200 2326")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
   }

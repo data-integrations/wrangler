@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import co.cask.wrangler.steps.column.Swap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class SwapTest {
       new Record("a", 1).add("b", "sample string")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals(1, records.get(0).getValue("b"));
@@ -58,7 +58,7 @@ public class SwapTest {
       new Record("a", 1).add("c", "sample string")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
   }
 
 }

@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class SplitURLTest {
       new Record("url", "http://example.com:80/docs/books/tutorial/index.html?name=networking#DOWNLOADING")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals(80, records.get(0).getValue("url_port"));

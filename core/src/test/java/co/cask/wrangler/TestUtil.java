@@ -17,12 +17,12 @@
 package co.cask.wrangler;
 
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 
 import java.util.List;
 
@@ -40,8 +40,8 @@ public final class TestUtil {
    */
   public static List<Record> run(String[] directives, List<Record> records)
     throws PipelineException, DirectiveParseException {
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     return pipeline.execute(records);
   }

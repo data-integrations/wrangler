@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -56,7 +56,7 @@ public class JsParserTest {
         "\"It is an AT&T samung wearable device.\" } }")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
 
@@ -70,7 +70,7 @@ public class JsParserTest {
       new Record("body", "[ { \"a\" : 1, \"b\" : 2 }, { \"a\" : 3, \"b\" : 3 }, { \"a\" : 4, \"c\" : 5 } ]")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 3);
   }
 
@@ -84,7 +84,7 @@ public class JsParserTest {
       new Record("body", "[1,2,3,4,5]")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 5);
   }
 
@@ -104,7 +104,7 @@ public class JsParserTest {
         "\"It is an AT&T samung wearable device.\" } }")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
 
@@ -139,7 +139,7 @@ public class JsParserTest {
         "\"symbols\":[]},\"favorited\":false,\"retweeted\":false,\"filter_level\":\"low\",\"lang\":\"en\",\"timestamp_ms\"" +
         ":\"1486415617659\"}"));
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
 
@@ -153,7 +153,7 @@ public class JsParserTest {
       new Record("body", "[1,2,3,4,5]             ")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 5);
   }
 }

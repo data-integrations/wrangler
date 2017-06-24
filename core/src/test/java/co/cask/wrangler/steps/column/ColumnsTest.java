@@ -17,9 +17,9 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Step;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,8 +35,8 @@ public class ColumnsTest {
     String[] directives = {
       "set columns ,A,B"
     };
-    Directives d = new TextDirectives(directives);
-    d.getSteps();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    d.parse();
   }
 
   @Test(expected = DirectiveParseException.class)
@@ -44,8 +44,8 @@ public class ColumnsTest {
     String[] directives = {
       "set columns A,B, ,D"
     };
-    Directives d = new TextDirectives(directives);
-    d.getSteps();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    d.parse();
   }
 
   @Test
@@ -53,8 +53,8 @@ public class ColumnsTest {
     String[] directives = {
       "set columns A,B,D,"
     };
-    Directives d = new TextDirectives(directives);
-    List<Step> steps = d.getSteps();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    List<Directive> steps = d.parse();
     Assert.assertEquals(1, steps.size());
   }
 
@@ -63,8 +63,8 @@ public class ColumnsTest {
     String[] directives = {
       "set columns A,B,D,,"
     };
-    Directives d = new TextDirectives(directives);
-    d.getSteps();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    d.parse();
   }
 
 }

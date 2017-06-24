@@ -39,7 +39,7 @@ public class SplitToRowsTest {
       new Record("body", "AABBCDE\nEEFFFF")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("AABBCDE", records.get(0).getValue("body"));
@@ -56,7 +56,7 @@ public class SplitToRowsTest {
       new Record("body", "AABBCDE\nEEFFFF")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
   }
@@ -71,7 +71,7 @@ public class SplitToRowsTest {
       new Record("id", "1").add("codes", "USD|AUD|AMD|XCD")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 4);
   }

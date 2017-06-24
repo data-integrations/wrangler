@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Step for stemming the words provided using Porter Stemming.
+ * Directive for stemming the words provided using Porter Stemming.
  */
 @Plugin(type = "udd")
 @Name("stemming")

@@ -16,12 +16,12 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Step;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,23 +36,23 @@ public class MaskNumberTest {
   @Test
   public void testOnlySteps() throws Exception {
     // More characters in mask, but not enough in the input.
-    Step step = new MaskNumber(0, "", "ssn", "xxx-xx-#####");
-    List<Record> actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    Directive directive = new MaskNumber(0, "", "ssn", "xxx-xx-#####");
+    List<Record> actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
 
-    step = new MaskNumber(0, "", "ssn", "xxx-xx-####");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888-99-1234")), null);
+    directive = new MaskNumber(0, "", "ssn", "xxx-xx-####");
+    actual = directive.execute(Arrays.asList(new Record("ssn", "888-99-1234")), null);
     Assert.assertEquals("xxx-xx-1234", actual.get(0).getValue("ssn"));
 
-    step = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    directive = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
+    actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
     Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
 
-    step = new MaskNumber(0, "", "ssn", "xxx-xx-####");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    directive = new MaskNumber(0, "", "ssn", "xxx-xx-####");
+    actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
-    step = new MaskNumber(0, "", "ssn", "x-####");
-    actual = step.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    directive = new MaskNumber(0, "", "ssn", "x-####");
+    actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
     Assert.assertEquals("x-8899", actual.get(0).getValue("ssn"));
   }
 
@@ -66,8 +66,8 @@ public class MaskNumberTest {
       new Record("body", "000-00-1234")
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -85,8 +85,8 @@ public class MaskNumberTest {
       new Record("body", "000-00-1234")
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -104,8 +104,8 @@ public class MaskNumberTest {
       new Record("body", "0000012349898")
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -125,8 +125,8 @@ public class MaskNumberTest {
       new Record("body", 123456)
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -146,8 +146,8 @@ public class MaskNumberTest {
       new Record("body", 12345)
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -165,8 +165,8 @@ public class MaskNumberTest {
       new Record("body", 12345L)
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -184,8 +184,8 @@ public class MaskNumberTest {
       new Record("body", 12.34)
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 

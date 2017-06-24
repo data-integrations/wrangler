@@ -19,10 +19,10 @@ package co.cask.wrangler.api;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
 /**
- * An abstract class for {@link Step} with added debugging capabilities.
+ * An abstract class for {@link Directive} with added debugging capabilities.
  */
 @PublicEvolving
-public abstract class AbstractStep implements Step<Record, Record> {
+public abstract class AbstractStep implements Directive<Record, Record> {
   private int lineno;
   private String detail;
 
@@ -33,7 +33,7 @@ public abstract class AbstractStep implements Step<Record, Record> {
 
   @Override
   public String toString() {
-    return String.format("[Step %d] - <%s>", lineno, detail);
+    return String.format("[Directive %d] - <%s>", lineno, detail);
   }
 }
 

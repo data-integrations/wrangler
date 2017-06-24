@@ -16,10 +16,11 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveContext;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.executor.ICDCatalog;
 import co.cask.wrangler.steps.IncrementTransientVariable;
 import co.cask.wrangler.steps.SetTransientVariable;
@@ -112,11 +113,11 @@ import javax.annotation.Nullable;
 /**
  * Parses the DSL into specification containing stepRegistry for wrangling.
  *
- * Following are some of the commands and format that {@link TextDirectives}
+ * Following are some of the commands and format that {@link SimpleTextDirectives}
  * will handle.
  */
-public class TextDirectives implements Directives {
-  private static final Logger LOG = LoggerFactory.getLogger(TextDirectives.class);
+public class SimpleTextDirectives implements ParseDirectives {
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleTextDirectives.class);
 
   // directives for wrangling.
   private String[] directives;
@@ -127,21 +128,21 @@ public class TextDirectives implements Directives {
   // Specifies the context for directive parsing.
   private DirectiveContext context;
 
-  public TextDirectives(String[] directives) {
+  public SimpleTextDirectives(String[] directives) {
     this.directives = directives;
     this.context = new NoOpDirectiveContext();
   }
 
-  public TextDirectives(String directives) {
+  public SimpleTextDirectives(String directives) {
     this(directives.split("\n"));
   }
 
-  public TextDirectives(List<String> directives) {
+  public SimpleTextDirectives(List<String> directives) {
     this(directives.toArray(new String[directives.size()]));
   }
 
   /**
-   * Parses the DSL to generate a sequence of stepRegistry to be executed by {@link co.cask.wrangler.api.Pipeline}.
+   * Parses the DSL to generate a sequence of stepRegistry to be executed by {@link RecipePipeline}.
    *
    * The transformation parsing here needs a better solution. It has many limitations and having different way would
    * allow us to provide much more advanced semantics for directives.
@@ -149,14 +150,15 @@ public class TextDirectives implements Directives {
    * @return List of stepRegistry to be executed.
    * @throws ParseException
    */
-  private List<Step> parse() throws DirectiveParseException {
-    List<Step> steps = new ArrayList<>();
+  @Override
+  public List<Directive> parse() throws DirectiveParseException {
+    List<Directive> directives = new ArrayList<>();
 
     // Split directive by EOL
     int lineno = 1;
 
     // Iterate through each directive and create necessary stepRegistry.
-    for (String directive : directives) {
+    for (String directive : this.directives) {
       directive = directive.trim();
       if (directive.isEmpty() || directive.startsWith("//") || directive.startsWith("#")) {
         continue;
@@ -194,7 +196,7 @@ public class TextDirectives implements Directives {
             case "column": {
               String column = getNextToken(tokenizer, "set column", "column-name", lineno);
               String expr = getNextToken(tokenizer, "\n", "set column", "jexl-expression", lineno);
-              steps.add(new Expression(lineno, directive, column, expr));
+              directives.add(new Expression(lineno, directive, column, expr));
             }
             break;
 
@@ -202,7 +204,7 @@ public class TextDirectives implements Directives {
             case "columns": {
               String columns = getNextToken(tokenizer, "\n", "set columns", "name1, name2, ...", lineno);
               String cols[] = columns.split(",");
-              steps.add(new Columns(lineno, directive, Arrays.asList(cols)));
+              directives.add(new Columns(lineno, directive, Arrays.asList(cols)));
             }
             break;
           }
@@ -213,7 +215,7 @@ public class TextDirectives implements Directives {
         case "rename": {
           String oldcol = getNextToken(tokenizer,  command, "old", lineno);
           String newcol = getNextToken(tokenizer, command, "new", lineno);
-          steps.add(new Rename(lineno, directive, oldcol, newcol));
+          directives.add(new Rename(lineno, directive, oldcol, newcol));
         }
         break;
 
@@ -221,14 +223,14 @@ public class TextDirectives implements Directives {
         case "set-type": {
           String col = getNextToken(tokenizer,  command, "col", lineno);
           String type = getNextToken(tokenizer, command, "type", lineno);
-          steps.add(new SetType(lineno, directive, col, type));
+          directives.add(new SetType(lineno, directive, col, type));
         }
         break;
 
         // drop <column>[,<column>]
         case "drop": {
           String colums = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new Drop(lineno, directive, Arrays.asList(colums.split(","))));
+          directives.add(new Drop(lineno, directive, Arrays.asList(colums.split(","))));
         }
         break;
 
@@ -248,28 +250,28 @@ public class TextDirectives implements Directives {
             }
             delimiter = StringEscapeUtils.unescapeJava(delimiter.substring(start + 1, end));
           }
-          steps.add(new Merge(lineno, directive, col1, col2, dest, delimiter));
+          directives.add(new Merge(lineno, directive, col1, col2, dest, delimiter));
         }
         break;
 
         // uppercase <col>
         case "uppercase": {
           String col = getNextToken(tokenizer, command, "col", lineno);
-          steps.add(new Upper(lineno, directive, col));
+          directives.add(new Upper(lineno, directive, col));
         }
         break;
 
         // lowercase <col>
         case "lowercase": {
           String col = getNextToken(tokenizer, command, "col", lineno);
-          steps.add(new Lower(lineno, directive, col));
+          directives.add(new Lower(lineno, directive, col));
         }
         break;
 
         // titlecase <col>
         case "titlecase": {
           String col = getNextToken(tokenizer, command, "col", lineno);
-          steps.add(new TitleCase(lineno, directive, col));
+          directives.add(new TitleCase(lineno, directive, col));
         }
         break;
 
@@ -281,7 +283,7 @@ public class TextDirectives implements Directives {
           int start = Integer.parseInt(startStr);
           int end = Integer.parseInt(endStr);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
-          steps.add(new IndexSplit(lineno, directive, source, start, end, destination));
+          directives.add(new IndexSplit(lineno, directive, source, start, end, destination));
         }
         break;
 
@@ -291,7 +293,7 @@ public class TextDirectives implements Directives {
           String delimiter = getNextToken(tokenizer, command, "delimiter", lineno);
           String firstCol = getNextToken(tokenizer, command, "new-column-1", lineno);
           String secondCol = getNextToken(tokenizer, command, "new-column-2", lineno);
-          steps.add(new Split(lineno, directive, source, delimiter, firstCol, secondCol));
+          directives.add(new Split(lineno, directive, source, delimiter, firstCol, secondCol));
         }
         break;
 
@@ -299,7 +301,7 @@ public class TextDirectives implements Directives {
         case "filter-row-if-matched": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          steps.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
+          directives.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
         }
         break;
 
@@ -307,21 +309,21 @@ public class TextDirectives implements Directives {
         case "filter-row-if-not-matched": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          steps.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
+          directives.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
         }
         break;
 
         // filter-row-if-true  <condition>
         case "filter-row-if-true": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          steps.add(new RecordConditionFilter(lineno, directive, condition, true));
+          directives.add(new RecordConditionFilter(lineno, directive, condition, true));
         }
         break;
 
         // filter-row-if-false  <condition>
         case "filter-row-if-false": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          steps.add(new RecordConditionFilter(lineno, directive, condition, false));
+          directives.add(new RecordConditionFilter(lineno, directive, condition, false));
         }
         break;
 
@@ -329,7 +331,7 @@ public class TextDirectives implements Directives {
         case "set-variable": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          steps.add(new SetTransientVariable(lineno, directive, column, expression));
+          directives.add(new SetTransientVariable(lineno, directive, column, expression));
         }
         break;
 
@@ -338,7 +340,7 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String value = getNextToken(tokenizer, command, "value", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          steps.add(new IncrementTransientVariable(lineno, directive, column, value, expression));
+          directives.add(new IncrementTransientVariable(lineno, directive, column, value, expression));
         }
         break;
 
@@ -346,14 +348,14 @@ public class TextDirectives implements Directives {
         case "mask-number": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String mask = getNextToken(tokenizer, command, "pattern", lineno);
-          steps.add(new MaskNumber(lineno, directive, column, mask));
+          directives.add(new MaskNumber(lineno, directive, column, mask));
         }
         break;
 
         // mask-shuffle <column>
         case "mask-shuffle": {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new MaskShuffle(lineno, directive, column));
+          directives.add(new MaskShuffle(lineno, directive, column));
         }
         break;
 
@@ -361,7 +363,7 @@ public class TextDirectives implements Directives {
         case "format-date": {
           String column = getNextToken(tokenizer, command, "column", 1);
           String format = getNextToken(tokenizer, "\n", command, "format", lineno);
-          steps.add(new FormatDate(lineno, directive, column, format));
+          directives.add(new FormatDate(lineno, directive, column, format));
         }
         break;
 
@@ -369,7 +371,7 @@ public class TextDirectives implements Directives {
         case "format-unix-timestamp": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String dstDatePattern = getNextToken(tokenizer, "\n", command, "destination-format", lineno);
-          steps.add(new FormatDate(lineno, directive, column, dstDatePattern));
+          directives.add(new FormatDate(lineno, directive, column, dstDatePattern));
         }
         break;
 
@@ -378,7 +380,7 @@ public class TextDirectives implements Directives {
           String column1 = getNextToken(tokenizer, command, "source-column", lineno);
           String column2 = getNextToken(tokenizer, command, "destination-column", lineno);
           String ranges = getNextToken(tokenizer, "\n", command, "destination-column", lineno);
-          steps.add(new Quantization(lineno, directive, column1, column2, ranges));
+          directives.add(new Quantization(lineno, directive, column1, column2, ranges));
         }
         break;
 
@@ -386,7 +388,7 @@ public class TextDirectives implements Directives {
         case "find-and-replace" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "sed-script", lineno);
-          steps.add(new FindAndReplace(lineno, directive, column, expression));
+          directives.add(new FindAndReplace(lineno, directive, column, expression));
         }
         break;
 
@@ -411,7 +413,7 @@ public class TextDirectives implements Directives {
             hasHeader = true;
           }
           CsvParser.Options opt = new CsvParser.Options(delimiter, true);
-          steps.add(new CsvParser(lineno, directive, opt, column, hasHeader));
+          directives.add(new CsvParser(lineno, directive, opt, column, hasHeader));
         }
         break;
 
@@ -429,7 +431,7 @@ public class TextDirectives implements Directives {
               );
             }
           }
-          steps.add(new JsParser(lineno, directive, column, depth));
+          directives.add(new JsParser(lineno, directive, column, depth));
         }
         break;
 
@@ -454,7 +456,7 @@ public class TextDirectives implements Directives {
               );
             }
           }
-          steps.add(new ParseAvro(lineno, directive, column, schemaId, type, version));
+          directives.add(new ParseAvro(lineno, directive, column, schemaId, type, version));
         }
         break;
 
@@ -474,7 +476,7 @@ public class TextDirectives implements Directives {
               );
             }
           }
-          steps.add(new ParseProtobuf(lineno, directive, column, schemaId, recordName, version));
+          directives.add(new ParseProtobuf(lineno, directive, column, schemaId, recordName, version));
         }
         break;
 
@@ -483,7 +485,7 @@ public class TextDirectives implements Directives {
           String src = getNextToken(tokenizer, command, "source", lineno);
           String dest = getNextToken(tokenizer, command, "dest", lineno);
           String path = getNextToken(tokenizer, "\n", command, "json-path", lineno);
-          steps.add(new JsPath(lineno, directive, src, dest, path));
+          directives.add(new JsPath(lineno, directive, src, dest, path));
         }
         break;
 
@@ -491,7 +493,7 @@ public class TextDirectives implements Directives {
         case "set-charset" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String charset = getNextToken(tokenizer, "\n", command, "charset", lineno, true);
-          steps.add(new SetCharset(lineno, directive, column, charset));
+          directives.add(new SetCharset(lineno, directive, column, charset));
         }
         break;
 
@@ -504,7 +506,7 @@ public class TextDirectives implements Directives {
             columns.add(column.trim());
           }
           String headers = getNextToken(tokenizer, "\n", command, "headers", lineno, true);
-          steps.add(new InvokeHttp(lineno, directive, url, columns, headers));
+          directives.add(new InvokeHttp(lineno, directive, url, columns, headers));
         }
         break;
 
@@ -518,7 +520,7 @@ public class TextDirectives implements Directives {
           }
           try {
             int limit = Integer.parseInt(limitStr);
-            steps.add(new SetRecordDelimiter(lineno, directive, column, delimiter, limit));
+            directives.add(new SetRecordDelimiter(lineno, directive, column, delimiter, limit));
           } catch (NumberFormatException e) {
             throw new DirectiveParseException(
               String.format("Limit '%s' specified is not a number.", limitStr)
@@ -550,7 +552,7 @@ public class TextDirectives implements Directives {
             }
             ++i;
           }
-          steps.add(new FixedLengthParser(lineno, directive, column, widths, padding));
+          directives.add(new FixedLengthParser(lineno, directive, column, widths, padding));
         }
         break;
 
@@ -558,7 +560,7 @@ public class TextDirectives implements Directives {
         case "split-to-rows" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String regex = getNextToken(tokenizer, "\n", "separator", lineno);
-          steps.add(new SplitToRows(lineno, directive, column, regex));
+          directives.add(new SplitToRows(lineno, directive, column, regex));
         }
         break;
 
@@ -566,7 +568,7 @@ public class TextDirectives implements Directives {
         case "split-to-columns" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String regex = getNextToken(tokenizer, "\n", "regex", lineno);
-          steps.add(new SplitToColumns(lineno, directive, column, regex));
+          directives.add(new SplitToColumns(lineno, directive, column, regex));
         }
         break;
 
@@ -582,14 +584,14 @@ public class TextDirectives implements Directives {
           } catch (NumberFormatException e) {
             throw new DirectiveParseException(e.getMessage());
           }
-          steps.add(new XmlToJson(lineno, directive, column, depth));
+          directives.add(new XmlToJson(lineno, directive, column, depth));
         }
         break;
 
         // parse-as-xml <column>
         case "parse-as-xml" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new XmlParser(lineno, directive, column));
+          directives.add(new XmlParser(lineno, directive, column));
         }
         break;
 
@@ -597,7 +599,7 @@ public class TextDirectives implements Directives {
         case "parse-as-excel" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String sheet = getNextToken(tokenizer, "\n", command, "sheet", lineno, true);
-          steps.add(new ParseExcel(lineno, directive, column, sheet));
+          directives.add(new ParseExcel(lineno, directive, column, sheet));
         }
         break;
 
@@ -606,7 +608,7 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          steps.add(new XPathElement(lineno, directive, column, destination, xpath));
+          directives.add(new XPathElement(lineno, directive, column, destination, xpath));
         }
         break;
 
@@ -615,7 +617,7 @@ public class TextDirectives implements Directives {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          steps.add(new XPathArrayElement(lineno, directive, column, destination, xpath));
+          directives.add(new XPathArrayElement(lineno, directive, column, destination, xpath));
         }
         break;
 
@@ -636,7 +638,7 @@ public class TextDirectives implements Directives {
               );
             }
           }
-          steps.add(new Flatten(lineno, directive, columns));
+          directives.add(new Flatten(lineno, directive, columns));
         }
         break;
 
@@ -650,7 +652,7 @@ public class TextDirectives implements Directives {
           if (forceOpt != null && forceOpt.equalsIgnoreCase("true")) {
             force = true;
           }
-          steps.add(new Copy(lineno, directive, source, destination, force));
+          directives.add(new Copy(lineno, directive, source, destination, force));
         }
         break;
 
@@ -663,7 +665,7 @@ public class TextDirectives implements Directives {
               "Fixed value cannot be a empty string"
             );
           }
-          steps.add(new FillNullOrEmpty(lineno, directive, column, value));
+          directives.add(new FillNullOrEmpty(lineno, directive, column, value));
         }
         break;
 
@@ -672,28 +674,28 @@ public class TextDirectives implements Directives {
           String source = getNextToken(tokenizer, command, "source", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String range = getNextToken(tokenizer, command, "range", lineno);
-          steps.add(new CharacterCut(lineno, directive, source, destination, range));
+          directives.add(new CharacterCut(lineno, directive, source, destination, range));
         }
         break;
 
         // generate-uuid <column>
         case "generate-uuid" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new GenerateUUID(lineno, directive, column));
+          directives.add(new GenerateUUID(lineno, directive, column));
         }
         break;
 
         // url-encode <column>
         case "url-encode" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new UrlEncode(lineno, directive, column));
+          directives.add(new UrlEncode(lineno, directive, column));
         }
         break;
 
         // url-decode <column>
         case "url-decode" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new UrlEncode(lineno, directive, column));
+          directives.add(new UrlEncode(lineno, directive, column));
         }
         break;
 
@@ -701,7 +703,7 @@ public class TextDirectives implements Directives {
         case "parse-as-log" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String format = getNextToken(tokenizer, "\n", command, "format", lineno);
-          steps.add(new ParseLog(lineno, directive, column, format));
+          directives.add(new ParseLog(lineno, directive, column, format));
         }
         break;
 
@@ -709,7 +711,7 @@ public class TextDirectives implements Directives {
         case "parse-as-date" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String timezone = getNextToken(tokenizer, "\n", command, "timezone", lineno, true);
-          steps.add(new ParseDate(lineno, directive, column, timezone));
+          directives.add(new ParseDate(lineno, directive, column, timezone));
         }
         break;
 
@@ -717,7 +719,7 @@ public class TextDirectives implements Directives {
         case "parse-as-simple-date" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "format", lineno);
-          steps.add(new ParseSimpleDate(lineno, directive, column, pattern));
+          directives.add(new ParseSimpleDate(lineno, directive, column, pattern));
         }
         break;
 
@@ -726,14 +728,14 @@ public class TextDirectives implements Directives {
           String column1 = getNextToken(tokenizer, command, "column1", lineno);
           String column2 = getNextToken(tokenizer, command, "column2", lineno);
           String destColumn = getNextToken(tokenizer, "\n", command, "destColumn", lineno);
-          steps.add(new DiffDate(lineno, directive, column1, column2, destColumn));
+          directives.add(new DiffDate(lineno, directive, column1, column2, destColumn));
         }
         break;
 
         // keep <column>[,<column>]*
         case "keep" : {
           String columns = getNextToken(tokenizer, command, "columns", lineno);
-          steps.add(new Keep(lineno, directive, columns.split(",")));
+          directives.add(new Keep(lineno, directive, columns.split(",")));
         }
         break;
 
@@ -749,14 +751,14 @@ public class TextDirectives implements Directives {
           } catch (NumberFormatException e) {
             throw new DirectiveParseException(e.getMessage());
           }
-          steps.add(new HL7Parser(lineno, directive, column, depth));
+          directives.add(new HL7Parser(lineno, directive, column, depth));
         }
         break;
 
         // split-email <column>
         case "split-email" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new SplitEmail(lineno, directive, column));
+          directives.add(new SplitEmail(lineno, directive, column));
         }
         break;
 
@@ -764,7 +766,7 @@ public class TextDirectives implements Directives {
         case "swap" : {
           String column1 = getNextToken(tokenizer, command, "column1", lineno);
           String column2 = getNextToken(tokenizer, command, "column2", lineno);
-          steps.add(new Swap(lineno, directive, column1, column2));
+          directives.add(new Swap(lineno, directive, column1, column2));
         }
         break;
 
@@ -787,7 +789,7 @@ public class TextDirectives implements Directives {
 
           try {
             MessageDigest digest = MessageDigest.getInstance(algorithm);
-            steps.add(new MessageHash(lineno, directive, column, digest, encode));
+            directives.add(new MessageHash(lineno, directive, column, digest, encode));
           } catch (NoSuchAlgorithmException e) {
             throw new DirectiveParseException(
               String.format("Unable to find algorithm specified '%s' in directive '%s' at line %d.",
@@ -800,7 +802,7 @@ public class TextDirectives implements Directives {
         // write-as-json-map <column>
         case "write-as-json-map" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new WriteAsJsonMap(lineno, directive, column));
+          directives.add(new WriteAsJsonMap(lineno, directive, column));
         }
         break;
 
@@ -813,7 +815,7 @@ public class TextDirectives implements Directives {
             for (String col : columnsStr.split(",")) {
               columns.add(col.trim());
             }
-            steps.add(new WriteAsJsonObject(lineno, directive, column, columns));
+            directives.add(new WriteAsJsonObject(lineno, directive, column, columns));
           } else {
             throw new DirectiveParseException(
               String.format("")
@@ -825,7 +827,7 @@ public class TextDirectives implements Directives {
         // write-as-csv <column>
         case "write-as-csv" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new WriteAsCSV(lineno, directive, column));
+          directives.add(new WriteAsCSV(lineno, directive, column));
         }
         break;
 
@@ -838,21 +840,21 @@ public class TextDirectives implements Directives {
           String cmd = getNextToken(tokenizer, command, "command", lineno);
           if (cmd.equalsIgnoreCase("condition-false")) {
             String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            steps.add(new RecordConditionFilter(lineno, directive, condition, false));
+            directives.add(new RecordConditionFilter(lineno, directive, condition, false));
           } else if (cmd.equalsIgnoreCase("condition-true")) {
             String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            steps.add(new RecordConditionFilter(lineno, directive, condition, true));
+            directives.add(new RecordConditionFilter(lineno, directive, condition, true));
           } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
             String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
-            steps.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
+            directives.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
           } else if (cmd.equalsIgnoreCase("regex-match")) {
             String column = getNextToken(tokenizer, command, "column", lineno);
             String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-            steps.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
+            directives.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
           } else if (cmd.equalsIgnoreCase("regex-not-match")) {
             String column = getNextToken(tokenizer, command, "column", lineno);
             String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-            steps.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
+            directives.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
           } else {
             throw new DirectiveParseException(
               String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
@@ -864,21 +866,21 @@ public class TextDirectives implements Directives {
         // parse-as-avro-file <column>
         case "parse-as-avro-file": {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new ParseAvroFile(lineno, directive, column));
+          directives.add(new ParseAvroFile(lineno, directive, column));
         }
         break;
 
         // send-to-error <condition>
         case "send-to-error": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          steps.add(new SendToError(lineno, directive, condition));
+          directives.add(new SendToError(lineno, directive, condition));
         }
         break;
 
         // fail <condition>
         case "fail": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          steps.add(new Fail(lineno, directive, condition));
+          directives.add(new Fail(lineno, directive, condition));
         }
         break;
 
@@ -888,7 +890,7 @@ public class TextDirectives implements Directives {
           String column1 = getNextToken(tokenizer, command, "column1", lineno);
           String column2 = getNextToken(tokenizer, command, "column2", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
-          steps.add(new TextDistanceMeasure(lineno, directive, method, column1, column2, destination));
+          directives.add(new TextDistanceMeasure(lineno, directive, method, column1, column2, destination));
         }
         break;
 
@@ -898,7 +900,7 @@ public class TextDirectives implements Directives {
           String column1 = getNextToken(tokenizer, command, "column1", lineno);
           String column2 = getNextToken(tokenizer, command, "column2", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
-          steps.add(new TextMetricMeasure(lineno, directive, method, column1, column2, destination));
+          directives.add(new TextMetricMeasure(lineno, directive, method, column1, column2, destination));
         }
         break;
 
@@ -917,7 +919,7 @@ public class TextDirectives implements Directives {
                 String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
               );
             }
-            steps.add(new CatalogLookup(lineno, directive, catalog, column));
+            directives.add(new CatalogLookup(lineno, directive, catalog, column));
           }
         }
         break;
@@ -926,21 +928,21 @@ public class TextDirectives implements Directives {
         case "table-lookup" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String table = getNextToken(tokenizer, command, "table", lineno);
-          steps.add(new TableLookup(lineno, directive, column, table));
+          directives.add(new TableLookup(lineno, directive, column, table));
         }
         break;
 
         // stemming <column>
         case "stemming" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new Stemming(lineno, directive, column));
+          directives.add(new Stemming(lineno, directive, column));
         }
         break;
 
         // columns <sed>
         case "columns-replace" : {
           String sed = getNextToken(tokenizer, command, "sed-expression", lineno);
-          steps.add(new ColumnsReplace(lineno, directive, sed));
+          directives.add(new ColumnsReplace(lineno, directive, sed));
         }
         break;
 
@@ -948,20 +950,20 @@ public class TextDirectives implements Directives {
         case "extract-regex-groups" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String regex = getNextToken(tokenizer, command, "regex", lineno);
-          steps.add(new ExtractRegexGroups(lineno, directive, column, regex));
+          directives.add(new ExtractRegexGroups(lineno, directive, column, regex));
         }
         break;
 
         // split-url <column>
         case "split-url" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new SplitURL(lineno, directive, column));
+          directives.add(new SplitURL(lineno, directive, column));
         }
         break;
 
         // cleanse-column-names
         case "cleanse-column-names" : {
-          steps.add(new CleanseColumnNames(lineno, directive));
+          directives.add(new CleanseColumnNames(lineno, directive));
         }
         break;
 
@@ -973,7 +975,7 @@ public class TextDirectives implements Directives {
             || casing.equalsIgnoreCase("lowercase")) {
             toLower = true;
           }
-          steps.add(new ChangeColCaseNames(lineno, directive, toLower));
+          directives.add(new ChangeColCaseNames(lineno, directive, toLower));
         }
         break;
 
@@ -981,7 +983,7 @@ public class TextDirectives implements Directives {
         case "set-column" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String expr = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          steps.add(new SetColumn(lineno, directive, column, expr));
+          directives.add(new SetColumn(lineno, directive, column, expr));
         }
         break;
 
@@ -996,7 +998,7 @@ public class TextDirectives implements Directives {
                             type)
             );
           }
-          steps.add(new Encode(lineno, directive, Encode.Type.valueOf(type), column));
+          directives.add(new Encode(lineno, directive, Encode.Type.valueOf(type), column));
         }
         break;
 
@@ -1011,28 +1013,28 @@ public class TextDirectives implements Directives {
                             type)
             );
           }
-          steps.add(new Decode(lineno, directive, Decode.Type.valueOf(type), column));
+          directives.add(new Decode(lineno, directive, Decode.Type.valueOf(type), column));
         }
         break;
 
         //trim <column>
         case "trim": {
           String col = getNextToken(tokenizer, command, "col", lineno);
-          steps.add(new Trim(lineno, directive, col));
+          directives.add(new Trim(lineno, directive, col));
         }
         break;
 
         //ltrim <column>
         case "ltrim": {
           String col = getNextToken(tokenizer, command, "col", lineno);
-          steps.add(new LeftTrim(lineno, directive, col));
+          directives.add(new LeftTrim(lineno, directive, col));
         }
         break;
 
         //rtrim <column>
         case "rtrim": {
           String col = getNextToken(tokenizer, command, "col", lineno);
-          steps.add(new RightTrim(lineno, directive, col));
+          directives.add(new RightTrim(lineno, directive, col));
         }
         break;
 
@@ -1043,7 +1045,7 @@ public class TextDirectives implements Directives {
       }
       lineno++;
     }
-    return steps;
+    return directives;
   }
 
   // If there are more tokens, then it proceeds with parsing, else throws exception.
@@ -1077,15 +1079,6 @@ public class TextDirectives implements Directives {
       }
     }
     return value;
-  }
-
-  /**
-   * @return List of steps to executed in the order they are specified.
-   * @throws ParseException throw in case of parsing exception of specification.
-   */
-  @Override
-  public List<Step> getSteps() throws DirectiveParseException {
-    return parse();
   }
 
   /**

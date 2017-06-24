@@ -18,9 +18,9 @@ package co.cask.wrangler;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.ParallelPipelineExecutor;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.executor.ParallelRecipePipelineExecutor;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import co.cask.wrangler.steps.transformation.functions.DDL;
 import com.google.common.io.Resources;
 import org.junit.Assert;
@@ -55,7 +55,7 @@ public class InputFileTest {
       "filter-row-if-true Fare < 8.06"
     };
 
-    TextDirectives txtDirectives = new TextDirectives(directives);
+    SimpleTextDirectives txtDirectives = new SimpleTextDirectives(directives);
 
     String lines = new String(data);
     List<Record> records1 = new ArrayList<>();
@@ -66,7 +66,7 @@ public class InputFileTest {
     }
 
     long start = System.currentTimeMillis();
-    PipelineExecutor executor1 = new PipelineExecutor();
+    RecipePipelineExecutor executor1 = new RecipePipelineExecutor();
     executor1.configure(txtDirectives, null);
     List<Record> results1 = executor1.execute(records1);
     long end = System.currentTimeMillis();
@@ -75,7 +75,7 @@ public class InputFileTest {
     );
 
     start = System.currentTimeMillis();
-    ParallelPipelineExecutor executor2 = new ParallelPipelineExecutor();
+    ParallelRecipePipelineExecutor executor2 = new ParallelRecipePipelineExecutor();
     executor2.configure(txtDirectives, null);
     List<Record> results2 = executor2.execute(records2);
     end = System.currentTimeMillis();

@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.nlp;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import co.cask.wrangler.steps.nlp.internal.PorterStemmer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,7 +57,7 @@ public class StemmingTest {
       new Record("words", Arrays.asList("how", "are", "you", "doing", "do", "you", "have", "apples"))
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals(Arrays.asList("how", "ar", "you", "do", "do", "you", "have", "appl"),
@@ -74,7 +74,7 @@ public class StemmingTest {
       new Record("words", "how are you doing ? do you have apples")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals(Arrays.asList("how", "ar", "you", "do", "do", "you", "have", "appl"),

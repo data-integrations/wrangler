@@ -17,10 +17,10 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.cdap.api.common.Bytes;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,8 +43,8 @@ public class SetTypeTest {
       "set-type str_col int", "set-type int_col i64", "set-type double_col integer",
       "set-type short_col INT", "set-type long_col I64", "set-type float_col Integer", "set-type bytes_col INTEGER"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
@@ -68,8 +68,8 @@ public class SetTypeTest {
       "set-type str_col short", "set-type int_col i32", "set-type double_col Short",
       "set-type short_col I32", "set-type long_col SHORT", "set-type float_col short", "set-type bytes_col short"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
@@ -93,8 +93,8 @@ public class SetTypeTest {
       "set-type str_col long", "set-type int_col Long", "set-type double_col LONG",
       "set-type short_col long", "set-type long_col Long", "set-type float_col LONG", "set-type bytes_col long"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
@@ -118,8 +118,8 @@ public class SetTypeTest {
       "set-type str_col float", "set-type int_col Float", "set-type double_col FLOAT",
       "set-type short_col float", "set-type long_col Float", "set-type float_col FLOAT", "set-type bytes_col float"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
@@ -143,8 +143,8 @@ public class SetTypeTest {
       "set-type str_col double", "set-type int_col Double", "set-type double_col DOUBLE",
       "set-type short_col double", "set-type long_col Double", "set-type float_col DOUBLE", "set-type bytes_col double"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
@@ -175,8 +175,8 @@ public class SetTypeTest {
       "set-type str_1 bool", "set-type str_2 bool", "set-type str_3 bool", "set-type int_col Bool", "set-type double_col BOOL",
       "set-type short_col boolean", "set-type long_col Boolean", "set-type float_col BOOLEAN", "set-type bytes_col bool"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> trueResults = pipeline.execute(trueRecords);
     List<Record> falseResults = pipeline.execute(falseRecords);
@@ -206,8 +206,8 @@ public class SetTypeTest {
       "set-type str_col string", "set-type int_col String", "set-type double_col STRING",
       "set-type short_col string", "set-type long_col String", "set-type float_col STRING", "set-type bytes_col string"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);
@@ -245,8 +245,8 @@ public class SetTypeTest {
       "set-type str_col bytes", "set-type int_col Bytes", "set-type double_col BYTES",
       "set-type short_col bytes", "set-type long_col Bytes", "set-type float_col BYTES", "set-type bytes_col bytes"
     };
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<Record> results = pipeline.execute(records);
     Record record = results.get(0);

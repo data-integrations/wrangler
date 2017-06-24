@@ -41,10 +41,10 @@ import java.util.Set;
  *  }
  */
 public final class DirectiveConfig {
-  // Directives to be excluded or made non-accessible.
+  // ParseDirectives to be excluded or made non-accessible.
   private Set<String> exclusions;
 
-  // Directives to be aliased.
+  // ParseDirectives to be aliased.
   private Map<String, String> aliases;
 
   public Set<String> getExclusions() {

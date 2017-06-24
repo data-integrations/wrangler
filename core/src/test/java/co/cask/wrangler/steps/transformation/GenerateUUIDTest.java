@@ -17,8 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.steps.transformation.GenerateUUID;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,7 +41,7 @@ public class GenerateUUIDTest {
       new Record("value", "Should be fine")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 3);
     Assert.assertEquals(2, records.get(0).length());

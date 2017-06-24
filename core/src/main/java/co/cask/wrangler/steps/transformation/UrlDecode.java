@@ -30,7 +30,7 @@ import java.net.URLDecoder;
 import java.util.List;
 
 /**
- * A Step to decodes a column with url encoding.
+ * A Directive to decodes a column with url encoding.
  */
 @Plugin(type = "udd")
 @Name("url-decode")

@@ -30,7 +30,7 @@ import nl.basjes.parse.httpdlog.ApacheHttpdLoglineParser;
 import java.util.List;
 
 /**
- * A Step for parsing Apache HTTPD and NGINX log files.
+ * A Directive for parsing Apache HTTPD and NGINX log files.
  */
 @Plugin(type = "udd")
 @Name("parse-as-log")

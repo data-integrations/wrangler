@@ -19,12 +19,12 @@ package co.cask.wrangler.executor;
 import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Step;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Iterables;
@@ -41,11 +41,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Wrangle Pipeline executes stepRegistry in the order they are specified.
+ * Wrangle RecipePipeline executes stepRegistry in the order they are specified.
  */
 @Beta
-public final class ParallelPipelineExecutor implements Pipeline<Record, StructuredRecord, ErrorRecord> {
-  private Directives directives;
+public final class ParallelRecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
+  private ParseDirectives directives;
   private PipelineContext context;
   private RecordConvertor convertor = new RecordConvertor();
   private int threads = Runtime.getRuntime().availableProcessors();
@@ -58,7 +58,7 @@ public final class ParallelPipelineExecutor implements Pipeline<Record, Structur
    * @param directives Wrangle directives.
    */
   @Override
-  public void configure(Directives directives, PipelineContext context) {
+  public void configure(ParseDirectives directives, PipelineContext context) {
     this.directives = directives;
     this.context = context;
   }
@@ -99,7 +99,7 @@ public final class ParallelPipelineExecutor implements Pipeline<Record, Structur
       int startIndex = 0;
       Map<Integer, Future<List<Record>>> futures = new TreeMap<>();
 
-      final List<Step> steps = directives.getSteps();
+      final List<Directive> directives = this.directives.parse();
       while (startIndex < records.size()) {
         int endIndex = startIndex + chunkSize;
         if (endIndex > records.size()) {
@@ -112,7 +112,7 @@ public final class ParallelPipelineExecutor implements Pipeline<Record, Structur
           private List<Record> records = newRecords;
           @Override
           public List<Record> call() throws Exception {
-            for (Step step : steps) {
+            for (Directive step : directives) {
               // If there are no records, then we short-circuit the processing and break out.
               if (records.size() < 1) {
                 break;

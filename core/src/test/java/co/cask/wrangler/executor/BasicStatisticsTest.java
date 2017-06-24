@@ -17,9 +17,9 @@
 package co.cask.wrangler.executor;
 
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.statistics.Statistics;
 import org.junit.Assert;
@@ -50,8 +50,8 @@ public class BasicStatisticsTest {
       new Record("body", "45.56,670-897-3839,222,32826,9/14/2016,\"\",http://mars.io")
     );
 
-    Pipeline pipeline = new PipelineExecutor();
-    pipeline.configure(new TextDirectives(directives), null);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
+    pipeline.configure(new SimpleTextDirectives(directives), null);
     records = pipeline.execute(records);
 
     Statistics meta = new BasicStatistics();
@@ -109,8 +109,8 @@ public class BasicStatisticsTest {
       }
     }
 
-    Pipeline pipeline = new PipelineExecutor();
-    pipeline.configure(new TextDirectives(directives), null);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
+    pipeline.configure(new SimpleTextDirectives(directives), null);
     records = pipeline.execute(records);
 
     Statistics meta = new BasicStatistics();

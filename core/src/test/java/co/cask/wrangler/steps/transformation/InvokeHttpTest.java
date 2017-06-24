@@ -21,11 +21,11 @@ import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;
 import co.cask.http.NettyHttpService;
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
@@ -110,8 +110,8 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -135,8 +135,8 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 
@@ -158,8 +158,8 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    Directives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
 

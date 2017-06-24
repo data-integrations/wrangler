@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class ChangeColCaseNamesTest {
       new Record("Url", "1").add("Fname", "2").add("LName", "3").add("ADDRESS", "4")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("url", records.get(0).getColumn(0));

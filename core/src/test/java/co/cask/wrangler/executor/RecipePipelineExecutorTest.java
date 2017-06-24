@@ -18,10 +18,10 @@ package co.cask.wrangler.executor;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.Directives;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,9 +29,9 @@ import org.junit.Test;
 import java.util.Arrays;
 
 /**
- * Tests {@link PipelineExecutor}.
+ * Tests {@link RecipePipelineExecutor}.
  */
-public class PipelineExecutorTest {
+public class RecipePipelineExecutorTest {
 
   @Test
   public void testPipeline() throws Exception {
@@ -54,11 +54,11 @@ public class PipelineExecutorTest {
       Schema.Field.of("g", Schema.of(Schema.Type.STRING))
     );
 
-    Directives directives =
-      new TextDirectives(StringUtils.join("\n", commands));
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives directives =
+      new SimpleTextDirectives(StringUtils.join("\n", commands));
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
-    Record row = new Record(Directives.STARTING_COLUMN, new String("a,b,c,d,e,f,1.0"));
+    Record row = new Record(ParseDirectives.STARTING_COLUMN, new String("a,b,c,d,e,f,1.0"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
@@ -89,11 +89,11 @@ public class PipelineExecutorTest {
       Schema.Field.of("weight", Schema.of(Schema.Type.FLOAT))
     );
 
-    Directives directives =
-      new TextDirectives(StringUtils.join("\n", commands));
-    Pipeline pipeline = new PipelineExecutor();
+    ParseDirectives directives =
+      new SimpleTextDirectives(StringUtils.join("\n", commands));
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
-    Record row = new Record(Directives.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
+    Record row = new Record(ParseDirectives.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}

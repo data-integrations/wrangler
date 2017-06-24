@@ -19,7 +19,7 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,7 +52,7 @@ public class ExpressionTest {
       "150 Mars Ave,Palo Alto,CA,USA,32826"));
 
     // Iterate through steps.
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertEquals("Joltie, Root", records.get(0).getValue("name"));
     Assert.assertEquals(1886.3999999999999, records.get(0).getValue("salary"));
@@ -74,7 +74,7 @@ public class ExpressionTest {
       "32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"));
 
     // Run through the wrangling steps.
-    PipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, records);
   }
 
   @Test
@@ -97,7 +97,7 @@ public class ExpressionTest {
             .add("delws", "Jolti  Root")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("Jolti", records.get(0).getValue("chop"));
@@ -119,7 +119,7 @@ public class ExpressionTest {
         .add("last", "joltie".getBytes(StandardCharsets.UTF_8))
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("root", records.get(0).getValue("first"));
@@ -150,7 +150,7 @@ public class ExpressionTest {
       new Record("date", "2017-02-02T21:06:44Z").add("seconds", 86401).add("other", "2017-02-03T21:06:44Z")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
   }
@@ -168,7 +168,7 @@ public class ExpressionTest {
         .add("last", "joltie")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 0);
   }
 
@@ -190,7 +190,7 @@ public class ExpressionTest {
             .add("lat", 43.46089378008257)
             .add("fences", geoJsonFence)
     );
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertFalse((Boolean) records.get(0).getValue("result"));
   }
 
@@ -211,7 +211,7 @@ public class ExpressionTest {
             .add("lat", 43.46089378008257)
             .add("fences", geoJsonFence)
     );
-    PipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, records);
   }
 }
 

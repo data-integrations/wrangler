@@ -22,7 +22,7 @@ import java.util.List;
  * Defines the recipe object that is part of the {@link Request}
  */
 public class Recipe {
-  // Directives specified by the user
+  // ParseDirectives specified by the user
   private List<String> directives;
 
   // Ability to save the directives

@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,7 +41,7 @@ public class ColumnsReplaceTest {
         .add("no_data", 5).add("whatever", 6)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("a", records.get(0).getColumn(0));
@@ -63,6 +63,6 @@ public class ColumnsReplaceTest {
         .add("no_data", 5).add("whatever", 6)
     );
 
-    PipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, records);
   }
 }

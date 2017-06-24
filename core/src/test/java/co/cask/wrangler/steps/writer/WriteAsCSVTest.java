@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.writer;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class WriteAsCSVTest {
         .add("i1", new Integer(1))
         .add("i2", new Double(1.8f))
     );
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     StringMetric metric = StringMetrics.euclideanDistance();
@@ -67,7 +67,7 @@ public class WriteAsCSVTest {
     List<Record> records = Arrays.asList(
       new Record("int", 1).add("string", "this is, string")
     );
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("1,\"this is, string\"", records.get(0).getValue(2));

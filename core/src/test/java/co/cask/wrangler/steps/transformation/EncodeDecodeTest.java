@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,7 +40,7 @@ public class EncodeDecodeTest {
       new Record("col1", "Base32 Encoding").add("col2", "Testing Base 64 Encoding").add("col3", "Hex Encoding")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("IJQXGZJTGIQEK3TDN5SGS3TH", records.get(0).getValue(3));
@@ -53,7 +53,7 @@ public class EncodeDecodeTest {
       "decode hex col3_encode_hex"
     };
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("Base32 Encoding", records.get(0).getValue(6));
     Assert.assertEquals("Testing Base 64 Encoding", records.get(0).getValue(7));

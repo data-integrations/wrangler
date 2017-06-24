@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import static co.cask.wrangler.parser.TextDirectives.getNextToken;
+import static co.cask.wrangler.parser.SimpleTextDirectives.getNextToken;
 
 /**
  * Class description here.

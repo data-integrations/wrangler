@@ -18,8 +18,7 @@ package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.steps.transformation.SplitEmail;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,7 +45,7 @@ public class SplitEmailTest {
       new Record("email", "Joltie,Root<joltie.root@hotmail.com") // bad email
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 7);
 
@@ -82,7 +81,7 @@ public class SplitEmailTest {
       new Record("email", new Integer(1)) // Injecting bad type.
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
   }
 
   @Test
@@ -98,7 +97,7 @@ public class SplitEmailTest {
       new Record("email", null)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 4);
 
     Assert.assertNotNull(records.get(0).getValue("email_account"));

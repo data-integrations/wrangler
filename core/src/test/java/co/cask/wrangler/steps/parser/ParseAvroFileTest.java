@@ -18,8 +18,8 @@ package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import com.google.common.base.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -46,8 +46,8 @@ public class ParseAvroFileTest {
     List<Record> records = new ArrayList<>();
     records.add(new Record("body", data));
 
-    PipelineExecutor executor = new PipelineExecutor();
-    executor.configure(new TextDirectives(directives), null);
+    RecipePipelineExecutor executor = new RecipePipelineExecutor();
+    executor.configure(new SimpleTextDirectives(directives), null);
     List<Record> results = executor.execute(records);
     Assert.assertEquals(1689, results.size());
     Assert.assertEquals(15, results.get(0).length());
@@ -63,8 +63,8 @@ public class ParseAvroFileTest {
 
     List<Record> records = new ArrayList<>();
     records.add(new Record("body", new String("failure").getBytes(Charsets.UTF_8)));
-    PipelineExecutor executor = new PipelineExecutor();
-    executor.configure(new TextDirectives(directives), null);
+    RecipePipelineExecutor executor = new RecipePipelineExecutor();
+    executor.configure(new SimpleTextDirectives(directives), null);
     executor.execute(records);
   }
 

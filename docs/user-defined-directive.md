@@ -6,7 +6,7 @@ data processing directives within the data preparation tool.
 # Syntax
 
 ```
-    load-udd my-directives 1.0.0 parse-xyz,test1,test2
+    #pragma load-directives   
 ```
 
 # Container

@@ -26,12 +26,12 @@ import co.cask.wrangler.api.Usage;
  * A Wrangler step for apply an expression to store the result in a column.
  *
  * The expressions are specified in JEXL format (http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
- * Step is response for executing only one expression for each {@link Record} record that is
+ * Directive is response for executing only one expression for each {@link Record} record that is
  * being passed. The result of expression either adds a new column or replaces the value of
  * the existing column.
  *
  * <p>
- *   Step step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
+ *   Directive step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
 @Plugin(type = "udd")

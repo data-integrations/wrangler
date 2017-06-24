@@ -18,11 +18,11 @@ package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -76,7 +76,7 @@ public class RecordConvertorTest {
         "}")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Record record = createUberRecord(records);
 
     Json2Schema json2Schema = new Json2Schema();
@@ -142,8 +142,8 @@ public class RecordConvertorTest {
 
     );
 
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<StructuredRecord> results = pipeline.execute(records, schema);
     Assert.assertEquals(1, results.size());

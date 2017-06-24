@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.StepException;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,7 +49,7 @@ public class RecordConditionFilterTest {
       new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     // Filters all the records that don't match the pattern .*@joltie.io
     Assert.assertTrue(records.size() == 1);
@@ -70,7 +70,7 @@ public class RecordConditionFilterTest {
         "38,1,0,PC 17599,71.2833,C85,C")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
   }
@@ -90,7 +90,7 @@ public class RecordConditionFilterTest {
         "38,1,0,PC 17599,71.2833,C85,C")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
   }

@@ -16,11 +16,11 @@
 
 package co.cask.wrangler.registry;
 
-import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.Directive;
 
 /**
  * Class description here.
  */
 public interface DirectiveLoader {
-  Class<? extends Step> load(String artifact, String version, String name);
+  Class<? extends Directive> load(String artifact, String version, String name);
 }

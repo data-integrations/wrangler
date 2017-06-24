@@ -42,7 +42,7 @@ public class MessageHashTest {
           .add("message2", "This is a very secret message and a digest will be created.")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertEquals(1, records.size());
   }
 
@@ -56,7 +56,7 @@ public class MessageHashTest {
       new Record("message1", "This is a very secret message and a digest will be created.")
     );
 
-    PipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, records);
   }
 
 }

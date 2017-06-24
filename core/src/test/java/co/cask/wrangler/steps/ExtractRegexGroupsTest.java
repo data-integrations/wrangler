@@ -308,7 +308,7 @@ public class ExtractRegexGroupsTest {
       records.add(new Record(column, regexInputOutput.input));
     }
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertEquals(regexInputOutputs.length, records.size());
     for (int i = 0; i < regexInputOutputs.length; i++) {

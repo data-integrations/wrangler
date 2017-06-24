@@ -345,9 +345,9 @@ src	application/x-wais-source
 ssi	text/x-server-parsed-html
 ssm	application/streamingmedia
 sst	application/vndms-pkicertstore
-step	application/step
+directive	application/directive
 stl	application/sla
-stp	application/step
+stp	application/directive
 sv4cpio	application/x-sv4cpio
 sv4crc	application/x-sv4crc
 svf	image/vnddwg

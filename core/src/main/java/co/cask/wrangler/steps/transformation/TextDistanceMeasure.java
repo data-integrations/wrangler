@@ -30,7 +30,7 @@ import org.simmetrics.metrics.StringDistances;
 import java.util.List;
 
 /**
- * Step for implementing the directive for measuring the difference between two sequence of characters.
+ * Directive for implementing the directive for measuring the difference between two sequence of characters.
  */
 @Plugin(type = "udd")
 @Name("text-distance")

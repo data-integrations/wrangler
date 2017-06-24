@@ -17,7 +17,7 @@
 package co.cask.wrangler.api.pipeline;
 
 /**
- * A Pipeline specific exception used for communicating issues with execution of pipeline.
+ * A RecipePipeline specific exception used for communicating issues with execution of pipeline.
  */
 public class PipelineException extends Exception {
   public PipelineException(Exception e) {

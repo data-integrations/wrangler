@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 /**
- * A Step to parse date.
+ * A Directive to parse date.
  */
 @Plugin(type = "udd")
 @Name("parse-as-date")

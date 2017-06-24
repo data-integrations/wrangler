@@ -19,13 +19,13 @@ package co.cask.wrangler.executor;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Directives;
+import co.cask.wrangler.api.ParseDirectives;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
@@ -35,26 +35,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrangle Pipeline executes stepRegistry in the order they are specified.
+ * Wrangle RecipePipeline executes stepRegistry in the order they are specified.
  */
-public final class PipelineExecutor implements Pipeline<Record, StructuredRecord, ErrorRecord> {
-  private Directives directives;
+public final class RecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
+  private ParseDirectives parser;
   private PipelineContext context;
-  private List<Step> steps;
+  private List<Directive> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private RecordConvertor convertor = new RecordConvertor();
 
   /**
    * Configures the pipeline based on the directives.
    *
-   * @param directives Wrangle directives.
+   * @param parser Wrangle directives parser.
    */
   @Override
-  public void configure(Directives directives, PipelineContext context) throws PipelineException {
+  public void configure(ParseDirectives parser, PipelineContext context) throws PipelineException {
     this.directives = directives;
     this.context = context;
     try {
-      this.steps = directives.getSteps();
+      this.directives = parser.parse();
     } catch (DirectiveParseException e) {
       throw new PipelineException(
         String.format(e.getMessage())
@@ -96,8 +96,8 @@ public final class PipelineExecutor implements Pipeline<Record, StructuredRecord
       while (i < records.size()) {
         List<Record> newRecords = records.subList(i, i+1);
         try {
-          for (Step step : steps) {
-            newRecords = step.execute(newRecords, context);
+          for (Directive directive : directives) {
+            newRecords = directive.execute(newRecords, context);
             if (newRecords.size() < 1) {
               break;
             }

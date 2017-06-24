@@ -30,7 +30,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A Step to parse date into Date object.
+ * A Directive to parse date into Date object.
  */
 @Plugin(type = "udd")
 @Name("parse-as-simple-date")

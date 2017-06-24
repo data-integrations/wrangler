@@ -19,6 +19,7 @@ package co.cask.wrangler;
 import co.cask.cdap.etl.api.Lookup;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.TransformContext;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.TransientStore;
 
@@ -27,7 +28,7 @@ import java.util.Map;
 
 /**
  * This class {@link WranglerPipelineContext} is a runtime context that is provided for each
- * {@link co.cask.wrangler.api.Step} execution.
+ * {@link Directive} execution.
  */
 class WranglerPipelineContext implements PipelineContext {
   private final Environment environment;

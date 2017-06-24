@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.writer;
 
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -57,7 +57,7 @@ public class WriteAsJsonMapTest {
       .add("i1", 1)
       .add("i2", (double) 1.8f)
     );
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
     Type stringStringMapType = new TypeToken<Map<String, String>>() { }.getType();

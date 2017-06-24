@@ -619,7 +619,7 @@
 04112 Methicillin resistant Staphylococcus aureus in conditions classified elsewhere and of unspecified site
 04119 Staphylococcus infection in conditions classified elsewhere and of unspecified site, other staphylococcus
 0412  Pneumococcus infection in conditions classified elsewhere and of unspecified site
-0413  Friedländer's bacillus infection in conditions classified elsewhere and of unspecified site
+0413  Friedlï¿½nder's bacillus infection in conditions classified elsewhere and of unspecified site
 04141 Shiga toxin-producing Escherichia coli [E. coli] (STEC) O157
 04142 Other specified Shiga toxin-producing Escherichia coli [E. coli] (STEC)
 04143 Shiga toxin-producing Escherichia coli [E. coli] (STEC), unspecified
@@ -657,7 +657,7 @@
 04619 Other and unspecified Creutzfeldt-Jakob disease
 0462  Subacute sclerosing panencephalitis
 0463  Progressive multifocal leukoencephalopathy
-04671 Gerstmann-Sträussler-Scheinker syndrome
+04671 Gerstmann-Strï¿½ussler-Scheinker syndrome
 04672 Fatal familial insomnia
 04679 Other and unspecified prion disease of central nervous system
 0468  Other specified slow virus infection of central nervous system
@@ -4506,11 +4506,11 @@
 38583 Retained foreign body of middle ear
 38589 Other disorders of middle ear and mastoid
 3859  Unspecified disorder of middle ear and mastoid
-38600 Ménière's disease, unspecified
-38601 Active Ménière's disease, cochleovestibular
-38602 Active Ménière's disease, cochlear
-38603 Active Ménière's disease, vestibular
-38604 Inactive Ménière's disease
+38600 Mï¿½niï¿½re's disease, unspecified
+38601 Active Mï¿½niï¿½re's disease, cochleovestibular
+38602 Active Mï¿½niï¿½re's disease, cochlear
+38603 Active Mï¿½niï¿½re's disease, vestibular
+38604 Inactive Mï¿½niï¿½re's disease
 38610 Peripheral vertigo, unspecified
 38611 Benign paroxysmal positional vertigo
 38612 Vestibular neuronitis
@@ -12225,7 +12225,7 @@ E0084 Activities involving martial arts
 E0089 Other specified sports and athletics activity
 E0090 Activity involving exercise machines primarily for cardiorespiratory conditioning
 E0091 Activity involving calisthenics
-E0092 Activity involving aerobic and step exercise
+E0092 Activity involving aerobic and directive exercise
 E0093 Activity involving circuit training
 E0094 Activity involving obstacle course
 E0095 Activity involving grass drills
@@ -12856,7 +12856,7 @@ E8798 Other specified procedures as the cause of abnormal reaction of patient, o
 E8799 Unspecified procedure as the cause of abnormal reaction of patient, or of later complication, without mention of misadventure at time of procedure
 E8800 Accidental fall on or from escalator
 E8801 Accidental fall on or from sidewalk curb
-E8809 Accidental fall on or from other stairs or steps
+E8809 Accidental fall on or from other stairs or directives
 E8810 Accidental fall from ladder
 E8811 Accidental fall from scaffolding
 E882  Accidental fall from or out of building or other structure

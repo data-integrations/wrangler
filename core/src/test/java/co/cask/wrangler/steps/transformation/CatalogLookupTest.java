@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,7 +46,7 @@ public class CatalogLookupTest {
       new Record("name", "Root")     // Code Column doesn't exit.
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 6);
     Assert.assertEquals("code_icd_10_2016_description", records.get(0).getColumn(1));
     Assert.assertEquals("code_icd_10_2017_description", records.get(0).getColumn(2));

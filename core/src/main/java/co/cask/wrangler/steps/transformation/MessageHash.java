@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A Step to generate a message digest or hash of a column value. .
+ * A Directive to generate a message digest or hash of a column value. .
  */
 @Plugin(type = "udd")
 @Name("hash")

@@ -25,16 +25,16 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Pipeline executes steps in the order they are specified.
+ * RecipePipeline executes {@link Directive} in the order they are specified.
  */
 @PublicEvolving
-public interface Pipeline<I, O, E> extends Serializable {
+public interface RecipePipeline<I, O, E> extends Serializable {
   /**
    * Configures the wrangle pipeline using the directives.
    *
    * @param directives Wrangle directives.
    */
-  void configure(Directives directives, PipelineContext context) throws PipelineException;
+  void configure(ParseDirectives directives, PipelineContext context) throws PipelineException;
 
   /**
    * Executes the pipeline on the input.

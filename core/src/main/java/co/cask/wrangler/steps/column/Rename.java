@@ -30,7 +30,7 @@ import co.cask.wrangler.i18n.MessagesFactory;
 import java.util.List;
 
 /**
- * Wrangle Step for renaming a column.
+ * Wrangle Directive for renaming a column.
  */
 @Plugin(type = "udd")
 @Name("rename")

@@ -212,7 +212,7 @@ public class XMLTest {
         "</catalog>")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 12);
     Assert.assertEquals("Gambardella, Matthew", records.get(0).getValue("author"));
@@ -233,7 +233,7 @@ public class XMLTest {
       new Record("body", testXmlComplex)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 2);
     Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body_catalog_product_description"));
@@ -251,7 +251,7 @@ public class XMLTest {
       new Record("body", testXmlComplex)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals(3, records.get(0).length());

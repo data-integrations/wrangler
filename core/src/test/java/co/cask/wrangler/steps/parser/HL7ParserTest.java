@@ -17,8 +17,7 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
-import co.cask.wrangler.steps.parser.HL7Parser;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -182,7 +181,7 @@ public class HL7ParserTest {
     );
 
     // The best we can do is check if the message is parsed successfully.
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertNotNull(records);
   }
 

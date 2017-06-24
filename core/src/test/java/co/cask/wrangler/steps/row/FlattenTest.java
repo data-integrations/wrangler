@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 import org.junit.Assert;
@@ -69,7 +69,7 @@ public class FlattenTest {
       new Record("col2", b2).add("col3", 11)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 10);
   }
@@ -117,7 +117,7 @@ public class FlattenTest {
       new Record("col2", b2).add("col3", 11)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 12);
   }
@@ -174,7 +174,7 @@ public class FlattenTest {
       new Record("col2", b2).add("col3", b4)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 12);
   }
@@ -232,7 +232,7 @@ public class FlattenTest {
       new Record("col2", b2).add("col3", b4)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 14);
   }
@@ -256,7 +256,7 @@ public class FlattenTest {
       new Record("FirstName", fname).add("LastName", lname)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 4);
   }
 }

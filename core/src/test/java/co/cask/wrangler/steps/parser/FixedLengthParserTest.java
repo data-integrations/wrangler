@@ -17,12 +17,12 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.Step;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,8 +45,8 @@ public class FixedLengthParserTest {
       new Record("body", "AABBCDEEEFFF")
     );
 
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
     List<Record> errors = pipeline.errors();
@@ -64,8 +64,8 @@ public class FixedLengthParserTest {
       new Record("body", "AABBCDEEEFFFF")
     );
 
-    TextDirectives d = new TextDirectives(directives);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
     List<Record> errors = pipeline.errors();
@@ -85,9 +85,9 @@ public class FixedLengthParserTest {
       "parse-as-fixed-length body A-B,C-D,12",
     };
 
-    TextDirectives specification = new TextDirectives(directives);
-    List<Step> steps = new ArrayList<>();
-    steps.addAll(specification.getSteps());
+    SimpleTextDirectives specification = new SimpleTextDirectives(directives);
+    List<Directive> steps = new ArrayList<>();
+    steps.addAll(specification.parse());
   }
 
   @Test
@@ -100,7 +100,7 @@ public class FixedLengthParserTest {
       new Record("body", "AA__BB__C___D___EEE_FFFF")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals("AA", records.get(0).getValue("body_1"));
@@ -133,8 +133,8 @@ public class FixedLengthParserTest {
     };
 
     // Configure and parse directives.
-    TextDirectives directives = new TextDirectives(d);
-    Pipeline pipeline = new PipelineExecutor();
+    SimpleTextDirectives directives = new SimpleTextDirectives(d);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
 
     // Execute the pipeline.

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrangle Step that merges two columns and creates a third column.
+ * Wrangle Directive that merges two columns and creates a third column.
  */
 @Plugin(type = "udd")
 @Name("merge")

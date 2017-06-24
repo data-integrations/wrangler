@@ -38,7 +38,7 @@ import java.util.Random;
  *
  *   <blockquote>
  *     <pre>
- *       Step step = new MaskNumber(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
+ *       Directive step = new MaskNumber(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
  *     </pre>
  *   </blockquote>
  * </p>

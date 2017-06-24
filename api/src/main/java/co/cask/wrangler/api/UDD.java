@@ -21,7 +21,7 @@ import co.cask.wrangler.api.parser.UsageDefinition;
 /**
  * UDD is a user defined directive. DIE - Define, Initialize & Execute - Pattern
  */
-public interface UDD extends Step<Record, Record> {
+public interface UDD extends Directive<Record, Record> {
   String Type = "udd";
 
   UsageDefinition define();

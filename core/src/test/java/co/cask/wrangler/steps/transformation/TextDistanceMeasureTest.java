@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,7 +62,7 @@ public class TextDistanceMeasureTest {
       "text-distance levenshtein string1 string2 levenshtein",
     };
 
-    List<Record> results = PipelineTest.execute(directives, records);
+    List<Record> results = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(results.size() == 4);
     Assert.assertEquals(15, results.get(0).length());
     Assert.assertEquals(15, results.get(1).length());

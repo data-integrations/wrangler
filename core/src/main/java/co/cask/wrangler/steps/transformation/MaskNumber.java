@@ -44,8 +44,8 @@ import java.util.List;
  *
  *  <blockquote>
  *    <pre>
- *        Step step = new MaskNumber(lineno, line, "ssn", "XXX-XX-####", 1);
- *        Step step = new MaskNumber(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
+ *        Directive step = new MaskNumber(lineno, line, "ssn", "XXX-XX-####", 1);
+ *        Directive step = new MaskNumber(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
  *    </pre>
  *  </blockquote>
  * </p>

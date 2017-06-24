@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import co.cask.wrangler.steps.parser.ParseDate;
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public class ParseDateTest {
     record3.add("date1", "03/03/1998 2:02");
     record3.add("date2", "03/03/1998 2:02");
 
-    List<Record> records = PipelineTest.execute(directives, Arrays.asList(record1, record2, record3));
+    List<Record> records = RecipePipelineTest.execute(directives, Arrays.asList(record1, record2, record3));
 
     Assert.assertEquals(TimeUnit.HOURS.toMillis(1), records.get(0).getValue("difference"));
     Assert.assertEquals(2678460000L, records.get(1).getValue("difference"));
@@ -73,7 +73,7 @@ public class ParseDateTest {
       new Record("date", "2017-02-02T21:06:44Z")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
 
@@ -93,7 +93,7 @@ public class ParseDateTest {
       new Record("date", "1485800109")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 6);
   }

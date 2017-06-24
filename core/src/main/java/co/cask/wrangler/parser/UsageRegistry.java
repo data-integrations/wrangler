@@ -19,7 +19,7 @@ package co.cask.wrangler.parser;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.Step;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.Usage;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -89,7 +89,7 @@ public final class UsageRegistry implements Serializable {
    *
    * @param classz representing an {@link AbstractStep} implementation.
    */
-  public void addUsage(Class<? extends Step> classz) {
+  public void addUsage(Class<? extends Directive> classz) {
     Name name = classz.getAnnotation(Name.class);
     Description description = classz.getAnnotation(Description.class);
     Usage usage = classz.getAnnotation(Usage.class);
@@ -147,8 +147,8 @@ public final class UsageRegistry implements Serializable {
     // Iterate through registry of steps to collect the
     // directive and usage.
     Reflections reflections = new Reflections("co.cask.wrangler");
-    Set<Class<? extends Step>> steps = reflections.getSubTypesOf(Step.class);
-    for (Class<? extends Step> step : steps) {
+    Set<Class<? extends Directive>> steps = reflections.getSubTypesOf(Directive.class);
+    for (Class<? extends Directive> step : steps) {
       addUsage(step);
     }
 

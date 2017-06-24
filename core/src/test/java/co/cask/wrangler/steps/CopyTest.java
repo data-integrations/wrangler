@@ -43,7 +43,7 @@ public class CopyTest {
       new Record("body", "G,H,3")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 3);
     Assert.assertEquals(5, records.get(0).length()); // should have copied to another column
@@ -68,7 +68,7 @@ public class CopyTest {
       new Record("body", "G,H,3")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
   }
 
   @Test
@@ -84,7 +84,7 @@ public class CopyTest {
       new Record("body", "G,H,3")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 3);
     Assert.assertEquals(4, records.get(0).length()); // should have copied to another column

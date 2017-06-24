@@ -41,7 +41,7 @@ public class FillNullOrEmptyTest {
       new Record("value", null)
     );
 
-    PipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 3);
   }
 
@@ -57,7 +57,7 @@ public class FillNullOrEmptyTest {
       new Record("value", null)
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 3);
     Assert.assertEquals("has value", records.get(0).getValue("value"));
@@ -77,7 +77,7 @@ public class FillNullOrEmptyTest {
       new Record("value", "Should be fine")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 3);
     Assert.assertEquals("N/A", records.get(0).getValue("value"));
@@ -97,7 +97,7 @@ public class FillNullOrEmptyTest {
       new Record("value", "Should be fine")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 3);
     Assert.assertEquals("N/A", records.get(0).getValue("value"));

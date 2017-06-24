@@ -16,11 +16,11 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.Pipeline;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.parser.TextDirectives;
+import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.SimpleTextDirectives;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -41,8 +41,8 @@ public class FailTest {
       new Record("count", 1)
     );
 
-    Pipeline pipeline = new PipelineExecutor();
-    pipeline.configure(new TextDirectives(directives), null);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
+    pipeline.configure(new SimpleTextDirectives(directives), null);
     pipeline.execute(records);
   }
 
@@ -56,8 +56,8 @@ public class FailTest {
       new Record("count", 1)
     );
 
-    Pipeline pipeline = new PipelineExecutor();
-    pipeline.configure(new TextDirectives(directives), null);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
+    pipeline.configure(new SimpleTextDirectives(directives), null);
     pipeline.execute(records);
   }
 

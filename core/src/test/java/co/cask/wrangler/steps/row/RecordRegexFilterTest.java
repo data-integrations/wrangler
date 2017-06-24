@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.steps.PipelineTest;
+import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,7 +41,7 @@ public class RecordRegexFilterTest {
       new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 1);
   }
 
@@ -59,7 +59,7 @@ public class RecordRegexFilterTest {
       new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
     Assert.assertTrue(records.size() == 2);
   }
 }

@@ -40,7 +40,7 @@ public class KeepTest {
       new Record("body", "1,2,3,4,5,6,7,8,9,10")
     );
 
-    records = PipelineTest.execute(directives, records);
+    records = RecipePipelineTest.execute(directives, records);
 
     Assert.assertTrue(records.size() == 1);
     Assert.assertEquals(2, records.get(0).length());

@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Step to extract XML element as an JSON array using XPath.
+ * A Directive to extract XML element as an JSON array using XPath.
  *
  * <p>
  *   TODO: This code has to be moved out into a plugin due to VTDNav once we have

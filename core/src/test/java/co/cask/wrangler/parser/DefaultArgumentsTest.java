@@ -42,8 +42,8 @@ public class DefaultArgumentsTest {
     Iterator<TokenGroup> iterator = unit.iterator();
     Arguments arguments = new DefaultArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
-    Assert.assertEquals(true, arguments.contains("fname"));
-    Assert.assertEquals(true, arguments.contains("lname"));
+    Assert.assertEquals(true, arguments.contains("col1"));
+    Assert.assertEquals(true, arguments.contains("col2"));
   }
 
   @Test

@@ -30,7 +30,7 @@ import java.net.URL;
 import java.util.List;
 
 /**
- * A Step to split a URL into it's components.
+ * A Directive to split a URL into it's components.
  */
 @Plugin(type = "udd")
 @Name("split-url")

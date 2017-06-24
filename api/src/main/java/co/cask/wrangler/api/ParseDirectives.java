@@ -17,23 +17,31 @@
 package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
-import co.cask.wrangler.api.pipeline.PipelineContext;
 
 import java.io.Serializable;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
- * A interface defining the wrangle step in the wrangling pipeline.
+ * A specification for how {@link RecipePipeline} will process.
  */
 @PublicEvolving
-public interface Step<I, O> extends Serializable {
-  /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
-   *
-   * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
-   */
-  List<O> execute(List<I> records, PipelineContext context) throws StepException, ErrorRecordException;
-}
+public interface ParseDirectives extends Serializable {
+  // Column definition for the start of processing.
+  String STARTING_COLUMN = "__col";
 
+  /**
+   * Generates a configured set of {@link Directive} to be executed.
+   *
+   * @return List of {@link Directive}.
+   */
+  List<Directive> parse() throws DirectiveParseException;
+
+  /**
+   * Initialises the directive with a {@link DirectiveContext}.
+   *
+   * @param context, instance of context object or null.
+   */
+  @Nullable
+  void initialize(DirectiveContext context);
+}
