@@ -9,8 +9,8 @@ parse-as-csv <column> <delimiter> [<header=true|false>]
 ```
 
 The `<column>` specifies the column in the record that should be parsed as CSV using
-the specified `<delimiter>`. If there are empty lines in the input that need to be
-skipped, set `<header>` to `true`; by default, it is set to `false`.
+the specified `<delimiter>`. If the values in the first record of the input need to be set as column
+headers, set `<header>` to `true`; by default, it is set to `false`.
 
 
 ## Examples
@@ -72,10 +72,10 @@ would result in this record:
 ```
 {
   "body": "07/29/2013,Consumer Loan,Vehicle Loan,Managing the loan or lease,Wells Fargo & Company"
-  "body_1": "07/29/2013",
-  "body_2": "Consumer Loan",
-  "body_3": "Vehicle Loan",
-  "body_4": "Managing the loan or lease",
-  "body_5": "Wells Fargo & Company"
+  "Date": "07/29/2013",
+  "Type": "Consumer Loan",
+  "Item": "Vehicle Loan",
+  "Action": "Managing the loan or lease",
+  "Company": "Wells Fargo & Company"
 }
 ```
