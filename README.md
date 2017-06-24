@@ -24,9 +24,10 @@ More information on configuring can be found [here](docs/exclusion-and-aliasing.
 
 ## Demo Videos and Recipes
 
-More Videos [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl4n7zU4TWmIr)
+Videos and Screencasts are best way to learn, so we have compiled simple, short screencasts that shows some of the features of Data Prep. Additional videos can be found [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl4n7zU4TWmIr)
 
-* Videos
+### Videos
+
   * [SCREENCAST] [Creating Lookup Dataset and Joining](https://www.youtube.com/watch?v=Nc1b0rsELHQ)
   * [SCREENCAST] [Restricted Directives](https://www.youtube.com/watch?v=71EcMQU714U)
   * [SCREENCAST] [Parse Excel files in CDAP](https://www.youtube.com/watch?v=su5L1noGlEk)
@@ -45,8 +46,8 @@ More Videos [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl
   * [SCREENCAST] [Publishing to Kafka](https://www.youtube.com/watch?v=xdc8pvvlI48)
   * [SCREENCAST] [Fixed length to JSON](https://www.youtube.com/watch?v=3AXu4m1swuM)
 
+### Recipes
 
-* Recipes
   * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
   * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)
   * [Parsing HL7 CCDA XML Files](demos/parsing-hl7-ccda-xml-files.md)
