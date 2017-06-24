@@ -19,10 +19,10 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -40,7 +40,7 @@ import java.util.List;
 @Name("set columns")
 @Usage("set columns <columm>[,<column>*]")
 @Description("Sets the name of columns, in the order they are specified.")
-public class Columns extends AbstractStep {
+public class Columns extends AbstractDirective {
   // Name of the columns represented in a {@link Record}
   private List<String> columns = new ArrayList<>();
 
@@ -78,7 +78,7 @@ public class Columns extends AbstractStep {
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = 0;

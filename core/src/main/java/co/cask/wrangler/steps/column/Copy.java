@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
@@ -36,7 +36,7 @@ import java.util.List;
 @Name("copy")
 @Usage("copy <source> <destination> [<force=true|false>]")
 @Description("Copies values from a source column into a destination column.")
-public class Copy extends AbstractStep {
+public class Copy extends AbstractDirective {
   private static final Messages MSG = MessagesFactory.getMessages();
   private String source;
   private String destination;
@@ -60,7 +60,7 @@ public class Copy extends AbstractStep {
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int sidx = record.find(source);
       if (sidx == -1) {

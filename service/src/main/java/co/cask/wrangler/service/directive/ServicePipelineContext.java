@@ -21,7 +21,7 @@ import co.cask.cdap.etl.api.Lookup;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.common.DatasetContextLookupProvider;
 import co.cask.cdap.etl.common.NoopMetrics;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.TransientStore;
 
 import java.net.URL;
@@ -31,8 +31,8 @@ import java.util.Map;
 /**
  * Implementation of {@PipelineContext}, for use in Service.
  */
-class ServicePipelineContext implements PipelineContext {
-  private PipelineContext.Environment environment;
+class ServicePipelineContext implements RecipeContext {
+  private RecipeContext.Environment environment;
   private final HttpServiceContext serviceContext;
   private final DatasetContextLookupProvider lookupProvider;
   private final TransientStore store;

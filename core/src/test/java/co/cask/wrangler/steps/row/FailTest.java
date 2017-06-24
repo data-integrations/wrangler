@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextDirectives;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class FailTest {
 
-  @Test(expected = PipelineException.class)
+  @Test(expected = RecipeException.class)
   public void testFailEvaluationToTrue() throws Exception {
     String[] directives = new String[] {
       "fail count > 0",

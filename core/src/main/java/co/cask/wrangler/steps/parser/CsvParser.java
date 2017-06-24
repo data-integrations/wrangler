@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.parser;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.AbstractDirective;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -43,7 +43,7 @@ import java.util.Set;
 @Name("parse-as-csv")
 @Usage("parse-as-csv <column> <delimiter> [<header=true|false>]")
 @Description("Parses a column as CSV (comma-separated values).")
-public class CsvParser extends AbstractStep {
+public class CsvParser extends AbstractDirective {
   // Column within the input row that needs to be parsed as CSV
   private String col;
 
@@ -78,7 +78,7 @@ public class CsvParser extends AbstractStep {
    * @return New Record containing multiple columns based on CSV parsing.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException {
 
     for (Record record : records) {

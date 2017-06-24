@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
@@ -36,7 +36,7 @@ import java.util.List;
 @Name("rename")
 @Usage("rename <old> <new>")
 @Description("Renames an existing column.")
-public class Rename extends AbstractStep {
+public class Rename extends AbstractDirective {
   private static final Messages MSG = MessagesFactory.getMessages();
 
   // Columns of the columns that needs to be renamed.
@@ -61,7 +61,7 @@ public class Rename extends AbstractStep {
    * @throws DirectiveExecutionException Thrown when there is no 'source' column in the record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(oldcol);
       int idxnew = record.find(newcol);

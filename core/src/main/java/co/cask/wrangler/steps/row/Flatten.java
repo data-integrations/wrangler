@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.parser.JsParser;
@@ -38,7 +38,7 @@ import java.util.List;
 @Name("flatten")
 @Usage("flatten <column>[,<column>*]")
 @Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
-public class Flatten extends AbstractStep {
+public class Flatten extends AbstractDirective {
   // Column within the input row that needs to be parsed as Json
   private String[] columns;
   private int[] locations;
@@ -59,7 +59,7 @@ public class Flatten extends AbstractStep {
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
 
     // Iterate through the records.

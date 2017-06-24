@@ -17,7 +17,7 @@ import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 
 import java.util.List;
 
@@ -59,7 +59,7 @@ public final class SantizeString implements UDD {
   }
 
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
     return null;
   }

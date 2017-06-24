@@ -29,7 +29,7 @@ import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 
 import java.util.List;
 
@@ -63,11 +63,11 @@ public final class Rename implements UDD {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException, ErrorRecordException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException, ErrorRecordException {
     for (Record record : records) {
       int idx = record.find(source.value());
       int idxnew = record.find(target.value());

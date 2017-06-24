@@ -201,4 +201,15 @@ public class RewriterTest {
     Assert.assertEquals(expected, actual);
   }
 
+  @Test
+  public void usage() throws Exception {
+    UsageRegistry registry = new UsageRegistry();
+    List<UsageRegistry.UsageEntry> entries = registry.getAll();
+    for (UsageRegistry.UsageEntry entry : entries) {
+      String out = String.format("|  %-30s  |  %-80s  |  %-160s  |", entry.getDirective().toUpperCase(),
+                    entry.getUsage(), entry.getDescription());
+      System.out.println(out);
+    }
+  }
+
 }

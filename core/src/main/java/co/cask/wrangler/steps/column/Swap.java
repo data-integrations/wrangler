@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
@@ -36,7 +36,7 @@ import java.util.List;
 @Name("swap")
 @Usage("swap <column1> <column2>")
 @Description("Swaps the column names of two columns.")
-public class Swap extends AbstractStep {
+public class Swap extends AbstractDirective {
   private static final Messages MSG = MessagesFactory.getMessages();
   private final String column1;
   private final String column2;
@@ -51,11 +51,11 @@ public class Swap extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int sidx = record.find(column1);
       int didx = record.find(column2);

@@ -26,9 +26,10 @@ import java.util.StringTokenizer;
 import static co.cask.wrangler.parser.SimpleTextDirectives.getNextToken;
 
 /**
- * Class description here.
+ * This class helps rewrites the recipe of directives from version 1.0 to version 2.0.
  */
 public final class Rewriter {
+
   public static List<String> rewrite(List<String> directives) throws DirectiveParseException {
     List<String> transformed = new ArrayList<>();
     int lineno = 1;

@@ -22,11 +22,11 @@ import co.cask.wrangler.api.annotations.PublicEvolving;
  * An abstract class for {@link Directive} with added debugging capabilities.
  */
 @PublicEvolving
-public abstract class AbstractStep implements Directive<Record, Record> {
+public abstract class AbstractDirective implements Directive<Record, Record> {
   private int lineno;
   private String detail;
 
-  protected AbstractStep(int lineno, String detail) {
+  protected AbstractDirective(int lineno, String detail) {
     this.lineno = lineno;
     this.detail = detail;
   }

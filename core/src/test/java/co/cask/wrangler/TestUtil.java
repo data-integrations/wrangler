@@ -19,7 +19,7 @@ package co.cask.wrangler;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextDirectives;
@@ -39,7 +39,7 @@ public final class TestUtil {
    * @return transformed directives.
    */
   public static List<Record> run(String[] directives, List<Record> records)
-    throws PipelineException, DirectiveParseException {
+    throws RecipeException, DirectiveParseException {
     RecipeParser d = new SimpleTextDirectives(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);

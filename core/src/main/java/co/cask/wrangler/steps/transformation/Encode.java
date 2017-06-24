@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.codec.binary.Base32;
@@ -39,7 +39,7 @@ import java.util.Locale;
 @Name("encode")
 @Usage("encode <base32|base64|hex> <column>")
 @Description("Encodes column values using one of base32, base64, or hex.")
-public class Encode extends AbstractStep {
+public class Encode extends AbstractDirective {
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();
   private final Hex hexEncode = new Hex();
@@ -75,11 +75,11 @@ public class Encode extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx == -1) {

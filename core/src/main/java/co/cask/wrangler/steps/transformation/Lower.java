@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -34,7 +34,7 @@ import java.util.List;
 @Name("lowercase")
 @Usage("lowercase <column>")
 @Description("Changes the column values to lowercase.")
-public class Lower extends AbstractStep {
+public class Lower extends AbstractDirective {
   // Columns of the column to be lower cased.
   private String col;
 
@@ -52,7 +52,7 @@ public class Lower extends AbstractStep {
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {

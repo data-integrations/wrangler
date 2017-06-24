@@ -20,9 +20,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 @Name("extract-regex-groups")
 @Usage("extract-regex-groups <column> <regex-with-groups>")
 @Description("Extracts data from a regex group into its own column.")
-public class ExtractRegexGroups extends AbstractStep {
+public class ExtractRegexGroups extends AbstractDirective {
   private final String column;
   private final String regex;
   private final Pattern pattern;
@@ -54,11 +54,11 @@ public class ExtractRegexGroups extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {

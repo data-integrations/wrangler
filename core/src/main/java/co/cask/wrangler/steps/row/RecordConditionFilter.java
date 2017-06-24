@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlHelper;
@@ -47,7 +47,7 @@ import java.util.List;
 @Name("filter-row-if-true")
 @Usage("filter-row-if-true <condition>")
 @Description("[DEPRECATED] Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead.")
-public class RecordConditionFilter extends AbstractStep {
+public class RecordConditionFilter extends AbstractDirective {
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
@@ -71,7 +71,7 @@ public class RecordConditionFilter extends AbstractStep {
    * @throws DirectiveExecutionException if there are any issues with processing the condition
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       // Move the fields from the record into the context.

@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.AbstractDirective;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -50,7 +50,7 @@ import java.util.Map;
 @Name("set column")
 @Usage("set column <column> <jexl-expression>")
 @Description("Sets a column by evaluating a JEXL expression.")
-public class Expression extends AbstractStep {
+public class Expression extends AbstractDirective {
   // Column to which the result of experience is applied to.
   private final String column;
 
@@ -85,7 +85,7 @@ public class Expression extends AbstractStep {
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     // This is done only the first time.
     if (properties.size() == 0 && context != null) {
       properties.putAll(context.getProperties());

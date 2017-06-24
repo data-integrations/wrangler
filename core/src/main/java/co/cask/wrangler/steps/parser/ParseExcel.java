@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.parser;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.functions.Types;
@@ -47,7 +47,7 @@ import java.util.List;
 @Name("parse-as-excel")
 @Usage("parse-as-excel <column> [<sheet number | sheet name>]")
 @Description("Parses column as Excel file.")
-public class ParseExcel extends AbstractStep {
+public class ParseExcel extends AbstractDirective {
   private static final Logger LOG = LoggerFactory.getLogger(ParseExcel.class);
   private final String column;
   private final String sheet;
@@ -66,11 +66,11 @@ public class ParseExcel extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records  Input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, final RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     ByteArrayInputStream input = null;
     try {

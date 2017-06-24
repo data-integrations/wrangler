@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextDirectives;
@@ -55,7 +55,7 @@ public class ParseAvroFileTest {
     Assert.assertEquals(1495194308245L, results.get(1688).getValue("timestamp"));
   }
 
-  @Test(expected = PipelineException.class)
+  @Test(expected = RecipeException.class)
   public void testIncorrectType() throws Exception {
     String[] directives = new String[] {
       "parse-as-avro-file body",

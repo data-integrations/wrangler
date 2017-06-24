@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.parser;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonArray;
@@ -43,7 +43,7 @@ import java.util.List;
 @Name("json-path")
 @Usage("json-path <source> <destination> <json-path-expression>")
 @Description("Parses JSON elements using a DSL (a JSON path expression).")
-public class JsPath extends AbstractStep {
+public class JsPath extends AbstractDirective {
   private String src;
   private String dest;
   private String path;
@@ -72,7 +72,7 @@ public class JsPath extends AbstractStep {
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       Object value = record.getValue(src);

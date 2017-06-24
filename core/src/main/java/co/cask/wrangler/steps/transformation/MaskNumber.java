@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.utils.TypeConvertor;
@@ -54,7 +54,7 @@ import java.util.List;
 @Name("mask-number")
 @Usage("mask-number <column> <pattern>")
 @Description("Masks a column value using the specified masking pattern.")
-public class MaskNumber extends AbstractStep {
+public class MaskNumber extends AbstractDirective {
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;
   public static final int MASK_SHUFFLE = 2;
@@ -80,7 +80,7 @@ public class MaskNumber extends AbstractStep {
    * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {

@@ -19,10 +19,10 @@ package co.cask.wrangler.steps.writer;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.csv.CSVFormat;
@@ -43,7 +43,7 @@ import java.util.List;
 @Name("write-as-csv")
 @Usage("write-as-csv <column>")
 @Description("Writes the records files as well-formatted CSV")
-public class WriteAsCSV extends AbstractStep {
+public class WriteAsCSV extends AbstractDirective {
   private final String column;
   private final CSVPrinter writer;
 
@@ -61,11 +61,11 @@ public class WriteAsCSV extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records  Input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       try {
         final ByteArrayOutputStream bOut = new ByteArrayOutputStream();

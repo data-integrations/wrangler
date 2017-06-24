@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import org.json.JSONObject;
@@ -35,7 +35,7 @@ import java.util.List;
 @Name("fill-null-or-empty")
 @Usage("fill-null-or-empty <column> <fixed-value>")
 @Description("Fills a value of a column with a fixed value if it is either null or empty.")
-public class FillNullOrEmpty extends AbstractStep {
+public class FillNullOrEmpty extends AbstractDirective {
   private String column;
   private String value;
 
@@ -54,7 +54,7 @@ public class FillNullOrEmpty extends AbstractStep {
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx == -1) {

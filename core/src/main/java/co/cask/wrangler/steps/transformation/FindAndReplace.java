@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.AbstractDirective;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -37,7 +37,7 @@ import java.util.List;
 @Name("find-and-replace")
 @Usage("find-and-replace <column> <sed-expression>")
 @Description("Finds and replaces text in column values using a sed-format expression.")
-public class FindAndReplace extends AbstractStep {
+public class FindAndReplace extends AbstractDirective {
   private final String pattern;
   private final String column;
 
@@ -56,7 +56,7 @@ public class FindAndReplace extends AbstractStep {
    * @throws DirectiveExecutionException throw when there is issue executing the grep.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(column);

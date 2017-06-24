@@ -22,8 +22,8 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.pipeline.PipelineContext;
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
@@ -46,7 +46,7 @@ import java.util.concurrent.Future;
 @Beta
 public final class ParallelRecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
   private RecipeParser directives;
-  private PipelineContext context;
+  private RecipeContext context;
   private RecordConvertor convertor = new RecordConvertor();
   private int threads = Runtime.getRuntime().availableProcessors();
   private ExecutorService executor = Executors.newFixedThreadPool(threads,
@@ -58,7 +58,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
    * @param directives Wrangle directives.
    */
   @Override
-  public void configure(RecipeParser directives, PipelineContext context) {
+  public void configure(RecipeParser directives, RecipeContext context) {
     this.directives = directives;
     this.context = context;
   }
@@ -72,13 +72,13 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
    */
   @Override
   public List<StructuredRecord> execute(List<Record> records, Schema schema)
-    throws PipelineException {
+    throws RecipeException {
     records = execute(records);
     try {
       List<StructuredRecord> output = convertor.toStructureRecord(records, schema);
       return output;
     } catch (RecordConvertorException e) {
-      throw new PipelineException("Problem converting into output record. Reason : " + e.getMessage());
+      throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage());
     }
   }
 
@@ -89,7 +89,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
    * @return Parsed output list of record of type I
    */
   @Override
-  public List<Record> execute(List<Record> records) throws PipelineException {
+  public List<Record> execute(List<Record> records) throws RecipeException {
     try {
       int chunkSize = records.size() / threads;
       if (chunkSize == 0) {
@@ -133,7 +133,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
       }
       return Lists.newArrayList(Iterables.concat(result));
     } catch (Exception e) {
-      throw new PipelineException(e);
+      throw new RecipeException(e);
     }
   }
 
@@ -143,7 +143,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
    * @return records that have errored out.
    */
   @Override
-  public List<ErrorRecord> errors() throws PipelineException {
+  public List<ErrorRecord> errors() throws RecipeException {
     return new ArrayList<>();
   }
 

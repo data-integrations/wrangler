@@ -32,7 +32,7 @@ import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.dataset.workspace.DataType;
@@ -1024,9 +1024,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     // Extract records from the workspace.
     List<Record> records = fromWorkspace(id);
     // Execute the pipeline.
-    PipelineContext context = new ServicePipelineContext(PipelineContext.Environment.SERVICE,
-                                                         getContext(),
-                                                         store);
+    RecipeContext context = new ServicePipelineContext(RecipeContext.Environment.SERVICE,
+                                                       getContext(),
+                                                       store);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     RecipeParser directives = new SimpleTextDirectives(user.getRecipe().getDirectives());
     directives.initialize(new ConfigDirectiveContext(table.getConfigString()));

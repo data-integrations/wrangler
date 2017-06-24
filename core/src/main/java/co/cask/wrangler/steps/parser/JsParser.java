@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.parser;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.dq.TypeInference;
@@ -49,7 +49,7 @@ import java.util.Map;
 @Name("parse-as-json")
 @Usage("parse-as-json <column> [<depth>]")
 @Description("Parses a column as JSON.")
-public class JsParser extends AbstractStep {
+public class JsParser extends AbstractDirective {
   // Column within the input row that needs to be parsed as Json
   private String col;
 
@@ -74,7 +74,7 @@ public class JsParser extends AbstractStep {
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     // Iterate through all the records.
     for (Record record : records) {

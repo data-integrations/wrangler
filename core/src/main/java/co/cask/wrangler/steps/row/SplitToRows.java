@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -35,7 +35,7 @@ import java.util.List;
 @Name("split-to-rows")
 @Usage("split-to-rows <column> <separator>")
 @Description("Splits a column into multiple rows, copies the rest of the columns.")
-public class SplitToRows extends AbstractStep {
+public class SplitToRows extends AbstractDirective {
   // Column on which to apply mask.
   private final String column;
 
@@ -57,7 +57,7 @@ public class SplitToRows extends AbstractStep {
    * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
 
     for (Record record : records) {

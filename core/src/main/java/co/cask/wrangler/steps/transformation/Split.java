@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import com.google.common.base.Strings;
@@ -36,7 +36,7 @@ import java.util.List;
 @Name("split")
 @Usage("split <source> <delimiter> <new-column-1> <new-column-2>")
 @Description("[DEPRECATED] Use 'split-to-columns' or 'split-to-rows'.")
-public class Split extends AbstractStep {
+public class Split extends AbstractDirective {
   // Name of the column to be split
   private String col;
 
@@ -63,7 +63,7 @@ public class Split extends AbstractStep {
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(col);

@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.date;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -36,7 +36,7 @@ import java.util.List;
 @Usage("diff-date <column1> <column2> <destination>")
 @Description("Calculates the difference in milliseconds between two Date objects." +
   "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
-public class DiffDate extends AbstractStep {
+public class DiffDate extends AbstractDirective {
   private final String column1;
   private final String column2;
   private final String destCol;
@@ -58,7 +58,7 @@ public class DiffDate extends AbstractStep {
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       Date date1 = getDate(record, column1);
       Date date2 = getDate(record, column2);

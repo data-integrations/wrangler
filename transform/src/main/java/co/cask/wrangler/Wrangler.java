@@ -32,7 +32,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.executor.ErrorRecord;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
@@ -195,7 +195,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
     RecipeParser directives = new SimpleTextDirectives(config.directives);
-    PipelineContext ctx = new WranglerPipelineContext(PipelineContext.Environment.TRANSFORM, context, store);
+    RecipeContext ctx = new WranglerPipelineContext(RecipeContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
     try {

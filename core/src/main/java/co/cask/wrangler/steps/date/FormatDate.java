@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.date;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -38,7 +38,7 @@ import java.util.List;
 @Name("format-date")
 @Usage("format-date <column> <format>")
 @Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")
-public class FormatDate extends AbstractStep {
+public class FormatDate extends AbstractDirective {
   private final String format;
   private final String column;
   private final DateFormat destinationFmt;
@@ -59,7 +59,7 @@ public class FormatDate extends AbstractStep {
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       Record dt = new Record(record);

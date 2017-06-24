@@ -19,10 +19,10 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -58,7 +58,7 @@ import java.util.Map;
 @Name("invoke-http")
 @Usage("invoke-http <url> <column>[,<column>*] <header>[,<header>*]")
 @Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
-public class InvokeHttp extends AbstractStep {
+public class InvokeHttp extends AbstractDirective {
   private final String url;
   private final List<String> columns;
   private final Gson gson = new Gson();
@@ -105,7 +105,7 @@ public class InvokeHttp extends AbstractStep {
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
     for (Record record : records) {
       Map<String, Object> parameters = new HashMap<>();

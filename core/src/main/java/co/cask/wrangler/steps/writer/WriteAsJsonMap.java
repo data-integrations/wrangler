@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.writer;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -38,7 +38,7 @@ import java.util.Map;
 @Name("write-as-json-map")
 @Usage("write-as-json-map <column>")
 @Description("Writes all record columns as JSON map.")
-public class WriteAsJsonMap extends AbstractStep {
+public class WriteAsJsonMap extends AbstractDirective {
   private final String column;
   private final Gson gson;
 
@@ -52,11 +52,11 @@ public class WriteAsJsonMap extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records  Input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       Map<String, Object> toJson = new HashMap<>();
       for (Pair<String, Object> entry : record.getFields()) {

@@ -12,10 +12,9 @@ cleansing, transformation, and filtering using a set of data manipulation instru
 (directives). These instructions are either generated using an interative visual tool or
 are manually created.
 
-Data Prep defines few concepts that might be useful if you are just getting started with it.
- Learn about them [here](docs/concepts.md)
-
-The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
+  * Data Prep defines few concepts that might be useful if you are just getting started with it. Learn about them [here](docs/concepts.md)
+  * The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
+  * [Data Prep Cheatsheet](docs/cheatsheet.md)
 
 ## Demo Videos and Recipes
 

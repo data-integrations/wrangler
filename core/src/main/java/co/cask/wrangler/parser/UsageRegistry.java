@@ -18,7 +18,7 @@ package co.cask.wrangler.parser;
 
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.Usage;
 import org.reflections.Reflections;
@@ -85,9 +85,9 @@ public final class UsageRegistry implements Serializable {
   }
 
   /**
-   * Adds a class that extends from {@link AbstractStep} to usage registry.
+   * Adds a class that extends from {@link AbstractDirective} to usage registry.
    *
-   * @param classz representing an {@link AbstractStep} implementation.
+   * @param classz representing an {@link AbstractDirective} implementation.
    */
   public void addUsage(Class<? extends Directive> classz) {
     Name name = classz.getAnnotation(Name.class);

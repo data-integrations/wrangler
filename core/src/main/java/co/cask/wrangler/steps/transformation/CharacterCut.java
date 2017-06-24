@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
@@ -35,7 +35,7 @@ import java.util.List;
 @Name("cut-character")
 @Usage("cut-character <source> <destination> <type> <range|indexes>")
 @Description("UNIX-like 'cut' directive for splitting text.")
-public class CharacterCut extends AbstractStep {
+public class CharacterCut extends AbstractDirective {
   private String source;
   private String destination;
   private String range;
@@ -56,7 +56,7 @@ public class CharacterCut extends AbstractStep {
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(source);
       if (idx != -1) {

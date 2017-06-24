@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextDirectives;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class RenameTest {
 
-  @Test (expected = PipelineException.class)
+  @Test (expected = RecipeException.class)
   public void testRenameOfExistingColumns() throws Exception {
     String[] directives = new String[] {
       "rename C2 C4",

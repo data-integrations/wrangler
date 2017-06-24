@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
@@ -39,7 +39,7 @@ import java.util.List;
 @Name("columns-replace")
 @Usage("columns-replace <sed-expression>")
 @Description("Modifies column names in bulk using a sed-format expression.")
-public class ColumnsReplace extends AbstractStep {
+public class ColumnsReplace extends AbstractDirective {
   private final String sed;
 
   public ColumnsReplace(int lineno, String detail, String sed) {
@@ -51,11 +51,11 @@ public class ColumnsReplace extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       for (int i = 0; i < record.length(); ++i) {
         String name = record.getColumn(i);

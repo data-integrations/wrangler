@@ -19,10 +19,10 @@ package co.cask.wrangler.steps.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -36,7 +36,7 @@ import java.util.List;
 @Name("set-record-delim")
 @Usage("set-record-delim <column> <delimiter> [<limit>]")
 @Description("Sets the record delimiter.")
-public class SetRecordDelimiter extends AbstractStep {
+public class SetRecordDelimiter extends AbstractDirective {
   private final String column;
   private final String delimiter;
   private final int limit;
@@ -52,11 +52,11 @@ public class SetRecordDelimiter extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {

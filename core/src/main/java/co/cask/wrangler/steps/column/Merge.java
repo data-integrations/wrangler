@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.AbstractDirective;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -35,7 +35,7 @@ import java.util.List;
 @Name("merge")
 @Usage("merge <column1> <column2> <new-column> <separator>")
 @Description("Merges values from two columns using a separator into a new column.")
-public class Merge extends AbstractStep {
+public class Merge extends AbstractDirective {
   // Source column1
   private String col1;
 
@@ -65,7 +65,7 @@ public class Merge extends AbstractStep {
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx1 = record.find(col1);

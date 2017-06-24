@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.registry;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import org.reflections.Reflections;
@@ -51,8 +51,8 @@ public final class InternalRegistry {
     }
 
     reflections = new Reflections("co.cask.wrangler");
-    Set<Class<? extends AbstractStep>> system = reflections.getSubTypesOf(AbstractStep.class);
-    for(Class<? extends AbstractStep> directive : system) {
+    Set<Class<? extends AbstractDirective>> system = reflections.getSubTypesOf(AbstractDirective.class);
+    for(Class<? extends AbstractDirective> directive : system) {
       DirectiveClass classz = new DirectiveClass(DirectiveClass.SYSTEM, directive);
       internal.put(classz.name(), classz);
     }

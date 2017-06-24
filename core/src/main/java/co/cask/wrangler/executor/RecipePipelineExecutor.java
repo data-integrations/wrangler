@@ -22,8 +22,8 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.pipeline.PipelineContext;
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
   private RecipeParser parser;
-  private PipelineContext context;
+  private RecipeContext context;
   private List<Directive> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private RecordConvertor convertor = new RecordConvertor();
@@ -50,13 +50,13 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
    * @param parser Wrangle directives parser.
    */
   @Override
-  public void configure(RecipeParser parser, PipelineContext context) throws PipelineException {
+  public void configure(RecipeParser parser, RecipeContext context) throws RecipeException {
     this.directives = directives;
     this.context = context;
     try {
       this.directives = parser.parse();
     } catch (DirectiveParseException e) {
-      throw new PipelineException(
+      throw new RecipeException(
         String.format(e.getMessage())
       );
     }
@@ -71,13 +71,13 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
    */
   @Override
   public List<StructuredRecord> execute(List<Record> records, Schema schema)
-    throws PipelineException {
+    throws RecipeException {
     records = execute(records);
     try {
       List<StructuredRecord> output = convertor.toStructureRecord(records, schema);
       return output;
     } catch (RecordConvertorException e) {
-      throw new PipelineException("Problem converting into output record. Reason : " + e.getMessage());
+      throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage());
     }
   }
 
@@ -88,7 +88,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
    * @return Parsed output list of record of type I
    */
   @Override
-  public List<Record> execute(List<Record> records) throws PipelineException {
+  public List<Record> execute(List<Record> records) throws RecipeException {
     List<Record> results = Lists.newArrayList();
     try {
       int i = 0;
@@ -111,7 +111,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
         i++;
       }
     } catch (DirectiveExecutionException e) {
-      throw new PipelineException(e);
+      throw new RecipeException(e);
     }
     return results;
   }
@@ -122,7 +122,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
    * @return records that have errored out.
    */
   @Override
-  public List<ErrorRecord> errors() throws PipelineException {
+  public List<ErrorRecord> errors() throws RecipeException {
     return collector.get();
   }
 

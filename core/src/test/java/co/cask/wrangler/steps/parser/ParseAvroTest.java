@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.codec.JsonAvroDecoder;
 import org.apache.avro.Schema;
@@ -172,7 +172,7 @@ public class ParseAvroTest {
       new Record("body", "{\"name\":\"Root\",\"favorite_number\":{\"int\":8},\"favorite_color\":null}")
     );
 
-    AbstractStep step = new ParseAvro(1, "", "body", "first", "json", -1);
+    AbstractDirective step = new ParseAvro(1, "", "body", "first", "json", -1);
     List<Record> results = step.execute(records, null);
     Assert.assertTrue(false);
   }

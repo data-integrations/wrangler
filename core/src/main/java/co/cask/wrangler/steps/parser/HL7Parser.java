@@ -36,8 +36,8 @@ import ca.uhn.hl7v2.validation.impl.NoValidation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.AbstractDirective;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -54,7 +54,7 @@ import java.util.List;
 @Usage("parse-as-hl7 <column> [<depth>]")
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
   "JSON object enumeration terminates.")
-public class HL7Parser extends AbstractStep {
+public class HL7Parser extends AbstractDirective {
   private final String column;
   private final HapiContext context;
   private final Parser parser;
@@ -75,11 +75,11 @@ public class HL7Parser extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       try {
         int idx = record.find(column);

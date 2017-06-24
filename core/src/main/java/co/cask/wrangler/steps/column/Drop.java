@@ -19,8 +19,8 @@ package co.cask.wrangler.steps.column;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.AbstractDirective;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -39,7 +39,7 @@ import java.util.List;
 @Name("drop")
 @Usage("drop <column>[,<column>*]")
 @Description("Drop one or more columns.")
-public class Drop extends AbstractStep {
+public class Drop extends AbstractDirective {
   // Columns to be dropped.
   private List<String> columns;
 
@@ -61,7 +61,7 @@ public class Drop extends AbstractStep {
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException {
     for (Record record : records) {
       for (String column : columns) {

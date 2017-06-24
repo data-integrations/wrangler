@@ -17,7 +17,6 @@
 package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
-import co.cask.wrangler.api.pipeline.PipelineContext;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,10 +30,10 @@ public interface Directive<I, O> extends Serializable {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
-  List<O> execute(List<I> records, PipelineContext context)
+  List<O> execute(List<I> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException;
 }
 

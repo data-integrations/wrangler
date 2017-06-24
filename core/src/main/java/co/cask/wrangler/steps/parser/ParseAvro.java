@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.common.Bytes;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.codec.Decoder;
 import co.cask.wrangler.codec.DecoderException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.clients.RestClientException;
@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 @Name("parse-as-avro")
 @Usage("parse-as-avro <column> <schema-id> <json|binary> [version]")
 @Description("Parses column as AVRO generic record.")
-public class ParseAvro extends AbstractStep {
+public class ParseAvro extends AbstractDirective {
   private static final Logger LOG = LoggerFactory.getLogger(ParseAvro.class);
   private final String column;
   private final String schemaId;
@@ -77,11 +77,11 @@ public class ParseAvro extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records  Input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, final RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
 
     if (!decoderInitialized) {

@@ -19,10 +19,10 @@ package co.cask.wrangler.steps.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlHelper;
@@ -48,7 +48,7 @@ import java.util.List;
 @Name("send-to-error")
 @Usage("send-to-error <condition>")
 @Description("Send records that match condition to the error collector.")
-public class SendToError extends AbstractStep {
+public class SendToError extends AbstractDirective {
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
@@ -70,7 +70,7 @@ public class SendToError extends AbstractStep {
    * @throws DirectiveExecutionException if there are any issues with processing the condition
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {

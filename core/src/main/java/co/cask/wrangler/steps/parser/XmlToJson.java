@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.parser;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonObject;
@@ -37,7 +37,7 @@ import java.util.List;
 @Name("parse-xml-to-json")
 @Usage("parse-xml-to-json <column> [<depth>]")
 @Description("Parses a XML document to JSON representation.")
-public class XmlToJson extends AbstractStep {
+public class XmlToJson extends AbstractDirective {
   // Column within the input row that needs to be parsed as Json
   private String col;
   private int depth;
@@ -57,7 +57,7 @@ public class XmlToJson extends AbstractStep {
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {

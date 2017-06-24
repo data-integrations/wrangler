@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
@@ -41,7 +41,7 @@ import java.util.List;
 @Name("fail")
 @Usage("fail <condition>")
 @Description("Fails when the condition is evaluated to true.")
-public class Fail extends AbstractStep {
+public class Fail extends AbstractDirective {
   private final String condition;
   private final JexlEngine engine;
   private final JexlScript script;
@@ -63,7 +63,7 @@ public class Fail extends AbstractStep {
    * @throws DirectiveExecutionException if there are any issues with processing the condition
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException {
     for (Record record : records) {
       // Move the fields from the record into the context.

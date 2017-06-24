@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import org.json.JSONObject;
@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 @Name("filter-row-if-matched")
 @Usage("filter-row-if-matched <column> <regex>")
 @Description("[DEPRECATED] Filters rows if the regex is matched. Use 'filter-rows-on' instead.")
-public class RecordRegexFilter extends AbstractStep {
+public class RecordRegexFilter extends AbstractDirective {
   private final String regex;
   private final String column;
   private Pattern pattern;
@@ -64,7 +64,7 @@ public class RecordRegexFilter extends AbstractStep {
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     if (pattern == null) {
       return records;

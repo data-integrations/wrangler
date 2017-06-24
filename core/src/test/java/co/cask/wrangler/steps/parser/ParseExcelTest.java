@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextDirectives;
@@ -52,7 +52,7 @@ public class ParseExcelTest {
     }
   }
 
-  @Test(expected = PipelineException.class)
+  @Test(expected = RecipeException.class)
   public void testNoSheetName() throws Exception {
     try (InputStream stream = ParseAvroFileTest.class.getClassLoader().getResourceAsStream("titanic.xlsx")) {
       byte[] data = IOUtils.toByteArray(stream);

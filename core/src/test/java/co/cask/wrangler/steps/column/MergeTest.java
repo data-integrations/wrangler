@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.TestUtil;
-import co.cask.wrangler.api.pipeline.PipelineException;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import org.junit.Assert;
 import org.junit.Test;
@@ -77,7 +77,7 @@ public class MergeTest {
     Assert.assertEquals("Root\nJoltie", records.get(0).getValue("C"));
   }
 
-  @Test (expected = PipelineException.class)
+  @Test (expected = RecipeException.class)
   public void testSingleQuoteAtStartOnly() throws Exception {
     String[] directives = new String[] {
       "merge A B C '\\u000A", // in actuality you need only one back slash.
@@ -90,7 +90,7 @@ public class MergeTest {
     TestUtil.run(directives, records);
   }
 
-  @Test (expected = PipelineException.class)
+  @Test (expected = RecipeException.class)
   public void testSingleQuoteAtEndOnly() throws Exception {
     String[] directives = new String[] {
       "merge A B C \\u000A'", // in actuality you need only one back slash.

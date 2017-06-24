@@ -19,9 +19,9 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -47,7 +47,7 @@ import java.util.Random;
 @Name("mask-shuffle")
 @Usage("mask-shuffle <column>")
 @Description("Masks a column value by shuffling characters while maintaining the same length.")
-public class MaskShuffle extends AbstractStep {
+public class MaskShuffle extends AbstractDirective {
   // Column on which to apply mask.
   private final String column;
 
@@ -65,7 +65,7 @@ public class MaskShuffle extends AbstractStep {
    * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
+  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       Record masked = new Record(record);

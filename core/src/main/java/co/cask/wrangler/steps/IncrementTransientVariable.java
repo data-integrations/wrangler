@@ -19,10 +19,10 @@ package co.cask.wrangler.steps;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlHelper;
@@ -42,7 +42,7 @@ import java.util.List;
 @Name("increment-variable")
 @Usage("increment-variable <variable> <value> <expression>")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
-public class IncrementTransientVariable extends AbstractStep {
+public class IncrementTransientVariable extends AbstractDirective {
   private final String variable;
   private final long incrementBy;
   private final String expression;
@@ -66,11 +66,11 @@ public class IncrementTransientVariable extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records List of input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
     for (Record record : records) {
       // Move the fields from the record into the context.

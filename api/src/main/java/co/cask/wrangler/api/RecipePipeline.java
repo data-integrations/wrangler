@@ -18,14 +18,12 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.annotations.PublicEvolving;
-import co.cask.wrangler.api.pipeline.PipelineContext;
-import co.cask.wrangler.api.pipeline.PipelineException;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * RecipePipeline executes {@link Directive} in the order they are specified.
+ * {@link RecipePipeline} executes array of {@link Directive} in the order they are specified.
  */
 @PublicEvolving
 public interface RecipePipeline<I, O, E> extends Serializable {
@@ -33,8 +31,9 @@ public interface RecipePipeline<I, O, E> extends Serializable {
    * Configures the wrangle pipeline using the directives.
    *
    * @param directives Wrangle directives.
+   * @param context
    */
-  void configure(RecipeParser directives, PipelineContext context) throws PipelineException;
+  void configure(RecipeParser directives, RecipeContext context) throws RecipeException;
 
   /**
    * Executes the pipeline on the input.
@@ -43,7 +42,7 @@ public interface RecipePipeline<I, O, E> extends Serializable {
    * @param schema Schema to which the output should be mapped.
    * @return Parsed output list of record of type O
    */
-  List<O> execute(List<I> input, Schema schema) throws PipelineException;
+  List<O> execute(List<I> input, Schema schema) throws RecipeException;
 
   /**
    * Executes the pipeline on the input.
@@ -51,14 +50,14 @@ public interface RecipePipeline<I, O, E> extends Serializable {
    * @param input List of input record of type I.
    * @return Parsed output list of record of type I
    */
-  List<I> execute(List<I> input) throws PipelineException;
+  List<I> execute(List<I> input) throws RecipeException;
 
   /**
    * Returns records that are errored out.
    *
    * @return records that have errored out.
    */
-  List<E> errors() throws PipelineException;
+  List<E> errors() throws RecipeException;
 }
 
 

@@ -19,10 +19,10 @@ package co.cask.wrangler.steps.parser;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.pipeline.PipelineContext;
+import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 
@@ -36,7 +36,7 @@ import java.util.List;
 @Name("parse-as-fixed-length")
 @Usage("parse-as-fixed-length <column> <width>[,<width>*] [<padding-character>]")
 @Description("Parses fixed-length records using the specified widths and padding-character.")
-public final class FixedLengthParser extends AbstractStep {
+public final class FixedLengthParser extends AbstractDirective {
   private final int[] widths;
   private final String col;
   private final String padding;
@@ -58,12 +58,12 @@ public final class FixedLengthParser extends AbstractStep {
    * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
    *
    * @param records     Input {@link Record} to be wrangled by this step.
-   * @param context {@link PipelineContext} passed to each step.
+   * @param context {@link RecipeContext} passed to each step.
    * @return Wrangled {@link Record}.
    * @throws DirectiveExecutionException In case of any issue this exception is thrown.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context)
+  public List<Record> execute(List<Record> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
