@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * A interface defining the wrangle step in the wrangling pipeline.
+ * A interface defining the wrangle Directive in the wrangling {@link RecipePipeline}.
  */
 @PublicEvolving
 public interface Directive<I, O> extends Serializable {

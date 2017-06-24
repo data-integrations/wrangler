@@ -6,7 +6,7 @@ data processing directives within the data preparation tool.
 # Syntax
 
 ```
-    #pragma load-directives   
+    #pragma load-directives
 ```
 
 # Container

@@ -27,5 +27,5 @@ public interface Arguments {
   boolean contains(String name);
   <T> T value(String name);
   TokenType type(String name);
-  public JsonElement toJsonObject();
+  JsonElement toJsonObject();
 }
