@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
@@ -67,10 +67,10 @@ public class Quantization extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(col1);
@@ -86,7 +86,7 @@ public class Quantization extends AbstractStep {
           } else if (object instanceof Float) {
             d = ((Float) object).doubleValue();
           } else {
-            throw new StepException(
+            throw new DirectiveExecutionException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, Float or Double.",
                             toString(), object != null ? object.getClass().getName() : "null", col1)
             );
@@ -99,10 +99,10 @@ public class Quantization extends AbstractStep {
             record.setValue(destIdx, value);
           }
         } catch (NumberFormatException e) {
-          throw new StepException(toString(), e);
+          throw new DirectiveExecutionException(toString(), e);
         }
       } else {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("%s : %s was not found or is not of type string. Please check the wrangle configuration.",
                         toString(), col1));
       }

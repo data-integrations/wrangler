@@ -24,9 +24,9 @@ import co.cask.cdap.api.data.DatasetInstantiationException;
 import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.etl.api.Lookup;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.Collections;
@@ -55,7 +55,7 @@ public class TableLookup extends AbstractStep {
     this.initialized = false;
   }
 
-  private void ensureInitialized(PipelineContext context) throws StepException {
+  private void ensureInitialized(PipelineContext context) throws DirectiveExecutionException {
     if (initialized) {
       return;
     }
@@ -63,12 +63,12 @@ public class TableLookup extends AbstractStep {
     try {
       lookup = context.provide(table, Collections.<String, String>emptyMap());
     } catch (DatasetInstantiationException e) {
-      throw new StepException(
+      throw new DirectiveExecutionException(
         String.format("%s : Please check that a dataset '%s' of type Table exists.",
         toString(), table));
     }
     if (!(lookup instanceof co.cask.cdap.etl.api.lookup.TableLookup)) {
-      throw new StepException(toString() + " : Lookup can be performed only on Tables.");
+      throw new DirectiveExecutionException(toString() + " : Lookup can be performed only on Tables.");
     }
     tableLookup = (co.cask.cdap.etl.api.lookup.TableLookup) lookup;
     initialized = true;
@@ -82,16 +82,16 @@ public class TableLookup extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     ensureInitialized(context);
     for (Record record : records) {
       int idx = record.find(column);
       if (idx == -1) {
-        throw new StepException(toString() + " : Column '" + column + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the record.");
       }
       Object object = record.getValue(idx);
       if (!(object instanceof String)) {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
                         object != null ? object.getClass().getName() : "null", column)
         );

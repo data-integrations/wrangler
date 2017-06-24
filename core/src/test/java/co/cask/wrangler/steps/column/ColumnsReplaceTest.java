@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.steps.column;
 
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class ColumnsReplaceTest {
     Assert.assertEquals("whatever", records.get(0).getColumn(5));
   }
 
-  @Test(expected = StepException.class)
+  @Test(expected = DirectiveExecutionException.class)
   public void testIncorrectSedExpression() throws Exception {
     String[] directives = new String[] {
       "columns-replace r/^data_//g", // Incorrect sed expression.

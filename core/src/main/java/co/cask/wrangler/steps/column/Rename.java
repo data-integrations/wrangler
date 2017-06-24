@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
 import co.cask.wrangler.i18n.MessagesFactory;
@@ -58,10 +58,10 @@ public class Rename extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} with column name modified.
-   * @throws StepException Thrown when there is no 'source' column in the record.
+   * @throws DirectiveExecutionException Thrown when there is no 'source' column in the record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(oldcol);
       int idxnew = record.find(newcol);
@@ -69,7 +69,7 @@ public class Rename extends AbstractStep {
         if (idxnew == -1) {
           record.setColumn(idx, newcol);
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format(
               "%s : %s column already exists. Apply the directive 'drop %s' before renaming %s to %s.", toString(),
               newcol, newcol, oldcol, newcol

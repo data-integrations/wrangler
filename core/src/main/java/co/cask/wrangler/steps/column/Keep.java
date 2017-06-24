@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.HashSet;
@@ -56,7 +56,7 @@ public class Keep extends AbstractStep {
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = 0;
       for (Pair<String, Object> v : record.getFields()) {

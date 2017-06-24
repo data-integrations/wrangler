@@ -41,10 +41,10 @@ import java.util.Set;
  *  }
  */
 public final class DirectiveConfig {
-  // ParseDirectives to be excluded or made non-accessible.
+  // RecipeParser to be excluded or made non-accessible.
   private Set<String> exclusions;
 
-  // ParseDirectives to be aliased.
+  // RecipeParser to be aliased.
   private Map<String, String> aliases;
 
   public Set<String> getExclusions() {

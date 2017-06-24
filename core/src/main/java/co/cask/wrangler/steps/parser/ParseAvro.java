@@ -21,11 +21,11 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.codec.Decoder;
 import co.cask.wrangler.codec.DecoderException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.clients.RestClientException;
 import co.cask.wrangler.clients.SchemaRegistryClient;
@@ -81,7 +81,7 @@ public class ParseAvro extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, final PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
 
     if (!decoderInitialized) {
@@ -123,14 +123,14 @@ public class ParseAvro extends AbstractStep {
         if (decoder != null) {
           decoderInitialized = true;
         } else {
-          throw new StepException("Unsupported decoder types. Supports only 'json' or 'binary'");
+          throw new DirectiveExecutionException("Unsupported decoder types. Supports only 'json' or 'binary'");
         }
       } catch (ExecutionException e) {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("Unable to retrieve schema from schema registry. %s", e.getCause())
         );
       } catch (RetryException e) {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("Issue in retrieving schema from schema registry. %s", e.getCause())
         );
       }
@@ -149,12 +149,12 @@ public class ParseAvro extends AbstractStep {
             byte[] bytes = body.getBytes(Charsets.UTF_8);
             results.addAll(decoder.decode(bytes));
           } else {
-            throw new StepException(toString() + " : column " + column + " should be of type string or byte array");
+            throw new DirectiveExecutionException(toString() + " : column " + column + " should be of type string or byte array");
           }
         }
       }
     } catch (DecoderException e) {
-      throw new StepException(toString() + " Issue decoding Avro record. Check schema version '" +
+      throw new DirectiveExecutionException(toString() + " Issue decoding Avro record. Check schema version '" +
                                 (version == -1 ? "latest" : version) + "'. " + e.getMessage());
     }
     return results;

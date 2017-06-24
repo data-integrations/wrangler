@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.steps;
 
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.column.Copy;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class CopyTest {
     Assert.assertEquals(records.get(2).getValue("name"), records.get(2).getValue("body_1"));
   }
 
-  @Test(expected = StepException.class)
+  @Test(expected = DirectiveExecutionException.class)
   public void testCopyToExistingColumn() throws Exception {
     String[] directives = new String[] {
       "parse-as-csv body ,",

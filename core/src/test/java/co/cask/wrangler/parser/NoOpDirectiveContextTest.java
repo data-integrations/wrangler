@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Directive;
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class NoOpDirectiveContextTest {
       "filter-row-if-true Fare < 8.06"
     };
 
-    ParseDirectives directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextDirectives(text);
     List<Directive> steps = directives.parse();
     Assert.assertEquals(6, steps.size());
   }

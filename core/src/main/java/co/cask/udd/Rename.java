@@ -20,10 +20,10 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -67,7 +67,7 @@ public final class Rename implements UDD {
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException, ErrorRecordException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException, ErrorRecordException {
     for (Record record : records) {
       int idx = record.find(source.value());
       int idxnew = record.find(target.value());
@@ -75,7 +75,7 @@ public final class Rename implements UDD {
         if (idxnew == -1) {
           record.setColumn(idx, target.value());
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format(
               "%s : %s column already exists. Apply the directive 'drop %s' before renaming %s to %s.", toString(),
               target.value(), target.value(), source.value(), source.value()

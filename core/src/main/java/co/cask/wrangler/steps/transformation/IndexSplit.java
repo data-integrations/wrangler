@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
@@ -59,10 +59,10 @@ public class IndexSplit extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(col);
@@ -78,7 +78,7 @@ public class IndexSplit extends AbstractStep {
         val = val.substring(start, end);
         record.add(dest, val);
       } else {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           col + " is not of type string in the record. Please check the wrangle configuration."
         );
       }

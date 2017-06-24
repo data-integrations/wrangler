@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.io.UnsupportedEncodingException;
@@ -52,7 +52,7 @@ public class UrlEncode extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx != -1) {
@@ -64,13 +64,13 @@ public class UrlEncode extends AbstractStep {
             // Doesn't affect the record and it doesn't stop processing.
           }
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
                           object != null ? object.getClass().getName() : "null", column)
           );
         }
       } else {
-        throw new StepException(toString() + " : Column '" + column + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the record.");
       }
     }
     return records;

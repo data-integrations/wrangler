@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.functions.Types;
 import com.google.common.io.Closeables;
@@ -70,7 +70,7 @@ public class ParseExcel extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, final PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     ByteArrayInputStream input = null;
     try {
@@ -86,7 +86,7 @@ public class ParseExcel extends AbstractStep {
             bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
           } else {
-            throw new StepException(toString() + " : column " + column + " is not byte array or byte buffer.");
+            throw new DirectiveExecutionException(toString() + " : column " + column + " is not byte array or byte buffer.");
           }
 
           if (bytes != null) {
@@ -100,7 +100,7 @@ public class ParseExcel extends AbstractStep {
             }
 
             if (excelsheet == null) {
-              throw new StepException(
+              throw new DirectiveExecutionException(
                 String.format("Failed to extract sheet '%s' from the excel. Sheet '%s' does not exist.", sheet, sheet)
               );
             }
@@ -139,7 +139,7 @@ public class ParseExcel extends AbstractStep {
         }
       }
     } catch (IOException e) {
-      throw new StepException(toString() + " Issue parsing excel file. " + e.getMessage());
+      throw new DirectiveExecutionException(toString() + " Issue parsing excel file. " + e.getMessage());
     } finally {
       if (input != null) {
         Closeables.closeQuietly(input);

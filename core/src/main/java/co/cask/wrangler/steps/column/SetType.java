@@ -23,7 +23,7 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class SetType extends AbstractStep {
   }
 
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(col);
       if (idx != -1) {
@@ -58,7 +58,7 @@ public class SetType extends AbstractStep {
         try {
           record.setValue(idx, convertType(type, object));
         } catch (Exception e) {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format(toString() + ":" + e.getMessage())
           );
         }
@@ -237,7 +237,7 @@ public class SetType extends AbstractStep {
       }
 
       default:
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("Unknown data type '%s' found in the directive. " +
                   "Accepted types are: int, short, long, double, boolean, string, bytes", toType)
         );

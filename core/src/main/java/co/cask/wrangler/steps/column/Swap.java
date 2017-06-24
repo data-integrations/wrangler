@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
 import co.cask.wrangler.i18n.MessagesFactory;
@@ -55,17 +55,17 @@ public class Swap extends AbstractStep {
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int sidx = record.find(column1);
       int didx = record.find(column2);
 
       if (sidx == -1) {
-        throw new StepException(MSG.get("column.not.found", toString(), column1));
+        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), column1));
       }
 
       if (didx == -1) {
-        throw new StepException(MSG.get("column.not.found", toString(), column2));
+        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), column2));
       }
 
       record.setColumn(sidx, column2);

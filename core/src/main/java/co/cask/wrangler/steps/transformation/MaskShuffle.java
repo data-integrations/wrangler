@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
@@ -62,10 +62,10 @@ public class MaskShuffle extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record} with masked column.
-   * @throws StepException thrown when there is issue with masking
+   * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       Record masked = new Record(record);
@@ -73,7 +73,7 @@ public class MaskShuffle extends AbstractStep {
       if (idx != -1) {
         masked.setValue(idx, maskShuffle((String) record.getValue(idx), 0));
       } else {
-        throw new StepException(toString() + " : '" +
+        throw new DirectiveExecutionException(toString() + " : '" +
                                   column + "' column is not defined. Please check the wrangling step."
         );
       }

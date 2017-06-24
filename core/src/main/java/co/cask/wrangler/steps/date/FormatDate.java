@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.text.DateFormat;
@@ -56,10 +56,10 @@ public class FormatDate extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
-   * @throws StepException
+   * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       Record dt = new Record(record);
@@ -69,13 +69,13 @@ public class FormatDate extends AbstractStep {
         if (object != null && object instanceof Date) {
           dt.setValue(idx, destinationFmt.format((Date) object));
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' directive first.", toString(),
                           object != null ? object.getClass().getName() : "null", column)
           );
         }
       } else {
-        throw new StepException(toString() + " : '" +
+        throw new DirectiveExecutionException(toString() + " : '" +
                                   column + "' column is not defined in the record. Please check the wrangling step."
         );
       }

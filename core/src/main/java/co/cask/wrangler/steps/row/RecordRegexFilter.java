@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import org.json.JSONObject;
 
@@ -61,10 +61,10 @@ public class RecordRegexFilter extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
-   * @throws StepException
+   * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     if (pattern == null) {
       return records;
@@ -90,7 +90,7 @@ public class RecordRegexFilter extends AbstractStep {
             continue;
           }
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );

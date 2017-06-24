@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.dq.TypeInference;
 import com.google.gson.Gson;
@@ -71,10 +71,10 @@ public class JsParser extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
-   * @throws StepException In case CSV parsing generates more record.
+   * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     // Iterate through all the records.
     for (Record record : records) {
@@ -96,7 +96,7 @@ public class JsParser extends AbstractStep {
           } else if (value instanceof JsonObject || value instanceof JsonArray) {
             element = (JsonElement) value;
           } else {
-            throw new StepException(
+            throw new DirectiveExecutionException(
               String.format("%s : Invalid type '%s' of column '%s'. " +
                               "Should be of type string. Use paths to further parse data.",
                             toString(), element != null ? element.getClass().getName() : "null", col)
@@ -122,7 +122,7 @@ public class JsParser extends AbstractStep {
             }
           }
         } catch (JSONException e) {
-          throw new StepException(toString() + " : " + e.getMessage());
+          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
         }
       }
     }

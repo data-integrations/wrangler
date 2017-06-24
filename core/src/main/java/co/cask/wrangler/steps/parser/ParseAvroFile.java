@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
 import org.apache.avro.Schema;
@@ -64,7 +64,7 @@ public class ParseAvroFile extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, final PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(column);
@@ -82,7 +82,7 @@ public class ParseAvroFile extends AbstractStep {
               results.add(newRecord);
             }
           } catch (IOException e) {
-            throw new StepException(toString() + " : Failed to parse Avro data file." + e.getMessage());
+            throw new DirectiveExecutionException(toString() + " : Failed to parse Avro data file." + e.getMessage());
           } finally {
             if (reader != null) {
               try {
@@ -93,7 +93,7 @@ public class ParseAvroFile extends AbstractStep {
             }
           }
         } else {
-          throw new StepException(toString() + " : column " + column + " should be of type byte array avro file.");
+          throw new DirectiveExecutionException(toString() + " : column " + column + " should be of type byte array avro file.");
         }
       }
     }

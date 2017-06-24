@@ -19,7 +19,7 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,7 +57,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    ParseDirectives directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
     directives.parse();
   }
@@ -71,7 +71,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    ParseDirectives directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
     directives.parse();
   }
@@ -85,7 +85,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    ParseDirectives directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();
@@ -101,7 +101,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    ParseDirectives directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();
@@ -117,7 +117,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    ParseDirectives directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextDirectives(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();

@@ -21,7 +21,7 @@ import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;
 import co.cask.http.NettyHttpService;
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
@@ -110,7 +110,7 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextDirectives(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -135,7 +135,7 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextDirectives(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -158,7 +158,7 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    ParseDirectives d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextDirectives(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);

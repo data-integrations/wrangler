@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -69,10 +69,10 @@ public class JsPath extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
-   * @throws StepException In case CSV parsing generates more record.
+   * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       Object value = record.getValue(src);
@@ -84,7 +84,7 @@ public class JsPath extends AbstractStep {
       if (!(value instanceof String ||
         value instanceof JsonObject ||
         value instanceof JsonArray)) {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JsonElement, " +
                           "String.", toString(), value.getClass().getName(), src)
         );

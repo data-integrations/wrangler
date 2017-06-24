@@ -30,7 +30,7 @@ import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
@@ -1028,7 +1028,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
                                                          getContext(),
                                                          store);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
-    ParseDirectives directives = new SimpleTextDirectives(user.getRecipe().getDirectives());
+    RecipeParser directives = new SimpleTextDirectives(user.getRecipe().getDirectives());
     directives.initialize(new ConfigDirectiveContext(table.getConfigString()));
     executor.configure(directives, context);
     return executor.execute(sample.apply(records));

@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.nlp.internal.PorterStemmer;
 
@@ -56,7 +56,7 @@ public class Stemming extends AbstractStep {
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       List<String> stemmed = new ArrayList<>();
       int idx = record.find(column);
@@ -77,13 +77,13 @@ public class Stemming extends AbstractStep {
             stemmed = stemmer.process(words);
             record.add(String.format("%s_porter", column), stemmed);
           } catch (IOException e) {
-            throw new StepException(
+            throw new DirectiveExecutionException(
               String.format("%s : Unable to apply porter stemmer on column '%s'. %s", toString(), column,
                             e.getMessage())
             );
           }
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, String[] or List<String>.",
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );

@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  * A specification for how {@link RecipePipeline} will process.
  */
 @PublicEvolving
-public interface ParseDirectives extends Serializable {
+public interface RecipeParser extends Serializable {
   // Column definition for the start of processing.
   String STARTING_COLUMN = "__col";
 

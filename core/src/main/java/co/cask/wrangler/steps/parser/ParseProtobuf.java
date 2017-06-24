@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.codec.Decoder;
 import co.cask.wrangler.codec.DecoderException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.clients.RestClientException;
 import co.cask.wrangler.clients.SchemaRegistryClient;
@@ -77,7 +77,7 @@ public class ParseProtobuf extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, final PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
 
     if (!decoderInitialized) {
@@ -113,14 +113,14 @@ public class ParseProtobuf extends AbstractStep {
         if (decoder != null) {
           decoderInitialized = true;
         } else {
-          throw new StepException("Unsupported protobuf decoder type");
+          throw new DirectiveExecutionException("Unsupported protobuf decoder type");
         }
       } catch (ExecutionException e) {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("Unable to retrieve protobuf descriptor from schema registry. %s", e.getCause())
         );
       } catch (RetryException e) {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("Issue in retrieving protobuf descriptor from schema registry. %s", e.getCause())
         );
       }
@@ -135,12 +135,12 @@ public class ParseProtobuf extends AbstractStep {
             byte[] bytes = (byte[]) object;
             results.addAll(decoder.decode(bytes));
           } else {
-            throw new StepException(toString() + " : column " + column + " should be of type byte array");
+            throw new DirectiveExecutionException(toString() + " : column " + column + " should be of type byte array");
           }
         }
       }
     } catch (DecoderException e) {
-      throw new StepException(toString() + " Issue decoding Protobuf record. Check schema version '" +
+      throw new DirectiveExecutionException(toString() + " Issue decoding Protobuf record. Check schema version '" +
                                 (version == -1 ? "latest" : version) + "'. " + e.getMessage());
     }
     return results;

@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -71,7 +71,7 @@ public class SplitEmailTest {
     Assert.assertNull(records.get(6).getValue("email_domain"));
   }
 
-  @Test(expected = StepException.class)
+  @Test(expected = DirectiveExecutionException.class)
   public void testBadType() throws Exception {
     String[] directives = new String[] {
       "split-email email",

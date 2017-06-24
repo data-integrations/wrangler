@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.dq.DataType;
 import co.cask.wrangler.dq.TypeInference;
@@ -79,7 +79,7 @@ public class CsvParser extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
-    throws StepException {
+    throws DirectiveExecutionException {
 
     for (Record record : records) {
       int idx = record.find(col);
@@ -107,7 +107,7 @@ public class CsvParser extends AbstractStep {
           }
         }
       } catch (IOException e) {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("%s : Issue parsing the record. %s", toString(), e.getMessage())
         );
       }

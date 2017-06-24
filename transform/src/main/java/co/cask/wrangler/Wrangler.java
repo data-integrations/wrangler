@@ -29,7 +29,7 @@ import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.api.pipeline.PipelineContext;
@@ -115,7 +115,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Validate the DSL by parsing DSL.
     if(!config.containsMacro("directives")) {
-      ParseDirectives directives = new SimpleTextDirectives(config.directives);
+      RecipeParser directives = new SimpleTextDirectives(config.directives);
       try {
         directives.parse();
       } catch (DirectiveParseException e) {
@@ -194,7 +194,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    ParseDirectives directives = new SimpleTextDirectives(config.directives);
+    RecipeParser directives = new SimpleTextDirectives(config.directives);
     PipelineContext ctx = new WranglerPipelineContext(PipelineContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
@@ -341,7 +341,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     private String precondition;
 
     @Name("directives")
-    @Description("ParseDirectives for wrangling the input records")
+    @Description("RecipeParser for wrangling the input records")
     @Macro
     private String directives;
 

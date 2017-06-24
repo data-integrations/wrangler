@@ -17,8 +17,8 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.cdap.api.common.Bytes;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,7 +61,7 @@ public class ExpressionTest {
     Assert.assertEquals(13.0, records.get(0).getValue("hrlywage"));
   }
 
-  @Test(expected = StepException.class)
+  @Test(expected = DirectiveExecutionException.class)
   public void testNegativeConditionApply() throws Exception {
     String[] directives = new String[] {
       "parse-as-csv __col ,",
@@ -194,7 +194,7 @@ public class ExpressionTest {
     Assert.assertFalse((Boolean) records.get(0).getValue("result"));
   }
 
-  @Test(expected = StepException.class)
+  @Test(expected = DirectiveExecutionException.class)
   public void testMalformedGeoFence() throws Exception {
     String geoJsonFence = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{}," +
         "\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.05870628356934,37.37943348292772]," +

@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import com.ximpleware.ParseException;
 import com.ximpleware.VTDGen;
@@ -64,7 +64,7 @@ public class XmlParser extends AbstractStep {
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
-    throws StepException {
+    throws DirectiveExecutionException {
 
     for (Record record : records) {
       int idx = record.find(col);

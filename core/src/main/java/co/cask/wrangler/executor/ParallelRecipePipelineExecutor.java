@@ -20,7 +20,7 @@ import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.pipeline.PipelineException;
@@ -45,7 +45,7 @@ import java.util.concurrent.Future;
  */
 @Beta
 public final class ParallelRecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
-  private ParseDirectives directives;
+  private RecipeParser directives;
   private PipelineContext context;
   private RecordConvertor convertor = new RecordConvertor();
   private int threads = Runtime.getRuntime().availableProcessors();
@@ -58,7 +58,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
    * @param directives Wrangle directives.
    */
   @Override
-  public void configure(ParseDirectives directives, PipelineContext context) {
+  public void configure(RecipeParser directives, PipelineContext context) {
     this.directives = directives;
     this.context = context;
   }

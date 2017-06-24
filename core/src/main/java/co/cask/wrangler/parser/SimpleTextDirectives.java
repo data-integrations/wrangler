@@ -19,7 +19,7 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveContext;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.executor.ICDCatalog;
 import co.cask.wrangler.steps.IncrementTransientVariable;
@@ -116,7 +116,7 @@ import javax.annotation.Nullable;
  * Following are some of the commands and format that {@link SimpleTextDirectives}
  * will handle.
  */
-public class SimpleTextDirectives implements ParseDirectives {
+public class SimpleTextDirectives implements RecipeParser {
   private static final Logger LOG = LoggerFactory.getLogger(SimpleTextDirectives.class);
 
   // directives for wrangling.

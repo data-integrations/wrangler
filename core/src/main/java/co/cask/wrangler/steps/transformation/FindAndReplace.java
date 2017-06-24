@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
@@ -53,10 +53,10 @@ public class FindAndReplace extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
-   * @throws StepException throw when there is issue executing the grep.
+   * @throws DirectiveExecutionException throw when there is issue executing the grep.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(column);
@@ -75,7 +75,7 @@ public class FindAndReplace extends AbstractStep {
           // If there is any issue, we pass it on without any transformation.
         }
       } else {
-        throw new StepException(toString() + " : '" +
+        throw new DirectiveExecutionException(toString() + " : '" +
                                   column + "' column is not defined. Please check the wrangling step."
         );
       }

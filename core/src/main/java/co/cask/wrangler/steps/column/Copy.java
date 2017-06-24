@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
 import co.cask.wrangler.i18n.MessagesFactory;
@@ -57,14 +57,14 @@ public class Copy extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int sidx = record.find(source);
       if (sidx == -1) {
-        throw new StepException(MSG.get("column.not.found", toString(), source));
+        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), source));
       }
 
       int didx = record.find(destination);
@@ -80,7 +80,7 @@ public class Copy extends AbstractStep {
         // if destination column exists, and force is set to false, then throw exception, else
         // overwrite it.
         if (!force) {
-          throw new StepException(toString() + " : Destination column '" + destination
+          throw new DirectiveExecutionException(toString() + " : Destination column '" + destination
                                     + "' does not exist in the record. Use 'force' option to add new column.");
         }
         record.setValue(didx, record.getValue(sidx));

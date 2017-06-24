@@ -19,20 +19,20 @@ package co.cask.wrangler.api;
 /**
  * A Directive specific exception used for communicating issues with execution of pipeline in that step.
  */
-public class StepException extends Exception {
-  public StepException(Exception e) {
+public class DirectiveExecutionException extends Exception {
+  public DirectiveExecutionException(Exception e) {
     super(e);
   }
 
-  public StepException(String message) {
+  public DirectiveExecutionException(String message) {
     super(message);
   }
 
-  public StepException(String s, Throwable e) {
+  public DirectiveExecutionException(String s, Throwable e) {
     super(s,e);
   }
 
-  public StepException(Throwable e) {
+  public DirectiveExecutionException(Throwable e) {
     super(e);
   }
 }

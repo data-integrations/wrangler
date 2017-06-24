@@ -20,10 +20,10 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -65,7 +65,7 @@ public class WriteAsCSV extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       try {
         final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
@@ -82,7 +82,7 @@ public class WriteAsCSV extends AbstractStep {
         }
         record.add(column, bOut.toString());
       } catch (IOException e) {
-        throw new StepException(toString() + " : Failed to write CSV record. " + e.getMessage());
+        throw new DirectiveExecutionException(toString() + " : Failed to write CSV record. " + e.getMessage());
       }
     }
     return records;

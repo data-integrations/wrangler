@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
 
@@ -56,7 +56,7 @@ public class WriteAsJsonMap extends AbstractStep {
    * @return Wrangled {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       Map<String, Object> toJson = new HashMap<>();
       for (Pair<String, Object> entry : record.getFields()) {

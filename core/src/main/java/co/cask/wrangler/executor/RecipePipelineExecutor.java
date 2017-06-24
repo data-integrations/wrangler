@@ -19,14 +19,14 @@ package co.cask.wrangler.executor;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ParseDirectives;
+import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.pipeline.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Lists;
@@ -38,7 +38,7 @@ import java.util.List;
  * Wrangle RecipePipeline executes stepRegistry in the order they are specified.
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
-  private ParseDirectives parser;
+  private RecipeParser parser;
   private PipelineContext context;
   private List<Directive> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
@@ -50,7 +50,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
    * @param parser Wrangle directives parser.
    */
   @Override
-  public void configure(ParseDirectives parser, PipelineContext context) throws PipelineException {
+  public void configure(RecipeParser parser, PipelineContext context) throws PipelineException {
     this.directives = directives;
     this.context = context;
     try {
@@ -110,7 +110,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
         }
         i++;
       }
-    } catch (StepException  e) {
+    } catch (DirectiveExecutionException e) {
       throw new PipelineException(e);
     }
     return results;

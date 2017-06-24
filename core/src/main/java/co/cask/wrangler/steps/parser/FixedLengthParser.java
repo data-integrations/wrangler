@@ -20,10 +20,10 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
@@ -60,11 +60,11 @@ public final class FixedLengthParser extends AbstractStep {
    * @param records     Input {@link Record} to be wrangled by this step.
    * @param context {@link PipelineContext} passed to each step.
    * @return Wrangled {@link Record}.
-   * @throws StepException In case of any issue this exception is thrown.
+   * @throws DirectiveExecutionException In case of any issue this exception is thrown.
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
-    throws StepException, ErrorRecordException {
+    throws DirectiveExecutionException, ErrorRecordException {
     List<Record> results = new ArrayList<>();
     for (Record record : records) {
       int idx = record.find(col);
@@ -100,7 +100,7 @@ public final class FixedLengthParser extends AbstractStep {
             index = (index + recordLength);
           }
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
                           object != null ? object.getClass().getName() : "null", col)
           );

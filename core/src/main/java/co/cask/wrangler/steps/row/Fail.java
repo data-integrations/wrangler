@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlHelper;
 import org.apache.commons.jexl3.JexlContext;
@@ -60,11 +60,11 @@ public class Fail extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return the input {@link Record}, if condition is false
-   * @throws StepException if there are any issues with processing the condition
+   * @throws DirectiveExecutionException if there are any issues with processing the condition
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
-    throws StepException {
+    throws DirectiveExecutionException {
     for (Record record : records) {
       // Move the fields from the record into the context.
       JexlContext ctx = new MapContext();
@@ -78,21 +78,21 @@ public class Fail extends AbstractStep {
       try {
         boolean result = (Boolean) script.execute(ctx);
         if (result) {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("Condition '%s' evaluated to true. Terminating processing.", condition)
           );
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
-        // to check if there is a inner exception, if there is wrap it in 'StepException'
+        // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
         // else just print the error message.
         if (e.getCause() != null) {
-          throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
+          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
         } else {
-          throw new StepException(toString() + " : " + e.getMessage());
+          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
         }
       } catch (NumberFormatException e) {
-        throw new StepException(toString() + " : " + " type mismatch. Change type of constant " +
+        throw new DirectiveExecutionException(toString() + " : " + " type mismatch. Change type of constant " +
                                   "or convert to right data type using conversion functions available. " +
                                   "Reason : " + e.getMessage());
       } catch (Exception e) {
@@ -101,9 +101,9 @@ public class Fail extends AbstractStep {
           throw e;
         }
         if (e.getCause() != null) {
-          throw new StepException(toString() + " : " + e.getMessage(), e.getCause());
+          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
         } else {
-          throw new StepException(toString() + " : " + e.getMessage());
+          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
         }
       }
     }

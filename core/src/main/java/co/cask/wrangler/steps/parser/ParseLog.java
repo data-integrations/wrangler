@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import nl.basjes.parse.core.Parser;
 import nl.basjes.parse.httpdlog.ApacheHttpdLoglineParser;
@@ -62,10 +62,10 @@ public class ParseLog extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
-   * @throws StepException In case CSV parsing generates more record.
+   * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     // Iterate through all the records.
     for (Record record : records) {
       int idx = record.find(column);
@@ -78,7 +78,7 @@ public class ParseLog extends AbstractStep {
         } else if (object instanceof byte[]) {
           log = new String((byte[]) object);
         } else {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String or byte[].",
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );

@@ -34,6 +34,7 @@ public interface Directive<I, O> extends Serializable {
    * @param context {@link PipelineContext} passed to each step.
    * @return Wrangled List of {@link Record}.
    */
-  List<O> execute(List<I> records, PipelineContext context) throws StepException, ErrorRecordException;
+  List<O> execute(List<I> records, PipelineContext context)
+    throws DirectiveExecutionException, ErrorRecordException;
 }
 

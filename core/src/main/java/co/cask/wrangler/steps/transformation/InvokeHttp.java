@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -102,11 +102,11 @@ public class InvokeHttp extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
-    throws StepException, ErrorRecordException {
+    throws DirectiveExecutionException, ErrorRecordException {
     for (Record record : records) {
       Map<String, Object> parameters = new HashMap<>();
       for (String column : columns) {

@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 
 import java.util.Date;
@@ -55,10 +55,10 @@ public class DiffDate extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return A newly transformed {@link Record}.
-   * @throws StepException
+   * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       Date date1 = getDate(record, column1);
       Date date2 = getDate(record, column2);
@@ -71,7 +71,7 @@ public class DiffDate extends AbstractStep {
     return records;
   }
 
-  private Date getDate(Record record, String colName) throws StepException {
+  private Date getDate(Record record, String colName) throws DirectiveExecutionException {
     // If one of the column contains now, then we return
     // the current date.
     if (colName.equalsIgnoreCase("now")) {
@@ -81,7 +81,7 @@ public class DiffDate extends AbstractStep {
     // Else attempt to find the column.
     int idx = record.find(colName);
     if (idx == -1) {
-      throw new StepException(toString() + " : '" +
+      throw new DirectiveExecutionException(toString() + " : '" +
                                 colName + "' column is not defined in the record.");
     }
     Object o = record.getValue(idx);

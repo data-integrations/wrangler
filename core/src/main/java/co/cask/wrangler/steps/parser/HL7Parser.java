@@ -39,7 +39,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -79,7 +79,7 @@ public class HL7Parser extends AbstractStep {
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       try {
         int idx = record.find(column);
@@ -92,14 +92,14 @@ public class HL7Parser extends AbstractStep {
             MessageVisitors.visit(message,
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
           } else {
-            throw new StepException(
+            throw new DirectiveExecutionException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.",
                             toString(), object != null ? object.getClass().getName() : "null", column)
             );
           }
         }
       } catch (HL7Exception e) {
-        throw new StepException(toString() + " : " + e.getMessage());
+        throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
       }
     }
     return records;

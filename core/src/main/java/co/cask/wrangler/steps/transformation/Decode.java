@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base32;
@@ -80,7 +80,7 @@ public class Decode extends AbstractStep {
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       int idx = record.find(column);
       if (idx == -1) {
@@ -98,7 +98,7 @@ public class Decode extends AbstractStep {
       } else if (object instanceof byte[]) {
         value = (byte[]) object;
       } else {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("%s : Invalid value type '%s' of column '%s'. Should be of type string or byte array, "
             , toString(), value.getClass().getName(), column)
         );
@@ -113,12 +113,12 @@ public class Decode extends AbstractStep {
         try {
           out = hexEncode.decode(value);
         } catch (DecoderException e) {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format("%s : Failed to decode hex value.", toString())
           );
         }
       } else {
-        throw new StepException(
+        throw new DirectiveExecutionException(
           String.format("%s : Invalid type of encoding '%s' specified", toString(), type.toString())
         );
       }

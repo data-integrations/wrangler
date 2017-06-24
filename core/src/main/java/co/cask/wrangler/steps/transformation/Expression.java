@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -82,10 +82,10 @@ public class Expression extends AbstractStep {
    * @param records Input {@link Record} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return Transformed {@link Record} in which the 'col' value is lower cased.
-   * @throws StepException thrown when type of 'col' is not STRING.
+   * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     // This is done only the first time.
     if (properties.size() == 0 && context != null) {
       properties.putAll(context.getProperties());
@@ -117,12 +117,12 @@ public class Expression extends AbstractStep {
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
-        // to check if there is a inner exception, if there is wrap it in 'StepException'
+        // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
         // else just print the error message.
         if (e.getCause() != null) {
-          throw new StepException(toString() + " : " + e.getCause().getMessage());
+          throw new DirectiveExecutionException(toString() + " : " + e.getCause().getMessage());
         } else {
-          throw new StepException(toString() + " : " + e.getMessage());
+          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
         }
       }
     }

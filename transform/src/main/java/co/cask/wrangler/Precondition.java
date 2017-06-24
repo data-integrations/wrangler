@@ -61,7 +61,7 @@ public class Precondition {
       return (Boolean) result;
     } catch (ScriptException e) {
       // Generally JexlException wraps the original exception, so it's good idea
-      // to check if there is a inner exception, if there is wrap it in 'StepException'
+      // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
       // else just print the error message.
       if (e.getCause() != null) {
         throw new PreconditionException(e.getCause().getMessage());

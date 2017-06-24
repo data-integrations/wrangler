@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import co.cask.wrangler.steps.column.Swap;
 import org.junit.Assert;
@@ -48,7 +48,7 @@ public class SwapTest {
     Assert.assertEquals("sample string", records.get(0).getValue("a"));
   }
 
-  @Test(expected = StepException.class)
+  @Test(expected = DirectiveExecutionException.class)
   public void testSwapFeildNotFound() throws Exception {
     String[] directives = new String[] {
       "swap a b",

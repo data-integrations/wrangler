@@ -20,9 +20,9 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractStep;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.pipeline.PipelineContext;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
 import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
@@ -55,7 +55,7 @@ public class ColumnsReplace extends AbstractStep {
    * @return Wrangled List of {@link Record}.
    */
   @Override
-  public List<Record> execute(List<Record> records, PipelineContext context) throws StepException {
+  public List<Record> execute(List<Record> records, PipelineContext context) throws DirectiveExecutionException {
     for (Record record : records) {
       for (int i = 0; i < record.length(); ++i) {
         String name = record.getColumn(i);
@@ -63,7 +63,7 @@ public class ColumnsReplace extends AbstractStep {
           Unix4jCommandBuilder builder = Unix4j.echo(name).sed(sed);
           record.setColumn(i, builder.toStringResult());
         } catch (IllegalArgumentException e) {
-          throw new StepException(
+          throw new DirectiveExecutionException(
             String.format(toString() + " : " + e.getMessage())
           );
         }

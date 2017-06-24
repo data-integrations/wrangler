@@ -8,7 +8,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.api.StepException;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -60,7 +60,7 @@ public final class SantizeString implements UDD {
 
   @Override
   public List<Record> execute(List<Record> records, PipelineContext context)
-    throws StepException, ErrorRecordException {
+    throws DirectiveExecutionException, ErrorRecordException {
     return null;
   }
 
