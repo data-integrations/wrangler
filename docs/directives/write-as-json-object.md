@@ -9,7 +9,7 @@ and writes it to the destination column.
 write-as-json-object <destination-column> <source-column>[,<source-column>]*
 ```
 
-The `<destination-column>` will contain a JSON object composes of all the fields
+The `<destination-column>` will contain a JSON object composed of all the fields
 specified in the `<source-column>`.
 
 
@@ -35,7 +35,7 @@ Using this record as an example:
 }
 ```
 
-Applying this directive:
+And applying this directive:
 ```
 write-as-json-object body number,text,height,address
 ```
