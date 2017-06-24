@@ -20,11 +20,13 @@ import co.cask.wrangler.api.annotations.PublicEvolving;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.io.Serializable;
+
 /**
  * Class description here.
  */
 @PublicEvolving
-public final class TokenDefinition {
+public final class TokenDefinition implements Serializable {
   private final int ordinal;
   private final boolean optional;
   private final String name;

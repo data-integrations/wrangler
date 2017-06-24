@@ -122,7 +122,7 @@ public class TextDirectives implements Directives {
   private String[] directives;
 
   // Usage Registry
-  private final UsageRegistry usageRegistry = new UsageRegistry();
+  private static final UsageRegistry usageRegistry = new UsageRegistry();
 
   // Specifies the context for directive parsing.
   private DirectiveContext context;
@@ -164,11 +164,6 @@ public class TextDirectives implements Directives {
 
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
-
-      // Support for external command.
-      if (command.startsWith("!")) {
-        command = command.substring(1);
-      }
 
       // Check if a directive has been aliased and if it's aliased then retrieve root command it's mapped
       // to.
@@ -1052,17 +1047,17 @@ public class TextDirectives implements Directives {
   }
 
   // If there are more tokens, then it proceeds with parsing, else throws exception.
-  private String getNextToken(StringTokenizer tokenizer, String directive,
+  public static String getNextToken(StringTokenizer tokenizer, String directive,
                           String field, int lineno) throws DirectiveParseException {
     return getNextToken(tokenizer, null, directive, field, lineno, false);
   }
 
-  private String getNextToken(StringTokenizer tokenizer, String delimiter,
+  public static String getNextToken(StringTokenizer tokenizer, String delimiter,
                               String directive, String field, int lineno) throws DirectiveParseException {
     return getNextToken(tokenizer, delimiter, directive, field, lineno, false);
   }
 
-  private String getNextToken(StringTokenizer tokenizer, String delimiter,
+  public static String getNextToken(StringTokenizer tokenizer, String delimiter,
                           String directive, String field, int lineno, boolean optional)
     throws DirectiveParseException {
     String value = null;

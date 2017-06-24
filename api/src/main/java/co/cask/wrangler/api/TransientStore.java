@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.api;
 
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -23,7 +24,7 @@ import java.util.Set;
  * present across all the steps associated with the directives that are processing
  * a single record.
  */
-public interface TransientStore {
+public interface TransientStore extends Serializable {
   /**
    * Resets the state of this store.
    */

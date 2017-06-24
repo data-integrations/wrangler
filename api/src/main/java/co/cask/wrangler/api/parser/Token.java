@@ -19,11 +19,13 @@ package co.cask.wrangler.api.parser;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 import com.google.gson.JsonElement;
 
+import java.io.Serializable;
+
 /**
  * Class description here.
  */
 @PublicEvolving
-public interface Token {
+public interface Token extends Serializable {
   Object value();
   TokenType type();
   JsonElement toJsonObject();

@@ -43,7 +43,7 @@ recipe
  ;
 
 directives
- : (directive)*?
+ : (Comment | directive)*?
  ;
 
 directive
@@ -174,7 +174,7 @@ String
  ;
 
 Comment
- : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ) -> skip
+ : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
  ;
 
 Space

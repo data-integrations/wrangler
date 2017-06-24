@@ -19,6 +19,7 @@ package co.cask.wrangler.api.parser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,7 @@ import java.util.List;
  *
  * @see TokenDefinition
  */
-public final class UsageDefinition {
+public final class UsageDefinition implements Serializable {
   private String directive;
   private final List<TokenDefinition> tokens;
 

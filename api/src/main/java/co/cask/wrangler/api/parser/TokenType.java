@@ -18,11 +18,13 @@ package co.cask.wrangler.api.parser;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
+import java.io.Serializable;
+
 /**
  * Class description here.
  */
 @PublicEvolving
-public enum TokenType {
+public enum TokenType implements Serializable {
   DIRECTIVE_NAME,
   COLUMN_NAME,
   TEXT,
