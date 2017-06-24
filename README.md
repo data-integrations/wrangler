@@ -12,12 +12,24 @@ cleansing, transformation, and filtering using a set of data manipulation instru
 (directives). These instructions are either generated using an interative visual tool or
 are manually created.
 
-The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
+Data Prep defines few concepts that might be useful if you are just getting started with it.
+ Learn about them [here](docs/concepts.md)
 
+The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
 
 ## Demo Videos and Recipes
 
+More Videos [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl4n7zU4TWmIr)
+
 * Videos
+  * [SCREENCAST] [Creating Lookup Dataset and Joining](https://www.youtube.com/watch?v=Nc1b0rsELHQ)
+  * [SCREENCAST] [Restricted Directives](https://www.youtube.com/watch?v=71EcMQU714U)
+  * [SCREENCAST] [Parse Excel files in CDAP](https://www.youtube.com/watch?v=su5L1noGlEk)
+  * [SCREENCAST] [Parse File As AVRO File](https://www.youtube.com/watch?v=tmwAw4dKUNc)
+  * [SCREENCAST] [Parsing Binary Coded AVRO Messages](https://www.youtube.com/watch?v=Ix_lPo-PDJY)
+  * [SCREENCAST] [Parsing Binary Coded AVRO Messages & Protobuf messages using schema registry](https://www.youtube.com/watch?v=LVLIdWnUX1k)
+  * [SCREENCAST] [Quantize a column - Digitize](https://www.youtube.com/watch?v=VczkYX5SRtY)
+  * [SCREENCAST] [Data Cleansing capability with send-to-error directive](https://www.youtube.com/watch?v=aZd5H8hIjDc)
   * [SCREENCAST] [Building Data Prep from the GitHub source](https://youtu.be/pGGjKU04Y38)
   * [VOICE-OVER] [End-to-End Demo Video](https://youtu.be/AnhF0qRmn24)
   * [SCREENCAST] [Ingesting into Kudu](https://www.youtube.com/watch?v=KBW7a38vlUM)
@@ -27,81 +39,12 @@ The Data Prep Transform is [separately documented](transform/docs/data-prep-tran
   * [SCREENCAST] [Data cleansing with send-to-error directive](https://www.youtube.com/watch?v=aZd5H8hIjDc)
   * [SCREENCAST] [Publishing to Kafka](https://www.youtube.com/watch?v=xdc8pvvlI48)
   * [SCREENCAST] [Fixed length to JSON](https://www.youtube.com/watch?v=3AXu4m1swuM)
-  * [SCREENCAST] [Quantize Column](https://www.youtube.com/watch?v=VczkYX5SRtY)
-  * [SCREENCAST] [Parsing Binary Coded AVRO Messages](https://www.youtube.com/watch?v=Ix_lPo-PDJY)
-  * [SCREENCAST] [Parsing Binary Coded AVRO Messages & Protobuf messages using schema registry](https://www.youtube.com/watch?v=LVLIdWnUX1k)
+
 
 * Recipes
   * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
   * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)
   * [Parsing HL7 CCDA XML Files](demos/parsing-hl7-ccda-xml-files.md)
-
-
-## Concepts
-
-This implementation of Data Prep uses the concepts of _Record_, _Column_, _Directive_,
-_Step_, and _Pipeline_.
-
-### Record
-
-A *Record* is a collection of field names and field values.
-
-### Column
-
-A *Column* is a data value of any of the supported Java types, one for each record.
-
-### Directive
-
-A *Directive* is a single data manipulation instruction, specified to either transform,
-filter, or pivot a single record into zero or more records. A directive can generate one
-or more *steps* to be executed by a pipeline.
-
-### Step
-
-A *Step* is an implementation of a data transformation function, operating on a single
-record or set of records. A step can generate zero or more records from the application of
-a function.
-
-### Pipeline
-
-A *Pipeline* is a collection of steps to be applied on a record. The record(s) outputed
-from a step are passed to the next step in the pipeline.
-
-
-## Notations
-
-### Directives
-
-A directive can be represented in text in this format:
-
-```
-<command> <argument-1> <argument-2> ... <argument-n>
-```
-
-### Record
-
-A record in this documentation will be shown as a JSON object with an object key
-representing the column names and a value shown by the plain representation of the
-the data, without any mention of types.
-
-For example:
-
-```
-{
-  "id": 1,
-  "fname": "root",
-  "lname": "joltie",
-  "address": {
-    "housenumber": "678",
-    "street": "Mars Street",
-    "city": "Marcity",
-    "state": "Maregon",
-    "country": "Mari"
-  },
-  "gender": "M"
-}
-```
-
 
 ## Available Directives
 
@@ -128,6 +71,7 @@ These directives are currently available:
 | **Output Formatters**                                                  |                                                                  |
 | [Write as CSV](docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
+| [Write JSON Object](docs/directives/write-as-json-object.md)           | Composes a JSON object based on the fields specified.            |
 | **Transformations**                                                    |                                                                  |
 | [Changing Case](docs/directives/changing-case.md)                      | Changes the case of column values                                |
 | [Cut Character](docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
@@ -198,6 +142,10 @@ These directives are currently available:
 | [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
 
+## Restricting and Aliasing
+
+A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
+More information on configuring can be found [here](docs/exclusion-and-aliasing.md)
 
 ## Performance
 
@@ -210,90 +158,6 @@ rates below are specified as *records/second*. Additional details and test resul
 | -------------------- | :----------: | ---------: | -------------: | --------: | ------------: | ------------: | -------------: |
 | Medium               |      18      | 13,499,973 |  4,499,534,313 | 64,998.50 |     64,921.29 |     46,866.70 |      36,149.86 |
 | Medium               |      18      | 80,999,838 | 26,997,205,878 | 62,465.93 |     62,706.39 |     60,755.41 |      56,673.32 |
-
-
-## Data Prep Service
-
-Data Prep is integrated as a CDAP Service to support HTTP RESTful-based interactive
-wrangling of data. The main objective of this service is to make it simple and easy to
-interactively apply the directives required for parsing a given data set. The service is
-not intended to replace full-scale big data processing; it is primarily used to
-interactively apply directives on a sample of your data.
-
-The base endpoint is:
-
-```
-http://<hostname>:11015/v3/namespaces/<namespace>/apps/dataprep/services/service/methods
-```
-
-These services are provided:
-
-* [Administration and Management](docs/service/admin.md)
-* [Directive Execution](docs/service/execution.md)
-* [Column Type Detection and Statistics](docs/service/statistics.md)
-* [Column Name Validation](docs/service/validation.md)
-
-The [Request Format Specification](docs/service/request.md) describes the format that is used for sending
-a request to the back-end.
-
-
-## Building New Directives
-
-As directives are executed as a step, it's a simple three-part process to implement the step and
-provide the specifications for a directive.
-
-### Part 1 of 3
-
-In order to add a new step, implement the interface 'Step':
-```
-/**
- * A interface defining a Data Prep step in a pipeline.
- */
-public interface Step {
-  /**
-   * Executes a Data Prep step on each {@link Record} and returns an array of processed {@link Record Records}.
-   *
-   * @param records the list of input {@link Record Records} to be processed by this step
-   * @return the list of processed {@link Record Records}
-   * @throws StepException if a step exception occurred
-   */
-  List<Record> execute(List<Record> records) throws StepException;
-}
-```
-
-### Part 2 of 3
-
-Add a comprehensive test case for the directive that has been added.
-
-### Part 3 of 3
-
-Modify the specification to parse the directive specification and create the implementation of
-the step you have created in part 1.
-
-
-## Build
-
-To build your plugin:
-```
-mvn clean package -DskipTests
-```
-
-The build will create a `.jar` and `.json` file under the `target` directory for the
-`wrangler-transform` and a `.jar` file for the `wrangler-service` application. These files
-can be used to deploy your plugin and the wrangler backend.
-
-
-## Deployment
-
-You can deploy your plugin using the CDAP CLI:
-```
-> load artifact target/wrangler-transform-<version>.jar config-file target/wrangler-transform-<version>.json
-```
-
-For example, if your artifact is named `wrangler-transform-1.0.0-SNAPSHOT`:
-```
-> load artifact target/wrangler-transform-1.0.0-SNAPSHOT.jar config-file target/wrangler-transform-1.0.0-SNAPSHOT.json
-```
 
 
 ## Contact

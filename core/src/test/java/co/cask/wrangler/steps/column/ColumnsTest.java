@@ -19,7 +19,7 @@ package co.cask.wrangler.steps.column;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 import org.junit.Assert;
 import org.junit.Test;
 

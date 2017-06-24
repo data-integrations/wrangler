@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.internal.xpath;
+package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.common.Bytes;
 import com.google.common.base.Splitter;

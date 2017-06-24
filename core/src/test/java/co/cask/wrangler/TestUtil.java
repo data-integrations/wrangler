@@ -22,7 +22,7 @@ import co.cask.wrangler.api.Pipeline;
 import co.cask.wrangler.api.PipelineException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.PipelineExecutor;
-import co.cask.wrangler.executor.TextDirectives;
+import co.cask.wrangler.parser.TextDirectives;
 
 import java.util.List;
 

@@ -14,11 +14,13 @@
  * the License.
  */
 
-package co.cask.wrangler.executor;
+package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.DirectiveContext;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Directives;
 import co.cask.wrangler.api.Step;
+import co.cask.wrangler.executor.ICDCatalog;
 import co.cask.wrangler.steps.IncrementTransientVariable;
 import co.cask.wrangler.steps.SetTransientVariable;
 import co.cask.wrangler.steps.column.ChangeColCaseNames;
@@ -95,8 +97,9 @@ import co.cask.wrangler.steps.transformation.RightTrim;
 
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import co.cask.wrangler.steps.writer.WriteAsJsonObject;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +110,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
+import javax.annotation.Nullable;
 
 /**
  * Parses the DSL into specification containing stepRegistry for wrangling.
@@ -123,8 +127,12 @@ public class TextDirectives implements Directives {
   // Usage Registry
   private final UsageRegistry usageRegistry = new UsageRegistry();
 
+  // Specifies the context for directive parsing.
+  private DirectiveContext context;
+
   public TextDirectives(String[] directives) {
     this.directives = directives;
+    this.context = new NoOpDirectiveContext();
   }
 
   public TextDirectives(String directives) {
@@ -156,38 +164,35 @@ public class TextDirectives implements Directives {
       if (directive.isEmpty() || directive.startsWith("//") || directive.startsWith("#")) {
         continue;
       }
+
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
 
-      switch (command) {
+      // Check if a directive has been aliased and if it's aliased then retrieve root command it's mapped
+      // to.
+      String root = command;
+      if (context.hasAlias(root)) {
+        root = context.getAlias(command);
+      }
+
+      // Checks if the directive has been excluded from being used.
+      if (!root.equals(command) && context.isExcluded(command)) {
+        throw new DirectiveParseException(
+          String.format("Aliased directive '%s' has been configured as restricted directive and is hence unavailable. " +
+                          "Please contact your administrator", command)
+        );
+      }
+
+      if (context.isExcluded(root)) {
+        throw new DirectiveParseException(
+          String.format("Directive '%s' has been configured as restricted directive and is hence unavailable. " +
+                          "Please contact your administrator", command)
+        );
+      }
+
+      switch (root) {
         case "set": {
           switch (tokenizer.nextToken()) {
-            // set format [csv|json] <delimiter> <skip empty lines>
-            case "format": {
-              String format = getNextToken(tokenizer, "set format", "[csv|json]", lineno);
-              if (format.equalsIgnoreCase("csv")) {
-                String delimStr = getNextToken(tokenizer, "set format", "delimiter", lineno);
-                char delimiter = delimStr.charAt(0);
-                if (delimStr.startsWith("\\")) {
-                  String unescapedStr = StringEscapeUtils.unescapeJava(delimStr);
-                  if (unescapedStr == null) {
-                    throw new IllegalArgumentException("Invalid delimiter for CSV Parser: " + delimStr);
-                  }
-                  delimiter = unescapedStr.charAt(0);
-                }
-                boolean ignoreEmptyLines =
-                  getNextToken(tokenizer, "set format", "true|false", lineno).equalsIgnoreCase("true");
-                CsvParser.Options opt = new CsvParser.Options(delimiter, ignoreEmptyLines);
-                steps.add(new CsvParser(lineno, directive, opt, STARTING_COLUMN, false));
-                steps.add(new Drop(lineno, directive, STARTING_COLUMN));
-              } else {
-                throw new DirectiveParseException(
-                  String.format("Unknown format '%s' specified at line %d", format, lineno)
-                );
-              }
-            }
-            break;
-
             // set column <column-name> <jexl-expression>
             case "column": {
               String column = getNextToken(tokenizer, "set column", "column-name", lineno);
@@ -795,10 +800,28 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // write-as-json <column>
+        // write-as-json-map <column>
         case "write-as-json-map" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           steps.add(new WriteAsJsonMap(lineno, directive, column));
+        }
+        break;
+
+        // write-as-json-object <dest-column> [<src-column>[,<src-column>]
+        case "write-as-json-object" : {
+          String column = getNextToken(tokenizer, command, "column", lineno);
+          String columnsStr = getNextToken(tokenizer, "\n", command, "columns", lineno);
+          if (columnsStr != null) {
+            List<String> columns = new ArrayList<>();
+            for (String col : columnsStr.split(",")) {
+              columns.add(col.trim());
+            }
+            steps.add(new WriteAsJsonObject(lineno, directive, column, columns));
+          } else {
+            throw new DirectiveParseException(
+              String.format("")
+            );
+          }
         }
         break;
 
@@ -1069,5 +1092,20 @@ public class TextDirectives implements Directives {
   @Override
   public List<Step> getSteps() throws DirectiveParseException {
     return parse();
+  }
+
+  /**
+   * Initialises the directive with a {@link DirectiveContext}.
+   *
+   * @param context
+   */
+  @Nullable
+  @Override
+  public void initialize(DirectiveContext context) {
+    if (context == null) {
+      this.context = new NoOpDirectiveContext();
+    } else {
+      this.context = context;
+    }
   }
 }
