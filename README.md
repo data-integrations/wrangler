@@ -15,6 +15,9 @@ are manually created.
   * Data Prep defines few concepts that might be useful if you are just getting started with it. Learn about them [here](docs/concepts.md)
   * The Data Prep Transform is [separately documented](transform/docs/data-prep-transform.md).
   * [Data Prep Cheatsheet](docs/cheatsheet.md)
+  * A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
+More information on configuring can be found [here](docs/exclusion-and-aliasing.md)
+  * User Defined Directives (UDD) - (D)efine, (I)nitialize and (E)xecute framework for building your own directives [here](docs/user-defined-directives.md)
 
 ## Demo Videos and Recipes
 
@@ -140,11 +143,6 @@ These directives are currently available:
 | [DDL](docs/functions/ddl-functions.md)                                 | Functions that can manipulate definition of data                 |
 | [JSON](docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
-
-## Restricting and Aliasing
-
-A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
-More information on configuring can be found [here](docs/exclusion-and-aliasing.md)
 
 ## Performance
 
