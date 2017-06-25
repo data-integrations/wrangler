@@ -20,7 +20,8 @@ are manually created.
 
   * A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
 More information on configuring can be found [here](docs/exclusion-and-aliasing.md)
-  * User Defined Directives (UDD) - (D)efine, (I)nitialize and (E)xecute framework for building your own directives [here](docs/user-defined-directives.md)
+  * User Defined Directives (UDD) - (D)efine, (I)nitialize and (E)xecute framework for building your own directives [here](docs/user-defined-directive.md)
+    * Directive Migration Details [here](docs/directive-migration.md)
 
 ## Demo Videos and Recipes
 
