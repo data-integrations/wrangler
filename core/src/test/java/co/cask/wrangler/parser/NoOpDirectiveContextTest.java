@@ -39,7 +39,7 @@ public class NoOpDirectiveContextTest {
       "filter-row-if-true Fare < 8.06"
     };
 
-    RecipeParser directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextParser(text);
     List<Directive> steps = directives.parse();
     Assert.assertEquals(6, steps.size());
   }

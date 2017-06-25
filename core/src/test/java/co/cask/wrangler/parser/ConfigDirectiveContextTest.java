@@ -57,7 +57,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextParser(text);
     directives.initialize(new ConfigDirectiveContext(config));
     directives.parse();
   }
@@ -71,7 +71,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextParser(text);
     directives.initialize(new ConfigDirectiveContext(config));
     directives.parse();
   }
@@ -85,7 +85,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextParser(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();
@@ -101,7 +101,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextParser(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();
@@ -117,7 +117,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextDirectives(text);
+    RecipeParser directives = new SimpleTextParser(text);
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();

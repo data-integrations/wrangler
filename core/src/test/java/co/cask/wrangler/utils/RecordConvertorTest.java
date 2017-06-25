@@ -21,7 +21,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -142,7 +142,7 @@ public class RecordConvertorTest {
 
     );
 
-    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     List<StructuredRecord> results = pipeline.execute(records, schema);

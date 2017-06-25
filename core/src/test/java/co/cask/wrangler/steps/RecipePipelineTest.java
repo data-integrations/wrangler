@@ -21,7 +21,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.Split;
 import com.google.common.collect.Range;
@@ -92,7 +92,7 @@ public class RecipePipelineTest {
 
   public static List<Record> execute(String[] directives, List<Record> records)
     throws DirectiveExecutionException, DirectiveParseException, ErrorRecordException {
-    SimpleTextDirectives specification = new SimpleTextDirectives(directives);
+    SimpleTextParser specification = new SimpleTextParser(directives);
     List<Directive> steps = new ArrayList<>();
     steps.addAll(specification.parse());
     records = RecipePipelineTest.execute(steps, records);

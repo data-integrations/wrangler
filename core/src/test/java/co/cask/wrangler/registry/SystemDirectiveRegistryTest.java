@@ -20,13 +20,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests {@link InternalRegistry}
+ * Tests {@link SystemDirectiveRegistry}
  */
-public class InternalRegistryTest {
+public class SystemDirectiveRegistryTest {
 
   @Test
   public void testLoadingDefaults() throws Exception {
-    InternalRegistry registry = new InternalRegistry();
+    SystemDirectiveRegistry registry = new SystemDirectiveRegistry();
     Assert.assertTrue(true);
   }
 

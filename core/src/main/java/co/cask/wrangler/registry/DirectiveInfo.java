@@ -19,7 +19,6 @@ package co.cask.wrangler.registry;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.wrangler.api.UDD;
-import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
 import java.util.Objects;
@@ -27,33 +26,28 @@ import java.util.Objects;
 /**
  * Class description here.
  */
-public final class DirectiveClass {
-  public static final int SYSTEM = 0;
-  public static final int USER = 1;
-
+public final class DirectiveInfo {
   private String name;
   private UsageDefinition definition;
   private Class<?> directive;
   private String usage;
   private String description;
 
-  public DirectiveClass(int type, Class<?> directive) throws IllegalAccessException, InstantiationException {
+  public DirectiveInfo(Class<?> directive) throws IllegalAccessException, InstantiationException {
     this.directive = directive;
-    if(type == USER) {
-      Object object = directive.newInstance();
-      this.definition = ((UDD) object).define();
-      this.usage = definition.toString();
-    } else if (type == SYSTEM) {
-      Usage usage = directive.getAnnotation(Usage.class);
-      this.usage = usage.value();
-      this.definition = null;
-    }
+    Object object = directive.newInstance();
+    this.definition = ((UDD) object).define();
+    this.usage = definition.toString();
     this.name = directive.getAnnotation(Name.class).value();
     this.description = directive.getAnnotation(Description.class).value();
   }
 
   public String name() {
     return name;
+  }
+
+  public String usage() {
+    return usage;
   }
 
   public UsageDefinition definition() {
@@ -77,7 +71,7 @@ public final class DirectiveClass {
     if(this.getClass() != obj.getClass()) {
       return false;
     }
-    final DirectiveClass other = (DirectiveClass) obj;
+    final DirectiveInfo other = (DirectiveInfo) obj;
     return Objects.equals(this.name, other.name);
   }
 }

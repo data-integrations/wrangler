@@ -25,7 +25,7 @@ import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
@@ -110,7 +110,7 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -135,7 +135,7 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -158,7 +158,7 @@ public class InvokeHttpTest {
       new Record("a", "3").add("b", 4.2)
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);

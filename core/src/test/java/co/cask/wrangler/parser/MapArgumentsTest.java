@@ -26,9 +26,9 @@ import org.junit.Test;
 import java.util.Iterator;
 
 /**
- * Tests {@link DefaultArguments}.
+ * Tests {@link MapArguments}.
  */
-public class DefaultArgumentsTest {
+public class MapArgumentsTest {
 
   @Test
   public void testWithAllRequiredFields() throws Exception {
@@ -40,7 +40,7 @@ public class DefaultArgumentsTest {
     builder.define("col2", TokenType.COLUMN_NAME);
 
     Iterator<TokenGroup> iterator = unit.iterator();
-    Arguments arguments = new DefaultArguments(builder.build(), iterator.next());
+    Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(true, arguments.contains("col2"));
@@ -56,7 +56,7 @@ public class DefaultArgumentsTest {
     builder.define("col2", TokenType.COLUMN_NAME, Optional.TRUE);
 
     Iterator<TokenGroup> iterator = unit.iterator();
-    Arguments arguments = new DefaultArguments(builder.build(), iterator.next());
+    Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(1, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(false, arguments.contains("col2"));
@@ -77,21 +77,21 @@ public class DefaultArgumentsTest {
     builder.define("col4", TokenType.EXPRESSION, Optional.TRUE);
 
     Iterator<TokenGroup> iterator = unit1.iterator();
-    Arguments arguments = new DefaultArguments(builder.build(), iterator.next());
+    Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(true, arguments.contains("col2"));
     Assert.assertEquals(false, arguments.contains("col3"));
 
     iterator = unit2.iterator();
-    arguments = new DefaultArguments(builder.build(), iterator.next());
+    arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(3, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(true, arguments.contains("col2"));
     Assert.assertEquals(true, arguments.contains("col3"));
 
     iterator = unit3.iterator();
-    arguments = new DefaultArguments(builder.build(), iterator.next());
+    arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(4, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(true, arguments.contains("col2"));
@@ -99,7 +99,7 @@ public class DefaultArgumentsTest {
     Assert.assertEquals(true, arguments.contains("col4"));
 
     iterator = unit4.iterator();
-    arguments = new DefaultArguments(builder.build(), iterator.next());
+    arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(false, arguments.contains("col2"));

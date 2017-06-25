@@ -33,10 +33,10 @@ import java.util.Map;
 /**
  * Class description here.
  */
-public class DefaultArguments implements Arguments {
+public class MapArguments implements Arguments {
   private final Map<String, Token> tokens;
 
-  public DefaultArguments(UsageDefinition definition, TokenGroup group) throws DirectiveParseException {
+  public MapArguments(UsageDefinition definition, TokenGroup group) throws DirectiveParseException {
     this.tokens = new HashMap<>();
 
     List<TokenDefinition> specifications = definition.getTokens();
@@ -82,7 +82,7 @@ public class DefaultArguments implements Arguments {
 
   @Override
   public <T> T value(String name) {
-    return (T) tokens.get(name).value();
+    return (T) tokens.get(name);
   }
 
   @Override

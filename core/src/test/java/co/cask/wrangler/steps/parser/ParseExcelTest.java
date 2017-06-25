@@ -19,7 +19,7 @@ package co.cask.wrangler.steps.parser;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class ParseExcelTest {
       records.add(new Record("body", data));
 
       RecipePipelineExecutor executor = new RecipePipelineExecutor();
-      executor.configure(new SimpleTextDirectives(directives), null);
+      executor.configure(new SimpleTextParser(directives), null);
       List<Record> results = executor.execute(records);
       Assert.assertEquals(892, results.size());
     }
@@ -65,7 +65,7 @@ public class ParseExcelTest {
       records.add(new Record("body", data));
 
       RecipePipelineExecutor executor = new RecipePipelineExecutor();
-      executor.configure(new SimpleTextDirectives(directives), null);
+      executor.configure(new SimpleTextParser(directives), null);
       executor.execute(records);
     }
   }

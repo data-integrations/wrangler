@@ -22,7 +22,7 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public final class TestUtil {
    */
   public static List<Record> run(String[] directives, List<Record> records)
     throws RecipeException, DirectiveParseException {
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     return pipeline.execute(records);

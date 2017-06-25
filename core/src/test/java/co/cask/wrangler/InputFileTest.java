@@ -20,7 +20,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.ParallelRecipePipelineExecutor;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.steps.transformation.functions.DDL;
 import com.google.common.io.Resources;
 import org.junit.Assert;
@@ -55,7 +55,7 @@ public class InputFileTest {
       "filter-row-if-true Fare < 8.06"
     };
 
-    SimpleTextDirectives txtDirectives = new SimpleTextDirectives(directives);
+    SimpleTextParser txtDirectives = new SimpleTextParser(directives);
 
     String lines = new String(data);
     List<Record> records1 = new ArrayList<>();

@@ -37,7 +37,7 @@ import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.steps.DefaultTransientStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +115,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Validate the DSL by parsing DSL.
     if(!config.containsMacro("directives")) {
-      RecipeParser directives = new SimpleTextDirectives(config.directives);
+      RecipeParser directives = new SimpleTextParser(config.directives);
       try {
         directives.parse();
       } catch (DirectiveParseException e) {
@@ -194,7 +194,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    RecipeParser directives = new SimpleTextDirectives(config.directives);
+    RecipeParser directives = new SimpleTextParser(config.directives);
     RecipeContext ctx = new WranglerPipelineContext(RecipeContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.

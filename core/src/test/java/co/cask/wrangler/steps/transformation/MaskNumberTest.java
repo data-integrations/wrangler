@@ -21,7 +21,7 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -66,7 +66,7 @@ public class MaskNumberTest {
       new Record("body", "000-00-1234")
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -85,7 +85,7 @@ public class MaskNumberTest {
       new Record("body", "000-00-1234")
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -104,7 +104,7 @@ public class MaskNumberTest {
       new Record("body", "0000012349898")
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -125,7 +125,7 @@ public class MaskNumberTest {
       new Record("body", 123456)
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -146,7 +146,7 @@ public class MaskNumberTest {
       new Record("body", 12345)
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -165,7 +165,7 @@ public class MaskNumberTest {
       new Record("body", 12345L)
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -184,7 +184,7 @@ public class MaskNumberTest {
       new Record("body", 12.34)
     );
 
-    RecipeParser d = new SimpleTextDirectives(directives);
+    RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);

@@ -21,7 +21,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class RecipePipelineExecutorTest {
     );
 
     RecipeParser directives =
-      new SimpleTextDirectives(StringUtils.join("\n", commands));
+      new SimpleTextParser(StringUtils.join("\n", commands));
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
     Record row = new Record(RecipeParser.STARTING_COLUMN, new String("a,b,c,d,e,f,1.0"));
@@ -90,7 +90,7 @@ public class RecipePipelineExecutorTest {
     );
 
     RecipeParser directives =
-      new SimpleTextDirectives(StringUtils.join("\n", commands));
+      new SimpleTextParser(StringUtils.join("\n", commands));
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
     Record row = new Record(RecipeParser.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));

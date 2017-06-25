@@ -16,9 +16,12 @@
 
 package co.cask.wrangler.registry;
 
+import java.util.Iterator;
+
 /**
  * Class description here.
  */
-public interface DirectiveRegistry<F> {
-  Class<? extends F> get(String name);
+public interface DirectiveRegistry {
+  DirectiveInfo get(String name);
+  Iterator<DirectiveInfo> iterator();
 }

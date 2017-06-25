@@ -38,7 +38,6 @@ import java.util.List;
  * Wrangle RecipePipeline executes stepRegistry in the order they are specified.
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
-  private RecipeParser parser;
   private RecipeContext context;
   private List<Directive> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
@@ -51,7 +50,6 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
    */
   @Override
   public void configure(RecipeParser parser, RecipeContext context) throws RecipeException {
-    this.directives = directives;
     this.context = context;
     try {
       this.directives = parser.parse();

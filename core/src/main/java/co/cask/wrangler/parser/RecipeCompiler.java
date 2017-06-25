@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.parser.SyntaxError;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -32,9 +33,16 @@ import java.util.List;
  * Class description here.
  */
 public final class RecipeCompiler implements Compiler {
+  private boolean hasErrors;
+  private Iterator<SyntaxError> errors;
+
+  public RecipeCompiler() {
+    this.hasErrors = false;
+    this.errors = new ArrayList<SyntaxError>().iterator();
+  }
 
   @Override
-  public Iterable<CompiledUnit> compile(Iterator<String> directives) throws CompileException {
+  public Iterator<CompiledUnit> compile(Iterator<String> directives) throws CompileException {
     final List<CompiledUnit> tokens = new ArrayList<>();
 
     while(directives.hasNext()) {
@@ -42,12 +50,7 @@ public final class RecipeCompiler implements Compiler {
       tokens.add(compile(directive));
     }
 
-    return new Iterable<CompiledUnit>() {
-      @Override
-      public Iterator<CompiledUnit> iterator() {
-        return tokens.iterator();
-      }
-    };
+    return tokens.iterator();
   }
 
   @Override
@@ -73,6 +76,16 @@ public final class RecipeCompiler implements Compiler {
     }
   }
 
+  @Override
+  public boolean hasErrors() {
+    return hasErrors;
+  }
+
+  @Override
+  public Iterator<SyntaxError> getSyntaxErrors() {
+    return errors;
+  }
+
   private CompiledUnit compile(CharStream stream) {
     SyntaxErrorListener errorListener = new SyntaxErrorListener();
     DirectivesLexer lexer = new DirectivesLexer(stream);
@@ -87,6 +100,12 @@ public final class RecipeCompiler implements Compiler {
     parser.setBuildParseTree(false);
     RecipeVisitor visitor = new RecipeVisitor();
     visitor.visit(tree);
-    return visitor.getTokens();
+
+    if(errorListener.hasErrors()) {
+      hasErrors = true;
+      errors = errorListener.iterator();
+    }
+
+    return visitor.getCompiledUnit();
   }
 }

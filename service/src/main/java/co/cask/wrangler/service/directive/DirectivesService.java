@@ -40,7 +40,7 @@ import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.parser.UsageRegistry;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.sampling.Reservoir;
@@ -1028,7 +1028,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
                                                        getContext(),
                                                        store);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
-    RecipeParser directives = new SimpleTextDirectives(user.getRecipe().getDirectives());
+    RecipeParser directives = new SimpleTextParser(user.getRecipe().getDirectives());
     directives.initialize(new ConfigDirectiveContext(table.getConfigString()));
     executor.configure(directives, context);
     return executor.execute(sample.apply(records));

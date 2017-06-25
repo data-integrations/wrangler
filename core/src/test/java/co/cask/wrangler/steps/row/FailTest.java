@@ -20,7 +20,7 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -42,7 +42,7 @@ public class FailTest {
     );
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(new SimpleTextDirectives(directives), null);
+    pipeline.configure(new SimpleTextParser(directives), null);
     pipeline.execute(records);
   }
 
@@ -57,7 +57,7 @@ public class FailTest {
     );
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(new SimpleTextDirectives(directives), null);
+    pipeline.configure(new SimpleTextParser(directives), null);
     pipeline.execute(records);
   }
 

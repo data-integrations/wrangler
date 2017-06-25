@@ -19,7 +19,7 @@ package co.cask.wrangler.steps.row;
 import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,7 +45,7 @@ public class SendToErrorTest {
       new Record("body", "U,V,2,3.0")
     );
 
-    SimpleTextDirectives directives1 = new SimpleTextDirectives(directives);
+    SimpleTextParser directives1 = new SimpleTextParser(directives);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     executor.configure(directives1, null);
     List<Record> results = executor.execute(records);

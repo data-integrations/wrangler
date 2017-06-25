@@ -21,7 +21,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.format.StructuredRecordStringConverter;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -57,7 +57,7 @@ public class Json2SchemaTest {
     RecordConvertor recordConvertor = new RecordConvertor();
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     JsonParser parser = new JsonParser();
-    executor.configure(new SimpleTextDirectives(directives), null);
+    executor.configure(new SimpleTextParser(directives), null);
     for (String test : TESTS) {
       Record record = new Record("body", test);
 

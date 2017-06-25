@@ -113,11 +113,11 @@ import javax.annotation.Nullable;
 /**
  * Parses the DSL into specification containing stepRegistry for wrangling.
  *
- * Following are some of the commands and format that {@link SimpleTextDirectives}
+ * Following are some of the commands and format that {@link SimpleTextParser}
  * will handle.
  */
-public class SimpleTextDirectives implements RecipeParser {
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleTextDirectives.class);
+public class SimpleTextParser implements RecipeParser {
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleTextParser.class);
 
   // directives for wrangling.
   private String[] directives;
@@ -128,16 +128,16 @@ public class SimpleTextDirectives implements RecipeParser {
   // Specifies the context for directive parsing.
   private DirectiveContext context;
 
-  public SimpleTextDirectives(String[] directives) {
+  public SimpleTextParser(String[] directives) {
     this.directives = directives;
     this.context = new NoOpDirectiveContext();
   }
 
-  public SimpleTextDirectives(String directives) {
+  public SimpleTextParser(String directives) {
     this(directives.split("\n"));
   }
 
-  public SimpleTextDirectives(List<String> directives) {
+  public SimpleTextParser(List<String> directives) {
     this(directives.toArray(new String[directives.size()]));
   }
 

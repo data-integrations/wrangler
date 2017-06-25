@@ -19,7 +19,7 @@ package co.cask.wrangler.executor;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.statistics.Statistics;
 import org.junit.Assert;
@@ -51,7 +51,7 @@ public class BasicStatisticsTest {
     );
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(new SimpleTextDirectives(directives), null);
+    pipeline.configure(new SimpleTextParser(directives), null);
     records = pipeline.execute(records);
 
     Statistics meta = new BasicStatistics();
@@ -110,7 +110,7 @@ public class BasicStatisticsTest {
     }
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(new SimpleTextDirectives(directives), null);
+    pipeline.configure(new SimpleTextParser(directives), null);
     records = pipeline.execute(records);
 
     Statistics meta = new BasicStatistics();

@@ -17,20 +17,56 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.GrammarMigration;
 import com.google.common.base.Joiner;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import static co.cask.wrangler.parser.SimpleTextDirectives.getNextToken;
+import static co.cask.wrangler.parser.SimpleTextParser.getNextToken;
 
 /**
  * This class helps rewrites the recipe of directives from version 1.0 to version 2.0.
  */
-public final class Rewriter {
+public final class MigrateToV2 implements GrammarMigration {
 
-  public static List<String> rewrite(List<String> directives) throws DirectiveParseException {
+  /**
+   * Checks to see if directive is migratable.
+   *
+   * @param directives to be checked if it's migratable.
+   * @return true if the directives are migrateable, false otherwise.
+   */
+  @Override
+  public boolean isMigrateable(List<String> directives) {
+    boolean migrateable = true;
+
+    for (String directive : directives) {
+      directive = directive.trim();
+      if (directive.isEmpty() || directive.startsWith("//") || directive.startsWith("#")) {
+        continue;
+      }
+
+      StringTokenizer tokenizer = new StringTokenizer(directive, " ");
+      String command = tokenizer.nextToken();
+
+      if (command.equalsIgnoreCase("#pragma")) {
+        migrateable = false;
+        break;
+      }
+    }
+
+    return migrateable;
+  }
+
+  /**
+   * Rewrites the directives in version 1.0 to version 2.0.
+   *
+   * @param directives that need to be converted to version 2.0.
+   * @return directives converted to version 2.0.
+   */
+  @Override
+  public List<String> migrate(List<String> directives) throws DirectiveParseException {
     List<String> transformed = new ArrayList<>();
     int lineno = 1;
     for (String directive : directives) {

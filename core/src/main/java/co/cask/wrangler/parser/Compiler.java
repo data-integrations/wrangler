@@ -17,6 +17,7 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
+import co.cask.wrangler.api.parser.SyntaxError;
 import org.apache.twill.filesystem.Location;
 
 import java.nio.file.Path;
@@ -27,8 +28,10 @@ import java.util.Iterator;
  */
 @PublicEvolving
 public interface Compiler {
-  Iterable<CompiledUnit> compile(Iterator<String> directive) throws CompileException;
+  Iterator<CompiledUnit> compile(Iterator<String> directive) throws CompileException;
   CompiledUnit compile(String directive) throws CompileException;
   CompiledUnit compile(Location location) throws CompileException;
   CompiledUnit compile(Path path) throws CompileException;
+  boolean hasErrors();
+  Iterator<SyntaxError> getSyntaxErrors();
 }

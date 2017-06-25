@@ -19,7 +19,7 @@ package co.cask.wrangler.steps.writer;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -56,7 +56,7 @@ public class WriteAsJsonObjectTest {
       new Record("event", EVENT)
     );
 
-    RecipeParser directives = new SimpleTextDirectives(recipe);
+    RecipeParser directives = new SimpleTextParser(recipe);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     executor.configure(directives, null);
     records = executor.execute(records);

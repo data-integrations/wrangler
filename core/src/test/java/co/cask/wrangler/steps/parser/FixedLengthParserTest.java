@@ -21,7 +21,7 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class FixedLengthParserTest {
       new Record("body", "AABBCDEEEFFF")
     );
 
-    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -64,7 +64,7 @@ public class FixedLengthParserTest {
       new Record("body", "AABBCDEEEFFFF")
     );
 
-    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     records = pipeline.execute(records);
@@ -85,7 +85,7 @@ public class FixedLengthParserTest {
       "parse-as-fixed-length body A-B,C-D,12",
     };
 
-    SimpleTextDirectives specification = new SimpleTextDirectives(directives);
+    SimpleTextParser specification = new SimpleTextParser(directives);
     List<Directive> steps = new ArrayList<>();
     steps.addAll(specification.parse());
   }
@@ -133,7 +133,7 @@ public class FixedLengthParserTest {
     };
 
     // Configure and parse directives.
-    SimpleTextDirectives directives = new SimpleTextDirectives(d);
+    SimpleTextParser directives = new SimpleTextParser(d);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
 

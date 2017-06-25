@@ -20,7 +20,7 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Record;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextDirectives;
+import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -41,7 +41,7 @@ public class RenameTest {
       new Record("C1", "A").add("C2", "B").add("C3", "C").add("C4", "D").add("C5", "E")
     );
 
-    SimpleTextDirectives d = new SimpleTextDirectives(directives);
+    SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     pipeline.execute(records);

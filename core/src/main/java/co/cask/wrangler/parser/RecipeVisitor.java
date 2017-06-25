@@ -23,7 +23,7 @@ import java.util.List;
 public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Builder> {
   private CompiledUnit.Builder tokens = new CompiledUnit.Builder();
 
-  public CompiledUnit getTokens() {
+  public CompiledUnit getCompiledUnit() {
     return tokens.build();
   }
 
