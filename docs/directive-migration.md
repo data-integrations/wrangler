@@ -4,7 +4,7 @@ Following is the list of all the directives mapping from version 1.0 to version 
 ```Rewriter``` allows you to convert from old format to new. If the recipe doesn't include ```#pragma version 2.0```
 the recipe is treated as version 1.0 and the rewriter is invoked, else new parser is used.
 
-| Name                   | Directive - Version 1.0                                                  | Description - Version 2.0                                                |
+| Name                   | Directive - Version 1.0                                                  | Directive - Version 2.0                                                |
 | -----------------------| ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 |  SET                   |  set column salary salary > 100 ? 100 : salary                           |  set-column :salary exp:{salary > 100 ? 100 : salary};                   |
 |  SET                   |  set columns fname,lname,address,city,state,country,zipcode              |  set-columns :fname,:lname,:address,:city,:state,:country,:zipcode;      |
