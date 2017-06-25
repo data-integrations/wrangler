@@ -21,5 +21,5 @@ More description of the above lines.
 
 ## Related documentation
 
-  * Mapping from older version of directive grammar to newer [here](docs/directive-migration.md)
+  * Mapping from older version of directive grammar to newer [here](directive-migration.md)
 
