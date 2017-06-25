@@ -15,18 +15,8 @@ data processing directives within the data preparation tool.
 
 More description of the above lines. 
 
-  * `[1]` Specifies the version of directive grammar to be parsed as. 
-  * `[3]` Dynamically loads the two UDDs 
-  * `[4]` Usage of the directive.
+  * `[1]` Specifies the version of directive grammar.
+  * `[3]` Dynamically loads the two UDDs as CDAP Plugins. 
+  * `[4]` Use the directive. `!` specifies the directive is external.
 
 
-# Container
-
-* Artifact is a container of multiple directives
-* Each directive is a plugin using the CDAP Plugin architecture
-
-# Implementation Details
-
-* User issues a directive to load the library and specifies the
-  directives he is interested to be loaded.
-*
