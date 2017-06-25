@@ -21,5 +21,6 @@ More description of the above lines.
 
 ## Related documentation
 
+  * Directive Grammar [here](core/src/main/antlr4/co/cask/wrangler/parser/Directives.g4)
   * Mapping from older version of directive grammar to newer [here](directive-migration.md)
 
