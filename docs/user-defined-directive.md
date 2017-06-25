@@ -19,4 +19,7 @@ More description of the above lines.
   * `[3]` Dynamically loads the two UDDs as CDAP Plugins. 
   * `[4]` Use the directive. `!` specifies the directive is external.
 
+## Related documentation
+
+  * Mapping from older version of directive grammar to newer [here](docs/directive-migration.md)
 
