@@ -79,7 +79,10 @@ public enum TokenType implements Serializable {
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
    * This type is associated with the rule that is a collection of {@code Boolean} values
-   * separated by comman(,).
+   * separated by comman(,). E.g.
+   * <code>
+   *   ColumnName[,ColumnName]*
+   * </code>
    */
   COLUMN_NAME_LIST,
 
@@ -87,35 +90,51 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code TextList} type.
    * This type is associated with the comma separated text represented were each text
    * is enclosed within a single quote (') or double quote (") and each text is separated
-   * by comma (,).
+   * by comma (,). E.g.
+   * <code>
+   *   Text[,Text]*
+   * </code>
    */
   TEXT_LIST,
 
   /**
    * Represents the enumerated type for the object of type {@code NumericList} type.
    * This type is associated with the collection of {@code Numeric} values separated by
-   * comma(,).
+   * comma(,). E.g.
+   * <code>
+   *   Numeric[,Numeric]*
+   * </code>
+   *
    */
   NUMERIC_LIST,
 
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
    * This type is associated with the collection of {@code Bool} values separated by
-   * comma(,).
+   * comma(,). E.g.
+   * <code>
+   *   Boolean[,Boolean]*
+   * </code>
    */
   BOOLEAN_LIST,
 
   /**
    * Represents the enumerated type for the object of type {@code Expression} type.
    * This type is associated with code block that either represents a condition or
-   * an expression.
+   * an expression. E.g.
+   * <code>
+   *   exp:{ <expression || condition> }
+   * </code>
    */
   EXPRESSION,
 
   /**
    * Represents the enumerated type for the object of type {@code Properties} type.
    * This type is associated with a collection of key and value pairs all separated
-   * by a comma(,).
+   * by a comma(,). E.g.
+   * <code>
+   *   prop:{ <key>=<value>[,<key>=<value>]*}
+   * </code>
    */
   PROPERTIES,
 

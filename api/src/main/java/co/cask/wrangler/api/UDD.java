@@ -50,8 +50,55 @@ import co.cask.wrangler.api.parser.UsageDefinition;
  * </code>
  */
 public interface UDD extends Directive<Row, Row> {
+  /**
+   * This defines a interface variable that is static and final for specify
+   * the {@code type} of the plugin this interface would provide.
+   *
+   * <p>This constant should be used when defining a plugin. An example
+   * of such usage is as follow:</p>
+   *
+   * <code>
+   *   @Plugin(type = UDD.Type)
+   *   @Name("text-reverse")
+   *   @Description("Reverses the value of the column.)
+   *   public final class TextReverse implements UDD {
+   *     ...
+   *   }
+   * </code>
+   */
   String Type = "udd";
 
+  /**
+   * This method provides a way for the developer to provide information
+   * about the arguments expected by this directive. The definition of
+   * arguments would provide information to the framework about how each
+   * argument should be parsed and interpretted.
+   *
+   * This method uses {@code UsageDefinition#Builder} to build the token
+   * definitions.
+   *
+   * <code>
+   *   UsageDefinition define() {
+   *     UsageDefinition.Builder builder = UsageDefinition.builder();
+   *     builder.define("column", TokeType.COLUMN_NAME); // :column
+   *     builder.define("number", TokenType.NUMERIC, Optional.TRUE); // 1.0 or 8
+   *     builder.define("text", TokenType.TEXT); // 'text'
+   *     builder.define("boolean", TokenType.BOOL); // true / false
+   *     builder.define("expression", TokenType.EXPRESSOION); // exp: { age < 10.0 }
+   *   }
+   * </code>
+   *
+   * @return A object of {@code UsageDefinition} containing definitions of each argument
+   * expected by this directive.
+   *
+   * @see co.cask.wrangler.api.parser.TokenType
+   */
   UsageDefinition define();
+
+  /**
+   *
+   * @param args
+   * @throws DirectiveParseException
+   */
   void initialize(Arguments args) throws DirectiveParseException;
 }
