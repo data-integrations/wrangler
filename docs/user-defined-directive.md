@@ -2,6 +2,11 @@
 
 **U**ser **D**efined **D**irective (UDD) are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives within the data preparation tool.
 
+Building a custom directive involves implementing three simple methods :
+  * **D** -- `define()` -- Define how the framework should interpret the arguments. 
+  * **I** -- `initialise()` -- Invoked by the framework to initialise the custom directive with arguments parsed. 
+  * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
+    
 # Syntax
 
 ```
@@ -32,13 +37,13 @@ Following is a sample implementation of the plugin.
     @Override
     public UsageDefinition define() {
       UsageDefinition.Builder builder = UsageDefintion.builder();
-      builder.define("col", TokenType.COLUMN_NAME);
+      builder.define("text", TokenType.COLUMN_NAME);
       return builder.build();
     }
 
     @Override
     public void initialise(Arguments args) throws DirectiveParseException {
-      columnArgs = args.value("col");
+      columnArgs = args.value("text");
     }
 
     @Override
@@ -71,7 +76,7 @@ Sample code to show how loadable directives can be extracted from the recipe.
       "#pragma load-directives text-reverse, text-exchange;",
       "rename col1 col2",
       "parse-as-csv body , true",
-      "!text-reverse :body;",
+      "!text-reverse :text;",
       "!test prop: { a='b', b=1.0, c=true};",
       "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
     };
