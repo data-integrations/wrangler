@@ -16,16 +16,79 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.parser.Token;
 import co.cask.wrangler.api.parser.TokenType;
 import com.google.gson.JsonElement;
 
 /**
- * Class description here.
+ * This class {@code Arguments} represents the wrapped tokens that
+ * tokenized and parsed arguments provided to the {@code Directive}.
+ *
+ * This class <code>Arguments</code> includes methods for retrieving
+ * the value of the token provided the name for the token, number of
+ * tokens, support for checking if the named argument exists, type of
+ * token as specified by <code>TokenType</code> and helper method for
+ * constructing <code>JsonElement</code> object.
+ *
+ * @see co.cask.wrangler.api.parser.UsageDefinition
  */
 public interface Arguments {
-  <T> T value(String name);
+  /**
+   * This method returns the token {@code value} based on the {@code name}
+   * specified in the argument. This method will attempt to convert the token
+   * into the expected return type <code>T</code>.
+   *
+   * <p>If the <code>name</code> doesn't exist in this object, then this
+   * method is expected to return <code>null</code></p>
+   *
+   * @param name of the token to be retrieved.
+   * @param <T> type the token need to casted to.
+   * @return object that extends <code>Token</code>.
+   */
+  <T extends Token> T value(String name);
+
+  /**
+   * Returns the number of tokens that are mapped to arguments.
+   *
+   * <p>The optional arguments specified during the <code>UsageDefinition</code>
+   * are not included in the size if they are not present in the tokens parsed.</p>
+   *
+   * @return number of tokens parsed, excluding optional tokens if not present.
+   */
   int size();
+
+  /**
+   * This method checks if there exists a token named <code>name</code> registered
+   * with this object.
+   *
+   * The <code>name</code> is expected to the same as specified in the <code>UsageDefinition</code>.
+   * There are two reason why the <code>name</code> might not exists in this object :
+   *
+   * <ul>
+   *   <li>When an token is defined to be optional, the user might not have specified the
+   *   token, hence the token would not exist in the argument.</li>
+   *   <li>User has specified invalid <code>name</code>.</li>
+   * </ul>
+   *
+   * @param name associated with the token.
+   * @return true if argument with name <code>name</code> exists, false otherwise.
+   */
   boolean contains(String name);
+
+  /**
+   * Each token is defined as one of the types defined in the class {@link TokenType}.
+   * When the directive is parsed into token, the type of the token is passed through.
+   *
+   * @param name associated with the token.
+   * @return <code>TokenType</code> associated with argument <code>name</code>, else null.
+   */
   TokenType type(String name);
+
+  /**
+   * Returns <code>JsonElement</code> representation of this object.
+   *
+   * @return an instance of <code>JsonElement</code>object representing all the
+   * named tokens held within this object.
+   */
   JsonElement toJson();
 }

@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Usage;
@@ -60,7 +60,7 @@ public class SetCharset extends AbstractDirective {
    */
   @Override
   public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException,
-    ErrorRecordException {
+    ErrorRowException {
 
     // Iterate through all the rows.
     for (Row row : rows) {

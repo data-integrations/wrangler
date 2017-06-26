@@ -18,7 +18,7 @@ package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.parser.SimpleTextParser;
@@ -83,7 +83,7 @@ public class RecipePipelineTest {
   }
 
 
-  public static List<Row> execute(List<Directive> directives, List<Row> rows) throws DirectiveExecutionException, ErrorRecordException {
+  public static List<Row> execute(List<Directive> directives, List<Row> rows) throws DirectiveExecutionException, ErrorRowException {
     for (Directive directive : directives) {
       rows = directive.execute(rows, null);
     }
@@ -91,7 +91,7 @@ public class RecipePipelineTest {
   }
 
   public static List<Row> execute(String[] directives, List<Row> rows)
-    throws DirectiveExecutionException, DirectiveParseException, ErrorRecordException {
+    throws DirectiveExecutionException, DirectiveParseException, ErrorRowException {
     SimpleTextParser specification = new SimpleTextParser(directives);
     List<Directive> steps = new ArrayList<>();
     steps.addAll(specification.parse());

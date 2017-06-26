@@ -5,7 +5,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -60,7 +60,7 @@ public final class SantizeString implements UDD {
 
   @Override
   public List<Row> execute(List<Row> rows, RecipeContext context)
-    throws DirectiveExecutionException, ErrorRecordException {
+    throws DirectiveExecutionException, ErrorRowException {
     return null;
   }
 

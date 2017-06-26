@@ -44,7 +44,7 @@ import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.parser.UsageRegistry;
 import co.cask.wrangler.proto.Request;
-import co.cask.wrangler.registry.DirectiveRegistry;
+import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.registry.UserDirectiveRegistry;
 import co.cask.wrangler.sampling.Reservoir;

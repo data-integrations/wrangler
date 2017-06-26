@@ -14,11 +14,10 @@
  *  the License.
  */
 
-package co.cask.wrangler.registry;
+package co.cask.wrangler.api;
 
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import com.google.gson.JsonObject;
 

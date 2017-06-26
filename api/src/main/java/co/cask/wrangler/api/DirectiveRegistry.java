@@ -14,9 +14,8 @@
  *  the License.
  */
 
-package co.cask.wrangler.registry;
+package co.cask.wrangler.api;
 
-import co.cask.wrangler.api.DirectiveLoadException;
 import com.google.gson.JsonElement;
 
 import javax.annotation.Nullable;
@@ -29,9 +28,6 @@ import javax.annotation.Nullable;
  * includes name,class,usage and usage definition.</p>
  *
  * @see DirectiveInfo
- * @see SystemDirectiveRegistry
- * @see UserDirectiveRegistry
- * @see CompositeDirectiveRegistry
  */
 public interface DirectiveRegistry {
   /**

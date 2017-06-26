@@ -43,7 +43,7 @@ import co.cask.wrangler.api.parser.UsageDefinition;
  *
  *     @Override
  *     public List<Row> execute(List<Row> rows, RecipeContext context)
- *       throws DirectiveExecutionException, ErrorRecordException {
+ *       throws DirectiveExecutionException, ErrorRowException {
  *       ...
  *     }
  *   }
@@ -138,8 +138,9 @@ public interface UDD extends Directive<Row, Row> {
    *   </code>
    * </p>
    *
-   * @param args
-   * @throws DirectiveParseException
+   * @param args Tokenized and parsed arguments.
+   * @throws DirectiveParseException thrown by the user in case of any issues with validation or
+   * ensuring the argument values are as expected.
    */
   void initialize(Arguments args) throws DirectiveParseException;
 }

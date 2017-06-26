@@ -20,6 +20,8 @@ import co.cask.wrangler.api.annotations.PublicEvolving;
 
 /**
  * An abstract class for {@link Directive} with added debugging capabilities.
+ *
+ * @Deprecated
  */
 @PublicEvolving
 public abstract class AbstractDirective implements Directive<Row, Row> {

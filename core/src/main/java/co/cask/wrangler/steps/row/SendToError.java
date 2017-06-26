@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Usage;
@@ -71,7 +71,7 @@ public class SendToError extends AbstractDirective {
    */
   @Override
   public List<Row> execute(List<Row> rows, RecipeContext context)
-    throws DirectiveExecutionException, ErrorRecordException {
+    throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       // Move the fields from the row into the context.
@@ -92,7 +92,7 @@ public class SendToError extends AbstractDirective {
       try {
         boolean result = (Boolean) script.execute(ctx);
         if (result) {
-          throw new ErrorRecordException(toString(), 1);
+          throw new ErrorRowException(toString(), 1);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
@@ -108,7 +108,7 @@ public class SendToError extends AbstractDirective {
                                   "or convert to right data type using conversion functions available. Reason : " + e.getMessage());
       } catch (Exception e) {
         // We want to propogate this exception up!
-        if (e instanceof ErrorRecordException) {
+        if (e instanceof ErrorRowException) {
           throw e;
         }
         if (e.getCause() != null) {

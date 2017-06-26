@@ -20,7 +20,7 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -97,7 +97,7 @@ public class Fail extends AbstractDirective {
                                   "Reason : " + e.getMessage());
       } catch (Exception e) {
         // We want to propogate this exception up!
-        if (e instanceof ErrorRecordException) {
+        if (e instanceof ErrorRowException) {
           throw e;
         }
         if (e.getCause() != null) {

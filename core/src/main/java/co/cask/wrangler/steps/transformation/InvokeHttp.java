@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -106,7 +106,7 @@ public class InvokeHttp extends AbstractDirective {
    */
   @Override
   public List<Row> execute(List<Row> rows, RecipeContext context)
-    throws DirectiveExecutionException, ErrorRecordException {
+    throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
       Map<String, Object> parameters = new HashMap<>();
       for (String column : columns) {
@@ -122,7 +122,7 @@ public class InvokeHttp extends AbstractDirective {
         }
       } catch (Exception e) {
         // If there are any issues, they will be pushed on the error port.
-        throw new ErrorRecordException(e.getMessage(), 500);
+        throw new ErrorRowException(e.getMessage(), 500);
       }
     }
     return rows;

@@ -27,8 +27,8 @@ import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.wrangler.registry.DirectiveInfo;
-import co.cask.wrangler.registry.DirectiveRegistry;
+import co.cask.wrangler.api.DirectiveInfo;
+import co.cask.wrangler.api.DirectiveRegistry;
 import com.google.common.base.Joiner;
 
 import java.util.ArrayList;

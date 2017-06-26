@@ -22,7 +22,7 @@ import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeException;
@@ -105,7 +105,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
           if(newRows.size() > 0) {
             results.addAll(newRows);
           }
-        } catch (ErrorRecordException e) {
+        } catch (ErrorRowException e) {
           collector.add(new ErrorRecord(newRows.get(0), e.getMessage(), e.getCode()));
         }
         i++;

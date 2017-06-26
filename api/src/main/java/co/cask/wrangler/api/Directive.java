@@ -34,6 +34,6 @@ public interface Directive<I, O> extends Serializable {
    * @return Wrangled List of {@link Row}.
    */
   List<O> execute(List<I> records, RecipeContext context)
-    throws DirectiveExecutionException, ErrorRecordException;
+    throws DirectiveExecutionException, ErrorRowException;
 }
 

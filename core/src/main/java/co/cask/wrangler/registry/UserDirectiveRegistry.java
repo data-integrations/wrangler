@@ -21,7 +21,9 @@ import co.cask.cdap.api.artifact.ArtifactManager;
 import co.cask.cdap.api.artifact.CloseableClassLoader;
 import co.cask.cdap.api.plugin.PluginClass;
 import co.cask.cdap.etl.api.StageContext;
+import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.UDD;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -54,7 +56,7 @@ import java.util.Set;
  * @see SystemDirectiveRegistry
  * @see CompositeDirectiveRegistry
  */
-public final class UserDirectiveRegistry implements  DirectiveRegistry {
+public final class UserDirectiveRegistry implements DirectiveRegistry {
   private final Map<String, DirectiveInfo> registry = new HashMap<>();
   private StageContext context = null;
 

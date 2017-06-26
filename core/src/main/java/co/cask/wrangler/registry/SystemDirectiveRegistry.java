@@ -16,7 +16,9 @@
 
 package co.cask.wrangler.registry;
 
+import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.UDD;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

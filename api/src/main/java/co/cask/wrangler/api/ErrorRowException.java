@@ -19,14 +19,14 @@ package co.cask.wrangler.api;
 /**
  * Exception throw when the record needs to emitted to error collector.
  */
-public class ErrorRecordException extends Exception {
+public class ErrorRowException extends Exception {
   // Message as to why the record errored.
   private String message;
 
   // Code associated with the error message.
   private int code;
 
-  public ErrorRecordException(String message, int code) {
+  public ErrorRowException(String message, int code) {
     this.message = message;
     this.code = code;
   }

@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
@@ -67,7 +67,7 @@ public final class Rename implements UDD {
    * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException, ErrorRecordException {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
       int idx = row.find(source.value());
       int idxnew = row.find(target.value());

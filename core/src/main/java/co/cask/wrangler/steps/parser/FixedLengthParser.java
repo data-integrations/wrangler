@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.ErrorRecordException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Usage;
@@ -64,7 +64,7 @@ public final class FixedLengthParser extends AbstractDirective {
    */
   @Override
   public List<Row> execute(List<Row> rows, RecipeContext context)
-    throws DirectiveExecutionException, ErrorRecordException {
+    throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       int idx = row.find(col);
@@ -75,7 +75,7 @@ public final class FixedLengthParser extends AbstractDirective {
           int length = data.length();
           // If the recordLength length doesn't match the string length.
           if (length < recordLength) {
-            throw new ErrorRecordException(
+            throw new ErrorRowException(
               String.format("Fewer bytes than length of row specified - expected atleast %d bytes, found %s bytes.",
                             recordLength, length),
               2
