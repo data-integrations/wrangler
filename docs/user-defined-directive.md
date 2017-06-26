@@ -68,13 +68,13 @@ Sample code to show how loadable directives can be extracted from the recipe.
 ```
     ...
     String[] recipe = new String[] {
-      "#pragma version 2.0",
-      "#pragma load-directives text-reverse, text-exchange",
+      "#pragma version 2.0;",
+      "#pragma load-directives text-reverse, text-exchange;",
       "rename col1 col2",
       "parse-as-csv body , true",
       "!text-reverse :body;",
       "!test prop: { a='b', b=1.0, c=true};",
-      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4"
+      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
     };
 
     Compiler compiler = new RecipeCompiler();
@@ -91,8 +91,8 @@ directives that are executable in the `RecipePipeline`.
 ```
     ...
     String[] recipe = new String[] {
-      "#pragma version 2.0",
-      "#pragma load-directives text-reverse, text-exchange",
+      "#pragma version 2.0;",
+      "#pragma load-directives text-reverse, text-exchange;",
       "rename col1 col2",
       "parse-as-csv body , true"
     };
