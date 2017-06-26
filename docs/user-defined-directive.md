@@ -21,5 +21,5 @@ More description of the above lines.
 
 ## Related documentation
 
-  * Information about Grammar [here](docs/grammar/grammar-info.md)
+  * Information about Grammar [here](grammar/grammar-info.md)
 
