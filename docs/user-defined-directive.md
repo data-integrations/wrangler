@@ -1,8 +1,12 @@
 # User Defined Directive (UDD)
 
-User Defined Directive (UDD) allow users to develop, deploy and use
-data processing directives within the data preparation tool.
+**U**ser **D**efined **D**irective (UDD) are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives within the data preparation tool.
 
+Building a custom directive involves implementing three simple methods :
+  * **D** -- `define()` -- Define how the framework should interpret the arguments. 
+  * **I** -- `initialise()` -- Invoked by the framework to initialise the custom directive with arguments parsed. 
+  * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
+    
 # Syntax
 
 ```
@@ -33,13 +37,13 @@ Following is a sample implementation of the plugin.
     @Override
     public UsageDefinition define() {
       UsageDefinition.Builder builder = UsageDefintion.builder();
-      builder.define("col", TokenType.COLUMN_NAME);
+      builder.define("text", TokenType.COLUMN_NAME);
       return builder.build();
     }
 
     @Override
     public void initialise(Arguments args) throws DirectiveParseException {
-      columnArgs = args.value("col");
+      columnArgs = args.value("text");
     }
 
     @Override
@@ -58,8 +62,8 @@ Following is detailed explaination for the above code.
   * `@Name` annotation provides the name of the plugin. For this type, the directive name and plugin name are the same.
   * `@Description` annotation provides a short description of the directive.
   * `UsageDefition define() { }` Defines the arguments that are expected by the directive.
-  * `void initialise(Arguments args) { }` Invoked before configuring a directive to be added to the recipe execution.
-  * `execute(...) { }` Every `Row` from previous pipeline is passed to this plugin to execute.
+  * `void initialise(Arguments args) { }` Invoked before configuring a directive with arguments parsed by the framework based on the `define()` methods `UsageDefintion`.
+  * `execute(...) { }` Every `Row` from previous directive execution is passed to this plugin to execute.
 
 ## Extracting Loadable Directives
 
@@ -68,13 +72,13 @@ Sample code to show how loadable directives can be extracted from the recipe.
 ```
     ...
     String[] recipe = new String[] {
-      "#pragma version 2.0",
-      "#pragma load-directives text-reverse, text-exchange",
+      "#pragma version 2.0;",
+      "#pragma load-directives text-reverse, text-exchange;",
       "rename col1 col2",
       "parse-as-csv body , true",
-      "!text-reverse :body;",
+      "!text-reverse :text;",
       "!test prop: { a='b', b=1.0, c=true};",
-      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4"
+      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
     };
 
     Compiler compiler = new RecipeCompiler();
@@ -91,8 +95,8 @@ directives that are executable in the `RecipePipeline`.
 ```
     ...
     String[] recipe = new String[] {
-      "#pragma version 2.0",
-      "#pragma load-directives text-reverse, text-exchange",
+      "#pragma version 2.0;",
+      "#pragma load-directives text-reverse, text-exchange;",
       "rename col1 col2",
       "parse-as-csv body , true"
     };
@@ -110,4 +114,5 @@ directives that are executable in the `RecipePipeline`.
 ## Related documentation
 
   * Information about Grammar [here](grammar/grammar-info.md)
+  * Migrating directives from version 1.0 to version 2.0 [here](directive-migration.md)
   * Various `TokenType` supported by system [here](../api/src/main/java/co/cask/wrangler/api/parser/TokenType.java)
