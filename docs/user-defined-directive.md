@@ -17,7 +17,7 @@ More description of the above lines.
 
   * `[1]` Specifies the version of directive grammar.
   * `[3]` Dynamically loads the two UDDs as CDAP Plugins. 
-  * `[4]` Use the directive. `!` specifies the directive is external.
+  * `[4]` Uses the directive. `!` specifies the directive as external or user defined.
 
 ## Related documentation
 
