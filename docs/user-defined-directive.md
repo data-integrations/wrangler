@@ -55,4 +55,4 @@ Following is a sample implementation of the plugin.
 ## Related documentation
 
   * Information about Grammar [here](grammar/grammar-info.md)
-
+  * Various `TokenType` supported by system [here](../api/main/java/src/co/cask/wrangler/api/parser/TokenType.java)
