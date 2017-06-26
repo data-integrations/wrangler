@@ -25,7 +25,7 @@ More description of the above lines.
 
 ## How to write directive.
 
-Following is a sample implementation of the plugin.
+Following is a sample implementation of the plugin that extends the interface [UDD](../api/src/main/java/co/cask/wrangler/api/UDD.java)
 
 ```
   @Plugin(type = UDD.Type)
