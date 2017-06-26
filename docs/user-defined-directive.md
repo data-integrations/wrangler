@@ -31,7 +31,7 @@ Following is a sample implementation of the plugin.
     private final ColumnName columnArgs;
 
     @Override
-    public UsageDefinition define() throws DirectiveParseException {
+    public UsageDefinition define() {
       UsageDefinition.Builder builder = UsageDefintion.builder();
       builder.define("col", TokenType.COLUMN_NAME);
       return builder.build();
