@@ -62,8 +62,8 @@ Following is detailed explaination for the above code.
   * `@Name` annotation provides the name of the plugin. For this type, the directive name and plugin name are the same.
   * `@Description` annotation provides a short description of the directive.
   * `UsageDefition define() { }` Defines the arguments that are expected by the directive.
-  * `void initialise(Arguments args) { }` Invoked before configuring a directive to be added to the recipe execution.
-  * `execute(...) { }` Every `Row` from previous pipeline is passed to this plugin to execute.
+  * `void initialise(Arguments args) { }` Invoked before configuring a directive with arguments parsed by the framework based on the `define()` methods `UsageDefintion`.
+  * `execute(...) { }` Every `Row` from previous directive execution is passed to this plugin to execute.
 
 ## Extracting Loadable Directives
 
