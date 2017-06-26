@@ -110,4 +110,5 @@ directives that are executable in the `RecipePipeline`.
 ## Related documentation
 
   * Information about Grammar [here](grammar/grammar-info.md)
+  * Migrating directives from version 1.0 to version 2.0 [here](directive-migration.md)
   * Various `TokenType` supported by system [here](../api/src/main/java/co/cask/wrangler/api/parser/TokenType.java)
