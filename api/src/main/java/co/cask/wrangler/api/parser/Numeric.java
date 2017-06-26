@@ -43,7 +43,7 @@ public class Numeric implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.NUMERIC.name());
     object.addProperty("value", value);

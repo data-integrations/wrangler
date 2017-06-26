@@ -42,7 +42,7 @@ public class DirectiveName implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.DIRECTIVE_NAME.name());
     object.addProperty("value", value);

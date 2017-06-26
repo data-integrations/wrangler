@@ -1,6 +1,7 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.LazyNumber;
+import co.cask.wrangler.api.Triplet;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.BoolList;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -9,22 +10,55 @@ import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.NumericList;
+import co.cask.wrangler.api.parser.Properties;
+import co.cask.wrangler.api.parser.Ranges;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TextList;
+import co.cask.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class description here.
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Builder> {
-  private CompiledUnit.Builder tokens = new CompiledUnit.Builder();
+  private CompiledUnit.Builder builder = new CompiledUnit.Builder();
 
   public CompiledUnit getCompiledUnit() {
-    return tokens.build();
+    return builder.build();
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * <p>The default implementation returns the result of calling
+   * {@link #visitChildren} on {@code ctx}.</p>
+   *
+   * @param ctx
+   */
+  @Override
+  public CompiledUnit.Builder visitPropertyList(DirectivesParser.PropertyListContext ctx) {
+    Map<String, Token> props = new HashMap<>();
+    List<DirectivesParser.PropertyContext> properties = ctx.property();
+    for(DirectivesParser.PropertyContext property : properties) {
+      String identifier = property.Identifier().getText();
+      Token token;
+      if (property.number() != null) {
+        token = new Numeric(new LazyNumber(property.number().getText()));
+      } else if (property.bool() != null) {
+        token = new Bool(Boolean.valueOf(property.bool().getText()));
+      } else {
+        token = new Text(property.text().getText());
+      }
+      props.put(identifier, token);
+    }
+    builder.add(new Properties(props));
+    return builder;
   }
 
   /**
@@ -37,7 +71,11 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    */
   @Override
   public CompiledUnit.Builder visitPragmaLoadDirective(DirectivesParser.PragmaLoadDirectiveContext ctx) {
-    return super.visitPragmaLoadDirective(ctx);
+    List<TerminalNode> identifiers = ctx.identifierList().Identifier();
+    for (TerminalNode identifier : identifiers) {
+      builder.addLoadableDirective(identifier.getText());
+    }
+    return builder;
   }
 
   /**
@@ -50,32 +88,38 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    */
   @Override
   public CompiledUnit.Builder visitPragmaVersion(DirectivesParser.PragmaVersionContext ctx) {
-    return super.visitPragmaVersion(ctx);
+    builder.addVersion(ctx.Number().getText());
+    return builder;
   }
 
   @Override
   public CompiledUnit.Builder visitNumberRanges(DirectivesParser.NumberRangesContext ctx) {
+    List<Triplet<Numeric, Numeric,String>> output = new ArrayList<>();
     List<DirectivesParser.NumberRangeContext> ranges = ctx.numberRange();
     for(DirectivesParser.NumberRangeContext range : ranges) {
       List<TerminalNode> numbers = range.Number();
-      System.out.println("Range 1 : " + numbers.get(0).getText());
-      System.out.println("Range 2 : " + numbers.get(0).getText());
-      System.out.println("Value : " + range.value().getText());
+      Triplet<Numeric, Numeric, String> val =
+        new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
+                      new Numeric(new LazyNumber(numbers.get(1).getText())),
+                      range.value().getText()
+        );
+      output.add(val);
     }
-    return super.visitNumberRanges(ctx);
+    builder.add(new Ranges(output));
+    return builder;
   }
 
 
   @Override
   public CompiledUnit.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
-    tokens.add(new DirectiveName(ctx.Identifier().getText()));
-    return super.visitEcommand(ctx);
+    builder.add(new DirectiveName(ctx.Identifier().getText()));
+    return builder;
   }
 
   @Override
   public CompiledUnit.Builder visitColumn(DirectivesParser.ColumnContext ctx) {
-    tokens.add(new ColumnName(ctx.Column().getText().substring(1)));
-    return super.visitColumn(ctx);
+    builder.add(new ColumnName(ctx.Column().getText().substring(1)));
+    return builder;
   }
 
   /**
@@ -89,8 +133,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
   @Override
   public CompiledUnit.Builder visitText(DirectivesParser.TextContext ctx) {
     String value = ctx.String().getText();
-    tokens.add(new Text(value.substring(1, value.length()-1)));
-    return super.visitText(ctx);
+    builder.add(new Text(value.substring(1, value.length()-1)));
+    return builder;
   }
 
   /**
@@ -104,8 +148,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
   @Override
   public CompiledUnit.Builder visitNumber(DirectivesParser.NumberContext ctx) {
     LazyNumber number = new LazyNumber(ctx.Number().getText());
-    tokens.add(new Numeric(number));
-    return super.visitNumber(ctx);
+    builder.add(new Numeric(number));
+    return builder;
   }
 
   /**
@@ -118,8 +162,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    */
   @Override
   public CompiledUnit.Builder visitBool(DirectivesParser.BoolContext ctx) {
-    tokens.add(new Bool(Boolean.parseBoolean(ctx.Bool().getText())));
-    return super.visitBool(ctx);
+    builder.add(new Bool(Boolean.valueOf(ctx.Bool().getText())));
+    return builder;
   }
 
   /**
@@ -138,8 +182,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
       ParseTree child = ctx.getChild(i);
       sb.append(child.getText()).append(" ");
     }
-    tokens.add(new Expression(sb.toString()));
-    return super.visitCondition(ctx);
+    builder.add(new Expression(sb.toString()));
+    return builder;
   }
 
   /**
@@ -152,8 +196,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    */
   @Override
   public CompiledUnit.Builder visitCommand(DirectivesParser.CommandContext ctx) {
-    tokens.add(new DirectiveName(ctx.Identifier().getText()));
-    return super.visitCommand(ctx);
+    builder.add(new DirectiveName(ctx.Identifier().getText()));
+    return builder;
   }
 
   /**
@@ -171,8 +215,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode column : columns) {
       names.add(column.getText().substring(1));
     }
-    tokens.add(new ColumnNameList(names));
-    return super.visitColList(ctx);
+    builder.add(new ColumnNameList(names));
+    return builder;
   }
 
   /**
@@ -190,8 +234,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode number : numbers) {
       numerics.add(new LazyNumber(number.getText()));
     }
-    tokens.add(new NumericList(numerics));
-    return super.visitNumberList(ctx);
+    builder.add(new NumericList(numerics));
+    return builder;
   }
 
   /**
@@ -209,8 +253,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode bool : bools) {
       booleans.add(Boolean.parseBoolean(bool.getText()));
     }
-    tokens.add(new BoolList(booleans));
-    return super.visitBoolList(ctx);
+    builder.add(new BoolList(booleans));
+    return builder;
   }
 
   /**
@@ -228,7 +272,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode string : strings) {
       strs.add(string.getText());
     }
-    tokens.add(new TextList(strs));
-    return super.visitStringList(ctx);
+    builder.add(new TextList(strs));
+    return builder;
   }
 }

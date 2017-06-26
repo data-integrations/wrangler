@@ -21,28 +21,72 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * Class description here.
+ * The Bool class wraps the primitive type {@code Boolean} in a object.
+ * An object of type {@code Bool} contains the value in primitive type
+ * as well as the type of the token this class represents.
+ *
+ * <p>In addition, this class provides two methods one to extract the
+ * value held by this wrapper object, and the second for extracting the
+ * type of the token.</p>
+ *
+ * @see BoolList
+ * @see ColumnName
+ * @see ColumnNameList
+ * @see DirectiveName
+ * @see Numeric
+ * @see NumericList
+ * @see Properties
+ * @see Ranges
+ * @see Expression
+ * @see Text
+ * @see TextList
  */
 @PublicEvolving
 public class Bool implements Token {
+  /**
+   * The {@code Boolean} object that represents the value held by the token.
+   */
   private Boolean value;
 
+  /**
+   * Allocates a {@code Boolean} object representing the
+   * {@code value} argument.
+   *
+   * @param value the value of the {@code Boolean}.
+   */
   public Bool(Boolean value) {
     this.value = value;
   }
 
+  /**
+   * Returns the value of this {@code Boolean} object as a boolean
+   * primitive.
+   *
+   * @return  the primitive {@code boolean} value of this object.
+   */
   @Override
   public Boolean value() {
     return value;
   }
 
+  /**
+   * Returns the type of this {@code Bool} object as a {@code TokenType}
+   * enum.
+   *
+   * @return the enumerated {@code TokenType} of this object.
+   */
   @Override
   public TokenType type() {
     return TokenType.BOOLEAN;
   }
 
+  /**
+   * Returns the members of this {@code Bool} object as a {@code JsonElement}.
+   *
+   * @return Json representation of this {@code Bool} object as {@code JsonElement}
+   */
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.BOOLEAN.name());
     object.addProperty("value", value);

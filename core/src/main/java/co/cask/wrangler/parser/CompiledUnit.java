@@ -24,20 +24,37 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
  */
 @PublicEvolving
 final class CompiledUnit {
-  // This maintains a list of tokens for all the directives
-  // being parsed.
+  // Version if specified, else defaults to 1.0
+  private String version;
+
+  // Set of loadable directives.
+  private Set<String> loadableDirectives = new HashSet<>();
+
+  // This maintains a list of tokens for each directive parsed.
   private final List<TokenGroup> tokens;
 
-  private CompiledUnit(List<TokenGroup> tokens) {
+  private CompiledUnit(String version, Set<String> loadableDirectives, List<TokenGroup> tokens) {
+    this.version = version;
+    this.loadableDirectives = loadableDirectives;
     this.tokens = tokens;
+  }
+
+  public Set<String> getLoadableDirectives() {
+    return loadableDirectives;
+  }
+
+  public String getVersion() {
+    return version;
   }
 
   public int size() {
@@ -77,10 +94,11 @@ final class CompiledUnit {
   public static final class Builder {
     private final List<TokenGroup> allTokens = new ArrayList<>();
     private TokenGroup tokens = new TokenGroup();
+    private Set<String> loadableDirectives = new HashSet<>();
+    private String version = "1.0";
 
     public void add(Token token) {
-      if (token.type() == TokenType.DIRECTIVE_NAME
-        || token.type() == TokenType.UUD_DIRECTIVE) {
+      if (token.type() == TokenType.DIRECTIVE_NAME) {
         if (allTokens.size() >= 0 && tokens.size() > 0) {
           allTokens.add(tokens);
           tokens = new TokenGroup();
@@ -89,9 +107,17 @@ final class CompiledUnit {
       tokens.add(token);
     }
 
+    public void addVersion(String version) {
+      this.version = version;
+    }
+
+    public void addLoadableDirective(String directive) {
+      loadableDirectives.add(directive);
+    }
+
     public CompiledUnit build() {
       allTokens.add(tokens);
-      return new CompiledUnit(this.allTokens);
+      return new CompiledUnit(version, loadableDirectives, this.allTokens);
     }
   }
 }

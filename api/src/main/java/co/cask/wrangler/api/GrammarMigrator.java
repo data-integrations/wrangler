@@ -16,8 +16,6 @@
 
 package co.cask.wrangler.api;
 
-import java.util.List;
-
 /**
  * This is a interface for migrating grammar from one version to other.
  */
@@ -26,16 +24,14 @@ public interface GrammarMigrator {
   /**
    * Checks to see if directive is migratable.
    *
-   * @param directives to be checked if it's migratable.
    * @return true if the directives are migrateable, false otherwise.
    */
-  boolean isMigrateable(List<String> directives);
+  boolean isMigrateable();
 
   /**
    * Migrates each directive from one version to other.
    *
-   * @param directives to be migrated to newer version.
    * @return directives transformed into a newer version.
    */
-  List<String> migrate(List<String> directives) throws DirectiveParseException;
+  String migrate() throws DirectiveParseException;
 }

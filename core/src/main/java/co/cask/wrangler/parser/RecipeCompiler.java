@@ -96,7 +96,7 @@ public final class RecipeCompiler implements Compiler {
     parser.removeErrorListeners();
     parser.addErrorListener(errorListener);
 
-    ParseTree tree = parser.directives();
+    ParseTree tree = parser.recipe();
     parser.setBuildParseTree(false);
     RecipeVisitor visitor = new RecipeVisitor();
     visitor.visit(tree);

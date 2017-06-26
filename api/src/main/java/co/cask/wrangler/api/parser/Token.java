@@ -28,5 +28,5 @@ import java.io.Serializable;
 public interface Token extends Serializable {
   Object value();
   TokenType type();
-  JsonElement toJsonObject();
+  JsonElement toJson();
 }

@@ -42,7 +42,7 @@ public class Text implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.TEXT.name());
     object.addProperty("value", value);

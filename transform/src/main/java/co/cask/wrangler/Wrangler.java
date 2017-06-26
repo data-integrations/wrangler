@@ -28,6 +28,8 @@ import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
+import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
@@ -118,7 +120,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       RecipeParser directives = new SimpleTextParser(config.directives);
       try {
         directives.parse();
-      } catch (DirectiveParseException e) {
+      } catch (DirectiveParseException | DirectiveNotFoundException | DirectiveLoadException e) {
         throw new IllegalArgumentException(e);
       }
     }

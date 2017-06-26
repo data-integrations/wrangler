@@ -19,6 +19,7 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.GrammarMigrator;
 import com.google.common.base.Joiner;
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,18 +31,34 @@ import static co.cask.wrangler.parser.SimpleTextParser.getNextToken;
  * This class helps rewrites the recipe of directives from version 1.0 to version 2.0.
  */
 public final class MigrateToV2 implements GrammarMigrator {
+  private final List<String> recipe;
+
+  public MigrateToV2(List<String> recipe) {
+    this.recipe = recipe;
+  }
+
+  public MigrateToV2(String[] recipe) {
+    this(Arrays.asList(recipe));
+  }
+
+  public MigrateToV2(String recipe, String delimiter) {
+    this(recipe.split(delimiter));
+  }
+
+  public MigrateToV2(String recipe) {
+    this(recipe, "\n");
+  }
 
   /**
    * Checks to see if directive is migratable.
    *
-   * @param directives to be checked if it's migratable.
    * @return true if the directives are migrateable, false otherwise.
    */
   @Override
-  public boolean isMigrateable(List<String> directives) {
+  public boolean isMigrateable() {
     boolean migrateable = true;
 
-    for (String directive : directives) {
+    for (String directive : recipe) {
       directive = directive.trim();
       if (directive.isEmpty() || directive.startsWith("//")) {
         continue;
@@ -62,14 +79,13 @@ public final class MigrateToV2 implements GrammarMigrator {
   /**
    * Rewrites the directives in version 1.0 to version 2.0.
    *
-   * @param directives that need to be converted to version 2.0.
    * @return directives converted to version 2.0.
    */
   @Override
-  public List<String> migrate(List<String> directives) throws DirectiveParseException {
+  public String migrate() throws DirectiveParseException {
     List<String> transformed = new ArrayList<>();
     int lineno = 1;
-    for (String directive : directives) {
+    for (String directive : recipe) {
       directive = directive.trim();
       if (directive.isEmpty() || directive.startsWith("//")
         || (directive.startsWith("#") && !directive.startsWith("#pragma"))) {
@@ -745,7 +761,7 @@ public final class MigrateToV2 implements GrammarMigrator {
 
       lineno = lineno + 1;
     }
-    return transformed;
+    return Joiner.on('\n').join(transformed);
   }
 
   private static String toColumArray(String[] columns) {

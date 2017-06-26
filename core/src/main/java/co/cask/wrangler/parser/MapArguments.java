@@ -101,7 +101,7 @@ public class MapArguments implements Arguments {
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
     for(Map.Entry<String, Token> entry : tokens.entrySet()) {
-      object.add(entry.getKey(), entry.getValue().toJsonObject());
+      object.add(entry.getKey(), entry.getValue().toJson());
     }
     return object;
   }

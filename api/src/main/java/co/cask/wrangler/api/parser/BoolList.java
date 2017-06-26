@@ -46,7 +46,7 @@ public class BoolList implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.BOOLEAN_LIST.name());
     JsonArray array = new JsonArray();

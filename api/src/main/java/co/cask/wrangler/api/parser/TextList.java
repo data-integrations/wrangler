@@ -48,7 +48,7 @@ public class TextList implements Token {
 
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.TEXT_LIST.name());
     JsonArray array = new JsonArray();

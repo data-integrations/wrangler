@@ -14,3 +14,8 @@ send-to-error exp:{ total < 10};
 
 ## AST
 ![AST](grammar-graph.png)
+
+## Building in IDE
+Set the following
+  * Path : `${base}/wrangler/core/target/generated-sources/antlr4`
+  * Package : `co.cask.wrangler.parser`

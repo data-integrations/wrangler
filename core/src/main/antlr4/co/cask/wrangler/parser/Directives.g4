@@ -48,16 +48,15 @@ directives
 
 directive
  : (command | ecommand) (codeblock)* (Identifier | text | number | bool | column | colList | numberList | boolList | stringList | numberRanges | properties)* (codeblock)* SColon
- | '#pragma' args
+ | pragma
  ;
 
-args
- : pragmaLoadDirective
- | pragmaVersion
+pragma
+ : '#pragma' (pragmaLoadDirective | pragmaVersion) SColon
  ;
 
 properties
- : 'prop' ':' OBrace (propertyList)*  CBrace
+ : 'prop' ':' OBrace (propertyList)+  CBrace
  ;
 
 propertyList
@@ -65,7 +64,7 @@ propertyList
  ;
 
 property
- : Identifier '=' ( Identifier | text | number | bool )
+ : Identifier '=' ( text | number | bool )
  ;
 
 pragmaLoadDirective
@@ -73,7 +72,7 @@ pragmaLoadDirective
  ;
 
 pragmaVersion
- : 'version' (Identifier | Number | String)
+ : 'version' Number
  ;
 
 numberRanges
@@ -85,7 +84,7 @@ numberRange
  ;
 
 value
- : Identifier | String | Number | Column
+ : String | Number | Column | Bool
  ;
 
 ecommand

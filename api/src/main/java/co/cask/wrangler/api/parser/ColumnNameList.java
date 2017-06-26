@@ -47,7 +47,7 @@ public class ColumnNameList implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.COLUMN_NAME_LIST.name());
     JsonArray array = new JsonArray();

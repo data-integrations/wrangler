@@ -47,7 +47,7 @@ public class NumericList implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.NUMERIC_LIST.name());
     JsonArray array = new JsonArray();

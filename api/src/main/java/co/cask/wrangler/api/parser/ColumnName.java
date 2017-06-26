@@ -42,7 +42,7 @@ public class ColumnName implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.COLUMN_NAME.name());
     object.addProperty("value", value);

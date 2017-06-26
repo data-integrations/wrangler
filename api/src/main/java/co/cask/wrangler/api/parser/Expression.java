@@ -42,7 +42,7 @@ public class Expression implements Token {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.EXPRESSION.name());
     object.addProperty("value", value);

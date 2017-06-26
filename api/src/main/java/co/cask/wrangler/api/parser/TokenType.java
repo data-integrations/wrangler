@@ -35,5 +35,7 @@ public enum TokenType implements Serializable {
   NUMERIC_LIST,
   BOOLEAN_LIST,
   EXPRESSION,
-  UUD_DIRECTIVE
+  PROPERTIES,
+  RANGES
+
 }

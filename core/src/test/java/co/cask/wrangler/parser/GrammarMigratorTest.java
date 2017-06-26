@@ -17,6 +17,7 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.GrammarMigrator;
+import com.google.common.base.Joiner;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,9 +25,9 @@ import org.junit.Test;
 import java.util.List;
 
 /**
- * Tests {@link Rewriter}.
+ * Tests {@link GrammarMigrator}.
  */
-public class RewriterTest {
+public class GrammarMigratorTest {
   private static final String[] input = new String[] {
     "set column salary salary > 100 ? 100 : salary",
     "set columns fname,lname,address,city,state,country,zipcode",
@@ -196,10 +197,10 @@ public class RewriterTest {
   };
 
   @Test
-  public void testRewrite() throws Exception {
+  public void testMigration() throws Exception {
     List<String> expected = Arrays.asList(output);
-    GrammarMigrator migrator = new MigrateToV2();
-    List<String> actual = migrator.migrate(Arrays.asList(input));
-    Assert.assertEquals(expected, actual);
+    GrammarMigrator migrator = new MigrateToV2(input);
+    String actual = migrator.migrate();
+    Assert.assertEquals(Joiner.on('\n').join(expected), actual);
   }
 }
