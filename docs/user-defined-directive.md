@@ -1,7 +1,6 @@
 # User Defined Directive (UDD)
 
-User Defined Directive (UDD) allow users to develop, deploy and use
-data processing directives within the data preparation tool.
+**U**ser **D**efined **D**irective (UDD) are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives within the data preparation tool.
 
 # Syntax
 
