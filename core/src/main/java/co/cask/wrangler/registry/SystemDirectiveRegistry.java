@@ -17,6 +17,8 @@
 package co.cask.wrangler.registry;
 
 import co.cask.wrangler.api.UDD;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
@@ -25,22 +27,37 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Class description here.
+ * A registry for aggregating all the system provided directives.
+ *
+ * <p>
+ *   This class inspects the classes that implement the interface {@link UDD}
+ *   to extract information about them and maintain them in the registry.
+ * </p>
  */
 public final class SystemDirectiveRegistry implements  DirectiveRegistry {
+  private static final String PACKAGE = "co.cask.udd";
   private final Map<String, DirectiveInfo> registry;
+  private final String pkg;
 
-  public SystemDirectiveRegistry() {
-    registry = new HashMap<>();
+  public SystemDirectiveRegistry() throws DirectiveLoadException {
+    this(PACKAGE);
+  }
+
+  public SystemDirectiveRegistry(String pkg) throws DirectiveLoadException {
+    this.registry = new HashMap<>();
+    this.pkg = pkg;
     try {
-      addUDDefaults();
-    } catch (Exception e) {
-      e.printStackTrace();
+      loadSystemDirectives();
+    } catch (InstantiationException | IllegalAccessException e) {
+      throw new DirectiveLoadException(e.getMessage(), e);
     }
   }
 
-  private void addUDDefaults() throws Exception {
-    Reflections reflections = new Reflections("co.cask.udd");
+  /**
+   * Loads the directives embedded within the system into a registry.
+   */
+  private void loadSystemDirectives() throws InstantiationException, IllegalAccessException {
+    Reflections reflections = new Reflections(pkg);
     Set<Class<? extends UDD>> system = reflections.getSubTypesOf(UDD.class);
     for(Class<? extends UDD> directive : system) {
       DirectiveInfo classz = new DirectiveInfo(directive);
@@ -48,13 +65,31 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
     }
   }
 
+  /**
+   * Given the name of the directive, returns the information related to the directive.
+   *
+   * @param name of the directive to be retrived from the registry.
+   * @return an instance of {@link DirectiveInfo} if found, else null.
+   */
   @Override
-  public DirectiveInfo get(String name) {
+  public DirectiveInfo get(String name) throws DirectiveLoadException, DirectiveNotFoundException {
     return registry.get(name);
   }
 
+  /**
+   * @return Iterator to all the directives held within the directive registry.
+   */
   @Override
   public Iterator<DirectiveInfo> iterator() {
     return registry.values().iterator();
+  }
+
+  @Override
+  public JsonElement toJson() {
+    JsonObject response = new JsonObject();
+    for(Map.Entry<String, DirectiveInfo> entry : registry.entrySet()) {
+      response.add(entry.getKey(), entry.getValue().toJson());
+    }
+    return response;
   }
 }

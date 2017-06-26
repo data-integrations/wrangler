@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Test;
@@ -37,13 +37,13 @@ public class FailTest {
       "fail count > 0",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("count", 1)
+    List<Row> rows = Arrays.asList(
+      new Row("count", 1)
     );
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(new SimpleTextParser(directives), null);
-    pipeline.execute(records);
+    pipeline.execute(rows);
   }
 
   @Test
@@ -52,13 +52,13 @@ public class FailTest {
       "fail count > 10",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("count", 1)
+    List<Row> rows = Arrays.asList(
+      new Row("count", 1)
     );
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(new SimpleTextParser(directives), null);
-    pipeline.execute(records);
+    pipeline.execute(rows);
   }
 
 }

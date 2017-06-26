@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
 
@@ -50,20 +50,20 @@ public class CharacterCut extends AbstractDirective {
   /**
    * Character-based 'cut' operations.
    *
-   * @param records Input {@link Record} to be wrangled by this step
+   * @param rows Input {@link Row} to be wrangled by this step
    * @param context Specifies the context of the pipeline
-   * @return Transformed {@link Record}
+   * @return Transformed {@link Row}
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(source);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(source);
       if (idx != -1) {
-        Object value = record.getValue(idx);
+        Object value = row.getValue(idx);
         if (value instanceof String) {
           String result = Unix4j.fromString((String) value).cut("-c", range).toStringResult();
-          record.addOrSet(destination, result);
+          row.addOrSet(destination, result);
         } else {
           throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
@@ -71,9 +71,9 @@ public class CharacterCut extends AbstractDirective {
           );
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Source column '" + source + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Source column '" + source + "' does not exist in the row.");
       }
     }
-    return records;
+    return rows;
   }
 }

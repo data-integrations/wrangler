@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
 import co.cask.wrangler.i18n.MessagesFactory;
@@ -55,19 +55,19 @@ public class Rename extends AbstractDirective {
    * Renames the column from 'old' to 'new'.
    * If the source column doesn't exist, then it will return the record as it.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} with column name modified.
+   * @return Transformed {@link Row} with column name modified.
    * @throws DirectiveExecutionException Thrown when there is no 'source' column in the record.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(oldcol);
-      int idxnew = record.find(newcol);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(oldcol);
+      int idxnew = row.find(newcol);
       if (idx != -1) {
         if (idxnew == -1) {
-          record.setColumn(idx, newcol);
+          row.setColumn(idx, newcol);
         } else {
           throw new DirectiveExecutionException(
             String.format(
@@ -78,6 +78,6 @@ public class Rename extends AbstractDirective {
         }
       }
     }
-    return records;
+    return rows;
   }
 }

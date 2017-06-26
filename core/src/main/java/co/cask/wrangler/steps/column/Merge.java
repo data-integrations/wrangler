@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
@@ -59,25 +59,25 @@ public class Merge extends AbstractDirective {
   /**
    * Merges two columns using the delimiter into a third column.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A modified {@link Record} with merged column.
+   * @return A modified {@link Row} with merged column.
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      int idx1 = record.find(col1);
-      int idx2 = record.find(col2);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      int idx1 = row.find(col1);
+      int idx2 = row.find(col2);
       if (idx1 != -1 && idx2 != -1) {
         StringBuilder builder = new StringBuilder();
-        builder.append(record.getValue(idx1));
+        builder.append(row.getValue(idx1));
         builder.append(delimiter);
-        builder.append(record.getValue(idx2));
-        record.add(dest, builder.toString());
+        builder.append(row.getValue(idx2));
+        row.add(dest, builder.toString());
       }
-      results.add(record);
+      results.add(row);
     }
 
     return results;

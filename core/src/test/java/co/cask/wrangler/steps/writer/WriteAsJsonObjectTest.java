@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.writer;
 
 import co.cask.wrangler.api.RecipeParser;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Assert;
@@ -52,18 +52,18 @@ public class WriteAsJsonObjectTest {
       "keep location"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("event", EVENT)
+    List<Row> rows = Arrays.asList(
+      new Row("event", EVENT)
     );
 
     RecipeParser directives = new SimpleTextParser(recipe);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     executor.configure(directives, null);
-    records = executor.execute(records);
+    rows = executor.execute(rows);
 
-    Assert.assertEquals(1, records.size());
+    Assert.assertEquals(1, rows.size());
     Assert.assertEquals("{\"coordinates\":{\"latitude\":-122.43345423,\"longitude\":37.234424223}}",
-                        records.get(0).getValue("location"));
+                        rows.get(0).getValue("location"));
   }
 
 }

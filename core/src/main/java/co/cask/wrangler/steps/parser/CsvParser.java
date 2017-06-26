@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.dq.DataType;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A CSV Parser Stage for parsing the {@link Record} provided based on configuration.
+ * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
 @Plugin(type = "udd")
 @Name("parse-as-csv")
@@ -50,7 +50,7 @@ public class CsvParser extends AbstractDirective {
   // CSV format defines the configuration for CSV parser for parsing.
   private CSVFormat format;
 
-  // Replaces the input {@link Record} columns.
+  // Replaces the input {@link Row} columns.
   private boolean hasHeader;
 
   // Set to true once header is checked.
@@ -71,22 +71,22 @@ public class CsvParser extends AbstractDirective {
   }
 
   /**
-   * Parses a give column in a {@link Record} as a CSV Record.
+   * Parses a give column in a {@link Row} as a CSV Row.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return New Record containing multiple columns based on CSV parsing.
+   * @return New Row containing multiple columns based on CSV parsing.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context)
+  public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException {
 
-    for (Record record : records) {
-      int idx = record.find(col);
+    for (Row row : rows) {
+      int idx = row.find(col);
       if (idx == -1) {
         continue;
       }
-      String line = (String) record.getValue(idx);
+      String line = (String) row.getValue(idx);
       if(line == null || line.isEmpty()) {
         continue;
       }
@@ -99,29 +99,29 @@ public class CsvParser extends AbstractDirective {
             for (int i = 0; i < csvRecord.size(); i++) {
               headers.add(csvRecord.get(i));
             }
-            if (records.size() > 0) {
+            if (rows.size() > 0) {
               return new ArrayList<>();
             }
           } else {
-            toRow(csvRecord, record);
+            toRow(csvRecord, row);
           }
         }
       } catch (IOException e) {
         throw new DirectiveExecutionException(
-          String.format("%s : Issue parsing the record. %s", toString(), e.getMessage())
+          String.format("%s : Issue parsing the row. %s", toString(), e.getMessage())
         );
       }
     }
-    return records;
+    return rows;
   }
 
   /**
-   * Converts a {@link CSVRecord} to {@link Record}.
+   * Converts a {@link CSVRecord} to {@link Row}.
    *
    * @param record
    * @return
    */
-  private void toRow(CSVRecord record, Record row) {
+  private void toRow(CSVRecord record, Row row) {
     int size = headers.size();
     for ( int i = 0; i < record.size(); i++) {
       if (size > 0) {

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import com.google.gson.Gson;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class {@link JsonAvroDecoder} decodes a byte array of AVRO Json Records into the {@link Record} structure.
+ * This class {@link JsonAvroDecoder} decodes a byte array of AVRO Json Records into the {@link Row} structure.
  */
 public class JsonAvroDecoder extends AbstractAvroDecoder {
   private final Gson gson;
@@ -44,8 +44,8 @@ public class JsonAvroDecoder extends AbstractAvroDecoder {
   }
 
   @Override
-  public List<Record> decode(byte[] bytes) throws DecoderException {
-    List<Record> records = new ArrayList<>();
+  public List<Row> decode(byte[] bytes) throws DecoderException {
+    List<Row> rows = new ArrayList<>();
     JsonDecoder decoder = null;
     ByteArrayInputStream in = new ByteArrayInputStream(bytes);
     try {
@@ -54,7 +54,7 @@ public class JsonAvroDecoder extends AbstractAvroDecoder {
         try {
           GenericRecord gRecord = getReader().read(null, decoder);
           List<Schema.Field> fields = getSchema().getFields();
-          Record r = new Record();
+          Row r = new Row();
           for (Schema.Field field : fields) {
             Object object = gRecord.get(field.name());
             if (object instanceof Utf8) {
@@ -65,7 +65,7 @@ public class JsonAvroDecoder extends AbstractAvroDecoder {
             }
             r.add(field.name(), object);
           }
-          records.add(r);
+          rows.add(r);
         } catch (EOFException e) {
           break; // Reached end of buffer.
         }
@@ -81,6 +81,6 @@ public class JsonAvroDecoder extends AbstractAvroDecoder {
         // Can't do anything.
       }
     }
-    return records;
+    return rows;
   }
 }

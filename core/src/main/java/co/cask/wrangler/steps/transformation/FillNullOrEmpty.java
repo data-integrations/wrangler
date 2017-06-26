@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import org.json.JSONObject;
 
@@ -48,34 +48,34 @@ public class FillNullOrEmpty extends AbstractDirective {
   /**
    * Fills the null or empty column (and missing) values with fixed value.
    *
-   * @param records Input {@link Record} to be wrangled by this step
+   * @param rows Input {@link Row} to be wrangled by this step
    * @param context Specifies the context of the pipeline
-   * @return Transformed {@link Record}
+   * @return Transformed {@link Row}
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx == -1) {
-        record.add(column, value);
+        row.add(column, value);
         continue;
       }
-      Object object = record.getValue(idx);
+      Object object = row.getValue(idx);
       if (object == null) {
-        record.setValue(idx, value);
+        row.setValue(idx, value);
       } else {
         if (object instanceof String) {
           if (((String) object).isEmpty()) {
-            record.setValue(idx, value);
+            row.setValue(idx, value);
           }
         } else if (object instanceof JSONObject) {
           if (JSONObject.NULL.equals(object)) {
-            record.setValue(idx, value);
+            row.setValue(idx, value);
           }
         }
       }
     }
-    return records;
+    return rows;
   }
 }

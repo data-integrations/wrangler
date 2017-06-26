@@ -19,7 +19,7 @@ package co.cask.wrangler.utils;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.format.StructuredRecordStringConverter;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import com.google.common.collect.Lists;
@@ -59,15 +59,15 @@ public class Json2SchemaTest {
     JsonParser parser = new JsonParser();
     executor.configure(new SimpleTextParser(directives), null);
     for (String test : TESTS) {
-      Record record = new Record("body", test);
+      Row row = new Row("body", test);
 
-      List<Record> records = executor.execute(Lists.newArrayList(record));
-      Schema schema = converter.toSchema("myrecord", records.get(0));
+      List<Row> rows = executor.execute(Lists.newArrayList(row));
+      Schema schema = converter.toSchema("myrecord", rows.get(0));
       if (schema.getType() != Schema.Type.RECORD) {
         schema = Schema.recordOf("array", Schema.Field.of("array", schema));
       }
       Assert.assertNotNull(schema);
-      List<StructuredRecord> structuredRecords = recordConvertor.toStructureRecord(records, schema);
+      List<StructuredRecord> structuredRecords = recordConvertor.toStructureRecord(rows, schema);
       String decode = StructuredRecordStringConverter.toJsonString(structuredRecords.get(0));
       JsonElement originalObject = parser.parse(test);
       JsonElement roundTripObject = parser.parse(decode).getAsJsonObject().get("body");

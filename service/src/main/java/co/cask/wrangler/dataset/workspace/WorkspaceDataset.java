@@ -25,13 +25,12 @@ import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.dataset.DatasetSpecification;
 import co.cask.cdap.api.dataset.lib.AbstractDataset;
 import co.cask.cdap.api.dataset.module.EmbeddedDataset;
-import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
@@ -140,7 +139,7 @@ public class WorkspaceDataset extends AbstractDataset {
    */
   public boolean hasWorkspace(String id) throws WorkspaceException {
     try {
-      Row row = table.get(toKey(id));
+      co.cask.cdap.api.dataset.table.Row row = table.get(toKey(id));
       if (!row.isEmpty()) {
         return true;
       }
@@ -162,7 +161,7 @@ public class WorkspaceDataset extends AbstractDataset {
   @ReadOnly
   public List<Pair<String, String>> getWorkspaces() throws WorkspaceException {
     List<Pair<String, String>> values = new ArrayList<>();
-    Row row;
+    co.cask.cdap.api.dataset.table.Row row;
     try (Scanner scanner = table.scan(null, null)) {
       while((row = scanner.next()) != null) {
         byte[] key = row.getRow();
@@ -327,10 +326,10 @@ public class WorkspaceDataset extends AbstractDataset {
       String value = Bytes.toString(bytes);
       return (T) value;
     } else if (type == DataType.RECORDS){
-      ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
+      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       try {
-        List<Record> records = serDe.toObject(bytes);
-        return (T) records;
+        List<Row> rows = serDe.toObject(bytes);
+        return (T) rows;
       } catch (IOException | ClassNotFoundException e) {
         throw new WorkspaceException(e.getMessage());
       }

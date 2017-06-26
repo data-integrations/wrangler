@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.TestUtil;
 import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,14 +37,14 @@ public class MergeTest {
       "merge B A D ' '"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("A", "Root").add("B", "Joltie")
+    List<Row> rows = Arrays.asList(
+      new Row("A", "Root").add("B", "Joltie")
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("Root,Joltie", records.get(0).getValue("C"));
-    Assert.assertEquals("Joltie Root", records.get(0).getValue("D"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("Root,Joltie", rows.get(0).getValue("C"));
+    Assert.assertEquals("Joltie Root", rows.get(0).getValue("D"));
   }
 
   @Test
@@ -53,13 +53,13 @@ public class MergeTest {
       "merge A B C '''",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("A", "Root").add("B", "Joltie")
+    List<Row> rows = Arrays.asList(
+      new Row("A", "Root").add("B", "Joltie")
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("Root'Joltie", records.get(0).getValue("C"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("Root'Joltie", rows.get(0).getValue("C"));
   }
 
   @Test
@@ -68,13 +68,13 @@ public class MergeTest {
       "merge A B C '\\u000A'", // in actuality you need only one back slash.
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("A", "Root").add("B", "Joltie")
+    List<Row> rows = Arrays.asList(
+      new Row("A", "Root").add("B", "Joltie")
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("Root\nJoltie", records.get(0).getValue("C"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("Root\nJoltie", rows.get(0).getValue("C"));
   }
 
   @Test (expected = RecipeException.class)
@@ -83,11 +83,11 @@ public class MergeTest {
       "merge A B C '\\u000A", // in actuality you need only one back slash.
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("A", "Root").add("B", "Joltie")
+    List<Row> rows = Arrays.asList(
+      new Row("A", "Root").add("B", "Joltie")
     );
 
-    TestUtil.run(directives, records);
+    TestUtil.run(directives, rows);
   }
 
   @Test (expected = RecipeException.class)
@@ -96,11 +96,11 @@ public class MergeTest {
       "merge A B C \\u000A'", // in actuality you need only one back slash.
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("A", "Root").add("B", "Joltie")
+    List<Row> rows = Arrays.asList(
+      new Row("A", "Root").add("B", "Joltie")
     );
 
-    TestUtil.run(directives, records);
+    TestUtil.run(directives, rows);
   }
 
   @Test
@@ -109,12 +109,12 @@ public class MergeTest {
       "merge A B C '---'", // in actuality you need only one back slash.
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("A", "Root").add("B", "Joltie")
+    List<Row> rows = Arrays.asList(
+      new Row("A", "Root").add("B", "Joltie")
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("Root---Joltie", records.get(0).getValue("C"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("Root---Joltie", rows.get(0).getValue("C"));
   }
 }

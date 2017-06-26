@@ -17,6 +17,7 @@
 package co.cask.wrangler.api.parser;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.Serializable;
@@ -44,12 +45,14 @@ import java.util.List;
  * @see TokenDefinition
  */
 public final class UsageDefinition implements Serializable {
+  private final int optionalCnt;
   private String directive;
   private final List<TokenDefinition> tokens;
 
-  private UsageDefinition(String directive, List<TokenDefinition> tokens) {
+  private UsageDefinition(String directive, int optionalCnt, List<TokenDefinition> tokens) {
     this.directive = directive;
     this.tokens = tokens;
+    this.optionalCnt = optionalCnt;
   }
 
   public String getName() {
@@ -58,6 +61,10 @@ public final class UsageDefinition implements Serializable {
 
   public List<TokenDefinition> getTokens() {
     return tokens;
+  }
+
+  public int getOptionalTokensCount() {
+    return optionalCnt;
   }
 
   @Override
@@ -101,11 +108,13 @@ public final class UsageDefinition implements Serializable {
     private String directive;
     private final List<TokenDefinition> tokens;
     private int currentOrdinal;
+    private int optionalCnt;
 
     public Builder(String directive) {
       this.directive = directive;
       this.currentOrdinal = 0;
       this.tokens = new ArrayList<>();
+      this.optionalCnt = 0;
     }
 
     public void define(String name, TokenType type) {
@@ -116,6 +125,7 @@ public final class UsageDefinition implements Serializable {
 
     public void define(String name, TokenType type, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, currentOrdinal, optional);
+      optionalCnt = optional ? optionalCnt + 1 : optionalCnt;
       currentOrdinal++;
       tokens.add(spec);
     }
@@ -127,15 +137,16 @@ public final class UsageDefinition implements Serializable {
 
     public void define(String name, TokenType type, boolean optional, int ordinal) {
       TokenDefinition spec = new TokenDefinition(name, type, ordinal, optional);
+      optionalCnt = optional ? optionalCnt + 1 : optionalCnt;
       tokens.add(spec);
     }
 
     public UsageDefinition build() {
-      return new UsageDefinition(directive, tokens);
+      return new UsageDefinition(directive, optionalCnt, tokens);
     }
   }
 
-  public JsonObject toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("directive", directive);
     JsonArray array = new JsonArray();

@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.parser.JsParser;
 import com.google.gson.JsonArray;
@@ -53,32 +53,32 @@ public class Flatten extends AbstractDirective {
   /**
    * Flattens a record based on the columns specified to be flattened.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
 
-    // Iterate through the records.
-    for (Record record : records) {
+    // Iterate through the rows.
+    for (Row row : rows) {
       count = 0;
       // Only once find the location of the columns to be flatten within
-      // the record. It's assumed that all records to passed to this
+      // the row. It's assumed that all rows to passed to this
       // instance are same.
       for (String column : columns) {
-        locations[count] = record.find(column);
+        locations[count] = row.find(column);
         ++count;
       }
-      // For each record we find the maximum number of
+      // For each row we find the maximum number of
       // values in each of the columns specified to be
       // flattened.
       int max = Integer.MIN_VALUE;
       for (int i = 0; i < count; ++i) {
         if (locations[i] != -1) {
-          Object value = record.getValue(locations[i]);
+          Object value = row.getValue(locations[i]);
           int m = -1;
           if (value instanceof JsonArray) {
             m = ((JsonArray) value).size();
@@ -95,10 +95,10 @@ public class Flatten extends AbstractDirective {
 
       // We iterate through the arrays and populate all the columns.
       for(int k = 0; k < max; ++k) {
-        Record r = new Record(record);
+        Row r = new Row(row);
         for (int i = 0; i < count; ++i) {
           if (locations[i] != -1) {
-            Object value = record.getValue(locations[i]);
+            Object value = row.getValue(locations[i]);
             if (value == null) {
               r.add(columns[i], null);
             } else {

@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import org.json.JSONObject;
 
@@ -56,23 +56,23 @@ public class RecordRegexFilter extends AbstractDirective {
   }
 
   /**
-   * Sets the new column names for the {@link Record}.
+   * Sets the new column names for the {@link Row}.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record}.
+   * @return A newly transformed {@link Row}.
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
     if (pattern == null) {
-      return records;
+      return rows;
     }
-    for (Record record : records) {
-      int idx = record.find(column);
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object == null) {
           if(!match)
             continue;
@@ -81,7 +81,7 @@ public class RecordRegexFilter extends AbstractDirective {
             continue;
           }
         } else if (object instanceof String) {
-          String value = (String) record.getValue(idx);
+          String value = (String) row.getValue(idx);
           boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
           if (!match) {
             status = !status;
@@ -95,7 +95,7 @@ public class RecordRegexFilter extends AbstractDirective {
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );
         }
-        results.add(record);
+        results.add(row);
       }
     }
     return results;

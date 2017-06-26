@@ -26,12 +26,12 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.utils.ObjectSerDe;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
-import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.sampling.Bernoulli;
@@ -205,10 +205,10 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
 
       // Write records to workspace.
       if(type == DataType.RECORDS) {
-        List<Record> records = new ArrayList<>();
-        records.add(new Record(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
-        ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
-        byte[] data = serDe.toByteArray(records);
+        List<Row> rows = new ArrayList<>();
+        rows.add(new Row(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
+        ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+        byte[] data = serDe.toByteArray(rows);
         table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
       } else if (type == DataType.BINARY || type == DataType.TEXT) {
         table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, type, bytes);
@@ -264,7 +264,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
 
       // Iterate through lines to extract only 'limit' random lines.
       // Depending on the type, the sampling of the input is performed.
-      List<Record> records = new ArrayList<>();
+      List<Row> rows = new ArrayList<>();
       BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), Charsets.UTF_8, lines);
       Iterator<String> it = blis;
       if (samplingMethod == SamplingMethod.POISSON) {
@@ -275,7 +275,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
         it = new Reservoir<String>(lines).sample(blis);
       }
       while(it.hasNext()) {
-        records.add(new Record(COLUMN_NAME, it.next()));
+        rows.add(new Row(COLUMN_NAME, it.next()));
       }
 
       // Set all properties and write to workspace.
@@ -287,9 +287,9 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
       table.writeProperties(id, properties);
 
-      // Write records to workspace.
-      ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
-      byte[] data = serDe.toByteArray(records);
+      // Write rows to workspace.
+      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+      byte[] data = serDe.toByteArray(rows);
       table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
       // Preparing return response to include mandatory fields : id and name.

@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.List;
@@ -44,21 +44,21 @@ public class SplitEmail extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object == null) {
-          record.add(column + "_account", null);
-          record.add(column + "_domain", null);
+          row.add(column + "_account", null);
+          row.add(column + "_domain", null);
           continue;
         }
         if (object instanceof String) {
@@ -66,19 +66,19 @@ public class SplitEmail extends AbstractDirective {
           int nameIdx = emailAddress.lastIndexOf("<"); // Joltie, Root <joltie.root@yahoo.com>
           if (nameIdx == -1) {
             Pair<String, String> components = extractDomainAndAccount(emailAddress);
-            record.add(column + "_account", components.getFirst());
-            record.add(column + "_domain", components.getSecond());
+            row.add(column + "_account", components.getFirst());
+            row.add(column + "_domain", components.getSecond());
           } else {
             String name = emailAddress.substring(0, nameIdx);
             int endIdx = emailAddress.lastIndexOf(">");
             if (endIdx == -1) {
-              record.add(column + "_account", null);
-              record.add(column + "_domain", null);
+              row.add(column + "_account", null);
+              row.add(column + "_domain", null);
             } else {
               emailAddress = emailAddress.substring(nameIdx + 1, endIdx);
               Pair<String, String> components = extractDomainAndAccount(emailAddress);
-              record.add(column + "_account", components.getFirst());
-              record.add(column + "_domain", components.getSecond());
+              row.add(column + "_account", components.getFirst());
+              row.add(column + "_domain", components.getSecond());
             }
           }
         } else {
@@ -88,10 +88,10 @@ public class SplitEmail extends AbstractDirective {
           );
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
       }
     }
-    return records;
+    return rows;
   }
 
   private Pair<String, String> extractDomainAndAccount(String emailId) {

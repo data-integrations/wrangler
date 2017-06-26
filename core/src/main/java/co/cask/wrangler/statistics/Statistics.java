@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.statistics;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.util.List;
@@ -27,10 +27,10 @@ import java.util.List;
 @PublicEvolving
 public interface Statistics {
   /**
-   * Aggregates statistics for all the records.
+   * Aggregates statistics for all the rows.
    *
-   * @param records to be aggregated.
-   * @return Summary in the form of {@link Record}
+   * @param rows to be aggregated.
+   * @return Summary in the form of {@link Row}
    */
-  public Record aggregate(List<Record> records);
+  public Row aggregate(List<Row> rows);
 }

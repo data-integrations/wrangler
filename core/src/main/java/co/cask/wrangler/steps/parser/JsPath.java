@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Json Path Extractor Stage for parsing the {@link Record} provided based on configuration.
+ * A Json Path Extractor Stage for parsing the {@link Row} provided based on configuration.
  */
 @Plugin(type = "udd")
 @Name("json-path")
@@ -64,20 +64,20 @@ public class JsPath extends AbstractDirective {
   }
 
   /**
-   * Parses a give column in a {@link Record} as a CSV Record.
+   * Parses a give column in a {@link Row} as a CSV Row.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      Object value = record.getValue(src);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      Object value = row.getValue(src);
       if (value == null) {
-        record.add(dest, null);
+        row.add(dest, null);
         continue;
       }
 
@@ -94,13 +94,13 @@ public class JsPath extends AbstractDirective {
       Object val = JsParser.getValue(element);
 
       // If destination is already present add it, else set the value.
-      int pos = record.find(dest);
+      int pos = row.find(dest);
       if (pos == -1) {
-        record.add(dest, val);
+        row.add(dest, val);
       } else {
-        record.setValue(pos, val);
+        row.setValue(pos, val);
       }
-      results.add(record);
+      results.add(row);
     }
 
     return results;

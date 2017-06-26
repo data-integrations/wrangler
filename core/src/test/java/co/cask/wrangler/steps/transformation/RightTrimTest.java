@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.TestUtil;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,21 +35,21 @@ public class RightTrimTest {
       "rtrim body",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "TITLE"),
-      new Record("body", "  TITLE"),
-      new Record("body", "TITLE  "),
-      new Record("body", " TITLE "),
-      new Record("body", "  TITLE  ")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "TITLE"),
+      new Row("body", "  TITLE"),
+      new Row("body", "TITLE  "),
+      new Row("body", " TITLE "),
+      new Row("body", "  TITLE  ")
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(5, records.size());
-    Assert.assertEquals("TITLE", records.get(0).getValue("body"));
-    Assert.assertEquals("  TITLE", records.get(1).getValue("body"));
-    Assert.assertEquals("TITLE", records.get(2).getValue("body"));
-    Assert.assertEquals(" TITLE", records.get(3).getValue("body"));
-    Assert.assertEquals("  TITLE", records.get(4).getValue("body"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(5, rows.size());
+    Assert.assertEquals("TITLE", rows.get(0).getValue("body"));
+    Assert.assertEquals("  TITLE", rows.get(1).getValue("body"));
+    Assert.assertEquals("TITLE", rows.get(2).getValue("body"));
+    Assert.assertEquals(" TITLE", rows.get(3).getValue("body"));
+    Assert.assertEquals("  TITLE", rows.get(4).getValue("body"));
   }
 
   @Test
@@ -58,20 +58,20 @@ public class RightTrimTest {
       "rtrim body",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "TITLE IS TITLE"),
-      new Record("body", "    TITLE IS TITLE"),
-      new Record("body", "TITLE IS TITLE    "),
-      new Record("body", " TITLE    IS TITLE "),
-      new Record("body", "   TITLE IS TITLE   ")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "TITLE IS TITLE"),
+      new Row("body", "    TITLE IS TITLE"),
+      new Row("body", "TITLE IS TITLE    "),
+      new Row("body", " TITLE    IS TITLE "),
+      new Row("body", "   TITLE IS TITLE   ")
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(5, records.size());
-    Assert.assertEquals("TITLE IS TITLE", records.get(0).getValue("body"));
-    Assert.assertEquals("    TITLE IS TITLE", records.get(1).getValue("body"));
-    Assert.assertEquals("TITLE IS TITLE", records.get(2).getValue("body"));
-    Assert.assertEquals(" TITLE    IS TITLE", records.get(3).getValue("body"));
-    Assert.assertEquals("   TITLE IS TITLE", records.get(4).getValue("body"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(5, rows.size());
+    Assert.assertEquals("TITLE IS TITLE", rows.get(0).getValue("body"));
+    Assert.assertEquals("    TITLE IS TITLE", rows.get(1).getValue("body"));
+    Assert.assertEquals("TITLE IS TITLE", rows.get(2).getValue("body"));
+    Assert.assertEquals(" TITLE    IS TITLE", rows.get(3).getValue("body"));
+    Assert.assertEquals("   TITLE IS TITLE", rows.get(4).getValue("body"));
   }
 }

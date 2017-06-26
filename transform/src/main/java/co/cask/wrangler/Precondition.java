@@ -16,7 +16,7 @@
 
 package co.cask.wrangler;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.apache.commons.jexl3.scripting.JexlScriptEngine;
 
 import javax.script.Bindings;
@@ -45,10 +45,10 @@ public class Precondition {
     }
   }
 
-  public boolean apply(Record record) throws PreconditionException {
+  public boolean apply(Row row) throws PreconditionException {
     Bindings ctx = new SimpleBindings();
-    for (int i = 0; i < record.length(); ++i) {
-      ctx.put(record.getColumn(i), record.getValue(i));
+    for (int i = 0; i < row.length(); ++i) {
+      ctx.put(row.getColumn(i), row.getValue(i));
     }
 
     try {

@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.AbstractDirective;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.codec.JsonAvroDecoder;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -110,7 +110,7 @@ public class ParseAvroTest {
     Schema schema = getSchema();
     byte[] bytes = encodeAsJsonGenericRecord();
     JsonAvroDecoder jsonAvroDecoder = new JsonAvroDecoder(schema);
-    List<Record> r = jsonAvroDecoder.decode(bytes);
+    List<Row> r = jsonAvroDecoder.decode(bytes);
     Assert.assertEquals(2, r.size());
 
     // Read from byte array.
@@ -168,12 +168,12 @@ public class ParseAvroTest {
   @Ignore
   @Test
   public void testParseJsonAVRO() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("body", "{\"name\":\"Root\",\"favorite_number\":{\"int\":8},\"favorite_color\":null}")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "{\"name\":\"Root\",\"favorite_number\":{\"int\":8},\"favorite_color\":null}")
     );
 
     AbstractDirective step = new ParseAvro(1, "", "body", "first", "json", -1);
-    List<Record> results = step.execute(records, null);
+    List<Row> results = step.execute(rows, null);
     Assert.assertTrue(false);
   }
 }

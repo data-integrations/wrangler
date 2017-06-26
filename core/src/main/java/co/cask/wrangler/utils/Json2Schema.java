@@ -21,7 +21,7 @@ import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.AbstractSchemaGenerator;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.parser.JsParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -56,18 +56,18 @@ public final class Json2Schema {
   }
 
   /**
-   * Generates a {@link Schema} given a record.
+   * Generates a {@link Schema} given a row.
    *
    * @param id Schema id
    * @return returns {@link Schema}
    * @throws UnsupportedTypeException
    * @throws JSONException
    */
-  public Schema toSchema(String id, Record record) throws RecordConvertorException {
+  public Schema toSchema(String id, Row row) throws RecordConvertorException {
     List<Schema.Field> fields = new ArrayList<>();
 
-    // Iterate through each field in the record.
-    for (Pair<String, Object> column : record.getFields()) {
+    // Iterate through each field in the row.
+    for (Pair<String, Object> column : row.getFields()) {
       String name = column.getFirst();
       Object value = column.getSecond();
 
@@ -119,7 +119,7 @@ public final class Json2Schema {
    * @param json represents the JSON as {@link String}
    * @return instance of {@link Schema} representing the JSON.
    * @throws RecordConvertorException throw if there are any issues parsing to {@link Schema}
-   * @see {@link #toSchema(String, Record)}
+   * @see {@link #toSchema(String, Row)}
    */
   public Schema toSchema(String id, String json) throws RecordConvertorException {
     JsonElement element = parser.parse(json);

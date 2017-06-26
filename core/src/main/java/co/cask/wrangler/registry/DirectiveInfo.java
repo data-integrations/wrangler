@@ -20,6 +20,7 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.UsageDefinition;
+import com.google.gson.JsonObject;
 
 import java.util.Objects;
 
@@ -73,5 +74,15 @@ public final class DirectiveInfo {
     }
     final DirectiveInfo other = (DirectiveInfo) obj;
     return Objects.equals(this.name, other.name);
+  }
+
+  public JsonObject toJson() {
+    JsonObject response = new JsonObject();
+    response.addProperty("name", name);
+    response.addProperty("usage", usage);
+    response.addProperty("description", description);
+    response.addProperty("class", directive.getCanonicalName());
+    response.add("definition", definition.toJson());
+    return response;
   }
 }

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,15 +35,15 @@ public class SplitURLTest {
       "split-url url",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("url", "http://example.com:80/docs/books/tutorial/index.html?name=networking#DOWNLOADING")
+    List<Row> rows = Arrays.asList(
+      new Row("url", "http://example.com:80/docs/books/tutorial/index.html?name=networking#DOWNLOADING")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(80, records.get(0).getValue("url_port"));
-    Assert.assertEquals("example.com", records.get(0).getValue("url_host"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(80, rows.get(0).getValue("url_port"));
+    Assert.assertEquals("example.com", rows.get(0).getValue("url_host"));
   }
 
 }

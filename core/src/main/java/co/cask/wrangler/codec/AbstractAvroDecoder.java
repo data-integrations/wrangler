@@ -16,17 +16,17 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 
 /**
- * This class {@link AbstractAvroDecoder} is implementation of {@link Decoder} interface using type {@link Record}.
+ * This class {@link AbstractAvroDecoder} is implementation of {@link Decoder} interface using type {@link Row}.
  * All implementations of AVRO decoder should extend from this class.
  */
-public abstract class AbstractAvroDecoder implements Decoder<Record> {
+public abstract class AbstractAvroDecoder implements Decoder<Row> {
   // Schema associated with record or data file being read.
   private final Schema schema;
 

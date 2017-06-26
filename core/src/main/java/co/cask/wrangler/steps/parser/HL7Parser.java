@@ -38,7 +38,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonArray;
@@ -72,23 +72,23 @@ public class HL7Parser extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
       try {
-        int idx = record.find(column);
+        int idx = row.find(column);
         if (idx != -1) {
-          Object object = record.getValue(idx);
+          Object object = row.getValue(idx);
           // Handling the first parsing on HL7 message
           if (object instanceof String) {
             Message message = parser.parse((String) object);
-            HL7MessageVisitor visitor = new HL7MessageVisitor(record, column + "_hl7", depth);
+            HL7MessageVisitor visitor = new HL7MessageVisitor(row, column + "_hl7", depth);
             MessageVisitors.visit(message,
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
           } else {
@@ -102,14 +102,14 @@ public class HL7Parser extends AbstractDirective {
         throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
       }
     }
-    return records;
+    return rows;
   }
 
   /**
    * HL7 Message Visitor.
    */
   private final class HL7MessageVisitor implements MessageVisitor {
-    private final Record record;
+    private final Row row;
     private final String column;
     private final int depth;
     private JsonObject segments = new JsonObject();
@@ -117,8 +117,8 @@ public class HL7Parser extends AbstractDirective {
     private JsonObject compositeObject = new JsonObject();
     private boolean inComposite = false;
 
-    public HL7MessageVisitor(Record record, String column, int depth) {
-      this.record = record;
+    public HL7MessageVisitor(Row row, String column, int depth) {
+      this.row = row;
       this.column = column;
       this.depth = depth;
     }
@@ -130,7 +130,7 @@ public class HL7Parser extends AbstractDirective {
 
     @Override
     public boolean end(Message message) throws HL7Exception {
-      JsParser.flattenJson(segments, column, 1, depth, record);
+      JsParser.flattenJson(segments, column, 1, depth, row);
       return true;
     }
 

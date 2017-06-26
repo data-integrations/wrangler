@@ -20,7 +20,7 @@ import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.parser.SimpleTextParser;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
@@ -58,7 +58,7 @@ public class RecipePipelineExecutorTest {
       new SimpleTextParser(StringUtils.join("\n", commands));
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
-    Record row = new Record(RecipeParser.STARTING_COLUMN, new String("a,b,c,d,e,f,1.0"));
+    Row row = new Row(RecipeParser.STARTING_COLUMN, new String("a,b,c,d,e,f,1.0"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
@@ -93,7 +93,7 @@ public class RecipePipelineExecutorTest {
       new SimpleTextParser(StringUtils.join("\n", commands));
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(directives, null);
-    Record row = new Record(RecipeParser.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
+    Row row = new Row(RecipeParser.STARTING_COLUMN, new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}

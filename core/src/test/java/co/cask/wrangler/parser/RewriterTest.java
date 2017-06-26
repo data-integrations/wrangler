@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.api.GrammarMigration;
+import co.cask.wrangler.api.GrammarMigrator;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
@@ -198,7 +198,7 @@ public class RewriterTest {
   @Test
   public void testRewrite() throws Exception {
     List<String> expected = Arrays.asList(output);
-    GrammarMigration migrator = new MigrateToV2();
+    GrammarMigrator migrator = new MigrateToV2();
     List<String> actual = migrator.migrate(Arrays.asList(input));
     Assert.assertEquals(expected, actual);
   }

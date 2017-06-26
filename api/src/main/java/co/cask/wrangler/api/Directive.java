@@ -27,11 +27,11 @@ import java.util.List;
 @PublicEvolving
 public interface Directive<I, O> extends Serializable {
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param records List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   List<O> execute(List<I> records, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException;

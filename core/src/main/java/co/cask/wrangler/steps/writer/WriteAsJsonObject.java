@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -51,18 +51,18 @@ public class WriteAsJsonObject extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
       JsonObject object = new JsonObject();
       for (String col : columns) {
-        Object value = record.getValue(col);
+        Object value = row.getValue(col);
         if (value instanceof Integer) {
           object.addProperty(col, (Integer) value);
         } else if (value instanceof Long) {
@@ -85,8 +85,8 @@ public class WriteAsJsonObject extends AbstractDirective {
           object.add(col, (JsonNull) value);
         }
       }
-      record.addOrSet(column, object);
+      row.addOrSet(column, object);
     }
-    return records;
+    return rows;
   }
 }

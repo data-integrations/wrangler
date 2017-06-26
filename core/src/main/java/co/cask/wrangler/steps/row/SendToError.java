@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlHelper;
 import org.apache.commons.jexl3.JexlContext;
@@ -64,21 +64,21 @@ public class SendToError extends AbstractDirective {
   /**
    * Filters a record based on the condition.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return the input {@link Record}, if condition is false
+   * @return the input {@link Row}, if condition is false
    * @throws DirectiveExecutionException if there are any issues with processing the condition
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context)
+  public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      // Move the fields from the record into the context.
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      // Move the fields from the row into the context.
       JexlContext ctx = new MapContext();
-      ctx.set("this", record);
-      for (int i = 0; i < record.length(); ++i) {
-        ctx.set(record.getColumn(i), record.getValue(i));
+      ctx.set("this", row);
+      for (int i = 0; i < row.length(); ++i) {
+        ctx.set(row.getColumn(i), row.getValue(i));
       }
       // Transient variables are added.
       if (context != null) {
@@ -87,7 +87,7 @@ public class SendToError extends AbstractDirective {
         }
       }
 
-      // Execution of the script / expression based on the record data
+      // Execution of the script / expression based on the row data
       // mapped into context.
       try {
         boolean result = (Boolean) script.execute(ctx);
@@ -117,7 +117,7 @@ public class SendToError extends AbstractDirective {
           throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
         }
       }
-      results.add(record);
+      results.add(row);
     }
     return results;
   }

@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.executor.ErrorRecord;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Assert;
@@ -39,20 +39,20 @@ public class SendToErrorTest {
       "send-to-error C == 1",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "A,B,C,D"),
-      new Record("body", "X,Y,1,2.0"),
-      new Record("body", "U,V,2,3.0")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B,C,D"),
+      new Row("body", "X,Y,1,2.0"),
+      new Row("body", "U,V,2,3.0")
     );
 
     SimpleTextParser directives1 = new SimpleTextParser(directives);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     executor.configure(directives1, null);
-    List<Record> results = executor.execute(records);
+    List<Row> results = executor.execute(rows);
     List<ErrorRecord> errors = executor.errors();
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals(1, results.size());
-    Assert.assertEquals("2.0", errors.get(0).getRecord().getValue("D"));
+    Assert.assertEquals("2.0", errors.get(0).getRow().getValue("D"));
     Assert.assertEquals("2", results.get(0).getValue("C"));
   }
 }

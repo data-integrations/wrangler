@@ -18,7 +18,7 @@ package co.cask.wrangler.executor;
 
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.statistics.Statistics;
@@ -44,26 +44,26 @@ public class BasicStatisticsTest {
       "drop body"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "1234.45,650-897-3839,111-11-1111,32826,02/29/2000,\"$1234.56\",http://www.yahoo.com"),
-      new Record("body", "45.56,670-897-3839,111-12-1111,32826,02/01/2011,\"$56,789\",http://mars.io"),
-      new Record("body", "45.56,670-897-3839,222,32826,9/14/2016,\"\",http://mars.io")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "1234.45,650-897-3839,111-11-1111,32826,02/29/2000,\"$1234.56\",http://www.yahoo.com"),
+      new Row("body", "45.56,670-897-3839,111-12-1111,32826,02/01/2011,\"$56,789\",http://mars.io"),
+      new Row("body", "45.56,670-897-3839,222,32826,9/14/2016,\"\",http://mars.io")
     );
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(new SimpleTextParser(directives), null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
     Statistics meta = new BasicStatistics();
-    Record summary = meta.aggregate(records);
+    Row summary = meta.aggregate(rows);
 
-    Assert.assertTrue(records.size() > 1);
+    Assert.assertTrue(rows.size() > 1);
 
     Assert.assertEquals(3, summary.length());
     Assert.assertEquals(3.0, summary.getValue("total"));
 
-    Record stats = (Record) summary.getValue("stats");
-    Record types = (Record) summary.getValue("types");
+    Row stats = (Row) summary.getValue("stats");
+    Row types = (Row) summary.getValue("types");
 
     Assert.assertEquals(7, stats.length());
     Assert.assertEquals(7, types.length());
@@ -101,27 +101,27 @@ public class BasicStatisticsTest {
       "drop body"
     };
 
-    List<Record> records = new ArrayList<>();
+    List<Row> rows = new ArrayList<>();
     try(BufferedReader br = new BufferedReader(new FileReader("/Users/nitin/Work/Demo/data/customer_no_header.csv"))) {
       String line;
       while ((line = br.readLine()) != null) {
-        records.add(new Record("body", line));
+        rows.add(new Row("body", line));
       }
     }
 
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(new SimpleTextParser(directives), null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
     Statistics meta = new BasicStatistics();
-    Record summary = meta.aggregate(records);
+    Row summary = meta.aggregate(rows);
 
-    Record stats = (Record) summary.getValue("stats");
-    Record types = (Record) summary.getValue("types");
+    Row stats = (Row) summary.getValue("stats");
+    Row types = (Row) summary.getValue("types");
 
 
     System.out.println("General Statistics");
-    System.out.println("Total number of records : " + summary.getValue("total"));
+    System.out.println("Total number of rows : " + summary.getValue("total"));
     System.out.println();
     List<Pair<String, Object>> fields = stats.getFields();
     for (Pair<String, Object> field : fields) {

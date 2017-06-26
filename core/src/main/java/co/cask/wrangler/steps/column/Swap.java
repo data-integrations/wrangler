@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.i18n.Messages;
 import co.cask.wrangler.i18n.MessagesFactory;
@@ -48,17 +48,17 @@ public class Swap extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int sidx = record.find(column1);
-      int didx = record.find(column2);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int sidx = row.find(column1);
+      int didx = row.find(column2);
 
       if (sidx == -1) {
         throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), column1));
@@ -68,9 +68,9 @@ public class Swap extends AbstractDirective {
         throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), column2));
       }
 
-      record.setColumn(sidx, column2);
-      record.setColumn(didx, column1);
+      row.setColumn(sidx, column2);
+      row.setColumn(didx, column1);
     }
-    return records;
+    return rows;
   }
 }

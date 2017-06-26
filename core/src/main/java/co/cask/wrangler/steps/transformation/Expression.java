@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.jexl3.JexlContext;
@@ -38,7 +38,7 @@ import java.util.Map;
  * A Wrangler step for apply an expression to store the result in a column.
  *
  * The expressions are specified in JEXL format (http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
- * Directive is response for executing only one expression for each {@link Record} record that is
+ * Directive is response for executing only one expression for each {@link Row} record that is
  * being passed. The result of expression either adds a new column or replaces the value of
  * the existing column.
  *
@@ -79,24 +79,24 @@ public class Expression extends AbstractDirective {
   /**
    * Transforms a column value from any case to upper case.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
+   * @return Transformed {@link Row} in which the 'col' value is lower cased.
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
     // This is done only the first time.
     if (properties.size() == 0 && context != null) {
       properties.putAll(context.getProperties());
     }
 
-    for (Record record : records) {
-      // Move the fields from the record into the context.
+    for (Row row : rows) {
+      // Move the fields from the row into the context.
       JexlContext ctx = new MapContext(properties);
-      ctx.set("this", record);
-      for (int i = 0; i < record.length(); ++i) {
-        ctx.set(record.getColumn(i), record.getValue(i));
+      ctx.set("this", row);
+      for (int i = 0; i < row.length(); ++i) {
+        ctx.set(row.getColumn(i), row.getValue(i));
       }
       // Transient variables are added.
       if (context != null) {
@@ -105,15 +105,15 @@ public class Expression extends AbstractDirective {
         }
       }
 
-      // Execution of the script / expression based on the record data
+      // Execution of the script / expression based on the row data
       // mapped into context.
       try {
         Object result = script.execute(ctx);
-        int idx = record.find(this.column);
+        int idx = row.find(this.column);
         if (idx == -1) {
-          record.add(this.column, result);
+          row.add(this.column, result);
         } else {
-          record.setValue(idx, result);
+          row.setValue(idx, result);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
@@ -126,7 +126,7 @@ public class Expression extends AbstractDirective {
         }
       }
     }
-    return records;
+    return rows;
   }
 }
 

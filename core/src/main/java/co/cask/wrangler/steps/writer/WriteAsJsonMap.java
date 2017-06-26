@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
@@ -49,21 +49,21 @@ public class WriteAsJsonMap extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
       Map<String, Object> toJson = new HashMap<>();
-      for (Pair<String, Object> entry : record.getFields()) {
+      for (Pair<String, Object> entry : row.getFields()) {
         toJson.put(entry.getFirst(), entry.getSecond());
       }
-      record.addOrSet(column, gson.toJson(toJson));
+      row.addOrSet(column, gson.toJson(toJson));
     }
-    return records;
+    return rows;
   }
 }

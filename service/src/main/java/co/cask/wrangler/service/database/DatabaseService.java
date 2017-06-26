@@ -32,8 +32,8 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.utils.ObjectSerDe;
-import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
@@ -519,11 +519,11 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         public void execute(java.sql.Connection connection) throws Exception {
           try (Statement statement = connection.createStatement();
                ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
-            List<Record> records = new ArrayList<>();
+            List<Row> rows = new ArrayList<>();
             ResultSetMetaData meta = result.getMetaData();
             int count = lines;
             while (result.next() && count > 0) {
-              Record record = new Record();
+              Row row = new Row();
               for (int i = 1; i < meta.getColumnCount() + 1; ++i) {
                 Object object = result.getObject(i);
                 if (object instanceof java.sql.Date) {
@@ -536,16 +536,16 @@ public class DatabaseService extends AbstractHttpServiceHandler {
                   java.sql.Time dt = (java.sql.Time) object;
                   object = dt.toString();
                 }
-                record.add(meta.getColumnName(i), object);
+                row.add(meta.getColumnName(i), object);
               }
-              records.add(record);
+              rows.add(row);
               count--;
             }
 
             String identifier = ServiceUtils.generateMD5(table);
             ws.createWorkspaceMeta(identifier, table);
-            ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
-            byte[] data = serDe.toByteArray(records);
+            ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+            byte[] data = serDe.toByteArray(rows);
             ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
             Map<String, String> properties = new HashMap<>();

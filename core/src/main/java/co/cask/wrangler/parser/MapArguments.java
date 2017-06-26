@@ -39,6 +39,13 @@ public class MapArguments implements Arguments {
   public MapArguments(UsageDefinition definition, TokenGroup group) throws DirectiveParseException {
     this.tokens = new HashMap<>();
 
+    int required = definition.getTokens().size() - definition.getOptionalTokensCount();
+    if ((required > group.size() - 1) || ((group.size() - 1) > definition.getTokens().size())) {
+      throw new DirectiveParseException(
+        String.format("Improper usage of directive '%s', usage - '%s'", definition.getName(), definition.toString())
+      );
+    }
+
     List<TokenDefinition> specifications = definition.getTokens();
     Iterator<Token> it = group.iterator();
     int pos = 0;
@@ -91,7 +98,7 @@ public class MapArguments implements Arguments {
   }
 
   @Override
-  public JsonElement toJsonObject() {
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     for(Map.Entry<String, Token> entry : tokens.entrySet()) {
       object.add(entry.getKey(), entry.getValue().toJsonObject());

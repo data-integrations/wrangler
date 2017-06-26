@@ -14,18 +14,17 @@
  *  the License.
  */
 
-package co.cask.wrangler.api;
-
-import co.cask.wrangler.api.parser.TokenType;
-import com.google.gson.JsonElement;
+package co.cask.wrangler.registry;
 
 /**
  * Class description here.
  */
-public interface Arguments {
-  <T> T value(String name);
-  int size();
-  boolean contains(String name);
-  TokenType type(String name);
-  JsonElement toJson();
+public class DirectiveLoadException extends Exception {
+  public DirectiveLoadException(String s) {
+    super(s);
+  }
+
+  public DirectiveLoadException(String s, Exception e) {
+    super(s, e);
+  }
 }

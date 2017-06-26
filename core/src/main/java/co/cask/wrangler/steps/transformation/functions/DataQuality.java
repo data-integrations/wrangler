@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation.functions;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 
@@ -26,27 +26,27 @@ import com.google.common.collect.Range;
 public class DataQuality extends Types {
 
   /**
-   * Given a record, finds the length of the record.
+   * Given a row, finds the length of the row.
    *
-   * @param record length needs to be determined.
-   * @return length of the record.
+   * @param row length needs to be determined.
+   * @return length of the row.
    */
-  public static int columns(Record record) {
-    return record.length();
+  public static int columns(Row row) {
+    return row.length();
   }
 
   /**
-   * Finds if the record has a column.
+   * Finds if the row has a column.
    *
-   * @param record in which a column needs to be checked.
+   * @param row in which a column needs to be checked.
    * @param column name of the column to be checked.
    * @return true if column is not null and exists, false otherwise.
    */
-  public static boolean hascolumn(Record record, String column) {
+  public static boolean hascolumn(Row row, String column) {
     if (column == null) {
       return false;
     }
-    return record.find(column) != -1 ? true : false;
+    return row.find(column) != -1 ? true : false;
   }
 
   /**

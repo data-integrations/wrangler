@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
 import org.junit.Assert;
 import org.junit.Test;
@@ -303,20 +303,20 @@ public class ExtractRegexGroupsTest {
       String.format("extract-regex-groups %s %s", column, regex)
     };
 
-    List<Record> records = new LinkedList<>();
+    List<Row> rows = new LinkedList<>();
     for (RegexInputOutput regexInputOutput : regexInputOutputs) {
-      records.add(new Record(column, regexInputOutput.input));
+      rows.add(new Row(column, regexInputOutput.input));
     }
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertEquals(regexInputOutputs.length, records.size());
+    Assert.assertEquals(regexInputOutputs.length, rows.size());
     for (int i = 0; i < regexInputOutputs.length; i++) {
       RegexInputOutput regexInputOutput = regexInputOutputs[i];
 
-      Assert.assertEquals(regexInputOutput.input, regexInputOutput.output.length, records.get(i).length() - 1);
+      Assert.assertEquals(regexInputOutput.input, regexInputOutput.output.length, rows.get(i).length() - 1);
       for (int j = 0; j < regexInputOutput.output.length; j++) {
-        Assert.assertEquals(regexInputOutput.output[j], records.get(i).getValue(j + 1));
+        Assert.assertEquals(regexInputOutput.output[j], rows.get(i).getValue(j + 1));
       }
     }
   }

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,18 +35,18 @@ public class GenerateUUIDTest {
       "generate-uuid uuid",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("value", "abc"),
-      new Record("value", "xyz"),
-      new Record("value", "Should be fine")
+    List<Row> rows = Arrays.asList(
+      new Row("value", "abc"),
+      new Row("value", "xyz"),
+      new Row("value", "Should be fine")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 3);
-    Assert.assertEquals(2, records.get(0).length());
-    Assert.assertEquals("uuid", records.get(1).getColumn(1));
-    Assert.assertEquals("Should be fine", records.get(2).getValue("value"));
+    Assert.assertTrue(rows.size() == 3);
+    Assert.assertEquals(2, rows.get(0).length());
+    Assert.assertEquals("uuid", rows.get(1).getColumn(1));
+    Assert.assertEquals("Should be fine", rows.get(2).getValue("value"));
   }
 
 }

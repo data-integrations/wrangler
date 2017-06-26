@@ -17,7 +17,7 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.GrammarMigration;
+import co.cask.wrangler.api.GrammarMigrator;
 import com.google.common.base.Joiner;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import static co.cask.wrangler.parser.SimpleTextParser.getNextToken;
 /**
  * This class helps rewrites the recipe of directives from version 1.0 to version 2.0.
  */
-public final class MigrateToV2 implements GrammarMigration {
+public final class MigrateToV2 implements GrammarMigrator {
 
   /**
    * Checks to see if directive is migratable.

@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
@@ -51,27 +51,27 @@ public class SplitToColumns extends AbstractDirective {
   /**
    * Splits a record into multiple columns based on delimiter.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record} with masked column.
+   * @return A newly transformed {@link Row} with masked column.
    * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
 
-    for (Record record : records) {
-      int idx = record.find(column);
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object instanceof String) {
           String[] lines = ((String) object).split(regex);
           int i = 1;
           for (String line : lines) {
-            record.add(String.format("%s_%d", column, i), line);
+            row.add(String.format("%s_%d", column, i), line);
             ++i;
           }
-          results.add(record);
+          results.add(row);
         } else {
           throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),

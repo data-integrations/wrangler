@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
@@ -99,33 +99,33 @@ public class InvokeHttp extends AbstractDirective {
   /**
    * Character based cut operations
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
+   * @return Transformed {@link Row} in which the 'col' value is lower cased.
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context)
+  public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
-    for (Record record : records) {
+    for (Row row : rows) {
       Map<String, Object> parameters = new HashMap<>();
       for (String column : columns) {
-        int idx = record.find(column);
+        int idx = row.find(column);
         if (idx != -1) {
-          parameters.put(column, record.getValue(idx));
+          parameters.put(column, row.getValue(idx));
         }
       }
       try {
         Map<String, Object> result = InvokeHttp(url, parameters, headers);
         for(Map.Entry<String, Object> entry : result.entrySet()) {
-          record.addOrSet(entry.getKey(), entry.getValue());
+          row.addOrSet(entry.getKey(), entry.getValue());
         }
       } catch (Exception e) {
         // If there are any issues, they will be pushed on the error port.
         throw new ErrorRecordException(e.getMessage(), 500);
       }
     }
-    return records;
+    return rows;
   }
 
   private class ServiceResponseHandler implements ResponseHandler<Map<String, Object>> {

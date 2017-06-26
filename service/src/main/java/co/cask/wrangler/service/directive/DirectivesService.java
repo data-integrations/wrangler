@@ -21,6 +21,7 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
+import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
@@ -30,10 +31,10 @@ import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.RecipeParser;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
@@ -43,6 +44,9 @@ import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.parser.UsageRegistry;
 import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.registry.DirectiveRegistry;
+import co.cask.wrangler.registry.SystemDirectiveRegistry;
+import co.cask.wrangler.registry.UserDirectiveRegistry;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.statistics.BasicStatistics;
@@ -113,6 +117,23 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
+
+  private DirectiveRegistry system;
+  private DirectiveRegistry user;
+
+  /**
+   * An implementation of {@link HttpServiceHandler#initialize(HttpServiceContext)}. Stores the context
+   * so that it can be used later.
+   *
+   * @param context the HTTP service runtime context
+   * @throws Exception
+   */
+  @Override
+  public void initialize(HttpServiceContext context) throws Exception {
+    super.initialize(context);
+    system = new SystemDirectiveRegistry();
+    user = new UserDirectiveRegistry(context);
+  }
 
   /**
    * Creates a workspace.
@@ -332,12 +353,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         case RECORDS: {
           delimiter = StringEscapeUtils.unescapeJava(delimiter);
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          List<Record> records = new ArrayList<>();
+          List<Row> rows = new ArrayList<>();
           for (String line : body.split(delimiter)) {
-            records.add(new Record(COLUMN_NAME, line));
+            rows.add(new Row(COLUMN_NAME, line));
           }
-          ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
-          byte[] bytes = serDe.toByteArray(records);
+          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+          byte[] bytes = serDe.toByteArray(rows);
           table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, bytes);
           break;
         }
@@ -425,12 +446,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         case RECORDS: {
           delimiter = StringEscapeUtils.unescapeJava(delimiter);
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          List<Record> records = new ArrayList<>();
+          List<Row> rows = new ArrayList<>();
           for (String line : body.split(delimiter)) {
-            records.add(new Record(id, line));
+            rows.add(new Row(id, line));
           }
-          ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
-          byte[] bytes = serDe.toByteArray(records);
+          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+          byte[] bytes = serDe.toByteArray(rows);
           table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, bytes);
           break;
         }
@@ -488,10 +509,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
-      List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
+      List<Row> rows = executeDirectives(id, user, new Function<List<Row>, List<Row>>() {
         @Nullable
         @Override
-        public List<Record> apply(@Nullable List<Record> records) {
+        public List<Row> apply(@Nullable List<Row> records) {
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
         }
@@ -502,16 +523,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       JsonObject types = new JsonObject();
       Set<String> header = new HashSet<>();
 
-      // Iterate through all the new records.
-      for (Record record : records) {
+      // Iterate through all the new rows.
+      for (Row row : rows) {
         JsonObject value = new JsonObject();
         // If output array has more than return result values, we terminate.
         if (values.size() >= user.getWorkspace().getResults()) {
           break;
         }
 
-        // Iterate through all the fields of the record.
-        List<Pair<String, Object>> fields = record.getFields();
+        // Iterate through all the fields of the row.
+        List<Pair<String, Object>> fields = row.getFields();
         for (Pair<String, Object> field : fields) {
           // If not present in header, add it to header.
           if (!header.contains(field.getFirst())) {
@@ -572,10 +593,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
-      List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
+      List<Row> rows = executeDirectives(id, user, new Function<List<Row>, List<Row>>() {
         @Nullable
         @Override
-        public List<Record> apply(@Nullable List<Record> records) {
+        public List<Row> apply(@Nullable List<Row> records) {
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
         }
@@ -591,9 +612,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       // Iterate through columns to value a set
       Set<String> uniqueColumns = new HashSet<>();
-      for (Record record : records) {
-        for (int i = 0; i < record.length(); ++i) {
-          uniqueColumns.add(record.getColumn(i));
+      for (Row row : rows) {
+        for (int i = 0; i < row.length(); ++i) {
+          uniqueColumns.add(row.getColumn(i));
         }
       }
 
@@ -614,10 +635,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
       // Generate General and Type related Statistics for each column.
       Statistics statsGenerator = new BasicStatistics();
-      Record summary = statsGenerator.aggregate(records);
+      Row summary = statsGenerator.aggregate(rows);
 
-      Record stats = (Record) summary.getValue("stats");
-      Record types = (Record) summary.getValue("types");
+      Row stats = (Row) summary.getValue("stats");
+      Row types = (Row) summary.getValue("types");
 
       // Serialize the results into JSON.
       List<Pair<String, Object>> fields = stats.getFields();
@@ -672,10 +693,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       final int limit = user.getSampling().getLimit();
-      List<Record> records = executeDirectives(id, user, new Function<List<Record>, List<Record>>() {
+      List<Row> rows = executeDirectives(id, user, new Function<List<Row>, List<Row>>() {
         @Nullable
         @Override
-        public List<Record> apply(@Nullable List<Record> records) {
+        public List<Row> apply(@Nullable List<Row> records) {
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
         }
@@ -684,7 +705,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       // generate a schema based upon the first record
       Json2Schema json2Schema = new Json2Schema();
       try {
-        Schema schema = json2Schema.toSchema("record", createUberRecord(records));
+        Schema schema = json2Schema.toSchema("record", createUberRecord(rows));
         if (schema.getType() != Schema.Type.RECORD) {
           schema = Schema.recordOf("array", Schema.Field.of("value", schema));
         }
@@ -778,17 +799,17 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       final int limit = reqBody.getSampling().getLimit();
-      List<Record> newRecords = executeDirectives(ws, reqBody, new Function<List<Record>, List<Record>>() {
+      List<Row> newRows = executeDirectives(ws, reqBody, new Function<List<Row>, List<Row>>() {
         @Nullable
         @Override
-        public List<Record> apply(@Nullable List<Record> records) {
+        public List<Row> apply(@Nullable List<Row> records) {
           int min = Math.min(records.size(), limit);
-          return Lists.newArrayList(new Reservoir<Record>(min).sample(records.iterator()));
+          return Lists.newArrayList(new Reservoir<Row>(min).sample(records.iterator()));
         }
       });
 
 
-      Record firstRow = newRecords.get(0);
+      Row firstRow = newRows.get(0);
       Object columnValue = firstRow.getValue(column);
       if (!(columnValue instanceof VTDNav)) {
         error(responder, String.format("Column '%s' is not parsed as XML.", column));
@@ -947,21 +968,33 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
   }
 
+  @GET
+  @Path("usage/2")
+  public void usageV2(HttpServiceRequest request, HttpServiceResponder responder) {
+    JsonObject response = new JsonObject();
+    response.addProperty("status", HttpURLConnection.HTTP_OK);
+    response.addProperty("message", "success");
+    response.addProperty("count", 1);
+    JsonArray array = new JsonArray();
+    array.add(system.toJson());
+    array.add(user.toJson());
+  }
+
   /**
-   * Creates a uber record after iterating through all records.
+   * Creates a uber record after iterating through all rows.
    *
-   * @param records list of all records.
+   * @param rows list of all rows.
    * @return A single record will rows merged across all columns.
    */
-  private static Record createUberRecord(List<Record> records) {
-    Record uber = new Record();
-    for (Record record : records) {
-      for (int i = 0; i < record.length(); ++i) {
-        Object o = record.getValue(i);
+  private static Row createUberRecord(List<Row> rows) {
+    Row uber = new Row();
+    for (Row row : rows) {
+      for (int i = 0; i < row.length(); ++i) {
+        Object o = row.getValue(i);
         if (o != null) {
-          int idx = uber.find(record.getColumn(i));
+          int idx = uber.find(row.getColumn(i));
           if (idx == -1) {
-            uber.add(record.getColumn(i), o);
+            uber.add(row.getColumn(i), o);
           }
         }
       }
@@ -976,15 +1009,15 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @return list of records.
    * @throws WorkspaceException thrown when there is issue retrieving data.
    */
-  private List<Record> fromWorkspace(String id) throws WorkspaceException {
+  private List<Row> fromWorkspace(String id) throws WorkspaceException {
     DataType type = table.getType(id);
-    List<Record> records = new ArrayList<>();
+    List<Row> rows = new ArrayList<>();
 
     switch(type) {
       case TEXT: {
         String data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.TEXT);
         if (data != null) {
-          records.add(new Record("body", data));
+          rows.add(new Row("body", data));
         }
         break;
       }
@@ -992,17 +1025,17 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       case BINARY: {
         byte[] data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.BINARY);
         if (data != null) {
-          records.add(new Record("body", data));
+          rows.add(new Row("body", data));
         }
         break;
       }
 
       case RECORDS: {
-        records = table.getData(id, WorkspaceDataset.DATA_COL, DataType.RECORDS);
+        rows = table.getData(id, WorkspaceDataset.DATA_COL, DataType.RECORDS);
         break;
       }
     }
-    return records;
+    return rows;
   }
 
   /**
@@ -1013,16 +1046,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    * @param sample sampling function.
    * @return records generated from the directives.
    */
-  private List<Record> executeDirectives(String id, @Nullable Request user,
-                                         Function<List<Record>, List<Record>> sample)
+  private List<Row> executeDirectives(String id, @Nullable Request user,
+                                      Function<List<Row>, List<Row>> sample)
     throws Exception {
     if (user == null) {
       throw new Exception("Request is empty. Please check if the request is sent as HTTP POST body.");
     }
 
     TransientStore store = new DefaultTransientStore();
-    // Extract records from the workspace.
-    List<Record> records = fromWorkspace(id);
+    // Extract rows from the workspace.
+    List<Row> rows = fromWorkspace(id);
     // Execute the pipeline.
     RecipeContext context = new ServicePipelineContext(RecipeContext.Environment.SERVICE,
                                                        getContext(),
@@ -1031,7 +1064,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     RecipeParser directives = new SimpleTextParser(user.getRecipe().getDirectives());
     directives.initialize(new ConfigDirectiveContext(table.getConfigString()));
     executor.configure(directives, context);
-    return executor.execute(sample.apply(records));
+    return executor.execute(sample.apply(rows));
   }
-
 }

@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.JexlHelper;
 import org.apache.commons.jexl3.JexlContext;
@@ -59,21 +59,21 @@ public class SetTransientVariable extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context)
+  public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
-    for (Record record : records) {
-      // Move the fields from the record into the context.
+    for (Row row : rows) {
+      // Move the fields from the row into the context.
       JexlContext ctx = new MapContext();
-      ctx.set("this", record);
-      for (int i = 0; i < record.length(); ++i) {
-        ctx.set(record.getColumn(i), record.getValue(i));
+      ctx.set("this", row);
+      for (int i = 0; i < row.length(); ++i) {
+        ctx.set(row.getColumn(i), row.getValue(i));
       }
 
       // Transient variables are added.
@@ -83,7 +83,7 @@ public class SetTransientVariable extends AbstractDirective {
         }
       }
 
-      // Execution of the script / expression based on the record data
+      // Execution of the script / expression based on the row data
       // mapped into context.
       try {
         Object result = script.execute(ctx);
@@ -112,6 +112,6 @@ public class SetTransientVariable extends AbstractDirective {
         }
       }
     }
-    return records;
+    return rows;
   }
 }

@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.column.Copy;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,22 +37,22 @@ public class CopyTest {
       "copy body_1 name"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "A,B,1"),
-      new Record("body", "D,E,2"),
-      new Record("body", "G,H,3")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B,1"),
+      new Row("body", "D,E,2"),
+      new Row("body", "G,H,3")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 3);
-    Assert.assertEquals(5, records.get(0).length()); // should have copied to another column
-    Assert.assertEquals("A", records.get(0).getValue("name")); // Should have copy of 'A'
-    Assert.assertEquals("D", records.get(1).getValue("name")); // Should have copy of 'D'
-    Assert.assertEquals("G", records.get(2).getValue("name")); // Should have copy of 'G'
-    Assert.assertEquals(records.get(0).getValue("name"), records.get(0).getValue("body_1"));
-    Assert.assertEquals(records.get(1).getValue("name"), records.get(1).getValue("body_1"));
-    Assert.assertEquals(records.get(2).getValue("name"), records.get(2).getValue("body_1"));
+    Assert.assertTrue(rows.size() == 3);
+    Assert.assertEquals(5, rows.get(0).length()); // should have copied to another column
+    Assert.assertEquals("A", rows.get(0).getValue("name")); // Should have copy of 'A'
+    Assert.assertEquals("D", rows.get(1).getValue("name")); // Should have copy of 'D'
+    Assert.assertEquals("G", rows.get(2).getValue("name")); // Should have copy of 'G'
+    Assert.assertEquals(rows.get(0).getValue("name"), rows.get(0).getValue("body_1"));
+    Assert.assertEquals(rows.get(1).getValue("name"), rows.get(1).getValue("body_1"));
+    Assert.assertEquals(rows.get(2).getValue("name"), rows.get(2).getValue("body_1"));
   }
 
   @Test(expected = DirectiveExecutionException.class)
@@ -62,13 +62,13 @@ public class CopyTest {
       "copy body_1 body_2"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "A,B,1"),
-      new Record("body", "D,E,2"),
-      new Record("body", "G,H,3")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B,1"),
+      new Row("body", "D,E,2"),
+      new Row("body", "G,H,3")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
   }
 
   @Test
@@ -78,22 +78,22 @@ public class CopyTest {
       "copy body_1 body_2 true"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "A,B,1"),
-      new Record("body", "D,E,2"),
-      new Record("body", "G,H,3")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B,1"),
+      new Row("body", "D,E,2"),
+      new Row("body", "G,H,3")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 3);
-    Assert.assertEquals(4, records.get(0).length()); // should have copied to another column
-    Assert.assertEquals("A", records.get(0).getValue("body_2")); // Should have copy of 'A'
-    Assert.assertEquals("D", records.get(1).getValue("body_2")); // Should have copy of 'D'
-    Assert.assertEquals("G", records.get(2).getValue("body_2")); // Should have copy of 'G'
-    Assert.assertEquals(records.get(0).getValue("body_2"), records.get(0).getValue("body_1"));
-    Assert.assertEquals(records.get(1).getValue("body_2"), records.get(1).getValue("body_1"));
-    Assert.assertEquals(records.get(2).getValue("body_2"), records.get(2).getValue("body_1"));
+    Assert.assertTrue(rows.size() == 3);
+    Assert.assertEquals(4, rows.get(0).length()); // should have copied to another column
+    Assert.assertEquals("A", rows.get(0).getValue("body_2")); // Should have copy of 'A'
+    Assert.assertEquals("D", rows.get(1).getValue("body_2")); // Should have copy of 'D'
+    Assert.assertEquals("G", rows.get(2).getValue("body_2")); // Should have copy of 'G'
+    Assert.assertEquals(rows.get(0).getValue("body_2"), rows.get(0).getValue("body_1"));
+    Assert.assertEquals(rows.get(1).getValue("body_2"), rows.get(1).getValue("body_1"));
+    Assert.assertEquals(rows.get(2).getValue("body_2"), rows.get(2).getValue("body_1"));
   }
 
 }

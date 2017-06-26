@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,13 +35,13 @@ public class UrlEncodeTest {
       "url-encode url",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
+    List<Row> rows = Arrays.asList(
+      new Row("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("http%3A%2F%2Fwww.yahoo.com%3Fa%3Db+c%26b%3Dab%26xyz%3D1", records.get(0).getValue("url"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("http%3A%2F%2Fwww.yahoo.com%3Fa%3Db+c%26b%3Dab%26xyz%3D1", rows.get(0).getValue("url"));
   }
 }

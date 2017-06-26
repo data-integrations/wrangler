@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import com.ximpleware.ParseException;
 import com.ximpleware.VTDGen;
@@ -56,23 +56,23 @@ public class XmlParser extends AbstractDirective {
   }
 
   /**
-   * Parses a give column in a {@link Record} as a XML.
+   * Parses a give column in a {@link Row} as a XML.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return New Record containing multiple columns based on CSV parsing.
+   * @return New Row containing multiple columns based on CSV parsing.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context)
+  public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException {
 
-    for (Record record : records) {
-      int idx = record.find(col);
+    for (Row row : rows) {
+      int idx = row.find(col);
       if (idx == -1) {
         continue; // didn't find the column.
       }
 
-      Object object = record.getValue(idx);
+      Object object = row.getValue(idx);
       if (object == null) {
         continue; // If it's null keep it as null.
       }
@@ -86,19 +86,19 @@ public class XmlParser extends AbstractDirective {
           e.printStackTrace();
         }
         VTDNav vn = vg.getNav();
-        record.setValue(idx, vn);
+        row.setValue(idx, vn);
       }
     }
-    return records;
+    return rows;
   }
 
   /**
-   * Converts a {@link CSVRecord} to {@link Record}.
+   * Converts a {@link CSVRecord} to {@link Row}.
    *
    * @param record
    * @return
    */
-  private void toRow(CSVRecord record, Record row) {
+  private void toRow(CSVRecord record, Row row) {
     for ( int i = 0; i < record.size(); i++) {
       row.add(col + "_" + (i + 1), record.get(i));
     }

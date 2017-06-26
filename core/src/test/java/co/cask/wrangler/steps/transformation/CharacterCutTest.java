@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,21 +41,21 @@ public class CharacterCutTest {
       "cut-character body seven 1,2,3-5",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "one two three four five six seven eight")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "one two three four five six seven eight")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(8, records.get(0).length());
-    Assert.assertEquals("one", records.get(0).getValue("one"));
-    Assert.assertEquals("two", records.get(0).getValue("two"));
-    Assert.assertEquals("three", records.get(0).getValue("three"));
-    Assert.assertEquals("four five six seven eight", records.get(0).getValue("four"));
-    Assert.assertEquals("one", records.get(0).getValue("five"));
-    Assert.assertEquals("one", records.get(0).getValue("six"));
-    Assert.assertEquals("one t", records.get(0).getValue("seven"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(8, rows.get(0).length());
+    Assert.assertEquals("one", rows.get(0).getValue("one"));
+    Assert.assertEquals("two", rows.get(0).getValue("two"));
+    Assert.assertEquals("three", rows.get(0).getValue("three"));
+    Assert.assertEquals("four five six seven eight", rows.get(0).getValue("four"));
+    Assert.assertEquals("one", rows.get(0).getValue("five"));
+    Assert.assertEquals("one", rows.get(0).getValue("six"));
+    Assert.assertEquals("one t", rows.get(0).getValue("seven"));
   }
 
   @Test
@@ -64,13 +64,13 @@ public class CharacterCutTest {
       "cut-character body value 2-"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "$734.77")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "$734.77")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("734.77", records.get(0).getValue("value"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("734.77", rows.get(0).getValue("value"));
   }
 }

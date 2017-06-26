@@ -22,7 +22,7 @@ import co.cask.wrangler.api.annotations.PublicEvolving;
  * An abstract class for {@link Directive} with added debugging capabilities.
  */
 @PublicEvolving
-public abstract class AbstractDirective implements Directive<Record, Record> {
+public abstract class AbstractDirective implements Directive<Row, Row> {
   private int lineno;
   private String detail;
 

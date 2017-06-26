@@ -17,11 +17,10 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.UDD;
-import co.cask.wrangler.api.parser.UsageDefinition;
 import co.cask.wrangler.registry.DirectiveInfo;
+import co.cask.wrangler.registry.DirectiveLoadException;
 import co.cask.wrangler.registry.DirectiveLoader;
 import co.cask.wrangler.registry.DirectiveNotFoundException;
 import co.cask.wrangler.registry.DirectiveRegistry;
@@ -40,15 +39,19 @@ public class GrammarBasedParserTest {
   public void testBasic() throws Exception {
     String recipe = "rename :col1 :col2; parse-as-csv :body ',' true;";
 
-    final DirectiveRegistry registry = new SystemDirectiveRegistry();
+    final DirectiveRegistry system = new SystemDirectiveRegistry();
     RecipeParser parser = new GrammarBasedParser(recipe, new DirectiveLoader() {
       @Override
-      public Pair<UsageDefinition, UDD> load(String name) throws DirectiveNotFoundException, InstantiationException, IllegalAccessException {
-        DirectiveInfo info = registry.get(name);
+      public UDD load(String name) throws DirectiveLoadException, DirectiveNotFoundException {
+        DirectiveInfo info = system.get(name);
         if (info == null) {
           throw new DirectiveNotFoundException("Directive not found");
         }
-        return new Pair<>(info.definition(), info.instance());
+        try {
+          return info.instance();
+        } catch (IllegalAccessException | InstantiationException e) {
+          throw new DirectiveLoadException(e.getMessage(), e);
+        }
       }
     });
 

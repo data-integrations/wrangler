@@ -16,13 +16,11 @@
 
 package co.cask.wrangler.registry;
 
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.UDD;
-import co.cask.wrangler.api.parser.UsageDefinition;
 
 /**
  * Class description here.
  */
 public interface DirectiveLoader {
-  Pair<UsageDefinition, UDD> load(String name) throws DirectiveNotFoundException, IllegalAccessException, InstantiationException;
+  UDD load(String name) throws DirectiveLoadException, DirectiveNotFoundException;
 }

@@ -17,10 +17,10 @@
 package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 
 /**
- * Throw when there is issue with conversion of {@link Record} to {@link StructuredRecord}
+ * Throw when there is issue with conversion of {@link Row} to {@link StructuredRecord}
  */
 public class RecordConvertorException extends Exception {
   public RecordConvertorException(String message) {

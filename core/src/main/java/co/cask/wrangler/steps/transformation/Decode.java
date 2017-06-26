@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base32;
@@ -73,21 +73,21 @@ public class Decode extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx == -1) {
         continue;
       }
 
-      Object object = record.getValue(idx);
+      Object object = row.getValue(idx);
       if (object == null) {
         continue;
       }
@@ -124,8 +124,8 @@ public class Decode extends AbstractDirective {
       }
 
       String obj = new String(out, StandardCharsets.UTF_8);
-      record.addOrSet(String.format("%s_decode_%s", column, type.toString().toLowerCase(Locale.ENGLISH)), obj);
+      row.addOrSet(String.format("%s_decode_%s", column, type.toString().toLowerCase(Locale.ENGLISH)), obj);
     }
-    return records;
+    return rows;
   }
 }

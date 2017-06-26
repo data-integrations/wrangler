@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.nlp;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import co.cask.wrangler.steps.nlp.internal.PorterStemmer;
 import org.junit.Assert;
@@ -53,15 +53,15 @@ public class StemmingTest {
       "stemming words",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("words", Arrays.asList("how", "are", "you", "doing", "do", "you", "have", "apples"))
+    List<Row> rows = Arrays.asList(
+      new Row("words", Arrays.asList("how", "are", "you", "doing", "do", "you", "have", "apples"))
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
     Assert.assertEquals(Arrays.asList("how", "ar", "you", "do", "do", "you", "have", "appl"),
-                        records.get(0).getValue("words_porter"));
+                        rows.get(0).getValue("words_porter"));
   }
 
   @Test
@@ -70,15 +70,15 @@ public class StemmingTest {
       "stemming words",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("words", "how are you doing ? do you have apples")
+    List<Row> rows = Arrays.asList(
+      new Row("words", "how are you doing ? do you have apples")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
     Assert.assertEquals(Arrays.asList("how", "ar", "you", "do", "do", "you", "have", "appl"),
-                        records.get(0).getValue("words_porter"));
+                        rows.get(0).getValue("words_porter"));
   }
 
 }

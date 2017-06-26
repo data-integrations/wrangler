@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.column;
 
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,20 +36,20 @@ public class ColumnsReplaceTest {
       "columns-replace s/^data_//g",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("data_a", 1).add("data_b", 2).add("data_timestamp", 3).add("data_data_confuse", 4)
+    List<Row> rows = Arrays.asList(
+      new Row("data_a", 1).add("data_b", 2).add("data_timestamp", 3).add("data_data_confuse", 4)
         .add("no_data", 5).add("whatever", 6)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("a", records.get(0).getColumn(0));
-    Assert.assertEquals("b", records.get(0).getColumn(1));
-    Assert.assertEquals("timestamp", records.get(0).getColumn(2));
-    Assert.assertEquals("data_confuse", records.get(0).getColumn(3));
-    Assert.assertEquals("no_data", records.get(0).getColumn(4));
-    Assert.assertEquals("whatever", records.get(0).getColumn(5));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("a", rows.get(0).getColumn(0));
+    Assert.assertEquals("b", rows.get(0).getColumn(1));
+    Assert.assertEquals("timestamp", rows.get(0).getColumn(2));
+    Assert.assertEquals("data_confuse", rows.get(0).getColumn(3));
+    Assert.assertEquals("no_data", rows.get(0).getColumn(4));
+    Assert.assertEquals("whatever", rows.get(0).getColumn(5));
   }
 
   @Test(expected = DirectiveExecutionException.class)
@@ -58,11 +58,11 @@ public class ColumnsReplaceTest {
       "columns-replace r/^data_//g", // Incorrect sed expression.
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("data_a", 1).add("data_b", 2).add("data_timestamp", 3).add("data_data_confuse", 4)
+    List<Row> rows = Arrays.asList(
+      new Row("data_a", 1).add("data_b", 2).add("data_timestamp", 3).add("data_data_confuse", 4)
         .add("no_data", 5).add("whatever", 6)
     );
 
-    RecipePipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, rows);
   }
 }

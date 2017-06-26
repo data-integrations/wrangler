@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.executor;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Public;
 
 /**
@@ -24,30 +24,30 @@ import co.cask.wrangler.api.annotations.Public;
  */
 @Public
 public final class ErrorRecord {
-  // Actual record that is errored.
-  private final Record record;
+  // Actual row that is errored.
+  private final Row row;
 
-  // Message as to why the record errored.
+  // Message as to why the row errored.
   private final String message;
 
   // Code associated with the message.
   private final int code;
 
-  public ErrorRecord(Record record, String message, int code) {
-    this.record = record;
+  public ErrorRecord(Row row, String message, int code) {
+    this.row = row;
     this.message = message;
     this.code = code;
   }
 
   /**
-   * @return original {@link Record} that errored.
+   * @return original {@link Row} that errored.
    */
-  public Record getRecord() {
-    return record;
+  public Row getRow() {
+    return row;
   }
 
   /**
-   * @return Message associated with the {@link Record}.
+   * @return Message associated with the {@link Row}.
    */
   public String getMessage() {
     return message;

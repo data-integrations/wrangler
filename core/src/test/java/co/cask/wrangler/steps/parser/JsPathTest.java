@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,8 +30,8 @@ import java.util.List;
 public class JsPathTest {
   @Test
   public void testJSONFunctions() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("body", "{\n" +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "{\n" +
         "    \"name\" : {\n" +
         "        \"Fname\" : \"Joltie\",\n" +
         "        \"Lname\" : \"Root\",\n" +
@@ -78,8 +78,8 @@ public class JsPathTest {
       "set-column s5 json:join(s11, \":\")"
     };
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
   }
 }

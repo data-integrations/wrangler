@@ -1,6 +1,6 @@
 package co.cask.wrangler.steps.transformation.functions;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -11,21 +11,21 @@ public class DataQualityTest {
 
   @Test
   public void testRecordLength() throws Exception {
-    Record record = new Record("a", 1).add("b", 2).add("c", 3);
-    Assert.assertEquals(3, DataQuality.columns(record));
-    record = new Record("a", 1);
-    Assert.assertEquals(1, DataQuality.columns(record));
-    record = new Record();
-    Assert.assertEquals(0, DataQuality.columns(record));
+    Row row = new Row("a", 1).add("b", 2).add("c", 3);
+    Assert.assertEquals(3, DataQuality.columns(row));
+    row = new Row("a", 1);
+    Assert.assertEquals(1, DataQuality.columns(row));
+    row = new Row();
+    Assert.assertEquals(0, DataQuality.columns(row));
   }
 
   @Test
   public void testRecordHasColumn() throws Exception {
-    Record record = new Record("a", 1);
-    Assert.assertEquals(true, DataQuality.hascolumn(record, "a"));
-    Assert.assertEquals(false, DataQuality.hascolumn(record, "b"));
-    record = new Record();
-    Assert.assertEquals(false, DataQuality.hascolumn(record, "a"));
+    Row row = new Row("a", 1);
+    Assert.assertEquals(true, DataQuality.hascolumn(row, "a"));
+    Assert.assertEquals(false, DataQuality.hascolumn(row, "b"));
+    row = new Row();
+    Assert.assertEquals(false, DataQuality.hascolumn(row, "a"));
   }
 
   @Test

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,14 +35,14 @@ public class FillNullOrEmptyTest {
       "fill-null-or-empty null N/A",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("value", "has value"),
-      new Record("value", null),
-      new Record("value", null)
+    List<Row> rows = Arrays.asList(
+      new Row("value", "has value"),
+      new Row("value", null),
+      new Row("value", null)
     );
 
-    RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 3);
+    RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 3);
   }
 
   @Test
@@ -51,18 +51,18 @@ public class FillNullOrEmptyTest {
       "fill-null-or-empty value N/A",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("value", "has value"),
-      new Record("value", null),
-      new Record("value", null)
+    List<Row> rows = Arrays.asList(
+      new Row("value", "has value"),
+      new Row("value", null),
+      new Row("value", null)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 3);
-    Assert.assertEquals("has value", records.get(0).getValue("value"));
-    Assert.assertEquals("N/A", records.get(1).getValue("value"));
-    Assert.assertEquals("N/A", records.get(2).getValue("value"));
+    Assert.assertTrue(rows.size() == 3);
+    Assert.assertEquals("has value", rows.get(0).getValue("value"));
+    Assert.assertEquals("N/A", rows.get(1).getValue("value"));
+    Assert.assertEquals("N/A", rows.get(2).getValue("value"));
   }
 
   @Test
@@ -71,18 +71,18 @@ public class FillNullOrEmptyTest {
       "fill-null-or-empty value N/A",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("value", ""),
-      new Record("value", ""),
-      new Record("value", "Should be fine")
+    List<Row> rows = Arrays.asList(
+      new Row("value", ""),
+      new Row("value", ""),
+      new Row("value", "Should be fine")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 3);
-    Assert.assertEquals("N/A", records.get(0).getValue("value"));
-    Assert.assertEquals("N/A", records.get(1).getValue("value"));
-    Assert.assertEquals("Should be fine", records.get(2).getValue("value"));
+    Assert.assertTrue(rows.size() == 3);
+    Assert.assertEquals("N/A", rows.get(0).getValue("value"));
+    Assert.assertEquals("N/A", rows.get(1).getValue("value"));
+    Assert.assertEquals("Should be fine", rows.get(2).getValue("value"));
   }
 
   @Test
@@ -91,17 +91,17 @@ public class FillNullOrEmptyTest {
       "fill-null-or-empty value N/A",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("value", null),
-      new Record("value", ""),
-      new Record("value", "Should be fine")
+    List<Row> rows = Arrays.asList(
+      new Row("value", null),
+      new Row("value", ""),
+      new Row("value", "Should be fine")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 3);
-    Assert.assertEquals("N/A", records.get(0).getValue("value"));
-    Assert.assertEquals("N/A", records.get(1).getValue("value"));
-    Assert.assertEquals("Should be fine", records.get(2).getValue("value"));
+    Assert.assertTrue(rows.size() == 3);
+    Assert.assertEquals("N/A", rows.get(0).getValue("value"));
+    Assert.assertEquals("N/A", rows.get(1).getValue("value"));
+    Assert.assertEquals("Should be fine", rows.get(2).getValue("value"));
   }
 }

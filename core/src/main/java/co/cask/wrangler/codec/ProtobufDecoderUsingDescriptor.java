@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import com.google.gson.Gson;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
@@ -30,9 +30,9 @@ import java.util.Map;
 
 /**
  * This class {@link ProtobufDecoderUsingDescriptor} decodes a byte array of Protobuf
- * Records into the {@link Record} structure.
+ * Records into the {@link Row} structure.
  */
-public class ProtobufDecoderUsingDescriptor implements Decoder<Record> {
+public class ProtobufDecoderUsingDescriptor implements Decoder<Row> {
   private final Gson gson;
   private final Descriptors.Descriptor descriptor;
 
@@ -48,20 +48,20 @@ public class ProtobufDecoderUsingDescriptor implements Decoder<Record> {
   }
 
   @Override
-  public List<Record> decode(byte[] bytes) throws DecoderException {
-    List<Record> records = new ArrayList<>();
+  public List<Row> decode(byte[] bytes) throws DecoderException {
+    List<Row> rows = new ArrayList<>();
     try {
       DynamicMessage message = DynamicMessage.parseFrom(descriptor, bytes);
-      Record record  = new Record();
-      decodeMessage(message, record, null);
-      records.add(record);
+      Row row = new Row();
+      decodeMessage(message, row, null);
+      rows.add(row);
     } catch (InvalidProtocolBufferException e) {
       throw new DecoderException(e.getMessage());
     }
-    return records;
+    return rows;
   }
 
-  private void decodeMessage(Message message, Record record, String root) {
+  private void decodeMessage(Message message, Row row, String root) {
     for (Map.Entry<Descriptors.FieldDescriptor, Object> field : message.getAllFields().entrySet()) {
       String name = field.getKey().getName();
       String fullName = String.format("%s", name);
@@ -73,16 +73,16 @@ public class ProtobufDecoderUsingDescriptor implements Decoder<Record> {
       switch(type) {
         case MESSAGE:
           for (Message msg : (List<Message>) value) {
-            decodeMessage(msg, record, fullName);
+            decodeMessage(msg, row, fullName);
           }
           break;
 
         case ENUM:
-          record.add(fullName, ((Descriptors.EnumValueDescriptor) value).getName());
+          row.add(fullName, ((Descriptors.EnumValueDescriptor) value).getName());
           break;
 
         default:
-          record.add(fullName, value);
+          row.add(fullName, value);
           break;
       }
     }

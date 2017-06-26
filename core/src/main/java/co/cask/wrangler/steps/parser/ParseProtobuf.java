@@ -21,10 +21,10 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.codec.Decoder;
 import co.cask.wrangler.codec.DecoderException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.clients.RestClientException;
 import co.cask.wrangler.clients.SchemaRegistryClient;
@@ -57,7 +57,7 @@ public class ParseProtobuf extends AbstractDirective {
   private final String schemaId;
   private final String recordName;
   private final long version;
-  private Decoder<Record> decoder;
+  private Decoder<Row> decoder;
   private boolean decoderInitialized = false;
   private SchemaRegistryClient client;
 
@@ -70,22 +70,22 @@ public class ParseProtobuf extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
+  public List<Row> execute(List<Row> rows, final RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
 
     if (!decoderInitialized) {
       // Retryer callable, that allows this step attempt to connect to schema registry service
       // before giving up.
-      Callable<Decoder<Record>> decoderCallable = new Callable<Decoder<Record>>() {
+      Callable<Decoder<Row>> decoderCallable = new Callable<Decoder<Row>>() {
         @Override
-        public Decoder<Record> call() throws Exception {
+        public Decoder<Row> call() throws Exception {
           client = SchemaRegistryClient.getInstance(context);
           byte[] bytes;
           if (version != -1) {
@@ -101,7 +101,7 @@ public class ParseProtobuf extends AbstractDirective {
       // Retryer that retries when there is connection issue or any request / response
       // issue. It would exponentially back-off till wait time of 10 seconds is reached
       // for 5 attempts.
-      Retryer<Decoder<Record>> retryer = RetryerBuilder.<Decoder<Record>>newBuilder()
+      Retryer<Decoder<Row>> retryer = RetryerBuilder.<Decoder<Row>>newBuilder()
         .retryIfExceptionOfType(IOException.class)
         .retryIfExceptionOfType(RestClientException.class)
         .withWaitStrategy(WaitStrategies.exponentialWait(10, TimeUnit.SECONDS))
@@ -127,10 +127,10 @@ public class ParseProtobuf extends AbstractDirective {
     }
 
     try {
-      for (Record record : records) {
-        int idx = record.find(column);
+      for (Row row : rows) {
+        int idx = row.find(column);
         if (idx != -1) {
-          Object object = record.getValue(idx);
+          Object object = row.getValue(idx);
           if (object instanceof byte[]) {
             byte[] bytes = (byte[]) object;
             results.addAll(decoder.decode(bytes));

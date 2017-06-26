@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.joestelmach.natty.DateGroup;
@@ -55,18 +55,18 @@ public class ParseDate extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object instanceof String) {
           Parser parser = new Parser();
           List<DateGroup> groups = parser.parse((String) object);
@@ -74,7 +74,7 @@ public class ParseDate extends AbstractDirective {
           for (DateGroup group : groups) {
             List<Date> dates = group.getDates();
             for (Date date : dates) {
-              record.add(String.format("%s_%d", column, i), date);
+              row.add(String.format("%s_%d", column, i), date);
             }
             i++;
           }
@@ -85,9 +85,9 @@ public class ParseDate extends AbstractDirective {
           );
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
       }
     }
-    return records;
+    return rows;
   }
 }

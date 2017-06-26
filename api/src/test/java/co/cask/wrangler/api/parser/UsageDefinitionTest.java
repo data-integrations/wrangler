@@ -37,7 +37,7 @@ public class UsageDefinitionTest {
     builder.define("condition", TokenType.EXPRESSION, Optional.TRUE);
     UsageDefinition definition = builder.build();
     Assert.assertEquals("test", definition.getName());
-    JsonElement element = definition.toJsonObject();
+    JsonElement element = definition.toJson();
     System.out.println(definition.toString());
   }
 

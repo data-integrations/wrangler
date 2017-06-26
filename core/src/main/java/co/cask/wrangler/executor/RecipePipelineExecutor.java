@@ -24,7 +24,7 @@ import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.utils.RecordConvertor;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Wrangle RecipePipeline executes stepRegistry in the order they are specified.
  */
-public final class RecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
+public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
   private RecipeContext context;
   private List<Directive> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
@@ -63,16 +63,16 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
   /**
    * Executes the pipeline on the input.
    *
-   * @param records List of Input record of type I.
+   * @param rows List of Input record of type I.
    * @param schema Schema to which the output should be mapped.
    * @return Parsed output list of record of type O
    */
   @Override
-  public List<StructuredRecord> execute(List<Record> records, Schema schema)
+  public List<StructuredRecord> execute(List<Row> rows, Schema schema)
     throws RecipeException {
-    records = execute(records);
+    rows = execute(rows);
     try {
-      List<StructuredRecord> output = convertor.toStructureRecord(records, schema);
+      List<StructuredRecord> output = convertor.toStructureRecord(rows, schema);
       return output;
     } catch (RecordConvertorException e) {
       throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage());
@@ -82,29 +82,29 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
   /**
    * Executes the pipeline on the input.
    *
-   * @param records List of input record of type I.
+   * @param rows List of input record of type I.
    * @return Parsed output list of record of type I
    */
   @Override
-  public List<Record> execute(List<Record> records) throws RecipeException {
-    List<Record> results = Lists.newArrayList();
+  public List<Row> execute(List<Row> rows) throws RecipeException {
+    List<Row> results = Lists.newArrayList();
     try {
       int i = 0;
       collector.reset();
-      while (i < records.size()) {
-        List<Record> newRecords = records.subList(i, i+1);
+      while (i < rows.size()) {
+        List<Row> newRows = rows.subList(i, i+1);
         try {
           for (Directive directive : directives) {
-            newRecords = directive.execute(newRecords, context);
-            if (newRecords.size() < 1) {
+            newRows = directive.execute(newRows, context);
+            if (newRows.size() < 1) {
               break;
             }
           }
-          if(newRecords.size() > 0) {
-            results.addAll(newRecords);
+          if(newRows.size() > 0) {
+            results.addAll(newRows);
           }
         } catch (ErrorRecordException e) {
-          collector.add(new ErrorRecord(newRecords.get(0), e.getMessage(), e.getCode()));
+          collector.add(new ErrorRecord(newRows.get(0), e.getMessage(), e.getCode()));
         }
         i++;
       }
@@ -125,20 +125,20 @@ public final class RecipePipelineExecutor implements RecipePipeline<Record, Stru
   }
 
   /**
-   * Converts a {@link Record} to a {@link StructuredRecord}.
+   * Converts a {@link Row} to a {@link StructuredRecord}.
    *
-   * @param records {@link Record} to be converted
+   * @param rows {@link Row} to be converted
    * @param schema Schema of the {@link StructuredRecord} to be created.
    * @return A {@link StructuredRecord} from record.
    */
-  private List<StructuredRecord> toStructuredRecord(List<Record> records, Schema schema) {
+  private List<StructuredRecord> toStructuredRecord(List<Row> rows, Schema schema) {
     List<StructuredRecord> results = new ArrayList<>();
-    for (Record record : records) {
+    for (Row row : rows) {
       StructuredRecord.Builder builder = StructuredRecord.builder(schema);
       List<Schema.Field> fields = schema.getFields();
       for (Schema.Field field : fields) {
         String name = field.getName();
-        Object value = record.getValue(name);
+        Object value = row.getValue(name);
         if (value != null) {
           builder.set(name, value);
         }

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,16 +36,16 @@ public class EncodeDecodeTest {
       "encode hex col3"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("col1", "Base32 Encoding").add("col2", "Testing Base 64 Encoding").add("col3", "Hex Encoding")
+    List<Row> rows = Arrays.asList(
+      new Row("col1", "Base32 Encoding").add("col2", "Testing Base 64 Encoding").add("col3", "Hex Encoding")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("IJQXGZJTGIQEK3TDN5SGS3TH", records.get(0).getValue(3));
-    Assert.assertEquals("VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n", records.get(0).getValue(4));
-    Assert.assertEquals("48657820456e636f64696e67", records.get(0).getValue(5));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("IJQXGZJTGIQEK3TDN5SGS3TH", rows.get(0).getValue(3));
+    Assert.assertEquals("VGVzdGluZyBCYXNlIDY0IEVuY29kaW5n", rows.get(0).getValue(4));
+    Assert.assertEquals("48657820456e636f64696e67", rows.get(0).getValue(5));
 
     directives = new String[] {
       "decode base32 col1_encode_base32",
@@ -53,11 +53,11 @@ public class EncodeDecodeTest {
       "decode hex col3_encode_hex"
     };
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("Base32 Encoding", records.get(0).getValue(6));
-    Assert.assertEquals("Testing Base 64 Encoding", records.get(0).getValue(7));
-    Assert.assertEquals("Hex Encoding", records.get(0).getValue(8));
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("Base32 Encoding", rows.get(0).getValue(6));
+    Assert.assertEquals("Testing Base 64 Encoding", rows.get(0).getValue(7));
+    Assert.assertEquals("Hex Encoding", rows.get(0).getValue(8));
 
   }
 }

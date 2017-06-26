@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.dq.TypeInference;
 import com.google.gson.Gson;
@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A JSON Parser Stage for parsing the provided {@link Record} based on the configuration.
+ * A JSON Parser Stage for parsing the provided {@link Row} based on the configuration.
  */
 @Plugin(type = "udd")
 @Name("parse-as-json")
@@ -66,23 +66,23 @@ public class JsParser extends AbstractDirective {
   }
 
   /**
-   * Parses a give column in a {@link Record} as a CSV Record.
+   * Parses a give column in a {@link Row} as a CSV Row.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    // Iterate through all the records.
-    for (Record record : records) {
-      int idx = record.find(col);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    // Iterate through all the rows.
+    for (Row row : rows) {
+      int idx = row.find(col);
 
-      // If the input column exists in the record, proceed further.
+      // If the input column exists in the row, proceed further.
       if (idx != -1) {
-        Object value = record.getValue(idx);
+        Object value = row.getValue(idx);
 
         if (value == null) {
           continue;
@@ -103,22 +103,22 @@ public class JsParser extends AbstractDirective {
             );
           }
 
-          record.remove(idx);
+          row.remove(idx);
 
           if (element != null) {
             if (element instanceof JsonObject) {
-              flattenJson(element.getAsJsonObject(), col, 1, maxDepth, record);
-              results.add(record);
+              flattenJson(element.getAsJsonObject(), col, 1, maxDepth, row);
+              results.add(row);
             } else if (element instanceof JsonArray) {
               JsonArray array = element.getAsJsonArray();
               for(int i = 0; i < array.size(); ++i) {
                 JsonElement object = array.get(i);
-                Record newRecord = new Record(record);
-                newRecord.add(col, getValue(object));
-                results.add(newRecord);
+                Row newRow = new Row(row);
+                newRow.add(col, getValue(object));
+                results.add(newRow);
               }
             } else if (element instanceof JsonPrimitive) {
-              record.add(col, getValue(element.getAsJsonPrimitive()));
+              row.add(col, getValue(element.getAsJsonPrimitive()));
             }
           }
         } catch (JSONException e) {
@@ -133,14 +133,14 @@ public class JsParser extends AbstractDirective {
    * Recursively flattens JSON until the 'maxDepth' is reached.
    *
    * @param root of the JSONObject
-   * @param field name to be used to be stored in the record.
+   * @param field name to be used to be stored in the row.
    * @param depth current depth into JSON structure.
    * @param maxDepth maximum depth to reach
-   * @param record to which the flatten fields need to be added.
+   * @param row to which the flatten fields need to be added.
    */
-  public static void flattenJson(JsonObject root, String field, int depth, int maxDepth, Record record) {
+  public static void flattenJson(JsonObject root, String field, int depth, int maxDepth, Row row) {
     if (depth > maxDepth) {
-      record.addOrSet(String.format("%s", field), root);
+      row.addOrSet(String.format("%s", field), root);
       return;
     }
 
@@ -151,9 +151,9 @@ public class JsParser extends AbstractDirective {
       JsonElement element = next.getValue();
       if (element instanceof JsonObject) {
         flattenJson(element.getAsJsonObject(),
-                    String.format("%s_%s", field, key), depth++, maxDepth, record);
+                    String.format("%s_%s", field, key), depth++, maxDepth, row);
       } else {
-        record.add(String.format("%s_%s", field, key), getValue(element));
+        row.add(String.format("%s_%s", field, key), getValue(element));
       }
     }
   }

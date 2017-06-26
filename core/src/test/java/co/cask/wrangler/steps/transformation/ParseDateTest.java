@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import co.cask.wrangler.steps.parser.ParseDate;
 import org.junit.Assert;
@@ -39,27 +39,27 @@ public class ParseDateTest {
       "diff-date date1 date2 difference"
     };
 
-    Record record1 = new Record();
+    Row row1 = new Row();
     // 1 hour diff
-    record1.add("date1", "12/10/2016 07:45");
-    record1.add("date2", "12/10/2016 06:45");
+    row1.add("date1", "12/10/2016 07:45");
+    row1.add("date2", "12/10/2016 06:45");
 
     // 1 month and 1 second diff
-    Record record2 = new Record();
-    record2.add("date1", "2/1/1990 12:01");
-    record2.add("date2", "1/1/1990 12:00");
+    Row row2 = new Row();
+    row2.add("date1", "2/1/1990 12:01");
+    row2.add("date2", "1/1/1990 12:00");
 
     // no diff
-    Record record3 = new Record();
-    record3.add("date1", "03/03/1998 2:02");
-    record3.add("date2", "03/03/1998 2:02");
+    Row row3 = new Row();
+    row3.add("date1", "03/03/1998 2:02");
+    row3.add("date2", "03/03/1998 2:02");
 
-    List<Record> records = RecipePipelineTest.execute(directives, Arrays.asList(record1, record2, record3));
+    List<Row> rows = RecipePipelineTest.execute(directives, Arrays.asList(row1, row2, row3));
 
-    Assert.assertEquals(TimeUnit.HOURS.toMillis(1), records.get(0).getValue("difference"));
-    Assert.assertEquals(2678460000L, records.get(1).getValue("difference"));
-    Assert.assertEquals(0L, records.get(2).getValue("difference"));
-    Assert.assertTrue(records.size() == 3);
+    Assert.assertEquals(TimeUnit.HOURS.toMillis(1), rows.get(0).getValue("difference"));
+    Assert.assertEquals(2678460000L, rows.get(1).getValue("difference"));
+    Assert.assertEquals(0L, rows.get(2).getValue("difference"));
+    Assert.assertTrue(rows.size() == 3);
   }
 
   @Test
@@ -69,12 +69,12 @@ public class ParseDateTest {
     };
 
     //2017-02-02T21:06:44Z
-    List<Record> records = Arrays.asList(
-      new Record("date", "2017-02-02T21:06:44Z")
+    List<Row> rows = Arrays.asList(
+      new Row("date", "2017-02-02T21:06:44Z")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test
@@ -84,18 +84,18 @@ public class ParseDateTest {
       "format-date date_1 MM/dd/yyyy HH:mm"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("date", "now"),
-      new Record("date", "today"),
-      new Record("date", "12/10/2016"),
-      new Record("date", "12/10/2016 06:45 AM"),
-      new Record("date", "september 7th 2016"),
-      new Record("date", "1485800109")
+    List<Row> rows = Arrays.asList(
+      new Row("date", "now"),
+      new Row("date", "today"),
+      new Row("date", "12/10/2016"),
+      new Row("date", "12/10/2016 06:45 AM"),
+      new Row("date", "september 7th 2016"),
+      new Row("date", "1485800109")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 6);
+    Assert.assertTrue(rows.size() == 6);
   }
 
 }

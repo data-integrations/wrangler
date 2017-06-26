@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.List;
@@ -46,25 +46,25 @@ public class ChangeColCaseNames extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      for (int i = 0; i < record.length(); ++i) {
-        String name = record.getColumn(i);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      for (int i = 0; i < row.length(); ++i) {
+        String name = row.getColumn(i);
         if (toLower) {
-          record.setColumn(i, name.toLowerCase());
+          row.setColumn(i, name.toLowerCase());
         } else {
-          record.setColumn(i, name.toUpperCase());
+          row.setColumn(i, name.toUpperCase());
         }
       }
     }
-    return records;
+    return rows;
   }
 }
 

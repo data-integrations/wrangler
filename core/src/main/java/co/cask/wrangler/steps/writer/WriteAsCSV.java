@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -58,33 +58,33 @@ public class WriteAsCSV extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
       try {
         final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
         try(Writer out = new BufferedWriter(new OutputStreamWriter(bOut))) {
           CSVPrinter csvPrinter = new CSVPrinter(out, CSVFormat.DEFAULT);
 
-          for (int i = 0; i < record.length(); ++i) {
-            csvPrinter.print(record.getValue(i));
+          for (int i = 0; i < row.length(); ++i) {
+            csvPrinter.print(row.getValue(i));
           }
           csvPrinter.flush();
           csvPrinter.close();
         } catch (Exception e) {
           bOut.close();
         }
-        record.add(column, bOut.toString());
+        row.add(column, bOut.toString());
       } catch (IOException e) {
-        throw new DirectiveExecutionException(toString() + " : Failed to write CSV record. " + e.getMessage());
+        throw new DirectiveExecutionException(toString() + " : Failed to write CSV row. " + e.getMessage());
       }
     }
-    return records;
+    return rows;
   }
 }

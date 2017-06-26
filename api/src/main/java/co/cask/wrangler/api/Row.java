@@ -25,11 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Record defines the schema and data on which the wrangler will operate upon.
+ * Row defines the schema and data on which the wrangler will operate upon.
  */
 @PublicEvolving
-public final class Record implements Serializable {
-  private static final Logger LOG = LoggerFactory.getLogger(Record.class);
+public final class Row implements Serializable {
+  private static final Logger LOG = LoggerFactory.getLogger(Row.class);
 
   // Name of the columns held by the row.
   private List<String> columns = new ArrayList<>();
@@ -37,17 +37,17 @@ public final class Record implements Serializable {
   // Values held by the row.
   private List<Object> values = new ArrayList<>();
 
-  public Record() {
+  public Row() {
   }
 
   /**
-   * Makes a copy of the record.
+   * Makes a copy of the row.
    *
-   * @param record to be copied to 'this' object.
+   * @param row to be copied to 'this' object.
    */
-  public Record(Record record) {
-    this.values = new ArrayList<>(record.values);
-    this.columns = new ArrayList<>(record.columns);
+  public Row(Row row) {
+    this.values = new ArrayList<>(row.values);
+    this.columns = new ArrayList<>(row.columns);
   }
 
   /**
@@ -55,7 +55,7 @@ public final class Record implements Serializable {
    *
    * @param columns to set in the row.
    */
-  public Record(List<String> columns) {
+  public Row(List<String> columns) {
     this.columns = new ArrayList<>(columns);
   }
 
@@ -65,7 +65,7 @@ public final class Record implements Serializable {
    * @param name of the column to be added to the row.
    * @param value for the column defined above.
    */
-  public Record(String name, Object value) {
+  public Row(String name, Object value) {
     this.columns = new ArrayList<>();
     this.values = new ArrayList<>();
     this.columns.add(name);
@@ -139,7 +139,7 @@ public final class Record implements Serializable {
    *
    * @param value to be added to the row.
    */
-  public Record addValue(Object value) {
+  public Row addValue(Object value) {
     values.add(value);
     return this;
   }
@@ -150,7 +150,7 @@ public final class Record implements Serializable {
    * @param idx index at which the value needs to be updated.
    * @param value value to be updated at index (idx).
    */
-  public Record setValue(int idx, Object value) {
+  public Row setValue(int idx, Object value) {
     values.set(idx, value);
     return this;
   }
@@ -161,7 +161,7 @@ public final class Record implements Serializable {
    * @param name of the value to be added to row.
    * @param value to be added to row.
    */
-  public Record add(String name, Object value) {
+  public Row add(String name, Object value) {
     columns.add(name);
     values.add(value);
     return this;
@@ -172,7 +172,7 @@ public final class Record implements Serializable {
    *
    * @param idx for which the value and column are removed.
    */
-  public Record remove(int idx) {
+  public Row remove(int idx) {
     columns.remove(idx);
     values.remove(idx);
     return this;

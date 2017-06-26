@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import org.simmetrics.StringDistance;
 import org.simmetrics.metrics.StringDistances;
@@ -115,44 +115,44 @@ public class TextDistanceMeasure extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx1 = record.find(column1);
-      int idx2 = record.find(column2);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx1 = row.find(column1);
+      int idx2 = row.find(column2);
 
       if (idx1 == -1 || idx2 == -1) {
-        record.add(destination, 0.0f);
+        row.add(destination, 0.0f);
         continue;
       }
 
-      Object object1 = record.getValue(idx1);
-      Object object2 = record.getValue(idx2);
+      Object object1 = row.getValue(idx1);
+      Object object2 = row.getValue(idx2);
 
       if (object1 == null || object2 == null) {
-        record.add(destination, 0.0f);
+        row.add(destination, 0.0f);
         continue;
       }
 
       if (!(object1 instanceof String) || !(object2 instanceof String)) {
-        record.add(destination, 0.0f);
+        row.add(destination, 0.0f);
         continue;
       }
 
       if (((String) object1).isEmpty() || ((String) object2).isEmpty()) {
-        record.add(destination, 0.0f);
+        row.add(destination, 0.0f);
         continue;
       }
 
-      record.add(destination, distance.distance((String) object1, (String) object2));
+      row.add(destination, distance.distance((String) object1, (String) object2));
     }
 
-    return records;
+    return rows;
   }
 }

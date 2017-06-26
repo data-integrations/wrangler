@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.writer;
 
 import co.cask.cdap.internal.guava.reflect.TypeToken;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
@@ -50,21 +50,21 @@ public class WriteAsJsonMapTest {
     o.put("a", 1);
     o.put("b", "2");
     String url = "http://www.yahoo.com?a=b c&b=ab&xyz=1";
-    List<Record> records = Arrays.asList(
-      new Record().add("int", 1).add("string", "this is string"),
-      new Record("url", url)
+    List<Row> rows = Arrays.asList(
+      new Row().add("int", 1).add("string", "this is string"),
+      new Row("url", url)
       .add("o", o)
       .add("i1", 1)
       .add("i2", (double) 1.8f)
     );
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 2);
+    Assert.assertTrue(rows.size() == 2);
     Type stringStringMapType = new TypeToken<Map<String, String>>() { }.getType();
-    Map<String, String> map = GSON.fromJson((String) records.get(0).getValue("test"), stringStringMapType);
+    Map<String, String> map = GSON.fromJson((String) rows.get(0).getValue("test"), stringStringMapType);
     Assert.assertEquals(ImmutableMap.of("string", "this is string", "int", "1"), map);
 
-    JsonObject jsonObject = new JsonParser().parse((String) records.get(1).getValue("test")).getAsJsonObject();
+    JsonObject jsonObject = new JsonParser().parse((String) rows.get(1).getValue("test")).getAsJsonObject();
     Assert.assertEquals(1, jsonObject.get("i1").getAsInt());
 
     Assert.assertEquals(1.8f, jsonObject.get("i2").getAsFloat(), 0.001);

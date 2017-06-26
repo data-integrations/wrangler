@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,8 +37,8 @@ public class ParseLogTest {
       "drop body"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "[02/Dec/2013:14:10:30 -0000] - [52075 10.102.4.254 177.43.52.210 UpyU1gpmBAwAACfd5W0AAAAW " +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "[02/Dec/2013:14:10:30 -0000] - [52075 10.102.4.254 177.43.52.210 UpyU1gpmBAwAACfd5W0AAAAW " +
         "GET /SS14-VTam-ny_019.jpg.rendition.zoomable.jpg HTTP/1.1] hsfirstvisit=http%3A%2F%2Fwww.domain.com%2" +
         "Fen-us||1372268254000; _opt_vi_3FNG8DZU=F870DCFD-CBA4-4B6E-BB58-4605A78EE71A; __ptca=145721067.0aDxsZ" +
         "lIuM48.1372279055.1379945057.1379950362.9; __ptv_62vY4e=0aDxsZlIuM48; __pti_62vY4e=0aDxsZlIuM48; __pt" +
@@ -63,9 +63,9 @@ public class ParseLogTest {
         "ers.html")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(91, records.get(0).length());
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(91, rows.get(0).length());
   }
 
   @Test
@@ -75,12 +75,12 @@ public class ParseLogTest {
       "drop body"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] \"GET /apache_pb.gif HTTP/1.0\" 200 2326")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] \"GET /apache_pb.gif HTTP/1.0\" 200 2326")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
   }
 }

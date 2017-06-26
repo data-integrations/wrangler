@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.row;
 
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Tests {@link RecordConditionFilter}
  */
-public class RecordConditionFilterTest {
+public class RowConditionFilterTest {
 
   @Test
   public void testRowFilterRegex() throws Exception {
@@ -41,18 +41,18 @@ public class RecordConditionFilterTest {
       "filter-row-if-true id > 1092"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
-      new Record("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
+    List<Row> rows = Arrays.asList(
+      new Row("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    // Filters all the records that don't match the pattern .*@joltie.io
-    Assert.assertTrue(records.size() == 1);
+    // Filters all the rows that don't match the pattern .*@joltie.io
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test(expected = DirectiveExecutionException.class)
@@ -64,15 +64,15 @@ public class RecordConditionFilterTest {
       "filter-row-if-true Fare < 10" // RHS is double, but it's not converted. Check next test case.
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "1,0,3,\"Braund, Mr. Owen Harris\",male,22,1,0,A/5 21171,7.25,,S"),
-      new Record("body", "2,1,1,\"Cumings, Mrs. John Bradley (Florence Briggs Thayer)\",female," +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "1,0,3,\"Braund, Mr. Owen Harris\",male,22,1,0,A/5 21171,7.25,,S"),
+      new Row("body", "2,1,1,\"Cumings, Mrs. John Bradley (Florence Briggs Thayer)\",female," +
         "38,1,0,PC 17599,71.2833,C85,C")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test
@@ -84,15 +84,15 @@ public class RecordConditionFilterTest {
       "filter-row-if-true Fare < 10.0" // RHS is changed to double, so LHS will also be changed.
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "1,0,3,\"Braund, Mr. Owen Harris\",male,22,1,0,A/5 21171,7.25,,S"),
-      new Record("body", "2,1,1,\"Cumings, Mrs. John Bradley (Florence Briggs Thayer)\",female," +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "1,0,3,\"Braund, Mr. Owen Harris\",male,22,1,0,A/5 21171,7.25,,S"),
+      new Row("body", "2,1,1,\"Cumings, Mrs. John Bradley (Florence Briggs Thayer)\",female," +
         "38,1,0,PC 17599,71.2833,C85,C")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
   }
 
 }

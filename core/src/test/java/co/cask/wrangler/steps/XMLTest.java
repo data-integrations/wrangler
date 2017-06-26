@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.transformation.XPathElement;
 import org.junit.Assert;
@@ -88,8 +88,8 @@ public class XMLTest {
       "drop body_catalog_book",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "<?xml version=\"1.0\"?>\n" +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "<?xml version=\"1.0\"?>\n" +
         "<catalog>\n" +
         "   <name cat_id=\"45\"/>" +
         "   <book id=\"bk101\">\n" +
@@ -212,11 +212,11 @@ public class XMLTest {
         "</catalog>")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 12);
-    Assert.assertEquals("Gambardella, Matthew", records.get(0).getValue("author"));
-    Assert.assertEquals("Galos, Mike", records.get(11).getValue("author"));
+    Assert.assertTrue(rows.size() == 12);
+    Assert.assertEquals("Gambardella, Matthew", rows.get(0).getValue("author"));
+    Assert.assertEquals("Galos, Mike", rows.get(11).getValue("author"));
   }
 
   @Test
@@ -229,14 +229,14 @@ public class XMLTest {
       "flatten gender,item_number,price"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", testXmlComplex)
+    List<Row> rows = Arrays.asList(
+      new Row("body", testXmlComplex)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 2);
-    Assert.assertEquals("Cardigan Sweater", records.get(0).getValue("body_catalog_product_description"));
+    Assert.assertTrue(rows.size() == 2);
+    Assert.assertEquals("Cardigan Sweater", rows.get(0).getValue("body_catalog_product_description"));
   }
 
   @Test
@@ -247,15 +247,15 @@ public class XMLTest {
       "xpath-array body items /catalog/product/catalog_item/item_number"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", testXmlComplex)
+    List<Row> rows = Arrays.asList(
+      new Row("body", testXmlComplex)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(3, records.get(0).length());
-    Assert.assertEquals("QWZ5671", records.get(0).getValue(1));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(3, rows.get(0).length());
+    Assert.assertEquals("QWZ5671", rows.get(0).getValue(1));
   }
 
   @Test

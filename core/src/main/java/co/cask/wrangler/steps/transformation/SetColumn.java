@@ -19,14 +19,14 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 /**
  * A Wrangler step for apply an expression to store the result in a column.
  *
  * The expressions are specified in JEXL format (http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
- * Directive is response for executing only one expression for each {@link Record} record that is
+ * Directive is response for executing only one expression for each {@link Row} record that is
  * being passed. The result of expression either adds a new column or replaces the value of
  * the existing column.
  *

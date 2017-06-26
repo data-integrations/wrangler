@@ -23,7 +23,7 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -60,20 +60,20 @@ public final class Rename implements UDD {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException, ErrorRecordException {
-    for (Record record : records) {
-      int idx = record.find(source.value());
-      int idxnew = record.find(target.value());
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException, ErrorRecordException {
+    for (Row row : rows) {
+      int idx = row.find(source.value());
+      int idxnew = row.find(target.value());
       if (idx != -1) {
         if (idxnew == -1) {
-          record.setColumn(idx, target.value());
+          row.setColumn(idx, target.value());
         } else {
           throw new DirectiveExecutionException(
             String.format(
@@ -84,6 +84,6 @@ public final class Rename implements UDD {
         }
       }
     }
-    return records;
+    return rows;
   }
 }

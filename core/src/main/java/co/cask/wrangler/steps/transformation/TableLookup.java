@@ -21,12 +21,11 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.DatasetInstantiationException;
-import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.etl.api.Lookup;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.Collections;
@@ -75,32 +74,32 @@ public class TableLookup extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
     ensureInitialized(context);
-    for (Record record : records) {
-      int idx = record.find(column);
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx == -1) {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
       }
-      Object object = record.getValue(idx);
+      Object object = row.getValue(idx);
       if (!(object instanceof String)) {
         throw new DirectiveExecutionException(
           String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
                         object != null ? object.getClass().getName() : "null", column)
         );
       }
-      Row lookedUpRow = tableLookup.lookup((String) object);
+      co.cask.cdap.api.dataset.table.Row lookedUpRow = tableLookup.lookup((String) object);
       for (Map.Entry<byte[], byte[]> entry : lookedUpRow.getColumns().entrySet()) {
-        record.add(column + "_" + Bytes.toString(entry.getKey()), Bytes.toString(entry.getValue()));
+        row.add(column + "_" + Bytes.toString(entry.getKey()), Bytes.toString(entry.getValue()));
       }
     }
-    return records;
+    return rows;
   }
 }

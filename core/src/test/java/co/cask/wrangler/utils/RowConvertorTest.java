@@ -19,7 +19,7 @@ package co.cask.wrangler.utils;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.steps.RecipePipelineTest;
@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Tests {@link RecordConvertor}
  */
-public class RecordConvertorTest {
+public class RowConvertorTest {
 
   @Test
   public void testComplexNestedStructureConversion() throws Exception {
@@ -40,8 +40,8 @@ public class RecordConvertorTest {
       "parse-as-json body",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "{\n" +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "{\n" +
         "    \"name\" : {\n" +
         "        \"fname\" : \"Joltie\",\n" +
         "        \"lname\" : \"Root\"\n" +
@@ -76,27 +76,27 @@ public class RecordConvertorTest {
         "}")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Record record = createUberRecord(records);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Row row = createUberRecord(rows);
 
     Json2Schema json2Schema = new Json2Schema();
     RecordConvertor convertor = new RecordConvertor();
 
-    Schema schema = json2Schema.toSchema("superrecord", record);
-    List<StructuredRecord> outputs = convertor.toStructureRecord(records, schema);
+    Schema schema = json2Schema.toSchema("superrecord", row);
+    List<StructuredRecord> outputs = convertor.toStructureRecord(rows, schema);
 
     Assert.assertEquals(1, outputs.size());
     Assert.assertEquals(6, ((List)outputs.get(0).get("body_numbers")).size());
   }
 
-  private static Record createUberRecord(List<Record> records) {
-    Record uber = new Record();
-    for (Record record : records) {
-      for (int i = 0; i < record.length(); ++i) {
-        Object o = record.getValue(i);
-        uber.addOrSet(record.getColumn(i), null);
+  private static Row createUberRecord(List<Row> rows) {
+    Row uber = new Row();
+    for (Row row : rows) {
+      for (int i = 0; i < row.length(); ++i) {
+        Object o = row.getValue(i);
+        uber.addOrSet(row.getColumn(i), null);
         if (o != null) {
-          uber.addOrSet(record.getColumn(i), o);
+          uber.addOrSet(row.getColumn(i), o);
         }
       }
     }
@@ -124,8 +124,8 @@ public class RecordConvertorTest {
       "drop body"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "{\"DeviceID\":\"xyz-abc\",\"SeqNo\":1000,\"TimeStamp\":123456,\"LastContact\":123456," +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "{\"DeviceID\":\"xyz-abc\",\"SeqNo\":1000,\"TimeStamp\":123456,\"LastContact\":123456," +
         "\"IMEI\":\"345rft567hy65\",\"MSISDN\":\"+19999999999\",\"AuthToken\":\"erdfgg34gtded\",\"Position\":" +
         "{\"Lat\":\"20.22\",\"Lon\":\"-130.45\",\"Accuracy\":16,\"Compass\":108.22,\"TimeStamp\":123456}," +
         "\"Battery\":50,\"Alert\":{\"Id\":26,\"Type\":\"SOS\",\"TimeStamp\":123456},\"Steps\":100,\"Calories\":15}")
@@ -145,7 +145,7 @@ public class RecordConvertorTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<StructuredRecord> results = pipeline.execute(records, schema);
+    List<StructuredRecord> results = pipeline.execute(rows, schema);
     Assert.assertEquals(1, results.size());
     Assert.assertEquals(123456L, results.get(0).get("body_TimeStamp"));
     Assert.assertEquals(2L, results.get(0).get("i2l"));

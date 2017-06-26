@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,17 +35,17 @@ public class CleanseColumnNamesTest {
       "cleanse-column-names",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("COL1", "1").add("col:2", "2").add("Col3", "3").add("COLUMN4", "4").add("col!5", "5")
+    List<Row> rows = Arrays.asList(
+      new Row("COL1", "1").add("col:2", "2").add("Col3", "3").add("COLUMN4", "4").add("col!5", "5")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("col1", records.get(0).getColumn(0));
-    Assert.assertEquals("col_2", records.get(0).getColumn(1));
-    Assert.assertEquals("col3", records.get(0).getColumn(2));
-    Assert.assertEquals("column4", records.get(0).getColumn(3));
-    Assert.assertEquals("col_5", records.get(0).getColumn(4));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("col1", rows.get(0).getColumn(0));
+    Assert.assertEquals("col_2", rows.get(0).getColumn(1));
+    Assert.assertEquals("col3", rows.get(0).getColumn(2));
+    Assert.assertEquals("column4", rows.get(0).getColumn(3));
+    Assert.assertEquals("col_5", rows.get(0).getColumn(4));
   }
 }

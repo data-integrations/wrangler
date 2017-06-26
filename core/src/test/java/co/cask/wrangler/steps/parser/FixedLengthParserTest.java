@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
@@ -41,16 +41,16 @@ public class FixedLengthParserTest {
       "parse-as-fixed-length body 2,2,1,1,3,4",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "AABBCDEEEFFF")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "AABBCDEEEFFF")
     );
 
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
-    List<Record> errors = pipeline.errors();
-    Assert.assertTrue(records.size() == 0);
+    rows = pipeline.execute(rows);
+    List<Row> errors = pipeline.errors();
+    Assert.assertTrue(rows.size() == 0);
     Assert.assertEquals(1, errors.size());
   }
 
@@ -60,23 +60,23 @@ public class FixedLengthParserTest {
       "parse-as-fixed-length body 2,2,1,1,3,4",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "AABBCDEEEFFFF")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "AABBCDEEEFFFF")
     );
 
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
-    List<Record> errors = pipeline.errors();
-    Assert.assertEquals(1, records.size());
+    rows = pipeline.execute(rows);
+    List<Row> errors = pipeline.errors();
+    Assert.assertEquals(1, rows.size());
     Assert.assertEquals(0, errors.size());
-    Assert.assertEquals("AA", records.get(0).getValue("body_1"));
-    Assert.assertEquals("BB", records.get(0).getValue("body_2"));
-    Assert.assertEquals("C", records.get(0).getValue("body_3"));
-    Assert.assertEquals("D", records.get(0).getValue("body_4"));
-    Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
-    Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
+    Assert.assertEquals("AA", rows.get(0).getValue("body_1"));
+    Assert.assertEquals("BB", rows.get(0).getValue("body_2"));
+    Assert.assertEquals("C", rows.get(0).getValue("body_3"));
+    Assert.assertEquals("D", rows.get(0).getValue("body_4"));
+    Assert.assertEquals("EEE", rows.get(0).getValue("body_5"));
+    Assert.assertEquals("FFFF", rows.get(0).getValue("body_6"));
   }
 
   @Test(expected = DirectiveParseException.class)
@@ -96,19 +96,19 @@ public class FixedLengthParserTest {
       "parse-as-fixed-length body 4,4,4,4,4,4 '_'" ,
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "AA__BB__C___D___EEE_FFFF")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "AA__BB__C___D___EEE_FFFF")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("AA", records.get(0).getValue("body_1"));
-    Assert.assertEquals("BB", records.get(0).getValue("body_2"));
-    Assert.assertEquals("C", records.get(0).getValue("body_3"));
-    Assert.assertEquals("D", records.get(0).getValue("body_4"));
-    Assert.assertEquals("EEE", records.get(0).getValue("body_5"));
-    Assert.assertEquals("FFFF", records.get(0).getValue("body_6"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("AA", rows.get(0).getValue("body_1"));
+    Assert.assertEquals("BB", rows.get(0).getValue("body_2"));
+    Assert.assertEquals("C", rows.get(0).getValue("body_3"));
+    Assert.assertEquals("D", rows.get(0).getValue("body_4"));
+    Assert.assertEquals("EEE", rows.get(0).getValue("body_5"));
+    Assert.assertEquals("FFFF", rows.get(0).getValue("body_6"));
   }
 
   @Test
@@ -117,14 +117,14 @@ public class FixedLengthParserTest {
       1,9,20,12,1,2,1,3,14,14,14,14,15,9,2,3,8,4,8,7,4,11,14,14,2,1,1,1,1,1,1,1,1,6,6,6,42,1
     };
 
-    List<Record> records = new ArrayList<>();
+    List<Row> rows = new ArrayList<>();
     StringBuilder sb = new StringBuilder();
     for (int r = 0; r < 20; r++) {
       for (int i = 0; i < lengths.length; ++i) {
         sb.append(String.format("%1$" + lengths[i] + "s", "x"));
       }
     }
-    records.add(new Record("body", sb.toString()));
+    rows.add(new Row("body", sb.toString()));
 
     String[] d = new String[] {
       "parse-as-fixed-length body 1,9,20,12,1,2,1,3,14,14,14,14,15,9,2,3,8,4,8,7,4,11,14,14,2,1,1,1,1,1,1,1,1,6,6,6,42,1 ' '",
@@ -138,8 +138,8 @@ public class FixedLengthParserTest {
     pipeline.configure(directives, null);
 
     // Execute the pipeline.
-    List<Record> results = pipeline.execute(records);
-    List<Record> errors = pipeline.errors();
+    List<Row> results = pipeline.execute(rows);
+    List<Row> errors = pipeline.errors();
 
     Assert.assertEquals(20, results.size());
     Assert.assertEquals(0, errors.size());

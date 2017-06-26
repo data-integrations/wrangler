@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.Date;
@@ -52,26 +52,26 @@ public class DiffDate extends AbstractDirective {
   /**
    * Formats the date and sets the column.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record}.
+   * @return A newly transformed {@link Row}.
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      Date date1 = getDate(record, column1);
-      Date date2 = getDate(record, column2);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      Date date1 = getDate(row, column1);
+      Date date2 = getDate(row, column2);
       if (date1 != null && date2 != null) {
-        record.addOrSet(destCol, date1.getTime() - date2.getTime());
+        row.addOrSet(destCol, date1.getTime() - date2.getTime());
       } else {
-        record.addOrSet(destCol, null);
+        row.addOrSet(destCol, null);
       }
     }
-    return records;
+    return rows;
   }
 
-  private Date getDate(Record record, String colName) throws DirectiveExecutionException {
+  private Date getDate(Row row, String colName) throws DirectiveExecutionException {
     // If one of the column contains now, then we return
     // the current date.
     if (colName.equalsIgnoreCase("now")) {
@@ -79,12 +79,12 @@ public class DiffDate extends AbstractDirective {
     }
 
     // Else attempt to find the column.
-    int idx = record.find(colName);
+    int idx = row.find(colName);
     if (idx == -1) {
       throw new DirectiveExecutionException(toString() + " : '" +
-                                colName + "' column is not defined in the record.");
+                                colName + "' column is not defined in the row.");
     }
-    Object o = record.getValue(idx);
+    Object o = row.getValue(idx);
     if (o == null || !(o instanceof Date)) {
       return null;
     }

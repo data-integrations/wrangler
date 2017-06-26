@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
@@ -60,18 +60,18 @@ public class FlattenTest {
     JsonArray a2 = new JsonArray(); a2.add(new JsonPrimitive("x2"));a2.add(new JsonPrimitive("y2"));
     List<String> b1 = new ArrayList<>();b1.add("x1"); b1.add("y1");
     List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
-    List<Record> records = Arrays.asList(
-      new Record("col1", "A"),
-      new Record("col1", "B"),
-      new Record("col2", a1).add("col3", 10),
-      new Record("col2", a2).add("col3", 11),
-      new Record("col2", b1).add("col3", 10),
-      new Record("col2", b2).add("col3", 11)
+    List<Row> rows = Arrays.asList(
+      new Row("col1", "A"),
+      new Row("col1", "B"),
+      new Row("col2", a1).add("col3", 10),
+      new Row("col2", a2).add("col3", 11),
+      new Row("col2", b1).add("col3", 10),
+      new Row("col2", b2).add("col3", 11)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 10);
+    Assert.assertTrue(rows.size() == 10);
   }
 
   /**
@@ -108,18 +108,18 @@ public class FlattenTest {
     a2.add(new JsonPrimitive("y2"));
     List<String> b1 = new ArrayList<>();b1.add("x1"); b1.add("y1"); b1.add("z1");
     List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
-    List<Record> records = Arrays.asList(
-      new Record("col1", "A"),
-      new Record("col1", "B"),
-      new Record("col2", a1).add("col3", 10),
-      new Record("col2", a2).add("col3", 11),
-      new Record("col2", b1).add("col3", 10),
-      new Record("col2", b2).add("col3", 11)
+    List<Row> rows = Arrays.asList(
+      new Row("col1", "A"),
+      new Row("col1", "B"),
+      new Row("col2", a1).add("col3", 10),
+      new Row("col2", a2).add("col3", 11),
+      new Row("col2", b1).add("col3", 10),
+      new Row("col2", b2).add("col3", 11)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 12);
+    Assert.assertTrue(rows.size() == 12);
   }
 
   /**
@@ -165,18 +165,18 @@ public class FlattenTest {
     List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
     List<String> b3 = new ArrayList<>();b3.add("a1"); b3.add("b1"); b3.add("c1");
     List<String> b4 = new ArrayList<>();b4.add("a2"); b4.add("b2");
-    List<Record> records = Arrays.asList(
-      new Record("col1", "A"),
-      new Record("col1", "B"),
-      new Record("col2", a1).add("col3", a3),
-      new Record("col2", a2).add("col3", a4),
-      new Record("col2", b1).add("col3", b3),
-      new Record("col2", b2).add("col3", b4)
+    List<Row> rows = Arrays.asList(
+      new Row("col1", "A"),
+      new Row("col1", "B"),
+      new Row("col2", a1).add("col3", a3),
+      new Row("col2", a2).add("col3", a4),
+      new Row("col2", b1).add("col3", b3),
+      new Row("col2", b2).add("col3", b4)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 12);
+    Assert.assertTrue(rows.size() == 12);
   }
 
   /**
@@ -223,18 +223,18 @@ public class FlattenTest {
     List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
     List<String> b3 = new ArrayList<>();b3.add("a1"); b3.add("b1");
     List<String> b4 = new ArrayList<>();b4.add("a2"); b4.add("b2"); b4.add("c2");
-    List<Record> records = Arrays.asList(
-      new Record("col1", "A"),
-      new Record("col1", "B"),
-      new Record("col2", a1).add("col3", a3),
-      new Record("col2", a2).add("col3", a4),
-      new Record("col2", b1).add("col3", b3),
-      new Record("col2", b2).add("col3", b4)
+    List<Row> rows = Arrays.asList(
+      new Row("col1", "A"),
+      new Row("col1", "B"),
+      new Row("col2", a1).add("col3", a3),
+      new Row("col2", a2).add("col3", a4),
+      new Row("col2", b1).add("col3", b3),
+      new Row("col2", b2).add("col3", b4)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 14);
+    Assert.assertTrue(rows.size() == 14);
   }
 
   @Test
@@ -252,11 +252,11 @@ public class FlattenTest {
     lname.add(new JsonPrimitive("SADASDMR"));
     lname.add(new JsonPrimitive("JOLTIE"));
 
-    List<Record> records = Arrays.asList(
-      new Record("FirstName", fname).add("LastName", lname)
+    List<Row> rows = Arrays.asList(
+      new Row("FirstName", fname).add("LastName", lname)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 4);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 4);
   }
 }

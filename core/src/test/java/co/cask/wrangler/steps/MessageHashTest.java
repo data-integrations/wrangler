@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,13 +37,13 @@ public class MessageHashTest {
       "hash message2 SHA-384 false",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("message1", "secret message.")
+    List<Row> rows = Arrays.asList(
+      new Row("message1", "secret message.")
           .add("message2", "This is a very secret message and a digest will be created.")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertEquals(1, records.size());
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertEquals(1, rows.size());
   }
 
   @Test(expected = DirectiveParseException.class)
@@ -52,11 +52,11 @@ public class MessageHashTest {
       "hash message1 SHA-385 true",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("message1", "This is a very secret message and a digest will be created.")
+    List<Row> rows = Arrays.asList(
+      new Row("message1", "This is a very secret message and a digest will be created.")
     );
 
-    RecipePipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, rows);
   }
 
 }

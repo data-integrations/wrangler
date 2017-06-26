@@ -22,7 +22,7 @@ import co.cask.wrangler.api.annotations.Public;
  * Class description here.
  */
 @Public
-public class Optional {
+public final class Optional {
   public static final boolean TRUE = true;
   public static final boolean FALSE = false;
 }

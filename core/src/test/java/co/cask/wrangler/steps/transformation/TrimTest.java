@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.TestUtil;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,19 +37,19 @@ public class TrimTest {
       "trim body",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", expected),
-      new Record("body", "  " + expected),
-      new Record("body", expected + "  "),
-      new Record("body", " " + expected + " "),
-      new Record("body", "  " + expected + "  "),
-      new Record("body", "\t\r" + expected + "\r\t")
+    List<Row> rows = Arrays.asList(
+      new Row("body", expected),
+      new Row("body", "  " + expected),
+      new Row("body", expected + "  "),
+      new Row("body", " " + expected + " "),
+      new Row("body", "  " + expected + "  "),
+      new Row("body", "\t\r" + expected + "\r\t")
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(records.size(), records.size());
-    for(int i = 0; i < records.size(); ++i) {
-      Assert.assertEquals(expected, records.get(i).getValue("body"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(rows.size(), rows.size());
+    for(int i = 0; i < rows.size(); ++i) {
+      Assert.assertEquals(expected, rows.get(i).getValue("body"));
     }
   }
 
@@ -61,37 +61,37 @@ public class TrimTest {
       "trim body",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "TITLE IS TITLE"),
-      new Record("body", "    TITLE IS TITLE"),
-      new Record("body", "TITLE IS TITLE    "),
-      new Record("body", " TITLE    IS TITLE "),
-      new Record("body", "   TITLE IS TITLE   "),
-      new Record("body", "\t TITLE IS TITLE \t"),
-      new Record("body", "\t" + expected),
-      new Record("body", expected + "\t"),
-      new Record("body", '\u0009' + expected),
-      new Record("body", "\r" + expected),
-      new Record("body", expected + "\r"),
-      new Record("body", '\u2004' + expected),
-      new Record("body", expected + '\u2004'),
-      new Record("body", '\u2005' + expected),
-      new Record("body", expected + '\u2005'),
-      new Record("body", '\u2006' + expected),
-      new Record("body", expected + '\u2006'),
-      new Record("body", '\u3000' + expected),
-      new Record("body", '\t' + expected + '\u3000' + '\u3000' + '\t' + '\r')
+    List<Row> rows = Arrays.asList(
+      new Row("body", "TITLE IS TITLE"),
+      new Row("body", "    TITLE IS TITLE"),
+      new Row("body", "TITLE IS TITLE    "),
+      new Row("body", " TITLE    IS TITLE "),
+      new Row("body", "   TITLE IS TITLE   "),
+      new Row("body", "\t TITLE IS TITLE \t"),
+      new Row("body", "\t" + expected),
+      new Row("body", expected + "\t"),
+      new Row("body", '\u0009' + expected),
+      new Row("body", "\r" + expected),
+      new Row("body", expected + "\r"),
+      new Row("body", '\u2004' + expected),
+      new Row("body", expected + '\u2004'),
+      new Row("body", '\u2005' + expected),
+      new Row("body", expected + '\u2005'),
+      new Row("body", '\u2006' + expected),
+      new Row("body", expected + '\u2006'),
+      new Row("body", '\u3000' + expected),
+      new Row("body", '\t' + expected + '\u3000' + '\u3000' + '\t' + '\r')
     );
 
-    records = TestUtil.run(directives, records);
-    Assert.assertEquals(records.size(), records.size());
-    Assert.assertEquals("TITLE IS TITLE", records.get(0).getValue("body"));
-    Assert.assertEquals("TITLE IS TITLE", records.get(1).getValue("body"));
-    Assert.assertEquals("TITLE IS TITLE", records.get(2).getValue("body"));
-    Assert.assertEquals("TITLE    IS TITLE", records.get(3).getValue("body"));
-    Assert.assertEquals("TITLE IS TITLE", records.get(4).getValue("body"));
-    for(int i = 5; i < records.size(); ++i) {
-      Assert.assertEquals(expected, records.get(i).getValue("body"));
+    rows = TestUtil.run(directives, rows);
+    Assert.assertEquals(rows.size(), rows.size());
+    Assert.assertEquals("TITLE IS TITLE", rows.get(0).getValue("body"));
+    Assert.assertEquals("TITLE IS TITLE", rows.get(1).getValue("body"));
+    Assert.assertEquals("TITLE IS TITLE", rows.get(2).getValue("body"));
+    Assert.assertEquals("TITLE    IS TITLE", rows.get(3).getValue("body"));
+    Assert.assertEquals("TITLE IS TITLE", rows.get(4).getValue("body"));
+    for(int i = 5; i < rows.size(); ++i) {
+      Assert.assertEquals(expected, rows.get(i).getValue("body"));
     }
   }
 }

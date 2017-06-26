@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
@@ -48,27 +48,27 @@ public class FindAndReplace extends AbstractDirective {
   }
 
   /**
-   * Sets the new column names for the {@link Record}.
+   * Sets the new column names for the {@link Row}.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record}.
+   * @return A newly transformed {@link Row}.
    * @throws DirectiveExecutionException throw when there is issue executing the grep.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object v = record.getValue(idx);
+        Object v = row.getValue(idx);
         // Operates only on String types.
         try {
           if (v instanceof String) {
             String value = (String) v; // Safely converts to String.
             Unix4jCommandBuilder builder = Unix4j.echo(value).sed(pattern);
             if (builder.toExitValue() == 0) {
-              record.setValue(idx, builder.toStringResult());
+              row.setValue(idx, builder.toStringResult());
             }
           }
         } catch (Exception e) {
@@ -79,7 +79,7 @@ public class FindAndReplace extends AbstractDirective {
                                   column + "' column is not defined. Please check the wrangling step."
         );
       }
-      results.add(record);
+      results.add(row);
     }
     return results;
   }

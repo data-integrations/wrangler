@@ -22,14 +22,14 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Split on Stage for splitting the string into multiple {@link Record}s.
+ * A Split on Stage for splitting the string into multiple {@link Row}s.
  */
 @Plugin(type = "udd")
 @Name("split-to-rows")
@@ -49,25 +49,25 @@ public class SplitToRows extends AbstractDirective {
   }
 
   /**
-   * Splits a record into multiple records based on separator.
+   * Splits a record into multiple rows based on separator.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record} with masked column.
+   * @return A newly transformed {@link Row} with masked column.
    * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
 
-    for (Record record : records) {
-      int idx = record.find(column);
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object != null && object instanceof String) {
           String[] lines = ((String) object).split(regex);
           for (String line : lines) {
-            Record r = new Record(record);
+            Row r = new Row(row);
             r.setValue(idx, line);
             results.add(r);
           }

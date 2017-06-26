@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -169,20 +169,20 @@ public class HL7ParserTest {
       "keep body_hl7_MSH",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", adt_a01),
-      new Record("body", adt_08),
-      new Record("body", adt_04),
-      new Record("body", success),
-      new Record("body", error),
-      new Record("body", orders),
-      new Record("body", results),
-      new Record("body", nte)
+    List<Row> rows = Arrays.asList(
+      new Row("body", adt_a01),
+      new Row("body", adt_08),
+      new Row("body", adt_04),
+      new Row("body", success),
+      new Row("body", error),
+      new Row("body", orders),
+      new Row("body", results),
+      new Row("body", nte)
     );
 
     // The best we can do is check if the message is parsed successfully.
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertNotNull(records);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertNotNull(rows);
   }
 
 }

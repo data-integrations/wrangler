@@ -19,7 +19,7 @@ package co.cask.wrangler.steps;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.steps.transformation.MaskShuffle;
@@ -45,30 +45,30 @@ public class RecipePipelineTest {
   @Test
   public void testSplit() throws Exception {
     List<Directive> directives = new ArrayList<>();
-    List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
+    List<Row> rows = Arrays.asList(new Row("col", "1,2,a,A"));
 
     // Define all the directives in the wrangler.
     directives.add(new Split(0, "", "col", ",", "firstCol", "secondCol"));
 
     // Run through the wrangling directives.
     for (Directive directive : directives) {
-      records = directive.execute(records, null);
+      rows = directive.execute(rows, null);
     }
 
-    Assert.assertEquals("1", records.get(0).getValue("firstCol"));
-    Assert.assertEquals("2,a,A", records.get(0).getValue("secondCol"));
+    Assert.assertEquals("1", rows.get(0).getValue("firstCol"));
+    Assert.assertEquals("2,a,A", rows.get(0).getValue("secondCol"));
   }
 
   @Ignore
   @Test
   public void testSplitWithNull() throws Exception {
-    List<Record> records = Arrays.asList(new Record("col", "1,2,a,A"));
+    List<Row> rows = Arrays.asList(new Row("col", "1,2,a,A"));
 
     // Define all the steps in the wrangler.
     Directive directive = new Split(0, "", "col", "|", "firstCol", "secondCol");
 
     // Run through the wrangling steps.
-    List<Record> actual = directive.execute(records, null);
+    List<Row> actual = directive.execute(rows, null);
 
     Assert.assertEquals("1,2,a,A", actual.get(0).getValue("firstCol"));
     Assert.assertNull(actual.get(0).getValue("secondCol"));
@@ -76,27 +76,27 @@ public class RecipePipelineTest {
 
   @Test
   public void testMaskSuffle() throws Exception {
-    List<Record> records = Arrays.asList(new Record("address", "150 Mars Street, Mar City, MAR, 783735"));
+    List<Row> rows = Arrays.asList(new Row("address", "150 Mars Street, Mar City, MAR, 783735"));
     Directive directive = new MaskShuffle(0, "", "address");
-    Record actual = (Record) directive.execute(records, null).get(0);
+    Row actual = (Row) directive.execute(rows, null).get(0);
     Assert.assertEquals("089 Kyrp Czsyyr, Dyg Goci, FAG, 720322", actual.getValue("address"));
   }
 
 
-  public static List<Record> execute(List<Directive> directives, List<Record> records) throws DirectiveExecutionException, ErrorRecordException {
+  public static List<Row> execute(List<Directive> directives, List<Row> rows) throws DirectiveExecutionException, ErrorRecordException {
     for (Directive directive : directives) {
-      records = directive.execute(records, null);
+      rows = directive.execute(rows, null);
     }
-    return records;
+    return rows;
   }
 
-  public static List<Record> execute(String[] directives, List<Record> records)
+  public static List<Row> execute(String[] directives, List<Row> rows)
     throws DirectiveExecutionException, DirectiveParseException, ErrorRecordException {
     SimpleTextParser specification = new SimpleTextParser(directives);
     List<Directive> steps = new ArrayList<>();
     steps.addAll(specification.parse());
-    records = RecipePipelineTest.execute(steps, records);
-    return records;
+    rows = RecipePipelineTest.execute(steps, rows);
+    return rows;
   }
 
   @Test
@@ -125,21 +125,21 @@ public class RecipePipelineTest {
       "find-and-replace body s/\"//g"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
         "debt not owed,Debt is not mine,,,\"NRA Group, LLC\",VA,20147,,N/A,Web,08/07/2013,Closed with non-monetary " +
         "relief,Yes,No,467801"),
-      new Record("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
+      new Row("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 2);
+    Assert.assertTrue(rows.size() == 2);
     Assert.assertEquals("07/29/2013,Debt collection,Other (i.e. phone, health club, etc.),Cont'd " +
                           "attempts collect debt not owed,Debt is not mine,,,NRA Group, LLC,VA,20147,,N/A," +
                           "Web,08/07/2013,Closed with non-monetary relief,Yes,No,467801",
-                        records.get(0).getValue("body"));
+                        rows.get(0).getValue("body"));
   }
 
   @Test
@@ -154,17 +154,17 @@ public class RecipePipelineTest {
       "rename date_3 year"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "07/29/2013,Debt collection,\"Other (i.e. phone, health club, etc.)\",Cont'd attempts collect " +
         "debt not owed,Debt is not mine,,,\"NRA Group, LLC\",VA,20147,,N/A,Web,08/07/2013,Closed with non-monetary " +
         "relief,Yes,No,467801"),
-      new Record("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
+      new Row("body", "07/29/2013,Mortgage,Conventional fixed mortgage,\"Loan servicing, payments, escrow account\",," +
         ",,Franklin Credit Management,CT,06106,,N/A,Web,07/30/2013,Closed with explanation,Yes,No,475823")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 2);
-    Assert.assertEquals("07/29/2013", records.get(0).getValue("date"));
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 2);
+    Assert.assertEquals("07/29/2013", rows.get(0).getValue("date"));
   }
 
   @Test
@@ -173,15 +173,15 @@ public class RecipePipelineTest {
       "split-to-columns body \\n",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "AABBCDE\nEEFFFF")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "AABBCDE\nEEFFFF")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("AABBCDE", records.get(0).getValue("body_1"));
-    Assert.assertEquals("EEFFFF", records.get(0).getValue("body_2"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("AABBCDE", rows.get(0).getValue("body_1"));
+    Assert.assertEquals("EEFFFF", rows.get(0).getValue("body_2"));
   }
 
 }

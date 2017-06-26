@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.text.DateFormat;
@@ -53,19 +53,19 @@ public class FormatDate extends AbstractDirective {
   /**
    * Formats the date and sets the column.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record}.
+   * @return A newly transformed {@link Row}.
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      Record dt = new Record(record);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      Row dt = new Row(row);
       int idx = dt.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object != null && object instanceof Date) {
           dt.setValue(idx, destinationFmt.format((Date) object));
         } else {
@@ -76,7 +76,7 @@ public class FormatDate extends AbstractDirective {
         }
       } else {
         throw new DirectiveExecutionException(toString() + " : '" +
-                                  column + "' column is not defined in the record. Please check the wrangling step."
+                                  column + "' column is not defined in the row. Please check the wrangling step."
         );
       }
       results.add(dt);

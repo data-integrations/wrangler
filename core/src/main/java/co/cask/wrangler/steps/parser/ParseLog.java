@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import nl.basjes.parse.core.Parser;
@@ -59,18 +59,18 @@ public class ParseLog extends AbstractDirective {
   /**
    * Parses a give column value based on the format specified.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
-   * @throws DirectiveExecutionException In case CSV parsing generates more record.
+   * @throws DirectiveExecutionException In case CSV parsing generates more row.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    // Iterate through all the records.
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    // Iterate through all the rows.
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
 
         String log;
         if (object instanceof String) {
@@ -83,19 +83,19 @@ public class ParseLog extends AbstractDirective {
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );
         }
-        line.set(record);
+        line.set(row);
         try {
           parser.parse(line, log);
         } catch (Exception e) {
-          record.addOrSet("log.parse.error", 1);
+          row.addOrSet("log.parse.error", 1);
         }
       }
     }
-    return records;
+    return rows;
   }
 
   public final class LogLine {
-    private Record record;
+    private Row row;
 
     public void setValue(final String name, final String value) {
       String key = name.toLowerCase();
@@ -103,15 +103,15 @@ public class ParseLog extends AbstractDirective {
         return;
       }
       key = key.replaceAll("[^a-zA-Z0-9_]","_");
-      record.addOrSet(key, value);
+      row.addOrSet(key, value);
     }
 
-    public void set(Record record) {
-      this.record = record;
+    public void set(Row row) {
+      this.row = row;
     }
 
-    public Record get() {
-      return record;
+    public Row get() {
+      return row;
     }
   }
 

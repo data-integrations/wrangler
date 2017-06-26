@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,19 +28,19 @@ import java.util.List;
  * Tests {@link TextDistanceMeasure}
  */
 public class TextDistanceMeasureTest {
-  private static final List<Record> records = Arrays.asList(
-    // Correct Record.
-    new Record("string1", "This is an example for distance measure.").add("string2", "This test is made of works that " +
+  private static final List<Row> ROWS = Arrays.asList(
+    // Correct Row.
+    new Row("string1", "This is an example for distance measure.").add("string2", "This test is made of works that " +
       "are similar. This is an example for distance measure."),
 
-    // Record that has one string empty.
-    new Record("string1", "This is an example for distance measure.").add("string2", ""),
+    // Row that has one string empty.
+    new Row("string1", "This is an example for distance measure.").add("string2", ""),
 
-    // Record that has one string as different type.
-    new Record("string1", "This is an example for distance measure.").add("string2", 1L),
+    // Row that has one string as different type.
+    new Row("string1", "This is an example for distance measure.").add("string2", 1L),
 
-    // Record that has only one column.
-    new Record("string1", "This is an example for distance measure.")
+    // Row that has only one column.
+    new Row("string1", "This is an example for distance measure.")
   );
 
 
@@ -62,7 +62,7 @@ public class TextDistanceMeasureTest {
       "text-distance levenshtein string1 string2 levenshtein",
     };
 
-    List<Record> results = RecipePipelineTest.execute(directives, records);
+    List<Row> results = RecipePipelineTest.execute(directives, ROWS);
     Assert.assertTrue(results.size() == 4);
     Assert.assertEquals(15, results.get(0).length());
     Assert.assertEquals(15, results.get(1).length());

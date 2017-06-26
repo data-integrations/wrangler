@@ -20,11 +20,12 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveContext;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.DirectiveName;
+import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.api.parser.UsageDefinition;
+import co.cask.wrangler.registry.DirectiveLoadException;
 import co.cask.wrangler.registry.DirectiveLoader;
 import co.cask.wrangler.registry.DirectiveNotFoundException;
 
@@ -60,6 +61,7 @@ public class GrammarBasedParser implements RecipeParser {
     try {
       CompiledUnit compiled = compiler.compile(recipe);
       if (compiler.hasErrors()) {
+        Iterator<SyntaxError> errors = compiler.getSyntaxErrors();
         throw new DirectiveParseException("Error in parsing record.");
       }
       Iterator<TokenGroup> tokenGroups = compiled.iterator();
@@ -86,20 +88,15 @@ public class GrammarBasedParser implements RecipeParser {
           );
         }
 
-        Pair<UsageDefinition, UDD> directive = loader.load(root);
-        Arguments arguments = new MapArguments(directive.getFirst(), next);
-        directive.getSecond().initialize(arguments);
-        directives.add(directive.getSecond());
+        UDD directive = loader.load(root);
+        UsageDefinition definition = directive.define();
+        Arguments arguments = new MapArguments(definition, next);
+        directive.initialize(arguments);
+        directives.add(directive);
       }
-    } catch (CompileException e) {
+    } catch (CompileException | DirectiveLoadException | DirectiveNotFoundException  e) {
       throw new DirectiveParseException(e.getMessage());
-    } catch (DirectiveNotFoundException e) {
-      throw new DirectiveParseException(e.getMessage());
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (InstantiationException e) {
-      e.printStackTrace();
-    }
+    } 
     return directives;
   }
 

@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.transformation;
 
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
@@ -37,22 +37,22 @@ public class MaskNumberTest {
   public void testOnlySteps() throws Exception {
     // More characters in mask, but not enough in the input.
     Directive directive = new MaskNumber(0, "", "ssn", "xxx-xx-#####");
-    List<Record> actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    List<Row> actual = directive.execute(Arrays.asList(new Row("ssn", "888990000")), null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
 
     directive = new MaskNumber(0, "", "ssn", "xxx-xx-####");
-    actual = directive.execute(Arrays.asList(new Record("ssn", "888-99-1234")), null);
+    actual = directive.execute(Arrays.asList(new Row("ssn", "888-99-1234")), null);
     Assert.assertEquals("xxx-xx-1234", actual.get(0).getValue("ssn"));
 
     directive = new MaskNumber(0, "", "ssn", "xxx-xx-####-0");
-    actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    actual = directive.execute(Arrays.asList(new Row("ssn", "888990000")), null);
     Assert.assertEquals("xxx-xx-0000-0", actual.get(0).getValue("ssn"));
 
     directive = new MaskNumber(0, "", "ssn", "xxx-xx-####");
-    actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    actual = directive.execute(Arrays.asList(new Row("ssn", "888990000")), null);
     Assert.assertEquals("xxx-xx-0000", actual.get(0).getValue("ssn"));
     directive = new MaskNumber(0, "", "ssn", "x-####");
-    actual = directive.execute(Arrays.asList(new Record("ssn", "888990000")), null);
+    actual = directive.execute(Arrays.asList(new Row("ssn", "888990000")), null);
     Assert.assertEquals("x-8899", actual.get(0).getValue("ssn"));
   }
 
@@ -62,17 +62,17 @@ public class MaskNumberTest {
       "mask-number body xxx-xx-####"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "000-00-1234")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "000-00-1234")
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("xxx-xx-1234", records.get(0).getValue("body"));
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("xxx-xx-1234", rows.get(0).getValue("body"));
   }
 
   @Test
@@ -81,17 +81,17 @@ public class MaskNumberTest {
       "mask-number body xxx-xx-#####"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "000-00-1234")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "000-00-1234")
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("xxx-xx-1234", records.get(0).getValue("body"));
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("xxx-xx-1234", rows.get(0).getValue("body"));
   }
 
   @Test
@@ -100,17 +100,17 @@ public class MaskNumberTest {
       "mask-number body xxx-##-xx-##-XXXX-9"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "0000012349898")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "0000012349898")
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("xxx-00-xx-34-xxxx-9", records.get(0).getValue("body"));
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("xxx-00-xx-34-xxxx-9", rows.get(0).getValue("body"));
   }
 
   @Test
@@ -119,21 +119,21 @@ public class MaskNumberTest {
       "mask-number body xx-xx-#"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", 12345),
-      new Record("body", 123),
-      new Record("body", 123456)
+    List<Row> rows = Arrays.asList(
+      new Row("body", 12345),
+      new Row("body", 123),
+      new Row("body", 123456)
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(3, records.size());
-    Assert.assertEquals("xx-xx-5", records.get(0).getValue("body"));
-    Assert.assertEquals("xx-xx-", records.get(1).getValue("body"));
-    Assert.assertEquals("xx-xx-5", records.get(2).getValue("body"));
+    Assert.assertEquals(3, rows.size());
+    Assert.assertEquals("xx-xx-5", rows.get(0).getValue("body"));
+    Assert.assertEquals("xx-xx-", rows.get(1).getValue("body"));
+    Assert.assertEquals("xx-xx-5", rows.get(2).getValue("body"));
   }
 
   @Test
@@ -142,17 +142,17 @@ public class MaskNumberTest {
       "mask-number body xx-xx-TESTING-#"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", 12345)
+    List<Row> rows = Arrays.asList(
+      new Row("body", 12345)
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("xx-xx-TESTING-5", records.get(0).getValue("body"));
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("xx-xx-TESTING-5", rows.get(0).getValue("body"));
   }
 
   @Test
@@ -161,17 +161,17 @@ public class MaskNumberTest {
       "mask-number body xx-xx-#"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", 12345L)
+    List<Row> rows = Arrays.asList(
+      new Row("body", 12345L)
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("xx-xx-5", records.get(0).getValue("body"));
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("xx-xx-5", rows.get(0).getValue("body"));
   }
 
   @Test
@@ -180,17 +180,17 @@ public class MaskNumberTest {
       "mask-number body x#.x#"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", 12.34)
+    List<Row> rows = Arrays.asList(
+      new Row("body", 12.34)
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(1, records.size());
-    Assert.assertEquals("x2.x4", records.get(0).getValue("body"));
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("x2.x4", rows.get(0).getValue("body"));
   }
 }
 

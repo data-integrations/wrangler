@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A step for dropping columns.
  *
- * This step will create a copy of the input {@link Record} and clears
+ * This step will create a copy of the input {@link Row} and clears
  * all previous column names and add new column names.
  */
 
@@ -55,23 +55,23 @@ public class Drop extends AbstractDirective {
   /**
    * Drops the columns specified.
    *
-   * @param records Input {@link Record} to be wrangled by this step
+   * @param rows Input {@link Row} to be wrangled by this step
    * @param context Specifies the context of the pipeline
-   * @return A newly-transformed {@link Record}
+   * @return A newly-transformed {@link Row}
    * @throws DirectiveExecutionException
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context)
+  public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException {
-    for (Record record : records) {
+    for (Row row : rows) {
       for (String column : columns) {
-        int idx = record.find(column.trim());
+        int idx = row.find(column.trim());
         if (idx != -1) {
-          record.remove(idx);
+          row.remove(idx);
         }
       }
     }
-    return records;
+    return rows;
   }
 }
 

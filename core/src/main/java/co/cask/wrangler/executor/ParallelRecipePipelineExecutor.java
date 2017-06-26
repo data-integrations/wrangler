@@ -24,7 +24,7 @@ import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Iterables;
@@ -44,7 +44,7 @@ import java.util.concurrent.Future;
  * Wrangle RecipePipeline executes stepRegistry in the order they are specified.
  */
 @Beta
-public final class ParallelRecipePipelineExecutor implements RecipePipeline<Record, StructuredRecord, ErrorRecord> {
+public final class ParallelRecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
   private RecipeParser directives;
   private RecipeContext context;
   private RecordConvertor convertor = new RecordConvertor();
@@ -66,16 +66,16 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
   /**
    * Executes the pipeline on the input.
    *
-   * @param records List of Input record of type I.
+   * @param rows List of Input record of type I.
    * @param schema Schema to which the output should be mapped.
    * @return Parsed output list of record of type O
    */
   @Override
-  public List<StructuredRecord> execute(List<Record> records, Schema schema)
+  public List<StructuredRecord> execute(List<Row> rows, Schema schema)
     throws RecipeException {
-    records = execute(records);
+    rows = execute(rows);
     try {
-      List<StructuredRecord> output = convertor.toStructureRecord(records, schema);
+      List<StructuredRecord> output = convertor.toStructureRecord(rows, schema);
       return output;
     } catch (RecordConvertorException e) {
       throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage());
@@ -85,35 +85,35 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
   /**
    * Executes the pipeline on the input.
    *
-   * @param records List of input record of type I.
+   * @param rows List of input record of type I.
    * @return Parsed output list of record of type I
    */
   @Override
-  public List<Record> execute(List<Record> records) throws RecipeException {
+  public List<Row> execute(List<Row> rows) throws RecipeException {
     try {
-      int chunkSize = records.size() / threads;
+      int chunkSize = rows.size() / threads;
       if (chunkSize == 0) {
-        chunkSize = records.size();
+        chunkSize = rows.size();
       }
 
       int startIndex = 0;
-      Map<Integer, Future<List<Record>>> futures = new TreeMap<>();
+      Map<Integer, Future<List<Row>>> futures = new TreeMap<>();
 
       final List<Directive> directives = this.directives.parse();
-      while (startIndex < records.size()) {
+      while (startIndex < rows.size()) {
         int endIndex = startIndex + chunkSize;
-        if (endIndex > records.size()) {
-          endIndex = records.size();
+        if (endIndex > rows.size()) {
+          endIndex = rows.size();
         }
 
-        final List<Record> newRecords = records.subList(startIndex, endIndex);
+        final List<Row> newRows = rows.subList(startIndex, endIndex);
 
-        Future<List<Record>> future = executor.submit(new Callable<List<Record>>() {
-          private List<Record> records = newRecords;
+        Future<List<Row>> future = executor.submit(new Callable<List<Row>>() {
+          private List<Row> records = newRows;
           @Override
-          public List<Record> call() throws Exception {
+          public List<Row> call() throws Exception {
             for (Directive step : directives) {
-              // If there are no records, then we short-circuit the processing and break out.
+              // If there are no rows, then we short-circuit the processing and break out.
               if (records.size() < 1) {
                 break;
               }
@@ -127,8 +127,8 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
         startIndex = endIndex;
       }
 
-      List<List<Record>> result = new ArrayList<>(threads);
-      for (Future<List<Record>> future : futures.values()) {
+      List<List<Row>> result = new ArrayList<>(threads);
+      for (Future<List<Row>> future : futures.values()) {
         result.add(future.get());
       }
       return Lists.newArrayList(Iterables.concat(result));
@@ -148,20 +148,20 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Reco
   }
 
   /**
-   * Converts a {@link Record} to a {@link StructuredRecord}.
+   * Converts a {@link Row} to a {@link StructuredRecord}.
    *
-   * @param records {@link Record} to be converted
+   * @param rows {@link Row} to be converted
    * @param schema Schema of the {@link StructuredRecord} to be created.
    * @return A {@link StructuredRecord} from record.
    */
-  private List<StructuredRecord> toStructuredRecord(List<Record> records, Schema schema) {
+  private List<StructuredRecord> toStructuredRecord(List<Row> rows, Schema schema) {
     List<StructuredRecord> results = new ArrayList<>();
-    for (Record record : records) {
+    for (Row row : rows) {
       StructuredRecord.Builder builder = StructuredRecord.builder(schema);
       List<Schema.Field> fields = schema.getFields();
       for (Schema.Field field : fields) {
         String name = field.getName();
-        Object value = record.getValue(name);
+        Object value = row.getValue(name);
         if (value != null) {
           builder.set(name, value);
         }

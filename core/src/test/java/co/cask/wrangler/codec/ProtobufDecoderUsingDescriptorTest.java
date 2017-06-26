@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import com.example.tutorial.AddressBookProtos;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -51,15 +51,15 @@ public class ProtobufDecoderUsingDescriptorTest {
     try {
       is = this.getClass().getClassLoader().getResourceAsStream("addressbook.desc");
       byte[] bytes = IOUtils.toByteArray(is);
-      Decoder<Record> decoder = new ProtobufDecoderUsingDescriptor(bytes, "AddressBook");
+      Decoder<Row> decoder = new ProtobufDecoderUsingDescriptor(bytes, "AddressBook");
       Assert.assertNotNull(decoder);
-      List<Record> records = decoder.decode(addressBook);
-      Assert.assertNotNull(records);
-      Assert.assertEquals("Joltie Root", records.get(0).getValue("people_name"));
-      Assert.assertEquals(1234, records.get(0).getValue("people_id"));
-      Assert.assertEquals("joltie.root@example.com", records.get(0).getValue("people_email"));
-      Assert.assertEquals("555-4321", records.get(0).getValue("people_phones_number"));
-      Assert.assertEquals("HOME", records.get(0).getValue("people_phones_type"));
+      List<Row> rows = decoder.decode(addressBook);
+      Assert.assertNotNull(rows);
+      Assert.assertEquals("Joltie Root", rows.get(0).getValue("people_name"));
+      Assert.assertEquals(1234, rows.get(0).getValue("people_id"));
+      Assert.assertEquals("joltie.root@example.com", rows.get(0).getValue("people_email"));
+      Assert.assertEquals("555-4321", rows.get(0).getValue("people_phones_number"));
+      Assert.assertEquals("HOME", rows.get(0).getValue("people_phones_type"));
     } finally {
       if (is != null) {
         is.close();

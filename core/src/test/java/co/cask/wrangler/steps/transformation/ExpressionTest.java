@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.transformation;
 
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,17 +48,17 @@ public class ExpressionTest {
     };
 
     // Run through the wrangling steps.
-    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
+    List<Row> rows = Arrays.asList(new Row("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
       "150 Mars Ave,Palo Alto,CA,USA,32826"));
 
     // Iterate through steps.
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertEquals("Joltie, Root", records.get(0).getValue("name"));
-    Assert.assertEquals(1886.3999999999999, records.get(0).getValue("salary"));
-    Assert.assertEquals("no", records.get(0).getValue("isteen"));
-    Assert.assertEquals("oi.etiloj@toor", records.get(0).getValue("email"));
-    Assert.assertEquals(13.0, records.get(0).getValue("hrlywage"));
+    Assert.assertEquals("Joltie, Root", rows.get(0).getValue("name"));
+    Assert.assertEquals(1886.3999999999999, rows.get(0).getValue("salary"));
+    Assert.assertEquals("no", rows.get(0).getValue("isteen"));
+    Assert.assertEquals("oi.etiloj@toor", rows.get(0).getValue("email"));
+    Assert.assertEquals(13.0, rows.get(0).getValue("hrlywage"));
   }
 
   @Test(expected = DirectiveExecutionException.class)
@@ -70,11 +70,11 @@ public class ExpressionTest {
       "set column email string:reverse(email1)" // email1 not defined in the record.
     };
 
-    List<Record> records = Arrays.asList(new Record("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io," +
+    List<Row> rows = Arrays.asList(new Row("__col", "1098,Root,Joltie,01/26/1956,root@jolite.io," +
       "32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"));
 
     // Run through the wrangling steps.
-    RecipePipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, rows);
   }
 
   @Test
@@ -87,8 +87,8 @@ public class ExpressionTest {
       "set column delws  string:deleteWhitespace(delws)"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("number", "1")
+    List<Row> rows = Arrays.asList(
+      new Row("number", "1")
             .add("first", "root")
             .add("last", "joltie")
             .add("longtxt", "This is long transformation")
@@ -97,13 +97,13 @@ public class ExpressionTest {
             .add("delws", "Jolti  Root")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("Jolti", records.get(0).getValue("chop"));
-    Assert.assertEquals("JoltiRoot", records.get(0).getValue("delws"));
-    Assert.assertEquals("This has eol", records.get(0).getValue("eoltxt"));
-    Assert.assertEquals("Th...", records.get(0).getValue("abbreviate"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("Jolti", rows.get(0).getValue("chop"));
+    Assert.assertEquals("JoltiRoot", rows.get(0).getValue("delws"));
+    Assert.assertEquals("This has eol", rows.get(0).getValue("eoltxt"));
+    Assert.assertEquals("Th...", rows.get(0).getValue("abbreviate"));
   }
 
   @Test
@@ -113,17 +113,17 @@ public class ExpressionTest {
       "set column number bytes:toInt(number)"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("number", Bytes.toBytes(99))
+    List<Row> rows = Arrays.asList(
+      new Row("number", Bytes.toBytes(99))
         .add("first", "root".getBytes(StandardCharsets.UTF_8))
         .add("last", "joltie".getBytes(StandardCharsets.UTF_8))
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("root", records.get(0).getValue("first"));
-    Assert.assertEquals(99, records.get(0).getValue("number"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("root", rows.get(0).getValue("first"));
+    Assert.assertEquals(99, rows.get(0).getValue("number"));
   }
 
   @Test
@@ -146,13 +146,13 @@ public class ExpressionTest {
 
 
     //2017-02-02T21:06:44Z
-    List<Record> records = Arrays.asList(
-      new Record("date", "2017-02-02T21:06:44Z").add("seconds", 86401).add("other", "2017-02-03T21:06:44Z")
+    List<Row> rows = Arrays.asList(
+      new Row("date", "2017-02-02T21:06:44Z").add("seconds", 86401).add("other", "2017-02-03T21:06:44Z")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test
@@ -162,14 +162,14 @@ public class ExpressionTest {
       "filter-row-if-true first.isEmpty()"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("number", Bytes.toBytes(99))
+    List<Row> rows = Arrays.asList(
+      new Row("number", Bytes.toBytes(99))
         .add("first", "  ")
         .add("last", "joltie")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 0);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 0);
   }
 
   @Test
@@ -184,14 +184,14 @@ public class ExpressionTest {
         "set column result geo:inFence(lat,lon,fences)"
     };
 
-    List<Record> records = Arrays.asList(
-        new Record("id", 123)
+    List<Row> rows = Arrays.asList(
+        new Row("id", 123)
             .add("lon", -462.49145507812494)
             .add("lat", 43.46089378008257)
             .add("fences", geoJsonFence)
     );
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertFalse((Boolean) records.get(0).getValue("result"));
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertFalse((Boolean) rows.get(0).getValue("result"));
   }
 
   @Test(expected = DirectiveExecutionException.class)
@@ -205,13 +205,13 @@ public class ExpressionTest {
         "set column result geo:inFence(lat,lon,fences)"
     };
 
-    List<Record> records = Arrays.asList(
-        new Record("id", 123)
+    List<Row> rows = Arrays.asList(
+        new Row("id", 123)
             .add("lon", -462.49145507812494)
             .add("lat", 43.46089378008257)
             .add("fences", geoJsonFence)
     );
-    RecipePipelineTest.execute(directives, records);
+    RecipePipelineTest.execute(directives, rows);
   }
 }
 

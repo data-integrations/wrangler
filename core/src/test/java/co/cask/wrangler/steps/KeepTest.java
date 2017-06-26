@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.column.Keep;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,13 +36,13 @@ public class KeepTest {
       "keep body_1,body_2"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "1,2,3,4,5,6,7,8,9,10")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "1,2,3,4,5,6,7,8,9,10")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(2, records.get(0).length());
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(2, rows.get(0).length());
   }
 }

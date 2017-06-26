@@ -29,8 +29,8 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.utils.ObjectSerDe;
-import co.cask.wrangler.api.Record;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
@@ -209,12 +209,12 @@ public final class KafkaService extends AbstractHttpServiceHandler {
 
       try {
         boolean running = true;
-        List<Record> recs = new ArrayList<>();
+        List<Row> recs = new ArrayList<>();
         int count = lines;
         while(running) {
           ConsumerRecords<String, String> records = consumer.poll(10000);
           for(ConsumerRecord<String, String> record : records) {
-            Record rec = new Record();
+            Row rec = new Row();
             rec.add("message", record.value());
             recs.add(rec);
             if (count < 0) {
@@ -225,7 +225,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
           running = false;
         }
 
-        ObjectSerDe<List<Record>> serDe = new ObjectSerDe<>();
+        ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(recs);
         ws.writeToWorkspace(uuid, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 

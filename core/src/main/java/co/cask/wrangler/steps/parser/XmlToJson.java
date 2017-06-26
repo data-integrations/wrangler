@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonObject;
 import org.json.JSONException;
@@ -51,26 +51,26 @@ public class XmlToJson extends AbstractDirective {
   /**
    * Converts an XML into JSON record.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
    * @return New Row containing multiple columns based on CSV parsing.
    * @throws DirectiveExecutionException In case CSV parsing generates more record.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(col);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(col);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object == null) {
-          throw new DirectiveExecutionException(toString() + " : Did not find '" + col + "' in the record.");
+          throw new DirectiveExecutionException(toString() + " : Did not find '" + col + "' in the row.");
         }
 
         try {
           if (object instanceof String) {
             JsonObject element = JsParser.convert(XML.toJSONObject((String) object)).getAsJsonObject();
-            JsParser.flattenJson(element, col, 1, depth, record);
-            record.remove(idx);
+            JsParser.flattenJson(element, col, 1, depth, row);
+            row.remove(idx);
           } else {
             throw new DirectiveExecutionException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
@@ -82,7 +82,7 @@ public class XmlToJson extends AbstractDirective {
         }
       }
     }
-    return records;
+    return rows;
   }
 
 }

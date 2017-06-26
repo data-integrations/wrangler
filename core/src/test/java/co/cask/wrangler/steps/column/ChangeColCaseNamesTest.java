@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.column;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,13 +35,13 @@ public class ChangeColCaseNamesTest {
       "change-column-case lower",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("Url", "1").add("Fname", "2").add("LName", "3").add("ADDRESS", "4")
+    List<Row> rows = Arrays.asList(
+      new Row("Url", "1").add("Fname", "2").add("LName", "3").add("ADDRESS", "4")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("url", records.get(0).getColumn(0));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("url", rows.get(0).getColumn(0));
   }
 }

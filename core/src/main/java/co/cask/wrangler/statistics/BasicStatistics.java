@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.statistics;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import io.dataapps.chlorine.finder.FinderEngine;
 
 import java.util.List;
@@ -33,16 +33,16 @@ public class BasicStatistics implements Statistics {
   }
 
   @Override
-  public Record aggregate(List<Record> records) {
+  public Row aggregate(List<Row> rows) {
     ColumnMetric types = new ColumnMetric();
     ColumnMetric stats = new ColumnMetric();
 
     Double count = new Double(0);
-    for (Record record : records) {
+    for (Row row : rows) {
       ++count;
-      for (int i = 0; i < record.length(); ++i) {
-        String column = record.getColumn(i);
-        Object object = record.getValue(i);
+      for (int i = 0; i < row.length(); ++i) {
+        String column = row.getColumn(i);
+        Object object = row.getValue(i);
 
         if (object == null) {
           stats.increment(column, "null");
@@ -64,21 +64,21 @@ public class BasicStatistics implements Statistics {
       }
     }
 
-    Record recordTypes = new Record();
+    Row rowTypes = new Row();
     for (String column : types.getColumns()) {
-      recordTypes.add(column, types.percentage(column, count));
+      rowTypes.add(column, types.percentage(column, count));
     }
 
-    Record recordStats = new Record();
+    Row rowStats = new Row();
     for (String column : stats.getColumns()) {
-      recordStats.add(column, stats.percentage(column, count));
+      rowStats.add(column, stats.percentage(column, count));
     }
 
-    Record record = new Record();
-    record.add("types", recordTypes);
-    record.add("stats", recordStats);
-    record.add("total", count);
+    Row row = new Row();
+    row.add("types", rowTypes);
+    row.add("stats", rowStats);
+    row.add("total", count);
 
-    return record;
+    return row;
   }
 }

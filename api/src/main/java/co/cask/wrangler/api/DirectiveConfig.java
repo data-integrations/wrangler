@@ -16,8 +16,13 @@
 
 package co.cask.wrangler.api;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,18 +47,11 @@ import java.util.Set;
  */
 public final class DirectiveConfig {
   // RecipeParser to be excluded or made non-accessible.
-  private Set<String> exclusions;
+  private Set<String> exclusions = new HashSet<>();
 
   // RecipeParser to be aliased.
-  private Map<String, String> aliases;
+  private Map<String, String> aliases = new HashMap<>();
 
-  public Set<String> getExclusions() {
-    return exclusions;
-  }
-
-  public Map<String, String> getAliases() {
-    return aliases;
-  }
 
   /**
    * Checks if a directive is aliased.
@@ -72,13 +70,10 @@ public final class DirectiveConfig {
    * Dereferences an alias if defined, else returns the directive itself.
    *
    * @param directive to be dereferenced.
-   * @return dereferenced directive or the directive itself.
+   * @return dereferenced directive or null.
    */
   public String getAliasName(String directive) {
-    if (hasAlias(directive)) {
-      return aliases.get(directive);
-    }
-    return directive;
+    return aliases.get(directive);
   }
 
   public Map<String, List<String>> getReverseAlias() {
@@ -113,12 +108,15 @@ public final class DirectiveConfig {
   }
 
   /**
-   * Checks if the directive should be included.
+   * Converts this object into a {@link JsonElement}.
    *
-   * @param directive to checked if it has to be included.
-   * @return true if directive is included, false otherwise.
+   * @return {@link JsonElement} representation of this object.
    */
-  public boolean isIncluded(String directive) {
-    return !isExcluded(directive);
+  public JsonElement toJson() {
+    Gson gson = new Gson();
+    JsonObject object = new JsonObject();
+    object.add("exclusions", gson.toJsonTree(exclusions));
+    object.add("aliases", gson.toJsonTree(aliases));
+    return object;
   }
 }

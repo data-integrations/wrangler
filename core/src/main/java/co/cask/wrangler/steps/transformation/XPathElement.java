@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import com.ximpleware.AutoPilot;
 import com.ximpleware.NavException;
@@ -60,20 +60,20 @@ public class XPathElement extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object instanceof VTDNav) {
-          VTDNav vNav = (VTDNav) record.getValue(idx);
+          VTDNav vNav = (VTDNav) row.getValue(idx);
           AutoPilot ap = new AutoPilot(vNav);
           try {
             int tokenCount = vNav.getTokenCount();
@@ -95,7 +95,7 @@ public class XPathElement extends AbstractDirective {
                 int val = vNav.getText();
                 if (val != -1) {
                   String title = vNav.getXPathStringVal();
-                  record.addOrSet(destination, title);
+                  row.addOrSet(destination, title);
                   found = true;
                 }
               }
@@ -103,13 +103,13 @@ public class XPathElement extends AbstractDirective {
               if (ap.evalXPath() != -1) {
                 int val = vNav.getAttrVal(attribute);
                 if (val != -1) {
-                  record.addOrSet(destination, vNav.toString(val));
+                  row.addOrSet(destination, vNav.toString(val));
                   found = true;
                 }
               }
             }
             if(!found) {
-              record.addOrSet(destination, null);
+              row.addOrSet(destination, null);
             }
           } catch (XPathParseException | XPathEvalException | NavException e) {
             throw new DirectiveExecutionException(
@@ -124,10 +124,10 @@ public class XPathElement extends AbstractDirective {
           );
         }
       } else {
-        record.addOrSet(destination, null);
+        row.addOrSet(destination, null);
       }
     }
-    return records;
+    return rows;
   }
 
   public static String extractAttributeFromXPath(String path) {

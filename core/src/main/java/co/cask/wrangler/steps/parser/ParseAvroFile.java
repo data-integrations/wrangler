@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.Gson;
 import org.apache.avro.Schema;
@@ -57,19 +57,19 @@ public class ParseAvroFile extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, final RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object instanceof byte[]) {
           DataFileReader<GenericRecord> reader = null;
           try {
@@ -77,9 +77,9 @@ public class ParseAvroFile extends AbstractDirective {
               new DataFileReader<>(new SeekableByteArrayInput((byte[]) object),
                                                 new GenericDatumReader<GenericRecord>());
             while(reader.hasNext()) {
-              Record newRecord = new Record();
-              add(reader.next(), newRecord, null);
-              results.add(newRecord);
+              Row newRow = new Row();
+              add(reader.next(), newRow, null);
+              results.add(newRow);
             }
           } catch (IOException e) {
             throw new DirectiveExecutionException(toString() + " : Failed to parse Avro data file." + e.getMessage());
@@ -104,10 +104,10 @@ public class ParseAvroFile extends AbstractDirective {
    * Flattens the {@link GenericRecord}.
    *
    * @param genericRecord to be flattened.
-   * @param record to be flattened into
+   * @param row to be flattened into
    * @param name of the field to be flattened.
    */
-  private void add(GenericRecord genericRecord, Record record, String name) {
+  private void add(GenericRecord genericRecord, Row row, String name) {
     List<Schema.Field> fields = genericRecord.getSchema().getFields();
     String colname;
     for (Schema.Field field : fields) {
@@ -118,11 +118,11 @@ public class ParseAvroFile extends AbstractDirective {
         colname = field.name();
       }
       if (v instanceof GenericRecord) {
-        add((GenericRecord) v, record, colname);
+        add((GenericRecord) v, row, colname);
       } else if (v instanceof Map || v instanceof List) {
-        record.add(colname, gson.toJson(v));
+        row.add(colname, gson.toJson(v));
       } else {
-        record.add(colname, genericRecord.get(field.name()));
+        row.add(colname, genericRecord.get(field.name()));
       }
     }
   }

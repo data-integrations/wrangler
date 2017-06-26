@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import com.google.common.base.Charsets;
@@ -43,12 +43,12 @@ public class ParseAvroFileTest {
       "parse-as-avro-file body",
     };
 
-    List<Record> records = new ArrayList<>();
-    records.add(new Record("body", data));
+    List<Row> rows = new ArrayList<>();
+    rows.add(new Row("body", data));
 
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     executor.configure(new SimpleTextParser(directives), null);
-    List<Record> results = executor.execute(records);
+    List<Row> results = executor.execute(rows);
     Assert.assertEquals(1689, results.size());
     Assert.assertEquals(15, results.get(0).length());
     Assert.assertEquals(1495172588118L, results.get(0).getValue("timestamp"));
@@ -61,11 +61,11 @@ public class ParseAvroFileTest {
       "parse-as-avro-file body",
     };
 
-    List<Record> records = new ArrayList<>();
-    records.add(new Record("body", new String("failure").getBytes(Charsets.UTF_8)));
+    List<Row> rows = new ArrayList<>();
+    rows.add(new Row("body", new String("failure").getBytes(Charsets.UTF_8)));
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     executor.configure(new SimpleTextParser(directives), null);
-    executor.execute(records);
+    executor.execute(rows);
   }
 
 }

@@ -23,7 +23,7 @@ import co.cask.http.HttpResponder;
 import co.cask.http.NettyHttpService;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import com.google.gson.Gson;
@@ -105,23 +105,23 @@ public class InvokeHttpTest {
       "invoke-http " + (baseURL + "/service ") + "a,b A=1,B=2,C=3"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("a", "1").add("b", 2.0),
-      new Record("a", "3").add("b", 4.2)
+    List<Row> rows = Arrays.asList(
+      new Row("a", "1").add("b", 2.0),
+      new Row("a", "3").add("b", 4.2)
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(2, records.size());
-    Assert.assertEquals(4, records.get(0).length());
-    Assert.assertEquals(4, records.get(1).length());
-    Assert.assertEquals("1:2.000000", records.get(0).getValue("c"));
-    Assert.assertEquals("3:4.200000", records.get(1).getValue("c"));
-    Assert.assertEquals("3", records.get(0).getValue("HeaderC"));
-    Assert.assertEquals("3", records.get(1).getValue("HeaderC"));
+    Assert.assertEquals(2, rows.size());
+    Assert.assertEquals(4, rows.get(0).length());
+    Assert.assertEquals(4, rows.get(1).length());
+    Assert.assertEquals("1:2.000000", rows.get(0).getValue("c"));
+    Assert.assertEquals("3:4.200000", rows.get(1).getValue("c"));
+    Assert.assertEquals("3", rows.get(0).getValue("HeaderC"));
+    Assert.assertEquals("3", rows.get(1).getValue("HeaderC"));
   }
 
   @Test
@@ -130,21 +130,21 @@ public class InvokeHttpTest {
       "invoke-http " + (baseURL + "/service ") + "a,b"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("a", "1").add("b", 2.0),
-      new Record("a", "3").add("b", 4.2)
+    List<Row> rows = Arrays.asList(
+      new Row("a", "1").add("b", 2.0),
+      new Row("a", "3").add("b", 4.2)
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertEquals(2, records.size());
-    Assert.assertEquals("1:2.000000", records.get(0).getValue("c"));
-    Assert.assertEquals("3:4.200000", records.get(1).getValue("c"));
-    Assert.assertEquals(3, records.get(0).length());
-    Assert.assertEquals(3, records.get(1).length());
+    Assert.assertEquals(2, rows.size());
+    Assert.assertEquals("1:2.000000", rows.get(0).getValue("c"));
+    Assert.assertEquals("3:4.200000", rows.get(1).getValue("c"));
+    Assert.assertEquals(3, rows.get(0).length());
+    Assert.assertEquals(3, rows.get(1).length());
   }
 
   @Test
@@ -153,17 +153,17 @@ public class InvokeHttpTest {
       "invoke-http " + (baseURL + "/wrongserviceendpoint ") + "a,b"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("a", "1").add("b", 2.0),
-      new Record("a", "3").add("b", 4.2)
+    List<Row> rows = Arrays.asList(
+      new Row("a", "1").add("b", 2.0),
+      new Row("a", "3").add("b", 4.2)
     );
 
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    records = pipeline.execute(records);
+    rows = pipeline.execute(rows);
 
-    Assert.assertTrue(records.size() == 0);
+    Assert.assertTrue(rows.size() == 0);
     Assert.assertTrue(pipeline.errors().size() == 2);
   }
 

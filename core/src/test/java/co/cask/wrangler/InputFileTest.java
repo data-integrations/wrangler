@@ -17,7 +17,7 @@
 package co.cask.wrangler;
 
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.ParallelRecipePipelineExecutor;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
@@ -58,17 +58,17 @@ public class InputFileTest {
     SimpleTextParser txtDirectives = new SimpleTextParser(directives);
 
     String lines = new String(data);
-    List<Record> records1 = new ArrayList<>();
-    List<Record> records2 = new ArrayList<>();
+    List<Row> records1 = new ArrayList<>();
+    List<Row> records2 = new ArrayList<>();
     for (String line : lines.split("\n")) {
-      records1.add(new Record("body", line));
-      records2.add(new Record("body", line));
+      records1.add(new Row("body", line));
+      records2.add(new Row("body", line));
     }
 
     long start = System.currentTimeMillis();
     RecipePipelineExecutor executor1 = new RecipePipelineExecutor();
     executor1.configure(txtDirectives, null);
-    List<Record> results1 = executor1.execute(records1);
+    List<Row> results1 = executor1.execute(records1);
     long end = System.currentTimeMillis();
     System.out.println(
       String.format("Sequential : Records %d, Duration %d", results1.size(), end - start)
@@ -77,7 +77,7 @@ public class InputFileTest {
     start = System.currentTimeMillis();
     ParallelRecipePipelineExecutor executor2 = new ParallelRecipePipelineExecutor();
     executor2.configure(txtDirectives, null);
-    List<Record> results2 = executor2.execute(records2);
+    List<Row> results2 = executor2.execute(records2);
     end = System.currentTimeMillis();
     System.out.println(
       String.format("Parallel : Records %d, Duration %d", results2.size(), end - start)

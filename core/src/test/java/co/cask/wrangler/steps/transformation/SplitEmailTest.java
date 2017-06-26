@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
@@ -35,40 +35,40 @@ public class SplitEmailTest {
       "split-email email",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("email", "root@cask.co"),
-      new Record("email", "joltie.xxx@gmail.com"),
-      new Record("email", "joltie_xxx@hotmail.com"),
-      new Record("email", "joltie.\"@.\"root.\"@\".@yahoo.com"),
-      new Record("email", "Joltie, Root <joltie.root@hotmail.com>"),
-      new Record("email", "Joltie,Root<joltie.root@hotmail.com>"),
-      new Record("email", "Joltie,Root<joltie.root@hotmail.com") // bad email
+    List<Row> rows = Arrays.asList(
+      new Row("email", "root@cask.co"),
+      new Row("email", "joltie.xxx@gmail.com"),
+      new Row("email", "joltie_xxx@hotmail.com"),
+      new Row("email", "joltie.\"@.\"root.\"@\".@yahoo.com"),
+      new Row("email", "Joltie, Root <joltie.root@hotmail.com>"),
+      new Row("email", "Joltie,Root<joltie.root@hotmail.com>"),
+      new Row("email", "Joltie,Root<joltie.root@hotmail.com") // bad email
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 7);
+    Assert.assertTrue(rows.size() == 7);
 
-    Assert.assertEquals("root", records.get(0).getValue("email_account"));
-    Assert.assertEquals("cask.co", records.get(0).getValue("email_domain"));
+    Assert.assertEquals("root", rows.get(0).getValue("email_account"));
+    Assert.assertEquals("cask.co", rows.get(0).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.xxx", records.get(1).getValue("email_account"));
-    Assert.assertEquals("gmail.com", records.get(1).getValue("email_domain"));
+    Assert.assertEquals("joltie.xxx", rows.get(1).getValue("email_account"));
+    Assert.assertEquals("gmail.com", rows.get(1).getValue("email_domain"));
 
-    Assert.assertEquals("joltie_xxx", records.get(2).getValue("email_account"));
-    Assert.assertEquals("hotmail.com", records.get(2).getValue("email_domain"));
+    Assert.assertEquals("joltie_xxx", rows.get(2).getValue("email_account"));
+    Assert.assertEquals("hotmail.com", rows.get(2).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.\"@.\"root.\"@\".", records.get(3).getValue("email_account"));
-    Assert.assertEquals("yahoo.com", records.get(3).getValue("email_domain"));
+    Assert.assertEquals("joltie.\"@.\"root.\"@\".", rows.get(3).getValue("email_account"));
+    Assert.assertEquals("yahoo.com", rows.get(3).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.root", records.get(4).getValue("email_account"));
-    Assert.assertEquals("hotmail.com", records.get(4).getValue("email_domain"));
+    Assert.assertEquals("joltie.root", rows.get(4).getValue("email_account"));
+    Assert.assertEquals("hotmail.com", rows.get(4).getValue("email_domain"));
 
-    Assert.assertEquals("joltie.root", records.get(5).getValue("email_account"));
-    Assert.assertEquals("hotmail.com", records.get(5).getValue("email_domain"));
+    Assert.assertEquals("joltie.root", rows.get(5).getValue("email_account"));
+    Assert.assertEquals("hotmail.com", rows.get(5).getValue("email_domain"));
 
-    Assert.assertNull(records.get(6).getValue("email_account"));
-    Assert.assertNull(records.get(6).getValue("email_domain"));
+    Assert.assertNull(rows.get(6).getValue("email_account"));
+    Assert.assertNull(rows.get(6).getValue("email_domain"));
   }
 
   @Test(expected = DirectiveExecutionException.class)
@@ -77,11 +77,11 @@ public class SplitEmailTest {
       "split-email email",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("email", new Integer(1)) // Injecting bad type.
+    List<Row> rows = Arrays.asList(
+      new Row("email", new Integer(1)) // Injecting bad type.
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
   }
 
   @Test
@@ -90,18 +90,18 @@ public class SplitEmailTest {
       "split-email email",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("email", "root@hotmail@com"),
-      new Record("email", "root.hotmail.com"),
-      new Record("email", ""),
-      new Record("email", null)
+    List<Row> rows = Arrays.asList(
+      new Row("email", "root@hotmail@com"),
+      new Row("email", "root.hotmail.com"),
+      new Row("email", ""),
+      new Row("email", null)
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 4);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 4);
 
-    Assert.assertNotNull(records.get(0).getValue("email_account"));
-    Assert.assertNotNull(records.get(0).getValue("email_domain"));
-    Assert.assertNull(records.get(1).getValue("email_account"));
+    Assert.assertNotNull(rows.get(0).getValue("email_account"));
+    Assert.assertNotNull(rows.get(0).getValue("email_domain"));
+    Assert.assertNull(rows.get(1).getValue("email_account"));
   }
 }

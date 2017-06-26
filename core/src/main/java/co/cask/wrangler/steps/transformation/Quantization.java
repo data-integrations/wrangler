@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 import com.google.common.collect.Range;
@@ -64,20 +64,20 @@ public class Quantization extends AbstractDirective {
   /**
    * Quantizes a column based on the range specified.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
+   * @return Transformed {@link Row} in which the 'col' value is lower cased.
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      int idx = record.find(col1);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      int idx = row.find(col1);
 
       if (idx != -1) {
         try {
-          Object object = record.getValue(idx);
+          Object object = row.getValue(idx);
           Double d;
           if (object instanceof String) {
             d = Double.parseDouble((String) object);
@@ -92,11 +92,11 @@ public class Quantization extends AbstractDirective {
             );
           }
           String value = rangeMap.get(d);
-          int destIdx = record.find(col2);
+          int destIdx = row.find(col2);
           if (destIdx == -1) {
-            record.add(col2, value);
+            row.add(col2, value);
           } else {
-            record.setValue(destIdx, value);
+            row.setValue(destIdx, value);
           }
         } catch (NumberFormatException e) {
           throw new DirectiveExecutionException(toString(), e);
@@ -106,7 +106,7 @@ public class Quantization extends AbstractDirective {
           String.format("%s : %s was not found or is not of type string. Please check the wrangle configuration.",
                         toString(), col1));
       }
-      results.add(record);
+      results.add(row);
     }
 
     return results;

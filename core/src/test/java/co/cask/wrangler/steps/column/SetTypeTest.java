@@ -18,7 +18,7 @@ package co.cask.wrangler.steps.column;
 
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Assert;
@@ -34,8 +34,8 @@ public class SetTypeTest {
 
   @Test
   public void testToInt() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
+    List<Row> rows = Arrays.asList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
         .add("bytes_col", new byte[]{0, 0, 39, 16})
     );
@@ -46,11 +46,11 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> results = pipeline.execute(records);
-    Record record = results.get(0);
+    List<Row> results = pipeline.execute(rows);
+    Row row = results.get(0);
 
-    for (int i = 0; i < record.length(); i ++) {
-      Object object = record.getValue(i);
+    for (int i = 0; i < row.length(); i ++) {
+      Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Integer);
       Integer intValue = (Integer) object;
       Assert.assertTrue(intValue.equals(10000));
@@ -59,8 +59,8 @@ public class SetTypeTest {
 
   @Test
   public void testToShort() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
+    List<Row> rows = Arrays.asList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
         .add("bytes_col", new byte[]{39, 16})
     );
@@ -71,11 +71,11 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> results = pipeline.execute(records);
-    Record record = results.get(0);
+    List<Row> results = pipeline.execute(rows);
+    Row row = results.get(0);
 
-    for (int i = 0; i < record.length(); i ++) {
-      Object object = record.getValue(i);
+    for (int i = 0; i < row.length(); i ++) {
+      Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Short);
       Short value = (Short) object;
       Assert.assertTrue(value.equals(new Short("10000")));
@@ -84,8 +84,8 @@ public class SetTypeTest {
 
   @Test
   public void testToLong() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
+    List<Row> rows = Arrays.asList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
         .add("bytes_col", new byte[]{0, 0, 0, 0 , 0, 0, 39, 16})
     );
@@ -96,11 +96,11 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> results = pipeline.execute(records);
-    Record record = results.get(0);
+    List<Row> results = pipeline.execute(rows);
+    Row row = results.get(0);
 
-    for (int i = 0; i < record.length(); i ++) {
-      Object object = record.getValue(i);
+    for (int i = 0; i < row.length(); i ++) {
+      Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Long);
       Long value = (Long) object;
       Assert.assertTrue(value.equals(new Long(10000)));
@@ -109,8 +109,8 @@ public class SetTypeTest {
 
   @Test
   public void testToFloat() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
+    List<Row> rows = Arrays.asList(
+      new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
         .add("bytes_col", new byte[]{70, 28, 64, 0})
     );
@@ -121,11 +121,11 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> results = pipeline.execute(records);
-    Record record = results.get(0);
+    List<Row> results = pipeline.execute(rows);
+    Row row = results.get(0);
 
-    for (int i = 0; i < record.length(); i ++) {
-      Object object = record.getValue(i);
+    for (int i = 0; i < row.length(); i ++) {
+      Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Float);
       Float value = (Float) object;
       Assert.assertTrue(value.equals(new Float(10000)));
@@ -134,8 +134,8 @@ public class SetTypeTest {
 
   @Test
   public void testToDouble() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
+    List<Row> rows = Arrays.asList(
+      new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
         .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0})
     );
@@ -146,11 +146,11 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> results = pipeline.execute(records);
-    Record record = results.get(0);
+    List<Row> results = pipeline.execute(rows);
+    Row row = results.get(0);
 
-    for (int i = 0; i < record.length(); i ++) {
-      Object object = record.getValue(i);
+    for (int i = 0; i < row.length(); i ++) {
+      Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Double);
       Double value = (Double) object;
       Assert.assertTrue(value.equals(new Double(10000)));
@@ -159,14 +159,14 @@ public class SetTypeTest {
 
   @Test
   public void testToBoolean() throws Exception {
-    List<Record> trueRecords = Arrays.asList(
-      new Record("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
+    List<Row> trueRows = Arrays.asList(
+      new Row("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
         .add("int_col", 10000).add("double_col", new Double(10000.00))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000))
         .add("float_col", new Float(10000.0)).add("true_col", true)
     );
-    List<Record> falseRecords = Arrays.asList(
-      new Record("str_1", "false").add("str_2", "False").add("str_3", "FALSE")
+    List<Row> falseRows = Arrays.asList(
+      new Row("str_1", "false").add("str_2", "False").add("str_3", "FALSE")
         .add("int_col", -10000).add("double_col", new Double(-10000.00))
         .add("short_col", new Short("-10000")).add("long_col", new Long(-10000))
         .add("float_col", new Float(-10000.0)).add("false_col", false)
@@ -178,14 +178,14 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> trueResults = pipeline.execute(trueRecords);
-    List<Record> falseResults = pipeline.execute(falseRecords);
-    Record trueRecord = trueResults.get(0);
-    Record falseRecord = falseResults.get(0);
+    List<Row> trueResults = pipeline.execute(trueRows);
+    List<Row> falseResults = pipeline.execute(falseRows);
+    Row trueRow = trueResults.get(0);
+    Row falseRow = falseResults.get(0);
 
-    for (int i = 0; i < trueRecord.length(); i ++) {
-      Object trueObject = trueRecord.getValue(i);
-      Object falseObject = falseRecord.getValue(i);
+    for (int i = 0; i < trueRow.length(); i ++) {
+      Object trueObject = trueRow.getValue(i);
+      Object falseObject = falseRow.getValue(i);
       Assert.assertTrue(trueObject instanceof Boolean);
       Assert.assertTrue(falseObject instanceof Boolean);
       Boolean trueValue = (Boolean) trueObject;
@@ -197,8 +197,8 @@ public class SetTypeTest {
 
   @Test
   public void testToString() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000))
+    List<Row> rows = Arrays.asList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000))
         .add("bytes_col", new byte[]{49, 48, 48, 48, 48})
     );
@@ -209,11 +209,11 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> results = pipeline.execute(records);
-    Record record = results.get(0);
+    List<Row> results = pipeline.execute(rows);
+    Row row = results.get(0);
 
-    for (int i = 0; i < record.length(); i ++) {
-      Object object = record.getValue(i);
+    for (int i = 0; i < row.length(); i ++) {
+      Object object = row.getValue(i);
       Assert.assertTrue(object instanceof String);
       String value = (String) object;
       if (i == 2 || i == 5) {
@@ -227,8 +227,8 @@ public class SetTypeTest {
 
   @Test
   public void testToBytes() throws Exception {
-    List<Record> records = Arrays.asList(
-      new Record("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.00))
+    List<Row> rows = Arrays.asList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.00))
         .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
         .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0})
     );
@@ -248,11 +248,11 @@ public class SetTypeTest {
     SimpleTextParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    List<Record> results = pipeline.execute(records);
-    Record record = results.get(0);
+    List<Row> results = pipeline.execute(rows);
+    Row row = results.get(0);
 
-    for (int i = 0; i < record.length(); i ++) {
-      Object object = record.getValue(i);
+    for (int i = 0; i < row.length(); i ++) {
+      Object object = row.getValue(i);
       Assert.assertTrue(object instanceof byte[]);
       byte [] value = (byte[]) object;
       Assert.assertEquals(0, Bytes.compareTo(value, bytesResults[i]));

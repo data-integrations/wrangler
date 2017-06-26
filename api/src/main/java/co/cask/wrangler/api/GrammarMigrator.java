@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * This is a interface for migrating grammar from one version to other.
  */
-public interface GrammarMigration {
+public interface GrammarMigrator {
 
   /**
    * Checks to see if directive is migratable.

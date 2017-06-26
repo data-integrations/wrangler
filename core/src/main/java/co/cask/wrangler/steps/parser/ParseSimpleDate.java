@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,27 +47,27 @@ public class ParseSimpleDate extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         // If the data in the cell is null or is already of date format, then
-        // continue to next record.
+        // continue to next row.
         if (object == null || object instanceof Date) {
           continue;
         }
         if (object instanceof String) {
           try {
             Date date = format.parse((String) object);
-            record.setValue(idx, date);
+            row.setValue(idx, date);
           } catch (ParseException e) {
             throw new DirectiveExecutionException(String.format("Failed to parse '%s' with pattern '%s'",
                                                                 object, format.toPattern()));
@@ -79,9 +79,9 @@ public class ParseSimpleDate extends AbstractDirective {
           );
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
       }
     }
-    return records;
+    return rows;
   }
 }

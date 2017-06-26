@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.net.MalformedURLException;
@@ -45,39 +45,39 @@ public class SplitURL extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
 
         if (object == null) {
-          record.add(column + "_protocol", null);
-          record.add(column + "_authority", null);
-          record.add(column + "_host", null);
-          record.add(column + "_port", null);
-          record.add(column + "_path", null);
-          record.add(column + "_query", null);
-          record.add(column + "_filename", null);
+          row.add(column + "_protocol", null);
+          row.add(column + "_authority", null);
+          row.add(column + "_host", null);
+          row.add(column + "_port", null);
+          row.add(column + "_path", null);
+          row.add(column + "_query", null);
+          row.add(column + "_filename", null);
           continue;
         }
         if (object instanceof String) {
           try {
             URL url = new URL((String) object);
-            record.add(column + "_protocol", url.getProtocol());
-            record.add(column + "_authority", url.getAuthority());
-            record.add(column + "_host", url.getHost());
-            record.add(column + "_port", url.getPort());
-            record.add(column + "_path", url.getPath());
-            record.add(column + "_filename", url.getFile());
-            record.add(column + "_query", url.getQuery());
+            row.add(column + "_protocol", url.getProtocol());
+            row.add(column + "_authority", url.getAuthority());
+            row.add(column + "_host", url.getHost());
+            row.add(column + "_port", url.getPort());
+            row.add(column + "_path", url.getPath());
+            row.add(column + "_filename", url.getFile());
+            row.add(column + "_query", url.getQuery());
           } catch (MalformedURLException e) {
             throw new DirectiveExecutionException(
               String.format(
@@ -92,9 +92,9 @@ public class SplitURL extends AbstractDirective {
           );
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the record.");
+        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
       }
     }
-    return records;
+    return rows;
   }
 }

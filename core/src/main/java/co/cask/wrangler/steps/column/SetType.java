@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
@@ -47,16 +47,16 @@ public class SetType extends AbstractDirective {
   }
 
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(col);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(col);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object == null) {
           continue;
         }
         try {
-          record.setValue(idx, convertType(type, object));
+          row.setValue(idx, convertType(type, object));
         } catch (Exception e) {
           throw new DirectiveExecutionException(
             String.format(toString() + ":" + e.getMessage())
@@ -64,7 +64,7 @@ public class SetType extends AbstractDirective {
         }
       }
     }
-    return records;
+    return rows;
   }
 
   private Object convertType(String toType, Object object) throws Exception {

@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.parser;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,8 +47,8 @@ public class JsParserTest {
       "drop body_deviceReference_alerts"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
         "\"deviceId\": \"SM-R760NDAAXAR\", \"timestamp\": 122121212341231, \"OS\": { \"name\": \"Tizen OS\", " +
         "\"version\": \"2.3.1\" }, \"alerts\": [ { \"Signal lost\": true }, { \"Emergency call\": true }, " +
         "{ \"Wifi connection lost\": true }, { \"Battery low\": true }, { \"Calories\": 354 } ], \"screenSize\": " +
@@ -56,8 +56,8 @@ public class JsParserTest {
         "\"It is an AT&T samung wearable device.\" } }")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test
@@ -66,12 +66,12 @@ public class JsParserTest {
       "parse-as-json body"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "[ { \"a\" : 1, \"b\" : 2 }, { \"a\" : 3, \"b\" : 3 }, { \"a\" : 4, \"c\" : 5 } ]")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "[ { \"a\" : 1, \"b\" : 2 }, { \"a\" : 3, \"b\" : 3 }, { \"a\" : 4, \"c\" : 5 } ]")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 3);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 3);
   }
 
   @Test
@@ -80,12 +80,12 @@ public class JsParserTest {
       "parse-as-json body"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "[1,2,3,4,5]")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "[1,2,3,4,5]")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 5);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 5);
   }
 
 
@@ -95,8 +95,8 @@ public class JsParserTest {
       "parse-as-json body 1",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "{ \"deviceReference\": { \"brand\": \"Samsung \", \"type\": \"Gear S3 frontier\", " +
         "\"deviceId\": \"SM-R760NDAAXAR\", \"timestamp\": 122121212341231, \"OS\": { \"name\": \"Tizen OS\", " +
         "\"version\": \"2.3.1\" }, \"alerts\": [ { \"Signal lost\": true }, { \"Emergency call\": true }, " +
         "{ \"Wifi connection lost\": true }, { \"Battery low\": true }, { \"Calories\": 354 } ], \"screenSize\": " +
@@ -104,8 +104,8 @@ public class JsParserTest {
         "\"It is an AT&T samung wearable device.\" } }")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test
@@ -114,8 +114,8 @@ public class JsParserTest {
       "parse-as-json body 2"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "{\"created_at\":\"Mon Feb 06 21:13:37 +0000 2017\",\"id\":828713281267367937," +
+    List<Row> rows = Arrays.asList(
+      new Row("body", "{\"created_at\":\"Mon Feb 06 21:13:37 +0000 2017\",\"id\":828713281267367937," +
         "\"id_str\":\"828713281267367937\",\"text\":\"Youth is counted sweetest by those who are no longer young." +
         "\\n#PBBPADALUCKKISSYONG\",\"source\":\"\\u003ca href=\\\"http:\\/\\/twitter.com\\/download\\/iphone\\\" " +
         "rel=\\\"nofollow\\\"\\u003eTwitter for iPhone\\u003c\\/a\\u003e\",\"truncated\":false,\"in_reply_to_status_id\"" +
@@ -139,8 +139,8 @@ public class JsParserTest {
         "\"symbols\":[]},\"favorited\":false,\"retweeted\":false,\"filter_level\":\"low\",\"lang\":\"en\",\"timestamp_ms\"" +
         ":\"1486415617659\"}"));
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test
@@ -149,11 +149,11 @@ public class JsParserTest {
       "parse-as-json body"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "[1,2,3,4,5]             ")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "[1,2,3,4,5]             ")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 5);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 5);
   }
 }

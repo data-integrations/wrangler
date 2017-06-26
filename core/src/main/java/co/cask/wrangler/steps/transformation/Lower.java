@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.List;
@@ -46,25 +46,25 @@ public class Lower extends AbstractDirective {
   /**
    * Transforms a column value from any case to lower case.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
+   * @return Transformed {@link Row} in which the 'col' value is lower cased.
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(col);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(col);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            record.setValue(idx, value.toLowerCase());
+            row.setValue(idx, value.toLowerCase());
           }
         }
       }
     }
-    return records;
+    return rows;
   }
 }

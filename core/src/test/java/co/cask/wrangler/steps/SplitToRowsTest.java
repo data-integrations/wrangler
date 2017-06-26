@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.row.SplitToRows;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,15 +35,15 @@ public class SplitToRowsTest {
       "split-to-rows body \\n",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "AABBCDE\nEEFFFF")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "AABBCDE\nEEFFFF")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 2);
-    Assert.assertEquals("AABBCDE", records.get(0).getValue("body"));
-    Assert.assertEquals("EEFFFF", records.get(1).getValue("body"));
+    Assert.assertTrue(rows.size() == 2);
+    Assert.assertEquals("AABBCDE", rows.get(0).getValue("body"));
+    Assert.assertEquals("EEFFFF", rows.get(1).getValue("body"));
   }
 
   @Test
@@ -52,13 +52,13 @@ public class SplitToRowsTest {
       "split-to-rows body X",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "AABBCDE\nEEFFFF")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "AABBCDE\nEEFFFF")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
   }
 
   @Test
@@ -67,13 +67,13 @@ public class SplitToRowsTest {
       "split-to-rows codes \\|",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("id", "1").add("codes", "USD|AUD|AMD|XCD")
+    List<Row> rows = Arrays.asList(
+      new Row("id", "1").add("codes", "USD|AUD|AMD|XCD")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 4);
+    Assert.assertTrue(rows.size() == 4);
   }
 
 }

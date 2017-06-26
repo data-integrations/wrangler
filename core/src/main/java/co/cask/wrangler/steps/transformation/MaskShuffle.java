@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
@@ -59,19 +59,19 @@ public class MaskShuffle extends AbstractDirective {
   /**
    * Masks the column specified using either substitution method or shuffling.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record} with masked column.
+   * @return A newly transformed {@link Row} with masked column.
    * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      Record masked = new Record(record);
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      Row masked = new Row(row);
+      int idx = row.find(column);
       if (idx != -1) {
-        masked.setValue(idx, maskShuffle((String) record.getValue(idx), 0));
+        masked.setValue(idx, maskShuffle((String) row.getValue(idx), 0));
       } else {
         throw new DirectiveExecutionException(toString() + " : '" +
                                   column + "' column is not defined. Please check the wrangling step."

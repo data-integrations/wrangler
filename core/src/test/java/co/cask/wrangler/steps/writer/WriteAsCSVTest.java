@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.writer;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -41,20 +41,20 @@ public class WriteAsCSVTest {
     JSONObject o = new JSONObject();
     o.put("a", 1);
     o.put("b", "2");
-    List<Record> records = Arrays.asList(
-      new Record("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
+    List<Row> rows = Arrays.asList(
+      new Row("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
         .add("o", o)
         .add("i1", new Integer(1))
         .add("i2", new Double(1.8f))
     );
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
+    Assert.assertTrue(rows.size() == 1);
     StringMetric metric = StringMetrics.euclideanDistance();
 
     // Due to double, the string comparision might not be appropriate.
     float value = metric.compare("http://www.yahoo.com?a=b c&b=ab&xyz=1,\"{\"\"b\"\":\"\"2\"\",\"\"a\"\":1}\"," +
-                     "1,1.7999999523162842", (String)records.get(0).getValue(4));
+                     "1,1.7999999523162842", (String) rows.get(0).getValue(4));
     Assert.assertTrue(value > 0.4);
   }
 
@@ -64,13 +64,13 @@ public class WriteAsCSVTest {
       "write-as-csv body",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("int", 1).add("string", "this is, string")
+    List<Row> rows = Arrays.asList(
+      new Row("int", 1).add("string", "this is, string")
     );
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals("1,\"this is, string\"", records.get(0).getValue(2));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("1,\"this is, string\"", rows.get(0).getValue(2));
   }
 
 }

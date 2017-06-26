@@ -23,14 +23,14 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Fixed length Parser Stage for parsing the {@link Record} provided based on configuration.
+ * A Fixed length Parser Stage for parsing the {@link Row} provided based on configuration.
  */
 @Plugin(type = "udd")
 @Name("parse-as-fixed-length")
@@ -55,28 +55,28 @@ public final class FixedLengthParser extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records     Input {@link Record} to be wrangled by this step.
+   * @param rows     Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    * @throws DirectiveExecutionException In case of any issue this exception is thrown.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context)
+  public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException, ErrorRecordException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      int idx = record.find(col);
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      int idx = row.find(col);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object instanceof String) {
           String data = (String) object;
           int length = data.length();
           // If the recordLength length doesn't match the string length.
           if (length < recordLength) {
             throw new ErrorRecordException(
-              String.format("Fewer bytes than length of record specified - expected atleast %d bytes, found %s bytes.",
+              String.format("Fewer bytes than length of row specified - expected atleast %d bytes, found %s bytes.",
                             recordLength, length),
               2
             );
@@ -84,7 +84,7 @@ public final class FixedLengthParser extends AbstractDirective {
 
           int index = 1;
           while ((index + recordLength - 1) <= length) {
-            Record newRecord = new Record(record);
+            Row newRow = new Row(row);
             int recPosition = index;
             int colid = 1;
             for (int width : widths) {
@@ -92,11 +92,11 @@ public final class FixedLengthParser extends AbstractDirective {
               if (padding != null) {
                 val = val.replaceAll(padding, "");
               }
-              newRecord.add(String.format("%s_%d", col, colid), val);
+              newRow.add(String.format("%s_%d", col, colid), val);
               recPosition += width;
               colid+=1;
             }
-            results.add(newRecord);
+            results.add(newRow);
             index = (index + recordLength);
           }
         } else {

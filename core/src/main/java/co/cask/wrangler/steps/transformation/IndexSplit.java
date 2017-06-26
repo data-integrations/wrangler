@@ -21,7 +21,7 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Usage;
 
@@ -56,19 +56,19 @@ public class IndexSplit extends AbstractDirective {
   /**
    * Splits column based on the start and end index.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Record} in which the 'col' value is lower cased.
+   * @return Transformed {@link Row} in which the 'col' value is lower cased.
    * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
-    for (Record record : records) {
-      int idx = record.find(col);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
+    for (Row row : rows) {
+      int idx = row.find(col);
 
       if (idx != -1) {
-        String val = (String) record.getValue(idx);
+        String val = (String) row.getValue(idx);
         if (end > val.length() - 1) {
           end = val.length() - 1;
         }
@@ -76,13 +76,13 @@ public class IndexSplit extends AbstractDirective {
           start = 0;
         }
         val = val.substring(start, end);
-        record.add(dest, val);
+        row.add(dest, val);
       } else {
         throw new DirectiveExecutionException(
-          col + " is not of type string in the record. Please check the wrangle configuration."
+          col + " is not of type string in the row. Please check the wrangle configuration."
         );
       }
-      results.add(record);
+      results.add(row);
     }
     return results;
   }

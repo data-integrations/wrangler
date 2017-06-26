@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
@@ -48,20 +48,20 @@ public class ColumnsReplace extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records List of input {@link Record} to be wrangled by this step.
+   * @param rows List of input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled List of {@link Record}.
+   * @return Wrangled List of {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      for (int i = 0; i < record.length(); ++i) {
-        String name = record.getColumn(i);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      for (int i = 0; i < row.length(); ++i) {
+        String name = row.getColumn(i);
         try {
           Unix4jCommandBuilder builder = Unix4j.echo(name).sed(sed);
-          record.setColumn(i, builder.toStringResult());
+          row.setColumn(i, builder.toStringResult());
         } catch (IllegalArgumentException e) {
           throw new DirectiveExecutionException(
             String.format(toString() + " : " + e.getMessage())
@@ -69,7 +69,7 @@ public class ColumnsReplace extends AbstractDirective {
         }
       }
     }
-    return records;
+    return rows;
   }
 }
 

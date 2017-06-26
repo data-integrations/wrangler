@@ -33,7 +33,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
- * Structured Record and Schema DDL.
+ * Structured Row and Schema DDL.
  */
 public final class DDL {
 

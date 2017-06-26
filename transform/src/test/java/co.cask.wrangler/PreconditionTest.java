@@ -16,7 +16,7 @@
 
 package co.cask.wrangler;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,16 +27,16 @@ public class PreconditionTest {
 
   @Test
   public void testPrecondition() throws Exception {
-    Record record = new Record("a", 1).add("b", "x").add("c", 2.06);
-    Assert.assertEquals(true, new Precondition("a == 1 && b == \"x\"").apply(record));
-    Assert.assertEquals(true, new Precondition("c > 2.0").apply(record));
-    Assert.assertEquals(true, new Precondition("true").apply(record));
-    Assert.assertEquals(false, new Precondition("false").apply(record));
+    Row row = new Row("a", 1).add("b", "x").add("c", 2.06);
+    Assert.assertEquals(true, new Precondition("a == 1 && b == \"x\"").apply(row));
+    Assert.assertEquals(true, new Precondition("c > 2.0").apply(row));
+    Assert.assertEquals(true, new Precondition("true").apply(row));
+    Assert.assertEquals(false, new Precondition("false").apply(row));
   }
 
   @Test(expected = PreconditionException.class)
   public void testBadCondition() throws Exception {
-    Record record = new Record("a", 1).add("b", "x").add("c", 2.06);
-    Assert.assertEquals(true, new Precondition("c").apply(record));
+    Row row = new Row("a", 1).add("b", "x").add("c", 2.06);
+    Assert.assertEquals(true, new Precondition("c").apply(row));
   }
 }

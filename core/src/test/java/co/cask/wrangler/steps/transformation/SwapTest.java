@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.transformation;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import co.cask.wrangler.steps.column.Swap;
@@ -37,15 +37,15 @@ public class SwapTest {
       "swap a b",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("a", 1).add("b", "sample string")
+    List<Row> rows = Arrays.asList(
+      new Row("a", 1).add("b", "sample string")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
 
-    Assert.assertTrue(records.size() == 1);
-    Assert.assertEquals(1, records.get(0).getValue("b"));
-    Assert.assertEquals("sample string", records.get(0).getValue("a"));
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(1, rows.get(0).getValue("b"));
+    Assert.assertEquals("sample string", rows.get(0).getValue("a"));
   }
 
   @Test(expected = DirectiveExecutionException.class)
@@ -54,11 +54,11 @@ public class SwapTest {
       "swap a b",
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("a", 1).add("c", "sample string")
+    List<Row> rows = Arrays.asList(
+      new Row("a", 1).add("c", "sample string")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
+    rows = RecipePipelineTest.execute(directives, rows);
   }
 
 }

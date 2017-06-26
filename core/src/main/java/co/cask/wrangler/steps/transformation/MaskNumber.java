@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.utils.TypeConvertor;
 
@@ -74,26 +74,26 @@ public class MaskNumber extends AbstractDirective {
   /**
    * Masks the column specified using either substitution method.
    *
-   * @param records Input {@link Record} to be wrangled by this step.
+   * @param rows Input {@link Row} to be wrangled by this step.
    * @param context Specifies the context of the pipeline.
-   * @return A newly transformed {@link Record} with masked column.
+   * @return A newly transformed {@link Row} with masked column.
    * @throws DirectiveExecutionException thrown when there is issue with masking
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
-    for (Record record : records) {
-      int idx = record.find(column);
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        String value = TypeConvertor.toString(record.getValue(idx));
+        String value = TypeConvertor.toString(row.getValue(idx));
         if (value == null) {
           continue;
         }
-        record.setValue(idx, maskNumber(value, mask));
+        row.setValue(idx, maskNumber(value, mask));
       } else {
-        record.add(column, new String(""));
+        row.add(column, new String(""));
       }
     }
-    return records;
+    return rows;
   }
 
   private String maskNumber(String number, String mask) {

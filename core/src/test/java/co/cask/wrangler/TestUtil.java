@@ -20,7 +20,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 
@@ -35,15 +35,15 @@ public final class TestUtil {
    * Executes the directives on the record specified.
    *
    * @param directives to be executed.
-   * @param records to be executed on directives.
+   * @param rows to be executed on directives.
    * @return transformed directives.
    */
-  public static List<Record> run(String[] directives, List<Record> records)
+  public static List<Row> run(String[] directives, List<Row> rows)
     throws RecipeException, DirectiveParseException {
     RecipeParser d = new SimpleTextParser(directives);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
-    return pipeline.execute(records);
+    return pipeline.execute(rows);
   }
 
 }

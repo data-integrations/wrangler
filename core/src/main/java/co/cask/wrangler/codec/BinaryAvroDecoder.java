@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import com.google.gson.Gson;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class {@link BinaryAvroDecoder} decodes a byte array of AVRO Json Records into the {@link Record} structure.
+ * This class {@link BinaryAvroDecoder} decodes a byte array of AVRO Json Records into the {@link Row} structure.
  */
 public class BinaryAvroDecoder extends AbstractAvroDecoder {
   private final Gson gson;
@@ -44,20 +44,20 @@ public class BinaryAvroDecoder extends AbstractAvroDecoder {
   }
 
   /**
-   * Decodes byte array of binary encoded AVRO into list of {@link Record}.
+   * Decodes byte array of binary encoded AVRO into list of {@link Row}.
    * This method will iterate through each of the AVRO schema fields and translate
-   * them into columns within the {@link Record}.
+   * them into columns within the {@link Row}.
    *
    * If the field is instance of {@link List} or {@link Map} it is converted into JSON
    * representation. In order to flatten or expand such columns other directives need
    * to be used.
    *
    * @param bytes array of bytes that contains binary encoded AVRO record.
-   * @return list of {@link Record} that are converted from AVRO encoded binary messages.
+   * @return list of {@link Row} that are converted from AVRO encoded binary messages.
    */
   @Override
-  public List<Record> decode(byte[] bytes) throws DecoderException {
-    List<Record> records = new ArrayList<>();
+  public List<Row> decode(byte[] bytes) throws DecoderException {
+    List<Row> rows = new ArrayList<>();
     BinaryDecoder decoder = null;
     ByteArrayInputStream in = new ByteArrayInputStream(bytes);
     try {
@@ -66,7 +66,7 @@ public class BinaryAvroDecoder extends AbstractAvroDecoder {
         try {
           GenericRecord gRecord = getReader().read(null, decoder);
           List<Schema.Field> fields = getSchema().getFields();
-          Record r = new Record();
+          Row r = new Row();
           for (Schema.Field field : fields) {
             Object object = gRecord.get(field.name());
             if (object instanceof Utf8) {
@@ -77,7 +77,7 @@ public class BinaryAvroDecoder extends AbstractAvroDecoder {
             }
             r.add(field.name(), object);
           }
-          records.add(r);
+          rows.add(r);
         } catch (EOFException e) {
           break; // Reached end of buffer.
         }
@@ -93,6 +93,6 @@ public class BinaryAvroDecoder extends AbstractAvroDecoder {
         // Can't do anything.
       }
     }
-    return records;
+    return rows;
   }
 }

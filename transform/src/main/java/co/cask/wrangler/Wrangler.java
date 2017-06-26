@@ -31,9 +31,9 @@ import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
@@ -249,7 +249,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     List<StructuredRecord> records;
     try {
       // Creates a row as starting point for input to the pipeline.
-      Record row = new Record();
+      Row row = new Row();
       if ("*".equalsIgnoreCase(config.field)) {
         for (Schema.Field field : input.getSchema().getFields()) {
           row.add(field.getName(), input.get(field.getName()));

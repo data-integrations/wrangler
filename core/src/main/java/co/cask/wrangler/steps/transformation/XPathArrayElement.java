@@ -22,7 +22,7 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
@@ -63,21 +63,21 @@ public class XPathArrayElement extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param rows  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, RecipeContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
     List<String> values = new ArrayList<>();
-    for (Record record : records) {
-      int idx = record.find(column);
+    for (Row row : rows) {
+      int idx = row.find(column);
       if (idx != -1) {
-        Object object = record.getValue(idx);
+        Object object = row.getValue(idx);
         if (object instanceof VTDNav) {
-          VTDNav vn = (VTDNav) record.getValue(idx);
+          VTDNav vn = (VTDNav) row.getValue(idx);
           AutoPilot ap = new AutoPilot(vn);
           try {
             int tokenCount = vn.getTokenCount();
@@ -105,7 +105,7 @@ public class XPathArrayElement extends AbstractDirective {
               for (String value : values) {
                 array.add(new JsonPrimitive(value));
               }
-              record.addOrSet(destination, array);
+              row.addOrSet(destination, array);
             } else {
               int i = 0, j = 0;
               while (( i = ap.evalXPath()) != -1) {
@@ -118,7 +118,7 @@ public class XPathArrayElement extends AbstractDirective {
               for (String value : values) {
                 array.add(new JsonPrimitive(value));
               }
-              record.addOrSet(destination, array);
+              row.addOrSet(destination, array);
             }
           } catch (XPathParseException | XPathEvalException | NavException e) {
             throw new DirectiveExecutionException(
@@ -133,9 +133,9 @@ public class XPathArrayElement extends AbstractDirective {
           );
         }
       } else {
-        record.addOrSet(destination, null);
+        row.addOrSet(destination, null);
       }
     }
-    return records;
+    return rows;
   }
 }

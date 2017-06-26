@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.steps.row;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Tests {@link RecordRegexFilter}
  */
-public class RecordRegexFilterTest {
+public class RowRegexFilterTest {
   @Test
   public void testFilterKeepDoesntKeepNullValues() throws Exception {
     String[] directives = new String[] {
@@ -35,14 +35,14 @@ public class RecordRegexFilterTest {
       "filter-rows-on regex-not-match body_3 .*pot.*"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
-      new Record("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
-      new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
+      new Row("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
+      new Row("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 1);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
   }
 
 
@@ -53,13 +53,13 @@ public class RecordRegexFilterTest {
       "filter-rows-on regex-match body_3 .*pot.*"
     };
 
-    List<Record> records = Arrays.asList(
-      new Record("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
-      new Record("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
-      new Record("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
+    List<Row> rows = Arrays.asList(
+      new Row("body", "1, \"Archil\", , \"SHAH\", 19, \"2017-06-02\""),
+      new Row("body", "2, \"Sameet\", \"andpotatoes\", \"Sapra\", 19, \"2017-06-02\""),
+      new Row("body", "3, \"Bob\", , \"Sagett\", 101, \"1970-01-01\"")
     );
 
-    records = RecipePipelineTest.execute(directives, records);
-    Assert.assertTrue(records.size() == 2);
+    rows = RecipePipelineTest.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 2);
   }
 }

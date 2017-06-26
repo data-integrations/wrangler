@@ -19,7 +19,7 @@ package co.cask.wrangler.utils;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.parser.JsParser;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -38,37 +38,37 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Converts {@link Record} to {@link StructuredRecord}.
+ * Converts {@link Row} to {@link StructuredRecord}.
  */
 public final class RecordConvertor implements Serializable {
 
   /**
-   * Converts a list of {@link Record} into populated list of {@link StructuredRecord}
+   * Converts a list of {@link Row} into populated list of {@link StructuredRecord}
    *
-   * @param records Collection of records.
+   * @param rows Collection of rows.
    * @param schema Schema associated with {@link StructuredRecord}
    * @return Populated list of {@link StructuredRecord}
    */
-  public List<StructuredRecord> toStructureRecord(List<Record> records, Schema schema) throws RecordConvertorException {
+  public List<StructuredRecord> toStructureRecord(List<Row> rows, Schema schema) throws RecordConvertorException {
     List<StructuredRecord> results = new ArrayList<>();
-    for (Record record : records) {
-      StructuredRecord r = decodeRecord(record, schema);
+    for (Row row : rows) {
+      StructuredRecord r = decodeRecord(row, schema);
       results.add(r);
     }
     return results;
   }
 
   /**
-   * Converts a Wrangler {@link Record} into a {@link StructuredRecord}.
+   * Converts a Wrangler {@link Row} into a {@link StructuredRecord}.
    *
-   * @param record defines a single {@link Record}
+   * @param row defines a single {@link Row}
    * @param schema Schema associated with {@link StructuredRecord}
    * @return Populated {@link StructuredRecord}
    */
-  public StructuredRecord decodeRecord(Record record, Schema schema) throws RecordConvertorException {
+  public StructuredRecord decodeRecord(Row row, Schema schema) throws RecordConvertorException {
     // TODO: This is a hack to workaround StructuredRecord processing. NEED TO RETHINK.
-    if (record.getFields().size() == 1) {
-      Object cell = record.getValue(0);
+    if (row.getFields().size() == 1) {
+      Object cell = row.getValue(0);
       if (cell instanceof StructuredRecord) {
         return (StructuredRecord) cell;
       }
@@ -77,7 +77,7 @@ public final class RecordConvertor implements Serializable {
     List<Schema.Field> fields = schema.getFields();
     for (Schema.Field field : fields) {
       String name = field.getName();
-      Object value = record.getValue(name);
+      Object value = row.getValue(name);
       builder.set(name, decode(name, value, field.getSchema()));
     }
     return builder.build();

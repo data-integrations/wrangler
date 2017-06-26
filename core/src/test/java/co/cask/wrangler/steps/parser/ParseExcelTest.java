@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps.parser;
 
 import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
 import org.apache.commons.io.IOUtils;
@@ -42,12 +42,12 @@ public class ParseExcelTest {
         "parse-as-excel body 0",
       };
 
-      List<Record> records = new ArrayList<>();
-      records.add(new Record("body", data));
+      List<Row> rows = new ArrayList<>();
+      rows.add(new Row("body", data));
 
       RecipePipelineExecutor executor = new RecipePipelineExecutor();
       executor.configure(new SimpleTextParser(directives), null);
-      List<Record> results = executor.execute(records);
+      List<Row> results = executor.execute(rows);
       Assert.assertEquals(892, results.size());
     }
   }
@@ -61,12 +61,12 @@ public class ParseExcelTest {
         "parse-as-excel body wrong_error",
       };
 
-      List<Record> records = new ArrayList<>();
-      records.add(new Record("body", data));
+      List<Row> rows = new ArrayList<>();
+      rows.add(new Row("body", data));
 
       RecipePipelineExecutor executor = new RecipePipelineExecutor();
       executor.configure(new SimpleTextParser(directives), null);
-      executor.execute(records);
+      executor.execute(rows);
     }
   }
 }

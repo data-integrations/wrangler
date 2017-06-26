@@ -22,12 +22,11 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Usage;
 import co.cask.wrangler.steps.transformation.functions.Types;
 import com.google.common.io.Closeables;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -63,18 +62,18 @@ public class ParseExcel extends AbstractDirective {
   }
 
   /**
-   * Executes a wrangle step on single {@link Record} and return an array of wrangled {@link Record}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
-   * @param records  Input {@link Record} to be wrangled by this step.
+   * @param records  Input {@link Row} to be wrangled by this step.
    * @param context {@link RecipeContext} passed to each step.
-   * @return Wrangled {@link Record}.
+   * @return Wrangled {@link Row}.
    */
   @Override
-  public List<Record> execute(List<Record> records, final RecipeContext context) throws DirectiveExecutionException {
-    List<Record> results = new ArrayList<>();
+  public List<Row> execute(List<Row> records, final RecipeContext context) throws DirectiveExecutionException {
+    List<Row> results = new ArrayList<>();
     ByteArrayInputStream input = null;
     try {
-      for (Record record : records) {
+      for (Row record : records) {
         int idx = record.find(column);
         if (idx != -1) {
           Object object = record.getValue(idx);
@@ -107,32 +106,32 @@ public class ParseExcel extends AbstractDirective {
 
             int last = excelsheet.getLastRowNum();
 
-            Iterator<Row> it = excelsheet.iterator();
+            Iterator<org.apache.poi.ss.usermodel.Row> it = excelsheet.iterator();
             int rows = 0;
             while (it.hasNext()) {
-              Row row = it.next();
+              org.apache.poi.ss.usermodel.Row row = it.next();
               Iterator<Cell> cellIterator = row.cellIterator();
-              Record newRecord = new Record();
-              newRecord.add("fwd", rows);
-              newRecord.add("bkd", last - rows - 1);
+              Row newRow = new Row();
+              newRow.add("fwd", rows);
+              newRow.add("bkd", last - rows - 1);
               while (cellIterator.hasNext()) {
                 Cell cell = cellIterator.next();
                 String name = columnName(cell.getAddress().getColumn());
                 switch (cell.getCellTypeEnum()) {
                   case STRING:
-                    newRecord.add(name, cell.getStringCellValue());
+                    newRow.add(name, cell.getStringCellValue());
                     break;
 
                   case NUMERIC:
-                    newRecord.add(name, cell.getNumericCellValue());
+                    newRow.add(name, cell.getNumericCellValue());
                     break;
 
                   case BOOLEAN:
-                    newRecord.add(name, cell.getBooleanCellValue());
+                    newRow.add(name, cell.getBooleanCellValue());
                     break;
                 }
               }
-              results.add(newRecord);
+              results.add(newRow);
               rows++;
             }
           }

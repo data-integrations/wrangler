@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.codec;
 
-import co.cask.wrangler.api.Record;
+import co.cask.wrangler.api.Row;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -54,7 +54,7 @@ public class BinaryAvroDecoderTest {
     List<Schema.Field> fields = schema.getFields();
     Assert.assertEquals(3, fields.size());
 
-    // Create generic records.
+    // Create generic rows.
     GenericRecord user1  = new GenericData.Record(schema);
     user1.put("name", "Root");
     user1.put("favorite_number", 8);
@@ -64,7 +64,7 @@ public class BinaryAvroDecoderTest {
     user2.put("favorite_number", 7);
     user2.put("favorite_color", "red");
 
-    // Write records to byte array stream.
+    // Write rows to byte array stream.
     DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(out, null);
@@ -76,9 +76,9 @@ public class BinaryAvroDecoderTest {
     byte[] bytes = out.toByteArray();
 
     BinaryAvroDecoder decoder = new BinaryAvroDecoder(schema);
-    List<Record> records = decoder.decode(bytes);
-    Assert.assertEquals(2, records.size());
-    Assert.assertEquals("Root", records.get(0).getValue("name"));
-    Assert.assertEquals("Ben", records.get(1).getValue("name"));
+    List<Row> rows = decoder.decode(bytes);
+    Assert.assertEquals(2, rows.size());
+    Assert.assertEquals("Root", rows.get(0).getValue("name"));
+    Assert.assertEquals("Ben", rows.get(1).getValue("name"));
   }
 }
