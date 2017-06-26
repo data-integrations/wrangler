@@ -20,7 +20,7 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

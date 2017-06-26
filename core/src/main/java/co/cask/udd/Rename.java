@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.UDD;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;

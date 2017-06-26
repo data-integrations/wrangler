@@ -20,7 +20,7 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 
 /**
  * A Wrangler step for apply an expression to store the result in a column.

@@ -19,6 +19,39 @@ More description of the above lines.
   * `[3]` Dynamically loads the two UDDs as CDAP Plugins. 
   * `[4]` Uses the directive. `!` specifies the directive as external or user defined.
 
+## Example implementation of directive
+
+Following is a sample implementation of the plugin.
+
+```
+  @Plugin(type = UDD.Type)
+  @Name("text-reverse")
+  @Description("Reverses a string value of a column)
+  public final class TextReverse implements UDD {
+    private final ColumnName columnArgs;
+
+    @Override
+    public UsageDefinition define() throws DirectiveParseException {
+      UsageDefinition.Builder builder = UsageDefintion.builder();
+      builder.define("col", TokenType.COLUMN_NAME);
+      return builder.build();
+    }
+
+    @Override
+    public void initialize(Arguments args) throws DirectiveParseException {
+      columnArgs = args.value("col");
+    }
+
+    @Override
+    public List<Row> execute(List<Row> rows, RecipeContext context)
+      throws RecipeExecutionException, ErrorRowException {
+      for(Row row : rows) {
+        ...
+      }
+    }
+  }
+```
+
 ## Related documentation
 
   * Information about Grammar [here](grammar/grammar-info.md)

@@ -20,6 +20,34 @@ import co.cask.wrangler.api.parser.UsageDefinition;
 
 /**
  * UDD is a user defined directive. DIE - Define, Initialize & Execute - Pattern
+ *
+ * Following is a simple example of how to use this interface.
+ * <code>
+ *   @Plugin(type = UDD.Type)
+ *   @Name("text-reverse")
+ *   @Description("Reverses a string value of a column.")
+ *   public final class TextReverse implements UDD {
+ *     private final ColumnName columnArgs;
+ *
+ *     @Override
+ *     public UsageDefinition define() {
+ *       UsageDefinition.Builder builder = UsageDefinition.builder();
+ *       builder.define("col", TokenType.COLUMN_NAME)
+ *       return builder.build();
+ *     }
+ *
+ *     @Override
+ *     public void initialize(Argument args) throws DirectiveParseException {
+ *      this.columnArgs = args.value("col");
+ *     }
+ *
+ *     @Override
+ *     public List<Row> execute(List<Row> rows, RecipeContext context)
+ *       throws DirectiveExecutionException, ErrorRecordException {
+ *       ...
+ *     }
+ *   }
+ * </code>
  */
 public interface UDD extends Directive<Row, Row> {
   String Type = "udd";

@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.dq.TypeInference;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

@@ -26,7 +26,7 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.codec.Decoder;
 import co.cask.wrangler.codec.DecoderException;
 import co.cask.wrangler.api.RecipeContext;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.clients.RestClientException;
 import co.cask.wrangler.clients.SchemaRegistryClient;
 import co.cask.wrangler.codec.BinaryAvroDecoder;

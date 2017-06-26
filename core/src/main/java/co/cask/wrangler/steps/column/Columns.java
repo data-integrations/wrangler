@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 
 import java.util.ArrayList;
 import java.util.List;

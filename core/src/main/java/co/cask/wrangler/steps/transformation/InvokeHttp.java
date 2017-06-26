@@ -25,7 +25,7 @@ import co.cask.wrangler.api.ErrorRecordException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;

@@ -23,7 +23,7 @@ import co.cask.wrangler.api.AbstractDirective;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Usage;
+import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.steps.transformation.functions.Types;
 import com.google.common.io.Closeables;
 import org.apache.poi.ss.usermodel.Cell;

@@ -21,7 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * Class description here.
+ *
  */
 @PublicEvolving
 public class ColumnName implements Token {
