@@ -21,13 +21,13 @@ import co.cask.cdap.api.artifact.ArtifactManager;
 import co.cask.cdap.api.artifact.CloseableClassLoader;
 import co.cask.cdap.api.plugin.PluginClass;
 import co.cask.cdap.etl.api.StageContext;
+import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.UDD;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +52,7 @@ import java.util.Set;
  * used as the <tt>id</tt> for the plugin.</p>
  *
  * @see SystemDirectiveRegistry
+ * @see CompositeDirectiveRegistry
  */
 public final class UserDirectiveRegistry implements  DirectiveRegistry {
   private final Map<String, DirectiveInfo> registry = new HashMap<>();
@@ -80,7 +81,7 @@ public final class UserDirectiveRegistry implements  DirectiveRegistry {
             try(CloseableClassLoader closeableClassLoader = manager.createClassLoader(artifact, null)) {
               Class<? extends UDD> directive =
                 (Class<? extends UDD>) closeableClassLoader.loadClass(plugin.getClassName());
-              DirectiveInfo classz = new DirectiveInfo(directive);
+              DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
               registry.put(classz.name(), classz);
             }
           }
@@ -91,23 +92,37 @@ public final class UserDirectiveRegistry implements  DirectiveRegistry {
     }
   }
 
+  /**
+   * This constructor is used when constructing this object in the context of <tt>Transform</tt>.
+   *
+   * A instance of {@link StageContext} is passed to load plugin. <tt>Context</tt> allows
+   * loading the plugin from the repository. The directive name is used as the plugin id for
+   * loading the class.
+   *
+   * @param context of <tt>Stage</tt> in <tt>Transform</tt>.
+   */
   public UserDirectiveRegistry(StageContext context) throws DirectiveLoadException {
     this.context = context;
   }
 
   /**
-   * Given the name of the directive, returns the information related to the directive.
+   * This method provides information about the directive that is being requested.
+   *
+   * <p>First, the directive is checked for existence with the internal registry.
+   * If the directive does not exits in the registry and the <tt>context</tt> is not null, then
+   * it's attempted to be loaded as a user plugin. If it does not exist there a null is returned.
+   * But, if the plugin exists, then it's loaded and an entry is made into the registry. </p>
    *
    * @param name of the directive to be retrived from the registry.
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Override
-  public DirectiveInfo get(String name) throws DirectiveLoadException, DirectiveNotFoundException {
+  public DirectiveInfo get(String name) throws DirectiveLoadException {
     try {
       if (!registry.containsKey(name)) {
         if (context != null) {
           Class<? extends UDD> directive = context.loadPluginClass(name);
-          DirectiveInfo classz = new DirectiveInfo(directive);
+          DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
           registry.put(classz.name(), classz);
         }
       } else {
@@ -115,16 +130,10 @@ public final class UserDirectiveRegistry implements  DirectiveRegistry {
       }
     } catch (IllegalAccessException | InstantiationException e) {
       throw new DirectiveLoadException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new DirectiveLoadException(e.getMessage(), e);
     }
     return null;
-  }
-
-  /**
-   * @return Iterator to all the directives held within the directive registry.
-   */
-  @Override
-  public Iterator<DirectiveInfo> iterator() {
-    return registry.values().iterator();
   }
 
   /**

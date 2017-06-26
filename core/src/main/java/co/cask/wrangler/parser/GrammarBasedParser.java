@@ -19,15 +19,17 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveContext;
+import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.wrangler.registry.DirectiveLoadException;
-import co.cask.wrangler.registry.DirectiveLoader;
-import co.cask.wrangler.registry.DirectiveNotFoundException;
+import co.cask.wrangler.registry.DirectiveInfo;
+import co.cask.wrangler.registry.DirectiveRegistry;
+import com.google.common.base.Joiner;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,15 +40,24 @@ import javax.annotation.Nullable;
  * Class description here.
  */
 public class GrammarBasedParser implements RecipeParser {
+  private static final char EOL = '\n';
   private Compiler compiler = new RecipeCompiler();
-  private DirectiveLoader loader;
+  private DirectiveRegistry  registry;
   private String recipe;
   private List<Directive> directives;
   private DirectiveContext context;
 
-  public GrammarBasedParser(String recipe, DirectiveLoader loader) {
+  public GrammarBasedParser(String[] directives, DirectiveRegistry registry) {
+    this(Joiner.on(EOL).join(directives), registry);
+  }
+
+  public GrammarBasedParser(List<String> directives, DirectiveRegistry registry) {
+    this(Joiner.on(EOL).join(directives), registry);
+  }
+
+  public GrammarBasedParser(String recipe, DirectiveRegistry registry) {
     this.recipe = recipe;
-    this.loader = loader;
+    this.registry = registry;
     this.directives = new ArrayList<>();
     this.context = new NoOpDirectiveContext();
   }
@@ -57,7 +68,8 @@ public class GrammarBasedParser implements RecipeParser {
    * @return List of {@link Directive}.
    */
   @Override
-  public List<Directive> parse() throws DirectiveParseException {
+  public List<Directive> parse()
+    throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException {
     try {
       CompiledUnit compiled = compiler.compile(recipe);
       if (compiler.hasErrors()) {
@@ -88,15 +100,21 @@ public class GrammarBasedParser implements RecipeParser {
           );
         }
 
-        UDD directive = loader.load(root);
+        DirectiveInfo info = registry.get(root);
+        if (info == null) {
+          throw new DirectiveNotFoundException(
+            String.format("Directive '%s' not found in system and user scope. Check the name of directive.", command)
+          );
+        }
+        UDD directive = info.instance();
         UsageDefinition definition = directive.define();
         Arguments arguments = new MapArguments(definition, next);
         directive.initialize(arguments);
         directives.add(directive);
       }
-    } catch (CompileException | DirectiveLoadException | DirectiveNotFoundException  e) {
+    } catch (CompileException | IllegalAccessException | InstantiationException  e) {
       throw new DirectiveParseException(e.getMessage());
-    } 
+    }
     return directives;
   }
 

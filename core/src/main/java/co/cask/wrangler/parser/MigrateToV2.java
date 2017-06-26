@@ -43,7 +43,7 @@ public final class MigrateToV2 implements GrammarMigrator {
 
     for (String directive : directives) {
       directive = directive.trim();
-      if (directive.isEmpty() || directive.startsWith("//") || directive.startsWith("#")) {
+      if (directive.isEmpty() || directive.startsWith("//")) {
         continue;
       }
 
@@ -71,7 +71,8 @@ public final class MigrateToV2 implements GrammarMigrator {
     int lineno = 1;
     for (String directive : directives) {
       directive = directive.trim();
-      if (directive.isEmpty() || directive.startsWith("//") || directive.startsWith("#")) {
+      if (directive.isEmpty() || directive.startsWith("//")
+        || (directive.startsWith("#") && !directive.startsWith("#pragma"))) {
         continue;
       }
 
@@ -732,6 +733,14 @@ public final class MigrateToV2 implements GrammarMigrator {
           transformed.add(String.format("rtrim :%s;", col));
         }
         break;
+
+        default:
+          if (!directive.endsWith(";")) {
+            transformed.add(directive + ";");
+          } else {
+            transformed.add(directive);
+          }
+          break;
       }
 
       lineno = lineno + 1;

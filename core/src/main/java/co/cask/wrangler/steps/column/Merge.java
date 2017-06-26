@@ -36,10 +36,10 @@ import java.util.List;
 @Usage("merge <column1> <column2> <new-column> <separator>")
 @Description("Merges values from two columns using a separator into a new column.")
 public class Merge extends AbstractDirective {
-  // Source column1
+  // Scope column1
   private String col1;
 
-  // Source column2
+  // Scope column2
   private String col2;
 
   // Destination column name to be created.

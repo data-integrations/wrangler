@@ -18,6 +18,8 @@ package co.cask.wrangler.executor;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
+import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.ErrorRecordException;
@@ -53,7 +55,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     this.context = context;
     try {
       this.directives = parser.parse();
-    } catch (DirectiveParseException e) {
+    } catch (DirectiveParseException | DirectiveNotFoundException | DirectiveLoadException e) {
       throw new RecipeException(
         String.format(e.getMessage())
       );

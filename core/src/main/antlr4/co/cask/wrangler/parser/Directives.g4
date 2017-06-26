@@ -47,23 +47,40 @@ directives
  ;
 
 directive
- : (command | ecommand) config* SColon
- | (command | ecommand) (Identifier | text | number | bool | column | collist | numberlist | boollist | stringlist | numberranges)* (codeblock)* SColon
- | (command | ecommand) codeblock (Identifier | text | number | bool | column | numberlist | boollist | stringlist | numberranges)* SColon
- | (command | ecommand) config* SColon
+ : (command | ecommand) (codeblock)* (Identifier | text | number | bool | column | colList | numberList | boolList | stringList | numberRanges | properties)* (codeblock)* SColon
  | '#pragma' args
  ;
 
 args
- : (Identifier | text | number | bool | column | collist | numberlist | boollist | stringlist | numberranges)*
- | 'load-udd' Identifier Identifier Identifier
+ : pragmaLoadDirective
+ | pragmaVersion
  ;
 
-numberranges
- : numberrange ( ',' numberrange)*
+properties
+ : 'prop' ':' OBrace (propertyList)*  CBrace
  ;
 
-numberrange
+propertyList
+ : property (',' property)*
+ ;
+
+property
+ : Identifier '=' ( Identifier | text | number | bool )
+ ;
+
+pragmaLoadDirective
+ : 'load-directives' identifierList
+ ;
+
+pragmaVersion
+ : 'version' (Identifier | Number | String)
+ ;
+
+numberRanges
+ : numberRange ( ',' numberRange)*
+ ;
+
+numberRange
  : Number ':' Number '=' value
  ;
 
@@ -107,22 +124,25 @@ command
  : Identifier
  ;
 
-collist
+colList
  : Column (','  Column)+
  ;
 
-numberlist
+numberList
  : Number (',' Number)+
  ;
 
-boollist
+boolList
  : Bool (',' Bool)+
  ;
 
-stringlist
+stringList
  : String (',' String)+
  ;
 
+identifierList
+ : Identifier (',' Identifier)*
+ ;
 
 OBrace   : '{';
 CBrace   : '}';

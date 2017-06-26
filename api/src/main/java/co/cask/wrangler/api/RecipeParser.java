@@ -27,15 +27,12 @@ import javax.annotation.Nullable;
  */
 @PublicEvolving
 public interface RecipeParser extends Serializable {
-  // Column definition for the start of processing.
-  String STARTING_COLUMN = "__col";
-
   /**
    * Generates a configured set of {@link Directive} to be executed.
    *
    * @return List of {@link Directive}.
    */
-  List<Directive> parse() throws DirectiveParseException;
+  List<Directive> parse() throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException;
 
   /**
    * Initialises the directive with a {@link DirectiveContext}.

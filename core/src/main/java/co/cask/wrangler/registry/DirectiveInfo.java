@@ -22,8 +22,6 @@ import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import com.google.gson.JsonObject;
 
-import java.util.Objects;
-
 /**
  * Class description here.
  */
@@ -33,14 +31,25 @@ public final class DirectiveInfo {
   private Class<?> directive;
   private String usage;
   private String description;
+  private Scope scope;
 
-  public DirectiveInfo(Class<?> directive) throws IllegalAccessException, InstantiationException {
+  public enum Scope {
+    SYSTEM,
+    USER
+  }
+
+  public DirectiveInfo(Scope scope, Class<?> directive) throws IllegalAccessException, InstantiationException {
+    this.scope = scope;
     this.directive = directive;
     Object object = directive.newInstance();
     this.definition = ((UDD) object).define();
     this.usage = definition.toString();
     this.name = directive.getAnnotation(Name.class).value();
     this.description = directive.getAnnotation(Description.class).value();
+  }
+
+  public Scope getScope() {
+    return scope;
   }
 
   public String name() {
@@ -55,34 +64,18 @@ public final class DirectiveInfo {
     return definition;
   }
 
-  public UDD instance() throws IllegalAccessException, InstantiationException {
+  public final UDD instance() throws IllegalAccessException, InstantiationException {
     return (UDD) directive.newInstance();
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(name);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if(this.getClass() != obj.getClass()) {
-      return false;
-    }
-    final DirectiveInfo other = (DirectiveInfo) obj;
-    return Objects.equals(this.name, other.name);
-  }
-
-  public JsonObject toJson() {
+  public final JsonObject toJson() {
     JsonObject response = new JsonObject();
     response.addProperty("name", name);
     response.addProperty("usage", usage);
     response.addProperty("description", description);
     response.addProperty("class", directive.getCanonicalName());
     response.add("definition", definition.toJson());
+    response.addProperty("scope", scope.name());
     return response;
   }
 }

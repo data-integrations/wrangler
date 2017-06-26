@@ -17,14 +17,11 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.RecipeParser;
-import co.cask.wrangler.api.UDD;
-import co.cask.wrangler.registry.DirectiveInfo;
-import co.cask.wrangler.registry.DirectiveLoadException;
-import co.cask.wrangler.registry.DirectiveLoader;
-import co.cask.wrangler.registry.DirectiveNotFoundException;
-import co.cask.wrangler.registry.DirectiveRegistry;
+import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
+import edu.emory.mathcs.backport.java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,24 +34,22 @@ public class GrammarBasedParserTest {
 
   @Test
   public void testBasic() throws Exception {
-    String recipe = "rename :col1 :col2; parse-as-csv :body ',' true;";
+    String[] recipe = new String[] {
+      "#pragma load-directives text-reverse",
+      "rename col1 col2",
+      "parse-as-csv body , true",
+      "!text-reverse :body;"
+    };
 
-    final DirectiveRegistry system = new SystemDirectiveRegistry();
-    RecipeParser parser = new GrammarBasedParser(recipe, new DirectiveLoader() {
-      @Override
-      public UDD load(String name) throws DirectiveLoadException, DirectiveNotFoundException {
-        DirectiveInfo info = system.get(name);
-        if (info == null) {
-          throw new DirectiveNotFoundException("Directive not found");
-        }
-        try {
-          return info.instance();
-        } catch (IllegalAccessException | InstantiationException e) {
-          throw new DirectiveLoadException(e.getMessage(), e);
-        }
-      }
-    });
+    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
+      new SystemDirectiveRegistry()
+    );
 
+    GrammarMigrator migrator = new MigrateToV2();
+    List<String> converted = migrator.migrate(Arrays.asList(recipe));
+
+    RecipeParser parser = new GrammarBasedParser(converted, registry);
+    parser.initialize(null);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(2, directives.size());
   }

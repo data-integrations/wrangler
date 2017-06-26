@@ -36,26 +36,39 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    * @param ctx
    */
   @Override
-  public CompiledUnit.Builder visitRecipe(DirectivesParser.RecipeContext ctx) {
-    return super.visitRecipe(ctx);
+  public CompiledUnit.Builder visitPragmaLoadDirective(DirectivesParser.PragmaLoadDirectiveContext ctx) {
+    return super.visitPragmaLoadDirective(ctx);
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * <p>The default implementation returns the result of calling
+   * {@link #visitChildren} on {@code ctx}.</p>
+   *
+   * @param ctx
+   */
+  @Override
+  public CompiledUnit.Builder visitPragmaVersion(DirectivesParser.PragmaVersionContext ctx) {
+    return super.visitPragmaVersion(ctx);
   }
 
   @Override
-  public CompiledUnit.Builder visitNumberranges(DirectivesParser.NumberrangesContext ctx) {
-    List<DirectivesParser.NumberrangeContext> ranges = ctx.numberrange();
-    for(DirectivesParser.NumberrangeContext range : ranges) {
+  public CompiledUnit.Builder visitNumberRanges(DirectivesParser.NumberRangesContext ctx) {
+    List<DirectivesParser.NumberRangeContext> ranges = ctx.numberRange();
+    for(DirectivesParser.NumberRangeContext range : ranges) {
       List<TerminalNode> numbers = range.Number();
       System.out.println("Range 1 : " + numbers.get(0).getText());
       System.out.println("Range 2 : " + numbers.get(0).getText());
       System.out.println("Value : " + range.value().getText());
     }
-    return super.visitNumberranges(ctx);
+    return super.visitNumberRanges(ctx);
   }
 
 
   @Override
   public CompiledUnit.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
-    System.out.println("ECommand : " + ctx.Identifier().getText());
+    tokens.add(new DirectiveName(ctx.Identifier().getText()));
     return super.visitEcommand(ctx);
   }
 
@@ -152,14 +165,14 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    * @param ctx
    */
   @Override
-  public CompiledUnit.Builder visitCollist(DirectivesParser.CollistContext ctx) {
+  public CompiledUnit.Builder visitColList(DirectivesParser.ColListContext ctx) {
     List<TerminalNode> columns = ctx.Column();
     List<String> names = new ArrayList<>();
     for (TerminalNode column : columns) {
       names.add(column.getText().substring(1));
     }
     tokens.add(new ColumnNameList(names));
-    return super.visitCollist(ctx);
+    return super.visitColList(ctx);
   }
 
   /**
@@ -171,14 +184,14 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    * @param ctx
    */
   @Override
-  public CompiledUnit.Builder visitNumberlist(DirectivesParser.NumberlistContext ctx) {
+  public CompiledUnit.Builder visitNumberList(DirectivesParser.NumberListContext ctx) {
     List<TerminalNode> numbers = ctx.Number();
     List<LazyNumber> numerics = new ArrayList<>();
     for (TerminalNode number : numbers) {
       numerics.add(new LazyNumber(number.getText()));
     }
     tokens.add(new NumericList(numerics));
-    return super.visitNumberlist(ctx);
+    return super.visitNumberList(ctx);
   }
 
   /**
@@ -190,14 +203,14 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    * @param ctx
    */
   @Override
-  public CompiledUnit.Builder visitBoollist(DirectivesParser.BoollistContext ctx) {
+  public CompiledUnit.Builder visitBoolList(DirectivesParser.BoolListContext ctx) {
     List<TerminalNode> bools = ctx.Bool();
     List<Boolean> booleans = new ArrayList<>();
     for (TerminalNode bool : bools) {
       booleans.add(Boolean.parseBoolean(bool.getText()));
     }
     tokens.add(new BoolList(booleans));
-    return super.visitBoollist(ctx);
+    return super.visitBoolList(ctx);
   }
 
   /**
@@ -209,13 +222,13 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    * @param ctx
    */
   @Override
-  public CompiledUnit.Builder visitStringlist(DirectivesParser.StringlistContext ctx) {
+  public CompiledUnit.Builder visitStringList(DirectivesParser.StringListContext ctx) {
     List<TerminalNode> strings = ctx.String();
     List<String> strs = new ArrayList<>();
     for (TerminalNode string : strings) {
       strs.add(string.getText());
     }
     tokens.add(new TextList(strs));
-    return super.visitStringlist(ctx);
+    return super.visitStringList(ctx);
   }
 }

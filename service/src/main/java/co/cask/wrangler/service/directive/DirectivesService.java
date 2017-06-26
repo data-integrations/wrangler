@@ -968,18 +968,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
   }
 
-  @GET
-  @Path("usage/2")
-  public void usageV2(HttpServiceRequest request, HttpServiceResponder responder) {
-    JsonObject response = new JsonObject();
-    response.addProperty("status", HttpURLConnection.HTTP_OK);
-    response.addProperty("message", "success");
-    response.addProperty("count", 1);
-    JsonArray array = new JsonArray();
-    array.add(system.toJson());
-    array.add(user.toJson());
-  }
-
   /**
    * Creates a uber record after iterating through all rows.
    *

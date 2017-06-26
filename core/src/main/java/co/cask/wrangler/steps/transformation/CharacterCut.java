@@ -71,7 +71,7 @@ public class CharacterCut extends AbstractDirective {
           );
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Source column '" + source + "' does not exist in the row.");
+        throw new DirectiveExecutionException(toString() + " : Scope column '" + source + "' does not exist in the row.");
       }
     }
     return rows;

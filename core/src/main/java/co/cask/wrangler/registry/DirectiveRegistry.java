@@ -16,19 +16,22 @@
 
 package co.cask.wrangler.registry;
 
+import co.cask.wrangler.api.DirectiveLoadException;
 import com.google.gson.JsonElement;
 
-import java.util.Iterator;
 import javax.annotation.Nullable;
 
 /**
  * A directive registry maintains a collection of directives either system provided or
- * user provided. The directive information is stored within the registry. The information
- * includes name,class,usage and usage definition.
+ * user provided.
+ *
+ * <p>The directive information is stored within the registry. The information
+ * includes name,class,usage and usage definition.</p>
  *
  * @see DirectiveInfo
- * @see co.cask.wrangler.api.parser.UsageDefinition
  * @see SystemDirectiveRegistry
+ * @see UserDirectiveRegistry
+ * @see CompositeDirectiveRegistry
  */
 public interface DirectiveRegistry {
   /**
@@ -38,12 +41,7 @@ public interface DirectiveRegistry {
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Nullable
-  DirectiveInfo get(String name) throws DirectiveLoadException, DirectiveNotFoundException;
-
-  /**
-   * @return Iterator to all the directives held within the directive registry.
-   */
-  Iterator<DirectiveInfo> iterator();
+  DirectiveInfo get(String name) throws DirectiveLoadException;
 
   /**
    * Returns an <tt>JsonElement</tt> representation of this implementation of object.

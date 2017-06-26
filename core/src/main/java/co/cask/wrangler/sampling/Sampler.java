@@ -45,7 +45,7 @@ public abstract class Sampler<T> {
   /**
    * Randomly sample the elements from input in sequence, and return the result iterator.
    *
-   * @param input Source data
+   * @param input Scope data
    * @return The sample result.
    */
   public abstract Iterator<T> sample(Iterator<T> input);

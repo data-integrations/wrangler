@@ -14,13 +14,17 @@
  *  the License.
  */
 
-package co.cask.wrangler.registry;
+package co.cask.wrangler.api;
 
 /**
  * Class description here.
  */
-public class DirectiveNotFoundException extends Exception {
-  public DirectiveNotFoundException(String s) {
+public class DirectiveLoadException extends Exception {
+  public DirectiveLoadException(String s) {
     super(s);
+  }
+
+  public DirectiveLoadException(String s, Exception e) {
+    super(s, e);
   }
 }

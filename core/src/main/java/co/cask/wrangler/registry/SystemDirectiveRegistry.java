@@ -16,52 +16,63 @@
 
 package co.cask.wrangler.registry;
 
+import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.UDD;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * A registry for aggregating all the system provided directives.
+ * This class is implementation of {@link DirectiveRegistry} for maintaining a registry
+ * of system provided directives. The directives maintained within this registry and
+ * present and loaded by the <tt>Classloader</tt> that is responsible for loading this
+ * class.
  *
- * <p>
- *   This class inspects the classes that implement the interface {@link UDD}
- *   to extract information about them and maintain them in the registry.
- * </p>
+ * <p>In order to load the directives, this class scans through all classes that
+ * implement the interface {@link UDD}. Instead of scanning entire JAR, it uses the
+ * package name a starting point for scanning the classes that implement the <tt>UDD</tt>
+ * interface.</p>
+ *
+ * <p>For every class found, this scan will create a instance of {@link DirectiveInfo}
+ * object and store it in the registry.</p>
+ *
+ * @see UserDirectiveRegistry
+ * @see CompositeDirectiveRegistry
+ * @see DirectiveInfo
  */
 public final class SystemDirectiveRegistry implements  DirectiveRegistry {
+  // This is the default package in which the directives are searched for.
   private static final String PACKAGE = "co.cask.udd";
   private final Map<String, DirectiveInfo> registry;
-  private final String pkg;
+  private final String namespace;
 
   public SystemDirectiveRegistry() throws DirectiveLoadException {
     this(PACKAGE);
   }
 
-  public SystemDirectiveRegistry(String pkg) throws DirectiveLoadException {
+  /**
+   * This constructor uses the user provided <tt>namespace</tt> as starting pointing
+   * for scanning classes that implement the interface {@link UDD}.
+   *
+   * @param namespace that is used as starting point for scanning classes.
+   * @throws DirectiveLoadException thrown if there are any issue loading the directive.
+   */
+  public SystemDirectiveRegistry(String namespace) throws DirectiveLoadException {
     this.registry = new HashMap<>();
-    this.pkg = pkg;
+    this.namespace = namespace;
     try {
-      loadSystemDirectives();
+      Reflections reflections = new Reflections(this.namespace);
+      Set<Class<? extends UDD>> system = reflections.getSubTypesOf(UDD.class);
+      for(Class<? extends UDD> directive : system) {
+        DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.SYSTEM, directive);
+        registry.put(classz.name(), classz);
+      }
     } catch (InstantiationException | IllegalAccessException e) {
       throw new DirectiveLoadException(e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Loads the directives embedded within the system into a registry.
-   */
-  private void loadSystemDirectives() throws InstantiationException, IllegalAccessException {
-    Reflections reflections = new Reflections(pkg);
-    Set<Class<? extends UDD>> system = reflections.getSubTypesOf(UDD.class);
-    for(Class<? extends UDD> directive : system) {
-      DirectiveInfo classz = new DirectiveInfo(directive);
-      registry.put(classz.name(), classz);
     }
   }
 
@@ -72,18 +83,17 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Override
-  public DirectiveInfo get(String name) throws DirectiveLoadException, DirectiveNotFoundException {
+  public DirectiveInfo get(String name) throws DirectiveLoadException {
     return registry.get(name);
   }
 
   /**
-   * @return Iterator to all the directives held within the directive registry.
+   * Returns an <tt>JsonElement</tt> representation of this implementation of object.
+   * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
+   * are represented as <tt>JsonObject</tt>.
+   *
+   * @return An instance of {@link JsonElement} of this object.
    */
-  @Override
-  public Iterator<DirectiveInfo> iterator() {
-    return registry.values().iterator();
-  }
-
   @Override
   public JsonElement toJson() {
     JsonObject response = new JsonObject();
