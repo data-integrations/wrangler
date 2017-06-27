@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A Wrangler step for title casing the 'col' value of type String.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("titlecase")
 @Usage("titlecase <column>")
 @Description("Changes the column values to title case.")

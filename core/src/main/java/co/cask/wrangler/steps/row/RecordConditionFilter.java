@@ -43,7 +43,7 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("filter-row-if-true")
 @Usage("filter-row-if-true <condition>")
 @Description("[DEPRECATED] Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead.")

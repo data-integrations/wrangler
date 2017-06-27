@@ -40,7 +40,7 @@ import java.util.List;
  * The value set as transient variable is available to all the directives after that. But, it's
  * not available beyond the input record.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("set-variable")
 @Usage("set-variable <variable> <expression>")
 @Description("Sets the value for a transient variable for the record being processed.")

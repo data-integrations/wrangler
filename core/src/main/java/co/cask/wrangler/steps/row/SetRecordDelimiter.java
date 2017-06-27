@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A step for parsing a string into record using the record delimiter.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("set-record-delim")
 @Usage("set-record-delim <column> <delimiter> [<limit>]")
 @Description("Sets the record delimiter.")

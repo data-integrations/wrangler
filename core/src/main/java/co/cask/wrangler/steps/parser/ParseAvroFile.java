@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * A step to parse AVRO File.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-avro-file")
 @Usage("parse-as-avro-file <column>")
 @Description("parse-as-avro-file <column>.")

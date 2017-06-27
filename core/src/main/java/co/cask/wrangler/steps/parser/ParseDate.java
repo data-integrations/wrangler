@@ -34,7 +34,7 @@ import java.util.TimeZone;
 /**
  * A Directive to parse date.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-date")
 @Usage("parse-as-date <column> [<timezone>]")
 @Description("Parses column values as dates using natural language processing and " +

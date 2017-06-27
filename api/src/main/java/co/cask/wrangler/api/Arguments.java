@@ -85,6 +85,31 @@ public interface Arguments {
   TokenType type(String name);
 
   /**
+   * Returns the source line number these arguments were parsed from.
+   *
+   * @return the source line number.
+   */
+  int line();
+
+  /**
+   * Returns the source column number these arguments were parsed from.
+   * <p>It takes the start position of the directive as the column number.</p>
+   *
+   * @return the start of the column number for the start of the directive
+   * these arguments contain.
+   */
+  int column();
+
+  /**
+   * This method returns the original source line of the directive as specified
+   * the user. It returns the <code>String</code> representation of the directive.
+   *
+   * @return <code>String</code> object representing the original directive
+   * as specified by the user.
+   */
+  String source();
+
+  /**
    * Returns <code>JsonElement</code> representation of this object.
    *
    * @return an instance of <code>JsonElement</code>object representing all the

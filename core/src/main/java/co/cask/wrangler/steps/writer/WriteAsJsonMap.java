@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * A step to write the record fields as JSON.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("write-as-json-map")
 @Usage("write-as-json-map <column>")
 @Description("Writes all record columns as JSON map.")

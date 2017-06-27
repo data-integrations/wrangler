@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * A Wrangler step for trimming whitespace from left side of a string
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("ltrim")
 @Usage("ltrim <column>")
 @Description("Trimming whitespace from left side of a string.")

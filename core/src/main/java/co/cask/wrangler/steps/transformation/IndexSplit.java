@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A Wrangler step for splitting a col into two additional columns based on a start and end.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("indexsplit")
 @Usage("indexsplit <source> <start> <end> <destination>")
 @Description("[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead.")

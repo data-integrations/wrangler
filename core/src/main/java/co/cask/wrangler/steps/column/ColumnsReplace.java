@@ -35,7 +35,7 @@ import java.util.List;
  * This directive helps clearing out the columns names to make it more readable.
  */
 
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("columns-replace")
 @Usage("columns-replace <sed-expression>")
 @Description("Modifies column names in bulk using a sed-format expression.")

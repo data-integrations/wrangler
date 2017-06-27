@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A step to parse AVRO json or binary format.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-avro")
 @Usage("parse-as-avro <column> <schema-id> <json|binary> [version]")
 @Description("Parses column as AVRO generic record.")

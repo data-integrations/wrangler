@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A Wrangler step for trimming whitespace from right side of a string
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("rtrim")
 @Usage("rtrim <column>")
 @Description("Trimming whitespace from right side of a string.")

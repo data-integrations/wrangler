@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 /**
  * Extracts regex groups into separate columns.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("extract-regex-groups")
 @Usage("extract-regex-groups <column> <regex-with-groups>")
 @Description("Extracts data from a regex group into its own column.")

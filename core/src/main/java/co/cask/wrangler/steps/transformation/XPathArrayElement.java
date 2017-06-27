@@ -44,7 +44,7 @@ import java.util.List;
  * </p>
  *
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("xpath-array")
 @Usage("xpath-array <column> <destination> <xpath>")
 @Description("Extract XML element or attributes as JSON array using XPath.")

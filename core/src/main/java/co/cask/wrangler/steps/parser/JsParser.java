@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * A JSON Parser Stage for parsing the provided {@link Row} based on the configuration.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-json")
 @Usage("parse-as-json <column> [<depth>]")
 @Description("Parses a column as JSON.")

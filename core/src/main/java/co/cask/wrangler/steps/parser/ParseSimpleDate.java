@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A Directive to parse date into Date object.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-simple-date")
 @Usage("parse-as-simple-date <column> <format>")
 @Description("Parses a column as date using format.")

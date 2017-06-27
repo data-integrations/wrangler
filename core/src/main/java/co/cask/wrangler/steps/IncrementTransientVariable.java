@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Class description here.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("increment-variable")
 @Usage("increment-variable <variable> <value> <expression>")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")

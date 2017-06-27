@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A Split on Stage for splitting the columns into multiple columns.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("split-to-columns")
 @Usage("split-to-columns <column> <regex>")
 @Description("Splits a column into one or more columns around matches of the specified regular expression.")

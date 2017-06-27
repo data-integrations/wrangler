@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A Fixed length Parser Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-fixed-length")
 @Usage("parse-as-fixed-length <column> <width>[,<width>*] [<padding-character>]")
 @Description("Parses fixed-length records using the specified widths and padding-character.")

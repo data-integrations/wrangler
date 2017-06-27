@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package co.cask.udd;
+package co.cask.directives;
 
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
@@ -26,7 +26,6 @@ import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.UDD;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -50,7 +49,6 @@ import java.util.Set;
  */
 @Plugin(type = UDD.Type)
 @Name("parse-as-csv")
-@Usage("parse-as-csv <column> <delimiter> [<header=true|false>]")
 @Description("Parses a column as CSV (comma-separated values).")
 public class CsvParser implements UDD {
   private ColumnName columnArg;

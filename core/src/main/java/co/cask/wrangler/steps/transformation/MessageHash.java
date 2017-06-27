@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * A Directive to generate a message digest or hash of a column value. .
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("hash")
 @Usage("hash <column> <algorithm> [<encode=true|false>]")
 @Description("Creates a message digest for the column using algorithm, replacing the column value.")

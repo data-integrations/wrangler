@@ -49,7 +49,7 @@ import java.util.List;
 /**
  * A step for parsing the HL7 Message.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-hl7")
 @Usage("parse-as-hl7 <column> [<depth>]")
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +

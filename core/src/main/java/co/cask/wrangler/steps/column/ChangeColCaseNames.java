@@ -33,7 +33,7 @@ import java.util.List;
  * This directive helps clearing out the columns names to make it more readable.
  */
 
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("change-column-case")
 @Usage("change-column-case lower|upper")
 @Description("Changes the case of column names to either lowercase or uppercase.")

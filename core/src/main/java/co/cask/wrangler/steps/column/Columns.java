@@ -36,7 +36,7 @@ import java.util.List;
  * all previous column names and add new column names.
  */
 
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("set columns")
 @Usage("set columns <columm>[,<column>*]")
 @Description("Sets the name of columns, in the order they are specified.")

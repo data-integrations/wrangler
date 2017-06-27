@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 /**
  * A Wrangler step for quantizing a column.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("quantize")
 @Usage("quantize <source> <destination> " +
   "<[range1:range2)=value>,[<range1:range2=value>]*")

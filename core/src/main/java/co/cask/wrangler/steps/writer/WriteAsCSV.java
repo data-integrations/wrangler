@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * A step to write the record fields as CSV.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("write-as-csv")
 @Usage("write-as-csv <column>")
 @Description("Writes the records files as well-formatted CSV")

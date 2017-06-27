@@ -40,7 +40,7 @@ import java.util.List;
  *   the plugin framework.
  * </p>
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-xml")
 @Usage("parse-as-xml <column>")
 @Description("Parses a column as XML.")

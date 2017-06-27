@@ -50,7 +50,7 @@ import java.util.List;
  *  </blockquote>
  * </p>
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("mask-number")
 @Usage("mask-number <column> <pattern>")
 @Description("Masks a column value using the specified masking pattern.")

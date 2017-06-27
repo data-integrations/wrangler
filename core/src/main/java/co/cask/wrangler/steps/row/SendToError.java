@@ -44,7 +44,7 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("send-to-error")
 @Usage("send-to-error <condition>")
 @Description("Send records that match condition to the error collector.")

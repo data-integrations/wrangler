@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 /**
  * A Wrangle step for filtering rows that match the pattern specified on the column.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("filter-row-if-matched")
 @Usage("filter-row-if-matched <column> <regex>")
 @Description("[DEPRECATED] Filters rows if the regex is matched. Use 'filter-rows-on' instead.")

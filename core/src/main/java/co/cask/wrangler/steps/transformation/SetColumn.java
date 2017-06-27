@@ -34,7 +34,7 @@ import co.cask.wrangler.api.annotations.Usage;
  *   Directive step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("set-column")
 @Usage("set-column <column> <expression>")
 @Description("Sets a column the result of expression execution.")

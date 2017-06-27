@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.SourceInfo;
 import co.cask.wrangler.api.parser.Token;
 
 import java.util.ArrayList;
@@ -26,10 +27,17 @@ import java.util.List;
  * Class description here.
  */
 public final class TokenGroup {
+  private final SourceInfo info;
   private final List<Token> tokens;
 
   public TokenGroup() {
-    tokens = new ArrayList<>();
+    this.info = null;
+    this.tokens = new ArrayList<>();
+  }
+
+  public TokenGroup(SourceInfo info) {
+    this.info = info;
+    this.tokens = new ArrayList<>();
   }
 
   public void add(Token token) {
@@ -46,5 +54,9 @@ public final class TokenGroup {
 
   public Iterator<Token> iterator() {
     return tokens.iterator();
+  }
+
+  public SourceInfo getSourceInfo() {
+    return info;
   }
 }

@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A Split on Stage for splitting the string into multiple {@link Row}s.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("split-to-rows")
 @Usage("split-to-rows <column> <separator>")
 @Description("Splits a column into multiple rows, copies the rest of the columns.")

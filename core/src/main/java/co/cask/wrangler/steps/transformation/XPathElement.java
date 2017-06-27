@@ -41,7 +41,7 @@ import java.util.List;
  * </p>
  *
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("xpath")
 @Usage("xpath <column> <destination> <xpath>")
 @Description("Extract a single XML element or attribute using XPath.")

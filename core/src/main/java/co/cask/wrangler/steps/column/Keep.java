@@ -33,7 +33,7 @@ import java.util.Set;
 /**
  * A step that implements the opposite of {@link Drop} columns.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("keep")
 @Usage("keep <column>[,<column>*]")
 @Description("Keeps the specified columns and drops all others.")

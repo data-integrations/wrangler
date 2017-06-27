@@ -35,7 +35,7 @@ import java.util.Map;
 /**
  * An AbstractDirective that performs a lookup into a Table Dataset and adds the row values into the record.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("table-lookup")
 @Usage("table-lookup <column> <table>")
 @Description("Uses the given column as a key to perform a lookup into the specified table.")

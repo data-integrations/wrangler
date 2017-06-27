@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.SourceInfo;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 import co.cask.wrangler.api.parser.Token;
 import co.cask.wrangler.api.parser.TokenType;
@@ -30,17 +31,34 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * This object <code>CompiledUnit</code> stored information about all the
+ * <code>TokenGroup</code> ( TokenGroup represents a collection of tokens
+ * generated from parsing a single directive). The object also contains
+ * information about the directives (or plugins) that need to be loaded
+ * at the startup time.
  *
+ * <p>This class provides some useful methods for accessing the list of
+ * directives or plugins that need to be loaded, the token groups for
+ * all the directives tokenized and parsed.</p>
+ *
+ * <p>This class exposes a builder pattern for constructing the object.</p>
  */
 @PublicEvolving
 final class CompiledUnit {
-  // Version if specified, else defaults to 1.0
+  /**
+   * Version if specified, else defaults to 1.0
+   */
   private String version;
 
-  // Set of loadable directives.
+  /**
+   * Set of directives or plugins that have to loaded
+   * during the configuration phase of <code>RecipePipeline.</code>
+   */
   private Set<String> loadableDirectives = new HashSet<>();
 
-  // This maintains a list of tokens for each directive parsed.
+  /**
+   * This maintains a list of tokens for each directive parsed.
+   */
   private final List<TokenGroup> tokens;
 
   private CompiledUnit(String version, Set<String> loadableDirectives, List<TokenGroup> tokens) {
@@ -49,27 +67,62 @@ final class CompiledUnit {
     this.tokens = tokens;
   }
 
+  /**
+   * Returns a set of dynamically loaded directives as plugins. These are
+   * the set of plugins or directives that are in the recipe, but are provided
+   * as the user plugins.
+   *
+   * <p>If there are no directives specified in the recipe, then there would
+   * be no plugins to be loaded.</p>
+   *
+   * @return An empty set if there are not directives to be loaded dynamically,
+   * else the list of directives as specified in the recipe.
+   */
   public Set<String> getLoadableDirectives() {
     return loadableDirectives;
   }
 
+  /**
+   * @return
+   */
   public String getVersion() {
     return version;
   }
 
+  /**
+   * Returns number of groups tokenized and parsed. The number returned will
+   * less than or equal to the number of directives specified in the recipe.
+   *
+   * <p>Fewer than number of directives is because of the '#pragma' directives</p>
+   * @return
+   */
   public int size() {
     return tokens.size();
   }
 
+  /**
+   * Returns an iterator to the list of token groups maintained by this object.
+   *
+   * @return iterator to the list of tokens maintained.
+   */
   public Iterator<TokenGroup> iterator() {
     return tokens.iterator();
   }
 
+  /**
+   * Static method for creating an instance of the {@code CompiledUnit.Builder}.
+   *
+   * @return a instance of builder.
+   */
   public static CompiledUnit.Builder builder() {
     return new CompiledUnit.Builder();
   }
 
-  public JsonElement toJsonObject() {
+  /**
+   * 
+   * @return
+   */
+  public JsonElement toJson() {
     JsonObject output = new JsonObject();
     output.addProperty("class", this.getClass().getSimpleName());
     output.addProperty("count", tokens.size());
@@ -93,15 +146,19 @@ final class CompiledUnit {
 
   public static final class Builder {
     private final List<TokenGroup> allTokens = new ArrayList<>();
-    private TokenGroup tokens = new TokenGroup();
+    private TokenGroup tokens = null;
     private Set<String> loadableDirectives = new HashSet<>();
     private String version = "1.0";
+    private SourceInfo info = null;
 
-    public void add(Token token) {
+    public void add(SourceInfo info, Token token) {
+      if (tokens == null) {
+        tokens = new TokenGroup(info);
+      }
       if (token.type() == TokenType.DIRECTIVE_NAME) {
         if (allTokens.size() >= 0 && tokens.size() > 0) {
           allTokens.add(tokens);
-          tokens = new TokenGroup();
+          tokens = new TokenGroup(info);
         }
       }
       tokens.add(token);

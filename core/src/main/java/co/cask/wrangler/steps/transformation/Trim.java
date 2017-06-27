@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A Wrangler step for trimming whitespace from both sides of a string
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("trim")
 @Usage("trim <column>")
 @Description("Trimming whitespace from both sides of a string.")

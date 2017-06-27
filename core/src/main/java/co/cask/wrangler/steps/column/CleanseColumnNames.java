@@ -39,7 +39,7 @@ import java.util.List;
  * </p>
  */
 
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("cleanse-column-name")
 @Usage("cleanse-column-names")
 @Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +

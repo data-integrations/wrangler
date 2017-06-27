@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Directive for implementing the directive for measuring the metrics between two sequence of characters.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("text-metric")
 @Usage("text-metric <method> <column1> <column2> <destination>")
 @Description("Calculates the metric for comparing two string values.")

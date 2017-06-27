@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A Wrangle step for taking difference in Dates.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("diff-date")
 @Usage("diff-date <column1> <column2> <destination>")
 @Description("Calculates the difference in milliseconds between two Date objects." +

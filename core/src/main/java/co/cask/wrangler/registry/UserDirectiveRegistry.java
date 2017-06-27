@@ -27,6 +27,8 @@ import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.UDD;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -57,6 +59,7 @@ import java.util.Set;
  * @see CompositeDirectiveRegistry
  */
 public final class UserDirectiveRegistry implements DirectiveRegistry {
+  private static final Logger LOG = LoggerFactory.getLogger(UserDirectiveRegistry.class);
   private final Map<String, DirectiveInfo> registry = new HashMap<>();
   private StageContext context = null;
 
@@ -80,7 +83,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         for (PluginClass plugin : plugins) {
           if (UDD.Type.equalsIgnoreCase(plugin.getType())) {
-            try(CloseableClassLoader closeableClassLoader = manager.createClassLoader(artifact, null)) {
+            try(CloseableClassLoader closeableClassLoader
+                  = manager.createClassLoader(artifact, getClass().getClassLoader())) {
               Class<? extends UDD> directive =
                 (Class<? extends UDD>) closeableClassLoader.loadClass(plugin.getClassName());
               DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);

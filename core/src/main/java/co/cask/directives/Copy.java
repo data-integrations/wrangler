@@ -14,60 +14,66 @@
  *  the License.
  */
 
-package co.cask.udd;
+package co.cask.directives;
 
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.wrangler.api.AbstractDirective;
+import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.DirectiveExecutionException;
+import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
+import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.parser.ColumnName;
+import co.cask.wrangler.api.parser.TokenType;
+import co.cask.wrangler.api.parser.UsageDefinition;
 import co.cask.wrangler.i18n.Messages;
 import co.cask.wrangler.i18n.MessagesFactory;
 
 import java.util.List;
 
 /**
- * A step to copy data from one column to another.
+ * This directive
  */
-@Plugin(type = "udd")
-@Name("copy")
-@Usage("copy <source> <destination> [<force=true|false>]")
+@Plugin(type = UDD.Type)
+@Name(Copy.DIRECTIVE_NAME)
 @Description("Copies values from a source column into a destination column.")
-public class Copy extends AbstractDirective {
+public class Copy implements UDD {
   private static final Messages MSG = MessagesFactory.getMessages();
-  private String source;
-  private String destination;
-  private boolean force;
+  public static final String DIRECTIVE_NAME = "copy";
+  private ColumnName source;
+  private ColumnName destination;
+  private boolean force = false;
 
-  public Copy(int lineno, String detail, String source, String destination, boolean force) {
-    super(lineno, detail);
-    this.source = source;
-    this.destination = destination;
-    this.force = force;
+  @Override
+  public UsageDefinition define() {
+    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    builder.define("source", TokenType.COLUMN_NAME);
+    builder.define("destination", TokenType.COLUMN_NAME);
+    builder.define("force", TokenType.BOOLEAN, Optional.TRUE);
+    return builder.build();
   }
 
-  /**
-   * Copies data from one column to another.
-   *
-   * If the destination column doesn't exist then it will create one, else it will
-   *
-   * @param rows Input {@link Row} to be wrangled by this step.
-   * @param context Specifies the context of the pipeline.
-   * @return Transformed {@link Row} in which the 'col' value is lower cased.
-   * @throws DirectiveExecutionException thrown when type of 'col' is not STRING.
-   */
+  @Override
+  public void initialize(Arguments args) throws DirectiveParseException {
+    this.source = args.value("source");
+    this.destination = args.value("destination");
+    if (args.contains("force")) {
+      force = (boolean) args.value("force").value();
+    }
+  }
+
   @Override
   public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      int sidx = row.find(source);
+      int sidx = row.find(source.value());
       if (sidx == -1) {
-        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), source));
+        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), source.value()));
       }
 
-      int didx = row.find(destination);
+      int didx = row.find(destination.value());
       // If source and destination are same, then it's a nop.
       if (didx == sidx) {
         continue;
@@ -75,17 +81,16 @@ public class Copy extends AbstractDirective {
 
       if (didx == -1) {
         // if destination column doesn't exist then add it.
-        row.add(destination, row.getValue(sidx));
+        row.add(destination.value(), row.getValue(sidx));
       } else {
         // if destination column exists, and force is set to false, then throw exception, else
         // overwrite it.
         if (!force) {
-          throw new DirectiveExecutionException(toString() + " : Destination column '" + destination
+          throw new DirectiveExecutionException(toString() + " : Destination column '" + destination.value()
                                     + "' does not exist in the row. Use 'force' option to add new column.");
         }
         row.setValue(didx, row.getValue(sidx));
       }
-
     }
     return rows;
   }

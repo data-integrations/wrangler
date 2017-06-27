@@ -32,7 +32,7 @@ import java.util.UUID;
 /**
  * A step to generate a UUID.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("generate-uuid")
 @Usage("generate-uuid <column>")
 @Description("Populates a column with a universally unique identifier (UUID) of the record.")

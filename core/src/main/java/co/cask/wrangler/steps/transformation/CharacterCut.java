@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A step that implements unix cut directive.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("cut-character")
 @Usage("cut-character <source> <destination> <type> <range|indexes>")
 @Description("UNIX-like 'cut' directive for splitting text.")

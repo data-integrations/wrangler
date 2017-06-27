@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * A Json Path Extractor Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("json-path")
 @Usage("json-path <source> <destination> <json-path-expression>")
 @Description("Parses JSON elements using a DSL (a JSON path expression).")

@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * A XML to Json Parser Stage.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-xml-to-json")
 @Usage("parse-xml-to-json <column> [<depth>]")
 @Description("Parses a XML document to JSON representation.")

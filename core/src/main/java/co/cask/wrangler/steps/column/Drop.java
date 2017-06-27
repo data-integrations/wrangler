@@ -35,7 +35,7 @@ import java.util.List;
  * all previous column names and add new column names.
  */
 
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("drop")
 @Usage("drop <column>[,<column>*]")
 @Description("Drop one or more columns.")

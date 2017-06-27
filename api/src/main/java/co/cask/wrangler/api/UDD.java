@@ -66,7 +66,7 @@ public interface UDD extends Directive<Row, Row> {
    *   }
    * </code>
    */
-  String Type = "udd";
+  String Type = "directives";
 
   /**
    * This method provides a way for the developer to provide information
@@ -118,8 +118,8 @@ public interface UDD extends Directive<Row, Row> {
    * This method provides a way for the custom directive writer the ability to access
    * the arguments passed by the users.
    *
-   * <p>This method is invoked during the initialization phase of the {@code Directive}.
-   * The arguments are constructed based on the definition as provided by the user in
+   * <p>This method is invoked only once during the initialization phase of the {@code Directive}
+   * object. The arguments are constructed based on the definition as provided by the user in
    * the method above {@code define}.</p>
    *
    * <p>

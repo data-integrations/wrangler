@@ -39,7 +39,7 @@ import java.util.Set;
 /**
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-csv")
 @Usage("parse-as-csv <column> <delimiter> [<header=true|false>]")
 @Description("Parses a column as CSV (comma-separated values).")

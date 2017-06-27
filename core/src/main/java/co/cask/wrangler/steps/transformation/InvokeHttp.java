@@ -54,7 +54,7 @@ import java.util.Map;
 /**
  * A step that invokes HTTP endpoint.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("invoke-http")
 @Usage("invoke-http <url> <column>[,<column>*] <header>[,<header>*]")
 @Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")

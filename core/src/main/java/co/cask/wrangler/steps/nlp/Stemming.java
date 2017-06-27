@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Directive for stemming the words provided using Porter Stemming.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("stemming")
 @Usage("stemming <column>")
 @Description("Apply Porter Stemming on the column value.")

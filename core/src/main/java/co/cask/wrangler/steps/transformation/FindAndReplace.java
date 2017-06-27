@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * A Wrangle step for 'find-and-replace' transformations on the column.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("find-and-replace")
 @Usage("find-and-replace <column> <sed-expression>")
 @Description("Finds and replaces text in column values using a sed-format expression.")

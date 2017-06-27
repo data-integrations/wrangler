@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A Directive for parsing Apache HTTPD and NGINX log files.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-log")
 @Usage("parse-as-log <column> <format>")
 @Description("Parses Apache HTTPD and NGINX logs.")

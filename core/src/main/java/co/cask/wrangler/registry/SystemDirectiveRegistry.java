@@ -48,7 +48,7 @@ import java.util.Set;
  */
 public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   // This is the default package in which the directives are searched for.
-  private static final String PACKAGE = "co.cask.udd";
+  private static final String PACKAGE = "co.cask.directives";
   private final Map<String, DirectiveInfo> registry;
   private final String namespace;
 

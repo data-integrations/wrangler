@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A Directive to decodes a column with url encoding.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("url-decode")
 @Usage("url-decode <column>")
 @Description("URL decode a column value.")

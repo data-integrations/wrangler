@@ -35,7 +35,7 @@ import java.util.Locale;
 /**
  * A step that encodes a column as base-32, base-64, or hex.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("encode")
 @Usage("encode <base32|base64|hex> <column>")
 @Description("Encodes column values using one of base32, base64, or hex.")

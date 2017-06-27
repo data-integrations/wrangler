@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * A Wrangle step for managing date formats.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("format-date")
 @Usage("format-date <column> <format>")
 @Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")

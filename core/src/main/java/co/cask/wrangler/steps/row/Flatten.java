@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * A directive that Flattens a record
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("flatten")
 @Usage("flatten <column>[,<column>*]")
 @Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")

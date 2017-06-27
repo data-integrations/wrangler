@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A Wrangler step for splitting a col into two additional columns based on a delimiter.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("split")
 @Usage("split <source> <delimiter> <new-column-1> <new-column-2>")
 @Description("[DEPRECATED] Use 'split-to-columns' or 'split-to-rows'.")

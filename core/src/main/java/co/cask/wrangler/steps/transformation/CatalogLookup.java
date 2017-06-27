@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Looks ICD Code from the catalog.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("catalog-lookup")
 @Usage("catalog-lookup <catalog> <column>")
 @Description("Looks-up values from pre-loaded (static) catalogs.")

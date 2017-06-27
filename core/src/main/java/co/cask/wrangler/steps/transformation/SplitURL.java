@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A Directive to split a URL into it's components.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("split-url")
 @Usage("split-url <column>")
 @Description("Split a url into it's components host,protocol,port,etc.")

@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A step to fill null or empty column values with a fixed value.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("fill-null-or-empty")
 @Usage("fill-null-or-empty <column> <fixed-value>")
 @Description("Fills a value of a column with a fixed value if it is either null or empty.")

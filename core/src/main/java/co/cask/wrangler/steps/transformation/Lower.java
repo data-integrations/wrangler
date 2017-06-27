@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * A Wrangler step for lower casing the 'col' value of type String.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("lowercase")
 @Usage("lowercase <column>")
 @Description("Changes the column values to lowercase.")

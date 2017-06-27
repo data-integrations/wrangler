@@ -30,6 +30,7 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.DirectiveConfig;
+import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
@@ -903,6 +904,27 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       LOG.error(e.getMessage(), e);
       error(responder, e.getMessage());
     }
+  }
+
+  @GET
+  @Path("usage/2")
+  public void usageV2(HttpServiceRequest request, HttpServiceResponder responder) {
+    JsonObject response = new JsonObject();
+    response.addProperty("status", HttpURLConnection.HTTP_OK);
+    response.addProperty("message", "Success");
+    response.addProperty("count", 1);
+    JsonArray values = new JsonArray();
+    try {
+      user.get("text-reverse");
+    } catch (DirectiveLoadException e) {
+      LOG.error(e.getMessage(), e);
+    }
+    JsonObject usages = new JsonObject();
+    usages.add("system", system.toJson());
+    usages.add("user", user.toJson());
+    values.add(usages);
+    response.add("values", values);
+    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
   /**

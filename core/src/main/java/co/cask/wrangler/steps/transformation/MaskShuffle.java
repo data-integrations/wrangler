@@ -43,7 +43,7 @@ import java.util.Random;
  *   </blockquote>
  * </p>
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("mask-shuffle")
 @Usage("mask-shuffle <column>")
 @Description("Masks a column value by shuffling characters while maintaining the same length.")

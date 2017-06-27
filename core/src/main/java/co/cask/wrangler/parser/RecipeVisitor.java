@@ -1,6 +1,7 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.LazyNumber;
+import co.cask.wrangler.api.SourceInfo;
 import co.cask.wrangler.api.Triplet;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.BoolList;
@@ -15,6 +16,8 @@ import co.cask.wrangler.api.parser.Ranges;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TextList;
 import co.cask.wrangler.api.parser.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -27,10 +30,25 @@ import java.util.Map;
  * Class description here.
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Builder> {
+  private SourceInfo source;
   private CompiledUnit.Builder builder = new CompiledUnit.Builder();
 
   public CompiledUnit getCompiledUnit() {
     return builder.build();
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * <p>The default implementation returns the result of calling
+   * {@link #visitChildren} on {@code ctx}.</p>
+   *
+   * @param ctx
+   */
+  @Override
+  public CompiledUnit.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
+    source = getOriginalSource(ctx);
+    return super.visitDirective(ctx);
   }
 
   /**
@@ -57,7 +75,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
       }
       props.put(identifier, token);
     }
-    builder.add(new Properties(props));
+    builder.add(source, new Properties(props));
     return builder;
   }
 
@@ -105,20 +123,20 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
         );
       output.add(val);
     }
-    builder.add(new Ranges(output));
+    builder.add(source, new Ranges(output));
     return builder;
   }
 
 
   @Override
   public CompiledUnit.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
-    builder.add(new DirectiveName(ctx.Identifier().getText()));
+    builder.add(source, new DirectiveName(ctx.Identifier().getText()));
     return builder;
   }
 
   @Override
   public CompiledUnit.Builder visitColumn(DirectivesParser.ColumnContext ctx) {
-    builder.add(new ColumnName(ctx.Column().getText().substring(1)));
+    builder.add(source, new ColumnName(ctx.Column().getText().substring(1)));
     return builder;
   }
 
@@ -133,7 +151,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
   @Override
   public CompiledUnit.Builder visitText(DirectivesParser.TextContext ctx) {
     String value = ctx.String().getText();
-    builder.add(new Text(value.substring(1, value.length()-1)));
+    builder.add(source, new Text(value.substring(1, value.length()-1)));
     return builder;
   }
 
@@ -148,7 +166,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
   @Override
   public CompiledUnit.Builder visitNumber(DirectivesParser.NumberContext ctx) {
     LazyNumber number = new LazyNumber(ctx.Number().getText());
-    builder.add(new Numeric(number));
+    builder.add(source, new Numeric(number));
     return builder;
   }
 
@@ -162,7 +180,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    */
   @Override
   public CompiledUnit.Builder visitBool(DirectivesParser.BoolContext ctx) {
-    builder.add(new Bool(Boolean.valueOf(ctx.Bool().getText())));
+    builder.add(source, new Bool(Boolean.valueOf(ctx.Bool().getText())));
     return builder;
   }
 
@@ -182,7 +200,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
       ParseTree child = ctx.getChild(i);
       sb.append(child.getText()).append(" ");
     }
-    builder.add(new Expression(sb.toString()));
+    builder.add(source, new Expression(sb.toString()));
     return builder;
   }
 
@@ -196,7 +214,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    */
   @Override
   public CompiledUnit.Builder visitCommand(DirectivesParser.CommandContext ctx) {
-    builder.add(new DirectiveName(ctx.Identifier().getText()));
+    System.out.println(source.toJson().toString());
+    builder.add(source, new DirectiveName(ctx.Identifier().getText()));
     return builder;
   }
 
@@ -215,7 +234,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode column : columns) {
       names.add(column.getText().substring(1));
     }
-    builder.add(new ColumnNameList(names));
+    builder.add(source, new ColumnNameList(names));
     return builder;
   }
 
@@ -234,7 +253,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode number : numbers) {
       numerics.add(new LazyNumber(number.getText()));
     }
-    builder.add(new NumericList(numerics));
+    builder.add(source, new NumericList(numerics));
     return builder;
   }
 
@@ -253,7 +272,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode bool : bools) {
       booleans.add(Boolean.parseBoolean(bool.getText()));
     }
-    builder.add(new BoolList(booleans));
+    builder.add(source, new BoolList(booleans));
     return builder;
   }
 
@@ -272,7 +291,17 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode string : strings) {
       strs.add(string.getText());
     }
-    builder.add(new TextList(strs));
+    builder.add(source, new TextList(strs));
     return builder;
+  }
+
+  private SourceInfo getOriginalSource(ParserRuleContext ctx) {
+    int a = ctx.getStart().getStartIndex();
+    int b = ctx.getStop().getStopIndex();
+    Interval interval = new Interval(a, b);
+    String text = ctx.start.getInputStream().getText(interval);
+    int lineno = ctx.getStart().getLine();
+    int column = ctx.getStart().getCharPositionInLine();
+    return new SourceInfo(lineno, column, text);
   }
 }

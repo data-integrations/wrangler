@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Wrangle Directive that merges two columns and creates a third column.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("merge")
 @Usage("merge <column1> <column2> <new-column> <separator>")
 @Description("Merges values from two columns using a separator into a new column.")

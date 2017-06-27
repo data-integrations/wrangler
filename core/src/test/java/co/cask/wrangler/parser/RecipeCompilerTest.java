@@ -29,10 +29,10 @@ public class RecipeCompilerTest {
     try {
       Compiler compiler = new RecipeCompiler();
       CompiledUnit units = compiler.compile(
-          "parse-as-csv :body ' ' true;"
-        + "set-column :abc, :edf;"
-        + "send-to-error exp:{ window < 10 } ;"
-        + "parse-as-simple-date :col 'yyyy-mm-dd' :col 'test' :col2,:col4,:col9 10 exp:{test < 10};"
+          "parse-as-csv :body ' ' true;\n"
+        + "set-column :abc, :edf;\n"
+        + "send-to-error exp:{ window < 10 } ;\n"
+        + "parse-as-simple-date :col 'yyyy-mm-dd' :col 'test' :col2,:col4,:col9 10 exp:{test < 10};\n"
       );
 
       Assert.assertNotNull(units);

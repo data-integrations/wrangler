@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * A step to parse Excel files.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("parse-as-excel")
 @Usage("parse-as-excel <column> [<sheet number | sheet name>]")
 @Description("Parses column as Excel file.")

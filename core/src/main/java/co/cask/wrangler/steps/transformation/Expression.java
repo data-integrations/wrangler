@@ -46,7 +46,7 @@ import java.util.Map;
  *   Directive step = new Expression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("set column")
 @Usage("set column <column> <jexl-expression>")
 @Description("Sets a column by evaluating a JEXL expression.")

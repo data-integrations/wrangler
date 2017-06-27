@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A Wrangle step for erroring the processing if condition is set to true.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("fail")
 @Usage("fail <condition>")
 @Description("Fails when the condition is evaluated to true.")

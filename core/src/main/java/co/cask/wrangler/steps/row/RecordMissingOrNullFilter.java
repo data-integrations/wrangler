@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Filters records if they don't have all the columns specified or they have null values or combination.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("filter-rows-on")
 @Usage("filter-rows-on empty-or-null-columns <column>[,<column>*]")
 @Description("Filters row that have empty or null columns.")

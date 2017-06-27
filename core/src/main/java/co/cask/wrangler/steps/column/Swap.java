@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * A step for swapping the column names.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("swap")
 @Usage("swap <column1> <column2>")
 @Description("Swaps the column names of two columns.")

@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Wrangle Directive for renaming a column.
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("rename")
 @Usage("rename <old> <new>")
 @Description("Renames an existing column.")

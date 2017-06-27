@@ -32,7 +32,7 @@ import java.util.List;
  * A Wrangler step for converting data type of a column
  * Accepted types are: int, short, long, double, float, string, boolean and bytes
  */
-@Plugin(type = "udd")
+@Plugin(type = "directives")
 @Name("set-type")
 @Usage("set-type <column> <type>")
 @Description("Converting data type of a column.")
