@@ -1,5 +1,6 @@
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.CompiledUnit;
 import co.cask.wrangler.api.LazyNumber;
 import co.cask.wrangler.api.SourceInfo;
 import co.cask.wrangler.api.Triplet;
@@ -9,6 +10,7 @@ import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.Expression;
+import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.NumericList;
 import co.cask.wrangler.api.parser.Properties;
@@ -49,6 +51,12 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
   public CompiledUnit.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
     source = getOriginalSource(ctx);
     return super.visitDirective(ctx);
+  }
+
+  @Override
+  public CompiledUnit.Builder visitIdentifier(DirectivesParser.IdentifierContext ctx) {
+    builder.add(source, new Identifier(ctx.Identifier().getText()));
+    return super.visitIdentifier(ctx);
   }
 
   /**
@@ -214,7 +222,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
    */
   @Override
   public CompiledUnit.Builder visitCommand(DirectivesParser.CommandContext ctx) {
-    System.out.println(source.toJson().toString());
     builder.add(source, new DirectiveName(ctx.Identifier().getText()));
     return builder;
   }

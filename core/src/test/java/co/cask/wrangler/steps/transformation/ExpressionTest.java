@@ -17,6 +17,8 @@
 package co.cask.wrangler.steps.transformation;
 
 import co.cask.cdap.api.common.Bytes;
+import co.cask.directives.transformation.ColumnExpression;
+import co.cask.wrangler.TestUtil;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.steps.RecipePipelineTest;
@@ -28,7 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Tests {@link Expression}
+ * Tests {@link ColumnExpression}
  */
 public class ExpressionTest {
 
@@ -158,7 +160,7 @@ public class ExpressionTest {
   @Test
   public void testMethodCalls() throws Exception {
     String[] directives = new String[] {
-      "set column first first.trim()",
+      "set-column first first.trim()",
       "filter-row-if-true first.isEmpty()"
     };
 
@@ -168,7 +170,7 @@ public class ExpressionTest {
         .add("last", "joltie")
     );
 
-    rows = RecipePipelineTest.execute(directives, rows);
+    rows = TestUtil.execute(directives, rows);
     Assert.assertTrue(rows.size() == 0);
   }
 

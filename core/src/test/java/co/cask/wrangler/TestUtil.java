@@ -16,13 +16,19 @@
 
 package co.cask.wrangler;
 
+import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
+import co.cask.wrangler.parser.GrammarBasedParser;
+import co.cask.wrangler.parser.MigrateToV2;
 import co.cask.wrangler.parser.SimpleTextParser;
+import co.cask.wrangler.registry.CompositeDirectiveRegistry;
+import co.cask.wrangler.registry.SystemDirectiveRegistry;
 
 import java.util.List;
 
@@ -44,6 +50,34 @@ public final class TestUtil {
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.configure(d, null);
     return pipeline.execute(rows);
+  }
+
+  public static List<Row> execute(String[] recipe, List<Row> rows)
+    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
+      new SystemDirectiveRegistry()
+    );
+
+    String migrate = new MigrateToV2(recipe).migrate();
+    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    parser.initialize(null);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
+    pipeline.configure(parser, null);
+    return pipeline.execute(rows);
+  }
+
+  public static RecipePipeline execute(String[] recipe)
+    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
+      new SystemDirectiveRegistry()
+    );
+
+    String migrate = new MigrateToV2(recipe).migrate();
+    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    parser.initialize(null);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
+    pipeline.configure(parser, null);
+    return pipeline;
   }
 
 }

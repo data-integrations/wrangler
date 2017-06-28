@@ -18,6 +18,16 @@ package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.LazyNumber;
+import co.cask.wrangler.api.TokenGroup;
+import co.cask.wrangler.api.parser.Bool;
+import co.cask.wrangler.api.parser.BoolList;
+import co.cask.wrangler.api.parser.ColumnName;
+import co.cask.wrangler.api.parser.ColumnNameList;
+import co.cask.wrangler.api.parser.Numeric;
+import co.cask.wrangler.api.parser.NumericList;
+import co.cask.wrangler.api.parser.Text;
+import co.cask.wrangler.api.parser.TextList;
 import co.cask.wrangler.api.parser.Token;
 import co.cask.wrangler.api.parser.TokenDefinition;
 import co.cask.wrangler.api.parser.TokenType;
@@ -25,6 +35,7 @@ import co.cask.wrangler.api.parser.UsageDefinition;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -61,14 +72,36 @@ public class MapArguments implements Arguments {
         TokenDefinition specification = specifications.get(pos);
         if (!specification.optional()) {
           if (!specification.type().equals(token.type())) {
-            throw new DirectiveParseException(
-              String.format("Expected argument '%s' to be of type '%s', but it is of type '%s'",
-                            specification.name(), specification.type().name(),
-                            token.type().name())
-            );
+            if (specification.type() == TokenType.COLUMN_NAME_LIST && token.type() == TokenType.COLUMN_NAME) {
+              List<String> values = new ArrayList<>();
+              values.add(((ColumnName) token).value());
+              tokens.put(specification.name(), new ColumnNameList(values));
+              pos = pos + 1;
+            } else if (specification.type() == TokenType.NUMERIC_LIST && token.type() == TokenType.NUMERIC) {
+              List<LazyNumber> values = new ArrayList<>();
+              values.add(((Numeric) token).value());
+              tokens.put(specification.name(), new NumericList(values));
+              pos = pos + 1;
+            } else if (specification.type() == TokenType.BOOLEAN_LIST && token.type() == TokenType.BOOLEAN) {
+              List<Boolean> values = new ArrayList<>();
+              values.add(((Bool) token).value());
+              tokens.put(specification.name(), new BoolList(values));
+              pos = pos + 1;
+            } else if (specification.type() == TokenType.TEXT_LIST && token.type() == TokenType.TEXT) {
+              List<String> values = new ArrayList<>();
+              values.add(((Text) token).value());
+              tokens.put(specification.name(), new TextList(values));
+              pos = pos + 1;
+            } else {
+              throw new DirectiveParseException(
+                String.format("Expected argument '%s' to be of type '%s', but it is of type '%s'",
+                              specification.name(), specification.type().name(),
+                              token.type().name())
+              );
+            }
           } else {
             tokens.put(specification.name(), token);
-            pos++;
+            pos = pos + 1;
             break;
           }
         } else {

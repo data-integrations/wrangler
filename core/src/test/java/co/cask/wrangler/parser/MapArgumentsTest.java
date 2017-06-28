@@ -17,7 +17,10 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Optional;
+import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import org.junit.Assert;

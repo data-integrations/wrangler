@@ -132,7 +132,7 @@ These directives are currently available:
 | [Keep Columns](docs/directives/keep.md)                                | Keeps specified columns from the record                          |
 | [Merge Columns](docs/directives/merge.md)                              | Merges two columns by inserting a third column                   |
 | [Rename Column](docs/directives/rename.md)                             | Renames an existing column in the record                         |
-| [Set Column Names](docs/directives/set-columns.md)                     | Sets the names of columns, in the order they are specified       |
+| [Set Column Header](docs/directives/set-headers.md)                     | Sets the names of columns, in the order they are specified       |
 | [Split to Columns](docs/directives/split-to-columns.md)                | Splits a column based on a separator into multiple columns       |
 | [Swap Columns](docs/directives/swap.md)                                | Swaps column names of two columns                                |
 | [Set Column Data Type](docs/directives/set-type.md)                    | Convert data type of a column                                    |

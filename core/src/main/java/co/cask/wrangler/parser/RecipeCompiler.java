@@ -16,11 +16,15 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.CompileException;
+import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.parser.SyntaxError;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.tool.GrammarParserInterpreter;
 import org.apache.twill.filesystem.Location;
 
 import java.io.IOException;
@@ -43,14 +47,16 @@ public final class RecipeCompiler implements Compiler {
 
   @Override
   public Iterator<CompiledUnit> compile(Iterator<String> directives) throws CompileException {
-    final List<CompiledUnit> tokens = new ArrayList<>();
-
-    while(directives.hasNext()) {
-      String directive = directives.next();
-      tokens.add(compile(directive));
+    try {
+      final List<CompiledUnit> tokens = new ArrayList<>();
+      while (directives.hasNext()) {
+        String directive = directives.next();
+        tokens.add(compile(directive));
+      }
+      return tokens.iterator();
+    } catch (Exception e) {
+      throw new CompileException(e.getMessage(), e);
     }
-
-    return tokens.iterator();
   }
 
   @Override
@@ -63,7 +69,9 @@ public final class RecipeCompiler implements Compiler {
     try {
       return compile(CharStreams.fromStream(location.getInputStream()));
     } catch (IOException e) {
-      throw new CompileException(e.getMessage());
+      throw new CompileException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new CompileException(e.getMessage(), e);
     }
   }
 
@@ -72,7 +80,9 @@ public final class RecipeCompiler implements Compiler {
     try {
       return compile(CharStreams.fromPath(path));
     } catch (IOException e) {
-      throw new CompileException(e.getMessage());
+      throw new CompileException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new CompileException(e.getMessage(), e);
     }
   }
 
@@ -95,17 +105,16 @@ public final class RecipeCompiler implements Compiler {
     DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
     parser.removeErrorListeners();
     parser.addErrorListener(errorListener);
-
+    parser.setErrorHandler(new GrammarParserInterpreter.BailButConsumeErrorStrategy());
+    parser.setBuildParseTree(true);
     ParseTree tree = parser.recipe();
-    parser.setBuildParseTree(false);
-    RecipeVisitor visitor = new RecipeVisitor();
-    visitor.visit(tree);
-
     if(errorListener.hasErrors()) {
       hasErrors = true;
       errors = errorListener.iterator();
     }
 
+    RecipeVisitor visitor = new RecipeVisitor();
+    visitor.visit(tree);
     return visitor.getCompiledUnit();
   }
 }

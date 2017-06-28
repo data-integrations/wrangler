@@ -85,6 +85,8 @@ public final class UsageDefinition implements Serializable {
         sb.append(token.name()).append(" (true/false)");
       } else if (token.type().equals(TokenType.TEXT)) {
         sb.append("'").append(token.name()).append("'");
+      } else if (token.type().equals(TokenType.IDENTIFIER)) {
+          sb.append(token.name());
       } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
           || token.type().equals(TokenType.TEXT_LIST)) {
         sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");

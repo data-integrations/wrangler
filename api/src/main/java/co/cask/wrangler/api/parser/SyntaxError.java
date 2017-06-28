@@ -27,14 +27,12 @@ public final class SyntaxError {
   private final int charPos;
   private final String message;
   private final String line;
-  private final String marker;
 
-  public SyntaxError(int lineNo, int charPos, String message, String line, String marker) {
+  public SyntaxError(int lineNo, int charPos, String message, String line) {
     this.lineNo = lineNo;
     this.charPos = charPos;
     this.message = message;
     this.line = line;
-    this.marker = marker;
   }
 
   public int getLineNumber() {
@@ -51,9 +49,5 @@ public final class SyntaxError {
 
   public String getLine() {
     return line;
-  }
-
-  public String getMarker() {
-    return marker;
   }
 }

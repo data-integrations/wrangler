@@ -42,7 +42,11 @@ public final class DirectiveInfo {
     this.directive = directive;
     Object object = directive.newInstance();
     this.definition = ((UDD) object).define();
-    this.usage = definition.toString();
+    if (definition != null) {
+      this.usage = definition.toString();
+    } else {
+      this.usage = "No definition specified for '" + directive + "'";
+    }
     this.name = directive.getAnnotation(Name.class).value();
     this.description = directive.getAnnotation(Description.class).value();
   }
@@ -69,7 +73,7 @@ public final class DirectiveInfo {
 
   public final JsonObject toJson() {
     JsonObject response = new JsonObject();
-    response.addProperty("name", name);
+    response.addProperty("plugin", name);
     response.addProperty("usage", usage);
     response.addProperty("description", description);
     response.addProperty("class", directive.getCanonicalName());

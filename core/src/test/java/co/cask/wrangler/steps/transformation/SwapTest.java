@@ -19,7 +19,7 @@ package co.cask.wrangler.steps.transformation;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.steps.RecipePipelineTest;
-import co.cask.wrangler.steps.column.Swap;
+import co.cask.directives.column.Swap;
 import org.junit.Assert;
 import org.junit.Test;
 

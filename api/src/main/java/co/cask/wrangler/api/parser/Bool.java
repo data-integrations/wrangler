@@ -40,6 +40,7 @@ import com.google.gson.JsonObject;
  * @see Expression
  * @see Text
  * @see TextList
+ * @see Identifier
  */
 @PublicEvolving
 public class Bool implements Token {

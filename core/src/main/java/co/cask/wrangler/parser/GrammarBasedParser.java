@@ -17,12 +17,16 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.CompileException;
+import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveContext;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
+import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.SyntaxError;
@@ -72,10 +76,17 @@ public class GrammarBasedParser implements RecipeParser {
     throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException {
     try {
       CompiledUnit compiled = compiler.compile(recipe);
+      if (compiled == null) {
+        throw new DirectiveParseException(
+          "Unable to parse the recipe. Please check the syntax of the recipe specified."
+        );
+      }
+
       if (compiler.hasErrors()) {
         Iterator<SyntaxError> errors = compiler.getSyntaxErrors();
-        throw new DirectiveParseException("Error in parsing record.");
+        throw new DirectiveParseException(errors.next().getMessage());
       }
+
       Iterator<TokenGroup> tokenGroups = compiled.iterator();
       while(tokenGroups.hasNext()) {
         TokenGroup next = tokenGroups.next();

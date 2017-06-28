@@ -16,6 +16,9 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.CompileException;
+import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.Compiler;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,6 +26,8 @@ import org.junit.Test;
  * Tests {@link RecipeCompiler}
  */
 public class RecipeCompilerTest {
+
+  private static final Compiler compiler = new RecipeCompiler();
 
   @Test
   public void testSuccessCompilation() throws Exception {
@@ -37,6 +42,17 @@ public class RecipeCompilerTest {
 
       Assert.assertNotNull(units);
       Assert.assertEquals(4, units.size());
+    } catch (CompileException e) {
+      Assert.assertTrue(false);
+    }
+  }
+
+  @Test
+  public void testC1() throws Exception {
+    try {
+      compiler.compile("merge exp: a > 1};");
+      Assert.assertTrue(compiler.hasErrors());
+      System.out.println(compiler.getSyntaxErrors().next().getMessage());
     } catch (CompileException e) {
       Assert.assertTrue(false);
     }

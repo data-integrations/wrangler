@@ -16,15 +16,17 @@
 
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.parser.SyntaxError;
 import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.atn.ATNConfigSet;
+import org.antlr.v4.runtime.dfa.DFA;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,15 +36,57 @@ import java.util.List;
 public final class SyntaxErrorListener extends BaseErrorListener {
   private List<SyntaxError> errors = new ArrayList<>();
 
+  @Override
   public void syntaxError(Recognizer<?, ?> recognizer,
                           Object offendingSymbol,
                           int line, int charPositionInLine,
                           String msg,
-                          RecognitionException e)
+                          RecognitionException e) {
+
+    msg = msg.substring(0,1).toUpperCase() + msg.substring(1);
+
+    String symbolText = "";
+    if (offendingSymbol instanceof CommonToken) {
+      CommonToken symbol = (CommonToken) offendingSymbol;
+      symbolText = String.format("Error at token :" + symbol.getText());
+    }
+    msg = !symbolText.isEmpty() ? symbolText + " " + msg : msg;
+    msg = String.format("line %d:%d - %s", line, charPositionInLine, msg);
+    errors.add(new SyntaxError(line, charPositionInLine, msg, symbolText));
+  }
+
+  @Override
+  public void reportAmbiguity(Parser recognizer,
+                              DFA dfa,
+                              int startIndex,
+                              int stopIndex,
+                              boolean exact,
+                              BitSet ambigAlts,
+                              ATNConfigSet configs)
   {
-    Pair<String, String> underline = underlineError(recognizer, (Token) offendingSymbol,
-                                                           line, charPositionInLine);
-    errors.add(new SyntaxError(line, charPositionInLine, msg, underline.getFirst(), underline.getSecond()));
+    System.out.println("Ambiguity");
+  }
+
+  @Override
+  public void reportAttemptingFullContext(Parser recognizer,
+                                          DFA dfa,
+                                          int startIndex,
+                                          int stopIndex,
+                                          BitSet conflictingAlts,
+                                          ATNConfigSet configs)
+  {
+    System.out.println("reportAttemptingFullContext");
+  }
+
+  @Override
+  public void reportContextSensitivity(Parser recognizer,
+                                       DFA dfa,
+                                       int startIndex,
+                                       int stopIndex,
+                                       int prediction,
+                                       ATNConfigSet configs)
+  {
+    System.out.println("reportContextSensitivity");
   }
 
   public boolean hasErrors() {
@@ -53,30 +97,4 @@ public final class SyntaxErrorListener extends BaseErrorListener {
     return errors.iterator();
   }
 
-  protected Pair<String, String> underlineError(Recognizer recognizer,
-                                                Token offendingToken, int line,
-                                                int charPositionInLine) {
-    CommonTokenStream tokens =
-      (CommonTokenStream)recognizer.getInputStream();
-    String input = tokens.getTokenSource().getInputStream().toString();
-    String[] lines = input.split("\n");
-    String errorLine = lines[line - 1];
-
-    StringBuilder sb = new StringBuilder();
-    for (int i=0; i<charPositionInLine; i++) {
-      sb.append("_");
-    }
-    int start = offendingToken.getStartIndex();
-    int stop = offendingToken.getStopIndex();
-    if ( start>=0 && stop>=0 ) {
-      if (start > stop) {
-        sb.append("^");
-      } else {
-        for (int i=start; i<=stop; i++) {
-          sb.append("^");
-        }
-      }
-    }
-    return new Pair<>(errorLine, sb.toString());
-  }
 }

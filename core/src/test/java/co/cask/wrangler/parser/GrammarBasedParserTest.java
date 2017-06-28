@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;

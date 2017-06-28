@@ -92,6 +92,16 @@ public final class MigrateToV2 implements GrammarMigrator {
         continue;
       }
 
+      if (directive.contains(":") || directive.contains("exp:") || directive.contains("prop:")) {
+//        if (directive.endsWith(";")) {
+//          transformed.add(directive);
+//        } else {
+//          transformed.add(directive + ";");
+//        }
+        transformed.add(directive);
+        continue;
+      }
+
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
 
@@ -110,7 +120,7 @@ public final class MigrateToV2 implements GrammarMigrator {
             case "columns": {
               String columns = getNextToken(tokenizer, "\n", "set columns", "name1, name2, ...", lineno);
               String cols[] = columns.split(",");
-              transformed.add(String.format("set-columns %s;", toColumArray(cols)));
+              transformed.add(String.format("set-headers %s;", toColumArray(cols)));
             }
             break;
           }
@@ -147,7 +157,7 @@ public final class MigrateToV2 implements GrammarMigrator {
           String col2 = getNextToken(tokenizer, command, "second", lineno);
           String dest = getNextToken(tokenizer, command, "new-column", lineno);
           String delimiter = getNextToken(tokenizer, "\n", command, "delimiter", lineno);
-          transformed.add(String.format("merge :%s :%s :%s '%s';", col1, col2, dest, delimiter));
+          transformed.add(String.format("merge :%s :%s :%s %s;", col1, col2, dest, delimiter));
         }
         break;
 

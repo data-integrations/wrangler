@@ -43,12 +43,30 @@ recipe
  ;
 
 directives
- : (Comment | directive)*?
+ : Comment
+ | (directive)*?
  ;
 
 directive
- : (command | ecommand) (codeblock)* (Identifier | text | number | bool | column | colList | numberList | boolList | stringList | numberRanges | properties)* (codeblock)* SColon
+ : command
+  ( codeblock
+    | identifier
+    | text
+    | number
+    | bool
+    | column
+    | colList
+    | numberList
+    | boolList
+    | stringList
+    | numberRanges
+    | properties
+  )* SColon
  | pragma
+ ;
+
+identifier
+ : Identifier
  ;
 
 pragma
@@ -60,7 +78,7 @@ properties
  ;
 
 propertyList
- : property (',' property)*
+ : property (',' property)+
  ;
 
 property
@@ -169,6 +187,8 @@ Assign   : '=';
 Comma    : ',';
 QMark    : '?';
 Colon    : ':';
+Dot      : '.';
+At       : '@';
 
 Bool
  : 'true'
@@ -188,13 +208,14 @@ Column
  ;
 
 String
- : ["] (~["\r\n] | '\\\\' | '\\"')* ["]
- | ['] (~['\r\n] | '\\\\' | '\\\'')* [']
+ : ["] (~["\r\n] | '"')* ["]
+ | ['] (~['\r\n] | '\'')* [']
  ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
  ;
+
 
 Space
  : [ \t\r\n\u000C]+ -> skip

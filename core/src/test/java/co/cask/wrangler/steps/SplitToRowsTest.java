@@ -17,7 +17,7 @@
 package co.cask.wrangler.steps;
 
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.steps.row.SplitToRows;
+import co.cask.directives.row.SplitToRows;
 import org.junit.Assert;
 import org.junit.Test;
 

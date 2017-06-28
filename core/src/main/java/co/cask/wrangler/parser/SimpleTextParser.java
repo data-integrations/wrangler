@@ -24,18 +24,6 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.executor.ICDCatalog;
 import co.cask.wrangler.steps.IncrementTransientVariable;
 import co.cask.wrangler.steps.SetTransientVariable;
-import co.cask.wrangler.steps.column.ChangeColCaseNames;
-import co.cask.wrangler.steps.column.CleanseColumnNames;
-import co.cask.wrangler.steps.column.Columns;
-import co.cask.wrangler.steps.column.ColumnsReplace;
-import co.cask.wrangler.steps.column.Copy;
-import co.cask.wrangler.steps.column.Drop;
-import co.cask.wrangler.steps.column.Keep;
-import co.cask.wrangler.steps.column.Merge;
-import co.cask.wrangler.steps.column.Rename;
-import co.cask.wrangler.steps.column.SetType;
-import co.cask.wrangler.steps.column.SplitToColumns;
-import co.cask.wrangler.steps.column.Swap;
 import co.cask.wrangler.steps.date.DiffDate;
 import co.cask.wrangler.steps.date.FormatDate;
 import co.cask.wrangler.steps.language.SetCharset;
@@ -54,19 +42,10 @@ import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
 import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.parser.XmlToJson;
-import co.cask.wrangler.steps.row.Fail;
-import co.cask.wrangler.steps.row.Flatten;
-import co.cask.wrangler.steps.row.RecordConditionFilter;
-import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
-import co.cask.wrangler.steps.row.RecordRegexFilter;
-import co.cask.wrangler.steps.row.SendToError;
-import co.cask.wrangler.steps.row.SetRecordDelimiter;
-import co.cask.wrangler.steps.row.SplitToRows;
 import co.cask.wrangler.steps.transformation.CatalogLookup;
 import co.cask.wrangler.steps.transformation.CharacterCut;
 import co.cask.wrangler.steps.transformation.Decode;
 import co.cask.wrangler.steps.transformation.Encode;
-import co.cask.wrangler.steps.transformation.Expression;
 import co.cask.wrangler.steps.transformation.ExtractRegexGroups;
 import co.cask.wrangler.steps.transformation.FillNullOrEmpty;
 import co.cask.wrangler.steps.transformation.FindAndReplace;
@@ -80,7 +59,6 @@ import co.cask.wrangler.steps.transformation.MaskShuffle;
 import co.cask.wrangler.steps.transformation.MessageHash;
 import co.cask.wrangler.steps.transformation.Quantization;
 import co.cask.wrangler.steps.transformation.RightTrim;
-import co.cask.wrangler.steps.transformation.SetColumn;
 import co.cask.wrangler.steps.transformation.Split;
 import co.cask.wrangler.steps.transformation.SplitEmail;
 import co.cask.wrangler.steps.transformation.SplitURL;
@@ -105,7 +83,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import javax.annotation.Nullable;
@@ -190,69 +167,6 @@ public class SimpleTextParser implements RecipeParser {
       }
 
       switch (root) {
-        case "set": {
-          switch (tokenizer.nextToken()) {
-            // set column <column-name> <jexl-expression>
-            case "column": {
-              String column = getNextToken(tokenizer, "set column", "column-name", lineno);
-              String expr = getNextToken(tokenizer, "\n", "set column", "jexl-expression", lineno);
-              directives.add(new Expression(lineno, directive, column, expr));
-            }
-            break;
-
-            // set columns <name1, name2, ...>
-            case "columns": {
-              String columns = getNextToken(tokenizer, "\n", "set columns", "name1, name2, ...", lineno);
-              String cols[] = columns.split(",");
-              directives.add(new Columns(lineno, directive, Arrays.asList(cols)));
-            }
-            break;
-          }
-        }
-        break;
-
-        // rename <old> <new>
-        case "rename": {
-          String oldcol = getNextToken(tokenizer,  command, "old", lineno);
-          String newcol = getNextToken(tokenizer, command, "new", lineno);
-          directives.add(new Rename(lineno, directive, oldcol, newcol));
-        }
-        break;
-
-        //set-type <column> <type>
-        case "set-type": {
-          String col = getNextToken(tokenizer,  command, "col", lineno);
-          String type = getNextToken(tokenizer, command, "type", lineno);
-          directives.add(new SetType(lineno, directive, col, type));
-        }
-        break;
-
-        // drop <column>[,<column>]
-        case "drop": {
-          String colums = getNextToken(tokenizer, command, "column", lineno);
-          directives.add(new Drop(lineno, directive, Arrays.asList(colums.split(","))));
-        }
-        break;
-
-        // merge <first> <second> <new-column> <seperator>
-        case "merge": {
-          String col1 = getNextToken(tokenizer, command, "first", lineno);
-          String col2 = getNextToken(tokenizer, command, "second", lineno);
-          String dest = getNextToken(tokenizer, command, "new-column", lineno);
-          String delimiter = getNextToken(tokenizer, "\n", command, "delimiter", lineno);
-          int start = delimiter.indexOf('\'');
-          if (start != -1) {
-            int end = delimiter.lastIndexOf('\'');
-            if (end == -1 || start == end) {
-              throw new DirectiveParseException(
-                String.format("One of the quote is missing when specifying the delimiter.")
-              );
-            }
-            delimiter = StringEscapeUtils.unescapeJava(delimiter.substring(start + 1, end));
-          }
-          directives.add(new Merge(lineno, directive, col1, col2, dest, delimiter));
-        }
-        break;
 
         // uppercase <col>
         case "uppercase": {
@@ -294,36 +208,6 @@ public class SimpleTextParser implements RecipeParser {
           String firstCol = getNextToken(tokenizer, command, "new-column-1", lineno);
           String secondCol = getNextToken(tokenizer, command, "new-column-2", lineno);
           directives.add(new Split(lineno, directive, source, delimiter, firstCol, secondCol));
-        }
-        break;
-
-        // filter-row-if-matched <column> <regex>
-        case "filter-row-if-matched": {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          directives.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
-        }
-        break;
-
-        // filter-row-if-not-matched <column> <regex>
-        case "filter-row-if-not-matched": {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          directives.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
-        }
-        break;
-
-        // filter-row-if-true  <condition>
-        case "filter-row-if-true": {
-          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          directives.add(new RecordConditionFilter(lineno, directive, condition, true));
-        }
-        break;
-
-        // filter-row-if-false  <condition>
-        case "filter-row-if-false": {
-          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          directives.add(new RecordConditionFilter(lineno, directive, condition, false));
         }
         break;
 
@@ -510,24 +394,6 @@ public class SimpleTextParser implements RecipeParser {
         }
         break;
 
-        // set-record-delim <column> <delimiter> [<limit>]
-        case "set-record-delim" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String delimiter = getNextToken(tokenizer, command, "delimiter", lineno);
-          String limitStr = getNextToken(tokenizer, "\n", column, "limit", lineno, true);
-          if (limitStr == null || limitStr.isEmpty()) {
-            limitStr = "1";
-          }
-          try {
-            int limit = Integer.parseInt(limitStr);
-            directives.add(new SetRecordDelimiter(lineno, directive, column, delimiter, limit));
-          } catch (NumberFormatException e) {
-            throw new DirectiveParseException(
-              String.format("Limit '%s' specified is not a number.", limitStr)
-            );
-          }
-        }
-        break;
 
         // parse-as-fixed-length <column> <widths> [<padding>]
         case "parse-as-fixed-length" : {
@@ -553,22 +419,6 @@ public class SimpleTextParser implements RecipeParser {
             ++i;
           }
           directives.add(new FixedLengthParser(lineno, directive, column, widths, padding));
-        }
-        break;
-
-        // split-to-rows <column> <separator>
-        case "split-to-rows" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String regex = getNextToken(tokenizer, "\n", "separator", lineno);
-          directives.add(new SplitToRows(lineno, directive, column, regex));
-        }
-        break;
-
-        // split-to-columns <column> <regex>
-        case "split-to-columns" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String regex = getNextToken(tokenizer, "\n", "regex", lineno);
-          directives.add(new SplitToColumns(lineno, directive, column, regex));
         }
         break;
 
@@ -618,41 +468,6 @@ public class SimpleTextParser implements RecipeParser {
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
           directives.add(new XPathArrayElement(lineno, directive, column, destination, xpath));
-        }
-        break;
-
-        // flatten <column>[,<column>,<column>,...]
-        case "flatten" : {
-          String cols = getNextToken(tokenizer, command, "columns", lineno);
-          if (cols.equalsIgnoreCase("*")) {
-            throw new DirectiveParseException(
-              "Flatten does not support wildcard ('*') flattening. Please specify column names"
-            );
-          }
-
-          String[] columns = cols.split(",");
-          for (String column : columns) {
-            if (column.trim().equalsIgnoreCase("*")) {
-              throw new DirectiveParseException(
-                "Flatten does not support wildcard ('*') flattening. Please specify column names"
-              );
-            }
-          }
-          directives.add(new Flatten(lineno, directive, columns));
-        }
-        break;
-
-        // copy <source> <destination> [force]
-        case "copy" : {
-          String source = getNextToken(tokenizer, command, "source", lineno);
-          String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String forceOpt = getNextToken(tokenizer, "\n", command, "force", lineno, true);
-
-          boolean force = false;
-          if (forceOpt != null && forceOpt.equalsIgnoreCase("true")) {
-            force = true;
-          }
-          directives.add(new Copy(lineno, directive, source, destination, force));
         }
         break;
 
@@ -732,13 +547,6 @@ public class SimpleTextParser implements RecipeParser {
         }
         break;
 
-        // keep <column>[,<column>]*
-        case "keep" : {
-          String columns = getNextToken(tokenizer, command, "columns", lineno);
-          directives.add(new Keep(lineno, directive, columns.split(",")));
-        }
-        break;
-
         // parse-as-hl7 <column> [<depth>]
         case "parse-as-hl7" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
@@ -759,14 +567,6 @@ public class SimpleTextParser implements RecipeParser {
         case "split-email" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           directives.add(new SplitEmail(lineno, directive, column));
-        }
-        break;
-
-        // swap <column1> <column2>
-        case "swap" : {
-          String column1 = getNextToken(tokenizer, command, "column1", lineno);
-          String column2 = getNextToken(tokenizer, command, "column2", lineno);
-          directives.add(new Swap(lineno, directive, column1, column2));
         }
         break;
 
@@ -831,56 +631,10 @@ public class SimpleTextParser implements RecipeParser {
         }
         break;
 
-        // filter-rows-on condition-false <boolean-expression>
-        // filter-rows-on condition-true <boolean-expression>
-        // filter-rows-on empty-or-null-columns <column>[,<column>*]
-        // filter-rows-on regex-match <regex>
-        // filter-rows-on regex-not-match <regex>
-        case "filter-rows-on" : {
-          String cmd = getNextToken(tokenizer, command, "command", lineno);
-          if (cmd.equalsIgnoreCase("condition-false")) {
-            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            directives.add(new RecordConditionFilter(lineno, directive, condition, false));
-          } else if (cmd.equalsIgnoreCase("condition-true")) {
-            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            directives.add(new RecordConditionFilter(lineno, directive, condition, true));
-          } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
-            String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
-            directives.add(new RecordMissingOrNullFilter(lineno, directive, columns.split(",")));
-          } else if (cmd.equalsIgnoreCase("regex-match")) {
-            String column = getNextToken(tokenizer, command, "column", lineno);
-            String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-            directives.add(new RecordRegexFilter(lineno, directive, column, pattern, true));
-          } else if (cmd.equalsIgnoreCase("regex-not-match")) {
-            String column = getNextToken(tokenizer, command, "column", lineno);
-            String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-            directives.add(new RecordRegexFilter(lineno, directive, column, pattern, false));
-          } else {
-            throw new DirectiveParseException(
-              String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
-            );
-          }
-        }
-        break;
-
         // parse-as-avro-file <column>
         case "parse-as-avro-file": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           directives.add(new ParseAvroFile(lineno, directive, column));
-        }
-        break;
-
-        // send-to-error <condition>
-        case "send-to-error": {
-          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          directives.add(new SendToError(lineno, directive, condition));
-        }
-        break;
-
-        // fail <condition>
-        case "fail": {
-          String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          directives.add(new Fail(lineno, directive, condition));
         }
         break;
 
@@ -939,13 +693,6 @@ public class SimpleTextParser implements RecipeParser {
         }
         break;
 
-        // columns <sed>
-        case "columns-replace" : {
-          String sed = getNextToken(tokenizer, command, "sed-expression", lineno);
-          directives.add(new ColumnsReplace(lineno, directive, sed));
-        }
-        break;
-
         // extract-regex-groups <column> <regex>
         case "extract-regex-groups" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
@@ -958,32 +705,6 @@ public class SimpleTextParser implements RecipeParser {
         case "split-url" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           directives.add(new SplitURL(lineno, directive, column));
-        }
-        break;
-
-        // cleanse-column-names
-        case "cleanse-column-names" : {
-          directives.add(new CleanseColumnNames(lineno, directive));
-        }
-        break;
-
-        // change-column-case <upper|lower|uppercase|lowercase>
-        case "change-column-case" : {
-          String casing = getNextToken(tokenizer, command, "case", lineno);
-          boolean toLower = false;
-          if (casing == null || casing.isEmpty() || casing.equalsIgnoreCase("lower")
-            || casing.equalsIgnoreCase("lowercase")) {
-            toLower = true;
-          }
-          directives.add(new ChangeColCaseNames(lineno, directive, toLower));
-        }
-        break;
-
-        // set-column <column> <expression>
-        case "set-column" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String expr = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          directives.add(new SetColumn(lineno, directive, column, expr));
         }
         break;
 
