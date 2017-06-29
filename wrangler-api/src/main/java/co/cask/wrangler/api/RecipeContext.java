@@ -18,7 +18,6 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.etl.api.LookupProvider;
 import co.cask.cdap.etl.api.StageMetrics;
-import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;

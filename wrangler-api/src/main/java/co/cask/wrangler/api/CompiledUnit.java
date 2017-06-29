@@ -18,7 +18,6 @@ package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
 import co.cask.wrangler.api.parser.Token;
-import co.cask.wrangler.api.parser.TokenType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -40,7 +39,9 @@ import java.util.Set;
  * directives or plugins that need to be loaded, the token groups for
  * all the directives tokenized and parsed.</p>
  *
- * <p>This class exposes a builder pattern for constructing the object.</p>
+ * <p>This class exposes a builder pattern for constructing the object.
+ * in the <code>RecipeVisitor</code>. The <code>RecipeVisitor</code>
+ * constructs <code>CompiledUnit</code> using the <code>CompiledUnit.Builder</code></p>
  */
 @PublicEvolving
 public final class CompiledUnit {
@@ -82,7 +83,11 @@ public final class CompiledUnit {
   }
 
   /**
-   * @return
+   * Returns the version of the grammar as specified in the recipe. The
+   * version is the one extracted from Pragma. It's specified as follows
+   * <code>#pragma version 2.0;</code>
+   *
+   * @return version of the grammar used in the recipe.
    */
   public String getVersion() {
     return version;
@@ -118,8 +123,10 @@ public final class CompiledUnit {
   }
 
   /**
+   * This method <code>toJson</code> returns the <code>JsonElement</code> object
+   * representation of this object.
    *
-   * @return
+   * @return An instance of <code>JsonElement</code> representing this object.
    */
   public JsonElement toJson() {
     JsonObject output = new JsonObject();
@@ -143,37 +150,83 @@ public final class CompiledUnit {
     return output;
   }
 
+  /**
+   * This inner class provides a builder pattern for building
+   * the <code>CompiledUnit</code> object. In order to create the
+   * this builder, one has to use the static method defined in
+   * <code>CompiledUnit</code>.
+   *
+   * Following is an example of how this can be done.
+   *
+   * <code>
+   *   CompiledUnit.Builder builder = CompiledUnit.builder();
+   *   builder.createTokenGroup(...);
+   *   builder.addToken(...);
+   *   builder.addVersion(...);
+   *   builder.addLoadableDirective(...);
+   *   CompiledUnit compiled = builder.build();
+   * </code>
+   */
   public static final class Builder {
-    private final List<TokenGroup> allTokens = new ArrayList<>();
-    private TokenGroup tokens = null;
+    private final List<TokenGroup> groups = new ArrayList<>();
+    private TokenGroup group = null;
     private Set<String> loadableDirectives = new HashSet<>();
     private String version = "1.0";
     private SourceInfo info = null;
 
-    public void add(SourceInfo info, Token token) {
-      if (tokens == null) {
-        tokens = new TokenGroup(info);
+    /**
+     * <code>TokenGroup</code> is created for each directive in
+     * the recipe. This method creates a new <code>TokenGroup</code>
+     * by passing the <code>SourceInfo</code>, which represents the
+     * information of the source parsed.
+     *
+     * @param info about the source directive being parsed.
+     */
+    public void createTokenGroup(SourceInfo info) {
+      if (group != null) {
+        groups.add(group);
       }
-      if (token.type() == TokenType.DIRECTIVE_NAME) {
-        if (allTokens.size() >= 0 && tokens.size() > 0) {
-          allTokens.add(tokens);
-          tokens = new TokenGroup(info);
-        }
-      }
-      tokens.add(token);
+      this.group = new TokenGroup(info);
     }
 
+    /**
+     * This method provides a way to add a <code>Token</code> to the <code>TokenGroup</code>.
+     *
+     * @param token to be added to the token group.
+     */
+    public void addToken(Token token) {
+      group.add(token);
+    }
+
+    /**
+     * Recipe can specify the version of the grammar. This method
+     * allows one to extract and add the version to the <code>CompiledUnit.</code>
+     *
+     * @param version of the recipe grammar being used.
+     */
     public void addVersion(String version) {
       this.version = version;
     }
 
+    /**
+     * A Recipe can specify the pragma instructions for loading the directives
+     * dynamically. This method allows adding the new directive to be loaded
+     * as it's parsing through the call graph.
+     *
+     * @param directive to be loaded dynamically.
+     */
     public void addLoadableDirective(String directive) {
       loadableDirectives.add(directive);
     }
 
+    /**
+     * Returns a fully constructed and valid <code>CompiledUnit</code> object.
+     *
+     * @return An instance of <code>CompiledUnit</code>
+     */
     public CompiledUnit build() {
-      allTokens.add(tokens);
-      return new CompiledUnit(version, loadableDirectives, this.allTokens);
+      groups.add(group);
+      return new CompiledUnit(version, loadableDirectives, this.groups);
     }
   }
 }

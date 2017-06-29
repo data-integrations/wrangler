@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.api.parser;
 
+import co.cask.wrangler.api.Optional;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -55,18 +56,43 @@ public final class UsageDefinition implements Serializable {
     this.optionalCnt = optionalCnt;
   }
 
-  public String getName() {
+  /**
+   * Returns the name of the directive for which the this <code>UsageDefinition</code>
+   * object is created.
+   *
+   * @return name of the directive.
+   */
+  public String getDirectiveName() {
     return directive;
   }
 
+  /**
+   * This method returns the list of <code>TokenDefinition</code> that should be
+   * used for parsing the directive into <code>Arguments</code>.
+   *
+   * @return List of <code>TokenDefinition</code>.
+   */
   public List<TokenDefinition> getTokens() {
     return tokens;
   }
 
+  /**
+   * Returns the count of <code>TokenDefinition</code> that have been specified
+   * as optional in the <code>UsageDefinition</code>.
+   *
+   * @return number of tokens in the usage that are optional.
+   */
   public int getOptionalTokensCount() {
     return optionalCnt;
   }
 
+  /**
+   * This method converts the <code>UsageDefinition</code> into a usage string
+   * for this directive. It inspects all the tokens to generate a standard syntax
+   * for the usage of the directive.
+   *
+   * @return a usage representation of this object.
+   */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -75,24 +101,34 @@ public final class UsageDefinition implements Serializable {
       if(token.optional()) {
         sb.append(" [");
       }
-      if (token.type().equals(TokenType.DIRECTIVE_NAME)) {
-        sb.append(token.name());
-      } else if (token.type().equals(TokenType.COLUMN_NAME)) {
-        sb.append(":").append(token.name());
-      } else if (token.type().equals(TokenType.COLUMN_NAME_LIST)) {
-        sb.append(":").append(token.name()).append(" [,:").append(token.name()).append(" ...]*");
-      } else if (token.type().equals(TokenType.BOOLEAN)) {
-        sb.append(token.name()).append(" (true/false)");
-      } else if (token.type().equals(TokenType.TEXT)) {
-        sb.append("'").append(token.name()).append("'");
-      } else if (token.type().equals(TokenType.IDENTIFIER)) {
+
+      if(token.label() != null) {
+        sb.append(token.label());
+      } else {
+        if (token.type().equals(TokenType.DIRECTIVE_NAME)) {
           sb.append(token.name());
-      } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
+        } else if (token.type().equals(TokenType.COLUMN_NAME)) {
+          sb.append(":").append(token.name());
+        } else if (token.type().equals(TokenType.COLUMN_NAME_LIST)) {
+          sb.append(":").append(token.name()).append(" [,:").append(token.name()).append(" ...]*");
+        } else if (token.type().equals(TokenType.BOOLEAN)) {
+          sb.append(token.name()).append(" (true/false)");
+        } else if (token.type().equals(TokenType.TEXT)) {
+          sb.append("'").append(token.name()).append("'");
+        } else if (token.type().equals(TokenType.IDENTIFIER)) {
+          sb.append(token.name());
+        } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
           || token.type().equals(TokenType.TEXT_LIST)) {
-        sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
-      } else if (token.type().equals(TokenType.EXPRESSION)) {
-        sb.append("exp:{<").append(token.name()).append(">}");
+          sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
+        } else if (token.type().equals(TokenType.EXPRESSION)) {
+          sb.append("exp:{<").append(token.name()).append(">}");
+        } else if (token.type().equals(TokenType.PROPERTIES)) {
+          sb.append("prop:{key:value,[key:value]*");
+        } else if (token.type().equals(TokenType.RANGES)) {
+          sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
+        }
       }
+
       if(token.optional()) {
         sb.append("]");
       } else {
@@ -102,11 +138,43 @@ public final class UsageDefinition implements Serializable {
     return sb.toString();
   }
 
+  /**
+   * This method provides a <code>JsonElement</code> object for this <code>UsageDefinition</code>
+   * object.
+   *
+   * @return A instance of <code>JsonElement</code> representing the state of this object.
+   */
+  public JsonElement toJson() {
+    JsonObject object = new JsonObject();
+    object.addProperty("directive", directive);
+    JsonArray array = new JsonArray();
+    for (TokenDefinition token : tokens) {
+      array.add(token.toJsonObject());
+    }
+    object.add("tokens", array);
+    return object;
+  }
 
+  /**
+   * This is a static method for creating a builder for the <code>UsageDefinition</code>
+   * object. In order to create a <code>UsageDefinition</code>, a builder has to created.
+   *
+   * <p>This builder is provided as user API for constructing the usage specification
+   * for a directive.</p>
+   *
+   * @param directive name of the directive for which the builder is created for.
+   * @return A <code>UsageDefinition.Builder</code> object that can be used to construct
+   * <code>UsageDefinition</code> object.
+   */
   public static UsageDefinition.Builder builder(String directive) {
     return new UsageDefinition.Builder(directive);
   }
 
+  /**
+   * This inner builder class provides a way to create <code>UsageDefinition</code>
+   * object. It exposes different methods that allow users to configure the <code>TokenDefinition</code>
+   * for each token used within the usage of a directive.
+   */
   public static final class Builder {
     private String directive;
     private final List<TokenDefinition> tokens;
@@ -120,43 +188,70 @@ public final class UsageDefinition implements Serializable {
       this.optionalCnt = 0;
     }
 
+    /**
+     * This method provides a way to set the name and the type of token, while
+     * defaulting the label to 'null' and setting the optional to FALSE.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param type of the token to be extracted.
+     */
     public void define(String name, TokenType type) {
-      TokenDefinition spec = new TokenDefinition(name, type, currentOrdinal);
+      TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, Optional.FALSE);
       currentOrdinal++;
       tokens.add(spec);
     }
 
+    /**
+     * Allows users to define a token with a name, type of the token and additional optional
+     * for the label that is used during creation of the usage for the directive.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param type of the token to be extracted.
+     * @param label label that modifies the usage for this field.
+     */
+    public void define(String name, TokenType type, String label) {
+      TokenDefinition spec = new TokenDefinition(name, type, label, currentOrdinal, Optional.FALSE);
+      currentOrdinal++;
+      tokens.add(spec);
+    }
+
+    /**
+     * Method allows users to specify a field as optional in combination to the
+     * name of the token and the type of token.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param type of the token to be extracted.
+     * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
+     */
     public void define(String name, TokenType type, boolean optional) {
-      TokenDefinition spec = new TokenDefinition(name, type, currentOrdinal, optional);
+      TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, optional);
       optionalCnt = optional ? optionalCnt + 1 : optionalCnt;
       currentOrdinal++;
       tokens.add(spec);
     }
 
-    public void define(String name, TokenType type, int ordinal) {
-      TokenDefinition spec = new TokenDefinition(name, type, ordinal, false);
-      tokens.add(spec);
-    }
-
-    public void define(String name, TokenType type, boolean optional, int ordinal) {
-      TokenDefinition spec = new TokenDefinition(name, type, ordinal, optional);
+    /**
+     * Method allows users to specify a field as optional in combination to the
+     * name of the token, the type of token and also the ability to specify a label
+     * for the usage.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param type of the token to be extracted.
+     * @param label label that modifies the usage for this field.
+     * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
+     */
+    public void define(String name, TokenType type, String label, boolean optional) {
+      TokenDefinition spec = new TokenDefinition(name, type, label, currentOrdinal, optional);
       optionalCnt = optional ? optionalCnt + 1 : optionalCnt;
+      currentOrdinal++;
       tokens.add(spec);
     }
 
+    /**
+     * @return a instance of <code>UsageDefinition</code> object.
+     */
     public UsageDefinition build() {
       return new UsageDefinition(directive, optionalCnt, tokens);
     }
-  }
-
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("directive", directive);
-    JsonArray array = new JsonArray();
-    for (TokenDefinition token : tokens) {
-      array.add(token.toJsonObject());
-    }
-    object.add("tokens", array);
-    return object;
   }
 }

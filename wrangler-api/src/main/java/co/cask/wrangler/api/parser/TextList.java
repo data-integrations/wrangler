@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.api.parser;
 
-import co.cask.wrangler.api.LazyNumber;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

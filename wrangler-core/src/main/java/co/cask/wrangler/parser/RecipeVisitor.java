@@ -29,43 +29,61 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Class description here.
+ * This class <code>RecipeVisitor</code> implements the visitor pattern
+ * used during traversal of the AST tree. The <code>ParserTree#Walker</code>
+ * invokes appropriate methods as call backs with information about the node.
+ *
+ * <p>In order to understand what's being invoked, please look at the grammar file
+ * <tt>Directive.g4</tt></p>.
+ *
+ * <p>This class exposes a <code>getTokenGroups</code> method for retrieving the
+ * <code>CompiledUnit</code> after visiting. The <code>CompiledUnit</code> represents
+ * all the <code>TokenGroup</code> for all directives in a recipe. Each directive
+ * will create a <code>TokenGroup</code></p>
+ *
+ * <p> As the <code>ParseTree</code> is walking through the call graph, it generates
+ * one <code>TokenGroup</code> for each directive in the recipe. Each <code>TokenGroup</code>
+ * contains parsed <code>Tokens</code> for that directive along with more information like
+ * <code>SourceInfo</code>. A collection of <code>TokenGroup</code> consistutes a <code>CompiledUnit</code>
+ * that is returned by this function.</p>
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Builder> {
-  private SourceInfo source;
   private CompiledUnit.Builder builder = new CompiledUnit.Builder();
 
+  /**
+   * Returns a <code>CompiledUnit</code> for the recipe being parsed. This
+   * object has all the tokens that were successfully parsed along with source
+   * information for each directive in the recipe.
+   *
+   * @return An compiled object after parsing the recipe.
+   */
   public CompiledUnit getCompiledUnit() {
     return builder.build();
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * A Recipe is made up of Directives and Directives is made up of each individual
+   * Directive. This method is invoked on every visit to a new directive in the recipe.
    */
   @Override
   public CompiledUnit.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
-    source = getOriginalSource(ctx);
+    builder.createTokenGroup(getOriginalSource(ctx));
     return super.visitDirective(ctx);
   }
 
+  /**
+   * A Directive can include identifiers, this method extracts that token that is being
+   * identified as token of type <code>Identifier</code>.
+   */
   @Override
   public CompiledUnit.Builder visitIdentifier(DirectivesParser.IdentifierContext ctx) {
-    builder.add(source, new Identifier(ctx.Identifier().getText()));
+    builder.addToken(new Identifier(ctx.Identifier().getText()));
     return super.visitIdentifier(ctx);
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * A Directive can include properties (which are a collection of key and value pairs),
+   * this method extracts that token that is being identified as token of type <code>Properties</code>.
    */
   @Override
   public CompiledUnit.Builder visitPropertyList(DirectivesParser.PropertyListContext ctx) {
@@ -84,17 +102,16 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
       }
       props.put(identifier, token);
     }
-    builder.add(source, new Properties(props));
+    builder.addToken(new Properties(props));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
+   * A Pragma is an instruction to the compiler to dynamically load the directives being specified
+   * from the <code>DirectiveRegistry</code>. These do not affect the data flow.
    *
-   * @param ctx
+   * <p>E.g. <code>#pragma load-directives test1, test2, test3;</code> will collect the tokens
+   * test1, test2 and test3 as dynamically loadable directives. <p>
    */
   @Override
   public CompiledUnit.Builder visitPragmaLoadDirective(DirectivesParser.PragmaLoadDirectiveContext ctx) {
@@ -106,12 +123,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * A Pragma version is a informational directive to notify compiler about the grammar that is should
+   * be using to parse the directives below.
    */
   @Override
   public CompiledUnit.Builder visitPragmaVersion(DirectivesParser.PragmaVersionContext ctx) {
@@ -119,6 +132,11 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     return builder;
   }
 
+  /**
+   * A Directive can include number ranges like start:end=value[,start:end=value]*. This
+   * visitor method allows you to collect all the number ranges and create a token type
+   * <code>Ranges</code>.
+   */
   @Override
   public CompiledUnit.Builder visitNumberRanges(DirectivesParser.NumberRangesContext ctx) {
     List<Triplet<Numeric, Numeric,String>> output = new ArrayList<>();
@@ -136,74 +154,69 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
         );
       output.add(val);
     }
-    builder.add(source, new Ranges(output));
-    return builder;
-  }
-
-
-  @Override
-  public CompiledUnit.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
-    builder.add(source, new DirectiveName(ctx.Identifier().getText()));
-    return builder;
-  }
-
-  @Override
-  public CompiledUnit.Builder visitColumn(DirectivesParser.ColumnContext ctx) {
-    builder.add(source, new ColumnName(ctx.Column().getText().substring(1)));
+    builder.addToken(new Ranges(output));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * This visitor method extracts the custom directive name specified. The custom
+   * directives are specified with a bang (!) at the start.
+   */
+  @Override
+  public CompiledUnit.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
+    builder.addToken(new DirectiveName(ctx.Identifier().getText()));
+    return builder;
+  }
+
+  /**
+   * A Directive can consist of column specifiers. These are columns that the directive
+   * would operate on. When a token of type column is visited, it would generate a token
+   * type of type <code>ColumnName</code>.
+   */
+  @Override
+  public CompiledUnit.Builder visitColumn(DirectivesParser.ColumnContext ctx) {
+    builder.addToken(new ColumnName(ctx.Column().getText().substring(1)));
+    return builder;
+  }
+
+  /**
+   * A Directive can consist of text field. These type of fields are enclosed within
+   * a single-quote or a double-quote. This visitor method extracts the string value
+   * within the quotes and creates a token type <code>Text</code>.
    */
   @Override
   public CompiledUnit.Builder visitText(DirectivesParser.TextContext ctx) {
     String value = ctx.String().getText();
-    builder.add(source, new Text(value.substring(1, value.length()-1)));
+    builder.addToken(new Text(value.substring(1, value.length()-1)));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * A Directive can consist of numeric field. This visitor method extracts the
+   * numeric value <code>Numeric</code>.
    */
   @Override
   public CompiledUnit.Builder visitNumber(DirectivesParser.NumberContext ctx) {
     LazyNumber number = new LazyNumber(ctx.Number().getText());
-    builder.add(source, new Numeric(number));
+    builder.addToken(new Numeric(number));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * A Directive can consist of Bool field. The Bool field is represented as
+   * either true or false. This visitor method extract the bool value into a
+   * token type <code>Bool</code>.
    */
   @Override
   public CompiledUnit.Builder visitBool(DirectivesParser.BoolContext ctx) {
-    builder.add(source, new Bool(Boolean.valueOf(ctx.Bool().getText())));
+    builder.addToken(new Bool(Boolean.valueOf(ctx.Bool().getText())));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * A Directive can include a expression or a condition to be evaluated. When
+   * such a token type is found, the visitor extracts the expression and generates
+   * a token type <code>Expression</code> to be added to the <code>TokenGroup</code>
    */
   @Override
   public CompiledUnit.Builder visitCondition(DirectivesParser.ConditionContext ctx) {
@@ -213,31 +226,23 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
       ParseTree child = ctx.getChild(i);
       sb.append(child.getText()).append(" ");
     }
-    builder.add(source, new Expression(sb.toString()));
+    builder.addToken(new Expression(sb.toString()));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * A Directive has name and in the parsing context it's called a command.
+   * This visitor methods extracts the command and creates a toke type <code>DirectiveName</code>
    */
   @Override
   public CompiledUnit.Builder visitCommand(DirectivesParser.CommandContext ctx) {
-    builder.add(source, new DirectiveName(ctx.Identifier().getText()));
+    builder.addToken(new DirectiveName(ctx.Identifier().getText()));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * This visitor methods extracts the list of columns specified. It creates a token
+   * type <code>ColumnNameList</code> to be added to <code>TokenGroup</code>.
    */
   @Override
   public CompiledUnit.Builder visitColList(DirectivesParser.ColListContext ctx) {
@@ -246,17 +251,13 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode column : columns) {
       names.add(column.getText().substring(1));
     }
-    builder.add(source, new ColumnNameList(names));
+    builder.addToken(new ColumnNameList(names));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * This visitor methods extracts the list of numeric specified. It creates a token
+   * type <code>NumericList</code> to be added to <code>TokenGroup</code>.
    */
   @Override
   public CompiledUnit.Builder visitNumberList(DirectivesParser.NumberListContext ctx) {
@@ -265,17 +266,13 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode number : numbers) {
       numerics.add(new LazyNumber(number.getText()));
     }
-    builder.add(source, new NumericList(numerics));
+    builder.addToken(new NumericList(numerics));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * This visitor methods extracts the list of booleans specified. It creates a token
+   * type <code>BoolList</code> to be added to <code>TokenGroup</code>.
    */
   @Override
   public CompiledUnit.Builder visitBoolList(DirectivesParser.BoolListContext ctx) {
@@ -284,17 +281,13 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode bool : bools) {
       booleans.add(Boolean.parseBoolean(bool.getText()));
     }
-    builder.add(source, new BoolList(booleans));
+    builder.addToken(new BoolList(booleans));
     return builder;
   }
 
   /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation returns the result of calling
-   * {@link #visitChildren} on {@code ctx}.</p>
-   *
-   * @param ctx
+   * This visitor methods extracts the list of strings specified. It creates a token
+   * type <code>StringList</code> to be added to <code>TokenGroup</code>.
    */
   @Override
   public CompiledUnit.Builder visitStringList(DirectivesParser.StringListContext ctx) {
@@ -303,7 +296,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     for (TerminalNode string : strings) {
       strs.add(string.getText());
     }
-    builder.add(source, new TextList(strs));
+    builder.addToken(new TextList(strs));
     return builder;
   }
 

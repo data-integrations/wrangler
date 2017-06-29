@@ -35,7 +35,7 @@ public class UsageDefinitionTest {
     builder.define("lname", TokenType.COLUMN_NAME, Optional.TRUE);
     builder.define("condition", TokenType.EXPRESSION, Optional.TRUE);
     UsageDefinition definition = builder.build();
-    Assert.assertEquals("test", definition.getName());
+    Assert.assertEquals("test", definition.getDirectiveName());
   }
 
   @Test

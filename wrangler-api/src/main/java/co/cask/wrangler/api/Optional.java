@@ -19,10 +19,30 @@ package co.cask.wrangler.api;
 import co.cask.wrangler.api.annotations.Public;
 
 /**
- * Class description here.
+ * This class <code>Optional</code> is a helper class used in specifying
+ * whether a argument for the directive is optional or not.
+ *
+ * <p>This class is used when you are defining the usage for a directive
+ * argument. Following is an example : </p>
+ *
+ * <code>
+ *   UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+ *   builder.define("regex", TokenType.TEXT, Optional.TRUE);
+ *   return builder.build();
+ * </code>
+ *
+ * <p>By default, the option is <code>FALSE</code></p>
  */
 @Public
 public final class Optional {
+  /**
+   * When an argument is optional, <code>TRUE</code> is specified.
+   */
   public static final boolean TRUE = true;
+
+  /**
+   * When an argument is non optional, <code>FALSE</code> is specified.
+   * The default behavior is false.
+   */
   public static final boolean FALSE = false;
 }

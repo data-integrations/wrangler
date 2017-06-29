@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.api;
 
-import co.cask.wrangler.api.SourceInfo;
 import co.cask.wrangler.api.parser.Token;
 
 import java.util.ArrayList;

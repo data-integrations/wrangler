@@ -58,7 +58,7 @@ public class MapArguments implements Arguments {
     int required = definition.getTokens().size() - definition.getOptionalTokensCount();
     if ((required > group.size() - 1) || ((group.size() - 1) > definition.getTokens().size())) {
       throw new DirectiveParseException(
-        String.format("Improper usage of directive '%s', usage - '%s'", definition.getName(), definition.toString())
+        String.format("Improper usage of directive '%s', usage - '%s'", definition.getDirectiveName(), definition.toString())
       );
     }
 
