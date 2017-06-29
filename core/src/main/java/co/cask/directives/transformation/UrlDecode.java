@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -34,12 +34,12 @@ import java.net.URLDecoder;
 import java.util.List;
 
 /**
- * A Directive to decodes a column with url encoding.
+ * A Executor to decodes a column with url encoding.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(UrlDecode.NAME)
 @Description("URL decode a column value.")
-public class UrlDecode implements UDD {
+public class UrlDecode implements Directive {
   public static final String NAME = "url-decode";
   private String column;
 

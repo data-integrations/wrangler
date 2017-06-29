@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -37,13 +37,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Directive for stemming the words provided using Porter Stemming.
+ * Executor for stemming the words provided using Porter Stemming.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("stemming")
 @Usage("stemming <column>")
 @Description("Apply Porter Stemming on the column value.")
-public class Stemming implements UDD {
+public class Stemming implements Directive {
   public static final String NAME = "stemming";
   private String column;
   private PorterStemmer stemmer;

@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -38,7 +38,7 @@ import com.ximpleware.XPathParseException;
 import java.util.List;
 
 /**
- * A Directive to extract a single XML element using XPath.
+ * A Executor to extract a single XML element using XPath.
  *
  * <p>
  *   TODO: This code has to be moved out into a plugin due to VTDNav once we have
@@ -46,10 +46,10 @@ import java.util.List;
  * </p>
  *
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(XPathElement.NAME)
 @Description("Extract a single XML element or attribute using XPath.")
-public class XPathElement implements UDD {
+public class XPathElement implements Directive {
   public static final String NAME = "xpath";
   private String column;
   private String destination;

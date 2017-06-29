@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Triplet;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.Ranges;
@@ -41,10 +41,10 @@ import java.util.List;
 /**
  * A Wrangler step for quantizing a column.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Quantization.NAME)
 @Description("Quanitize the range of numbers into label values.")
-public class Quantization implements UDD {
+public class Quantization implements Directive {
   public static final String NAME = "quantize";
   private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();

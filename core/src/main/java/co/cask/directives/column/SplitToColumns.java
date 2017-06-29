@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -36,10 +36,10 @@ import java.util.List;
 /**
  * A directive for splitting the columns into multiple columns.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(SplitToColumns.NAME)
 @Description("Splits a column into one or more columns around matches of the specified regular expression.")
-public class SplitToColumns implements UDD {
+public class SplitToColumns implements Directive {
   public static final String NAME = "split-to-columns";
   // Column on which to apply mask.
   private String column;

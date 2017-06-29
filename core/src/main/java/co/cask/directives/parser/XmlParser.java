@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -45,11 +45,11 @@ import java.util.List;
  *   the plugin framework.
  * </p>
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-xml")
 @Usage("parse-as-xml <column>")
 @Description("Parses a column as XML.")
-public class XmlParser implements UDD {
+public class XmlParser implements Directive {
   public static final String NAME = "parse-as-xml";
   // Column within the input row that needs to be parsed as CSV
   private String column;

@@ -18,24 +18,22 @@ package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
+import java.io.Serializable;
+import java.util.List;
+
 /**
- * An abstract class for {@link Directive} with added debugging capabilities.
- *
- * @Deprecated
+ * A interface defining the wrangle Executor in the wrangling {@link RecipePipeline}.
  */
 @PublicEvolving
-public abstract class AbstractDirective implements Directive<Row, Row> {
-  private int lineno;
-  private String detail;
-
-  protected AbstractDirective(int lineno, String detail) {
-    this.lineno = lineno;
-    this.detail = detail;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("[Directive %d] - <%s>", lineno, detail);
-  }
+public interface Executor<I, O> extends Serializable {
+  /**
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   *
+   * @param records List of input {@link Row} to be wrangled by this step.
+   * @param context {@link RecipeContext} passed to each step.
+   * @return Wrangled List of {@link Row}.
+   */
+  List<O> execute(List<I> records, RecipeContext context)
+    throws DirectiveExecutionException, ErrorRowException;
 }
 

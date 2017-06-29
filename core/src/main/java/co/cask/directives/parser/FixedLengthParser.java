@@ -20,6 +20,7 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
@@ -27,7 +28,6 @@ import co.cask.wrangler.api.LazyNumber;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.NumericList;
 import co.cask.wrangler.api.parser.Text;
@@ -40,10 +40,10 @@ import java.util.List;
 /**
  * A Fixed length Parser Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-fixed-length")
 @Description("Parses fixed-length records using the specified widths and padding-character.")
-public final class FixedLengthParser implements UDD {
+public final class FixedLengthParser implements Directive {
   public static final String NAME = "parse-as-fixed-length";
   private int[] widths;
   private String col;

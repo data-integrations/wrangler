@@ -21,11 +21,11 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.TokenType;
@@ -40,7 +40,7 @@ import java.util.List;
 @Plugin(type = "directives")
 @Name(SetType.NAME)
 @Description("Converting data type of a column.")
-public final class SetType implements UDD {
+public final class SetType implements Directive {
   public static final String NAME = "set-type";
   private String col;
   private String type;

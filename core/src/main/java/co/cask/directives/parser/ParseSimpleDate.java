@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -37,13 +37,13 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A Directive to parse date into Date object.
+ * A Executor to parse date into Date object.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-simple-date")
 @Usage("parse-as-simple-date <column> <format>")
 @Description("Parses a column as date using format.")
-public class ParseSimpleDate implements UDD {
+public class ParseSimpleDate implements Directive {
   public static final String NAME = "parse-as-simple-date";
   private String column;
   private SimpleDateFormat format;

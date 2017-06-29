@@ -26,7 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -37,10 +37,10 @@ import java.util.List;
  * This class <code>TextReverse</code>implements a directive for reversing the
  * text specified by the value of the <code>column</code>.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(TextReverse.DIRECTIVE_NAME)
 @Description("Reverses the text represented by the column.")
-public final class TextReverse implements UDD {
+public final class TextReverse implements Directive {
   public static final String DIRECTIVE_NAME = "text-reverse";
   private ColumnName column;
 

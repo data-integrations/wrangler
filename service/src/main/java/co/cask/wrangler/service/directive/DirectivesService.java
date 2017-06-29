@@ -17,9 +17,11 @@
 package co.cask.wrangler.service.directive;
 
 import co.cask.cdap.api.annotation.UseDataSet;
+import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.DataSetException;
+import co.cask.cdap.api.plugin.PluginClass;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
@@ -39,6 +41,7 @@ import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TransientStore;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
@@ -902,6 +905,82 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
+   * This HTTP endpoint is used to retrieve artifacts that include plugins
+   * of type <code>Directive.Type</code> (directive). Artifact will be reported
+   * if it atleast has one plugin that is of type "directive".
+   */
+  @GET
+  @Path("artifacts")
+  public void artifacts(HttpServiceRequest request, HttpServiceResponder responder) {
+    JsonObject response = new JsonObject();
+    JsonArray values = new JsonArray();
+    try {
+      List<ArtifactInfo> artifacts = getContext().listArtifacts();
+      for(ArtifactInfo artifact : artifacts) {
+        Set<PluginClass> plugins = artifact.getClasses().getPlugins();
+        for (PluginClass plugin : plugins) {
+          if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
+            JsonObject object = new JsonObject();
+            object.addProperty("name", artifact.getName());
+            object.addProperty("version", artifact.getVersion());
+            object.addProperty("scope", artifact.getScope().name());
+            object.add("properties", GSON.toJsonTree(artifact.getProperties()));
+            values.add(object);
+            break;
+          }
+        }
+      }
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
+   * This HTTP endpoint is used to retrieve plugins that are
+   * of type <code>Directive.Type</code> (directive). Artifact will be reported
+   * if it atleast has one plugin that is of type "directive".
+   */
+  @GET
+  @Path("directives")
+  public void directives(HttpServiceRequest request, HttpServiceResponder responder) {
+    JsonObject response = new JsonObject();
+    JsonArray values = new JsonArray();
+    try {
+      List<ArtifactInfo> artifacts = getContext().listArtifacts();
+      for(ArtifactInfo artifact : artifacts) {
+        Set<PluginClass> plugins = artifact.getClasses().getPlugins();
+        JsonObject object = new JsonObject();
+        object.addProperty("name", artifact.getName());
+        object.addProperty("version", artifact.getVersion());
+        object.addProperty("scope", artifact.getScope().name());
+        for (PluginClass plugin : plugins) {
+          if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
+            JsonObject directive = new JsonObject();
+            directive.addProperty("name", plugin.getName());
+            directive.addProperty("description", plugin.getDescription());
+            directive.addProperty("type", plugin.getType());
+            directive.addProperty("class", plugin.getClassName());
+            directive.add("artifact", object);
+            values.add(directive);
+          }
+        }
+      }
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
       error(responder, e.getMessage());
     }
   }

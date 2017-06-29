@@ -27,7 +27,7 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
@@ -41,7 +41,7 @@ import java.util.List;
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
   private RecipeContext context;
-  private List<Directive> directives;
+  private List<Executor> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private RecordConvertor convertor = new RecordConvertor();
 
@@ -96,7 +96,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       while (i < rows.size()) {
         List<Row> newRows = rows.subList(i, i+1);
         try {
-          for (Directive directive : directives) {
+          for (Executor directive : directives) {
             newRows = directive.execute(newRows, context);
             if (newRows.size() < 1) {
               break;

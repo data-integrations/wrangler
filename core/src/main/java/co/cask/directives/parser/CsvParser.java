@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -47,10 +47,10 @@ import java.util.Set;
 /**
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-csv")
 @Description("Parses a column as CSV (comma-separated values).")
-public class CsvParser implements UDD {
+public class CsvParser implements Directive {
   private ColumnName columnArg;
   private Text delimiterArg;
   private Bool headerArg;

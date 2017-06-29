@@ -22,7 +22,7 @@ import com.google.gson.JsonElement;
 
 /**
  * This class {@code Arguments} represents the wrapped tokens that
- * tokenized and parsed arguments provided to the {@code Directive}.
+ * tokenized and parsed arguments provided to the {@code Executor}.
  *
  * This class <code>Arguments</code> includes methods for retrieving
  * the value of the token provided the name for the token, number of

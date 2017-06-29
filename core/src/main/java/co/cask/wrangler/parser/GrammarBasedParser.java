@@ -21,13 +21,13 @@ import co.cask.wrangler.api.CompileException;
 import co.cask.wrangler.api.CompiledUnit;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.DirectiveContext;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.TokenGroup;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -48,7 +48,7 @@ public class GrammarBasedParser implements RecipeParser {
   private Compiler compiler = new RecipeCompiler();
   private DirectiveRegistry  registry;
   private String recipe;
-  private List<Directive> directives;
+  private List<Executor> directives;
   private DirectiveContext context;
 
   public GrammarBasedParser(String[] directives, DirectiveRegistry registry) {
@@ -67,12 +67,12 @@ public class GrammarBasedParser implements RecipeParser {
   }
 
   /**
-   * Generates a configured set of {@link Directive} to be executed.
+   * Generates a configured set of {@link Executor} to be executed.
    *
-   * @return List of {@link Directive}.
+   * @return List of {@link Executor}.
    */
   @Override
-  public List<Directive> parse()
+  public List<Executor> parse()
     throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException {
     try {
       CompiledUnit compiled = compiler.compile(recipe);
@@ -106,7 +106,7 @@ public class GrammarBasedParser implements RecipeParser {
 
         if (context.isExcluded(root)) {
           throw new DirectiveParseException(
-            String.format("Directive '%s' has been configured as restricted directive and is hence unavailable. " +
+            String.format("Executor '%s' has been configured as restricted directive and is hence unavailable. " +
                             "Please contact your administrator", command)
           );
         }
@@ -114,10 +114,10 @@ public class GrammarBasedParser implements RecipeParser {
         DirectiveInfo info = registry.get(root);
         if (info == null) {
           throw new DirectiveNotFoundException(
-            String.format("Directive '%s' not found in system and user scope. Check the name of directive.", command)
+            String.format("Executor '%s' not found in system and user scope. Check the name of directive.", command)
           );
         }
-        UDD directive = info.instance();
+        Directive directive = info.instance();
         UsageDefinition definition = directive.define();
         Arguments arguments = new MapArguments(definition, next);
         directive.initialize(arguments);

@@ -17,7 +17,6 @@
 package co.cask.wrangler.api.parser;
 
 import co.cask.wrangler.api.Optional;
-import com.google.gson.JsonElement;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,8 +36,6 @@ public class UsageDefinitionTest {
     builder.define("condition", TokenType.EXPRESSION, Optional.TRUE);
     UsageDefinition definition = builder.build();
     Assert.assertEquals("test", definition.getName());
-    JsonElement element = definition.toJson();
-    System.out.println(definition.toString());
   }
 
   @Test
@@ -72,10 +69,6 @@ public class UsageDefinitionTest {
     usage = builder.build().toString();
     Assert.assertEquals("set-columns :cols [,:cols ...]* ", usage);
     usages.add(usage);
-
-    for(String usg : usages) {
-      System.out.println(usg);
-    }
 
     Assert.assertTrue(true);
 

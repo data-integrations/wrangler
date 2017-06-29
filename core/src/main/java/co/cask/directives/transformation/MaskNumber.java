@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -49,16 +49,16 @@ import java.util.List;
  *
  *  <blockquote>
  *    <pre>
- *        Directive step = new MaskNumber(lineno, line, "ssn", "XXX-XX-####", 1);
- *        Directive step = new MaskNumber(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
+ *        Executor step = new MaskNumber(lineno, line, "ssn", "XXX-XX-####", 1);
+ *        Executor step = new MaskNumber(lineno, line, "amex", "XXXX-XXXXXX-X####", 1);
  *    </pre>
  *  </blockquote>
  * </p>
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(MaskNumber.NAME)
 @Description("Masks a column value using the specified masking pattern.")
-public class MaskNumber implements UDD {
+public class MaskNumber implements Directive {
   public static final String NAME = "mask-number";
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;

@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
@@ -44,18 +44,18 @@ import java.util.Map;
  * A directive for apply an expression to store the result in a column.
  *
  * The expressions are specified in JEXL format (http://commons.apache.org/proper/commons-jexl/reference/syntax.html)
- * Directive is response for executing only one expression for each {@link Row} record that is
+ * Executor is response for executing only one expression for each {@link Row} record that is
  * being passed. The result of expression either adds a new column or replaces the value of
  * the existing column.
  *
  * <p>
- *   Directive step = new ColumnExpression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
+ *   Executor step = new ColumnExpression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(ColumnExpression.NAME)
 @Description("Sets a column by evaluating a JEXL expression.")
-public class ColumnExpression implements UDD {
+public class ColumnExpression implements Directive {
   public static final String NAME = "set-column";
   // Column to which the result of experience is applied to.
   private String column;

@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -36,10 +36,10 @@ import java.util.List;
 /**
  * A directive for splitting the string into multiple {@link Row}s.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(SplitToRows.NAME)
 @Description("Splits a column into multiple rows, copies the rest of the columns.")
-public class SplitToRows implements UDD {
+public class SplitToRows implements Directive {
   public static final String NAME = "split-to-rows";
   // Column on which to apply mask.
   private String column;

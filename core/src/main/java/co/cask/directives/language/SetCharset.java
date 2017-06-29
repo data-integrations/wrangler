@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -43,11 +43,11 @@ import java.util.List;
  * This directive will convert the data from {@link Byte[]} or {@link ByteBuffer}
  * to {@link String}. This conversion is through the character set encoding.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("set-charset")
 @Usage("set-charset <column> <charset>")
 @Description("Sets the character set decoding to UTF-8.")
-public class SetCharset implements UDD {
+public class SetCharset implements Directive {
   public static final String NAME = "set-charset";
   private String column;
   private String charset;

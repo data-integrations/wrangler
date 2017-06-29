@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -49,11 +49,11 @@ import java.util.List;
 /**
  * A step to parse Excel files.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-excel")
 @Usage("parse-as-excel <column> [<sheet number | sheet name>]")
 @Description("Parses column as Excel file.")
-public class ParseExcel implements UDD {
+public class ParseExcel implements Directive {
   public static final String NAME = "parse-as-excel";
   private static final Logger LOG = LoggerFactory.getLogger(ParseExcel.class);
   private String column;

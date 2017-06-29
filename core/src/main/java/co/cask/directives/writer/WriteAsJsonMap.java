@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -39,11 +39,11 @@ import java.util.Map;
 /**
  * A step to write the record fields as JSON.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("write-as-json-map")
 @Usage("write-as-json-map <column>")
 @Description("Writes all record columns as JSON map.")
-public class WriteAsJsonMap implements UDD {
+public class WriteAsJsonMap implements Directive {
   public static final String NAME = "write-as-json-map";
   private String column;
   private Gson gson;

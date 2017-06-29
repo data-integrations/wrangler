@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -38,10 +38,10 @@ import java.util.List;
 /**
  * A directive that Flattens a record
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Flatten.NAME)
 @Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
-public class Flatten implements UDD {
+public class Flatten implements Directive {
   public static final String NAME = "flatten";
   // Column within the input row that needs to be parsed as Json
   private String[] columns;

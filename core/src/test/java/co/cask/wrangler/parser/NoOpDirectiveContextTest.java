@@ -18,7 +18,7 @@ package co.cask.wrangler.parser;
 
 import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipeParser;
-import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.Executor;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,7 +41,7 @@ public class NoOpDirectiveContextTest {
     };
 
     RecipeParser parse = TestUtil.parse(recipe);
-    List<Directive> directives = parse.parse();
+    List<Executor> directives = parse.parse();
     Assert.assertEquals(6, directives.size());
   }
 

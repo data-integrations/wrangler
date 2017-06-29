@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
@@ -40,11 +40,11 @@ import java.util.List;
 /**
  * A XML to Json Parser Stage.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-xml-to-json")
 @Usage("parse-xml-to-json <column> [<depth>]")
 @Description("Parses a XML document to JSON representation.")
-public class XmlToJson implements UDD {
+public class XmlToJson implements Directive {
   public static final String NAME = "parse-xml-to-json";
   // Column within the input row that needs to be parsed as Json
   private String col;

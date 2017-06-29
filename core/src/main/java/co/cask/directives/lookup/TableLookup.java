@@ -23,11 +23,11 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.DatasetInstantiationException;
 import co.cask.cdap.etl.api.Lookup;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -40,10 +40,10 @@ import java.util.Map;
 /**
  * An directive that performs a lookup into a Table Dataset and adds the row values into the record.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(TableLookup.NAME)
 @Description("Uses the given column as a key to perform a lookup into the specified table.")
-public class TableLookup implements UDD {
+public class TableLookup implements Directive {
   public static final String NAME = "table-lookup";
   private String column;
   private String table;

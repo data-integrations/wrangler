@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -41,10 +41,10 @@ import java.util.List;
 /**
  * A directive for erroring the processing if condition is set to true.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Fail.NAME)
 @Description("Fails when the condition is evaluated to true.")
-public class Fail implements UDD {
+public class Fail implements Directive {
   public static final String NAME = "fail";
   private String condition;
   private JexlEngine engine;

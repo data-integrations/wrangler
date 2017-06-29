@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
@@ -40,11 +40,11 @@ import java.util.List;
  *   </ul>
  * </p>
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(CleanseColumnNames.NAME)
 @Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +
   "with an underscore '_'.")
-public final class CleanseColumnNames implements UDD {
+public final class CleanseColumnNames implements Directive {
   public static final String NAME = "cleanse-column-names";
 
   @Override

@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -36,13 +36,13 @@ import nl.basjes.parse.httpdlog.ApacheHttpdLoglineParser;
 import java.util.List;
 
 /**
- * A Directive for parsing Apache HTTPD and NGINX log files.
+ * A Executor for parsing Apache HTTPD and NGINX log files.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-log")
 @Usage("parse-as-log <column> <format>")
 @Description("Parses Apache HTTPD and NGINX logs.")
-public class ParseLog implements UDD {
+public class ParseLog implements Directive {
   public static final String NAME = "parse-as-log";
   private String column;
   private String format;

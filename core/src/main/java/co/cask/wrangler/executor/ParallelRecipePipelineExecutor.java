@@ -19,7 +19,7 @@ package co.cask.wrangler.executor;
 import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeContext;
@@ -99,7 +99,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Row,
       int startIndex = 0;
       Map<Integer, Future<List<Row>>> futures = new TreeMap<>();
 
-      final List<Directive> directives = this.directives.parse();
+      final List<Executor> directives = this.directives.parse();
       while (startIndex < rows.size()) {
         int endIndex = startIndex + chunkSize;
         if (endIndex > rows.size()) {
@@ -112,7 +112,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Row,
           private List<Row> records = newRows;
           @Override
           public List<Row> call() throws Exception {
-            for (Directive step : directives) {
+            for (Executor step : directives) {
               // If there are no rows, then we short-circuit the processing and break out.
               if (records.size() < 1) {
                 break;

@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
@@ -36,11 +36,11 @@ import java.util.List;
 /**
  * A directive for splitting a col into two additional columns based on a start and end.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(IndexSplit.NAME)
 @Description("[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead.")
 @Deprecated
-public class IndexSplit implements UDD {
+public class IndexSplit implements Directive {
   public static final String NAME = "indexsplit";
   // Name of the column to be split
   private String col;

@@ -31,7 +31,7 @@
     <module>service</module>
     <module>core</module>
     <module>api</module>
-    <module>udds</module>
+    <module>third-party</module>
   </modules>
 
   <licenses>

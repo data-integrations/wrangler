@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -34,12 +34,12 @@ import java.net.URLEncoder;
 import java.util.List;
 
 /**
- * A Directive to encode a column with url encoding.
+ * A Executor to encode a column with url encoding.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(UrlEncode.NAME)
 @Description("URL encode a column value.")
-public class UrlEncode implements UDD {
+public class UrlEncode implements Directive {
   public static final String NAME = "url-encode";
   private String column;
 

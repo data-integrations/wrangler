@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -37,10 +37,10 @@ import java.util.List;
 /**
  * A directive for merging two columns and creates a third column.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Merge.NAME)
 @Description("Merges values from two columns using a separator into a new column.")
-public class Merge implements UDD {
+public class Merge implements Directive {
   public static final String NAME = "merge";
   // Scope column1
   private String col1;

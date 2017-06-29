@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -42,15 +42,15 @@ import java.util.Random;
  *
  *   <blockquote>
  *     <pre>
- *       Directive step = new MaskNumber(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
+ *       Executor step = new MaskNumber(lineno, line, "150 Mars Avenue, Marcity, Mares", 2);
  *     </pre>
  *   </blockquote>
  * </p>
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(MaskShuffle.NAME)
 @Description("Masks a column value by shuffling characters while maintaining the same length.")
-public class MaskShuffle implements UDD {
+public class MaskShuffle implements Directive {
   public static final String NAME = "mask-shuffle";
   // Column on which to apply mask.
   private String column;

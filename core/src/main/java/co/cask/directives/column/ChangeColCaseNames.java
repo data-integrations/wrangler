@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -36,10 +36,10 @@ import java.util.List;
  * This class <code>ChangeColCaseNames</code> converts the case of the columns
  * to either lower-case or uppercase.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(ChangeColCaseNames.NAME)
 @Description("Changes the case of column names to either lowercase or uppercase.")
-public class ChangeColCaseNames implements UDD {
+public class ChangeColCaseNames implements Directive {
   public static final String NAME = "change-column-case";
   private boolean toLower;
 

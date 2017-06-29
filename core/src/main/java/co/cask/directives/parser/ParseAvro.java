@@ -26,7 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
@@ -59,11 +59,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * A step to parse AVRO json or binary format.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-avro")
 @Usage("parse-as-avro <column> <schema-id> <json|binary> [version]")
 @Description("Parses column as AVRO generic record.")
-public class ParseAvro implements UDD {
+public class ParseAvro implements Directive {
   public static final String NAME = "parse-as-avro";
   private static final Logger LOG = LoggerFactory.getLogger(ParseAvro.class);
   private String column;

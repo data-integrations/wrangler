@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -41,10 +41,10 @@ import java.util.Locale;
 /**
  * A directive that decodes a column that was encoded as base-32, base-64, or hex.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Decode.NAME)
 @Description("Decodes column values using one of base32, base64, or hex.")
-public class Decode implements UDD {
+public class Decode implements Directive {
   public static final String NAME = "decode";
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();

@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.ColumnNameList;
@@ -41,11 +41,11 @@ import java.util.List;
 /**
  * A directive for writing selected columns as Json Objects.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("write-as-json-object")
 @Usage("write-as-json-object <dest-column> [<src-column>[,<src-column>]")
 @Description("Creates a JSON object based on source columns specified. JSON object is written into dest-column.")
-public class WriteAsJsonObject implements UDD {
+public class WriteAsJsonObject implements Directive {
   public static final String NAME = "write-as-json-object";
   private String column;
   private List<String> columns;

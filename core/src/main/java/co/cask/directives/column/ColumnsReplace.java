@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -41,7 +41,7 @@ import java.util.List;
 @Plugin(type = "directives")
 @Name(ColumnsReplace.NAME)
 @Description("Modifies column names in bulk using a sed-format expression.")
-public class ColumnsReplace implements UDD {
+public class ColumnsReplace implements Directive {
   public static final String NAME = "columns-replace";
   private String sed;
 

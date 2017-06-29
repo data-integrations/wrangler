@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -38,11 +38,11 @@ import java.util.List;
 /**
  * A directive for implementing the directive for measuring the difference between two sequence of characters.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(TextDistanceMeasure.NAME)
 @Usage("text-distance <method> <column1> <column2> <destination>")
 @Description("Calculates a text distance measure between two columns containing string.")
-public class TextDistanceMeasure implements UDD {
+public class TextDistanceMeasure implements Directive {
   public static final String NAME = "text-distance";
   private String column1;
   private String column2;

@@ -18,7 +18,7 @@ package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.CompiledUnit;
 import co.cask.wrangler.api.Compiler;
-import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
@@ -47,7 +47,7 @@ public class GrammarBasedParserTest {
 
     RecipeParser parser = new GrammarBasedParser(new MigrateToV2(recipe).migrate(), registry);
     parser.initialize(null);
-    List<Directive> directives = parser.parse();
+    List<Executor> directives = parser.parse();
 
     Assert.assertEquals(2, directives.size());
   }

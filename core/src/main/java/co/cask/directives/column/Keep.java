@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -40,10 +40,10 @@ import java.util.Set;
  * columns specified, it keeps only those columns that are
  * specified.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("keep")
 @Description("Keeps the specified columns and drops all others.")
-public class Keep implements UDD {
+public class Keep implements Directive {
   public static final String NAME = "keep";
   private final Set<String> keep = new HashSet<>();
 

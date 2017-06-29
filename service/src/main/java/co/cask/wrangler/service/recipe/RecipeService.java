@@ -158,7 +158,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
    *    "values" : [
    *      {
    *        "id" : "test",
-   *        "name" : "Test Directive",
+   *        "name" : "Test Executor",
    *        "description" : "Testing directive as example",
    *        "created" : 1490675972,
    *        "updated" : 1490675972,

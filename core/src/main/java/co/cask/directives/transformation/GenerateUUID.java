@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -36,10 +36,10 @@ import java.util.UUID;
 /**
  * A directive to generate a UUID.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(GenerateUUID.NAME)
 @Description("Populates a column with a universally unique identifier (UUID) of the record.")
-public class GenerateUUID implements UDD {
+public class GenerateUUID implements Directive {
   public static final String NAME = "generate-uuid";
   private String column;
   private Random random;

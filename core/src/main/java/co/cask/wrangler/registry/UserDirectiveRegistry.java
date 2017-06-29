@@ -24,7 +24,7 @@ import co.cask.cdap.etl.api.StageContext;
 import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveRegistry;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A User Directive Registry in a collection of user defined directives. The
+ * A User Executor Registry in a collection of user defined directives. The
  * class <tt>UserDirectiveRegistry</tt> loads the directive either as an
  * {@link ArtifactInfo} or through the use of the context in which it is running.
  *
@@ -46,7 +46,7 @@ import java.util.Set;
  *
  * <p>One context is the service context in which construction of this object
  * would result in investigating all the different artifacts that are of type
- * {@link UDD#Type} and creating a classloader for the same. The classload is
+ * {@link Directive#Type} and creating a classloader for the same. The classload is
  * then used to create an instance of plugin, in this case it's a directive and
  * extract all the <tt>DirectiveInfo</tt> from the instance of directive created.</p>
  *
@@ -70,7 +70,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * be readily assignable.</p>
    *
    * <p>Using the <tt>ArtifactManager</tt>, all the artifacts are inspected to check for
-   * the artifacts that contain plugins of type <tt>UDD#Type</tt>. For all those plugins,
+   * the artifacts that contain plugins of type <tt>Directive#Type</tt>. For all those plugins,
    * an instance of the plugin is created to extract the annotated and basic information.</p>
    *
    * @param manager an instance of {@link ArtifactManager}.
@@ -82,11 +82,11 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
       for(ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         for (PluginClass plugin : plugins) {
-          if (UDD.Type.equalsIgnoreCase(plugin.getType())) {
+          if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
             try(CloseableClassLoader closeableClassLoader
                   = manager.createClassLoader(artifact, getClass().getClassLoader())) {
-              Class<? extends UDD> directive =
-                (Class<? extends UDD>) closeableClassLoader.loadClass(plugin.getClassName());
+              Class<? extends Directive> directive =
+                (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
               DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
               registry.put(classz.name(), classz);
             }
@@ -127,7 +127,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     try {
       if (!registry.containsKey(name)) {
         if (context != null) {
-          Class<? extends UDD> directive = context.loadPluginClass(name);
+          Class<? extends Directive> directive = context.loadPluginClass(name);
           DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
           registry.put(classz.name(), classz);
         }

@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -34,10 +34,10 @@ import java.util.List;
 /**
  * A directive for trimming whitespace from left side of a string
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(LeftTrim.NAME)
 @Description("Trimming whitespace from left side of a string.")
-public class LeftTrim implements UDD {
+public class LeftTrim implements Directive {
   public static final String NAME = "ltrim";
   // Columns of the column to be upper-cased
   private String col;

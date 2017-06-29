@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -36,10 +36,10 @@ import java.util.List;
 /**
  * A directive to fill null or empty column values with a fixed value.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(FillNullOrEmpty.NAME)
 @Description("Fills a value of a column with a fixed value if it is either null or empty.")
-public class FillNullOrEmpty implements UDD {
+public class FillNullOrEmpty implements Directive {
   public static final String NAME = "fill-null-or-empty";
   private String column;
   private String value;

@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -35,10 +35,10 @@ import java.util.List;
  * This class <code>Drop</code> implements a directive that will drop
  * the list of columns specified.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Drop.NAME)
 @Description("Drop one or more columns.")
-public class Drop implements UDD {
+public class Drop implements Directive {
   public static final String NAME = "drop";
 
   // Columns to be dropped.

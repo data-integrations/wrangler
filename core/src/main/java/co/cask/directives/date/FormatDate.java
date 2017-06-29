@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -40,11 +40,11 @@ import java.util.List;
 /**
  * A directive for managing date formats.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("format-date")
 @Usage("format-date <column> <format>")
 @Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")
-public class FormatDate implements UDD {
+public class FormatDate implements Directive {
   public static final String NAME = "format-date";
   private String format;
   private String column;

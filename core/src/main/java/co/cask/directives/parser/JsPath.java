@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -45,11 +45,11 @@ import java.util.List;
 /**
  * A Json Path Extractor Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("json-path")
 @Usage("json-path <source> <destination> <json-path-expression>")
 @Description("Parses JSON elements using a DSL (a JSON path expression).")
-public class JsPath implements UDD {
+public class JsPath implements Directive {
   public static final String NAME = "json-path";
   private String src;
   private String dest;

@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Numeric;
@@ -43,10 +43,10 @@ import java.util.List;
 /**
  * A directive for incrementing the a transient variable based on conditions.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(IncrementTransientVariable.NAME)
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
-public class IncrementTransientVariable implements UDD {
+public class IncrementTransientVariable implements Directive {
   public static final String NAME = "increment-variable";
   private String variable;
   private long incrementBy;

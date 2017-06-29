@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -36,10 +36,10 @@ import java.util.List;
 /**
  * A directive that looks up ICD Code from the catalog.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(CatalogLookup.NAME)
 @Description("Looks-up values from pre-loaded (static) catalogs.")
-public class CatalogLookup implements UDD {
+public class CatalogLookup implements Directive {
   public static final String NAME = "catalog-lookup";
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;

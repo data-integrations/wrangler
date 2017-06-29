@@ -16,10 +16,10 @@
 
 package co.cask.wrangler.registry;
 
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveRegistry;
-import co.cask.wrangler.api.UDD;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.reflections.Reflections;
@@ -35,8 +35,8 @@ import java.util.Set;
  * class.
  *
  * <p>In order to load the directives, this class scans through all classes that
- * implement the interface {@link UDD}. Instead of scanning entire JAR, it uses the
- * package name a starting point for scanning the classes that implement the <tt>UDD</tt>
+ * implement the interface {@link Directive}. Instead of scanning entire JAR, it uses the
+ * package name a starting point for scanning the classes that implement the <tt>Directive</tt>
  * interface.</p>
  *
  * <p>For every class found, this scan will create a instance of {@link DirectiveInfo}
@@ -58,7 +58,7 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
 
   /**
    * This constructor uses the user provided <tt>namespace</tt> as starting pointing
-   * for scanning classes that implement the interface {@link UDD}.
+   * for scanning classes that implement the interface {@link Directive}.
    *
    * @param namespace that is used as starting point for scanning classes.
    * @throws DirectiveLoadException thrown if there are any issue loading the directive.
@@ -68,8 +68,8 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
     this.namespace = namespace;
     try {
       Reflections reflections = new Reflections(this.namespace);
-      Set<Class<? extends UDD>> system = reflections.getSubTypesOf(UDD.class);
-      for(Class<? extends UDD> directive : system) {
+      Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
+      for(Class<? extends Directive> directive : system) {
         DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.SYSTEM, directive);
         registry.put(classz.name(), classz);
       }

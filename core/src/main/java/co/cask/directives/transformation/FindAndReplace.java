@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -39,11 +39,11 @@ import java.util.List;
 /**
  * A directive for 'find-and-replace' transformations on the column.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(FindAndReplace.NAME)
 @Usage("find-and-replace <column> <sed-expression>")
 @Description("Finds and replaces text in column values using a sed-format expression.")
-public class FindAndReplace implements UDD {
+public class FindAndReplace implements Directive {
   public static final String NAME = "find-and-replace";
   private String pattern;
   private String column;

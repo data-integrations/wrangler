@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -36,10 +36,10 @@ import java.util.List;
 /**
  * A directive to split a URL into it's components.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(SplitURL.NAME)
 @Description("Split a url into it's components host,protocol,port,etc.")
-public class SplitURL implements UDD {
+public class SplitURL implements Directive {
   public static final String NAME = "split-url";
   private String column;
 

@@ -28,11 +28,11 @@ import javax.annotation.Nullable;
 @PublicEvolving
 public interface RecipeParser extends Serializable {
   /**
-   * Generates a configured set of {@link Directive} to be executed.
+   * Generates a configured set of {@link Executor} to be executed.
    *
-   * @return List of {@link Directive}.
+   * @return List of {@link Executor}.
    */
-  List<Directive> parse() throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException;
+  List<Executor> parse() throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException;
 
   /**
    * Initialises the directive with a {@link DirectiveContext}.

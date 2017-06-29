@@ -20,13 +20,13 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -59,10 +59,10 @@ import java.util.Map;
 /**
  * A directives that invokes HTTP endpoint to merge the results back into dataset.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(InvokeHttp.NAME)
 @Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
-public class InvokeHttp implements UDD {
+public class InvokeHttp implements Directive {
   public static final String NAME = "invoke-http";
   private String url;
   private List<String> columns;

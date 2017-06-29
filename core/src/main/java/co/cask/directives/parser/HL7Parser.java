@@ -42,7 +42,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
@@ -56,12 +56,12 @@ import java.util.List;
 /**
  * A step for parsing the HL7 Message.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-hl7")
 @Usage("parse-as-hl7 <column> [<depth>]")
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
   "JSON object enumeration terminates.")
-public class HL7Parser implements UDD {
+public class HL7Parser implements Directive {
   public static final String NAME = "parse-as-hl7";
   private String column;
   private HapiContext context;

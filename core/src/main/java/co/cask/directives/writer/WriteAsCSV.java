@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -43,11 +43,11 @@ import java.util.List;
 /**
  * A step to write the record fields as CSV.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("write-as-csv")
 @Usage("write-as-csv <column>")
 @Description("Writes the records files as well-formatted CSV")
-public class WriteAsCSV implements UDD {
+public class WriteAsCSV implements Directive {
   public static final String NAME = "write-as-csv";
   private String column;
   private CSVPrinter writer;

@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -37,10 +37,10 @@ import java.util.List;
 /**
  * A directive for implementing the directive for measuring the metrics between two sequence of characters.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(TextMetricMeasure.NAME)
 @Description("Calculates the metric for comparing two string values.")
-public class TextMetricMeasure implements UDD {
+public class TextMetricMeasure implements Directive {
   public static final String NAME = "text-metric";
   private String column1;
   private String column2;

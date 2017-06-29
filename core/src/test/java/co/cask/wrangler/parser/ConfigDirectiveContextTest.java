@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
@@ -97,7 +97,7 @@ public class ConfigDirectiveContextTest {
     );
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Directive> steps = directives.parse();
+    List<Executor> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 
@@ -115,7 +115,7 @@ public class ConfigDirectiveContextTest {
     );
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Directive> steps = directives.parse();
+    List<Executor> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 
@@ -133,7 +133,7 @@ public class ConfigDirectiveContextTest {
     );
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Directive> steps = directives.parse();
+    List<Executor> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 

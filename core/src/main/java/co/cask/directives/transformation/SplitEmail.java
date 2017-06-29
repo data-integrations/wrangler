@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -36,11 +36,11 @@ import java.util.List;
 /**
  * A directive to split email address into account and domain.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(SplitEmail.NAME)
 @Usage("split-email <column>")
 @Description("Split a email into account and domain.")
-public class SplitEmail implements UDD {
+public class SplitEmail implements Directive {
   public static final String NAME = "split-email";
   private String column;
 

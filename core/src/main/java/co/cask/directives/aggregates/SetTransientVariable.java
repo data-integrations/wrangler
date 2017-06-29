@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
@@ -45,10 +45,10 @@ import java.util.List;
  * The value set as transient variable is available to all the directives after that. But, it's
  * not available beyond the input record.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(SetTransientVariable.NAME)
 @Description("Sets the value for a transient variable for the record being processed.")
-public class SetTransientVariable implements UDD {
+public class SetTransientVariable implements Directive {
   public static final String NAME = "set-variable";
   private String variable;
   private String expression;

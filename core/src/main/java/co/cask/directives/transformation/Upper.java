@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -35,11 +35,11 @@ import java.util.List;
 /**
  * A Wrangler step for upper casing the 'column' value of type String.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Upper.NAME)
 @Usage("uppercase <column>")
 @Description("Changes the column values to uppercase.")
-public class Upper implements UDD {
+public class Upper implements Directive {
   public static final String NAME = "uppercase";
   // Columns of the column to be upper-cased
   private String column;

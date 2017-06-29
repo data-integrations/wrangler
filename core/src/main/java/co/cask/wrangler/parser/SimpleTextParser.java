@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.DirectiveContext;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
@@ -71,8 +71,8 @@ public class SimpleTextParser implements RecipeParser {
    * @throws ParseException
    */
   @Override
-  public List<Directive> parse() throws DirectiveParseException {
-    List<Directive> directives = new ArrayList<>();
+  public List<Executor> parse() throws DirectiveParseException {
+    List<Executor> directives = new ArrayList<>();
 
     // Split directive by EOL
     int lineno = 1;
@@ -104,7 +104,7 @@ public class SimpleTextParser implements RecipeParser {
 
       if (context.isExcluded(root)) {
         throw new DirectiveParseException(
-          String.format("Directive '%s' has been configured as restricted directive and is hence unavailable. " +
+          String.format("Executor '%s' has been configured as restricted directive and is hence unavailable. " +
                           "Please contact your administrator", command)
         );
       }

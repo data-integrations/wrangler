@@ -28,10 +28,10 @@ More description of the above lines.
 Following is a sample implementation of the plugin that extends the interface [UDD](../api/src/main/java/co/cask/wrangler/api/UDD.java)
 
 ```
-  @Plugin(type = UDD.Type)
+  @Plugin(type = Directive.Type)
   @Name("text-reverse")
   @Description("Reverses a string value of a column)
-  public final class TextReverse implements UDD {
+  public final class TextReverse implements Directive {
     private final ColumnName columnArgs;
 
     @Override

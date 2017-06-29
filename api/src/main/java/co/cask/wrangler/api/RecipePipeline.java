@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * {@link RecipePipeline} executes array of {@link Directive} in the order they are specified.
+ * {@link RecipePipeline} executes array of {@link Executor} in the order they are specified.
  */
 @PublicEvolving
 public interface RecipePipeline<I, O, E> extends Serializable {

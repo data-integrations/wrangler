@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -35,10 +35,10 @@ import java.util.List;
 /**
  * Filters records if they don't have all the columns specified or they have null values or combination.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(RecordMissingOrNullFilter.NAME)
 @Description("Filters row that have empty or null columns.")
-public class RecordMissingOrNullFilter implements UDD {
+public class RecordMissingOrNullFilter implements Directive {
   public static final String NAME = "filter-empty-or-null";
   private String[] columns;
 

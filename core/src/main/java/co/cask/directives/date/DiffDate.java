@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -36,12 +36,12 @@ import java.util.List;
 /**
  * A directive for taking difference in Dates.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("diff-date")
 @Usage("diff-date <column1> <column2> <destination>")
 @Description("Calculates the difference in milliseconds between two Date objects." +
   "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
-public class DiffDate implements UDD {
+public class DiffDate implements Directive {
   public static final String NAME = "diff-date";
   private String column1;
   private String column2;

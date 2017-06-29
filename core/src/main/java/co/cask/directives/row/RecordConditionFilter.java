@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
@@ -49,10 +49,10 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(RecordConditionFilter.NAME)
 @Description("Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead.")
-public class RecordConditionFilter implements UDD {
+public class RecordConditionFilter implements Directive {
   public static final String NAME = "filter-row-if-true";
   private String condition;
   private JexlEngine engine;

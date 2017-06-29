@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -39,14 +39,14 @@ import java.util.List;
 import java.util.TimeZone;
 
 /**
- * A Directive to parse date.
+ * A Executor to parse date.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-date")
 @Usage("parse-as-date <column> [<timezone>]")
 @Description("Parses column values as dates using natural language processing and " +
   "automatically identifying the format (expensive in terms of time consumed).")
-public class ParseDate implements UDD {
+public class ParseDate implements Directive {
   public static final String NAME = "parse-as-date";
   private String column;
   private String timezone;

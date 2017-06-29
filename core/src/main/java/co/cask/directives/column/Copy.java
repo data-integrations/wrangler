@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -37,10 +37,10 @@ import java.util.List;
 /**
  * A directive for copying value of one column to another.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name(Copy.NAME)
 @Description("Copies values from a source column into a destination column.")
-public class Copy implements UDD {
+public class Copy implements Directive {
   private static final Messages MSG = MessagesFactory.getMessages();
   public static final String NAME = "copy";
   private ColumnName source;

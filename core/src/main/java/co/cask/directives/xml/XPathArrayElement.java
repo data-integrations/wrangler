@@ -20,11 +20,11 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Directive to extract XML element as an JSON array using XPath.
+ * A Executor to extract XML element as an JSON array using XPath.
  *
  * <p>
  *   TODO: This code has to be moved out into a plugin due to VTDNav once we have
@@ -50,11 +50,11 @@ import java.util.List;
  * </p>
  *
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("xpath-array")
 @Usage("xpath-array <column> <destination> <xpath>")
 @Description("Extract XML element or attributes as JSON array using XPath.")
-public class XPathArrayElement implements UDD {
+public class XPathArrayElement implements Directive {
   public static final String NAME = "xpath-array";
   private String column;
   private String destination;

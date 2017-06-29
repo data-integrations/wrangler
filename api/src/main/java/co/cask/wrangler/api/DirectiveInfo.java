@@ -41,7 +41,7 @@ public final class DirectiveInfo {
     this.scope = scope;
     this.directive = directive;
     Object object = directive.newInstance();
-    this.definition = ((UDD) object).define();
+    this.definition = ((Directive) object).define();
     if (definition != null) {
       this.usage = definition.toString();
     } else {
@@ -67,8 +67,8 @@ public final class DirectiveInfo {
     return definition;
   }
 
-  public final UDD instance() throws IllegalAccessException, InstantiationException {
-    return (UDD) directive.newInstance();
+  public final Directive instance() throws IllegalAccessException, InstantiationException {
+    return (Directive) directive.newInstance();
   }
 
   public final JsonObject toJson() {

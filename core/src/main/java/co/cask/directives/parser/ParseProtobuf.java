@@ -20,12 +20,12 @@ import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
@@ -56,11 +56,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * A step to parse Protobuf encoded memory representations.
  */
-@Plugin(type = UDD.Type)
+@Plugin(type = Directive.Type)
 @Name("parse-as-protobuf")
 @Usage("parse-as-protobuf <column> <schema-id> <record-name> [version]")
 @Description("Parses column as protobuf encoded memory representations.")
-public class ParseProtobuf implements UDD {
+public class ParseProtobuf implements Directive {
   public static final String NAME = "parse-as-protobuf";
   private static final Logger LOG = LoggerFactory.getLogger(ParseProtobuf.class);
   private String column;
