@@ -18,8 +18,11 @@ package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveConfig;
+import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
+import co.cask.wrangler.registry.CompositeDirectiveRegistry;
+import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,7 +60,9 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextParser(text);
+    RecipeParser directives = new GrammarBasedParser(text,
+                                                     new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
+    );
     directives.initialize(new ConfigDirectiveContext(config));
     directives.parse();
   }
@@ -71,7 +76,9 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextParser(text);
+    RecipeParser directives = new GrammarBasedParser(text,
+                                                     new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
+    );
     directives.initialize(new ConfigDirectiveContext(config));
     directives.parse();
   }
@@ -79,29 +86,33 @@ public class ConfigDirectiveContextTest {
   @Test
   public void testAliasing() throws Exception {
     String[] text = new String[] {
-      "json-parser body"
+      "json-parser :body;"
     };
 
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextParser(text);
+    RecipeParser directives = new GrammarBasedParser(text,
+                                                     new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
+    );
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 
-  @Test(expected = DirectiveParseException.class)
+  @Test(expected = DirectiveNotFoundException.class)
   public void testEmptyAliasingShouldFail() throws Exception {
     String[] text = new String[] {
-      "json-parser body"
+      "json-parser :body;"
     };
 
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextParser(text);
+    RecipeParser directives = new GrammarBasedParser(text,
+                                                     new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
+    );
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();
@@ -111,13 +122,15 @@ public class ConfigDirectiveContextTest {
   @Test
   public void testWithNoAliasingNoExclusion() throws Exception {
     String[] text = new String[] {
-      "parse-as-json body"
+      "parse-as-json :body;"
     };
 
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    RecipeParser directives = new SimpleTextParser(text);
+    RecipeParser directives = new GrammarBasedParser(text,
+                                                     new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
+    );
     directives.initialize(new ConfigDirectiveContext(config));
 
     List<Directive> steps = directives.parse();
