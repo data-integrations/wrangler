@@ -7,7 +7,7 @@ within the data preparation tool.
 
 Building a custom directive involves implementing three simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
-  * **I** -- `initialize()` -- Invoked by the framework to initialise the custom directive with arguments parsed. 
+  * **I** -- `initialize()` -- Invoked by the framework to initialize the custom directive with arguments parsed. 
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
 
 # Steps to Build a directive
