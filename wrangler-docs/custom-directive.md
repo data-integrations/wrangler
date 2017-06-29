@@ -7,7 +7,7 @@ within the data preparation tool.
 
 Building a custom directive involves implementing three simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
-  * **I** -- `initialise()` -- Invoked by the framework to initialise the custom directive with arguments parsed. 
+  * **I** -- `initialize()` -- Invoked by the framework to initialise the custom directive with arguments parsed. 
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
 
 # Steps to Build a directive
@@ -56,7 +56,7 @@ Following is a sample implementation of the plugin that extends the interface [U
     }
 
     @Override
-    public void initialise(Arguments args) throws DirectiveParseException {
+    public void initialize(Arguments args) throws DirectiveParseException {
       columnArgs = args.value("text");
     }
 
@@ -76,7 +76,7 @@ Following is detailed explaination for the above code.
   * `@Name` annotation provides the name of the plugin. For this type, the directive name and plugin name are the same.
   * `@Description` annotation provides a short description of the directive.
   * `UsageDefition define() { }` Defines the arguments that are expected by the directive.
-  * `void initialise(Arguments args) { }` Invoked before configuring a directive with arguments parsed by the framework based on the `define()` methods `UsageDefintion`.
+  * `void initialize(Arguments args) { }` Invoked before configuring a directive with arguments parsed by the framework based on the `define()` methods `UsageDefintion`.
   * `execute(...) { }` Every `Row` from previous directive execution is passed to this plugin to execute.
 
 ## Migrating from Old Syntax to New Syntax
