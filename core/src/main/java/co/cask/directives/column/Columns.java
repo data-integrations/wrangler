@@ -39,16 +39,16 @@ import java.util.List;
  * all previous column names and add new column names.
  */
 @Plugin(type = "directives")
-@Name(Columns.DIRECTIVE_NAME)
+@Name(Columns.NAME)
 @Description("Sets the name of columns, in the order they are specified.")
 public class Columns implements UDD {
-  public static final String DIRECTIVE_NAME = "set-headers";
+  public static final String NAME = "set-headers";
   // Name of the columns represented in a {@link Row}
   private List<String> columns = new ArrayList<>();
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME_LIST);
     return builder.build();
   }

@@ -36,17 +36,17 @@ import java.util.List;
  * the list of columns specified.
  */
 @Plugin(type = UDD.Type)
-@Name(Drop.DIRECTIVE_NAME)
+@Name(Drop.NAME)
 @Description("Drop one or more columns.")
 public class Drop implements UDD {
-  public static final String DIRECTIVE_NAME = "drop";
+  public static final String NAME = "drop";
 
   // Columns to be dropped.
   private List<String> columns;
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME_LIST);
     return builder.build();
   }

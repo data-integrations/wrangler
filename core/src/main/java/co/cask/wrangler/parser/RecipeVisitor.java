@@ -79,7 +79,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
       } else if (property.bool() != null) {
         token = new Bool(Boolean.valueOf(property.bool().getText()));
       } else {
-        token = new Text(property.text().getText());
+        String text = property.text().getText();
+        token = new Text(text.substring(1, text.length()-1));
       }
       props.put(identifier, token);
     }
@@ -124,10 +125,14 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<CompiledUnit.Buil
     List<DirectivesParser.NumberRangeContext> ranges = ctx.numberRange();
     for(DirectivesParser.NumberRangeContext range : ranges) {
       List<TerminalNode> numbers = range.Number();
+      String text = range.value().getText();
+      if (text.startsWith("'") && text.endsWith("'")) {
+        text = text.substring(1, text.length() - 1);
+      }
       Triplet<Numeric, Numeric, String> val =
         new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
                       new Numeric(new LazyNumber(numbers.get(1).getText())),
-                      range.value().getText()
+                      text
         );
       output.add(val);
     }

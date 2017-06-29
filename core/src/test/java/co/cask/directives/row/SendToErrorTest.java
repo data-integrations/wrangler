@@ -16,7 +16,7 @@
 
 package co.cask.directives.row;
 
-import co.cask.wrangler.TestUtil;
+import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.ErrorRecord;
@@ -34,9 +34,9 @@ public class SendToErrorTest {
   @Test
   public void testErrorConditionTrue() throws Exception {
     String[] directives = new String[] {
-      "parse-as-csv :body ',' true",
-      "drop :body",
-      "send-to-error exp:{C == 1}",
+      "parse-as-csv body , true",
+      "drop body",
+      "send-to-error C == 1",
     };
 
     List<Row> rows = Arrays.asList(

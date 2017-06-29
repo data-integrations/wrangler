@@ -36,16 +36,16 @@ import java.util.List;
  * A directive for renaming columns.
  */
 @Plugin(type = UDD.Type)
-@Name(Rename.DIRECTIVE_NAME)
+@Name(Rename.NAME)
 @Description("Renames a column 'source' to 'target'")
 public final class Rename implements UDD {
-  public static final String DIRECTIVE_NAME = "rename";
+  public static final String NAME = "rename";
   private ColumnName source;
   private ColumnName target;
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("source", TokenType.COLUMN_NAME);
     builder.define("target", TokenType.COLUMN_NAME);
     return builder.build();

@@ -28,7 +28,7 @@ import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.wrangler.steps.parser.JsParser;
+import co.cask.directives.parser.JsParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -39,10 +39,10 @@ import java.util.List;
  * A directive that Flattens a record
  */
 @Plugin(type = UDD.Type)
-@Name(Flatten.DIRECTIVE_NAME)
+@Name(Flatten.NAME)
 @Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
 public class Flatten implements UDD {
-  public static final String DIRECTIVE_NAME = "flatten";
+  public static final String NAME = "flatten";
   // Column within the input row that needs to be parsed as Json
   private String[] columns;
   private int[] locations;
@@ -50,7 +50,7 @@ public class Flatten implements UDD {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME_LIST);
     return builder.build();
   }

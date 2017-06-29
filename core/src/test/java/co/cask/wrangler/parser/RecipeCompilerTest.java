@@ -48,13 +48,55 @@ public class RecipeCompilerTest {
   }
 
   @Test
-  public void testC1() throws Exception {
+  public void testListSyntaxError() throws Exception {
     try {
-      compiler.compile("merge exp: a > 1};");
+      compiler.compile("merge a,b,;");
       Assert.assertTrue(compiler.hasErrors());
+      Assert.assertEquals("line 1:7 - Error at token ',' Mismatched input ',' expecting ';'",
+                          compiler.getSyntaxErrors().next().getMessage());
+
+      compiler.compile("merge ,a,b;");
+      Assert.assertTrue(compiler.hasErrors());
+      Assert.assertEquals("line 1:6 - Error at token ',' Mismatched input ',' expecting ';'",
+                          compiler.getSyntaxErrors().next().getMessage());
+
+      compiler.compile("merge a,,b,;");
+      Assert.assertTrue(compiler.hasErrors());
+      Assert.assertEquals("line 1:7 - Error at token ',' Mismatched input ',' expecting ';'",
+                          compiler.getSyntaxErrors().next().getMessage());
+
       System.out.println(compiler.getSyntaxErrors().next().getMessage());
     } catch (CompileException e) {
       Assert.assertTrue(false);
     }
+  }
+
+  @Test
+  public void testStringSyntax() throws Exception {
+    compiler.compile("merge :A :B :C '\\u00A';");
+    Assert.assertTrue(compiler.hasErrors());
+  }
+
+  @Test
+  public void testExpressionSyntaxError() throws Exception {
+    compiler.compile("send-to-error exp 10 > 12;");
+    Assert.assertTrue(compiler.hasErrors());
+    Assert.assertEquals("line 1:18 - Error at token '10' Mismatched input '10' expecting ':'",
+                        compiler.getSyntaxErrors().next().getMessage());
+
+    compiler.compile("send-to-error exp:10 > 12;");
+    Assert.assertTrue(compiler.hasErrors());
+    Assert.assertEquals("line 1:18 - Error at token '10' Mismatched input '10' expecting '{'",
+                        compiler.getSyntaxErrors().next().getMessage());
+
+    compiler.compile("send-to-error exp:{10 > 12;");
+    Assert.assertTrue(compiler.hasErrors());
+    Assert.assertEquals("line 1:27 - Error at token '<EOF>' Mismatched input '<EOF>' expecting '}'",
+                        compiler.getSyntaxErrors().next().getMessage());
+
+    compiler.compile("send-to-error exp:{{10 > 12;");
+    Assert.assertTrue(compiler.hasErrors());
+    Assert.assertEquals("line 1:28 - Error at token '<EOF>' No viable alternative at input '{10>12;'",
+                        compiler.getSyntaxErrors().next().getMessage());
   }
 }

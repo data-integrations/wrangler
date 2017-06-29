@@ -20,7 +20,7 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.steps.parser.JsParser;
+import co.cask.directives.parser.JsParser;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;

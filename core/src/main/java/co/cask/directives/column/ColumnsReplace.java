@@ -39,15 +39,15 @@ import java.util.List;
  * This directive helps clearing out the columns names to make it more readable.
  */
 @Plugin(type = "directives")
-@Name(ColumnsReplace.DIRECTIVE_NAME)
+@Name(ColumnsReplace.NAME)
 @Description("Modifies column names in bulk using a sed-format expression.")
 public class ColumnsReplace implements UDD {
-  public static final String DIRECTIVE_NAME = "columns-replace";
+  public static final String NAME = "columns-replace";
   private String sed;
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("sed-expression", TokenType.TEXT);
     return builder.build();
   }

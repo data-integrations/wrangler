@@ -18,11 +18,11 @@ package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
+import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.SimpleTextParser;
-import co.cask.wrangler.steps.RecipePipelineTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -76,7 +76,7 @@ public class RowConvertorTest {
         "}")
     );
 
-    rows = RecipePipelineTest.execute(directives, rows);
+    rows = TestUtil.execute(directives, rows);
     Row row = createUberRecord(rows);
 
     Json2Schema json2Schema = new Json2Schema();

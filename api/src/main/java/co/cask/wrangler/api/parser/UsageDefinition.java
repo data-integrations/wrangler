@@ -102,6 +102,7 @@ public final class UsageDefinition implements Serializable {
     return sb.toString();
   }
 
+
   public static UsageDefinition.Builder builder(String directive) {
     return new UsageDefinition.Builder(directive);
   }

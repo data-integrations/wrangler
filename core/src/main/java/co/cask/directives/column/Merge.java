@@ -38,10 +38,10 @@ import java.util.List;
  * A directive for merging two columns and creates a third column.
  */
 @Plugin(type = UDD.Type)
-@Name(Merge.DIRECTIVE_NAME)
+@Name(Merge.NAME)
 @Description("Merges values from two columns using a separator into a new column.")
 public class Merge implements UDD {
-  public static final String DIRECTIVE_NAME = "merge";
+  public static final String NAME = "merge";
   // Scope column1
   private String col1;
 
@@ -56,7 +56,7 @@ public class Merge implements UDD {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column1", TokenType.COLUMN_NAME);
     builder.define("column2", TokenType.COLUMN_NAME);
     builder.define("destination", TokenType.COLUMN_NAME);

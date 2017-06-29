@@ -16,8 +16,7 @@
 
 package co.cask.directives.column;
 
-import co.cask.directives.column.Columns;
-import co.cask.wrangler.TestUtil;
+import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Row;
 import org.junit.Assert;

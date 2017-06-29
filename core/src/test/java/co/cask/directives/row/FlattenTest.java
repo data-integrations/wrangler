@@ -16,7 +16,7 @@
 
 package co.cask.directives.row;
 
-import co.cask.wrangler.TestUtil;
+import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Row;
 import com.google.gson.JsonArray;

@@ -38,18 +38,20 @@ options {
  */
 }
 
+/**
+ * Parser Grammar for recognizing tokens and constructs of the directives language.
+ */
 recipe
  : directives EOF
  ;
 
 directives
- : Comment
- | (directive)*?
+ : (Comment | directive ';' | pragma ';')*?
  ;
 
 directive
  : command
-  ( codeblock
+  (   codeblock
     | identifier
     | text
     | number
@@ -61,28 +63,11 @@ directive
     | stringList
     | numberRanges
     | properties
-  )* SColon
- | pragma
- ;
-
-identifier
- : Identifier
- ;
+  )*
+  ;
 
 pragma
- : '#pragma' (pragmaLoadDirective | pragmaVersion) SColon
- ;
-
-properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
- ;
-
-propertyList
- : property (',' property)+
- ;
-
-property
- : Identifier '=' ( text | number | bool )
+ : '#pragma' (pragmaLoadDirective | pragmaVersion)
  ;
 
 pragmaLoadDirective
@@ -91,6 +76,30 @@ pragmaLoadDirective
 
 pragmaVersion
  : 'version' Number
+ ;
+
+codeblock
+ : 'exp' Space* ':' condition
+ ;
+
+identifier
+ : Identifier
+ ;
+
+properties
+ : 'prop' ':' OBrace (propertyList)+  CBrace
+ | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
+ | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
+ | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
+ | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+ ;
+
+propertyList
+ : property (',' property)+
+ ;
+
+property
+ : Identifier '=' ( text | number | bool )
  ;
 
 numberRanges
@@ -129,10 +138,6 @@ bool
  : Bool
  ;
 
-codeblock
- : 'exp' Space* ':' condition
- ;
-
 condition
  : OBrace (~CBrace | condition)* CBrace
  ;
@@ -161,6 +166,10 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+
+/*
+ * Following are the Lexer Rules used for tokenizing the recipe.
+ */
 OBrace   : '{';
 CBrace   : '}';
 SColon   : ';';
@@ -189,6 +198,8 @@ QMark    : '?';
 Colon    : ':';
 Dot      : '.';
 At       : '@';
+Pipe     : '|';
+BackSlash: '\\';
 
 Bool
  : 'true'
@@ -208,14 +219,34 @@ Column
  ;
 
 String
- : ["] (~["\r\n] | '"')* ["]
- | ['] (~['\r\n] | '\'')* [']
+ : '\'' ( EscapeSequence | ~('\'') )* '\''
+ | '"'  ( EscapeSequence | ~('"') )* '"'
  ;
+
+EscapeSequence
+   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+   |   UnicodeEscape
+   |   OctalEscape
+   ;
+
+fragment
+OctalEscape
+   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+   |   '\\' ('0'..'7') ('0'..'7')
+   |   '\\' ('0'..'7')
+   ;
+
+fragment
+UnicodeEscape
+   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
+   ;
+
+fragment
+   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
  ;
-
 
 Space
  : [ \t\r\n\u000C]+ -> skip

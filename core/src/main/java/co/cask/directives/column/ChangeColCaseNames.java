@@ -37,15 +37,15 @@ import java.util.List;
  * to either lower-case or uppercase.
  */
 @Plugin(type = UDD.Type)
-@Name(ChangeColCaseNames.DIRECTIVE_NAME)
+@Name(ChangeColCaseNames.NAME)
 @Description("Changes the case of column names to either lowercase or uppercase.")
 public class ChangeColCaseNames implements UDD {
-  public static final String DIRECTIVE_NAME = "change-column-case";
+  public static final String NAME = "change-column-case";
   private boolean toLower;
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("case", TokenType.IDENTIFIER, Optional.TRUE);
     return builder.build();
   }

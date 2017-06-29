@@ -16,7 +16,7 @@
 
 package co.cask.directives.row;
 
-import co.cask.wrangler.TestUtil;
+import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.Row;
 import org.junit.Assert;
@@ -36,8 +36,8 @@ public class RowConditionFilterTest {
       "parse-as-csv __col ,",
       "drop __col",
       "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
-      "filter-row-if-matched email NULL",
-      "filter-row-if-matched email .*@joltie.io",
+      "filter-regex-match :email 'NULL'",
+      "filter-regex-match :email '.*@joltie.io'",
       "filter-row-if-true id > 1092"
     };
 

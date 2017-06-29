@@ -46,8 +46,10 @@ public final class TextReverse implements UDD {
 
   @Override
   public UsageDefinition define() {
+    // text-reverse :column exp:{ <expression> };
     UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
     builder.define("column", TokenType.COLUMN_NAME);
+    builder.define("expression", TokenType.EXPRESSION);
     return builder.build();
   }
 

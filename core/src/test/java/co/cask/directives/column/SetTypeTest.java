@@ -17,7 +17,7 @@
 package co.cask.directives.column;
 
 import co.cask.cdap.api.common.Bytes;
-import co.cask.wrangler.TestUtil;
+import co.cask.TestUtil;
 import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;

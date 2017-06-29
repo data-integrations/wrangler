@@ -44,12 +44,12 @@ import java.util.Set;
 @Name("keep")
 @Description("Keeps the specified columns and drops all others.")
 public class Keep implements UDD {
-  public static final String DIRECTIVE_NAME = "keep";
+  public static final String NAME = "keep";
   private final Set<String> keep = new HashSet<>();
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME_LIST);
     return builder.build();
   }

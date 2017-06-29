@@ -30,7 +30,7 @@ import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.wrangler.steps.transformation.JexlHelper;
+import co.cask.directives.JexlHelper;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;

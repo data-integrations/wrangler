@@ -19,14 +19,10 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.parser.SyntaxError;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.atn.ATNConfigSet;
-import org.antlr.v4.runtime.dfa.DFA;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,45 +44,11 @@ public final class SyntaxErrorListener extends BaseErrorListener {
     String symbolText = "";
     if (offendingSymbol instanceof CommonToken) {
       CommonToken symbol = (CommonToken) offendingSymbol;
-      symbolText = String.format("Error at token :" + symbol.getText());
+      symbolText = String.format("Error at token '" + symbol.getText() + "'");
     }
     msg = !symbolText.isEmpty() ? symbolText + " " + msg : msg;
     msg = String.format("line %d:%d - %s", line, charPositionInLine, msg);
     errors.add(new SyntaxError(line, charPositionInLine, msg, symbolText));
-  }
-
-  @Override
-  public void reportAmbiguity(Parser recognizer,
-                              DFA dfa,
-                              int startIndex,
-                              int stopIndex,
-                              boolean exact,
-                              BitSet ambigAlts,
-                              ATNConfigSet configs)
-  {
-    System.out.println("Ambiguity");
-  }
-
-  @Override
-  public void reportAttemptingFullContext(Parser recognizer,
-                                          DFA dfa,
-                                          int startIndex,
-                                          int stopIndex,
-                                          BitSet conflictingAlts,
-                                          ATNConfigSet configs)
-  {
-    System.out.println("reportAttemptingFullContext");
-  }
-
-  @Override
-  public void reportContextSensitivity(Parser recognizer,
-                                       DFA dfa,
-                                       int startIndex,
-                                       int stopIndex,
-                                       int prediction,
-                                       ATNConfigSet configs)
-  {
-    System.out.println("reportContextSensitivity");
   }
 
   public boolean hasErrors() {

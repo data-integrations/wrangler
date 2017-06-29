@@ -17,7 +17,7 @@
 package co.cask.wrangler.executor;
 
 
-import co.cask.wrangler.steps.transformation.StaticCatalog;
+import co.cask.directives.lookup.StaticCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

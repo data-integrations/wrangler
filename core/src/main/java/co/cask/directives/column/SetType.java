@@ -38,16 +38,16 @@ import java.util.List;
  * Accepted types are: int, short, long, double, float, string, boolean and bytes
  */
 @Plugin(type = "directives")
-@Name(SetType.DIRECTIVE_NAME)
+@Name(SetType.NAME)
 @Description("Converting data type of a column.")
 public final class SetType implements UDD {
-  public static final String DIRECTIVE_NAME = "set-type";
+  public static final String NAME = "set-type";
   private String col;
   private String type;
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("type", TokenType.IDENTIFIER);
     return builder.build();

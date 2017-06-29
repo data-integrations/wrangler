@@ -41,15 +41,15 @@ import java.util.List;
  * </p>
  */
 @Plugin(type = UDD.Type)
-@Name(CleanseColumnNames.DIRECTIVE_NAME)
+@Name(CleanseColumnNames.NAME)
 @Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +
   "with an underscore '_'.")
 public final class CleanseColumnNames implements UDD {
-  public static final String DIRECTIVE_NAME = "cleanse-column-names";
+  public static final String NAME = "cleanse-column-names";
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     return builder.build();
   }
 

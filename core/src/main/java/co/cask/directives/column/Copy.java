@@ -38,18 +38,18 @@ import java.util.List;
  * A directive for copying value of one column to another.
  */
 @Plugin(type = UDD.Type)
-@Name(Copy.DIRECTIVE_NAME)
+@Name(Copy.NAME)
 @Description("Copies values from a source column into a destination column.")
 public class Copy implements UDD {
   private static final Messages MSG = MessagesFactory.getMessages();
-  public static final String DIRECTIVE_NAME = "copy";
+  public static final String NAME = "copy";
   private ColumnName source;
   private ColumnName destination;
   private boolean force = false;
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("source", TokenType.COLUMN_NAME);
     builder.define("destination", TokenType.COLUMN_NAME);
     builder.define("force", TokenType.BOOLEAN, Optional.TRUE);

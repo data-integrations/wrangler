@@ -29,7 +29,7 @@ import co.cask.wrangler.api.UDD;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.wrangler.steps.transformation.JexlHelper;
+import co.cask.directives.JexlHelper;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -42,17 +42,17 @@ import java.util.List;
  * A directive for erroring the processing if condition is set to true.
  */
 @Plugin(type = UDD.Type)
-@Name(Fail.DIRECTIVE_NAME)
+@Name(Fail.NAME)
 @Description("Fails when the condition is evaluated to true.")
 public class Fail implements UDD {
-  public static final String DIRECTIVE_NAME = "fail";
+  public static final String NAME = "fail";
   private String condition;
   private JexlEngine engine;
   private JexlScript script;
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("condition", TokenType.EXPRESSION);
     return builder.build();
   }

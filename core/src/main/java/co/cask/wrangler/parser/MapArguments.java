@@ -94,9 +94,9 @@ public class MapArguments implements Arguments {
               pos = pos + 1;
             } else {
               throw new DirectiveParseException(
-                String.format("Expected argument '%s' to be of type '%s', but it is of type '%s'",
+                String.format("Expected argument '%s' to be of type '%s', but it is of type '%s' - %s",
                               specification.name(), specification.type().name(),
-                              token.type().name())
+                              token.type().name(), group.getSourceInfo().toString())
               );
             }
           } else {

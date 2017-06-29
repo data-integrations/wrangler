@@ -22,7 +22,7 @@ import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.AbstractSchemaGenerator;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.steps.parser.JsParser;
+import co.cask.directives.parser.JsParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
