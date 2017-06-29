@@ -20,7 +20,8 @@ are manually created.
 
   * A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
 More information on configuring can be found [here](wrangler-docs/exclusion-and-aliasing.md)
-  * User Defined Directives (UDD) - (**D**)efine, (**I**)nitialize and (**E**)xecute framework for building your own directives [here](wrangler-docs/user-defined-directive.md)
+  * User Defined Directives (UDD) or Custom Directives are ways to integrate your own directives into dataprep. Using (**D**)efine, (**I**)nitialize and (**E**)xecute pattern
+   for building your own directives [here](wrangler-docs/custom-directive.md).
 
 ## Demo Videos and Recipes
 

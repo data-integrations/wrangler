@@ -1,13 +1,27 @@
-# User Defined Directive (UDD)
+# UDD or Custom Directives (UDD)
 
-**U**ser **D**efined **D**irective (UDD) are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives within the data preparation tool.
+**U**ser **D**efined **D**irective (UDD) or Custom Directives are easier and simpler way
+for users to build and integrate custom directives with wrangler.
+UDD framework allow users to develop, deploy and use data processing directives
+within the data preparation tool.
 
 Building a custom directive involves implementing three simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
   * **I** -- `initialise()` -- Invoked by the framework to initialise the custom directive with arguments parsed. 
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
-    
-# Syntax
+
+# Steps to Build a directive
+
+  * Clone the example repository from github
+
+  ```javascript
+  [git clone git@github.com:hydrator/example-directive](https://github.com/hydrator/example-directive)
+  ```
+
+  * Implementing three interfaces `define()`, `initialize()` and `execute()`.
+  * Build a JAR (`mvn clean package`)
+  * Deploy the JAR as a plugin into CDAP through UI or CLI or REST API
+  * Use the plugin as follows:
 
 ```
     [1] #pragma version 2.0
@@ -23,7 +37,7 @@ More description of the above lines.
   * `[3]` Dynamically loads the two UDDs as CDAP Plugins. 
   * `[4]` Uses the directive. `!` specifies the directive as external or user defined.
 
-## How to write directive.
+## Construct of a directive.
 
 Following is a sample implementation of the plugin that extends the interface [UDD](../api/src/main/java/co/cask/wrangler/api/UDD.java)
 
@@ -64,6 +78,23 @@ Following is detailed explaination for the above code.
   * `UsageDefition define() { }` Defines the arguments that are expected by the directive.
   * `void initialise(Arguments args) { }` Invoked before configuring a directive with arguments parsed by the framework based on the `define()` methods `UsageDefintion`.
   * `execute(...) { }` Every `Row` from previous directive execution is passed to this plugin to execute.
+
+## Migrating from Old Syntax to New Syntax
+
+The recipe containing old syntax of invoking directives will automagically get
+ transformed into new directives syntax. But, any new directives or custom directives
+ have to specify and use new syntax.
+
+### What's different in new syntax
+
+There are some major difference in new syntax for invoking directives, all
+ are listed below.
+
+ * Semicolon(`;`) denotes a terminator for a single directive. E.g. Old : `parse-as-csv body , true` New : `parse-as-csv :body ',' true ;`
+ * Column names are represented with a prefixed-colon. E.g. Old : `body`, New : `:body`
+ * Text arguments are represented within quotes -- single or double. E.g. Old: `;`, New : `';'`
+ * Expressions or conditions are now enclosed with a construct `exp: { condition or expression }`
+ * Optional arguments are truly optional now.
 
 ## Extracting Loadable Directives
 
