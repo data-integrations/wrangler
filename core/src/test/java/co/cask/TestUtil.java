@@ -71,4 +71,16 @@ public final class TestUtil {
     return pipeline;
   }
 
+  public static RecipeParser parse(String[] recipe)
+    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
+      new SystemDirectiveRegistry()
+    );
+
+    String migrate = new MigrateToV2(recipe).migrate();
+    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    parser.initialize(null);
+    return parser;
+  }
+
 }

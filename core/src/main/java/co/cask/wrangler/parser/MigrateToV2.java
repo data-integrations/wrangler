@@ -307,7 +307,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String delimStr = getNextToken(tokenizer, command, "delimiter", lineno);
           String hasHeaderLinesOpt = getNextToken(tokenizer, "\n", command, "true|false", lineno, true);
-          transformed.add(String.format("parse-as-csv %s %s %s;", col(column), quote(delimStr), hasHeaderLinesOpt));
+          transformed.add(String.format("parse-as-csv %s %s %s;", col(column), quote(delimStr),
+                                        hasHeaderLinesOpt == null ? "" : hasHeaderLinesOpt));
         }
         break;
 
@@ -752,7 +753,7 @@ public final class MigrateToV2 implements GrammarMigrator {
 
   private static String quote(String value) {
     if (value == null) {
-      return value;
+      return "";
     }
     if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith("\"") && value.endsWith("\""))) {
       return value;

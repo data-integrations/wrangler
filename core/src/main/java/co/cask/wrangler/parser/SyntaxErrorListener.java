@@ -39,15 +39,18 @@ public final class SyntaxErrorListener extends BaseErrorListener {
                           String msg,
                           RecognitionException e) {
 
+
     msg = msg.substring(0,1).toUpperCase() + msg.substring(1);
 
     String symbolText = "";
     if (offendingSymbol instanceof CommonToken) {
       CommonToken symbol = (CommonToken) offendingSymbol;
-      symbolText = String.format("Error at token '" + symbol.getText() + "'");
+      String charstream = symbol.getTokenSource().getInputStream().toString();
+      String[] lines = charstream.split("\n");
+      symbolText = String.format("Error at token '" + symbol.getText() + "', source : %s", lines[line-1]);
     }
-    msg = !symbolText.isEmpty() ? symbolText + " " + msg : msg;
-    msg = String.format("line %d:%d - %s", line, charPositionInLine, msg);
+    msg = !symbolText.isEmpty() ? symbolText + ", " + msg : msg;
+    msg = String.format("line %d:%d %s", line, charPositionInLine, msg);
     errors.add(new SyntaxError(line, charPositionInLine, msg, symbolText));
   }
 

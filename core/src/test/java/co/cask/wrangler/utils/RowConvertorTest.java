@@ -16,13 +16,11 @@
 
 package co.cask.wrangler.utils;
 
+import co.cask.TestUtil;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -142,9 +140,7 @@ public class RowConvertorTest {
 
     );
 
-    SimpleTextParser d = new SimpleTextParser(directives);
-    RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(d, null);
+    RecipePipeline pipeline = TestUtil.execute(directives);
     List<StructuredRecord> results = pipeline.execute(rows, schema);
     Assert.assertEquals(1, results.size());
     Assert.assertEquals(123456L, results.get(0).get("body_TimeStamp"));

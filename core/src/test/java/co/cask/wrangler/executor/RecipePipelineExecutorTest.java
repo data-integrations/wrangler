@@ -16,13 +16,11 @@
 
 package co.cask.wrangler.executor;
 
+import co.cask.TestUtil;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.parser.SimpleTextParser;
-import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +37,7 @@ public class RecipePipelineExecutorTest {
     String[] commands = new String[] {
       "parse-as-csv __col ,",
       "drop __col",
-      "set columns \"a\",\" b\",'c ',d,e,f,g",
+      "set columns a,b,c,d,e,f,g",
       "rename a first",
       "drop b"
     };
@@ -54,10 +52,8 @@ public class RecipePipelineExecutorTest {
       Schema.Field.of("g", Schema.of(Schema.Type.STRING))
     );
 
-    RecipeParser directives =
-      new SimpleTextParser(StringUtils.join("\n", commands));
-    RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(directives, null);
+    RecipePipeline pipeline = TestUtil.execute(commands);
+
     Row row = new Row("__col", new String("a,b,c,d,e,f,1.0"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 
@@ -89,10 +85,7 @@ public class RecipePipelineExecutorTest {
       Schema.Field.of("weight", Schema.of(Schema.Type.FLOAT))
     );
 
-    RecipeParser directives =
-      new SimpleTextParser(StringUtils.join("\n", commands));
-    RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(directives, null);
+    RecipePipeline pipeline = TestUtil.execute(commands);
     Row row = new Row("__col", new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
     StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
 

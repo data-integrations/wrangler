@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.TestUtil;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Directive;
 import org.junit.Assert;
@@ -30,7 +31,7 @@ public class NoOpDirectiveContextTest {
 
   @Test
   public void testNoFilteringHappening() throws Exception {
-    String[] text = new String[] {
+    String[] recipe = new String[] {
       "parse-as-csv body , true",
       "drop body",
       "drop Cabin",
@@ -39,9 +40,9 @@ public class NoOpDirectiveContextTest {
       "filter-row-if-true Fare < 8.06"
     };
 
-    RecipeParser directives = new SimpleTextParser(text);
-    List<Directive> steps = directives.parse();
-    Assert.assertEquals(6, steps.size());
+    RecipeParser parse = TestUtil.parse(recipe);
+    List<Directive> directives = parse.parse();
+    Assert.assertEquals(6, directives.size());
   }
 
 }

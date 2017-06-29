@@ -16,12 +16,12 @@
 
 package co.cask.wrangler.utils;
 
+import co.cask.TestUtil;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.format.StructuredRecordStringConverter;
+import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.parser.SimpleTextParser;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -55,9 +55,8 @@ public class Json2SchemaTest {
   public void conversionTest() throws Exception {
     Json2Schema converter = new Json2Schema();
     RecordConvertor recordConvertor = new RecordConvertor();
-    RecipePipelineExecutor executor = new RecipePipelineExecutor();
     JsonParser parser = new JsonParser();
-    executor.configure(new SimpleTextParser(directives), null);
+    RecipePipeline executor = TestUtil.execute(directives);
     for (String test : TESTS) {
       Row row = new Row("body", test);
 

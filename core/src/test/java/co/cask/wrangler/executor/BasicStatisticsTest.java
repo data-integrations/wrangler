@@ -16,19 +16,13 @@
 
 package co.cask.wrangler.executor;
 
-import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.RecipePipeline;
+import co.cask.TestUtil;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.parser.SimpleTextParser;
 import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.statistics.Statistics;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,9 +44,7 @@ public class BasicStatisticsTest {
       new Row("body", "45.56,670-897-3839,222,32826,9/14/2016,\"\",http://mars.io")
     );
 
-    RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(new SimpleTextParser(directives), null);
-    rows = pipeline.execute(rows);
+    rows = TestUtil.execute(directives, rows);
 
     Statistics meta = new BasicStatistics();
     Row summary = meta.aggregate(rows);
@@ -68,89 +60,23 @@ public class BasicStatisticsTest {
     Assert.assertEquals(7, stats.length());
     Assert.assertEquals(7, types.length());
 
-    System.out.println("General Statistics");
-    System.out.println();
-    List<Pair<String, Object>> fields = stats.getFields();
-    for (Pair<String, Object> field : fields) {
-      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-      for (Pair<String, Double> value : values) {
-        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
-                                         value.getSecond() * 100));
-      }
-    }
-
-    System.out.println();
-    System.out.println("Type Statistics");
-    System.out.println();
-    fields = types.getFields();
-    for (Pair<String, Object> field : fields) {
-      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-      for (Pair<String, Double> value : values) {
-        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
-                                         value.getSecond() * 100));
-      }
-    }
-  }
-
-  // Disabled on purpose as we don't want to run this on regular basis.
-  @Ignore
-  @Test
-  public void testLargeFile() throws Exception {
-    String[] directives = new String[] {
-      "parse-as-csv body , true",
-      "drop body"
-    };
-
-    List<Row> rows = new ArrayList<>();
-    try(BufferedReader br = new BufferedReader(new FileReader("/Users/nitin/Work/Demo/data/customer_no_header.csv"))) {
-      String line;
-      while ((line = br.readLine()) != null) {
-        rows.add(new Row("body", line));
-      }
-    }
-
-    RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(new SimpleTextParser(directives), null);
-    rows = pipeline.execute(rows);
-
-    Statistics meta = new BasicStatistics();
-    Row summary = meta.aggregate(rows);
-
-    Row stats = (Row) summary.getValue("stats");
-    Row types = (Row) summary.getValue("types");
-
-
-    System.out.println("General Statistics");
-    System.out.println("Total number of rows : " + summary.getValue("total"));
-    System.out.println();
-    List<Pair<String, Object>> fields = stats.getFields();
-    for (Pair<String, Object> field : fields) {
-      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-      for (Pair<String, Double> value : values) {
-        Double percentage = value.getSecond() * 100;
-        if(percentage < 20) {
-          continue;
-        }
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getFirst(), value.getSecond(),
-                                         value.getSecond() * 100));
-      }
-    }
-
-    System.out.println();
-    System.out.println("Type Statistics");
-    System.out.println();
-    fields = types.getFields();
-    for (Pair<String, Object> field : fields) {
-      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-      for (Pair<String, Double> value : values) {
-        Double percentage = value.getSecond() * 100;
-        if(percentage < 20) {
-          continue;
-        }
-        System.out.println(String.format("%10s %-20s %3.2f%%", field.getFirst(), value.getSecond(),
-                                         value.getSecond() * 100));
-      }
-    }
+//    List<Pair<String, Object>> fields = stats.getFields();
+//    for (Pair<String, Object> field : fields) {
+//      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+//      for (Pair<String, Double> value : values) {
+//        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
+//                                         value.getSecond() * 100));
+//      }
+//    }
+//
+//    fields = types.getFields();
+//    for (Pair<String, Object> field : fields) {
+//      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+//      for (Pair<String, Double> value : values) {
+//        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
+//                                         value.getSecond() * 100));
+//      }
+//    }
   }
 }
 
