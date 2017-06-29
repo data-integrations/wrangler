@@ -12,10 +12,10 @@ Building a custom directive involves implementing three simple methods :
 
 # Steps to Build a directive
 
-  * Clone the example repository from github
+  * Clone the [example repository from github](https://github.com/hydrator/example-directive)
 
   ```javascript
-  [git clone git@github.com:hydrator/example-directive](https://github.com/hydrator/example-directive)
+  git clone git@github.com:hydrator/example-directive
   ```
 
   * Implementing three interfaces `define()`, `initialize()` and `execute()`.
