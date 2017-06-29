@@ -25,7 +25,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -45,7 +44,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("write-as-csv")
-@Usage("write-as-csv <column>")
 @Description("Writes the records files as well-formatted CSV")
 public class WriteAsCSV implements Directive {
   public static final String NAME = "write-as-csv";

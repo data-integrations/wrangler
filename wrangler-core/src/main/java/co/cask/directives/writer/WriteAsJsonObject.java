@@ -26,7 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
@@ -43,7 +42,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("write-as-json-object")
-@Usage("write-as-json-object <dest-column> [<src-column>[,<src-column>]")
 @Description("Creates a JSON object based on source columns specified. JSON object is written into dest-column.")
 public class WriteAsJsonObject implements Directive {
   public static final String NAME = "write-as-json-object";

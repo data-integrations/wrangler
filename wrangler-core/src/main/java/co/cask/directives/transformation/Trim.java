@@ -26,7 +26,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -38,7 +37,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Trim.NAME)
-@Usage("trim <column>")
 @Description("Trimming whitespace from both sides of a string.")
 public class Trim implements Directive {
   public static final String NAME = "trim";

@@ -25,7 +25,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -37,7 +36,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Upper.NAME)
-@Usage("uppercase <column>")
 @Description("Changes the column values to uppercase.")
 public class Upper implements Directive {
   public static final String NAME = "uppercase";

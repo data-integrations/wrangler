@@ -26,7 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
@@ -54,7 +53,6 @@ import java.util.Map;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-json")
-@Usage("parse-as-json <column> [<depth>]")
 @Description("Parses a column as JSON.")
 public class JsParser implements Directive {
   public static final String NAME = "parse-as-json";

@@ -25,7 +25,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -38,7 +37,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(TitleCase.NAME)
-@Usage("titlecase <column>")
 @Description("Changes the column values to title case.")
 public class TitleCase implements Directive {
   public static final String NAME = "titlecase";

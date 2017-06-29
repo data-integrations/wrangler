@@ -49,7 +49,12 @@ public final class DirectiveInfo {
       this.usage = "No definition available for directive '" + directive + "'";
     }
     this.name = directive.getAnnotation(Name.class).value();
-    this.description = directive.getAnnotation(Description.class).value();
+    Description desc = directive.getAnnotation(Description.class);
+    if (desc == null) {
+      this.description = "No description specified for directive class '" + directive.getSimpleName() + "'";
+    } else {
+      this.description = desc.value();
+    }
     Deprecated annotation = directive.getAnnotation(Deprecated.class);
     if (annotation == null) {
       deprecated = false;

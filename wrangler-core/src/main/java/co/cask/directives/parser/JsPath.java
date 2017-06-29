@@ -25,7 +25,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -47,7 +46,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("json-path")
-@Usage("json-path <source> <destination> <json-path-expression>")
 @Description("Parses JSON elements using a DSL (a JSON path expression).")
 public class JsPath implements Directive {
   public static final String NAME = "json-path";

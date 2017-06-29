@@ -25,7 +25,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -40,7 +39,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(TextDistanceMeasure.NAME)
-@Usage("text-distance <method> <column1> <column2> <destination>")
 @Description("Calculates a text distance measure between two columns containing string.")
 public class TextDistanceMeasure implements Directive {
   public static final String NAME = "text-distance";

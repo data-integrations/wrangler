@@ -106,6 +106,10 @@ public final class MigrateToV2 implements GrammarMigrator {
         continue;
       }
 
+      if (directive.endsWith(";")) {
+        directive = directive.substring(0, directive.length() - 1);
+      }
+
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
 
@@ -306,6 +310,9 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "parse-as-csv" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String delimStr = getNextToken(tokenizer, command, "delimiter", lineno);
+          if(delimStr.endsWith(";")) {
+            delimStr = delimStr.substring(0, delimStr.length() - 1);
+          }
           String hasHeaderLinesOpt = getNextToken(tokenizer, "\n", command, "true|false", lineno, true);
           transformed.add(String.format("parse-as-csv %s %s %s;", col(column), quote(delimStr),
                                         hasHeaderLinesOpt == null ? "" : hasHeaderLinesOpt));

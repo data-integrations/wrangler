@@ -25,7 +25,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -42,7 +41,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("format-date")
-@Usage("format-date <column> <format>")
 @Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")
 public class FormatDate implements Directive {
   public static final String NAME = "format-date";

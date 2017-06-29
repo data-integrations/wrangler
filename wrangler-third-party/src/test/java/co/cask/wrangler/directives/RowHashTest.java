@@ -16,11 +16,11 @@
 
 package co.cask.wrangler.directives;
 
-import co.cask.wrangler.test.api.TestRecipe;
-import co.cask.wrangler.test.api.TestRows;
-import co.cask.wrangler.test.TestingRig;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.test.TestingRig;
+import co.cask.wrangler.test.api.TestRecipe;
+import co.cask.wrangler.test.api.TestRows;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -28,27 +28,25 @@ import org.junit.Test;
 import java.util.List;
 
 /**
- * Tests {@link TextReverse}
+ * Tests {@link RowHash}
  */
-public class TextReverseTest {
-
+public class RowHashTest {
   @Ignore
   @Test
-  public void testBasicReverse() throws Exception {
+  public void testBasicRowHash() throws Exception {
     TestRecipe recipe = new TestRecipe();
     recipe.add("parse-as-csv :body ',';");
     recipe.add("set-headers :a,:b,:c;");
-    recipe.add("text-reverse :b");
+    recipe.add("drop :body;");
+    recipe.add("row-hash :hash md5");
 
     TestRows rows = new TestRows();
     rows.add(new Row("body", "root,joltie,mars avenue"));
     rows.add(new Row("body", "joltie,root,venus blvd"));
 
-    RecipePipeline pipeline = TestingRig.pipeline(TextReverse.class, recipe);
+    RecipePipeline pipeline = TestingRig.pipeline(RowHash.class, recipe);
     List<Row> actual = pipeline.execute(rows.toList());
 
     Assert.assertEquals(2, actual.size());
-    Assert.assertEquals("eitloj", actual.get(0).getValue("b"));
-    Assert.assertEquals("toor", actual.get(1).getValue("b"));
   }
 }

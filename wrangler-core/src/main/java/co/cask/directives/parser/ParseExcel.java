@@ -27,7 +27,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -51,7 +50,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-excel")
-@Usage("parse-as-excel <column> [<sheet number | sheet name>]")
 @Description("Parses column as Excel file.")
 public class ParseExcel implements Directive {
   public static final String NAME = "parse-as-excel";

@@ -26,7 +26,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -41,7 +40,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("stemming")
-@Usage("stemming <column>")
 @Description("Apply Porter Stemming on the column value.")
 public class Stemming implements Directive {
   public static final String NAME = "stemming";

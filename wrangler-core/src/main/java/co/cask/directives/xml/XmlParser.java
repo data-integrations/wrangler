@@ -25,7 +25,6 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Usage;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -47,7 +46,6 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-xml")
-@Usage("parse-as-xml <column>")
 @Description("Parses a column as XML.")
 public class XmlParser implements Directive {
   public static final String NAME = "parse-as-xml";

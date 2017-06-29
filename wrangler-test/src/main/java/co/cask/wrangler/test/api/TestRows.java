@@ -17,6 +17,7 @@
 package co.cask.wrangler.test.api;
 
 import co.cask.wrangler.api.Row;
+import edu.emory.mathcs.backport.java.util.Collections;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ public class TestRows {
   }
 
   public List<Row> toList() {
+    Collections.reverse(rows);
     return rows;
   }
 }
