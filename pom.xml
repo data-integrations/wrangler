@@ -27,11 +27,12 @@
   <url>http://github.com/hydrator/wrangler</url>
 
   <modules>
-    <module>transform</module>
-    <module>service</module>
-    <module>core</module>
-    <module>api</module>
-    <module>third-party</module>
+    <module>wrangler-transform</module>
+    <module>wrangler-service</module>
+    <module>wrangler-core</module>
+    <module>wrangler-api</module>
+    <module>wrangler-third-party</module>
+    <module>wrangler-test</module>
   </modules>
 
   <licenses>
