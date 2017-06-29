@@ -14,10 +14,9 @@
  *  the License.
  */
 
-package co.cask.directives.transformation;
+package co.cask.directives.external;
 
 import co.cask.cdap.api.common.Bytes;
-import co.cask.directives.external.InvokeHttp;
 import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;

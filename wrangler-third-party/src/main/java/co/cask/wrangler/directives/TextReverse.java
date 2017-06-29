@@ -42,36 +42,27 @@ import java.util.List;
 @Description("Reverses the text represented by the column.")
 public final class TextReverse implements Directive {
   public static final String DIRECTIVE_NAME = "text-reverse";
-  private ColumnName column;
+  private String column;
 
   @Override
   public UsageDefinition define() {
-    // Usage : text-reverse :column exp:{ <expression> };
+    // Usage : text-reverse :column;
     UsageDefinition.Builder builder = UsageDefinition.builder(DIRECTIVE_NAME);
     builder.define("column", TokenType.COLUMN_NAME);
-    builder.define("expression", TokenType.EXPRESSION);
     return builder.build();
   }
 
   @Override
   public void initialize(Arguments args)
     throws DirectiveParseException {
-    if (!args.contains("column")) {
-      throw new DirectiveParseException(
-        String.format(
-          "%d:%d - '%s' is required columns for the directive '%s'", args.line(),
-          args.column(), "column", DIRECTIVE_NAME
-        )
-      );
-    }
-    column = args.value("column");
+    column = ((ColumnName) args.value("column")).value();
   }
 
   @Override
   public List<Row> execute(List<Row> rows, RecipeContext context)
     throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
-      int idx = row.find(column.value());
+      int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
         if (object instanceof String) {

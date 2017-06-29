@@ -26,7 +26,7 @@ public final class RequestV1 implements Request {
   // Workspace information associated with request.
   private Workspace workspace;
 
-  // Recipe information associated with request.
+  // TestRecipe information associated with request.
   private Recipe recipe;
 
   // Sampling information associated with request.

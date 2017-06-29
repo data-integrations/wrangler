@@ -183,7 +183,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
     try {
       RecipeDatum object = recipeStore.read(Bytes.toBytes(recipeId));
       if (object == null) {
-        success(responder, String.format("Recipe with id '%s' not found", recipeId));
+        success(responder, String.format("TestRecipe with id '%s' not found", recipeId));
         return;
       } else {
         response.put("status", HttpURLConnection.HTTP_OK);
@@ -227,7 +227,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
 
     RecipeDatum datum = recipeStore.read(Bytes.toBytes(recipeId));
     if (datum == null) {
-      notFound(responder, String.format("Recipe id '%s' not found.", recipeId));
+      notFound(responder, String.format("TestRecipe id '%s' not found.", recipeId));
       return;
     }
 

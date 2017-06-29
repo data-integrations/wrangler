@@ -16,9 +16,9 @@
 
 package co.cask.wrangler.executor;
 
-import co.cask.wrangler.TestingRig;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
+import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
 import org.junit.Assert;

@@ -14,11 +14,12 @@
  *  the License.
  */
 
-package co.cask.directives.parser;
+package co.cask.directives.xml;
 
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
+import co.cask.directives.parser.JsParser;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;

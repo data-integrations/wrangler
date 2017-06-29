@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Recipe pojo that stores information about a recipe in the backend dataset.
+ * TestRecipe pojo that stores information about a recipe in the backend dataset.
  */
 public final class RecipeDatum {
   private static final Gson gson = new GsonBuilder().create();

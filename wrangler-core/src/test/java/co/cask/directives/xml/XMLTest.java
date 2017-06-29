@@ -18,7 +18,6 @@ package co.cask.directives.xml;
 
 import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.Row;
-import co.cask.directives.parser.XmlToJson;
 import org.junit.Assert;
 import org.junit.Test;
 

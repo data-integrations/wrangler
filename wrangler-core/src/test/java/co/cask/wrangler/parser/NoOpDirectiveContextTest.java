@@ -17,8 +17,8 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.TestingRig;
-import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Executor;
+import co.cask.wrangler.api.RecipeParser;
 import org.junit.Assert;
 import org.junit.Test;
 

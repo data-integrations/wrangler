@@ -16,9 +16,37 @@
 
 package co.cask.wrangler.directives;
 
+import co.cask.wrangler.test.api.TestRecipe;
+import co.cask.wrangler.test.api.TestRows;
+import co.cask.wrangler.test.TestingRig;
+import co.cask.wrangler.api.RecipePipeline;
+import co.cask.wrangler.api.Row;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.List;
+
 /**
- * Class description here.
+ * Tests {@link TextReverse}
  */
 public class TextReverseTest {
 
+  @Test
+  public void testBasicReverse() throws Exception {
+    TestRecipe recipe = new TestRecipe();
+    recipe.add("parse-as-csv :body ';';");
+    recipe.add("set-headers :a,:b,:c;");
+    recipe.add("text-reverse :b");
+
+    TestRows rows = new TestRows();
+    rows.add(new Row("body", "root,joltie,mars avenue"));
+    rows.add(new Row("body", "joltie,root,venus blvd"));
+
+    RecipePipeline pipeline = TestingRig.pipeline(TextReverse.class, recipe);
+    List<Row> actual = pipeline.execute(rows.toList());
+
+    Assert.assertEquals(2, actual.size());
+    Assert.assertEquals("eitloj", actual.get(0).getValue("b"));
+    Assert.assertEquals("toor", actual.get(0).getValue("b"));
+  }
 }

@@ -16,10 +16,10 @@
 
 package co.cask.wrangler.utils;
 
-import co.cask.wrangler.TestingRig;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.format.StructuredRecordStringConverter;
+import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
 import com.google.common.collect.Lists;

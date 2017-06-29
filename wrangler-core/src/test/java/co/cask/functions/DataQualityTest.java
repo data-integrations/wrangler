@@ -17,7 +17,6 @@
 package co.cask.functions;
 
 import co.cask.wrangler.api.Row;
-import co.cask.functions.DataQuality;
 import org.junit.Assert;
 import org.junit.Test;
 

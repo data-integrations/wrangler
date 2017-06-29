@@ -24,7 +24,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.reflections.Reflections;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,31 +52,34 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   // This is the default package in which the directives are searched for.
   private static final String PACKAGE = "co.cask.directives";
   private final Map<String, DirectiveInfo> registry;
-  private final String namespace;
+  private final List<String> namespaces;
 
   public SystemDirectiveRegistry() throws DirectiveLoadException {
-    this(PACKAGE);
+    this(new ArrayList<String>());
   }
 
   /**
    * This constructor uses the user provided <tt>namespace</tt> as starting pointing
    * for scanning classes that implement the interface {@link Directive}.
    *
-   * @param namespace that is used as starting point for scanning classes.
+   * @param namespaces that is used as starting point for scanning classes.
    * @throws DirectiveLoadException thrown if there are any issue loading the directive.
    */
-  public SystemDirectiveRegistry(String namespace) throws DirectiveLoadException {
+  public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
     this.registry = new HashMap<>();
-    this.namespace = namespace;
-    try {
-      Reflections reflections = new Reflections(this.namespace);
-      Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
-      for(Class<? extends Directive> directive : system) {
-        DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.SYSTEM, directive);
-        registry.put(classz.name(), classz);
+    namespaces.add(PACKAGE);
+    this.namespaces = namespaces;
+    for (String namespace : namespaces) {
+      try {
+        Reflections reflections = new Reflections(namespace);
+        Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
+        for(Class<? extends Directive> directive : system) {
+          DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.SYSTEM, directive);
+          registry.put(classz.name(), classz);
+        }
+      } catch (InstantiationException | IllegalAccessException e) {
+        throw new DirectiveLoadException(e.getMessage(), e);
       }
-    } catch (InstantiationException | IllegalAccessException e) {
-      throw new DirectiveLoadException(e.getMessage(), e);
     }
   }
 

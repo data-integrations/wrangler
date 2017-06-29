@@ -36,7 +36,7 @@ public interface Request {
   Sampling getSampling();
 
   /**
-   * @return Recipe specification associated with the request.
+   * @return TestRecipe specification associated with the request.
    */
   Recipe getRecipe();
 }

@@ -19,6 +19,7 @@ package co.cask.directives.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
+import co.cask.directives.parser.JsParser;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -28,7 +29,6 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import co.cask.directives.parser.JsParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 

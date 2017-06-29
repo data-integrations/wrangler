@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.parser.UsageRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 

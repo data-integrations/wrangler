@@ -14,21 +14,23 @@
  *  the License.
  */
 
-package co.cask.wrangler;
+package co.cask.wrangler.test;
 
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Row;
+import co.cask.wrangler.test.api.TestRecipe;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,34 +42,15 @@ public final class TestingRig {
     // Avoid creation of this object.
   }
 
-  /**
-   * Executes the directives on the record specified.
-   *
-   * @param recipe to be executed.
-   * @param rows to be executed on directives.
-   * @return transformed directives.
-   */
-  public static List<Row> execute(String[] recipe, List<Row> rows)
+  public static RecipePipeline pipeline(Class<? extends Directive> directive, TestRecipe recipe)
     throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    List<String> packages = new ArrayList<>();
+    packages.add(directive.getCanonicalName());
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry()
+      new SystemDirectiveRegistry(packages)
     );
 
-    String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(migrate, registry);
-    parser.initialize(null);
-    RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(parser, null);
-    return pipeline.execute(rows);
-  }
-
-  public static RecipePipeline pipeline(String[] recipe)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
-    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry()
-    );
-
-    String migrate = new MigrateToV2(recipe).migrate();
+    String migrate = new MigrateToV2(recipe.toArray()).migrate();
     RecipeParser parser = new GrammarBasedParser(migrate, registry);
     parser.initialize(null);
     RecipePipeline pipeline = new RecipePipelineExecutor();
@@ -75,8 +58,10 @@ public final class TestingRig {
     return pipeline;
   }
 
-  public static RecipeParser parser(String[] recipe)
+  public static RecipeParser parser(Class<? extends Directive> directive, String[] recipe)
     throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    List<String> packages = new ArrayList<>();
+    packages.add(directive.getCanonicalName());
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry()
     );
