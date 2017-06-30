@@ -23,6 +23,24 @@ are manually created.
   * A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
 More information on configuring can be found [here](wrangler-docs/exclusion-and-aliasing.md)
   * User Defined Directives, also known as UDD, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. For building custom directives check [here](wrangler-docs/custom-directive.md).
+  
+## Upcoming Features
+
+  * **Conditional Recipe** -- Conditional Recipe allows sub-recipes to be executed based on the condition. 
+  ```
+  parse-as-fixed-length :body 3;
+  rename :body_1 :rectype;
+  if (rectype == '020') { 
+    parse-as-csv :body_2 ',';
+    ...
+  }
+  if (rectype == '010') {
+    parse-as-fixed-length :body_2 2,4,9,15,9,9,2,6,10
+    ...
+  }
+  ```
+  * **Tokenize Text** -- Tokenizes text into Words, Characters, Sentences, Lines and Paragraphs.
+  * **NGram Token Generation** -- Generates N-Gram tokens, where N is configurable.
 
 ## Demo Videos and Recipes
 
