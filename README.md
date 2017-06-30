@@ -22,8 +22,7 @@ are manually created.
 
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
-  * User Defined Directives (UDD) or Custom Directives are ways to integrate your own directives into dataprep. Using (**D**)efine, (**I**)nitialize and (**E**)xecute pattern
-   for building your own directives [here](wrangler-docs/custom-directive.md).
+  * User Defined Directives, also known as UDD, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
   * A new capability that allows CDAP Administrators to restrict the directives that are accessible to their users.
 More information on configuring can be found [here](wrangler-docs/exclusion-and-aliasing.md)
 
