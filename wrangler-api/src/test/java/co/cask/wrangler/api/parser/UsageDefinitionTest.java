@@ -46,7 +46,7 @@ public class UsageDefinitionTest {
     builder.define("source", TokenType.COLUMN_NAME);
     builder.define("destination", TokenType.COLUMN_NAME);
     String usage = builder.build().toString();
-    Assert.assertEquals("rename :source :destination ", usage);
+    Assert.assertEquals("rename :source :destination", usage);
     usages.add(usage);
 
     builder = UsageDefinition.builder("parse-as-csv");
@@ -67,7 +67,7 @@ public class UsageDefinitionTest {
     builder = UsageDefinition.builder("set-columns");
     builder.define("cols", TokenType.COLUMN_NAME_LIST);
     usage = builder.build().toString();
-    Assert.assertEquals("set-columns :cols [,:cols ...]* ", usage);
+    Assert.assertEquals("set-columns :cols [,:cols  ]*", usage);
     usages.add(usage);
 
     Assert.assertTrue(true);

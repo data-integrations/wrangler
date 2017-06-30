@@ -23,7 +23,22 @@ import com.google.gson.JsonObject;
 import java.io.Serializable;
 
 /**
- * Class description here.
+ * The <code>TokenDefinition</code> class represents a definition of token as specified
+ * by the user while defining a directive usage. All definitions of a token are represented
+ * by a instance of this class.
+ *
+ * The definition are constant (immutable) and they cannot be changed once defined.
+ * For example :
+ * <code>
+ *   TokenDefinition token = new TokenDefintion("column", TokenType.COLUMN_NAME, null, 0, Optional.FALSE);
+ * </code>
+ *
+ * <p>The class <code>TokenDefinition</code> includes methods for retrieveing different members of
+ * like name of the token, type of the token, label associated with token, whether it's optional or not
+ * and the ordinal number of the token in the <code>TokenGroup</code>.</p>
+ *
+ * <p>As this class is immutable, the constructor requires all the member variables to be presnted
+ * for an instance of this object to be created.</p>
  */
 @PublicEvolving
 public final class TokenDefinition implements Serializable {
@@ -41,27 +56,49 @@ public final class TokenDefinition implements Serializable {
     this.optional = optional;
   }
 
+  /**
+   * @return Label associated with the token. Label provides a way to override the usage description
+   * for this <code>TokenDefinition</code>. If a label is not provided, then this return null.
+   */
   public String label() {
     return label;
   }
 
+  /**
+   * @return Returns the oridinal number of this <code>TokenDefinition</code> within
+   * the <code>TokenGroup</code>,
+   */
   public int ordinal() {
     return ordinal;
   }
 
+  /**
+   * @return true, if this <code>TokenDefinition</code> is optional, false otherwise.
+   */
   public boolean optional() {
     return optional;
   }
 
+  /**
+   * @return Name of this <code>TokenDefinition</code>
+   */
   public String name() {
     return name;
   }
 
+  /**
+   * @return Returns the type of this <code>TokenDefinition</code>.
+   */
   public TokenType type() {
     return type;
   }
 
-  public JsonElement toJsonObject() {
+  /**
+   * Returns the <code>JsonElement</code> of this object <code>TokenDefinition</code>.
+   * @return An instance of <code>JsonElement</code> representing <code>TokenDefinition</code>
+   * this object.
+   */
+  public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("name", name);
     object.addProperty("type", type.name());

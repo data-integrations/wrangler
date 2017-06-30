@@ -97,6 +97,8 @@ public final class UsageDefinition implements Serializable {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(directive).append(" ");
+
+    int count = tokens.size();
     for (TokenDefinition token : tokens) {
       if(token.optional()) {
         sb.append(" [");
@@ -110,12 +112,12 @@ public final class UsageDefinition implements Serializable {
         } else if (token.type().equals(TokenType.COLUMN_NAME)) {
           sb.append(":").append(token.name());
         } else if (token.type().equals(TokenType.COLUMN_NAME_LIST)) {
-          sb.append(":").append(token.name()).append(" [,:").append(token.name()).append(" ...]*");
+          sb.append(":").append(token.name()).append(" [,:").append(token.name()).append("  ]*");
         } else if (token.type().equals(TokenType.BOOLEAN)) {
           sb.append(token.name()).append(" (true/false)");
         } else if (token.type().equals(TokenType.TEXT)) {
           sb.append("'").append(token.name()).append("'");
-        } else if (token.type().equals(TokenType.IDENTIFIER)) {
+        } else if (token.type().equals(TokenType.IDENTIFIER) || token.type().equals(TokenType.NUMERIC)) {
           sb.append(token.name());
         } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
           || token.type().equals(TokenType.TEXT_LIST)) {
@@ -129,10 +131,14 @@ public final class UsageDefinition implements Serializable {
         }
       }
 
+      count--;
+
       if(token.optional()) {
         sb.append("]");
       } else {
-        sb.append(" ");
+        if (count > 0) {
+          sb.append(" ");
+        }
       }
     }
     return sb.toString();
@@ -149,7 +155,7 @@ public final class UsageDefinition implements Serializable {
     object.addProperty("directive", directive);
     JsonArray array = new JsonArray();
     for (TokenDefinition token : tokens) {
-      array.add(token.toJsonObject());
+      array.add(token.toJson());
     }
     object.add("tokens", array);
     return object;
