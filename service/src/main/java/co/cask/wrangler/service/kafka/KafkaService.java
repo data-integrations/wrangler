@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -130,7 +131,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       } finally {
         consumer.close();
       }
-      ServiceUtils.success(responder, String.format("Success connected to kafka - %s", config.getConnection()));
+      ServiceUtils.success(responder, String.format("Successfully connected to Kafka at %s", config.getConnection()));
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -215,7 +216,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
           ConsumerRecords<String, String> records = consumer.poll(10000);
           for(ConsumerRecord<String, String> record : records) {
             Record rec = new Record();
-            rec.add("message", record.value());
+            rec.add("body", record.value());
             recs.add(rec);
             if (count < 0) {
               break;
@@ -285,8 +286,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       properties.put("brokers", (String) conn.getProp(PropertyIds.BROKER));
       properties.put("kafkaBrokers", (String) conn.getProp(PropertyIds.BROKER));
       properties.put("keyField", (String) conn.getProp(PropertyIds.KEY_DESERIALIZER));
-      properties.put("format", "binary");
-      properties.put("tableName", "kafka_offset");
+      properties.put("format", "text");
 
       kafka.add("properties", gson.toJsonTree(properties));
       kafka.addProperty("name", "Kafka");
