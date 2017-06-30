@@ -1,6 +1,7 @@
 # Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/co.cask.wrangler/wrangler-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/co.cask.wrangler/wrangler-core)
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
 [![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](https://cdap-users.herokuapp.com?t=0)
 [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
