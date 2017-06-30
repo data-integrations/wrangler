@@ -4,7 +4,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/co.cask.wrangler/wrangler-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/co.cask.wrangler/wrangler-core)
 [![Javadoc](https://javadoc-emblem.rhcloud.com/doc/co.cask.wrangler/wrangler-core/badge.svg)](http://www.javadoc.io/doc/co.cask.wrangler/wrangler-core)
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
-[![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](https://cdap-users.herokuapp.com?t=0)
+[![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](https://cdap-users.herokuapp.com?t=1)
 [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/11434/badge.svg)](https://scan.coverity.com/projects/hydrator-wrangler-transform)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
