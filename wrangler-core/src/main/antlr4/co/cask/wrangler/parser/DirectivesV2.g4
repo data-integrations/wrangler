@@ -14,7 +14,7 @@
  * the License.
  */
 
-grammar Directives;
+grammar DirectivesV2;
 
 options {
   language = Java;
@@ -42,12 +42,35 @@ options {
  * Parser Grammar for recognizing tokens and constructs of the directives language.
  */
 recipe
- : directives EOF
- ;
+  : block EOF
+  ;
 
-directives
- : (Comment | directive ';' | pragma ';')*?
- ;
+block
+  : (statement | directive)*
+  ;
+
+statement
+  : directive ';'
+  | Comment
+  | pragma ';'
+  | ifStatement
+  ;
+
+ifStatement
+  : ifStat elseIfStat* elseStat? '}'
+  ;
+
+ifStat
+  : 'if' expression '{' block
+  ;
+
+elseIfStat
+  : '}' 'else' 'if' expression '{' block
+  ;
+
+elseStat
+  : '}' 'else' '{' block
+  ;
 
 directive
  : command
@@ -138,9 +161,15 @@ bool
  : Bool
  ;
 
+expression
+  : '(' (~'(' | expression)* ')'
+  | Number
+  | Bool
+  ;
+
 condition
- : OBrace (~CBrace | condition)* CBrace
- ;
+  : OBrace (~CBrace | condition)* CBrace
+  ;
 
 command
  : Identifier
@@ -200,6 +229,7 @@ Dot      : '.';
 At       : '@';
 Pipe     : '|';
 BackSlash: '\\';
+Dollar   : '$';
 
 Bool
  : 'true'

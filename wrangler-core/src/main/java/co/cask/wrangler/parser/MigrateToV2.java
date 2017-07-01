@@ -461,7 +461,11 @@ public final class MigrateToV2 implements GrammarMigrator {
           String source = getNextToken(tokenizer, command, "source", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String forceOpt = getNextToken(tokenizer, "\n", command, "force", lineno, true);
-          transformed.add(String.format("copy %s %s %s;", col(source), col(destination), forceOpt));
+          if (forceOpt == null || forceOpt.isEmpty()) {
+            transformed.add(String.format("copy %s %s;", col(source), col(destination)));
+          } else {
+            transformed.add(String.format("copy %s %s %s;", col(source), col(destination), forceOpt));
+          }
         }
         break;
 

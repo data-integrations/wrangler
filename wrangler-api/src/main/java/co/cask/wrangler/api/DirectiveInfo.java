@@ -79,6 +79,8 @@ public final class DirectiveInfo {
     return usage;
   }
 
+  public String description() { return description; }
+
   public UsageDefinition definition() {
     return definition;
   }

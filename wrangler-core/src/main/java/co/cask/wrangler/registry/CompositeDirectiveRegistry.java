@@ -22,6 +22,7 @@ import co.cask.wrangler.api.DirectiveRegistry;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
+import java.util.Iterator;
 import javax.annotation.Nullable;
 
 /**
@@ -61,6 +62,13 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
     return null;
   }
 
+  @Override
+  public void reload() throws DirectiveLoadException {
+    for(int idx = 0; idx < registries.length; ++idx) {
+      registries[idx].reload();
+    }
+  }
+
   /**
    * Returns an <tt>JsonElement</tt> representation of this implementation of object.
    * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
@@ -76,5 +84,60 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
       array.add(element);
     }
     return array;
+  }
+
+  /**
+   * @return Returns an iterator to iterate through all the <code>DirectiveInfo</code> objects
+   * maintained within the registry.
+   */
+  @Override
+  public Iterator<DirectiveInfo> iterator() {
+    return new CompositeRegistryIterator();
+  }
+
+  /**
+   * This class <code>CompositeRegistryIterator</code> iterators each of the
+   * registeries in entirity before moving on to the next registry managed
+   * by the <code>CompositeRegistryIterator</code> class.
+   */
+  final class CompositeRegistryIterator implements Iterator<DirectiveInfo> {
+    private final int count;
+    private int idx;
+    private Iterator<DirectiveInfo> iterator;
+
+    public CompositeRegistryIterator() {
+      this.count = registries.length;
+      this.idx = 0;
+      this.iterator = registries[idx].iterator();
+    }
+
+    /**
+     * @return Returns true if there exists registry that's not been iterated in entiry, else false.
+     */
+    @Override
+    public boolean hasNext() {
+      boolean status = iterator.hasNext();
+      if (status == false && idx < count - 1) {
+        idx = idx + 1;
+        iterator = registries[idx].iterator();
+        if (iterator.hasNext()) {
+          status = true;
+        }
+      }
+      return status;
+    }
+
+    /**
+     * @return The next <code>DirectiveInfo</code> from the registry.
+     */
+    @Override
+    public DirectiveInfo next() {
+      return iterator.next();
+    }
+
+    @Override
+    public void remove() {
+      // no-op
+    }
   }
 }

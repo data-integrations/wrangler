@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  *
  * @see DirectiveInfo
  */
-public interface DirectiveRegistry {
+public interface DirectiveRegistry extends Iterable<DirectiveInfo> {
   /**
    * Given the name of the directive, returns the information related to the directive.
    *
@@ -38,6 +38,16 @@ public interface DirectiveRegistry {
    */
   @Nullable
   DirectiveInfo get(String name) throws DirectiveLoadException;
+
+  /**
+   * This method reloads the directives from the artifacts into the registry.
+   * Any implementation of this method should provide support for deletes, updates
+   * and additions.
+   *
+   * @throws DirectiveLoadException thrown when there are any issues with loading
+   * directives into the registry.
+   */
+  void reload() throws DirectiveLoadException;
 
   /**
    * Returns an <tt>JsonElement</tt> representation of this implementation of object.

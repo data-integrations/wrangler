@@ -25,10 +25,11 @@ import com.google.gson.JsonObject;
 import org.reflections.Reflections;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * This class is implementation of {@link DirectiveRegistry} for maintaining a registry
@@ -66,7 +67,7 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
    * @throws DirectiveLoadException thrown if there are any issue loading the directive.
    */
   public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
-    this.registry = new HashMap<>();
+    this.registry = new ConcurrentSkipListMap<>();
     namespaces.add(PACKAGE);
     this.namespaces = namespaces;
     for (String namespace : namespaces) {
@@ -94,6 +95,11 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
     return registry.get(name);
   }
 
+  @Override
+  public void reload() throws DirectiveLoadException {
+    // No-op.
+  }
+
   /**
    * Returns an <tt>JsonElement</tt> representation of this implementation of object.
    * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
@@ -108,5 +114,14 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
       response.add(entry.getKey(), entry.getValue().toJson());
     }
     return response;
+  }
+
+  /**
+   * @return Returns an iterator to iterate through all the <code>DirectiveInfo</code> objects
+   * maintained within the registry.
+   */
+  @Override
+  public Iterator<DirectiveInfo> iterator() {
+    return registry.values().iterator();
   }
 }

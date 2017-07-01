@@ -25,16 +25,20 @@ import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveRegistry;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * A User Executor Registry in a collection of user defined directives. The
@@ -60,8 +64,9 @@ import java.util.Set;
  */
 public final class UserDirectiveRegistry implements DirectiveRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UserDirectiveRegistry.class);
-  private final Map<String, DirectiveInfo> registry = new HashMap<>();
+  private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
   private StageContext context = null;
+  private ArtifactManager manager = null;
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -77,25 +82,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @throws DirectiveLoadException thrown if there are issues loading the plugin.
    */
   public UserDirectiveRegistry(ArtifactManager manager) throws DirectiveLoadException {
-    try {
-      List<ArtifactInfo> artifacts = manager.listArtifacts();
-      for(ArtifactInfo artifact : artifacts) {
-        Set<PluginClass> plugins = artifact.getClasses().getPlugins();
-        for (PluginClass plugin : plugins) {
-          if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
-            try(CloseableClassLoader closeableClassLoader
-                  = manager.createClassLoader(artifact, getClass().getClassLoader())) {
-              Class<? extends Directive> directive =
-                (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
-              DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
-              registry.put(classz.name(), classz);
-            }
-          }
-        }
-      }
-    } catch (IllegalAccessException | InstantiationException | IOException | ClassNotFoundException e) {
-      throw new DirectiveLoadException(e.getMessage(), e);
-    }
+    this.manager = manager;
+    reload();
   }
 
   /**
@@ -142,6 +130,61 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     return null;
   }
 
+  @Override
+  public void reload() throws DirectiveLoadException {
+    Map<String, DirectiveInfo> newRegistry = new TreeMap<>();
+
+    if (manager != null) {
+      try {
+        List<ArtifactInfo> artifacts = manager.listArtifacts();
+        for(ArtifactInfo artifact : artifacts) {
+          Set<PluginClass> plugins = artifact.getClasses().getPlugins();
+          for (PluginClass plugin : plugins) {
+            if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
+              LOG.info("Loading class {}", plugin.getClassName());
+              try(CloseableClassLoader closeableClassLoader
+                    = manager.createClassLoader(artifact, getClass().getClassLoader())) {
+                Class<? extends Directive> directive =
+                  (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
+                DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
+                newRegistry.put(classz.name(), classz);
+              }
+            }
+          }
+        }
+
+        MapDifference<String, DirectiveInfo> difference = Maps.difference(registry, newRegistry);
+
+        int deleted = difference.entriesOnlyOnLeft().size();
+        // Remove elements from the registry that are not present in newly loaded registry
+        for(String directive : difference.entriesOnlyOnLeft().keySet()) {
+          registry.remove(directive);
+        }
+
+        // Update common directives
+        int updated = difference.entriesInCommon().size();
+        for(String directive : difference.entriesInCommon().keySet()) {
+          registry.put(directive, difference.entriesInCommon().get(directive));
+        }
+
+        // Update new directives
+        int adding = difference.entriesOnlyOnRight().size();
+        for(String directive : difference.entriesOnlyOnRight().keySet()) {
+          registry.put(directive, difference.entriesOnlyOnRight().get(directive));
+        }
+
+        int count = registry.size();
+        LOG.info(
+          String.format("Updating registry - Deleted %d, Updated %d, Adding %d, Final Count %d.",
+                        deleted, updated, adding, count)
+        );
+
+      } catch (IllegalAccessException | InstantiationException | IOException | ClassNotFoundException e) {
+        throw new DirectiveLoadException(e.getMessage(), e);
+      }
+    }
+  }
+
   /**
    * Returns an <tt>JsonElement</tt> representation of this implementation of object.
    * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
@@ -156,5 +199,14 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
       response.add(entry.getKey(), entry.getValue().toJson());
     }
     return response;
+  }
+
+  /**
+   * @return Returns an iterator to iterate through all the <code>DirectiveInfo</code> objects
+   * maintained within the registry.
+   */
+  @Override
+  public Iterator<DirectiveInfo> iterator() {
+    return registry.values().iterator();
   }
 }

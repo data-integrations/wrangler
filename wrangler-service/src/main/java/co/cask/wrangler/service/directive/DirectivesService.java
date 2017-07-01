@@ -34,9 +34,10 @@ import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveConfig;
-import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
+import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeParser;
@@ -47,9 +48,10 @@ import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
-import co.cask.wrangler.parser.SimpleTextParser;
-import co.cask.wrangler.parser.UsageRegistry;
+import co.cask.wrangler.parser.GrammarBasedParser;
+import co.cask.wrangler.parser.MigrateToV2;
 import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.registry.UserDirectiveRegistry;
 import co.cask.wrangler.sampling.Reservoir;
@@ -88,6 +90,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -122,11 +125,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
 
-  private DirectiveRegistry system;
-  private DirectiveRegistry user;
+  private DirectiveRegistry composite;
 
   /**
-   * An implementation of {@link HttpServiceHandler#initialize(HttpServiceContext)}. Stores the context
+   * An implementation of HttpService. Stores the context
    * so that it can be used later.
    *
    * @param context the HTTP service runtime context
@@ -135,8 +137,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Override
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
-    system = new SystemDirectiveRegistry();
-    user = new UserDirectiveRegistry(context);
+    composite = new CompositeDirectiveRegistry(
+      new SystemDirectiveRegistry(),
+      new UserDirectiveRegistry(context)
+    );
   }
 
   /**
@@ -861,23 +865,23 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Path("usage")
   public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
-      UsageRegistry registry = new UsageRegistry();
-      List<UsageRegistry.UsageEntry> usages = registry.getAll();
-
       DirectiveConfig config = table.getConfig();
       Map<String, List<String>> aliases = config.getReverseAlias();
       JsonObject response = new JsonObject();
       JsonArray values = new JsonArray();
 
       int count = 0;
-      for (UsageRegistry.UsageEntry entry : usages) {
+      Iterator<DirectiveInfo> iterator = composite.iterator();
+      while(iterator.hasNext()) {
         JsonObject usage = new JsonObject();
-        String directive = entry.getDirective();
-        usage.addProperty("directive", directive);
-        usage.addProperty("usage", entry.getUsage());
-        usage.addProperty("description", entry.getDescription());
-        usage.addProperty("excluded", config.isExcluded(directive));
+        DirectiveInfo directive = iterator.next();
+        usage.addProperty("directive", directive.name());
+        usage.addProperty("usage", directive.usage());
+        usage.addProperty("description", directive.description());
+        usage.addProperty("excluded", config.isExcluded(directive.name()));
         usage.addProperty("alias", false);
+        usage.addProperty("scope", directive.scope().name());
+        usage.add("arguments", directive.definition().toJson());
         values.add(usage);
 
         // For this directive we find all aliases and add them to the
@@ -887,10 +891,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
           for(String alias : list) {
             JsonObject aliasUsage = new JsonObject();
             aliasUsage.addProperty("directive", alias);
-            aliasUsage.addProperty("usage", entry.getUsage());
-            aliasUsage.addProperty("description", entry.getDescription());
+            aliasUsage.addProperty("usage", directive.usage());
+            aliasUsage.addProperty("description", directive.description());
             aliasUsage.addProperty("excluded", config.isExcluded(alias));
             aliasUsage.addProperty("alias", true);
+            aliasUsage.addProperty("scope", directive.scope().name());
+            aliasUsage.add("arguments", directive.definition().toJson());
             values.add(aliasUsage);
             count++;
           }
@@ -985,25 +991,20 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * This HTTP endpoint is used to reload the plugins that are
+   * of type <code>Directive.Type</code> (directive). Artifact will be reported
+   * if it atleast has one plugin that is of type "directive".
+   */
   @GET
-  @Path("usage/2")
-  public void usageV2(HttpServiceRequest request, HttpServiceResponder responder) {
-    JsonObject response = new JsonObject();
-    response.addProperty("status", HttpURLConnection.HTTP_OK);
-    response.addProperty("message", "Success");
-    response.addProperty("count", 1);
-    JsonArray values = new JsonArray();
+  @Path("directives/reload")
+  public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
-      user.get("text-reverse");
-    } catch (DirectiveLoadException e) {
-      LOG.error(e.getMessage(), e);
+      composite.reload();
+      success(responder, "Successfully reloaded all user defined directives.");
+    } catch (Exception e) {
+      error(responder, e.getMessage());
     }
-    JsonObject usages = new JsonObject();
-    usages.add("system", system.toJson());
-    usages.add("user", user.toJson());
-    values.add(usages);
-    response.add("values", values);
-    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
   /**
@@ -1150,9 +1151,14 @@ public class DirectivesService extends AbstractHttpServiceHandler {
                                                        getContext(),
                                                        store);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
-    RecipeParser directives = new SimpleTextParser(user.getRecipe().getDirectives());
-    directives.initialize(new ConfigDirectiveContext(table.getConfigString()));
-    executor.configure(directives, context);
-    return executor.execute(sample.apply(rows));
+    if (user.getRecipe().getDirectives().size() > 0) {
+      GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
+      String migrate = migrator.migrate();
+      RecipeParser directives = new GrammarBasedParser(migrate, composite);
+      directives.initialize(new ConfigDirectiveContext(table.getConfigString()));
+      executor.configure(directives, context);
+      return executor.execute(sample.apply(rows));
+    }
+    return rows;
   }
 }
