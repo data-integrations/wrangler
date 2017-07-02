@@ -42,17 +42,23 @@ options {
  * Parser Grammar for recognizing tokens and constructs of the directives language.
  */
 recipe
- : directives EOF
+ : statements EOF
  ;
 
-directives
- : (Comment | directive ';' | pragma ';')*?
+statements
+ : (
+      Comment
+    | macro
+    | directive ';'
+    | pragma ';'
+   )*?
  ;
 
 directive
  : command
   (   codeblock
     | identifier
+    | macro
     | text
     | number
     | bool
@@ -65,6 +71,10 @@ directive
     | properties
   )*
   ;
+
+macro
+ : Dollar OBrace (~OBrace | macro | Macro)*? CBrace
+ ;
 
 pragma
  : '#pragma' (pragmaLoadDirective | pragmaVersion)
@@ -200,6 +210,7 @@ Dot      : '.';
 At       : '@';
 Pipe     : '|';
 BackSlash: '\\';
+Dollar   : '$';
 
 Bool
  : 'true'
@@ -212,6 +223,10 @@ Number
 
 Identifier
  : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
+ ;
+
+Macro
+ : [a-zA-Z_] [a-zA-Z_0-9]*
  ;
 
 Column
@@ -227,10 +242,6 @@ EscapeSequence
    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
    |   UnicodeEscape
    |   OctalEscape
-   ;
-
-Macro
-   : ('$' '{' Identifier '}') -> skip
    ;
 
 fragment

@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import static co.cask.wrangler.parser.SimpleTextParser.getNextToken;
-
 /**
  * This class helps rewrites the recipe of directives from version 1.0 to version 2.0.
  */
@@ -749,7 +747,7 @@ public final class MigrateToV2 implements GrammarMigrator {
         break;
 
         default:
-          if (!directive.endsWith(";")) {
+          if (!directive.endsWith(";") && !directive.startsWith("$")) {
             transformed.add(directive + ";");
           } else {
             transformed.add(directive);
@@ -787,5 +785,37 @@ public final class MigrateToV2 implements GrammarMigrator {
       array.add(col(column));
     }
     return Joiner.on(",").join(array);
+  }
+
+  // If there are more tokens, then it proceeds with parsing, else throws exception.
+  public static String getNextToken(StringTokenizer tokenizer, String directive,
+                                    String field, int lineno) throws DirectiveParseException {
+    return getNextToken(tokenizer, null, directive, field, lineno, false);
+  }
+
+  public static String getNextToken(StringTokenizer tokenizer, String delimiter,
+                                    String directive, String field, int lineno) throws DirectiveParseException {
+    return getNextToken(tokenizer, delimiter, directive, field, lineno, false);
+  }
+
+  public static String getNextToken(StringTokenizer tokenizer, String delimiter,
+                                    String directive, String field, int lineno, boolean optional)
+    throws DirectiveParseException {
+    String value = null;
+    if (tokenizer.hasMoreTokens()) {
+      if (delimiter == null) {
+        value = tokenizer.nextToken().trim();
+      } else {
+        value = tokenizer.nextToken(delimiter).trim();
+      }
+    } else {
+      if (!optional) {
+        throw new DirectiveParseException(
+          String.format("Missing field '%s' at line number %d for directive <%s>.",
+                        field, lineno, directive)
+        );
+      }
+    }
+    return value;
   }
 }

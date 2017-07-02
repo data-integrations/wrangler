@@ -16,12 +16,11 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.CompiledUnit;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.RecipeParser;
-import co.cask.wrangler.registry.CompositeDirectiveRegistry;
-import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,15 +36,13 @@ public class GrammarBasedParserTest {
     String[] recipe = new String[] {
       "#pragma version 2.0;",
       "rename :col1 :col2",
-      "parse-as-csv :body ',' true",
+      "parse-as-csv :body ',' true;",
       "#pragma load-directives text-reverse, text-exchange;",
+      "${macro} ${macro_2}",
+      "${macro_${test}}"
     };
 
-    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry()
-    );
-
-    RecipeParser parser = new GrammarBasedParser(new MigrateToV2(recipe).migrate(), registry);
+    RecipeParser parser = TestingRig.parse(recipe);
     parser.initialize(null);
     List<Executor> directives = parser.parse();
 

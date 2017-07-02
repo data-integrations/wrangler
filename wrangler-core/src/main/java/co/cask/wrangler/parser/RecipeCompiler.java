@@ -23,7 +23,6 @@ import co.cask.wrangler.api.parser.SyntaxError;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.GrammarParserInterpreter;
 import org.apache.twill.filesystem.Location;
@@ -102,14 +101,12 @@ public final class RecipeCompiler implements Compiler {
       SyntaxErrorListener errorListener = new SyntaxErrorListener();
       DirectivesLexer lexer = new DirectivesLexer(stream);
       lexer.removeErrorListeners();
-      lexer.addErrorListener(errorListener);
 
       DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
       parser.removeErrorListeners();
       parser.addErrorListener(errorListener);
       parser.setErrorHandler(new GrammarParserInterpreter.BailButConsumeErrorStrategy());
       parser.setBuildParseTree(true);
-      parser.addErrorListener(new DiagnosticErrorListener());
       ParseTree tree = parser.recipe();
       if(errorListener.hasErrors()) {
         hasErrors = true;

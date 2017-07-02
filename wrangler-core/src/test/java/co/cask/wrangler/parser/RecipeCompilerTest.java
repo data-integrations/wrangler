@@ -19,6 +19,10 @@ package co.cask.wrangler.parser;
 import co.cask.wrangler.api.CompileException;
 import co.cask.wrangler.api.CompiledUnit;
 import co.cask.wrangler.api.Compiler;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CodePointCharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.tool.GrammarParserInterpreter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,5 +49,21 @@ public class RecipeCompilerTest {
     } catch (CompileException e) {
       Assert.assertTrue(false);
     }
+  }
+
+  @Test
+  public void testMacroParsing() throws Exception {
+    CodePointCharStream stream = CharStreams.fromString("${macro}");
+    SyntaxErrorListener errorListener = new SyntaxErrorListener();
+    DirectivesLexer lexer = new DirectivesLexer(stream);
+    lexer.removeErrorListeners();
+
+    DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
+    parser.removeErrorListeners();
+    parser.addErrorListener(errorListener);
+    parser.setErrorHandler(new GrammarParserInterpreter.BailButConsumeErrorStrategy());
+    parser.setBuildParseTree(true);
+    parser.macro();
+    Assert.assertEquals(false, errorListener.hasErrors());
   }
 }
