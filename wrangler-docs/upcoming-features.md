@@ -9,7 +9,7 @@
  */
  
 // Load external directives 
-#pragma set-macro rectype :record_type;
+#pragma set-property rectype :record_type;
 #pragma load-directives encrypt, sentence-detect, invoke-http-get;
 
 // Parse the input record with first three bytes as rectype
