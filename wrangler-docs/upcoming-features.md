@@ -9,16 +9,17 @@
  */
  
 // Load external directives 
+#pragma set-macro rectype :record_type;
 #pragma load-directives encrypt, sentence-detect, invoke-http-get;
 
 // Parse the input record with first three bytes as rectype
 // and rest of them as new body.
 parse-as-fixed-length :body 3,197;
-rename :body_1 :rectype;
+rename :body_1 ${rectype};
 rename :body_2 :body;
 
 // Apply different set of directives based on the 'rectype'
-if((rectype == '001')) {
+if((${rectype} == '001')) {
   drop :rectype;
   parse-as-csv :body ',';
   set-headers :fname,:lname,:address,:city,:ssn,:state,:zip;
@@ -28,7 +29,7 @@ if((rectype == '001')) {
   if(zip == '94306') {
     set-column :flagged exp: { 1 };
   }
-} else if (rectype == '002') {
+} else if (${rectype} == '002') {
   drop :rectype;
   parse-as-csv :body ':';
   set-headers :lat,:lon,:device;
