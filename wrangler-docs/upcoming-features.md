@@ -20,7 +20,7 @@ rename :body_2 :body;
 
 // Apply different set of directives based on the 'rectype'
 if((${rectype} == '001')) {
-  drop :rectype;
+  drop ${rectype};
   parse-as-csv :body ',';
   set-headers :fname,:lname,:address,:city,:ssn,:state,:zip;
   // Data validation functions added by the macros 
