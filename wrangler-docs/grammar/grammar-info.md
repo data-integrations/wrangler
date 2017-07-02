@@ -17,5 +17,5 @@ send-to-error exp:{ total < 10};
 
 ## Building in IDE
 Set the following
-  * Path : `${base}/wrangler/core/target/generated-sources/antlr4`
+  * Path : `${base}/wrangler/wrangler-core/target/generated-sources/antlr4`
   * Package : `co.cask.wrangler.parser`
