@@ -239,6 +239,18 @@ There are some major difference in new syntax for invoking directives, all
  * Text arguments are represented within quotes -- single or double. E.g. Old: `;`, New : `';'`
  * Expressions or conditions are now enclosed with a construct `exp: { condition or expression }`
  * Optional arguments are truly optional now.
+ 
+## Macros and Directives
+
+There are use-cases where a macro is specified in a pipeline for the directive in a Wrangle transform. In that we wouldn't want to fail for not recognizing it's a macro and as well be able to register the dynamically loadable directives (plugins) during that phase. Failing to register the directives in the configure phase would make the directive unusable during initialize causing the entire pipeline to fail. So, the approach that is being taken is as follows
+
+  * The `RecipeCompiler` recognizes the macros specified and skips them during the `configure` phase of a Wrangler Transform.
+  * Compilation will generate a list of all loadable directives. These are all the directives that have been specified with `pragma load-directives` statement.
+  * The dynamic loadable directives are then registered in the pipeline to be used.
+  * A 64-bit unqiue id is generated for each directive that is loaded dynamically and the information is passed through the plugin properties into `initialize()`.
+  * In `initialize()` the properties are retrieved and appropriate plugin id for the plugin name in the context of pipeline is extracted. Using that plugin id an instance of the class is created. 
+  
+All-in-All **Macros can be freely specified** in the Wrangler Transform plugin for the directive configuration.  
 
 ## Extracting Loadable Directives
 
