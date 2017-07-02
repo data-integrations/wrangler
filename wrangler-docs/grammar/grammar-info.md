@@ -16,6 +16,11 @@ send-to-error exp:{ total < 10};
 ![AST](grammar-graph.png)
 
 ## Building in IDE
-Set the following
-  * Path : `${base}/wrangler/core/target/generated-sources/antlr4`
+Intellij 
+  * Install Plugin - Antlr v4 grammar plugin - version  1.8.4 or higher.
+Configure Antlr Plugin
+  * Output Directory : `${base}/wrangler/wrangler-core/target/generated-sources/antlr4`
   * Package : `co.cask.wrangler.parser`
+  * Auto generate upon save - ON
+  * Generate Parse Tree Visitor - ON
+  * Generate Parse Tree Listener - OFF
