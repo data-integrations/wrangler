@@ -239,55 +239,21 @@ There are some major difference in new syntax for invoking directives, all
  * Text arguments are represented within quotes -- single or double. E.g. Old: `;`, New : `';'`
  * Expressions or conditions are now enclosed with a construct `exp: { condition or expression }`
  * Optional arguments are truly optional now.
+ 
+## Macros and Wrangler Transform
 
-## Extracting Loadable Directives
-
-Sample code to show how loadable directives can be extracted from the recipe.
-
-```
-    ...
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "rename col1 col2",
-      "parse-as-csv body , true",
-      "!text-reverse :text;",
-      "!test prop: { a='b', b=1.0, c=true};",
-      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
-    };
-
-    Compiler compiler = new RecipeCompiler();
-    CompiledUnit compiled = compiler.compile(new MigrateToV2(recipe).migrate());
-    Set<String> loadableDirectives = compiled.getLoadableDirectives();
-    ...
-```
-
-## Parsing Recipe into list of executable directives
-
-This block of code shows how one can parse recipe into a list of
-directives that are executable in the `RecipePipeline`.
+Macros are be freely specified. One caveat while specifying macros is that the `#pragma load-directives` cannot be part of the macro. They should be specified in the plugin configuration itself. The reason is that we have to register the user defined directives prior to initializing and executing the transform. Macros are dereferenced only at the initialization and execution state. A configuration could look something like this.
 
 ```
-    ...
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "rename col1 col2",
-      "parse-as-csv body , true"
-    };
-
-    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry()
-    );
-
-    RecipeParser parser = new GrammarBasedParser(new MigrateToV2(recipe).migrate(), registry);
-    parser.initialize(null);
-    List<Directive> directives = parser.parse();
-    ...
+#pragma load-directive my-udd-1, my-udd2;
+${macroed_recipe}
+#pragma load-directive my-udd3
+${another_recipe}
 ```
 
 ## Related documentation
 
   * Information about Grammar [here](grammar/grammar-info.md)
+  * Custom Directive Implementation Internals [here](udd-internal.md)
   * Migrating directives from version 1.0 to version 2.0 [here](directive-migration.md)
   * Various `TokenType` supported by system [here](../api/src/main/java/co/cask/wrangler/api/parser/TokenType.java)
