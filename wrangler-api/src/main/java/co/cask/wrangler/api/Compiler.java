@@ -17,21 +17,16 @@
 package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
-import co.cask.wrangler.api.parser.SyntaxError;
 import org.apache.twill.filesystem.Location;
 
 import java.nio.file.Path;
-import java.util.Iterator;
 
 /**
  * Class description here.
  */
 @PublicEvolving
 public interface Compiler {
-  Iterator<CompiledUnit> compile(Iterator<String> directive) throws CompileException;
-  CompiledUnit compile(String directive) throws CompileException;
-  CompiledUnit compile(Location location) throws CompileException;
-  CompiledUnit compile(Path path) throws CompileException;
-  boolean hasErrors();
-  Iterator<SyntaxError> getSyntaxErrors();
+  CompileStatus compile(String directive) throws CompileException;
+  CompileStatus compile(Location location) throws CompileException;
+  CompileStatus compile(Path path) throws CompileException;
 }

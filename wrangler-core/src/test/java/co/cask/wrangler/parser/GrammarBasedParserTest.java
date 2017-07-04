@@ -17,7 +17,7 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.TestingRig;
-import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.RecipeParser;
@@ -45,7 +45,6 @@ public class GrammarBasedParserTest {
     RecipeParser parser = TestingRig.parse(recipe);
     parser.initialize(null);
     List<Executor> directives = parser.parse();
-
     Assert.assertEquals(2, directives.size());
   }
 
@@ -62,7 +61,7 @@ public class GrammarBasedParserTest {
     };
 
     Compiler compiler = new RecipeCompiler();
-    CompiledUnit compiled = compiler.compile(new MigrateToV2(recipe).migrate());
-    Assert.assertEquals(7, compiled.getLoadableDirectives().size());
+    CompileStatus status = compiler.compile(new MigrateToV2(recipe).migrate());
+    Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
   }
 }

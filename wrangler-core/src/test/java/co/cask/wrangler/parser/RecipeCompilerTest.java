@@ -16,13 +16,10 @@
 
 package co.cask.wrangler.parser;
 
+import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.CompileException;
-import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CodePointCharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.tool.GrammarParserInterpreter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,33 +34,122 @@ public class RecipeCompilerTest {
   public void testSuccessCompilation() throws Exception {
     try {
       Compiler compiler = new RecipeCompiler();
-      CompiledUnit units = compiler.compile(
+      CompileStatus status = compiler.compile(
           "parse-as-csv :body ' ' true;\n"
         + "set-column :abc, :edf;\n"
         + "send-to-error exp:{ window < 10 } ;\n"
         + "parse-as-simple-date :col 'yyyy-mm-dd' :col 'test' :col2,:col4,:col9 10 exp:{test < 10};\n"
       );
 
-      Assert.assertNotNull(units);
-      Assert.assertEquals(4, units.size());
+      Assert.assertNotNull(status.getSymbols());
+      Assert.assertEquals(4, status.getSymbols().size());
     } catch (CompileException e) {
       Assert.assertTrue(false);
     }
   }
 
   @Test
-  public void testMacroParsing() throws Exception {
-    CodePointCharStream stream = CharStreams.fromString("${macro}");
-    SyntaxErrorListener errorListener = new SyntaxErrorListener();
-    DirectivesLexer lexer = new DirectivesLexer(stream);
-    lexer.removeErrorListeners();
+  public void testMacroSkippingDuringParsing() throws Exception {
+    String[] recipe = new String[] {
+      "parse-as-csv :body ',' true;",
+      "${macro1}",
+      "${macro${number}}",
+      "parse-as-csv :body '${delimiter}' true;"
+    };
 
-    DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
-    parser.removeErrorListeners();
-    parser.addErrorListener(errorListener);
-    parser.setErrorHandler(new GrammarParserInterpreter.BailButConsumeErrorStrategy());
-    parser.setBuildParseTree(true);
-    parser.macro();
-    Assert.assertEquals(false, errorListener.hasErrors());
+    CompileStatus status = TestingRig.compile(recipe);
+    Assert.assertEquals(true, status.isSuccess());
+  }
+
+  @Test
+  public void testSingleMacroLikeWranglerPlugin() throws Exception {
+    String[] recipe = new String[] {
+      "${directives}"
+    };
+
+    CompileStatus status = TestingRig.compile(recipe);
+    Assert.assertEquals(true, status.isSuccess());
+  }
+
+  @Test
+  public void testSparedPragmaLoadDirectives() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2,test3,test4,test5;",
+      "${directives}",
+      "#pragma load-directives root1,root2,root3;"
+    };
+    TestingRig.compileSuccess(recipe);
+  }
+
+  @Test
+  public void testNestedMacros() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2,test3,test4,test5;",
+      "${directives_${number}}"
+    };
+    TestingRig.compileSuccess(recipe);
+  }
+
+  @Test
+  public void testSemiColonMissing() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2,test3,test4,test5",
+      "${directives_${number}}"
+    };
+    TestingRig.compileFailure(recipe);
+  }
+
+  @Test
+  public void testMissingOpenBraceOnMacro() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2,test3,test4,test5;",
+      "$directives}"
+    };
+    TestingRig.compileFailure(recipe);
+  }
+
+  @Test
+  public void testMissingCloseBraceOnMacro() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2,test3,test4,test5;",
+      "${directives"
+    };
+    TestingRig.compileFailure(recipe);
+  }
+
+  @Test
+  public void testMissingBothBraceOnMacro() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2,test3,test4,test5;",
+      "${directives"
+    };
+    TestingRig.compileFailure(recipe);
+  }
+
+  @Test
+  public void testMissingPragmaHash() throws Exception {
+    String[] recipe = new String[] {
+      "pragma load-directives test1,test2,test3,test4,test5;",
+    };
+    TestingRig.compileFailure(recipe);
+  }
+
+  @Test
+  public void testTypograhicalErrorPragmaLoadDirectives() throws Exception {
+    String[] recipe = new String[] {
+      "pragma test1,test2,test3,test4,test5;",
+    };
+    TestingRig.compileFailure(recipe);
+  }
+
+  @Test
+  public void testWithIfStatement() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2;",
+      "${macro_1}",
+      "if ((test > 10) && (window < 20)) {  parse-as-csv :body ',' true; if (window > 10) " +
+        "{ send-to-error exp:{test > 10}; } }"
+    };
+    TestingRig.compileSuccess(recipe);
   }
 }

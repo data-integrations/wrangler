@@ -16,13 +16,27 @@
 
 package co.cask.wrangler.api;
 
+import co.cask.wrangler.api.parser.SyntaxError;
+
+import java.util.Iterator;
+
 /**
  * An exception thrown when there is error in parsing specification.
  */
 public class DirectiveParseException extends Exception {
+  private Iterator<SyntaxError> errors;
+
+  public DirectiveParseException(String message, Iterator<SyntaxError> errors) {
+    super(message);
+    this.errors = errors;
+  }
 
   public DirectiveParseException(String message) {
     super(message);
+  }
+
+  public Iterator<SyntaxError> errors() {
+    return errors;
   }
 }
 

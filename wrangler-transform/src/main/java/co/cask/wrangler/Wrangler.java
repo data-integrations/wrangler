@@ -23,24 +23,35 @@ import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginConfig;
+import co.cask.cdap.api.plugin.PluginProperties;
 import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.PipelineConfigurer;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.directives.aggregates.DefaultTransientStore;
-import co.cask.wrangler.api.DirectiveLoadException;
-import co.cask.wrangler.api.DirectiveNotFoundException;
+import co.cask.wrangler.api.CompileException;
+import co.cask.wrangler.api.CompileStatus;
+import co.cask.wrangler.api.Compiler;
+import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.DirectiveRegistry;
+import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.SUID;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
-import co.cask.wrangler.parser.SimpleTextParser;
+import co.cask.wrangler.parser.GrammarBasedParser;
+import co.cask.wrangler.parser.MigrateToV2;
+import co.cask.wrangler.parser.RecipeCompiler;
+import co.cask.wrangler.registry.CompositeDirectiveRegistry;
+import co.cask.wrangler.registry.SystemDirectiveRegistry;
+import co.cask.wrangler.registry.UserDirectiveRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +61,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -115,14 +129,35 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       validateInputSchema(iSchema);
     }
 
-    // Validate the DSL by parsing DSL.
-    if(!config.containsMacro("directives")) {
-      RecipeParser directives = new SimpleTextParser(config.directives);
-      try {
-        directives.parse();
-      } catch (DirectiveParseException | DirectiveNotFoundException | DirectiveLoadException e) {
-        throw new IllegalArgumentException(e);
+    // Validate the DSL by compiling the DSL. In case of macros being
+    // specified, the compilation will them at this phase.
+    Compiler compiler = new RecipeCompiler();
+    try {
+      // Migrate the directives from V1 to V2.
+      GrammarMigrator migrator = new MigrateToV2(config.directives);
+      String migratedDirectives = migrator.migrate();
+
+      // Compile the directive extracting the loadable plugins (a.k.a
+      // Directives in this context).
+      CompileStatus status = compiler.compile(migratedDirectives);
+      Set<String> dynamicDirectives = status.getSymbols().getLoadableDirectives();
+      Map<String, String> properties = new HashMap<>();
+      for (String directive : dynamicDirectives) {
+        // Create a unique id for the plugin.
+        String pluginId = String.format("%s:%d", directive, SUID.nextId());
+        // Add the plugin to the pipeline it's running within.
+        configurer.usePlugin(Directive.Type, directive, pluginId, PluginProperties.builder().build());
+        // Each plugin instance is assigned a unique id, we pass that information
+        // in properties to the initialize.
+        properties.put(directive, pluginId);
       }
+      if(properties.size() > 0) {
+        configurer.setPipelineProperties(properties);
+      }
+    } catch (CompileException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    } catch (DirectiveParseException e) {
+      throw new IllegalArgumentException(e.getMessage());
     }
 
     // Based on the configuration create output schema.
@@ -196,7 +231,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    RecipeParser directives = new SimpleTextParser(config.directives);
+    DirectiveRegistry registry = new CompositeDirectiveRegistry(
+      new SystemDirectiveRegistry(),
+      new UserDirectiveRegistry(context)
+    );
+
+    RecipeParser directives = new GrammarBasedParser(config.directives, registry);
     RecipeContext ctx = new WranglerPipelineContext(RecipeContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
@@ -328,7 +368,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
      */
   private URL getDPServiceURL(String method) throws URISyntaxException, MalformedURLException {
     URL url = getContext().getServiceURL(APPLICATION_NAME, SERVICE_NAME);
-    URI uri = url.toURI();
+      URI uri = url.toURI();
     String path = uri.getPath() + method;
     return uri.resolve(path).toURL();
   }
@@ -343,7 +383,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     private String precondition;
 
     @Name("directives")
-    @Description("RecipeParser for wrangling the input records")
+    @Description("Recipe for wrangling the input records")
     @Macro
     private String directives;
 

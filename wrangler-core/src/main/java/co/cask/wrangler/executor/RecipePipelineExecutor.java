@@ -37,7 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrangle RecipePipeline executes stepRegistry in the order they are specified.
+ * The class <code>RecipePipelineExecutor</code> compiles the recipe and executes
+ * the directives.
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
   private RecipeContext context;
@@ -46,7 +47,8 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
   private RecordConvertor convertor = new RecordConvertor();
 
   /**
-   * Configures the pipeline based on the directives.
+   * Configures the pipeline based on the directives. It parses the recipe,
+   * converting it into executable directives.
    *
    * @param parser Wrangle directives parser.
    */
@@ -55,10 +57,10 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     this.context = context;
     try {
       this.directives = parser.parse();
-    } catch (DirectiveParseException | DirectiveNotFoundException | DirectiveLoadException e) {
-      throw new RecipeException(
-        String.format(e.getMessage())
-      );
+    } catch (DirectiveParseException e) {
+      throw new RecipeException(e.getMessage());
+    } catch (DirectiveNotFoundException | DirectiveLoadException e) {
+      throw new RecipeException(e.getMessage(), e);
     }
   }
 

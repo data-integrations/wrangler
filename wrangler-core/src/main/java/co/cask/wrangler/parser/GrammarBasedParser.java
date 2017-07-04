@@ -18,7 +18,7 @@ package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.CompileException;
-import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveContext;
@@ -75,19 +75,13 @@ public class GrammarBasedParser implements RecipeParser {
   public List<Executor> parse()
     throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException {
     try {
-      CompiledUnit compiled = compiler.compile(recipe);
-      if (compiled == null) {
-        throw new DirectiveParseException(
-          "Unable to parse the recipe. Please check the syntax of the recipe specified."
-        );
+      CompileStatus status = compiler.compile(recipe);
+      if (!status.isSuccess()) {
+        Iterator<SyntaxError> errors = status.getErrors();
+        throw new DirectiveParseException(errors.next().getMessage(), errors);
       }
 
-      if (compiler.hasErrors()) {
-        Iterator<SyntaxError> errors = compiler.getSyntaxErrors();
-        throw new DirectiveParseException(errors.next().getMessage());
-      }
-
-      Iterator<TokenGroup> tokenGroups = compiled.iterator();
+      Iterator<TokenGroup> tokenGroups = status.getSymbols().iterator();
       while(tokenGroups.hasNext()) {
         TokenGroup next = tokenGroups.next();
         String command = ((DirectiveName) next.get(0)).value();
@@ -123,7 +117,9 @@ public class GrammarBasedParser implements RecipeParser {
         directive.initialize(arguments);
         directives.add(directive);
       }
-    } catch (CompileException | IllegalAccessException | InstantiationException  e) {
+    } catch (CompileException e) {
+      throw new DirectiveParseException(e.getMessage(), e.iterator());
+    } catch (IllegalAccessException | InstantiationException  e) {
       throw new DirectiveParseException(e.getMessage());
     }
     return directives;

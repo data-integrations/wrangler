@@ -17,7 +17,7 @@
 package co.cask.directives.row;
 
 import co.cask.wrangler.TestingRig;
-import co.cask.wrangler.api.RecipeException;
+import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Row;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
@@ -261,10 +261,10 @@ public class FlattenTest {
     Assert.assertTrue(rows.size() == 4);
   }
 
-  @Test(expected = RecipeException.class)
+  @Test(expected = DirectiveParseException.class)
   public void testSyntaxFailure1() throws Exception {
     String[] directives = new String[] {
-      "!flatten",
+      "flatten",
     };
 
     JsonArray fname = new JsonArray();

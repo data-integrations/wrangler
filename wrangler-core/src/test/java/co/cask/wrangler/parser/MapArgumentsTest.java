@@ -17,7 +17,7 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.Arguments;
-import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.TokenGroup;
@@ -36,13 +36,13 @@ public class MapArgumentsTest {
   @Test
   public void testWithAllRequiredFields() throws Exception {
     Compiler compiler = new RecipeCompiler();
-    CompiledUnit unit = compiler.compile("rename :fname :lname;");
+    CompileStatus status = compiler.compile("rename :fname :lname;");
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
     builder.define("col1", TokenType.COLUMN_NAME);
     builder.define("col2", TokenType.COLUMN_NAME);
 
-    Iterator<TokenGroup> iterator = unit.iterator();
+    Iterator<TokenGroup> iterator = status.getSymbols().iterator();
     Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
@@ -52,13 +52,13 @@ public class MapArgumentsTest {
   @Test
   public void testWithOptionalField() throws Exception {
     Compiler compiler = new RecipeCompiler();
-    CompiledUnit unit = compiler.compile("rename :fname;");
+    CompileStatus status = compiler.compile("rename :fname;");
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
     builder.define("col1", TokenType.COLUMN_NAME);
     builder.define("col2", TokenType.COLUMN_NAME, Optional.TRUE);
 
-    Iterator<TokenGroup> iterator = unit.iterator();
+    Iterator<TokenGroup> iterator = status.getSymbols().iterator();
     Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(1, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
@@ -68,10 +68,10 @@ public class MapArgumentsTest {
   @Test
   public void testMultipleArgumentsOptional() throws Exception {
     Compiler compiler = new RecipeCompiler();
-    CompiledUnit unit1 = compiler.compile("parse-as-csv :body ' ';");
-    CompiledUnit unit2 = compiler.compile("parse-as-csv :body ' ' true;");
-    CompiledUnit unit3 = compiler.compile("parse-as-csv :body ' ' true exp: { type == '002' };");
-    CompiledUnit unit4 = compiler.compile("parse-as-csv :body exp: { type == '002' };");
+    CompileStatus status1 = compiler.compile("parse-as-csv :body ' ';");
+    CompileStatus status2 = compiler.compile("parse-as-csv :body ' ' true;");
+    CompileStatus status3 = compiler.compile("parse-as-csv :body ' ' true exp: { type == '002' };");
+    CompileStatus status4 = compiler.compile("parse-as-csv :body exp: { type == '002' };");
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
     builder.define("col1", TokenType.COLUMN_NAME);
@@ -79,21 +79,21 @@ public class MapArgumentsTest {
     builder.define("col3", TokenType.BOOLEAN, Optional.TRUE);
     builder.define("col4", TokenType.EXPRESSION, Optional.TRUE);
 
-    Iterator<TokenGroup> iterator = unit1.iterator();
+    Iterator<TokenGroup> iterator = status1.getSymbols().iterator();
     Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(true, arguments.contains("col2"));
     Assert.assertEquals(false, arguments.contains("col3"));
 
-    iterator = unit2.iterator();
+    iterator = status2.getSymbols().iterator();
     arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(3, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
     Assert.assertEquals(true, arguments.contains("col2"));
     Assert.assertEquals(true, arguments.contains("col3"));
 
-    iterator = unit3.iterator();
+    iterator = status3.getSymbols().iterator();
     arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(4, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));
@@ -101,7 +101,7 @@ public class MapArgumentsTest {
     Assert.assertEquals(true, arguments.contains("col3"));
     Assert.assertEquals(true, arguments.contains("col4"));
 
-    iterator = unit4.iterator();
+    iterator = status4.getSymbols().iterator();
     arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
     Assert.assertEquals(true, arguments.contains("col1"));

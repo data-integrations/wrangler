@@ -18,9 +18,12 @@ package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.parser.SyntaxError;
 import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.NoViableAltException;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,28 +33,52 @@ import java.util.List;
  * Class description here.
  */
 public final class SyntaxErrorListener extends BaseErrorListener {
+  public int lastError = -1;
   private List<SyntaxError> errors = new ArrayList<>();
 
   @Override
-  public void syntaxError(Recognizer<?, ?> recognizer,
-                          Object offendingSymbol,
-                          int line, int charPositionInLine,
-                          String msg,
-                          RecognitionException e) {
+  public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+                          String msg, RecognitionException e) {
 
+    Parser parser = (Parser) recognizer;
+    String name = parser.getSourceName();
+    TokenStream tokens = parser.getInputStream();
 
-    msg = msg.substring(0,1).toUpperCase() + msg.substring(1);
+    Token offSymbol = (Token) offendingSymbol;
+    int thisError = offSymbol.getTokenIndex();
 
-    String symbolText = "";
-    if (offendingSymbol instanceof CommonToken) {
-      CommonToken symbol = (CommonToken) offendingSymbol;
-      String charstream = symbol.getTokenSource().getInputStream().toString();
+    String source = "<unknown>";
+    if (offSymbol != null) {
+      String charstream = offSymbol.getTokenSource().getInputStream().toString();
       String[] lines = charstream.split("\n");
-      symbolText = String.format("Error at token '" + symbol.getText() + "', source : %s", lines[line-1]);
+      source = lines[line - 1];
     }
-    msg = !symbolText.isEmpty() ? symbolText + ", " + msg : msg;
-    msg = String.format("line %d:%d %s", line, charPositionInLine, msg);
-    errors.add(new SyntaxError(line, charPositionInLine, msg, symbolText));
+
+    if (offSymbol.getType() == -1 && thisError == tokens.size() - 1) {
+      if (e != null) {
+        if (e instanceof NoViableAltException) {
+          msg = "unexpected token found '" + ((NoViableAltException) e).getStartToken().getText() + "'";
+        }
+      }
+      String message = "At line " + line + ":" + charPositionInLine +  ": " + msg;
+      errors.add(new SyntaxError(line, charPositionInLine, message, source));
+      return;
+    }
+
+    String offSymName = DirectivesLexer.VOCABULARY.getDisplayName(offSymbol.getType());
+    String message = "At line " + line + ":" + charPositionInLine + " at " + offSymName.toLowerCase() + ": " + msg;
+
+//    StringBuilder sb = new StringBuilder(message);
+//    sb.append(", alternatives = {");
+//    for (int idx = lastError + 1; idx <= thisError; idx++) {
+//      Token token = tokens.get(idx);
+//      if (token.getChannel() != Token.HIDDEN_CHANNEL) {
+//        sb.append(token.getText()).append(",");
+//      }
+//    }
+//    sb.append("}");
+    lastError = thisError;
+    errors.add(new SyntaxError(line, charPositionInLine, message, source));
   }
 
   public boolean hasErrors() {

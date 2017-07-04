@@ -23,13 +23,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
- * This object <code>CompiledUnit</code> stored information about all the
+ * This object <code>RecipeSymbol</code> stores information about all the
  * <code>TokenGroup</code> ( TokenGroup represents a collection of tokens
  * generated from parsing a single directive). The object also contains
  * information about the directives (or plugins) that need to be loaded
@@ -41,10 +41,10 @@ import java.util.Set;
  *
  * <p>This class exposes a builder pattern for constructing the object.
  * in the <code>RecipeVisitor</code>. The <code>RecipeVisitor</code>
- * constructs <code>CompiledUnit</code> using the <code>CompiledUnit.Builder</code></p>
+ * constructs <code>RecipeSymbol</code> using the <code>RecipeSymbol.Builder</code></p>
  */
 @PublicEvolving
-public final class CompiledUnit {
+public final class RecipeSymbol {
   /**
    * Version if specified, else defaults to 1.0
    */
@@ -54,14 +54,14 @@ public final class CompiledUnit {
    * Set of directives or plugins that have to loaded
    * during the configuration phase of <code>RecipePipeline.</code>
    */
-  private Set<String> loadableDirectives = new HashSet<>();
+  private Set<String> loadableDirectives = new TreeSet<>();
 
   /**
    * This maintains a list of tokens for each directive parsed.
    */
   private final List<TokenGroup> tokens;
 
-  private CompiledUnit(String version, Set<String> loadableDirectives, List<TokenGroup> tokens) {
+  private RecipeSymbol(String version, Set<String> loadableDirectives, List<TokenGroup> tokens) {
     this.version = version;
     this.loadableDirectives = loadableDirectives;
     this.tokens = tokens;
@@ -114,12 +114,12 @@ public final class CompiledUnit {
   }
 
   /**
-   * Static method for creating an instance of the {@code CompiledUnit.Builder}.
+   * Static method for creating an instance of the {@code RecipeSymbol.Builder}.
    *
    * @return a instance of builder.
    */
-  public static CompiledUnit.Builder builder() {
-    return new CompiledUnit.Builder();
+  public static RecipeSymbol.Builder builder() {
+    return new RecipeSymbol.Builder();
   }
 
   /**
@@ -152,25 +152,25 @@ public final class CompiledUnit {
 
   /**
    * This inner class provides a builder pattern for building
-   * the <code>CompiledUnit</code> object. In order to create the
+   * the <code>RecipeSymbol</code> object. In order to create the
    * this builder, one has to use the static method defined in
-   * <code>CompiledUnit</code>.
+   * <code>RecipeSymbol</code>.
    *
    * Following is an example of how this can be done.
    *
    * <code>
-   *   CompiledUnit.Builder builder = CompiledUnit.builder();
+   *   RecipeSymbol.Builder builder = RecipeSymbol.builder();
    *   builder.createTokenGroup(...);
    *   builder.addToken(...);
    *   builder.addVersion(...);
    *   builder.addLoadableDirective(...);
-   *   CompiledUnit compiled = builder.build();
+   *   RecipeSymbol compiled = builder.build();
    * </code>
    */
   public static final class Builder {
     private final List<TokenGroup> groups = new ArrayList<>();
     private TokenGroup group = null;
-    private Set<String> loadableDirectives = new HashSet<>();
+    private Set<String> loadableDirectives = new TreeSet<>();
     private String version = "1.0";
     private SourceInfo info = null;
 
@@ -200,7 +200,7 @@ public final class CompiledUnit {
 
     /**
      * Recipe can specify the version of the grammar. This method
-     * allows one to extract and add the version to the <code>CompiledUnit.</code>
+     * allows one to extract and add the version to the <code>RecipeSymbol.</code>
      *
      * @param version of the recipe grammar being used.
      */
@@ -220,13 +220,13 @@ public final class CompiledUnit {
     }
 
     /**
-     * Returns a fully constructed and valid <code>CompiledUnit</code> object.
+     * Returns a fully constructed and valid <code>RecipeSymbol</code> object.
      *
-     * @return An instance of <code>CompiledUnit</code>
+     * @return An instance of <code>RecipeSymbol</code>
      */
-    public CompiledUnit build() {
+    public RecipeSymbol build() {
       groups.add(group);
-      return new CompiledUnit(version, loadableDirectives, this.groups);
+      return new RecipeSymbol(version, loadableDirectives, this.groups);
     }
   }
 }

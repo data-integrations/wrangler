@@ -17,9 +17,9 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.CompileException;
-import co.cask.wrangler.api.CompiledUnit;
+import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
-import co.cask.wrangler.api.parser.SyntaxError;
+import co.cask.wrangler.api.RecipeSymbol;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -29,43 +29,21 @@ import org.apache.twill.filesystem.Location;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Class description here.
  */
 public final class RecipeCompiler implements Compiler {
-  private boolean hasErrors;
-  private Iterator<SyntaxError> errors;
-
   public RecipeCompiler() {
-    this.hasErrors = false;
-    this.errors = new ArrayList<SyntaxError>().iterator();
   }
 
   @Override
-  public Iterator<CompiledUnit> compile(Iterator<String> directives) throws CompileException {
-    try {
-      final List<CompiledUnit> tokens = new ArrayList<>();
-      while (directives.hasNext()) {
-        String directive = directives.next();
-        tokens.add(compile(directive));
-      }
-      return tokens.iterator();
-    } catch (Exception e) {
-      throw new CompileException(e.getMessage(), e);
-    }
-  }
-
-  @Override
-  public CompiledUnit compile(String directives) throws CompileException {
+  public CompileStatus compile(String directives) throws CompileException {
     return compile(CharStreams.fromString(directives));
   }
 
   @Override
-  public CompiledUnit compile(Location location) throws CompileException {
+  public CompileStatus compile(Location location) throws CompileException {
     try {
       return compile(CharStreams.fromStream(location.getInputStream()));
     } catch (IOException e) {
@@ -76,7 +54,7 @@ public final class RecipeCompiler implements Compiler {
   }
 
   @Override
-  public CompiledUnit compile(Path path) throws CompileException {
+  public CompileStatus compile(Path path) throws CompileException {
     try {
       return compile(CharStreams.fromPath(path));
     } catch (IOException e) {
@@ -86,36 +64,28 @@ public final class RecipeCompiler implements Compiler {
     }
   }
 
-  @Override
-  public boolean hasErrors() {
-    return hasErrors;
-  }
-
-  @Override
-  public Iterator<SyntaxError> getSyntaxErrors() {
-    return errors;
-  }
-
-  private CompiledUnit compile(CharStream stream) throws CompileException {
+  private CompileStatus compile(CharStream stream) throws CompileException {
     try {
       SyntaxErrorListener errorListener = new SyntaxErrorListener();
       DirectivesLexer lexer = new DirectivesLexer(stream);
       lexer.removeErrorListeners();
+      lexer.addErrorListener(errorListener);
 
       DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
       parser.removeErrorListeners();
       parser.addErrorListener(errorListener);
       parser.setErrorHandler(new GrammarParserInterpreter.BailButConsumeErrorStrategy());
       parser.setBuildParseTree(true);
-      ParseTree tree = parser.recipe();
+      ParseTree tree = parser.statements();
+
       if(errorListener.hasErrors()) {
-        hasErrors = true;
-        errors = errorListener.iterator();
+        return new CompileStatus(true, errorListener.iterator());
       }
 
       RecipeVisitor visitor = new RecipeVisitor();
       visitor.visit(tree);
-      return visitor.getCompiledUnit();
+      RecipeSymbol symbol = visitor.getCompiledUnit();
+      return new CompileStatus(symbol);
     } catch (StringIndexOutOfBoundsException e) {
       throw new CompileException("Issue in compiling directives");
     }

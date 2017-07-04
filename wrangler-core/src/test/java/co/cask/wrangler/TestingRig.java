@@ -16,19 +16,27 @@
 
 package co.cask.wrangler;
 
+import co.cask.wrangler.api.CompileException;
+import co.cask.wrangler.api.CompileStatus;
+import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
+import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
+import org.junit.Assert;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -87,4 +95,26 @@ public final class TestingRig {
     return parser;
   }
 
+  public static CompileStatus compile(String[] recipe) throws CompileException, DirectiveParseException {
+    GrammarMigrator migrator = new MigrateToV2(recipe);
+    Compiler compiler = new RecipeCompiler();
+    return compiler.compile(migrator.migrate());
+  }
+
+  public static void compileSuccess(String[] recipe) throws CompileException, DirectiveParseException {
+    CompileStatus status = compile(recipe);
+    Assert.assertEquals(true, status.isSuccess());
+  }
+
+  public static void compileFailure(String[] recipe) throws CompileException, DirectiveParseException {
+    CompileStatus status = compile(recipe);
+    if (!status.isSuccess()) {
+      Iterator<SyntaxError> iterator = status.getErrors();
+      while(iterator.hasNext()) {
+        System.out.println(iterator.next().toString());
+      }
+    }
+    Assert.assertEquals(false, status.isSuccess());
+  }
 }
+

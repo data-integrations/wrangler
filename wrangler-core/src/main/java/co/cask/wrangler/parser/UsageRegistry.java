@@ -93,7 +93,6 @@ public final class UsageRegistry implements Serializable {
     Description description = classz.getAnnotation(Description.class);
     Usage usage = classz.getAnnotation(Usage.class);
     if (usage == null || name == null || description == null) {
-      LOG.warn("Usage or Name or Description annotation for directive '{}' missing.", classz.getSimpleName());
       return;
     }
     usages.put(name.value(), new UsageEntry(name.value(), usage.value(), description.value()));

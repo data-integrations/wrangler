@@ -46,12 +46,7 @@ recipe
  ;
 
 statements
- : (
-      Comment
-    | macro
-    | directive ';'
-    | pragma ';'
-   )*?
+ :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
  ;
 
 directive
@@ -69,8 +64,32 @@ directive
     | stringList
     | numberRanges
     | properties
-  )*
+  )*?
   ;
+
+ifStatement
+  : ifStat elseIfStat* elseStat? '}'
+  ;
+
+ifStat
+  : 'if' expression '{' statements
+  ;
+
+elseIfStat
+  : '}' 'else' 'if' expression '{' statements
+  ;
+
+elseStat
+  : '}' 'else' '{' statements
+  ;
+
+expression
+  : '(' (~'(' | expression)* ')'
+  ;
+
+forStatement
+ : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+ ;
 
 macro
  : Dollar OBrace (~OBrace | macro | Macro)*? CBrace

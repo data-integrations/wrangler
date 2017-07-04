@@ -66,4 +66,12 @@ public final class SyntaxError {
   public String getLine() {
     return line;
   }
+
+  /**
+   * @return Represents the string representation of this object <code>SyntaxError</code>
+   */
+  @Override
+  public String toString() {
+    return message;
+  }
 }

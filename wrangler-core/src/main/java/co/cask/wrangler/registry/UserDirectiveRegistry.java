@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
   private StageContext context = null;
   private ArtifactManager manager = null;
+  private Map<String, String> properties = new HashMap<>();
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -97,6 +99,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    */
   public UserDirectiveRegistry(StageContext context) throws DirectiveLoadException {
     this.context = context;
+    this.properties = context.getPluginProperties().getProperties();
   }
 
   /**
@@ -107,6 +110,10 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * it's attempted to be loaded as a user plugin. If it does not exist there a null is returned.
    * But, if the plugin exists, then it's loaded and an entry is made into the registry. </p>
    *
+   * <p>When invoked through a transform, each plugin is assigned a unique id. The unique
+   * id is generated during the <code>configure</code> phase of the plugin. Those ids are
+   * passed to initialize through the properties.</p>
+   *
    * @param name of the directive to be retrived from the registry.
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
@@ -115,7 +122,14 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     try {
       if (!registry.containsKey(name)) {
         if (context != null) {
-          Class<? extends Directive> directive = context.loadPluginClass(name);
+          if (!properties.containsKey(name)) {
+            throw new DirectiveLoadException(
+              String.format("Directive '%s' cannot be loaded. Possibly the directive has " +
+                              "not been defined to be loaded or a macro is being used without " +
+                              "#pragma to load directives outside of macro.")
+            );
+          }
+          Class<? extends Directive> directive = context.loadPluginClass(properties.get(name));
           DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
           registry.put(classz.name(), classz);
         }

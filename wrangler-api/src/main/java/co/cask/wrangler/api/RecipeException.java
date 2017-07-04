@@ -27,5 +27,9 @@ public class RecipeException extends Exception {
   public RecipeException(String message) {
     super(message);
   }
+
+  public RecipeException(String message, Throwable throwable) {
+    super(message, throwable);
+  }
 }
 
