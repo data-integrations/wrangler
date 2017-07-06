@@ -68,7 +68,7 @@ public SimpleUDD implements Directive {
     ...
   }
   
-  public List<Row> execute(List<Row> rows, RecipeContext context) throws RecipeException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) throws RecipeException, ErrorRowException {
     ...
   }
 }
@@ -164,7 +164,7 @@ public final class TextReverse implements UDD {
     this.column = ((ColumnName) args.value("column").value();
   }
   
-  public List<Row> execute(List<Row> rows, RecipeContext context) throws RecipeException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) throws RecipeException, ErrorRowException {
     for(Row row : rows) {
       int idx = row.find(column);
       if (idx != -1) {

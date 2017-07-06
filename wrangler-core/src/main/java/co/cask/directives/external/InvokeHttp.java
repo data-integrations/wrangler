@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Optional;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.Text;
@@ -116,7 +116,7 @@ public class InvokeHttp implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, RecipeContext context)
+  public List<Row> execute(List<Row> rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
       Map<String, Object> parameters = new HashMap<>();

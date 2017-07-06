@@ -23,7 +23,7 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -65,7 +65,7 @@ public class ParseAvroFile implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, final RecipeContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, final ExecutorContext context) throws DirectiveExecutionException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       int idx = row.find(column);

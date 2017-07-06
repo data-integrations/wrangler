@@ -24,8 +24,8 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
-import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -76,7 +76,7 @@ public class ParseExcel implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> records, final RecipeContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> records, final ExecutorContext context) throws DirectiveExecutionException {
     List<Row> results = new ArrayList<>();
     ByteArrayInputStream input = null;
     try {

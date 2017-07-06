@@ -18,7 +18,7 @@ package co.cask.wrangler.clients;
 
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
@@ -94,7 +94,7 @@ public final class SchemaRegistryClient {
    * @param context of the pipeline in which this client is invoked.
    * @return instance of this class.
    */
-  public static SchemaRegistryClient getInstance(RecipeContext context) {
+  public static SchemaRegistryClient getInstance(ExecutorContext context) {
     return new SchemaRegistryClient(context.getService("dataprep", "service").toString());
   }
 

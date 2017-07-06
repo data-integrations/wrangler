@@ -20,7 +20,7 @@ import co.cask.cdap.etl.api.Lookup;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.wrangler.api.Executor;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.TransientStore;
 
 import java.net.URL;
@@ -30,7 +30,7 @@ import java.util.Map;
  * This class {@link WranglerPipelineContext} is a runtime context that is provided for each
  * {@link Executor} execution.
  */
-class WranglerPipelineContext implements RecipeContext {
+class WranglerPipelineContext implements ExecutorContext {
   private final Environment environment;
   private final TransformContext context;
 

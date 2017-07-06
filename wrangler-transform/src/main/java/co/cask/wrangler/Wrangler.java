@@ -36,7 +36,7 @@ import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
@@ -223,7 +223,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     );
 
     RecipeParser directives = new GrammarBasedParser(new MigrateToV2(config.directives).migrate(), registry);
-    RecipeContext ctx = new WranglerPipelineContext(RecipeContext.Environment.TRANSFORM, context, store);
+    ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
     try {

@@ -30,10 +30,10 @@ public interface Executor<I, O> extends Serializable {
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
    * @param rows List of input {@link Row} to be wrangled by this step.
-   * @param context {@link RecipeContext} passed to each step.
+   * @param context {@link ExecutorContext} passed to each step.
    * @return Wrangled List of {@link Row}.
    */
-  List<O> execute(List<I> rows, RecipeContext context)
+  List<O> execute(List<I> rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException;
 }
 

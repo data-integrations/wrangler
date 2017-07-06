@@ -24,9 +24,9 @@ import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.LazyNumber;
 import co.cask.wrangler.api.Optional;
-import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.NumericList;
@@ -80,7 +80,7 @@ public final class FixedLengthParser implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, RecipeContext context)
+  public List<Row> execute(List<Row> rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {

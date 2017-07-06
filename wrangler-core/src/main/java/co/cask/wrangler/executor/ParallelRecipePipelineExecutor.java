@@ -20,7 +20,7 @@ import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.api.Executor;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
@@ -46,7 +46,7 @@ import java.util.concurrent.Future;
 @Beta
 public final class ParallelRecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
   private RecipeParser directives;
-  private RecipeContext context;
+  private ExecutorContext context;
   private RecordConvertor convertor = new RecordConvertor();
   private int threads = Runtime.getRuntime().availableProcessors();
   private ExecutorService executor = Executors.newFixedThreadPool(threads,
@@ -58,7 +58,7 @@ public final class ParallelRecipePipelineExecutor implements RecipePipeline<Row,
    * @param directives Wrangle directives.
    */
   @Override
-  public void configure(RecipeParser directives, RecipeContext context) {
+  public void configure(RecipeParser directives, ExecutorContext context) {
     this.directives = directives;
     this.context = context;
   }

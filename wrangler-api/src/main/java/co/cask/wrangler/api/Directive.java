@@ -42,7 +42,7 @@ import co.cask.wrangler.api.parser.UsageDefinition;
  *     }
  *
  *     @Override
- *     public List<Row> execute(List<Row> rows, RecipeContext context)
+ *     public List<Row> execute(List<Row> rows, ExecutorContext context)
  *       throws DirectiveExecutionException, ErrorRowException {
  *       ...
  *     }

@@ -27,7 +27,7 @@ import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.ErrorRowException;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
@@ -55,7 +55,7 @@ public class CompositeDirectiveRegistryTest {
     private String column;
 
     @Override
-    public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException, ErrorRowException {
+    public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException, ErrorRowException {
       return rows;
     }
 

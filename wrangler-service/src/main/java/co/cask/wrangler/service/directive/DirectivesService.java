@@ -39,7 +39,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TransientStore;
@@ -1147,9 +1147,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     // Extract rows from the workspace.
     List<Row> rows = fromWorkspace(id);
     // Execute the pipeline.
-    RecipeContext context = new ServicePipelineContext(RecipeContext.Environment.SERVICE,
-                                                       getContext(),
-                                                       store);
+    ExecutorContext context = new ServicePipelineContext(ExecutorContext.Environment.SERVICE,
+                                                         getContext(),
+                                                         store);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     if (user.getRecipe().getDirectives().size() > 0) {
       GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());

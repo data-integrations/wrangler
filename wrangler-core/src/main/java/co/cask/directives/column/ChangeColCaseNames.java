@@ -23,8 +23,8 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
-import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.TokenType;
@@ -63,7 +63,7 @@ public class ChangeColCaseNames implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
       for (int i = 0; i < row.length(); ++i) {
         String name = row.getColumn(i);

@@ -33,7 +33,7 @@ public interface RecipePipeline<I, O, E> extends Serializable {
    * @param directives Wrangle directives.
    * @param context
    */
-  void configure(RecipeParser directives, RecipeContext context) throws RecipeException;
+  void configure(RecipeParser directives, ExecutorContext context) throws RecipeException;
 
   /**
    * Executes the pipeline on the input.

@@ -24,7 +24,7 @@ import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Executor;
-import co.cask.wrangler.api.RecipeContext;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
@@ -41,7 +41,7 @@ import java.util.List;
  * the directives.
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
-  private RecipeContext context;
+  private ExecutorContext context;
   private List<Executor> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private RecordConvertor convertor = new RecordConvertor();
@@ -53,7 +53,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
    * @param parser Wrangle directives parser.
    */
   @Override
-  public void configure(RecipeParser parser, RecipeContext context) throws RecipeException {
+  public void configure(RecipeParser parser, ExecutorContext context) throws RecipeException {
     this.context = context;
     try {
       this.directives = parser.parse();
