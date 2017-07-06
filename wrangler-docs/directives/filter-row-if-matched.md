@@ -3,11 +3,6 @@
 The FILTER-ROW-IF-MATCHED directive filters records that match a pattern for a column.
 
 
-## Deprecated
-
-Use the [FILTER-ROWS-ON](filter-rows-on.md) directive instead.
-
-
 ## Syntax
 ```
 filter-row-if-matched <column> <regex>

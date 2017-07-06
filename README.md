@@ -123,9 +123,9 @@ These directives are currently available:
 | [Mask Number](wrangler-docs/directives/mask-number.md)                          | Applies substitution masking on the column values                |
 | [Mask Shuffle](wrangler-docs/directives/mask-shuffle.md)                        | Applies shuffle masking on the column values                     |
 | **Row Operations**                                                     |                                                                  |
-| [Filter Row if Matched](wrangler-docs/directives/filter-row-if-matched.md)      | (_Deprecated_)                                                   |
-| [Filter Row if True](wrangler-docs/directives/filter-row-if-true.md)            | (_Deprecated_)                                                   |
-| [Filter Rows On](wrangler-docs/directives/filter-rows-on.md)                    | Filters records based on a condition                             |
+| [Filter Row if Matched](wrangler-docs/directives/filter-row-if-matched.md)      | Filters rows that match a pattern for a column                                         |
+| [Filter Row if True](wrangler-docs/directives/filter-row-if-true.md)            | Filters rows if the condition is true.                                                  |
+| [Filter Row Empty of Null](wrangler-docs/directives/filter-empty-or-null.md)    | Filters rows that are empty of null.                    |
 | [Flatten](wrangler-docs/directives/flatten.md)                                  | Separates the elements in a repeated field                       |
 | [Fail on condition](wrangler-docs/directives/fail.md)                           | Fails processing when the condition is evaluated to true.        |
 | [Send to Error](wrangler-docs/directives/send-to-error.md)                      | Filtering of records to an error collector                       |
