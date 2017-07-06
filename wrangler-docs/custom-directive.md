@@ -251,6 +251,20 @@ ${macroed_recipe}
 ${another_recipe}
 ```
 
+## Lifecycle of Directive Methods
+
+As you seen by now that the `Directive` interface exposes three methods `define()`, `initialize()` and `execute()`. These methods are invoked by the framework at different stages of processing. They also differ by different context in which they run like in `Transform` or in `Service`. So, let's talk about how and when they are called in different context. 
+
+### Transform Context
+
+A Transform is a CDAP plugin that is part of the pipeline configured and UDD or Custom Directives are embedded within such a transform. Each transform implements a few interfaces like `configurePipeline()`, `initialize()` and `transform()`. 
+
+* When a pipeline is deployed to CDAP, during the deployment process, the `configurePipeline()` method is invoked by the CDAP Framework. In this method the plugin developer can validate the configurations, schema and such. In the case of UDD, the recipe containing the UDD is compiled and all the loadable directives are extracted. At this point none of the methods of UDD are invoked. Only the UDDs defined in the recipe are registered to be used in the pipeline deployed.
+* When the pipeline is started, the plugins `initialize()` method is invoked. During this stage of the plugin, all the UDDs are loaded and initialized. At this point all the directives (user and system) are invoked -- at this point the `configure()` is called to get the definition of arguments for each UDD. Each directive within the recipe is parsed and then the respective UDD `initialize()` is invoked with the arguments parsed. These two methods are invoked only once before the start. If there are multiple instances of a directive being used within the recipe, this method is called the same number of times as the instance of directive in the recipe. 
+* When the pipeline starts processing, each `StructuredRecord` into the transform invokes the UDD's `execute()` method. 
+
+
+
 ## Related documentation
 
   * Information about Grammar [here](grammar/grammar-info.md)
