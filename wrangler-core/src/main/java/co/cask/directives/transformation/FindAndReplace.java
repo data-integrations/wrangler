@@ -25,7 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.parser.ColumnName;
+import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -44,20 +44,20 @@ import java.util.List;
 public class FindAndReplace implements Directive {
   public static final String NAME = "find-and-replace";
   private String pattern;
-  private String column;
+  private List<String> columns;
 
 
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
-    builder.define("column", TokenType.COLUMN_NAME);
+    builder.define("column", TokenType.COLUMN_NAME_LIST);
     builder.define("pattern", TokenType.TEXT);
     return builder.build();
   }
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
+    this.columns = ((ColumnNameList) args.value("column")).value();
     this.pattern = ((Text) args.value("pattern")).value();
   }
 
@@ -65,27 +65,25 @@ public class FindAndReplace implements Directive {
   public List<Row> execute(List<Row> rows, RecipeContext context) throws DirectiveExecutionException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
-      int idx = row.find(column);
-      if (idx != -1) {
-        Object v = row.getValue(idx);
-        // Operates only on String types.
-        try {
-          if (v instanceof String) {
-            String value = (String) v; // Safely converts to String.
-            Unix4jCommandBuilder builder = Unix4j.echo(value).sed(pattern);
-            if (builder.toExitValue() == 0) {
-              row.setValue(idx, builder.toStringResult());
+      for (String column : columns) {
+        int idx = row.find(column);
+        if (idx != -1) {
+          Object v = row.getValue(idx);
+          // Operates only on String types.
+          try {
+            if (v instanceof String) {
+              String value = (String) v; // Safely converts to String.
+              Unix4jCommandBuilder builder = Unix4j.echo(value).sed(pattern);
+              if (builder.toExitValue() == 0) {
+                row.setValue(idx, builder.toStringResult());
+              }
             }
+          } catch (Exception e) {
+            // If there is any issue, we pass it on without any transformation.
           }
-        } catch (Exception e) {
-          // If there is any issue, we pass it on without any transformation.
         }
-      } else {
-        throw new DirectiveExecutionException(toString() + " : '" +
-                                  column + "' column is not defined. Please check the wrangling step."
-        );
+        results.add(row);
       }
-      results.add(row);
     }
     return results;
   }

@@ -26,7 +26,16 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 /**
- * This class helps rewrites the recipe of directives from version 1.0 to version 2.0.
+ * This class <code>MigrateToV2</code> translates from older version
+ * of grammar of directives into newer version of recipe grammar.
+ *
+ * <p>Following are the conversions that are performed :
+ * <ul>
+ *   <li>Convert column name from 'name' to ':name'.</li>
+ *   <li>Text are quoted with with single or double quote.</li>
+ *   <li>Expression or conditions are represented 'exp:{}'</li>
+ *   <li>All directives are terminated by semicolo (;)</li>
+ * </ul></p>
  */
 public final class MigrateToV2 implements GrammarMigrator {
   private final List<String> recipe;
@@ -45,33 +54,6 @@ public final class MigrateToV2 implements GrammarMigrator {
 
   public MigrateToV2(String recipe) {
     this(recipe, "\n");
-  }
-
-  /**
-   * Checks to see if directive is migratable.
-   *
-   * @return true if the directives are migrateable, false otherwise.
-   */
-  @Override
-  public boolean isMigrateable() {
-    boolean migrateable = true;
-
-    for (String directive : recipe) {
-      directive = directive.trim();
-      if (directive.isEmpty() || directive.startsWith("//")) {
-        continue;
-      }
-
-      StringTokenizer tokenizer = new StringTokenizer(directive, " ");
-      String command = tokenizer.nextToken();
-
-      if (command.equalsIgnoreCase("#pragma")) {
-        migrateable = false;
-        break;
-      }
-    }
-
-    return migrateable;
   }
 
   /**
@@ -298,9 +280,9 @@ public final class MigrateToV2 implements GrammarMigrator {
 
         // find-and-replace <column> <sed-script>
         case "find-and-replace" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
+          String columns = getNextToken(tokenizer, command, "columns", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "sed-script", lineno);
-          transformed.add(String.format("find-and-replace %s %s;", col(column), quote(expression)));
+          transformed.add(String.format("find-and-replace %s %s;", toColumArray(columns.split(",")), quote(expression)));
         }
         break;
 

@@ -36,12 +36,10 @@ import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
-import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.RecipeContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.SUID;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
@@ -61,9 +59,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -133,30 +129,20 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // specified, the compilation will them at this phase.
     Compiler compiler = new RecipeCompiler();
     try {
-      // Migrate the directives from V1 to V2.
-      GrammarMigrator migrator = new MigrateToV2(config.directives);
-      String migratedDirectives = migrator.migrate();
-
       // Compile the directive extracting the loadable plugins (a.k.a
       // Directives in this context).
-      CompileStatus status = compiler.compile(migratedDirectives);
+      CompileStatus status = compiler.compile(new MigrateToV2(config.directives).migrate());
       Set<String> dynamicDirectives = status.getSymbols().getLoadableDirectives();
-      Map<String, String> properties = new HashMap<>();
       for (String directive : dynamicDirectives) {
-        // Create a unique id for the plugin.
-        String pluginId = String.format("%s:%d", directive, SUID.nextId());
         // Add the plugin to the pipeline it's running within.
-        configurer.usePlugin(Directive.Type, directive, pluginId, PluginProperties.builder().build());
-        // Each plugin instance is assigned a unique id, we pass that information
-        // in properties to the initialize.
-        properties.put(directive, pluginId);
-      }
-      if(properties.size() > 0) {
-        configurer.setPipelineProperties(properties);
+        configurer.usePlugin(Directive.Type, directive, directive,
+                             PluginProperties.builder().build());
       }
     } catch (CompileException e) {
+      LOG.error(e.getMessage(), e);
       throw new IllegalArgumentException(e.getMessage(), e);
     } catch (DirectiveParseException e) {
+      LOG.error(e.getMessage(), e);
       throw new IllegalArgumentException(e.getMessage());
     }
 
@@ -236,7 +222,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       new UserDirectiveRegistry(context)
     );
 
-    RecipeParser directives = new GrammarBasedParser(config.directives, registry);
+    RecipeParser directives = new GrammarBasedParser(new MigrateToV2(config.directives).migrate(), registry);
     RecipeContext ctx = new WranglerPipelineContext(RecipeContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
@@ -261,8 +247,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // it's not heavily parallelized to crash the service.
     try {
       URL url = getDPServiceURL(CONFIG_METHOD);
-      ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
-      directives.initialize(dContext);
+      if (url != null) {
+        ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
+        directives.initialize(dContext);
+      } else {
+        directives.initialize(null);
+      }
     } catch (IOException | URISyntaxException e) {
       // If there is a issue, we need to fail the pipeline that has the plugin.
       throw new IllegalArgumentException(
@@ -368,7 +358,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
      */
   private URL getDPServiceURL(String method) throws URISyntaxException, MalformedURLException {
     URL url = getContext().getServiceURL(APPLICATION_NAME, SERVICE_NAME);
-      URI uri = url.toURI();
+    if (url == null) {
+      return null;
+    }
+    URI uri = url.toURI();
     String path = uri.getPath() + method;
     return uri.resolve(path).toURL();
   }

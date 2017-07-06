@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +67,6 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
   private StageContext context = null;
   private ArtifactManager manager = null;
-  private Map<String, String> properties = new HashMap<>();
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -99,7 +97,6 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    */
   public UserDirectiveRegistry(StageContext context) throws DirectiveLoadException {
     this.context = context;
-    this.properties = context.getPluginProperties().getProperties();
   }
 
   /**
@@ -122,22 +119,21 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     try {
       if (!registry.containsKey(name)) {
         if (context != null) {
-          if (!properties.containsKey(name)) {
-            throw new DirectiveLoadException(
-              String.format("Directive '%s' cannot be loaded. Possibly the directive has " +
-                              "not been defined to be loaded or a macro is being used without " +
-                              "#pragma to load directives outside of macro.")
-            );
-          }
-          Class<? extends Directive> directive = context.loadPluginClass(properties.get(name));
+          Class<? extends Directive> directive = context.loadPluginClass(name);
           DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
           registry.put(classz.name(), classz);
+          return classz;
         }
       } else {
         return registry.get(name);
       }
     } catch (IllegalAccessException | InstantiationException e) {
       throw new DirectiveLoadException(e.getMessage(), e);
+    } catch (IllegalArgumentException e) {
+      throw new DirectiveLoadException(
+        String.format("Issue loading user defined directive '%s'. Check if the artifact containing the plugin" +
+                        " has been uploaded.", name), e
+      );
     } catch (Exception e) {
       throw new DirectiveLoadException(e.getMessage(), e);
     }

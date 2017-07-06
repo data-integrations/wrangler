@@ -77,21 +77,25 @@ public class MapArguments implements Arguments {
               values.add(((ColumnName) token).value());
               tokens.put(specification.name(), new ColumnNameList(values));
               pos = pos + 1;
+              break;
             } else if (specification.type() == TokenType.NUMERIC_LIST && token.type() == TokenType.NUMERIC) {
               List<LazyNumber> values = new ArrayList<>();
               values.add(((Numeric) token).value());
               tokens.put(specification.name(), new NumericList(values));
               pos = pos + 1;
+              break;
             } else if (specification.type() == TokenType.BOOLEAN_LIST && token.type() == TokenType.BOOLEAN) {
               List<Boolean> values = new ArrayList<>();
               values.add(((Bool) token).value());
               tokens.put(specification.name(), new BoolList(values));
               pos = pos + 1;
+              break;
             } else if (specification.type() == TokenType.TEXT_LIST && token.type() == TokenType.TEXT) {
               List<String> values = new ArrayList<>();
               values.add(((Text) token).value());
               tokens.put(specification.name(), new TextList(values));
               pos = pos + 1;
+              break;
             } else {
               throw new DirectiveParseException(
                 String.format("Expected argument '%s' to be of type '%s', but it is of type '%s' - %s",

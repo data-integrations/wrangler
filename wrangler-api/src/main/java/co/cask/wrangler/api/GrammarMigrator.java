@@ -20,14 +20,6 @@ package co.cask.wrangler.api;
  * This is a interface for migrating grammar from one version to other.
  */
 public interface GrammarMigrator {
-
-  /**
-   * Checks to see if directive is migratable.
-   *
-   * @return true if the directives are migrateable, false otherwise.
-   */
-  boolean isMigrateable();
-
   /**
    * Migrates each directive from one version to other.
    *
