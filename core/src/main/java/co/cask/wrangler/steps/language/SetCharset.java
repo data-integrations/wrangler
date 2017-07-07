@@ -37,7 +37,7 @@ import java.util.List;
 @Usage(
   directive = "set-charset",
   usage = "set-charset <column> <charset>",
-  description = "Sets the character set decoding to UTF-8."
+  description = "Sets the character set decoding to the specified character set."
 )
 public class SetCharset extends AbstractStep {
   private final String column;
