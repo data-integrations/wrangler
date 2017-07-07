@@ -19,7 +19,6 @@ package co.cask.wrangler.api;
 import co.cask.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * A interface defining the wrangle Executor in the wrangling {@link RecipePipeline}.
@@ -33,7 +32,7 @@ public interface Executor<I, O> extends Serializable {
    * @param context {@link ExecutorContext} passed to each step.
    * @return Wrangled List of {@link Row}.
    */
-  List<O> execute(List<I> rows, ExecutorContext context)
+  O execute(I rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException;
 }
 

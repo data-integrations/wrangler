@@ -22,11 +22,40 @@ import org.apache.twill.filesystem.Location;
 import java.nio.file.Path;
 
 /**
- * Class description here.
+ * This <code>Compiler</code> interface provides a way to implement your
+ * own version of compiler for directive or recipe.
+ *
+ * <p>This interface contains methods that provides variants of the source
+ * from which the recipe are read. It support reading from string, HDFS location
+ * and <code>Path</code>.</p>
+ *
+ * <p>Each of the methods would return <code>CompileStatus</code> objects that
+ * contains the compiled directives in the form of <code>Executor</code> or
+ * iterator of <code>SyntaxError</code> in case of failure to compile.</p>
  */
 @PublicEvolving
 public interface Compiler {
-  CompileStatus compile(String directive) throws CompileException;
+  /**
+   * Compiles the recipe that is supplied in a <code>String</code> format.
+   *
+   * @param recipe representing the <code>String</code> form of recipe.
+   * @return <code>CompileStatus</code> status of compilation.
+   */
+  CompileStatus compile(String recipe) throws CompileException;
+
+  /**
+   * Compiles the recipe that is supplied in a <code>Location</code> on HDFS.
+   *
+   * @param location Location to the recipe being compiled.
+   * @return <code>CompileStatus</code> status of compilation.
+   */
   CompileStatus compile(Location location) throws CompileException;
+
+  /**
+   * Compiles the recipe that is supplied in a <code>Path</code> on Filesystem.
+   *
+   * @param path <code>Path</code> to the recipe being compiled.
+   * @return <code>CompileStatus</code> status of compilation.
+   */
   CompileStatus compile(Path path) throws CompileException;
 }

@@ -38,8 +38,8 @@ public final class RecipeCompiler implements Compiler {
   }
 
   @Override
-  public CompileStatus compile(String directives) throws CompileException {
-    return compile(CharStreams.fromString(directives));
+  public CompileStatus compile(String recipe) throws CompileException {
+    return compile(CharStreams.fromString(recipe));
   }
 
   @Override

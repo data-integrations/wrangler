@@ -14,23 +14,18 @@
  *  the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.statistics;
+
+import co.cask.wrangler.api.Executor;
+import co.cask.wrangler.api.Row;
+
+import java.util.List;
 
 /**
- * A {@link co.cask.wrangler.api.RecipePipeline} specific exception used for
- * communicating issues with execution of pipeline.
+ * Class description here.
  */
-public class RecipeException extends Exception {
-  public RecipeException(Exception e) {
-    super(e);
-  }
-
-  public RecipeException(String message) {
-    super(message);
-  }
-
-  public RecipeException(String message, Throwable throwable) {
-    super(message, throwable);
-  }
+public interface Aggregator<O> extends Executor<List<Row>,Void> {
+  void initialize();
+  O get(long millis);
+  void destroy();
 }
-

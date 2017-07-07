@@ -27,6 +27,7 @@ import co.cask.wrangler.service.database.DatabaseService;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
 import co.cask.wrangler.service.kafka.KafkaService;
+import co.cask.wrangler.service.recipe.RecipeService;
 import co.cask.wrangler.service.schema.SchemaRegistryService;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
@@ -63,6 +64,7 @@ public class DataPrep extends AbstractApplication {
                new SchemaRegistryService(),
                new FilesystemExplorer(),
                new ConnectionService(),
+               new RecipeService(),
                new KafkaService(),
                new DatabaseService()
     );

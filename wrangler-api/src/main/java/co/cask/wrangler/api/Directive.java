@@ -18,6 +18,8 @@ package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.parser.UsageDefinition;
 
+import java.util.List;
+
 /**
  * Directive is a user defined directive. DIE - Define, Initialize & Execute - Pattern
  *
@@ -49,7 +51,7 @@ import co.cask.wrangler.api.parser.UsageDefinition;
  *   }
  * </code>
  */
-public interface Directive extends Executor<Row, Row> {
+public interface Directive extends Executor<List<Row>, List<Row>> {
   /**
    * This defines a interface variable that is static and final for specify
    * the {@code type} of the plugin this interface would provide.
@@ -66,7 +68,7 @@ public interface Directive extends Executor<Row, Row> {
    *   }
    * </code>
    */
-  String Type = "directives";
+  String Type = "directive";
 
   /**
    * This method provides a way for the developer to provide information
@@ -132,7 +134,7 @@ public interface Directive extends Executor<Row, Row> {
    *        Numeric number = args.value("number");
    *       }
    *       Text text = args.value("text");
-   *       Bool bolean = args.value("boolean");
+   *       Bool bool = args.value("boolean");
    *       Expression expression = args.value("expression");
    *     }
    *   </code>

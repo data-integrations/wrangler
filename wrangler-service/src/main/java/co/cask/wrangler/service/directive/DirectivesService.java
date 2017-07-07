@@ -1154,9 +1154,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     if (user.getRecipe().getDirectives().size() > 0) {
       GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
       String migrate = migrator.migrate();
-      RecipeParser directives = new GrammarBasedParser(migrate, composite);
-      directives.initialize(new ConfigDirectiveContext(table.getConfigString()));
-      executor.configure(directives, context);
+      RecipeParser recipe = new GrammarBasedParser(migrate, composite);
+      recipe.initialize(new ConfigDirectiveContext(table.getConfigString()));
+      executor.configure(recipe, context);
       return executor.execute(sample.apply(rows));
     }
     return rows;

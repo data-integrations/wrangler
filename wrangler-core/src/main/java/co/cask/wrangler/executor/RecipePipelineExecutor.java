@@ -33,7 +33,6 @@ import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -98,7 +97,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       while (i < rows.size()) {
         List<Row> newRows = rows.subList(i, i+1);
         try {
-          for (Executor directive : directives) {
+          for (Executor<List<Row>, List<Row>> directive : directives) {
             newRows = directive.execute(newRows, context);
             if (newRows.size() < 1) {
               break;
@@ -126,29 +125,5 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
   @Override
   public List<ErrorRecord> errors() throws RecipeException {
     return collector.get();
-  }
-
-  /**
-   * Converts a {@link Row} to a {@link StructuredRecord}.
-   *
-   * @param rows {@link Row} to be converted
-   * @param schema Schema of the {@link StructuredRecord} to be created.
-   * @return A {@link StructuredRecord} from record.
-   */
-  private List<StructuredRecord> toStructuredRecord(List<Row> rows, Schema schema) {
-    List<StructuredRecord> results = new ArrayList<>();
-    for (Row row : rows) {
-      StructuredRecord.Builder builder = StructuredRecord.builder(schema);
-      List<Schema.Field> fields = schema.getFields();
-      for (Schema.Field field : fields) {
-        String name = field.getName();
-        Object value = row.getValue(name);
-        if (value != null) {
-          builder.set(name, value);
-        }
-      }
-      results.add(builder.build());
-    }
-    return results;
   }
 }

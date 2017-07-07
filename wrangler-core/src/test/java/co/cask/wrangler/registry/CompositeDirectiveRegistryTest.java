@@ -55,8 +55,8 @@ public class CompositeDirectiveRegistryTest {
     private String column;
 
     @Override
-    public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException, ErrorRowException {
-      return rows;
+    public List<Row> execute(List<Row> row, ExecutorContext context) throws DirectiveExecutionException, ErrorRowException {
+      return row;
     }
 
     @Override
