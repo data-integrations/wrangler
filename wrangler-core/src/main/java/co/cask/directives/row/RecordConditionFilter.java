@@ -27,6 +27,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
@@ -51,6 +52,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(RecordConditionFilter.NAME)
+@Categories(categories = { "row", "data-quality"})
 @Description("Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead.")
 public class RecordConditionFilter implements Directive {
   public static final String NAME = "filter-row-if-true";

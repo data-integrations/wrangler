@@ -18,8 +18,11 @@ package co.cask.wrangler.api;
 
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.UsageDefinition;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Class description here.
@@ -32,6 +35,7 @@ public final class DirectiveInfo {
   private String description;
   private Scope scope;
   private boolean deprecated;
+  private String[] categories;
 
   public enum Scope {
     SYSTEM,
@@ -61,6 +65,12 @@ public final class DirectiveInfo {
     } else {
       deprecated = true;
     }
+    Categories category = directive.getAnnotation(Categories.class);
+    if (category == null) {
+      categories = new String[] { "default"};
+    } else {
+      categories = categories;
+    }
   }
 
   public boolean deprecated() {
@@ -85,6 +95,10 @@ public final class DirectiveInfo {
     return definition;
   }
 
+  public String[] categories() {
+    return categories;
+  }
+
   public final Directive instance() throws IllegalAccessException, InstantiationException {
     return (Directive) directive.newInstance();
   }
@@ -98,6 +112,11 @@ public final class DirectiveInfo {
     response.add("definition", definition.toJson());
     response.addProperty("scope", scope.name());
     response.addProperty("deprecated", deprecated);
+    JsonArray array = new JsonArray();
+    for (String category : categories) {
+      array.add(new JsonPrimitive(category));
+    }
+    response.add("categories", array);
     return response;
   }
 }

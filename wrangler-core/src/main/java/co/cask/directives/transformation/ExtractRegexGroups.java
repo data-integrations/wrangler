@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -39,6 +40,7 @@ import java.util.regex.Pattern;
  */
 @Plugin(type = Directive.Type)
 @Name(ExtractRegexGroups.NAME)
+@Categories(categories = { "transform"})
 @Description("Extracts data from a regex group into its own column.")
 public class ExtractRegexGroups implements Directive {
   public static final String NAME = "extract-regex-groups";

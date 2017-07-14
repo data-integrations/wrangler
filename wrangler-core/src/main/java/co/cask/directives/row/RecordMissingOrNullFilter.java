@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(RecordMissingOrNullFilter.NAME)
+@Categories(categories = { "row", "data-quality"})
 @Description("Filters row that have empty or null columns.")
 public class RecordMissingOrNullFilter implements Directive {
   public static final String NAME = "filter-empty-or-null";

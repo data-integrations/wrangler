@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(IndexSplit.NAME)
+@Categories(categories = { "transform"})
 @Description("[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead.")
 @Deprecated
 public class IndexSplit implements Directive {

@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -40,6 +41,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Flatten.NAME)
+@Categories(categories = { "row"})
 @Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
 public class Flatten implements Directive {
   public static final String NAME = "flatten";

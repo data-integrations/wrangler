@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -36,6 +37,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(LeftTrim.NAME)
+@Categories(categories = { "transform"})
 @Description("Trimming whitespace from left side of a string.")
 public class LeftTrim implements Directive {
   public static final String NAME = "ltrim";

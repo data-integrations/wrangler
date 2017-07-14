@@ -27,6 +27,7 @@ import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -61,6 +62,7 @@ import java.util.Map;
  */
 @Plugin(type = Directive.Type)
 @Name(InvokeHttp.NAME)
+@Categories(categories = { "http"})
 @Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
 public class InvokeHttp implements Directive {
   public static final String NAME = "invoke-http";

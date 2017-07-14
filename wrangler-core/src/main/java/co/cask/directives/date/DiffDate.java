@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("diff-date")
+@Categories(categories = { "date"})
 @Description("Calculates the difference in milliseconds between two Date objects." +
   "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
 public class DiffDate implements Directive {

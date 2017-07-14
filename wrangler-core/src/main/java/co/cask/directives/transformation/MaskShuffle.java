@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -49,6 +50,7 @@ import java.util.Random;
  */
 @Plugin(type = Directive.Type)
 @Name(MaskShuffle.NAME)
+@Categories(categories = { "transform"})
 @Description("Masks a column value by shuffling characters while maintaining the same length.")
 public class MaskShuffle implements Directive {
   public static final String NAME = "mask-shuffle";

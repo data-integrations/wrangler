@@ -28,6 +28,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -42,6 +43,7 @@ import java.util.Map;
  */
 @Plugin(type = Directive.Type)
 @Name(TableLookup.NAME)
+@Categories(categories = { "lookup"})
 @Description("Uses the given column as a key to perform a lookup into the specified table.")
 public class TableLookup implements Directive {
   public static final String NAME = "table-lookup";

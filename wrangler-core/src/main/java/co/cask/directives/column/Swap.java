@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Swap.NAME)
+@Categories(categories = { "column"})
 @Description("Swaps the column names of two columns.")
 public class Swap implements Directive {
   public static final String NAME = "swap";

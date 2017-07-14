@@ -28,6 +28,7 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.LazyNumber;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.NumericList;
 import co.cask.wrangler.api.parser.Text;
@@ -42,6 +43,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-fixed-length")
+@Categories(categories = { "parser"})
 @Description("Parses fixed-length records using the specified widths and padding-character.")
 public final class FixedLengthParser implements Directive {
   public static final String NAME = "parse-as-fixed-length";

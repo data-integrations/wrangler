@@ -27,6 +27,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Numeric;
@@ -60,6 +61,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-avro")
+@Categories(categories = { "parser"})
 @Description("Parses column as AVRO generic record.")
 public class ParseAvro implements Directive {
   public static final String NAME = "parse-as-avro";

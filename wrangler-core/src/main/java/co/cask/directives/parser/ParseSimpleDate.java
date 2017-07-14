@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -40,6 +41,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-simple-date")
+@Categories(categories = { "parser"})
 @Description("Parses a column as date using format.")
 public class ParseSimpleDate implements Directive {
   public static final String NAME = "parse-as-simple-date";

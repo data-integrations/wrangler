@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(FillNullOrEmpty.NAME)
+@Categories(categories = { "transform"})
 @Description("Fills a value of a column with a fixed value if it is either null or empty.")
 public class FillNullOrEmpty implements Directive {
   public static final String NAME = "fill-null-or-empty";

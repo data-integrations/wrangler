@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -42,6 +43,7 @@ import java.util.TimeZone;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-date")
+@Categories(categories = { "parser"})
 @Description("Parses column values as dates using natural language processing and " +
   "automatically identifying the format (expensive in terms of time consumed).")
 public class ParseDate implements Directive {

@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -44,6 +45,7 @@ import java.util.Set;
  */
 @Plugin(type = Directive.Type)
 @Name(MessageHash.NAME)
+@Categories(categories = { "transform"})
 @Description("Creates a message digest for the column using algorithm, replacing the column value.")
 public class MessageHash implements Directive {
   public static final String NAME = "hash";

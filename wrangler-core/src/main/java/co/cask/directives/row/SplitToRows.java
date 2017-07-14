@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(SplitToRows.NAME)
+@Categories(categories = { "row"})
 @Description("Splits a column into multiple rows, copies the rest of the columns.")
 public class SplitToRows implements Directive {
   public static final String NAME = "split-to-rows";

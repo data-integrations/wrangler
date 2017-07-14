@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -39,6 +40,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Split.NAME)
+@Categories(categories = { "transform"})
 @Description("Use 'split-to-columns' or 'split-to-rows'.")
 @Deprecated
 public class Split implements Directive {

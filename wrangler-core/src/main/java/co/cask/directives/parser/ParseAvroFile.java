@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -45,6 +46,7 @@ import java.util.Map;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-avro-file")
+@Categories(categories = { "parser"})
 @Description("parse-as-avro-file <column>.")
 public class ParseAvroFile implements Directive {
   public static final String NAME = "parse-as-avro-file";

@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -49,6 +50,7 @@ import java.util.Set;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-csv")
+@Categories(categories = { "parser"})
 @Description("Parses a column as CSV (comma-separated values).")
 public class CsvParser implements Directive {
   private ColumnName columnArg;

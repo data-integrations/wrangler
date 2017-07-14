@@ -27,6 +27,7 @@ import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.Text;
@@ -41,6 +42,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(SetRecordDelimiter.NAME)
+@Categories(categories = { "row",})
 @Description("Sets the record delimiter.")
 public class SetRecordDelimiter implements Directive {
   public static final String NAME = "set-record-delim";

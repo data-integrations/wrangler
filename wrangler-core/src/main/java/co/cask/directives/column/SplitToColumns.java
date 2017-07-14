@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(SplitToColumns.NAME)
+@Categories(categories = { "column"})
 @Description("Splits a column into one or more columns around matches of the specified regular expression.")
 public class SplitToColumns implements Directive {
   public static final String NAME = "split-to-columns";

@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(SplitEmail.NAME)
+@Categories(categories = { "transform"})
 @Description("Split a email into account and domain.")
 public class SplitEmail implements Directive {
   public static final String NAME = "split-email";

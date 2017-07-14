@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -42,6 +43,7 @@ import java.util.Set;
  */
 @Plugin(type = Directive.Type)
 @Name("keep")
+@Categories(categories = { "column"})
 @Description("Keeps the specified columns and drops all others.")
 public class Keep implements Directive {
   public static final String NAME = "keep";

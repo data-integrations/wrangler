@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Triplet;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.Ranges;
@@ -43,6 +44,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Quantization.NAME)
+@Categories(categories = { "transform"})
 @Description("Quanitize the range of numbers into label values.")
 public class Quantization implements Directive {
   public static final String NAME = "quantize";

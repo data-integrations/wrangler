@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -44,6 +45,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("set-charset")
+@Categories(categories = { "charset"})
 @Description("Sets the character set decoding to UTF-8.")
 public class SetCharset implements Directive {
   public static final String NAME = "set-charset";

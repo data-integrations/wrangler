@@ -43,6 +43,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
@@ -57,6 +58,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-hl7")
+@Categories(categories = { "parser"})
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
   "JSON object enumeration terminates.")
 public class HL7Parser implements Directive {

@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Rename.NAME)
+@Categories(categories = { "column"})
 @Description("Renames a column 'source' to 'target'")
 public final class Rename implements Directive {
   public static final String NAME = "rename";

@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
@@ -42,6 +43,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(CleanseColumnNames.NAME)
+@Categories(categories = { "column"})
 @Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +
   "with an underscore '_'.")
 public final class CleanseColumnNames implements Directive {

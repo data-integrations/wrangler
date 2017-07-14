@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -40,6 +41,7 @@ import java.util.List;
  */
 @Plugin(type = "directives")
 @Name(Columns.NAME)
+@Categories(categories = { "column"})
 @Description("Sets the name of columns, in the order they are specified.")
 public class Columns implements Directive {
   public static final String NAME = "set-headers";

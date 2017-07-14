@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -39,6 +40,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(Copy.NAME)
+@Categories(categories = { "column"})
 @Description("Copies values from a source column into a destination column.")
 public class Copy implements Directive {
   private static final Messages MSG = MessagesFactory.getMessages();

@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Text;
@@ -41,6 +42,7 @@ import java.util.regex.Pattern;
  */
 @Plugin(type = Directive.Type)
 @Name(RecordRegexFilter.NAME)
+@Categories(categories = { "row", "data-quality"})
 @Description("Filters rows if the regex is matched or not matched.")
 public class RecordRegexFilter implements Directive {
   public static final String NAME = "filter-by-regex";
