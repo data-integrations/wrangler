@@ -208,6 +208,20 @@ Equals   : '==';
 NEquals  : '!=';
 GTEquals : '>=';
 LTEquals : '<=';
+Match    : '=~';
+NotMatch : '!~';
+StartsWith : '=^';
+NotStartsWith : '!^';
+EndsWith : '=$';
+NotEndsWith : '!$';
+PlusEqual : '+=';
+SubEqual : '-=';
+MulEqual : '*=';
+DivEqual : '/=';
+PerEqual : '%=';
+AndEqual : '&=';
+OrEqual  : '|=';
+XOREqual : '^=';
 Pow      : '^';
 External : '!';
 GT       : '>';
@@ -230,6 +244,8 @@ At       : '@';
 Pipe     : '|';
 BackSlash: '\\';
 Dollar   : '$';
+Tilde    : '~';
+
 
 Bool
  : 'true'

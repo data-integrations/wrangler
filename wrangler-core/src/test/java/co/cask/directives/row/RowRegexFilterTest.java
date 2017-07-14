@@ -28,11 +28,61 @@ import java.util.List;
  * Tests {@link RecordRegexFilter}
  */
 public class RowRegexFilterTest {
+
+  @Test
+  public void testRowFilterRegex() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv __col ,",
+      "drop __col",
+      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
+      "filter-by-regex if-matched :email 'NULL'",
+      "filter-by-regex if-matched :email '.*@joltie.io'",
+      "filter-row-if-true id > 1092",
+      "filter-rows-on regex-match last .*(?i)harris.*"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+
+    // Filters all the rows that don't match the pattern .*@joltie.io
+    Assert.assertTrue(rows.size() == 1);
+  }
+
+  @Test
+  public void testStarCondition() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv __col ,",
+      "drop __col",
+      "set columns id,first,last,dob,email,age,hrlywage,address,city,state,country,zip",
+      "filter-by-regex if-matched :email '.*root.*'"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("__col", "1098,Root,Joltie,01/26/1956,root@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1091,Root,Joltie,01/26/1956,root1@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1092,Root,Joltie,01/26/1956,root@mars.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1093,Root,Joltie,01/26/1956,root@foo.com,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826"),
+      new Row("__col", "1094,Super,Joltie,01/26/1956,windy@joltie.io,32,11.79,150 Mars Ave,Palo Alto,CA,USA,32826")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+
+    // Filters all the rows that don't match the pattern .*@joltie.io
+    Assert.assertEquals(1, rows.size());
+  }
+
   @Test
   public void testFilterKeepDoesntKeepNullValues() throws Exception {
     String[] directives = new String[] {
       "parse-as-csv :body ',' false",
-      "filter-regex-match :body_3 '.*pot.*'"
+      "filter-by-regex if-matched :body_3 '.*pot.*'"
     };
 
     List<Row> rows = Arrays.asList(
@@ -42,6 +92,6 @@ public class RowRegexFilterTest {
     );
 
     rows = TestingRig.execute(directives, rows);
-    Assert.assertTrue(rows.size() == 1);
+    Assert.assertTrue(rows.size() == 2);
   }
 }

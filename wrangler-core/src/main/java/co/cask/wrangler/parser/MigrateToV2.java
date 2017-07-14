@@ -49,7 +49,7 @@ public final class MigrateToV2 implements GrammarMigrator {
   }
 
   public MigrateToV2(String recipe, String delimiter) {
-    this(recipe.split(delimiter));
+    this(recipe != null ? recipe.trim().split(delimiter) : new String[]{});
   }
 
   public MigrateToV2(String recipe) {
@@ -218,6 +218,38 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "filter-row-if-false": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
           transformed.add(String.format("filter-row-if-false exp:{%s};", condition));
+        }
+        break;
+
+        // filter-rows-on condition-false <boolean-expression>
+        // filter-rows-on condition-true <boolean-expression>
+        // filter-rows-on empty-or-null-columns <column>[,<column>*]
+        // filter-rows-on regex-match <regex>
+        // filter-rows-on regex-not-match <regex>
+        case "filter-rows-on" : {
+          String cmd = getNextToken(tokenizer, command, "command", lineno);
+          if (cmd.equalsIgnoreCase("condition-false")) {
+            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+            transformed.add(String.format("filter-row-if-true exp:{!(%s)};", condition));
+          } else if (cmd.equalsIgnoreCase("condition-true")) {
+            String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
+            transformed.add(String.format("filter-row-if-true exp:{%s};", condition));
+          } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
+            String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
+            transformed.add(String.format("filter-empty-or-null %s;", toColumArray(columns.split(","))));
+          } else if (cmd.equalsIgnoreCase("regex-match")) {
+            String column = getNextToken(tokenizer, command, "column", lineno);
+            String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
+            transformed.add(String.format("filter-by-regex if-matched %s %s;", col(column), quote(pattern)));
+          } else if (cmd.equalsIgnoreCase("regex-not-match")) {
+            String column = getNextToken(tokenizer, command, "column", lineno);
+            String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
+            transformed.add(String.format("filter-by-regex if-not-matched %s %s;", col(column), quote(pattern)));
+          } else {
+            throw new DirectiveParseException(
+              String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
+            );
+          }
         }
         break;
 

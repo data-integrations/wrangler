@@ -131,8 +131,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
       throw new DirectiveLoadException(e.getMessage(), e);
     } catch (IllegalArgumentException e) {
       throw new DirectiveLoadException(
-        String.format("Issue loading user defined directive '%s'. Check if the artifact containing the plugin" +
-                        " has been uploaded.", name), e
+        String.format("Directive '%s' not found. Check if the directive is spelled correctly or artifact " +
+                        "containing the directive has been uploaded", name), e
       );
     } catch (Exception e) {
       throw new DirectiveLoadException(e.getMessage(), e);
@@ -151,7 +151,6 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
           Set<PluginClass> plugins = artifact.getClasses().getPlugins();
           for (PluginClass plugin : plugins) {
             if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
-              LOG.info("Loading class {}", plugin.getClassName());
               try(CloseableClassLoader closeableClassLoader
                     = manager.createClassLoader(artifact, getClass().getClassLoader())) {
                 Class<? extends Directive> directive =

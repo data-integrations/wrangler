@@ -84,6 +84,9 @@ public class GrammarBasedParser implements RecipeParser {
       Iterator<TokenGroup> tokenGroups = status.getSymbols().iterator();
       while(tokenGroups.hasNext()) {
         TokenGroup next = tokenGroups.next();
+        if (next == null) {
+          continue;
+        }
         String command = ((DirectiveName) next.get(0)).value();
         String root = command;
         if (context.hasAlias(root)) {

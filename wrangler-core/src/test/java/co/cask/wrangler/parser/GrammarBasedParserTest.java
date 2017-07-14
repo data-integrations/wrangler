@@ -64,4 +64,17 @@ public class GrammarBasedParserTest {
     CompileStatus status = compiler.compile(new MigrateToV2(recipe).migrate());
     Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
   }
+
+  @Test
+  public void testCommentOnlyRecipe() throws Exception {
+    String[] recipe = new String[] {
+      "// test"
+    };
+
+    RecipeParser parser = TestingRig.parse(recipe);
+    parser.initialize(null);
+    List<Executor> directives = parser.parse();
+    Assert.assertEquals(0, directives.size());
+  }
+
 }

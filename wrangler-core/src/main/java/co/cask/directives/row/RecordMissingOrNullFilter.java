@@ -68,6 +68,8 @@ public class RecordMissingOrNullFilter implements Directive {
           if (value != null) {
             missingOrNull = false;
           }
+        } else {
+          results.add(row);
         }
       }
       if (!missingOrNull) {

@@ -54,4 +54,26 @@ public class SendToErrorTest {
     Assert.assertEquals("2.0", errors.get(0).getRow().getValue("D"));
     Assert.assertEquals("2", results.get(0).getValue("C"));
   }
+
+  @Test
+  public void testRegexFiltering() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , true",
+      "drop body",
+      "send-to-error A =~ \"Was.*\"",
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B"),
+      new Row("body", "Washington,Y"),
+      new Row("body", "Window,V")
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(1, errors.size());
+    Assert.assertEquals(1, results.size());
+  }
 }

@@ -39,6 +39,7 @@ import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
+import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.executor.ErrorRecord;
@@ -108,77 +109,79 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    *
    * <p>
    *   <ul>
-   *     <li>Parses the directives configured. If there are any issues they will highlighted duirng deployment</li>
+   *     <li>Parses the directives configured. If there are any issues they will highlighted during deployment</li>
    *     <li>Input schema is validated.</li>
    *     <li>Compiles pre-condition expression.</li>
    *   </ul>
    * </p>
-   *
-   * @param configurer
    */
   @Override
   public void configurePipeline(PipelineConfigurer configurer) throws IllegalArgumentException {
     super.configurePipeline(configurer);
 
-    Schema iSchema = configurer.getStageConfigurer().getInputSchema();
-    if (!config.containsMacro("field") && !config.field.equalsIgnoreCase("*")) {
-      validateInputSchema(iSchema);
-    }
-
-    // Validate the DSL by compiling the DSL. In case of macros being
-    // specified, the compilation will them at this phase.
-    Compiler compiler = new RecipeCompiler();
     try {
-      // Compile the directive extracting the loadable plugins (a.k.a
-      // Directives in this context).
-      CompileStatus status = compiler.compile(new MigrateToV2(config.directives).migrate());
-      Set<String> dynamicDirectives = status.getSymbols().getLoadableDirectives();
-      for (String directive : dynamicDirectives) {
-        // Add the plugin to the pipeline it's running within.
-        configurer.usePlugin(Directive.Type, directive, directive,
-                             PluginProperties.builder().build());
+      Schema iSchema = configurer.getStageConfigurer().getInputSchema();
+      if (!config.containsMacro("field") && !config.field.equalsIgnoreCase("*")) {
+        validateInputSchema(iSchema);
       }
-    } catch (CompileException e) {
-      LOG.error(e.getMessage(), e);
-      throw new IllegalArgumentException(e.getMessage(), e);
-    } catch (DirectiveParseException e) {
-      LOG.error(e.getMessage(), e);
-      throw new IllegalArgumentException(e.getMessage());
-    }
 
-    // Based on the configuration create output schema.
-    try {
-      if (!config.containsMacro("schema")) {
-        oSchema = Schema.parseJson(config.schema);
+      // Validate the DSL by compiling the DSL. In case of macros being
+      // specified, the compilation will them at this phase.
+      Compiler compiler = new RecipeCompiler();
+      try {
+        // Compile the directive extracting the loadable plugins (a.k.a
+        // Directives in this context).
+        CompileStatus status = compiler.compile(new MigrateToV2(config.directives).migrate());
+        RecipeSymbol symbols = status.getSymbols();
+        if (symbols != null) {
+          Set<String> dynamicDirectives = symbols.getLoadableDirectives();
+          for (String directive : dynamicDirectives) {
+            configurer.usePlugin(Directive.Type, directive, directive, PluginProperties.builder().build());
+          }
+        }
+      } catch (CompileException e) {
+        throw new IllegalArgumentException(e.getMessage(), e);
+      } catch (DirectiveParseException e) {
+        throw new IllegalArgumentException(e.getMessage());
       }
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
-    }
 
-    // Check if configured field is present in the input schema.
-    Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-    if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#") ) &&
-      (inputSchema != null && inputSchema.getField(config.field) == null)) {
-      throw new IllegalArgumentException(
-        String.format("Field '%s' configured to wrangler is not present in the input. " +
-                        "Only specify fields present in the input", config.field == null ? "null" : config.field)
-      );
-    }
+      // Based on the configuration create output schema.
+      try {
+        if (!config.containsMacro("schema")) {
+          oSchema = Schema.parseJson(config.schema);
+        }
+      } catch (IOException e) {
+        throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
+      }
 
-    // Check if pre-condition is not null or empty and if so compile expression.
-    if(!config.containsMacro("precondition")) {
-      if (config.precondition != null && !config.precondition.trim().isEmpty()) {
-        try {
-          new Precondition(config.precondition);
-        } catch (PreconditionException e) {
-          throw new IllegalArgumentException(e.getMessage());
+      // Check if configured field is present in the input schema.
+      Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
+      if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#") ) &&
+        (inputSchema != null && inputSchema.getField(config.field) == null)) {
+        throw new IllegalArgumentException(
+          String.format("Field '%s' configured to wrangler is not present in the input. " +
+                          "Only specify fields present in the input", config.field == null ? "null" : config.field)
+        );
+      }
+
+      // Check if pre-condition is not null or empty and if so compile expression.
+      if(!config.containsMacro("precondition")) {
+        if (config.precondition != null && !config.precondition.trim().isEmpty()) {
+          try {
+            new Precondition(config.precondition);
+          } catch (PreconditionException e) {
+            throw new IllegalArgumentException(e.getMessage());
+          }
         }
       }
-    }
 
-    // Set the output schema.
-    if (oSchema != null) {
-      configurer.getStageConfigurer().setOutputSchema(oSchema);
+      // Set the output schema.
+      if (oSchema != null) {
+        configurer.getStageConfigurer().setOutputSchema(oSchema);
+      }
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
+      throw new IllegalArgumentException(e.getMessage());
     }
   }
 
@@ -251,6 +254,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
         directives.initialize(dContext);
       } else {
+        LOG.warn("Context is set to default, no aliasing and restriction would be applied.");
         directives.initialize(null);
       }
     } catch (IOException | URISyntaxException e) {

@@ -152,4 +152,36 @@ public class RecipeCompilerTest {
     };
     TestingRig.compileSuccess(recipe);
   }
+
+  @Test
+  public void testComplexExpression() throws Exception {
+    String[] recipe = new String[] {
+      "parse-as-csv body , true",
+      "drop body",
+      "merge body_1 body_2 Full_Name ' '",
+      "drop body_1,body_2",
+      "find-and-replace body_4 s/Washington//g",
+      "send-to-error empty(body_4)",
+      "send-to-error body_5 =~ \"DC.*\"",
+      "filter-rows-on regex-match body_5 *as*"
+    };
+    CompileStatus compile = TestingRig.compile(recipe);
+    Assert.assertTrue(true);
+  }
+
+  @Test
+  public void test() throws Exception {
+    String[] recipe = new String[] {
+      "parse-as-csv body , true",
+      "drop body",
+      "merge body_1 body_2 Full_Name ' '",
+      "drop body_1,body_2",
+      "find-and-replace body_4 s/Washington//g",
+      "send-to-error empty(body_4)",
+      "send-to-error body_5 =~ \"DC.*\"",
+      "filter-rows-on regex-match body_5 *as*"
+    };
+    CompileStatus compile = TestingRig.compile(recipe);
+    Assert.assertTrue(true);
+  }
 }

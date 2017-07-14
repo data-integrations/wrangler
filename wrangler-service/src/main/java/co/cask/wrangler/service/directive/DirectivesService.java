@@ -37,9 +37,9 @@ import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TransientStore;
@@ -1102,6 +1102,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   private List<Row> fromWorkspace(String id) throws WorkspaceException {
     DataType type = table.getType(id);
     List<Row> rows = new ArrayList<>();
+
+    if (type == null) {
+      throw new WorkspaceException("Workspace you are currently working on seemed to have " +
+                                     "disappeared, please reload the data.");
+    }
 
     switch(type) {
       case TEXT: {

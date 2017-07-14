@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnName;
+import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -40,17 +41,21 @@ import java.util.regex.Pattern;
  */
 @Plugin(type = Directive.Type)
 @Name(RecordRegexFilter.NAME)
-@Description("Filters rows if the regex is matched.")
+@Description("Filters rows if the regex is matched or not matched.")
 public class RecordRegexFilter implements Directive {
-  public static final String NAME = "filter-regex-match";
+  public static final String NAME = "filter-by-regex";
   private String regex;
   private String column;
+  private String matchType;
   private Pattern pattern;
-  private boolean match = true;
+  private boolean matched = false;
 
+  // filter-by-regex if-matched :column 'expression'
+  // filter-by-regex if-not-matched :column 'expression'
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    builder.define("match-type", TokenType.IDENTIFIER);
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("regex", TokenType.TEXT);
     return builder.build();
@@ -58,6 +63,16 @@ public class RecordRegexFilter implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
+    matchType = ((Identifier) args.value("match-type")).value();
+    if (matchType.equalsIgnoreCase("if-matched")) {
+      matched = true;
+    } else if (matchType.equalsIgnoreCase("if-not-matched")) {
+      matched = false;
+    } else {
+      throw new DirectiveParseException(
+        String.format("Match type specified is not 'if-matched' or 'if-not-matched'")
+      );
+    }
     column = ((ColumnName) args.value("column")).value();
     regex = ((Text) args.value("regex")).value();
     if (!regex.equalsIgnoreCase("null") && !regex.isEmpty()) {
@@ -83,8 +98,11 @@ public class RecordRegexFilter implements Directive {
           }
         } else if (object instanceof String) {
           String value = (String) row.getValue(idx);
-          boolean status = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
-          if (!status) {
+          boolean matches = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+          if(!matched) {
+            matches = !matches;
+          }
+          if (matches) {
             continue;
           }
         } else {
@@ -93,6 +111,8 @@ public class RecordRegexFilter implements Directive {
                           toString(), object != null ? object.getClass().getName() : "null", column)
           );
         }
+        results.add(row);
+      } else {
         results.add(row);
       }
     }
