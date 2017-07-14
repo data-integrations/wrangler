@@ -263,6 +263,14 @@ A Transform is a CDAP plugin that is part of the pipeline configured and UDD or 
 * When the pipeline is started, the plugins `initialize()` method is invoked. During this stage of the plugin, all the UDDs are loaded and initialized. At this point all the directives (user and system) are invoked -- at this point the `configure()` is called to get the definition of arguments for each UDD. Each directive within the recipe is parsed and then the respective UDD `initialize()` is invoked with the arguments parsed. These two methods are invoked only once before the start. If there are multiple instances of a directive being used within the recipe, this method is called the same number of times as the instance of directive in the recipe. 
 * When the pipeline starts processing, each `StructuredRecord` into the transform invokes the UDD's `execute()` method. 
 
+## Precedence of directive loading
+
+Directives are loaded into the directive registry from the system and also from the user artifacts. So, now there are multiple cases where there might be conflicts, this section will describe how those conflicts are handled and what the users should expect in terms of behavior of the system when there are conflicts. Following are the scenarios when there could be conflict
+
+* SYSTEM has a directive `x` pre-loaded, but a USER defines the same directive `x`. 
+* User 1 has a USER directive `y`, and User 2 also has a different version or a completely different directive, but has the same name `y`. 
+* SYSTEM has two directives with the same name `z`. 
+* USER directive `k` has two different artifacts. 
 
 
 ## Related documentation
