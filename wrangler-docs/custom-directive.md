@@ -151,6 +151,7 @@ Here is the implementation of the above UDD.
 ```
 @Plugin(type = UDD.Type)
 @Name(TextReverse.NAME)
+@Categories(categories = {"text-manipulation"}
 @Description("Reverses the column value")
 public final class TextReverse implements UDD {
   public static final String NAME = "text-reverse";
