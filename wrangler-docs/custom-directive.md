@@ -56,7 +56,7 @@ Building a UDD with the simpler UDD API involves nothing more than writing a cla
 ```
 @Plugin(type = UDD.Type)
 @Name(SimpleUDD.NAME)
-@Categories(categories = {"example", "simple"}
+@Categories(categories = {"example", "simple"})
 @Description("My first simple user defined directive")
 public SimpleUDD implements Directive {
   public static final String NAME = "my-simple-udd";
@@ -151,7 +151,7 @@ Here is the implementation of the above UDD.
 ```
 @Plugin(type = UDD.Type)
 @Name(TextReverse.NAME)
-@Categories(categories = {"text-manipulation"}
+@Categories(categories = {"text-manipulation"})
 @Description("Reverses the column value")
 public final class TextReverse implements UDD {
   public static final String NAME = "text-reverse";
