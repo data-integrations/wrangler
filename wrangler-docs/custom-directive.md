@@ -191,6 +191,7 @@ Following annotations are required for the plugin. If any of these are missing, 
 
 * `@Plugin` defines the type of plugin it is. For all UDDs it's set to `UDD.Type`.
 * `@Name` defines the name of the plugin and as well as the directive name. 
+* `@Categories` defines one or more categories the directive belongs to.
 * `@Description` provides a short description for the plugin and as well as for the directive. 
 
 #### Call Pattern
