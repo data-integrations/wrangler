@@ -24,8 +24,8 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Bool;
@@ -53,9 +53,9 @@ import java.util.List;
 @Plugin(type = Directive.Type)
 @Name(RecordConditionFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
-@Description("Filters rows if condition is evaluated to true. Use 'filter-rows-on' instead.")
+@Description("Filters rows based on condition type specified.")
 public class RecordConditionFilter implements Directive {
-  public static final String NAME = "filter-row-if-true";
+  public static final String NAME = "filter-row";
   private String condition;
   private JexlEngine engine;
   private JexlScript script;
@@ -64,8 +64,8 @@ public class RecordConditionFilter implements Directive {
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
-    builder.define("type", TokenType.BOOLEAN, Optional.TRUE);
     builder.define("condition", TokenType.EXPRESSION);
+    builder.define("type", TokenType.BOOLEAN, Optional.TRUE);
     return builder.build();
   }
 

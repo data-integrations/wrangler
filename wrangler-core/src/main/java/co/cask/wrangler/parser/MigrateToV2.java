@@ -195,7 +195,7 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "filter-row-if-matched": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          transformed.add(String.format("filter-row-if-matched %s %s;", col(column), quote(pattern)));
+          transformed.add(String.format("filter-by-regex if-matched %s %s;", col(column), quote(pattern)));
         }
         break;
 
@@ -203,21 +203,21 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "filter-row-if-not-matched": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          transformed.add(String.format("filter-row-if-not-matched %s %s;", col(column), quote(pattern)));
+          transformed.add(String.format("filter-by-regex if-not-matched %s %s;", col(column), quote(pattern)));
         }
         break;
 
         // filter-row-if-true  <condition>
         case "filter-row-if-true": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          transformed.add(String.format("filter-row-if-true exp:{%s};", condition));
+          transformed.add(String.format("filter-row exp:{%s} true;", condition));
         }
         break;
 
         // filter-row-if-false  <condition>
         case "filter-row-if-false": {
           String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-          transformed.add(String.format("filter-row-if-false exp:{%s};", condition));
+          transformed.add(String.format("filter-row exp:{%s} false;", condition));
         }
         break;
 
@@ -230,10 +230,10 @@ public final class MigrateToV2 implements GrammarMigrator {
           String cmd = getNextToken(tokenizer, command, "command", lineno);
           if (cmd.equalsIgnoreCase("condition-false")) {
             String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            transformed.add(String.format("filter-row-if-true exp:{!(%s)};", condition));
+            transformed.add(String.format("filter-row exp:{%s} false;", condition));
           } else if (cmd.equalsIgnoreCase("condition-true")) {
             String condition = getNextToken(tokenizer, "\n", command, "condition", lineno);
-            transformed.add(String.format("filter-row-if-true exp:{%s};", condition));
+            transformed.add(String.format("filter-row exp:{%s} true;", condition));
           } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
             String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
             transformed.add(String.format("filter-empty-or-null %s;", toColumArray(columns.split(","))));

@@ -83,15 +83,6 @@ public final class Row implements Serializable {
   }
 
   /**
-   * Adds a column to the row.
-   *
-   * @param name of the column to be added.
-   */
-  public void addColumn(String name) {
-    columns.add(name);
-  }
-
-  /**
    * Sets the name of the column at a given index.
    *
    * @param idx at which the new name to be set.
@@ -99,13 +90,6 @@ public final class Row implements Serializable {
    */
   public void setColumn(int idx, String name) {
     columns.set(idx, name);
-  }
-
-  /**
-   * Clears all the column entries for the row.
-   */
-  public void clearColumns() {
-    columns.clear();
   }
 
   /**
@@ -132,16 +116,6 @@ public final class Row implements Serializable {
       }
     }
     return null;
-  }
-
-  /**
-   * Adds a value to the row.
-   *
-   * @param value to be added to the row.
-   */
-  public Row addValue(Object value) {
-    values.add(value);
-    return this;
   }
 
   /**
@@ -227,6 +201,25 @@ public final class Row implements Serializable {
       setValue(idx, value);
     } else {
       add(name, value);
+    }
+  }
+
+  /**
+   * Adds or sets the value to the beginning.
+   *
+   * @param index at which the column need to be inserted.
+   * @param name of the field to be either set or added to record.
+   * @param value to be added.
+   */
+  public void addOrSetAtIndex(int index, String name, Object value) {
+    int idx = find(name);
+    if (idx != -1) {
+      setValue(idx, value);
+    } else {
+      if (index < columns.size() && index < values.size()) {
+        columns.add(index, name);
+        values.add(index, value);
+      }
     }
   }
 }

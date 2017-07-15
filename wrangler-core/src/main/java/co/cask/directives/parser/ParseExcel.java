@@ -33,7 +33,10 @@ import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import com.google.common.io.Closeables;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -113,16 +116,16 @@ public class ParseExcel implements Directive {
               );
             }
 
-            int last = excelsheet.getLastRowNum();
-
             Iterator<org.apache.poi.ss.usermodel.Row> it = excelsheet.iterator();
             int rows = 0;
             while (it.hasNext()) {
               org.apache.poi.ss.usermodel.Row row = it.next();
               Iterator<Cell> cellIterator = row.cellIterator();
+              if(checkIfRowIsEmpty(row)) {
+                continue;
+              }
               Row newRow = new Row();
               newRow.add("fwd", rows);
-              newRow.add("bkd", last - rows - 1);
               while (cellIterator.hasNext()) {
                 Cell cell = cellIterator.next();
                 String name = columnName(cell.getAddress().getColumn());
@@ -132,7 +135,11 @@ public class ParseExcel implements Directive {
                     break;
 
                   case NUMERIC:
-                    newRow.add(name, cell.getNumericCellValue());
+                    if (HSSFDateUtil.isCellDateFormatted(cell)) {
+                      newRow.add(name, cell.getDateCellValue());
+                    } else {
+                      newRow.add(name, cell.getNumericCellValue());
+                    }
                     break;
 
                   case BOOLEAN:
@@ -142,6 +149,10 @@ public class ParseExcel implements Directive {
               }
               results.add(newRow);
               rows++;
+            }
+
+            for (int i = rows - 1; i >= 0; --i) {
+              results.get(rows - i - 1).addOrSetAtIndex(1, "bkd", i); // fwd - 0, bkd - 1.
             }
           }
         }
@@ -154,6 +165,22 @@ public class ParseExcel implements Directive {
       }
     }
     return results;
+  }
+
+  private boolean checkIfRowIsEmpty(org.apache.poi.ss.usermodel.Row row) {
+    if (row == null) {
+      return true;
+    }
+    if (row.getLastCellNum() <= 0) {
+      return true;
+    }
+    for (int cellNum = row.getFirstCellNum(); cellNum < row.getLastCellNum(); cellNum++) {
+      Cell cell = row.getCell(cellNum);
+      if (cell != null && cell.getCellTypeEnum() != CellType.BLANK && StringUtils.isNotBlank(cell.toString())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private String columnName(int number) {
