@@ -42,7 +42,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("format-date")
-@Categories(categories = { "date"})
+@Categories(categories = {"date", "format"})
 @Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")
 public class FormatDate implements Directive {
   public static final String NAME = "format-date";

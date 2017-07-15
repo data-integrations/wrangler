@@ -46,7 +46,7 @@ import java.util.Map;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-avro-file")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "avro"})
 @Description("parse-as-avro-file <column>.")
 public class ParseAvroFile implements Directive {
   public static final String NAME = "parse-as-avro-file";

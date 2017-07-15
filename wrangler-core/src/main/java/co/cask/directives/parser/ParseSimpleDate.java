@@ -41,7 +41,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-simple-date")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "date"})
 @Description("Parses a column as date using format.")
 public class ParseSimpleDate implements Directive {
   public static final String NAME = "parse-as-simple-date";

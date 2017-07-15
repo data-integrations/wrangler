@@ -51,7 +51,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-excel")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "excel"})
 @Description("Parses column as Excel file.")
 public class ParseExcel implements Directive {
   public static final String NAME = "parse-as-excel";

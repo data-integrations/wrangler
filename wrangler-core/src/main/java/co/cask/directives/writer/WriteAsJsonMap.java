@@ -41,7 +41,7 @@ import java.util.Map;
  */
 @Plugin(type = Directive.Type)
 @Name("write-as-json-map")
-@Categories(categories = { "writer"})
+@Categories(categories = { "writer", "json"})
 @Description("Writes all record columns as JSON map.")
 public class WriteAsJsonMap implements Directive {
   public static final String NAME = "write-as-json-map";

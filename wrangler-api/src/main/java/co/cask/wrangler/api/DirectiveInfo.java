@@ -69,7 +69,7 @@ public final class DirectiveInfo {
     if (category == null) {
       categories = new String[] { "default"};
     } else {
-      categories = categories;
+      categories = category.categories();
     }
   }
 

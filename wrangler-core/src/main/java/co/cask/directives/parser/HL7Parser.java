@@ -58,7 +58,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-hl7")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "hl7"})
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
   "JSON object enumeration terminates.")
 public class HL7Parser implements Directive {

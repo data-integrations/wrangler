@@ -25,6 +25,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -48,6 +49,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(XPathElement.NAME)
+@Categories(categories = { "xml"})
 @Description("Extract a single XML element or attribute using XPath.")
 public class XPathElement implements Directive {
   public static final String NAME = "xpath";

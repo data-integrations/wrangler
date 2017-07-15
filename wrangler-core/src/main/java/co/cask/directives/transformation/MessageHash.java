@@ -45,7 +45,7 @@ import java.util.Set;
  */
 @Plugin(type = Directive.Type)
 @Name(MessageHash.NAME)
-@Categories(categories = { "transform"})
+@Categories(categories = { "transform", "hash"})
 @Description("Creates a message digest for the column using algorithm, replacing the column value.")
 public class MessageHash implements Directive {
   public static final String NAME = "hash";

@@ -27,6 +27,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
@@ -42,6 +43,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-xml-to-json")
+@Categories(categories = { "xml"})
 @Description("Parses a XML document to JSON representation.")
 public class XmlToJson implements Directive {
   public static final String NAME = "parse-xml-to-json";

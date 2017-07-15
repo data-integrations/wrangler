@@ -40,7 +40,7 @@ import java.util.List;
  */
 @Plugin(type = "directives")
 @Name(SetType.NAME)
-@Categories(categories = { "column"})
+@Categories(categories = {"column"})
 @Description("Converting data type of a column.")
 public final class SetType implements Directive {
   public static final String NAME = "set-type";

@@ -40,7 +40,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-log")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "logs"})
 @Description("Parses Apache HTTPD and NGINX logs.")
 public class ParseLog implements Directive {
   public static final String NAME = "parse-as-log";

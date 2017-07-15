@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-protobuf")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "protobuf"})
 @Description("Parses column as protobuf encoded memory representations.")
 public class ParseProtobuf implements Directive {
   public static final String NAME = "parse-as-protobuf";

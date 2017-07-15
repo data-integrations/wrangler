@@ -39,7 +39,7 @@ import java.util.UUID;
  */
 @Plugin(type = Directive.Type)
 @Name(GenerateUUID.NAME)
-@Categories(categories = { "transform"})
+@Categories(categories = { "transform", "uuid"})
 @Description("Populates a column with a universally unique identifier (UUID) of the record.")
 public class GenerateUUID implements Directive {
   public static final String NAME = "generate-uuid";

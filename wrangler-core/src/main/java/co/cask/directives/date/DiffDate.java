@@ -38,7 +38,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("diff-date")
-@Categories(categories = { "date"})
+@Categories(categories = {"date"})
 @Description("Calculates the difference in milliseconds between two Date objects." +
   "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
 public class DiffDate implements Directive {

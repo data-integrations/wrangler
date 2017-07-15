@@ -38,7 +38,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(SplitEmail.NAME)
-@Categories(categories = { "transform"})
+@Categories(categories = { "transform", "email"})
 @Description("Split a email into account and domain.")
 public class SplitEmail implements Directive {
   public static final String NAME = "split-email";

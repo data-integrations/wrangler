@@ -45,7 +45,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("write-as-csv")
-@Categories(categories = { "writer"})
+@Categories(categories = { "writer", "csv"})
 @Description("Writes the records files as well-formatted CSV")
 public class WriteAsCSV implements Directive {
   public static final String NAME = "write-as-csv";

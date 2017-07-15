@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(SplitURL.NAME)
-@Categories(categories = { "transform"})
+@Categories(categories = { "transform", "url"})
 @Description("Split a url into it's components host,protocol,port,etc.")
 public class SplitURL implements Directive {
   public static final String NAME = "split-url";

@@ -43,7 +43,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("write-as-json-object")
-@Categories(categories = { "writer"})
+@Categories(categories = { "writer", "json"})
 @Description("Creates a JSON object based on source columns specified. JSON object is written into dest-column.")
 public class WriteAsJsonObject implements Directive {
   public static final String NAME = "write-as-json-object";

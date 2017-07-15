@@ -54,7 +54,7 @@ import java.util.Map;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-json")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "json"})
 @Description("Parses a column as JSON.")
 public class JsParser implements Directive {
   public static final String NAME = "parse-as-json";

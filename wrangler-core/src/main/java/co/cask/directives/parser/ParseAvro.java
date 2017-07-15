@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-avro")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "avro"})
 @Description("Parses column as AVRO generic record.")
 public class ParseAvro implements Directive {
   public static final String NAME = "parse-as-avro";

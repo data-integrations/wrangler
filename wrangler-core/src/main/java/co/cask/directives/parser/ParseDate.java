@@ -43,7 +43,7 @@ import java.util.TimeZone;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-date")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "date"})
 @Description("Parses column values as dates using natural language processing and " +
   "automatically identifying the format (expensive in terms of time consumed).")
 public class ParseDate implements Directive {

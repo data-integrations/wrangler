@@ -47,7 +47,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("json-path")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "json"})
 @Description("Parses JSON elements using a DSL (a JSON path expression).")
 public class JsPath implements Directive {
   public static final String NAME = "json-path";

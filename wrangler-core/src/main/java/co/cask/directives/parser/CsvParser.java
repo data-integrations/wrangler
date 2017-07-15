@@ -50,7 +50,7 @@ import java.util.Set;
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-csv")
-@Categories(categories = { "parser"})
+@Categories(categories = { "parser", "csv"})
 @Description("Parses a column as CSV (comma-separated values).")
 public class CsvParser implements Directive {
   private ColumnName columnArg;

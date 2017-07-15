@@ -882,6 +882,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         usage.addProperty("alias", false);
         usage.addProperty("scope", directive.scope().name());
         usage.add("arguments", directive.definition().toJson());
+        usage.add("categories", GSON.toJsonTree(directive.categories()));
         values.add(usage);
 
         // For this directive we find all aliases and add them to the
@@ -897,6 +898,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
             aliasUsage.addProperty("alias", true);
             aliasUsage.addProperty("scope", directive.scope().name());
             aliasUsage.add("arguments", directive.definition().toJson());
+            aliasUsage.add("categories", GSON.toJsonTree(directive.categories()));
             values.add(aliasUsage);
             count++;
           }
