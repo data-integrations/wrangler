@@ -22,6 +22,7 @@ import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
@@ -57,6 +58,11 @@ public final class TestingRig {
    */
   public static List<Row> execute(String[] recipe, List<Row> rows)
     throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    return execute(recipe, rows, null);
+  }
+
+  public static List<Row> execute(String[] recipe, List<Row> rows, ExecutorContext context)
+    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry()
     );
@@ -65,7 +71,7 @@ public final class TestingRig {
     RecipeParser parser = new GrammarBasedParser(migrate, registry);
     parser.initialize(null);
     RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(parser, null);
+    pipeline.configure(parser, context);
     return pipeline.execute(rows);
   }
 

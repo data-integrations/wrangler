@@ -28,8 +28,8 @@ import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Expression;
+import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.jexl3.JexlContext;
@@ -67,7 +67,7 @@ public class SetTransientVariable implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.variable = ((ColumnName) args.value("variable")).value();
+    this.variable = ((Identifier) args.value("variable")).value();
     this.expression = ((Expression) args.value("condition")).value();
     engine = JexlHelper.getEngine();
     script = engine.createScript(this.expression);
@@ -95,7 +95,9 @@ public class SetTransientVariable implements Directive {
       // mapped into context.
       try {
         Object result = script.execute(ctx);
-        context.getTransientStore().set(variable, result);
+        if (context != null) {
+          context.getTransientStore().set(variable, result);
+        }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
         // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
