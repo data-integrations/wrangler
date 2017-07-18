@@ -232,7 +232,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     try {
       oSchema = Schema.parseJson(config.schema);
     } catch (IOException e) {
-      throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
+      throw new IllegalArgumentException(
+        String.format("Stage:%s - Format of output schema specified is invalid. Please check the format.",
+                      context.getStageName())
+      );
     }
 
     // Check if pre-condition is not null or empty and if so compile expression.
@@ -254,19 +257,29 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
         directives.initialize(dContext);
       } else {
-        LOG.warn("Context is set to default, no aliasing and restriction would be applied.");
+        LOG.warn(
+          String.format("Stage:%s - Context is set to default, no aliasing and restriction would be applied.",
+                        getContext().getStageName())
+          );
         directives.initialize(null);
       }
     } catch (IOException | URISyntaxException e) {
       // If there is a issue, we need to fail the pipeline that has the plugin.
       throw new IllegalArgumentException(
-        String.format("Issue in retrieving the configuration from the service. %s", e.getMessage())
+        String.format("Stage:%s - Issue in retrieving the configuration from the service. %s",
+                      getContext().getStageName(), e.getMessage())
       );
     }
 
-    // Create the pipeline executor with context being set.
-    pipeline = new RecipePipelineExecutor();
-    pipeline.configure(directives, ctx);
+    try {
+      // Create the pipeline executor with context being set.
+      pipeline = new RecipePipelineExecutor();
+      pipeline.configure(directives, ctx);
+    } catch (Exception e) {
+      throw new Exception(
+        String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage())
+      );
+    }
 
     // Initialize the error counter.
     errorCounter = 0;

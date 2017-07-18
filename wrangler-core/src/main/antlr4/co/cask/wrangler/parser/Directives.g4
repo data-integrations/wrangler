@@ -303,7 +303,7 @@ Space
  ;
 
 fragment Int
- : [1-9] Digit*
+ : [1-9] Digit* [L]*
  | '0'
  ;
 
