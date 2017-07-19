@@ -327,8 +327,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
         getContext().getMetrics().count("errors", errors.size());
-        ErrorRecord error = errors.get(0);
-        emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
+        for (ErrorRecord error : errors) {
+          emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
+        }
       }
     } catch (Exception e) {
       getContext().getMetrics().count("failures", 1);

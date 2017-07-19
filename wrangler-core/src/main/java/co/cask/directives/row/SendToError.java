@@ -97,7 +97,7 @@ public class SendToError implements Directive {
       try {
         boolean result = (Boolean) script.execute(ctx);
         if (result) {
-          throw new ErrorRowException(toString(), 1);
+          throw new ErrorRowException(condition, 1);
         }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
