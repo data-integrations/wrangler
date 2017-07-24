@@ -41,7 +41,7 @@ public final class KafkaConfiguration {
 
   public KafkaConfiguration(Connection conn) {
     keyDeserializer = StringDeserializer.class.getName();
-    valueDeserializer = ByteArrayDeserializer.class.getName();
+    valueDeserializer = keyDeserializer;
 
     if (conn.getType() != ConnectionType.KAFKA) {
       throw new IllegalArgumentException(

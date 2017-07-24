@@ -45,7 +45,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name("set-charset")
-@Categories(categories = { "charset"})
+@Categories(categories = {"language"})
 @Description("Sets the character set decoding to UTF-8.")
 public class SetCharset implements Directive {
   public static final String NAME = "set-charset";
