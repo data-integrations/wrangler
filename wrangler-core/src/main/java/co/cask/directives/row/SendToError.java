@@ -99,6 +99,11 @@ public class SendToError implements Directive {
         if (result) {
           throw new ErrorRowException(condition, 1);
         }
+      } catch (JexlException.Variable e) {
+        // If variable is not defined
+        if (e.isUndefined()) {
+          // No-op
+        }
       } catch (JexlException e) {
         // Generally JexlException wraps the original exception, so it's good idea
         // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'

@@ -62,7 +62,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * @see SystemDirectiveRegistry
  * @see CompositeDirectiveRegistry
  */
-public final class UserDirectiveRegistry implements DirectiveRegistry {
+public final class  UserDirectiveRegistry implements DirectiveRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UserDirectiveRegistry.class);
   private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
   private StageContext context = null;

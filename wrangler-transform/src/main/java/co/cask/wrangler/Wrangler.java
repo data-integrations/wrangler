@@ -198,14 +198,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         throw new IllegalArgumentException(
           "Field " + config.field + " is not present in the input schema");
       }
-
-      // Check that the field type is String or Nullable String
-      Schema fieldSchema = inputSchemaField.getSchema();
-      Schema.Type fieldType = fieldSchema.isNullable() ? fieldSchema.getNonNullable().getType() : fieldSchema.getType();
-      if (!fieldType.equals(Schema.Type.STRING)) {
-        throw new IllegalArgumentException(
-          "Type for field  " + config.field + " must be String");
-      }
     }
   }
 
@@ -224,6 +216,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       new SystemDirectiveRegistry(),
       new UserDirectiveRegistry(context)
     );
+
 
     RecipeParser directives = new GrammarBasedParser(new MigrateToV2(config.directives).migrate(), registry);
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);

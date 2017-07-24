@@ -57,7 +57,7 @@ public interface RecipePipeline<I, O, E> extends Serializable {
    *
    * @return records that have errored out.
    */
-  List<E> errors() throws RecipeException;
+  List<E> errors();
 }
 
 

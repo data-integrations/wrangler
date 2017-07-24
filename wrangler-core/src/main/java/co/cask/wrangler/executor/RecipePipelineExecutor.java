@@ -123,7 +123,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
    * @return records that have errored out.
    */
   @Override
-  public List<ErrorRecord> errors() throws RecipeException {
+  public List<ErrorRecord> errors() {
     return collector.get();
   }
 }

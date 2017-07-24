@@ -76,4 +76,26 @@ public class SendToErrorTest {
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals(1, results.size());
   }
+
+  @Test
+  public void testNullFieldsSkipping() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , true",
+      "drop body",
+      "send-to-error exp:{C1 =~ \"Was.*\"};",
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B,C"),
+      new Row("body", "Washington,Y"),
+      new Row("body", "Window,V,XYZ")
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(0, errors.size());
+    Assert.assertEquals(2, results.size());
+  }
 }

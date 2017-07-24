@@ -93,7 +93,7 @@ public class TableLookup implements Directive {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx == -1) {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
+        continue;
       }
       Object object = row.getValue(idx);
       if (!(object instanceof String)) {

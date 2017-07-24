@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import static org.apache.commons.lang3.StringUtils.trim;
+
 /**
  * This class <code>MigrateToV2</code> translates from older version
  * of grammar of directives into newer version of recipe grammar.
@@ -796,7 +798,7 @@ public final class MigrateToV2 implements GrammarMigrator {
   private static String toColumArray(String[] columns) {
     List<String> array = new ArrayList<>();
     for (String column : columns) {
-      array.add(col(column));
+      array.add(col(trim(column)));
     }
     return Joiner.on(",").join(array);
   }
