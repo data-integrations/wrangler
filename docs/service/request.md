@@ -15,7 +15,7 @@ be handled on the front- and back-ends.
 ## JSON Request Format
 ```
   {
-    "version": "1.0"
+    "version": 1.0
     "workspace": {
       "name": string,
       "results": number
@@ -86,7 +86,7 @@ A simple example:
 
 ```
   {
-    "version": "1.0",
+    "version": 1.0,
     "workspace": {
       "name": "body",
       "results": 100
