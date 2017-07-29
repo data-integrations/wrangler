@@ -276,15 +276,6 @@ Directives are loaded into the directive registry from the system and also from 
 * SYSTEM has two directives with the same name `z`. 
 * USER directive `k` has two different artifacts. 
 
-
-## Related documentation
-
-  * Information about Grammar [here](grammar/grammar-info.md)
-  * Custom Directive Implementation Internals [here](udd-internal.md)
-  * Migrating directives from version 1.0 to version 2.0 [here](directive-migration.md)
-  * Various `TokenType` supported by system [here](../api/src/main/java/co/cask/wrangler/api/parser/TokenType.java)
-
-
 ## Field-level Lineage
 
 Field-level lineage allows users to see which directives were applied to a specific column of data in a given timeframe. They can see how a column of data was generated and which other columns were produced from this column as well as how its values were manipulated.
@@ -308,3 +299,13 @@ Every column involved in a directive must have one and only one associated label
 	* Ex1. `split-to-columns <column> <regex>`. In this case since all the newly produced columns will have names formatted `column_%d`, `all columns formatted column_%d` can be labeled ADD, rather than each individual new column.
 	* Ex2. `parse-as-csv <column> <delimiter>`. In this case since all the columns present at the end of this directive will have been produced by this directive except for column itself, `all columns minus column` can be labeled ADD, rather than each individual new column.
 	* Ex3. Custom directive: `lowercase-all`. This custom directive changes all the record values to lowercase. In this case all columns present at the end of this directive will have been modified by this directive, so `all columns` can be labeled MODIFY, rather than each individual column.
+
+
+
+## Related documentation
+
+  * Information about Grammar [here](grammar/grammar-info.md)
+  * Custom Directive Implementation Internals [here](udd-internal.md)
+  * Migrating directives from version 1.0 to version 2.0 [here](directive-migration.md)
+  * Various `TokenType` supported by system [here](../api/src/main/java/co/cask/wrangler/api/parser/TokenType.java)
+
