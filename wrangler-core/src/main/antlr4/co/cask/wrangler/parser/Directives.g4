@@ -210,6 +210,7 @@ GTEquals : '>=';
 LTEquals : '<=';
 Match    : '=~';
 NotMatch : '!~';
+QuestionColon : '?:';
 StartsWith : '=^';
 NotStartsWith : '!^';
 EndsWith : '=$';
