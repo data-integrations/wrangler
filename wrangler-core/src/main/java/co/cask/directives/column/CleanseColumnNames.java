@@ -57,7 +57,12 @@ public final class CleanseColumnNames implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    // No-op.
+    // no-op.
+  }
+
+  @Override
+  public void destroy() {
+    // no-op
   }
 
   @Override

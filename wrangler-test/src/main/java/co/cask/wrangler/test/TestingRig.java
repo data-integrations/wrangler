@@ -58,7 +58,7 @@ public final class TestingRig {
     RecipeParser parser = new GrammarBasedParser(migrate, registry);
     parser.initialize(null);
     RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.configure(parser, null);
+    pipeline.initialize(parser, null);
     return pipeline;
   }
 

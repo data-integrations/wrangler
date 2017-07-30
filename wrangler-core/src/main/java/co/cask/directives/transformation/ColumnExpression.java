@@ -92,6 +92,11 @@ public class ColumnExpression implements Directive {
   }
 
   @Override
+  public void destroy() {
+    // no-op
+  }
+
+  @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     // This is done only the first time.
     if (properties.size() == 0 && context != null) {

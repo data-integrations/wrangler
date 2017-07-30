@@ -70,6 +70,11 @@ public class CompositeDirectiveRegistryTest {
     public void initialize(Arguments args) throws DirectiveParseException {
       column = ((ColumnName) args.value("column")).value();
     }
+    
+    @Override
+    public void destroy() {
+      // no-op
+    }
   }
 
   private class TestDirectiveRegistry implements DirectiveRegistry {

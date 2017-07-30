@@ -26,6 +26,36 @@ import java.io.Serializable;
 @PublicEvolving
 public interface Executor<I, O> extends Serializable {
   /**
+   * This method provides a way for the custom directive writer the ability to access
+   * the arguments passed by the users.
+   *
+   * <p>This method is invoked only once during the initialization phase of the {@code Executor}
+   * object. The arguments are constructed based on the definition as provided by the user in
+   * the method above {@code define}.</p>
+   *
+   * <p>
+   *   Following is an example of how {@code initialize} could be used to accept the
+   *   arguments that are tokenized and parsed by the framework.
+   *   <code>
+   *     public void initialize(Arguments args) throws DirectiveParseException {
+   *       ColumnName column = args.value("column");
+   *       if (args.contains("number") {
+   *        Numeric number = args.value("number");
+   *       }
+   *       Text text = args.value("text");
+   *       Bool bool = args.value("boolean");
+   *       Expression expression = args.value("expression");
+   *     }
+   *   </code>
+   * </p>
+   *
+   * @param args Tokenized and parsed arguments.
+   * @throws DirectiveParseException thrown by the user in case of any issues with validation or
+   * ensuring the argument values are as expected.
+   */
+  void initialize(Arguments args) throws DirectiveParseException;
+
+  /**
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
    *
    * @param rows List of input {@link Row} to be wrangled by this step.
@@ -34,5 +64,18 @@ public interface Executor<I, O> extends Serializable {
    */
   O execute(I rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException;
+
+  /**
+   * This method provides a way for the directive to de-initialize or destroy the
+   * resources that were acquired during the initialization phase. This method is
+   * called from the <code>Transform#destroy()</code> when the directive is invoked
+   * within a plugin or when during <code>Service#destroy()</code> when invoked in the
+   * service.
+   *
+   * This method is specifically designed not to thrown any exceptions. So, if the
+   * the user code is throws any exception, the system will be unable to react or
+   * correct at this phase of invocation.
+   */
+  void destroy();
 }
 

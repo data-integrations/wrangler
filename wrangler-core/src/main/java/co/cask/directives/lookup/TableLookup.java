@@ -68,6 +68,11 @@ public class TableLookup implements Directive {
     this.initialized = false;
   }
 
+  @Override
+  public void destroy() {
+    // no-op
+  }
+
   private void ensureInitialized(ExecutorContext context) throws DirectiveExecutionException {
     if (initialized) {
       return;

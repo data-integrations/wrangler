@@ -108,6 +108,11 @@ public class CsvParser implements Directive {
     }
   }
 
+  @Override
+  public void destroy() {
+    // no-op
+  }
+
   /**
    * Parses a give column in a {@link Row} as a CSV Row.
    *

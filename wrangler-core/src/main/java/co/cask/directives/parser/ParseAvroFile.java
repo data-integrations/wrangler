@@ -67,6 +67,11 @@ public class ParseAvroFile implements Directive {
   }
 
   @Override
+  public void destroy() {
+    // no-op
+  }
+
+  @Override
   public List<Row> execute(List<Row> rows, final ExecutorContext context) throws DirectiveExecutionException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {

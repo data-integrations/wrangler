@@ -138,6 +138,11 @@ public class MessageHash implements Directive {
     }
   }
 
+  @Override
+  public void destroy() {
+    // no-op
+  }
+
   public static boolean isValid(String algorithm) {
     return (algorithm != null && algorithms.contains(algorithm));
   }

@@ -1163,8 +1163,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       String migrate = migrator.migrate();
       RecipeParser recipe = new GrammarBasedParser(migrate, composite);
       recipe.initialize(new ConfigDirectiveContext(table.getConfigString()));
-      executor.configure(recipe, context);
-      return executor.execute(sample.apply(rows));
+      executor.initialize(recipe, context);
+      rows = executor.execute(sample.apply(rows));
+      executor.destroy();
     }
     return rows;
   }
