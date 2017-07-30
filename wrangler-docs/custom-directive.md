@@ -17,7 +17,6 @@ Building a custom directive involves implementing three simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
   * **I** -- `initialize()` -- Invoked by the framework to initialize the custom directive with arguments parsed. 
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
-  * **L** -- `lineage()` -- Define how the lineage should be infered for this directive.
   * **D** -- `destory()` -- Invoke by the framework to destroy any resources held by the directive. 
   
 ## Steps to Build a directive
@@ -74,10 +73,6 @@ public SimpleUDD implements Directive {
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws RecipeException, ErrorRowException {
     ...
   }
-  
-  public MutationDefinition lineage() {
-    ...
-  }  
   
   public void destory() {
     ...
@@ -189,6 +184,10 @@ public final class TextReverse implements UDD {
       }
     }
     return rows;
+  }
+  
+  public void destroy() {
+    // no-op
   }
 }
 ```
