@@ -45,7 +45,7 @@ public class ExpressionTest {
       "drop first",
       "drop last",
       "set column email string:reverse(email)",
-      "set column hrlywage var x; x = math:ceil(FLOAT(hrlywage)); x + 1",
+      "set column hrlywage var x; x = math:ceil(toFloat(hrlywage)); x + 1",
     };
 
     // Run through the wrangling steps.

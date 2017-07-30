@@ -127,9 +127,9 @@ public class ColumnExpression implements Directive {
         // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
         // else just print the error message.
         if (e.getCause() != null) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getCause().getMessage());
+          throw new DirectiveExecutionException(e.getCause().getMessage());
         } else {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
+          throw new DirectiveExecutionException(e.getMessage());
         }
       }
     }

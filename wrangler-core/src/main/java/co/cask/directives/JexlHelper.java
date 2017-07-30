@@ -17,12 +17,13 @@
 package co.cask.directives;
 
 import co.cask.cdap.api.common.Bytes;
-import co.cask.functions.Conversions;
 import co.cask.functions.DDL;
 import co.cask.functions.DataQuality;
 import co.cask.functions.Dates;
 import co.cask.functions.GeoFences;
+import co.cask.functions.Global;
 import co.cask.functions.JSON;
+import com.google.common.base.Strings;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.lang.StringUtils;
@@ -53,11 +54,12 @@ public final class JexlHelper {
    */
   public static Map<String, Object> getRegisteredFunctions() {
     Map<String, Object> functions = new HashMap<>();
-    functions.put(null, Conversions.class);
+    functions.put(null, Global.class);
     functions.put("date", Dates.class);
     functions.put("json", JSON.class);
     functions.put("math", Math.class);
     functions.put("string", StringUtils.class);
+    functions.put("strings", Strings.class);
     functions.put("bytes", Bytes.class);
     functions.put("arrays", Arrays.class);
     functions.put("dq", DataQuality.class);
