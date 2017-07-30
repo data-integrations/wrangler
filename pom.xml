@@ -14,22 +14,24 @@
   ~ License for the specific language governing permissions and limitations under
   ~ the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>co.cask.wrangler</groupId>
   <artifactId>wrangler</artifactId>
-  <version>2.2.0-SNAPSHOT</version>
-  <name>wrangler</name>
+  <version>3.0.0-SNAPSHOT</version>
+  <name>Wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
   <url>http://github.com/hydrator/wrangler</url>
 
   <modules>
-    <module>transform</module>
-    <module>service</module>
-    <module>core</module>
+    <module>wrangler-transform</module>
+    <module>wrangler-service</module>
+    <module>wrangler-core</module>
+    <module>wrangler-api</module>
+    <module>wrangler-third-party</module>
+    <module>wrangler-test</module>
   </modules>
 
   <licenses>
@@ -82,14 +84,14 @@
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang.version>3.5</commons-lang.version>
-    <guava.version>19.0</guava.version>
+    <guava.version>20.0</guava.version>
     <unix4j.version>0.4</unix4j.version>
     <json-path.version>2.2.0</json-path.version>
     <hl7.version>2.2</hl7.version>
     <bouncycastle.version>1.56</bouncycastle.version>
     <joda-time.version>2.9.7</joda-time.version>
     <httpdlog-parser.version>3.0</httpdlog-parser.version>
-    <natty.version>0.11</natty.version>
+    <natty.version>0.13</natty.version>
     <vtd.xml.version>2.13</vtd.xml.version>
     <commons.io.version>2.5</commons.io.version>
     <simmetrics.version>4.1.1</simmetrics.version>
@@ -108,6 +110,11 @@
     <aws.sdk.version>1.9.6</aws.sdk.version>
     <poi.version>3.16</poi.version>
     <hadoop.version>2.4.0</hadoop.version>
+    <antlr4.version>4.7</antlr4.version>
+    <antlr4-maven-plugin.version>4.7</antlr4-maven-plugin.version>
+    <junit.version>4.12</junit.version>
+    <reflections.version>0.9.11</reflections.version>
+    <commons.validator.version>1.6</commons.validator.version>
   </properties>
 
   <repositories>
@@ -123,99 +130,10 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>${hadoop.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-      <version>RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-csv</artifactId>
-      <version>${commons-csv.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.unix4j</groupId>
-      <artifactId>unix4j-command</artifactId>
-      <version>${unix4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.jayway.jsonpath</groupId>
-      <artifactId>json-path</artifactId>
-      <version>${json-path.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-jexl3</artifactId>
-      <version>${commons-jexl.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-api</artifactId>
-      <version>${cdap.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-etl-api</artifactId>
-      <version>${cdap.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-etl-core</artifactId>
-      <version>${cdap.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>hydrator-test</artifactId>
-      <version>${cdap.version}</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-unit-test</artifactId>
-      <version>${cdap.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.hive</groupId>
-          <artifactId>hive-exec</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>co.cask.cdap</groupId>
-          <artifactId>cdap-explore-jdbc</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>${commons-lang.version}</version>
     </dependency>
   </dependencies>
 

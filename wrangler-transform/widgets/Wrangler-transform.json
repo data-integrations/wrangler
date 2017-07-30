@@ -1,0 +1,70 @@
+{
+  "metadata": {
+    "spec-version": "1.3"
+  },
+  "configuration-groups": [
+    {
+      "label": "Wrangler",
+      "properties": [
+        {
+          "widget-type" : "hidden",
+          "name" : "workspace"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Input Field",
+          "name": "field",
+          "widget-attributes" : {
+            "default": "*"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Precondition",
+          "name": "precondition",
+          "widget-attributes" : {
+            "default" : "false"
+          }
+        },
+        {
+          "widget-type": "wrangler-directives",
+          "label": "Recipe",
+          "name": "directives"
+        },
+        {
+          "widget-type": "textbox",
+          "label" : "Failure Threshold",
+          "name": "threshold",
+          "widget-attributes": {
+            "default": "1"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "schema",
+      "label": "schema",
+      "widget-type": "schema",
+      "widget-attributes": {
+        "schema-types": [
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string",
+          "array",
+          "enum",
+          "record",
+          "map",
+          "union"
+        ],
+        "schema-default-type": "string",
+        "property-watch": "format"
+      }
+    }
+  ]
+}
