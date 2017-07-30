@@ -28,12 +28,12 @@ import java.util.List;
 @PublicEvolving
 public interface RecipePipeline<I, O, E> extends Serializable {
   /**
-   * Configures the wrangle pipeline using the directives.
+   * Initializes the wrangle pipeline using the directives.
    *
    * @param directives Wrangle directives.
    * @param context
    */
-  void configure(RecipeParser directives, ExecutorContext context) throws RecipeException;
+  void initialize(RecipeParser directives, ExecutorContext context) throws RecipeException;
 
   /**
    * Executes the pipeline on the input.
@@ -58,6 +58,11 @@ public interface RecipePipeline<I, O, E> extends Serializable {
    * @return records that have errored out.
    */
   List<E> errors();
+
+  /**
+   * Destroys the pipeline.
+   */
+  void destroy();
 }
 
 

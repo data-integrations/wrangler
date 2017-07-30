@@ -125,4 +125,8 @@ public class IncrementTransientVariable implements Directive {
     }
     return rows;
   }
+
+  public void destroy() {
+    // no-op
+  }
 }

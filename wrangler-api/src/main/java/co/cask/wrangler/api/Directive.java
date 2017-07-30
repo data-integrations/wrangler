@@ -115,34 +115,4 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
    * @see co.cask.wrangler.api.parser.TokenType
    */
   UsageDefinition define();
-
-  /**
-   * This method provides a way for the custom directive writer the ability to access
-   * the arguments passed by the users.
-   *
-   * <p>This method is invoked only once during the initialization phase of the {@code Executor}
-   * object. The arguments are constructed based on the definition as provided by the user in
-   * the method above {@code define}.</p>
-   *
-   * <p>
-   *   Following is an example of how {@code initialize} could be used to accept the
-   *   arguments that are tokenized and parsed by the framework.
-   *   <code>
-   *     public void initialize(Arguments args) throws DirectiveParseException {
-   *       ColumnName column = args.value("column");
-   *       if (args.contains("number") {
-   *        Numeric number = args.value("number");
-   *       }
-   *       Text text = args.value("text");
-   *       Bool bool = args.value("boolean");
-   *       Expression expression = args.value("expression");
-   *     }
-   *   </code>
-   * </p>
-   *
-   * @param args Tokenized and parsed arguments.
-   * @throws DirectiveParseException thrown by the user in case of any issues with validation or
-   * ensuring the argument values are as expected.
-   */
-  void initialize(Arguments args) throws DirectiveParseException;
 }
