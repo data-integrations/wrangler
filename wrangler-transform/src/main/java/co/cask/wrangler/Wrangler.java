@@ -267,7 +267,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     try {
       // Create the pipeline executor with context being set.
       pipeline = new RecipePipelineExecutor();
-      pipeline.configure(directives, ctx);
+      pipeline.initialize(directives, ctx);
     } catch (Exception e) {
       throw new Exception(
         String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage())
@@ -276,6 +276,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Initialize the error counter.
     errorCounter = 0;
+  }
+
+
+  @Override
+  public void destroy() {
+    super.destroy();
+    pipeline.destroy();
   }
 
   /**

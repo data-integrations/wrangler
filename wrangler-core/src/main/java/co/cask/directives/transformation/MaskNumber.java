@@ -87,6 +87,11 @@ public class MaskNumber implements Directive {
   }
 
   @Override
+  public void destroy() {
+    // no-op
+  }
+
+  @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
       int idx = row.find(column);

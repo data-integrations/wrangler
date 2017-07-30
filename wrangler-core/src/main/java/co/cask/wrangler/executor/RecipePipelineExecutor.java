@@ -32,6 +32,8 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -40,6 +42,7 @@ import java.util.List;
  * the directives.
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
+  private static final Logger LOG = LoggerFactory.getLogger(RecipePipelineExecutor.class);
   private ExecutorContext context;
   private List<Executor> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
@@ -52,7 +55,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
    * @param parser Wrangle directives parser.
    */
   @Override
-  public void configure(RecipeParser parser, ExecutorContext context) throws RecipeException {
+  public void initialize(RecipeParser parser, ExecutorContext context) throws RecipeException {
     this.context = context;
     try {
       this.directives = parser.parse();
@@ -60,6 +63,23 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       throw new RecipeException(e.getMessage());
     } catch (DirectiveNotFoundException | DirectiveLoadException e) {
       throw new RecipeException(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Invokes each directives destroy method to perform any cleanup
+   * required by each individual directive.
+   */
+  @Override
+  public void destroy() {
+    for(Executor directive : directives) {
+      try {
+        directive.destroy();
+      } catch (Exception e) {
+        LOG.warn(e.getMessage());
+      } catch (Throwable t) {
+        LOG.warn(t.getMessage());
+      }
     }
   }
 
