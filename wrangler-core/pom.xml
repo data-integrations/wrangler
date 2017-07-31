@@ -23,13 +23,7 @@
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
-      <artifactId>antlr4-runtime</artifactId>
-      <version>${antlr4.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>antlr4-maven-plugin</artifactId>
+      <artifactId>antlr4</artifactId>
       <version>${antlr4.version}</version>
       <scope>compile</scope>
     </dependency>
