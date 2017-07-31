@@ -26,6 +26,8 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -106,15 +108,23 @@ public class ParseLog implements Directive {
     return rows;
   }
 
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Format: " + format);
+    builder.addMutation(column, MutationType.READ);
+    builder.addMutation("all columns formatted %s", MutationType.ADD);
+    return builder.build();
+  }
+
   public final class LogLine {
     private Row row;
 
     public void setValue(final String name, final String value) {
       String key = name.toLowerCase();
-      if (key.contains("original") || key.contains("bytesclf") || key.contains("cookie") ) {
+      if (key.contains("original") || key.contains("bytesclf") || key.contains("cookie")) {
         return;
       }
-      key = key.replaceAll("[^a-zA-Z0-9_]","_");
+      key = key.replaceAll("[^a-z0-9]", "_");
       row.addOrSet(key, value);
     }
 

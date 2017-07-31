@@ -8,16 +8,17 @@ User Defined Directives, also known as UDD, allow you to create custom functions
 
 UDDs, similar to User-defined Functions (UDFs) have a long history of usefulness in SQL-derived languages and other data processing and query systems.  While the framework can be rich in their expressiveness, there's just no way they can anticipate all the things a developer wants to do.  Thus, the custom UDF has become commonplace in our data manipulation toolbox. In order to support customization or extension, CDAP now has the ability to build your own functions for manipulating data through UDDs.
 
-Developing CDAP DataPrep UDDs by no means rocket science, and is an effective way of solving problems that could either be downright impossible, or does not meet your requirements or very akward to solve. 
+Developing CDAP DataPrep UDDs by no means rocket science, and is an effective way of solving problems that could either be downright impossible, or does not meet your requirements or very awkward to solve. 
 
-**U**ser **D**efined **D**irective (UDD) or Custom Directives are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives
+**U**ser **D**efined **D**irective (UDD) or Custom Directives are easier and simpler ways for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives
 within the data preparation tool.
 
-Building a custom directive involves implementing three simple methods :
+Building a custom directive involves implementing five simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
   * **I** -- `initialize()` -- Invoked by the framework to initialize the custom directive with arguments parsed. 
+  * **L** -- `lineage()` -- Invoked by the framework to store field-level lineage explained below.
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
-  * **D** -- `destory()` -- Invoke by the framework to destroy any resources held by the directive. 
+  * **D** -- `destroy()` -- Invoke by the framework to destroy any resources held by the directive. 
   
 ## Steps to Build a directive
 
@@ -27,7 +28,7 @@ Building a custom directive involves implementing three simple methods :
   git clone git@github.com:hydrator/example-directive
   ```
 
-  * Implementing three interfaces `define()`, `initialize()` and `execute()`.
+  * Implementing four interfaces `define()`, `initialize()`, `lineage()`, and `execute()`.
   * Build a JAR (`mvn clean package`)
   * Deploy the JAR as a plugin into CDAP through UI or CLI or REST API
   * Use the plugin as follows:
@@ -69,12 +70,16 @@ public SimpleUDD implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     ...
   }
+
+  public MutationDefinition lineage() {
+    ...
+  }
   
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws RecipeException, ErrorRowException {
     ...
   }
   
-  public void destory() {
+  public void destroy() {
     ...
   }
 }
@@ -88,6 +93,7 @@ Following is detailed explaination for the above code.
   * `@Categories` annotation provides the category this directive belongs to.
   * `UsageDefition define() { }` Defines the arguments that are expected by the directive.
   * `void initialize(Arguments args) { }` Invoked before configuring a directive with arguments parsed by the framework based on the `define()` methods `UsageDefintion`.
+  * `lineage() { }` Invoked to store field-level lineage information for this directive.
   * `execute(...) { }` Every `Row` from previous directive execution is passed to this plugin to execute.
 
 ### Testing a simple UDD
@@ -171,6 +177,12 @@ public final class TextReverse implements UDD {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column").value();
   }
+
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
+    builder.addMutation(column, MutationType.MODIFY);
+    return builder.build();
+  }
   
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws RecipeException, ErrorRowException {
     for(Row row : rows) {
@@ -209,6 +221,7 @@ The call pattern of UDD is the following :
 
 * **DEFINE** : During configure time either in the CDAP Pipeline Transform or Data Prep Service, the `define()` method is invoked only once to retrieve the information of the usage. The usage defines the specification of the arguments that this directive is going to accept. In our example of `text-reverse`, the directive accepts only one argument and that is of type `TokenType.COLUMN_NAME`.
 * **INITIALIZE** : During the initialization just before pumping in `Row`s through the directive, the `initialize()` method is invoked. This method is passed the arguments that are parsed by the system. It also provides the apportunity for the UDD writer to validate and throw exception if the value is not as expected.
+* **LINEAGE** : The `lineage()` method is called after initialization at this point to store field-level lineage information.
 * **EXECUTE** : Once the pipeline has been setup, the `Row` is passed into the `execute()` method to transform. 
 
 ### Testing
@@ -291,24 +304,19 @@ Field-level lineage allows users to see which directives were applied to a speci
 
 ### Labels
 
-Every column involved in a directive must have one and only one associated label. These labels are: `{READ, ADD, DROP, RENAME, MODIFY}`
+Every column involved in a directive has one and only one associated label. These labels are: `{READ, ADD, DROP, RENAME, MODIFY}`
 * **READ**: When the values of a column impact one or more other columns it is labeled as a READ column.
 	* Ex1. `copy <source> <destination>`. In this case since the values of the entries of the source column are read in order to produce the destination column, the source column should be labeled as READ.
-	* Ex2. `filter-row-if-matched <column> <regex>`. In this case since the values of the entries of the supplied column are read in order to filter the rows in the dataset, column should be labeled as READ. This is the case even though the supplied column is modified since its values are read.
+	* Ex2. `filter-row-if-matched <column> <regex>`. In this case since the values of the entries of the supplied column are read in order to filter the rows in the dataset, column should be labeled as READ. Note that this is the case even though the supplied column is modified since its values are read.
 * **ADD**: When a column is generated by the directive, this column is labeled as an ADD column.
 	* Ex1. `copy <source> <destination>`. In this case since the destination is a new column that is generated by this directive, it should be labeled as ADD.
 * **DROP**: When a column is dropped as a result of the directive, this column is labeled as a DROP column.
 	* Ex1. `drop <column>[,<column>*]`. In this case since all the columns listed are dropped by this directive, all the listed columns should be labled as DROP columns.
-* **RENAME**: When the name of a column is changed to another name, both the old and new name are labeled as RENAME columns. Note that neither column is labeled as ADD or DROP since no column is added or dropped, but instead a column's name is being replaced in place.
+* **RENAME**: When the name of a column is changed to another name, both the old and new name are labeled as RENAME columns. This is done by separating the old and new column with a space, and labeling this string as a RENAME column. So, `<old> <new>` should be labeled RENAME. Note that neither column is labeled as ADD or DROP since no column is added or dropped, but instead a column's name is being replaced in place.
 	* Ex1. `rename <old> <new>`. In this case since the name old is being replaced with the name new, both old and new should be labeled as RENAME. This is because one column's name is being changed/renamed from old to new.
-	* EX2. `swap <column1> <column2>`. In this case since both the name column1 and the name column2 are simply being replaced with the other, both column1 and column2 should be labeled as RENAME. No records are being added or lost by this directive.
+	* EX2. `swap <column1> <column2>`. In this case since both the name column1 and the name column2 are simply being replaced with the other, both `<column1> <column2>` and `<column2> <column1>` should be labeled as RENAME, since both columns are being renamed to the other column.
 * **MODIFY**: When the values of a column's entries are potentially changed, but not read and impacting other columns, it should be labeled as a MODIFY column.
 	* Ex1. `lowercase <column>`. In this case since the column doesn't impact any other column, and its values are potentially modified it should be labeled as MODIFY.
-* Bonus: Rather then having to label every column if the columns are all READ, ADD, **or** MODIFY columns, the following can be used to replace the column name: `{"all columns", "all columns minus _ _ _ _", "all columns formatted %s_%d"}`. The first represents a case where all columns present in the dataset at the end of the directive can all be labeled the same. The second represents the case where all columns except for a space separated list of columns present in the dataset at the end of the directive can all be labeled the same. The third represents the case where all columns present at the end of the directive which follow the format string, supporting %s and %d, can all be labeled the same. Again this only works for READ, ADD, **or** MODIFY.
-	* Ex1. `split-to-columns <column> <regex>`. In this case since all the newly produced columns will have names formatted `column_%d`, `all columns formatted column_%d` can be labeled ADD, rather than each individual new column.
-	* Ex2. `parse-as-csv <column> <delimiter>`. In this case since all the columns present at the end of this directive will have been produced by this directive except for column itself, `all columns minus column` can be labeled ADD, rather than each individual new column.
-	* Ex3. Custom directive: `lowercase-all`. This custom directive changes all the record values to lowercase. In this case all columns present at the end of this directive will have been modified by this directive, so `all columns` can be labeled MODIFY, rather than each individual column.
-
 
 
 ## Related documentation

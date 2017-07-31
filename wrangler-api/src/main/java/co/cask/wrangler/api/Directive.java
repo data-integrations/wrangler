@@ -44,6 +44,13 @@ import java.util.List;
  *     }
  *
  *     @Override
+ *     public MutationDefinition lineage() {
+ *       MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
+ *       builder.addMutation(columnArgs.value(), MutationType.Modify);
+ *       return builder.build();
+ *     }
+ *
+ *     @Override
  *     public List<Row> execute(List<Row> rows, ExecutorContext context)
  *       throws DirectiveExecutionException, ErrorRowException {
  *       ...
@@ -62,7 +69,7 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
    * <code>
    *   @Plugin(type = Directive.Type)
    *   @Name("text-reverse")
-   *   @Description("Reverses the value of the column.)
+   *   @Description("Reverses the value of the column.")
    *   public final class TextReverse implements Directive {
    *     ...
    *   }
@@ -74,7 +81,7 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
    * This method provides a way for the developer to provide information
    * about the arguments expected by this directive. The definition of
    * arguments would provide information to the framework about how each
-   * argument should be parsed and interpretted.
+   * argument should be parsed and interpreted.
    *
    * <p>This method uses {@code UsageDefinition#Builder} to build the token
    * definitions. Each token definition consists of {@code name}, {@code TokenType}
@@ -101,7 +108,7 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
    *     builder.define("number", TokenType.NUMERIC, Optional.TRUE); // 1.0 or 8
    *     builder.define("text", TokenType.TEXT); // 'text'
    *     builder.define("boolean", TokenType.BOOL); // true / false
-   *     builder.define("expression", TokenType.EXPRESSOION); // exp: { age < 10.0 }
+   *     builder.define("expression", TokenType.EXPRESSION); // exp: { age < 10.0 }
    *   }
    * </code>
    * </p>

@@ -26,6 +26,8 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -84,7 +86,7 @@ public class ParseAvroFile implements Directive {
             reader =
               new DataFileReader<>(new SeekableByteArrayInput((byte[]) object),
                                                 new GenericDatumReader<GenericRecord>());
-            while(reader.hasNext()) {
+            while (reader.hasNext()) {
               Row newRow = new Row();
               add(reader.next(), newRow, null);
               results.add(newRow);
@@ -101,11 +103,20 @@ public class ParseAvroFile implements Directive {
             }
           }
         } else {
-          throw new DirectiveExecutionException(toString() + " : column " + column + " should be of type byte array avro file.");
+          throw new DirectiveExecutionException(toString() + " : column " + column +
+                                                  " should be of type byte array avro file.");
         }
       }
     }
     return results;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
+    builder.addMutation(column, MutationType.READ);
+    builder.addMutation("all columns formatted %s", MutationType.ADD);
+    return builder.build();
   }
 
   /**

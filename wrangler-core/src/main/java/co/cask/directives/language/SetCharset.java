@@ -27,6 +27,8 @@ import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -96,7 +98,7 @@ public class SetCharset implements Directive {
       } else {
         throw new DirectiveExecutionException(
           String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                        object != null ? object.getClass().getName() : "null", column)
+                        object.getClass().getName(), column)
 
         );
       }
@@ -111,5 +113,12 @@ public class SetCharset implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Charset: " + charset);
+    builder.addMutation(column, MutationType.MODIFY);
+    return builder.build();
   }
 }
