@@ -26,6 +26,8 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
@@ -35,16 +37,16 @@ import java.util.List;
  *
  * <p>
  *   <ul>
- *     <li>Lowercases the column name</li>
  *     <li>Trims space</li>
- *     <li>Replace characters other than [A-Z][a-z][_] with empty string.</li>
+ *     <li>Lowercases the column name</li>
+ *     <li>Replace characters other than [a-z][0-9] with an underscore.</li>
  *   </ul>
  * </p>
  */
 @Plugin(type = Directive.Type)
 @Name(CleanseColumnNames.NAME)
 @Categories(categories = { "column"})
-@Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +
+@Description("Sanitizes column names: trims, lowercases, and replaces all but [a-z][0-9]." +
   "with an underscore '_'.")
 public final class CleanseColumnNames implements Directive {
   public static final String NAME = "cleanse-column-names";
@@ -75,10 +77,17 @@ public final class CleanseColumnNames implements Directive {
         // Lower case columns
         column = column.toLowerCase();
         // Filtering unwanted characters
-        column = column.replaceAll("[^a-zA-Z0-9_]", "_");
+        column = column.replaceAll("[^a-z0-9]", "_");
         row.setColumn(i, column);
       }
     }
     return rows;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
+    builder.addMutation("all columns", MutationType.MODIFY);
+    return builder.build();
   }
 }

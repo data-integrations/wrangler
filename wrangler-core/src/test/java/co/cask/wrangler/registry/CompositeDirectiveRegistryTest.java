@@ -29,6 +29,8 @@ import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -53,6 +55,7 @@ public class CompositeDirectiveRegistryTest {
   @Name("my-test")
   @Description("Test")
   public static final class MyTest implements Directive {
+    private static final String NAME = "my-test";
     private String column;
 
     @Override
@@ -62,7 +65,7 @@ public class CompositeDirectiveRegistryTest {
 
     @Override
     public UsageDefinition define() {
-      UsageDefinition.Builder builder = UsageDefinition.builder("my-test");
+      UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
       builder.define("column", TokenType.COLUMN_NAME);
       return builder.build();
     }
@@ -75,6 +78,13 @@ public class CompositeDirectiveRegistryTest {
     @Override
     public void destroy() {
       // no-op
+    }
+
+    @Override
+    public MutationDefinition lineage() {
+      MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
+      builder.addMutation(column, MutationType.MODIFY);
+      return builder.build();
     }
   }
 

@@ -26,6 +26,8 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -45,8 +47,7 @@ import java.util.List;
  * A Executor to extract XML element as an JSON array using XPath.
  *
  * <p>
- *   TODO: This code has to be moved out into a plugin due to VTDNav once we have
- *   the plugin framework.
+ *   TODO: This code has to be moved out into a plugin due to VTDNav once we have the plugin framework.
  * </p>
  *
  */
@@ -95,21 +96,20 @@ public class XPathArrayElement implements Directive {
           AutoPilot ap = new AutoPilot(vn);
           try {
             int tokenCount = vn.getTokenCount();
-            String token = null;
-            String nsPrefix = null;
-            String nsUrl = null;
-            for ( int i = 0; i < tokenCount; i++ ) {
-              token = vn.toNormalizedString( i );
-              if ( vn.startsWith( i, "xmlns:" ) ) {
-                nsPrefix = token.substring( token.indexOf( ":" ) + 1 );
-                nsUrl = vn.toNormalizedString( i + 1 );
-                ap.declareXPathNameSpace( nsPrefix, nsUrl );
+            String token;
+            String nsPrefix;
+            String nsUrl;
+            for (int i = 0; i < tokenCount; i++) {
+              token = vn.toNormalizedString(i);
+              if (vn.startsWith(i, "xmlns:")) {
+                nsPrefix = token.substring(token.indexOf(":") + 1);
+                nsUrl = vn.toNormalizedString(i + 1);
+                ap.declareXPathNameSpace(nsPrefix, nsUrl);
               }// if
             }// for
             ap.selectXPath(xpath);
             if (attribute == null) {
-              int i = 0, j = 0;
-              while (( i = ap.evalXPath()) != -1) {
+              while (ap.evalXPath() != -1) {
                 int val = vn.getText();
                 if (val != -1) {
                   values.add(vn.getXPathStringVal());
@@ -121,8 +121,7 @@ public class XPathArrayElement implements Directive {
               }
               row.addOrSet(destination, array);
             } else {
-              int i = 0, j = 0;
-              while (( i = ap.evalXPath()) != -1) {
+              while (ap.evalXPath() != -1) {
                 int val = vn.getAttrVal(attribute);
                 if (val != -1) {
                   values.add(vn.toString(val));
@@ -151,5 +150,13 @@ public class XPathArrayElement implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "XPath: " + xpath);
+    builder.addMutation(column, MutationType.READ);
+    builder.addMutation(destination, MutationType.ADD);
+    return builder.build();
   }
 }

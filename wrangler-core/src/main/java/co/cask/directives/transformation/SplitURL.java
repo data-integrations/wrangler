@@ -26,6 +26,8 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -75,8 +77,8 @@ public class SplitURL implements Directive {
           row.add(column + "_host", null);
           row.add(column + "_port", null);
           row.add(column + "_path", null);
-          row.add(column + "_query", null);
           row.add(column + "_filename", null);
+          row.add(column + "_query", null);
           continue;
         }
         if (object instanceof String) {
@@ -92,14 +94,14 @@ public class SplitURL implements Directive {
           } catch (MalformedURLException e) {
             throw new DirectiveExecutionException(
               String.format(
-                "Malformed url '%s' found in column '%s'", (String) object, column
+                "Malformed url '%s' found in column '%s'", object, column
               )
             );
           }
         } else {
           throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
+                          object.getClass().getName(), column)
           );
         }
       } else {
@@ -107,5 +109,19 @@ public class SplitURL implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
+    builder.addMutation(column, MutationType.READ);
+    builder.addMutation(column + "_protocol", MutationType.ADD);
+    builder.addMutation(column + "_authority", MutationType.ADD);
+    builder.addMutation(column + "_host", MutationType.ADD);
+    builder.addMutation(column + "_port", MutationType.ADD);
+    builder.addMutation(column + "_path", MutationType.ADD);
+    builder.addMutation(column + "_filename", MutationType.ADD);
+    builder.addMutation(column + "_query", MutationType.ADD);
+    return builder.build();
   }
 }
