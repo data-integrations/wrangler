@@ -130,7 +130,7 @@ public final class Global {
    * @param objects to be check for null.
    * @return first non-null object.
    */
-  public static Object reverse_coalesce(Object ... objects) {
+  public static Object rcoalesce(Object ... objects) {
     int idx = objects.length - 1;
     while (idx >= 0) {
       if (objects[idx] != null) {
