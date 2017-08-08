@@ -32,7 +32,7 @@ public class GlobalTest {
   @Test
   public void testFirstNonNullFound() throws Exception {
     String[] directives = new String[] {
-      "set-column d firstNonNull(a,b,c)"
+      "set-column d coalesce(a,b,c)"
     };
 
     // Run through the wrangling steps.
@@ -46,7 +46,7 @@ public class GlobalTest {
   @Test
   public void testFirstNonNullNotFound() throws Exception {
     String[] directives = new String[] {
-      "set-column d firstNonNull(a,b,c)"
+      "set-column d coalesce(a,b,c)"
     };
 
     // Run through the wrangling steps.
@@ -60,7 +60,7 @@ public class GlobalTest {
   @Test
   public void testFirstNonNullFoundInBetween() throws Exception {
     String[] directives = new String[] {
-      "set-column d firstNonNull(a,b,c)"
+      "set-column d coalesce(a,b,c)"
     };
 
     // Run through the wrangling steps.
@@ -74,7 +74,7 @@ public class GlobalTest {
   @Test
   public void testFirstNonNullFoundAtStart() throws Exception {
     String[] directives = new String[] {
-      "set-column d firstNonNull(a,b,c)"
+      "set-column d coalesce(a,b,c)"
     };
 
     // Run through the wrangling steps.
