@@ -115,7 +115,7 @@ public final class Global {
    * @param objects to be check for null.
    * @return first non-null object.
    */
-  public static Object firstNonNull(Object ... objects) {
+  public static Object coalesce(Object ... objects) {
     for(Object object : objects) {
       if (object != null) {
         return object;
@@ -130,7 +130,7 @@ public final class Global {
    * @param objects to be check for null.
    * @return first non-null object.
    */
-  public static Object lastNonNull(Object ... objects) {
+  public static Object reverse_coalesce(Object ... objects) {
     int idx = objects.length - 1;
     while (idx >= 0) {
       if (objects[idx] != null) {
