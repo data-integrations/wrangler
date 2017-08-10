@@ -37,6 +37,7 @@ import com.google.gson.JsonObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -109,6 +110,11 @@ public class CompositeDirectiveRegistryTest {
     @Override
     public Iterator<DirectiveInfo> iterator() {
       return registry.values().iterator();
+    }
+
+    @Override
+    public void close() throws IOException {
+      // no-op
     }
   }
   @Test

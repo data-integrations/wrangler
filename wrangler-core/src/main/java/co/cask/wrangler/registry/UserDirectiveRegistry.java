@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public final class  UserDirectiveRegistry implements DirectiveRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UserDirectiveRegistry.class);
   private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
+  private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
   private StageContext context = null;
   private ArtifactManager manager = null;
 
@@ -151,13 +153,13 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
           Set<PluginClass> plugins = artifact.getClasses().getPlugins();
           for (PluginClass plugin : plugins) {
             if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
-              try(CloseableClassLoader closeableClassLoader
-                    = manager.createClassLoader(artifact, getClass().getClassLoader())) {
-                Class<? extends Directive> directive =
-                  (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
-                DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
-                newRegistry.put(classz.name(), classz);
-              }
+              CloseableClassLoader closeableClassLoader
+                    = manager.createClassLoader(artifact, getClass().getClassLoader());
+              Class<? extends Directive> directive =
+                (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
+              DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
+              newRegistry.put(classz.name(), classz);
+              classLoaders.add(closeableClassLoader);
             }
           }
         }
@@ -217,5 +219,15 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
   @Override
   public Iterator<DirectiveInfo> iterator() {
     return registry.values().iterator();
+  }
+
+  /**
+   * Closes any resources acquired during initialization or otherwise.
+   */
+  @Override
+  public void close() throws IOException {
+    for (CloseableClassLoader classLoader : classLoaders) {
+      classLoader.close();
+    }
   }
 }

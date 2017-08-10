@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.reflections.Reflections;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -123,5 +124,13 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   @Override
   public Iterator<DirectiveInfo> iterator() {
     return registry.values().iterator();
+  }
+
+  /**
+   * Closes any resources acquired during initialization or otherwise.
+   */
+  @Override
+  public void close() throws IOException {
+    // no-op
   }
 }

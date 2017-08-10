@@ -139,6 +139,7 @@ public final class Explorer {
         || "application/avro".equalsIgnoreCase(type)
         || "application/protobuf".equalsIgnoreCase(type)
         || "application/excel".equalsIgnoreCase(type)
+        || type.contains("image/")
       ) {
       return true;
     }

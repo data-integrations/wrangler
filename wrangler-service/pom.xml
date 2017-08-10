@@ -168,6 +168,7 @@
               <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
               <Embed-Transitive>true</Embed-Transitive>
               <Embed-Directory>lib</Embed-Directory>
+              <_exportcontents>co.cask.wrangler.api.*</_exportcontents>
             </instructions>
           </configuration>
           <executions>
