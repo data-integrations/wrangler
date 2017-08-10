@@ -117,15 +117,23 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
                    @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction) {
     RequestExtractor extractor = new RequestExtractor(request);
-    if (extractor.isContentType("text/plain")) {
+    String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
+
+    if (header == null) {
+      error(responder, "Content-Type header not specified.");
+      return;
+    }
+
+    if (header.equalsIgnoreCase("text/plain")) {
       loadSamplableFile(responder, path, lines, fraction, sampler);
-    } else if (extractor.isContentType("application/xml")) {
+    } else if (header.equalsIgnoreCase("application/xml")) {
       loadFile(responder, path, DataType.RECORDS);
-    } else if (extractor.isContentType("application/json")) {
+    } else if (header.equalsIgnoreCase("application/json")) {
       loadFile(responder, path, DataType.TEXT);
-    } else if (extractor.isContentType("application/avro")
-      || extractor.isContentType("application/protobuf")
-      || extractor.isContentType("application/excel")) {
+    } else if (header.equalsIgnoreCase("application/avro")
+      || header.equalsIgnoreCase("application/protobuf")
+      || header.equalsIgnoreCase("application/excel")
+      || header.contains("image/")) {
       loadFile(responder, path, DataType.BINARY);
     } else {
       error(responder, "Currently doesn't support wrangling of this type of file.");

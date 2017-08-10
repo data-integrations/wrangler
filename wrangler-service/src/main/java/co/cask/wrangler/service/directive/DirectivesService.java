@@ -144,6 +144,21 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   }
 
   /**
+   * Closes the resources help by the composite registry.
+   */
+  @Override
+  public void destroy() {
+    super.destroy();
+    try {
+      composite.close();
+    } catch (IOException e) {
+      // If something bad happens here, you might see a a lot of open file handles.
+      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.",
+               e.getMessage());
+    }
+  }
+
+  /**
    * Creates a workspace.
    *
    * Following is the response

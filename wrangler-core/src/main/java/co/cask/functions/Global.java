@@ -213,5 +213,4 @@ public final class Global {
     }
     return string;
   }
-
 }

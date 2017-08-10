@@ -22,6 +22,7 @@ import co.cask.wrangler.api.DirectiveRegistry;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
+import java.io.IOException;
 import java.util.Iterator;
 import javax.annotation.Nullable;
 
@@ -93,6 +94,16 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
   @Override
   public Iterator<DirectiveInfo> iterator() {
     return new CompositeRegistryIterator();
+  }
+
+  /**
+   * Closes any resources acquired during initialization or otherwise.
+   */
+  @Override
+  public void close() throws IOException {
+    for(int idx = 0; idx < registries.length; ++idx) {
+      registries[idx].close();
+    }
   }
 
   /**

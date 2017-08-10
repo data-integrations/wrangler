@@ -99,6 +99,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   // Transient Store
   private TransientStore store;
 
+  // Directive registry.
+  private DirectiveRegistry registry;
+
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
     this.config = config;
@@ -212,11 +215,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    DirectiveRegistry registry = new CompositeDirectiveRegistry(
+    registry = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry(),
       new UserDirectiveRegistry(context)
     );
-
 
     RecipeParser directives = new GrammarBasedParser(new MigrateToV2(config.directives).migrate(), registry);
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
@@ -283,6 +285,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   public void destroy() {
     super.destroy();
     pipeline.destroy();
+    try {
+      registry.close();
+    } catch (IOException e) {
+      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.",
+               e.getMessage());
+    }
   }
 
   /**

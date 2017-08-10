@@ -18,6 +18,7 @@ package co.cask.wrangler.api;
 
 import com.google.gson.JsonElement;
 
+import java.io.Closeable;
 import javax.annotation.Nullable;
 
 /**
@@ -29,7 +30,7 @@ import javax.annotation.Nullable;
  *
  * @see DirectiveInfo
  */
-public interface DirectiveRegistry extends Iterable<DirectiveInfo> {
+public interface DirectiveRegistry extends Iterable<DirectiveInfo>, Closeable {
   /**
    * Given the name of the directive, returns the information related to the directive.
    *
