@@ -168,6 +168,7 @@
               <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
               <Embed-Transitive>true</Embed-Transitive>
               <Embed-Directory>lib</Embed-Directory>
+              <!-- So that user plugins can depend on Directive.java and other classes, for user-defined directives -->
               <_exportcontents>co.cask.wrangler.api.*</_exportcontents>
             </instructions>
           </configuration>
