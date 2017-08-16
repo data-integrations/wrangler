@@ -48,7 +48,7 @@ public enum MutationType {
   /**
    * When the name of a column is changed to another name, both the old and new name are
    * labeled as RENAME columns. Note that neither column is labeled as ADD or DROP since
-   * no column is added or dropped, but instead a column's name is being replaced in place.
+   * no column is added or dropped, bu t instead a column's name is being replaced in place.
    *
    * <p><code>rename <old> <new></code>. In this case since the name old is being replaced
    * with the name new, both old and new should be labeled as RENAME. This is because one
@@ -61,7 +61,7 @@ public enum MutationType {
   RENAME(4),
 
   /**
-   *
+   * When a column is being modified.
    */
   MODIY(5);
 
