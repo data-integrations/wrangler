@@ -62,7 +62,7 @@ public class ExpressionTest {
     Assert.assertEquals(13.0, rows.get(0).getValue("hrlywage"));
   }
 
-  @Test(expected = RecipeException.class)
+  @Test
   public void testNegativeConditionApply() throws Exception {
     String[] directives = new String[] {
       "parse-as-csv __col ,",

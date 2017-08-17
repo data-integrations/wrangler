@@ -98,4 +98,44 @@ public class SendToErrorTest {
     Assert.assertEquals(0, errors.size());
     Assert.assertEquals(2, results.size());
   }
+
+  @Test
+  public void testIntegerField() throws Exception {
+    String[] directives = new String[] {
+      "send-to-error field_calories_cnt < 0"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("field_calories_cnt", new Integer(10)),
+      new Row("field_calories_cnt", new Integer(0)),
+      new Row("field_calories_cnt", new Integer(-10))
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(1, errors.size());
+    Assert.assertEquals(2, results.size());
+  }
+
+  @Test
+  public void testMissingVariables() throws Exception {
+    String[] directives = new String[] {
+      "send-to-error field_calories_cnt < 0 && field_not_exist == 'test'"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("field_calories_cnt", new Integer(10)),
+      new Row("field_calories_cnt", new Integer(0)),
+      new Row("field_calories_cnt", new Integer(-10))
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(0, errors.size());
+    Assert.assertEquals(3, results.size());
+  }
 }

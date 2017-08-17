@@ -38,7 +38,9 @@ import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A directive for erroring the record if
@@ -56,6 +58,7 @@ import java.util.List;
 public class SendToError implements Directive {
   public static final String NAME = "send-to-error";
   private String condition;
+  private Set<String> variables = new HashSet<>();
   private JexlEngine engine;
   private JexlScript script;
 
@@ -72,6 +75,12 @@ public class SendToError implements Directive {
     // Create and build the script.
     engine = JexlHelper.getEngine();
     script = engine.createScript(condition);
+    Set<List<String>> vars = script.getVariables();
+    for(List<String> var : vars) {
+      for(String v : var) {
+        variables.add(v);
+      }
+    }
   }
 
   @Override
@@ -87,9 +96,10 @@ public class SendToError implements Directive {
       // Move the fields from the row into the context.
       JexlContext ctx = new MapContext();
       ctx.set("this", row);
-      for (int i = 0; i < row.length(); ++i) {
-        ctx.set(row.getColumn(i), row.getValue(i));
+      for(String var : variables) {
+        ctx.set(var, row.getValue(var));
       }
+
       // Transient variables are added.
       if (context != null) {
         for (String variable : context.getTransientStore().getVariables()) {
