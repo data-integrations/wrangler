@@ -138,4 +138,66 @@ public class SendToErrorTest {
     Assert.assertEquals(0, errors.size());
     Assert.assertEquals(3, results.size());
   }
+
+  @Test
+  public void testSendToErrorWithMessage() throws Exception {
+    String[] directives = new String[] {
+      "send-to-error exp:{field_calories_cnt < 0} 'Test Message';"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("field_calories_cnt", new Integer(10)),
+      new Row("field_calories_cnt", new Integer(0)),
+      new Row("field_calories_cnt", new Integer(-10))
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(1, errors.size());
+    Assert.assertEquals("Test Message", errors.get(0).getMessage());
+    Assert.assertEquals(2, results.size());
+  }
+
+  @Test
+  public void testSendToErrorWithMetricAndMessage() throws Exception {
+    String[] directives = new String[] {
+      "send-to-error exp:{field_calories_cnt < 0} test 'Test Message';"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("field_calories_cnt", new Integer(10)),
+      new Row("field_calories_cnt", new Integer(0)),
+      new Row("field_calories_cnt", new Integer(-10))
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(1, errors.size());
+    Assert.assertEquals("Test Message", errors.get(0).getMessage());
+    Assert.assertEquals(2, results.size());
+  }
+
+  @Test
+  public void testSendToErrorWithMetric() throws Exception {
+    String[] directives = new String[] {
+      "send-to-error exp:{field_calories_cnt < 0} test;"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("field_calories_cnt", new Integer(10)),
+      new Row("field_calories_cnt", new Integer(0)),
+      new Row("field_calories_cnt", new Integer(-10))
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(1, errors.size());
+    Assert.assertEquals(2, results.size());
+  }
 }

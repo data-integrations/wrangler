@@ -26,9 +26,12 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Expression;
+import co.cask.wrangler.api.parser.Identifier;
+import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.jexl3.JexlContext;
@@ -61,11 +64,15 @@ public class SendToError implements Directive {
   private Set<String> variables = new HashSet<>();
   private JexlEngine engine;
   private JexlScript script;
+  private String metric = null;
+  private String message = null;
 
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("condition", TokenType.EXPRESSION);
+    builder.define("metric", TokenType.IDENTIFIER, Optional.TRUE);
+    builder.define("message", TokenType.TEXT, Optional.TRUE);
     return builder.build();
   }
 
@@ -80,6 +87,12 @@ public class SendToError implements Directive {
       for(String v : var) {
         variables.add(v);
       }
+    }
+    if (args.contains("metric")) {
+      metric = ((Identifier) args.value("metric")).value();
+    }
+    if (args.contains("message")) {
+      message = ((Text) args.value("message")).value();
     }
   }
 
@@ -112,7 +125,13 @@ public class SendToError implements Directive {
       try {
         boolean result = (Boolean) script.execute(ctx);
         if (result) {
-          throw new ErrorRowException(condition, 1);
+          if(metric != null && context != null) {
+            context.getMetrics().count(metric, 1);
+          }
+          if (message == null) {
+            message = condition;
+          }
+          throw new ErrorRowException(message, 1);
         }
       } catch (JexlException.Variable e) {
         // If variable is not defined
