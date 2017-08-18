@@ -39,7 +39,9 @@ import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -60,6 +62,8 @@ public class RecordConditionFilter implements Directive {
   private JexlEngine engine;
   private JexlScript script;
   private boolean isTrue;
+  // Variables in expression
+  private Set<String> variables = new HashSet<>();
 
   @Override
   public UsageDefinition define() {
@@ -78,6 +82,12 @@ public class RecordConditionFilter implements Directive {
     condition = ((Expression) args.value("condition")).value();
     engine = JexlHelper.getEngine();
     script = engine.createScript(condition);
+    Set<List<String>> vars = script.getVariables();
+    for(List<String> var : vars) {
+      for(String v : var) {
+        variables.add(v);
+      }
+    }
   }
 
   @Override
@@ -91,8 +101,8 @@ public class RecordConditionFilter implements Directive {
     for (Row row : rows) {
       // Move the fields from the row into the context.
       JexlContext ctx = new MapContext();
-      for (int i = 0; i < row.length(); ++i) {
-        ctx.set(row.getColumn(i), row.getValue(i));
+      for(String var : variables) {
+        ctx.set(var, row.getValue(var));
       }
       // Transient variables are added.
       if (context != null) {

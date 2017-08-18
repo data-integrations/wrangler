@@ -26,9 +26,12 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Expression;
+import co.cask.wrangler.api.parser.Identifier;
+import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.jexl3.JexlContext;
@@ -38,7 +41,9 @@ import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A directive for erroring the record if
@@ -56,13 +61,18 @@ import java.util.List;
 public class SendToError implements Directive {
   public static final String NAME = "send-to-error";
   private String condition;
+  private Set<String> variables = new HashSet<>();
   private JexlEngine engine;
   private JexlScript script;
+  private String metric = null;
+  private String message = null;
 
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("condition", TokenType.EXPRESSION);
+    builder.define("metric", TokenType.IDENTIFIER, Optional.TRUE);
+    builder.define("message", TokenType.TEXT, Optional.TRUE);
     return builder.build();
   }
 
@@ -72,6 +82,18 @@ public class SendToError implements Directive {
     // Create and build the script.
     engine = JexlHelper.getEngine();
     script = engine.createScript(condition);
+    Set<List<String>> vars = script.getVariables();
+    for(List<String> var : vars) {
+      for(String v : var) {
+        variables.add(v);
+      }
+    }
+    if (args.contains("metric")) {
+      metric = ((Identifier) args.value("metric")).value();
+    }
+    if (args.contains("message")) {
+      message = ((Text) args.value("message")).value();
+    }
   }
 
   @Override
@@ -87,9 +109,10 @@ public class SendToError implements Directive {
       // Move the fields from the row into the context.
       JexlContext ctx = new MapContext();
       ctx.set("this", row);
-      for (int i = 0; i < row.length(); ++i) {
-        ctx.set(row.getColumn(i), row.getValue(i));
+      for(String var : variables) {
+        ctx.set(var, row.getValue(var));
       }
+
       // Transient variables are added.
       if (context != null) {
         for (String variable : context.getTransientStore().getVariables()) {
@@ -102,7 +125,13 @@ public class SendToError implements Directive {
       try {
         boolean result = (Boolean) script.execute(ctx);
         if (result) {
-          throw new ErrorRowException(condition, 1);
+          if(metric != null && context != null) {
+            context.getMetrics().count(metric, 1);
+          }
+          if (message == null) {
+            message = condition;
+          }
+          throw new ErrorRowException(message, 1);
         }
       } catch (JexlException.Variable e) {
         // If variable is not defined
