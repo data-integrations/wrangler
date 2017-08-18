@@ -23,10 +23,12 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Numeric;
@@ -86,7 +88,7 @@ public class ParseProtobuf implements Directive {
     this.column = ((ColumnName) args.value("column")).value();
     this.schemaId = ((Identifier) args.value("schema-id")).value();
     this.recordName = ((Text) args.value("record-name")).value();
-    if(args.contains("version")) {
+    if (args.contains("version")) {
       this.version = ((Numeric) args.value("version")).value().intValue();
     } else {
       this.version = -1;
@@ -166,5 +168,14 @@ public class ParseProtobuf implements Directive {
                                 (version == -1 ? "latest" : version) + "'. " + e.getMessage());
     }
     return results;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
+      "Schema ID: " + schemaId + ", Record Name: " + recordName + ", Version: " + version);
+    builder.addMutation(column, MutationType.READ);
+    builder.addMutation("all columns formatted %s", MutationType.ADD);
+    return builder.build();
   }
 }

@@ -15,13 +15,9 @@ public final class Mutation {
   // Specifies the type of the mutation being applied on the column.
   private final MutationType type;
 
-  // Optional description for the mutation specified.
-  private final String description;
-
-  public Mutation(String column, MutationType type, String description) {
+  public Mutation(String column, MutationType type) {
     this.column = column;
     this.type = type;
-    this.description = description;
   }
 
   /**
@@ -39,13 +35,6 @@ public final class Mutation {
   }
 
   /**
-   * @return the optional description for the mutation.
-   */
-  public String description() {
-    return description;
-  }
-
-  /**
    * Generates a <code>JsonElement</code> object representation of <code>Mutation</code>
    * @return the object representation of <code>Mutation</code> as <code>JsonElement</code>
    */
@@ -53,7 +42,6 @@ public final class Mutation {
     JsonObject object = new JsonObject();
     object.addProperty("column", column);
     object.addProperty("type", type.name());
-    object.addProperty("description", description);
     return object;
   }
 }

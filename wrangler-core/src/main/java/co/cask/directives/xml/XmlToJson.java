@@ -28,6 +28,8 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
@@ -92,7 +94,7 @@ public class XmlToJson implements Directive {
           } else {
             throw new DirectiveExecutionException(
               String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                            col, object != null ? object.getClass().getName() : "null")
+                            col, object.getClass().getName())
             );
           }
         } catch (JSONException e) {
@@ -103,4 +105,11 @@ public class XmlToJson implements Directive {
     return rows;
   }
 
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Depth: " + depth);
+    builder.addMutation(col, MutationType.READ);
+    builder.addMutation("all columns formatted " + col + "_%s", MutationType.ADD);
+    return builder.build();
+  }
 }

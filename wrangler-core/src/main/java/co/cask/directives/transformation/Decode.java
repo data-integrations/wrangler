@@ -26,6 +26,8 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -125,7 +127,7 @@ public class Decode implements Directive {
         );
       }
 
-      byte[] out = new byte[0];
+      byte[] out;
       if (method == Method.BASE32) {
         out = base32Encode.decode(value);
       } else if (method == Method.BASE64) {
@@ -148,5 +150,14 @@ public class Decode implements Directive {
       row.addOrSet(String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), obj);
     }
     return rows;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
+      "Method: " + method.toString().toLowerCase(Locale.ENGLISH));
+    builder.addMutation(column, MutationType.READ);
+    builder.addMutation(column + "_decode_" + method.toString().toLowerCase(Locale.ENGLISH), MutationType.ADD);
+    return builder.build();
   }
 }
