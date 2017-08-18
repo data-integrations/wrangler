@@ -19,7 +19,6 @@ package co.cask.directives.aggregates;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.directives.JexlHelper;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -33,15 +32,12 @@ import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import org.apache.commons.jexl3.JexlContext;
-import org.apache.commons.jexl3.JexlEngine;
-import org.apache.commons.jexl3.JexlException;
-import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.jexl3.MapContext;
+import co.cask.wrangler.expression.EL;
+import co.cask.wrangler.expression.ELContext;
+import co.cask.wrangler.expression.ELException;
+import co.cask.wrangler.expression.ELResult;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A directive for incrementing the a transient variable based on conditions.
@@ -55,10 +51,7 @@ public class IncrementTransientVariable implements Directive {
   private String variable;
   private long incrementBy;
   private String expression;
-  private JexlEngine engine;
-  private JexlScript script;
-  // Variables in expression
-  private Set<String> variables = new HashSet<>();
+  private final EL el = new EL(new EL.DefaultFunctions());
 
   @Override
   public UsageDefinition define() {
@@ -74,13 +67,10 @@ public class IncrementTransientVariable implements Directive {
     this.variable = ((Identifier) args.value("variable")).value();
     this.expression = ((Expression) args.value("condition")).value();
     this.incrementBy = ((Numeric) args.value("value")).value().longValue();
-    engine = JexlHelper.getEngine();
-    script = engine.createScript(this.expression);
-    Set<List<String>> vars = script.getVariables();
-    for(List<String> var : vars) {
-      for(String v : var) {
-        variables.add(v);
-      }
+    try {
+      el.compile(expression);
+    } catch (ELException e) {
+      throw new DirectiveParseException(e.getMessage());
     }
   }
 
@@ -89,9 +79,9 @@ public class IncrementTransientVariable implements Directive {
     throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      JexlContext ctx = new MapContext();
+      ELContext ctx = new ELContext();
       ctx.set("this", row);
-      for(String var : variables) {
+      for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
 
@@ -105,32 +95,12 @@ public class IncrementTransientVariable implements Directive {
       // Execution of the script / expression based on the row data
       // mapped into context.
       try {
-        boolean result = (Boolean) script.execute(ctx);
-        if (result) {
+        ELResult result = el.execute(ctx);
+        if (result.getBoolean()) {
           context.getTransientStore().increment(variable, incrementBy);
         }
-      } catch (JexlException e) {
-        // Generally JexlException wraps the original exception, so it's good idea
-        // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
-        // else just print the error message.
-        if (e.getCause() != null) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
-        } else {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
-        }
-      } catch (NumberFormatException e) {
-        throw new DirectiveExecutionException(toString() + " : " + " type mismatch. Change type of constant " +
-                                  "or convert to right data type using conversion functions available. Reason : " + e.getMessage());
-      } catch (Exception e) {
-        // We want to propogate this exception up!
-        if (e instanceof ErrorRowException) {
-          throw e;
-        }
-        if (e.getCause() != null) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
-        } else {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
-        }
+      } catch (ELException e) {
+        throw new DirectiveExecutionException(e.getMessage());
       }
     }
     return rows;

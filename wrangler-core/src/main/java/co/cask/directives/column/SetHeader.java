@@ -40,10 +40,10 @@ import java.util.List;
  * all previous column names and add new column names.
  */
 @Plugin(type = "directives")
-@Name(Columns.NAME)
+@Name(SetHeader.NAME)
 @Categories(categories = { "column"})
 @Description("Sets the header of columns, in the order they are specified.")
-public class Columns implements Directive {
+public class SetHeader implements Directive {
   public static final String NAME = "set-headers";
   // Name of the columns represented in a {@link Row}
   private List<String> columns = new ArrayList<>();
