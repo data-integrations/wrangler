@@ -33,6 +33,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,8 +119,12 @@ public final class Explorer {
       response.put("count", values.size());
       response.put("values", values);
       return response;
+    } catch(AccessControlException e) {
+      throw new ExplorerException(String.format(
+        "Insufficient permission to access path '%s'", path
+      ));
     } catch (IOException e){
-      throw new ExplorerException(e);
+      throw new ExplorerException(e.getMessage());
     }
   }
 
