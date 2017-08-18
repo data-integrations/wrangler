@@ -7,11 +7,13 @@ connected as the next stage in a pipeline, then the filtered records will be dro
 
 ## Syntax
 ```
-send-to-error <condition>
+send-to-error <condition> [[metric-name] [error-message]]
 ```
 
-The `<condition>` is a JEXL expression specifing the condition that governs if the record
-should be sent to the error collector.
+The `<condition>` is a EL specifing the condition that governs if the record
+should be sent to the error collector. Optionally you can specify the metric
+name that should be registered everytime a record is sent to error combined
+with optional ability to specify a error message that should be recorded.
 
 
 ## Usage Notes
@@ -47,4 +49,7 @@ send-to-error Name == null
 send-to-error Age.isEmpty()
 send-to-error Age < 1 || Age > 130
 send-to-error !date:isDate(DOB)
+send-to-error Age.isEmpty age_empty 'Age field is empty'
+send-to-error Name == null name_null
+send-to-error Age < 1 || Age > 130 'Age not in range between 1 - 130'
 ```
