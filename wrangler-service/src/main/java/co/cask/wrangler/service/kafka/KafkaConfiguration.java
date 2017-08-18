@@ -54,18 +54,23 @@ public final class KafkaConfiguration {
       throw new IllegalArgumentException("Kafka properties are not defined. Check connection setting.");
     }
 
-    if(properties.containsKey("brokers")) {
+    if (properties.containsKey("brokers")) {
       connection = (String) properties.get("brokers");
     } else {
       throw new IllegalArgumentException("Kafka Brokers not defined.");
     }
 
-    if(properties.containsKey("key.type")) {
+    if (properties.containsKey("key.type")) {
       keyDeserializer = deserialize((String) properties.get("key.type"));
     }
 
-    if(properties.containsKey("value.type")) {
+    if (properties.containsKey("value.type")) {
       valueDeserializer = deserialize((String) properties.get("value.type"));
+    }
+    String requestTimeoutMs = (String) properties.get(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG);
+    // default the request timeout to 15 seconds, to avoid hanging for minutes
+    if (requestTimeoutMs == null) {
+      requestTimeoutMs = "15000";
     }
 
     props = new Properties();
@@ -76,6 +81,7 @@ public final class KafkaConfiguration {
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);
     props.put(ConsumerConfig.EXCLUDE_INTERNAL_TOPICS_CONFIG, "true");
+    props.put(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG, requestTimeoutMs);
   }
 
   /**

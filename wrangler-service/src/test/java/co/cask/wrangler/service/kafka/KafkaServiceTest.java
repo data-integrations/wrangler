@@ -45,5 +45,4 @@ public class KafkaServiceTest {
       consumer.close();
     }
   }
-
 }
