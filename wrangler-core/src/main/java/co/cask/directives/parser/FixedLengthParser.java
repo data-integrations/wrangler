@@ -29,6 +29,8 @@ import co.cask.wrangler.api.LazyNumber;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
+import co.cask.wrangler.api.lineage.MutationDefinition;
+import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.NumericList;
 import co.cask.wrangler.api.parser.Text;
@@ -36,6 +38,7 @@ import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -74,7 +77,7 @@ public final class FixedLengthParser implements Directive {
       idx = idx + 1;
     }
     this.recordLength = sum;
-    if(args.contains("padding")) {
+    if (args.contains("padding")) {
       this.padding = ((Text) args.value("padding")).value();
     } else {
       this.padding = null;
@@ -100,7 +103,7 @@ public final class FixedLengthParser implements Directive {
           // If the recordLength length doesn't match the string length.
           if (length < recordLength) {
             throw new ErrorRowException(
-              String.format("Fewer bytes than length of row specified - expected atleast %d bytes, found %s bytes.",
+              String.format("Fewer bytes than length of row specified - expected at least %d bytes, found %s bytes.",
                             recordLength, length),
               2
             );
@@ -118,7 +121,7 @@ public final class FixedLengthParser implements Directive {
               }
               newRow.add(String.format("%s_%d", col, colid), val);
               recPosition += width;
-              colid+=1;
+              colid += 1;
             }
             results.add(newRow);
             index = (index + recordLength);
@@ -132,5 +135,14 @@ public final class FixedLengthParser implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public MutationDefinition lineage() {
+    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
+      "Widths: " + Arrays.toString(widths) + ", Padding: " + padding);
+    builder.addMutation(col, MutationType.READ);
+    builder.addMutation("all columns formatted " + col + "_%d", MutationType.ADD);
+    return builder.build();
   }
 }

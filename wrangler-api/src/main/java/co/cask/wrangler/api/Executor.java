@@ -17,6 +17,7 @@
 package co.cask.wrangler.api;
 
 import co.cask.wrangler.api.annotations.PublicEvolving;
+import co.cask.wrangler.api.lineage.MutationDefinition;
 
 import java.io.Serializable;
 
@@ -54,6 +55,14 @@ public interface Executor<I, O> extends Serializable {
    * ensuring the argument values are as expected.
    */
   void initialize(Arguments args) throws DirectiveParseException;
+
+  /**
+   * This method provides a way to send lineage information for each directive.
+   * Called after initialize and before execute.
+   *
+   * @return An instance of {@link MutationDefinition} describing this directive.
+   */
+  MutationDefinition lineage();
 
   /**
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
