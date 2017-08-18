@@ -42,7 +42,7 @@ import java.util.List;
 @Plugin(type = "directives")
 @Name(Columns.NAME)
 @Categories(categories = { "column"})
-@Description("Sets the name of columns, in the order they are specified.")
+@Description("Sets the header of columns, in the order they are specified.")
 public class Columns implements Directive {
   public static final String NAME = "set-headers";
   // Name of the columns represented in a {@link Row}

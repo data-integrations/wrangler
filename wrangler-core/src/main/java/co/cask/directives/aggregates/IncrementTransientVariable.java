@@ -39,7 +39,9 @@ import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A directive for incrementing the a transient variable based on conditions.
@@ -55,6 +57,8 @@ public class IncrementTransientVariable implements Directive {
   private String expression;
   private JexlEngine engine;
   private JexlScript script;
+  // Variables in expression
+  private Set<String> variables = new HashSet<>();
 
   @Override
   public UsageDefinition define() {
@@ -72,6 +76,12 @@ public class IncrementTransientVariable implements Directive {
     this.incrementBy = ((Numeric) args.value("value")).value().longValue();
     engine = JexlHelper.getEngine();
     script = engine.createScript(this.expression);
+    Set<List<String>> vars = script.getVariables();
+    for(List<String> var : vars) {
+      for(String v : var) {
+        variables.add(v);
+      }
+    }
   }
 
   @Override
@@ -81,8 +91,8 @@ public class IncrementTransientVariable implements Directive {
       // Move the fields from the row into the context.
       JexlContext ctx = new MapContext();
       ctx.set("this", row);
-      for (int i = 0; i < row.length(); ++i) {
-        ctx.set(row.getColumn(i), row.getValue(i));
+      for(String var : variables) {
+        ctx.set(var, row.getValue(var));
       }
 
       // Transient variables are added.

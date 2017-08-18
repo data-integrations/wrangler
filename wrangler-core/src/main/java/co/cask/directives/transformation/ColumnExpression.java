@@ -38,8 +38,10 @@ import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A directive for apply an expression to store the result in a column.
@@ -74,6 +76,9 @@ public class ColumnExpression implements Directive {
   // Properties associated with pipeline
   private final Map<String, Object> properties = new HashMap<>();
 
+  // Variables in expression
+  private Set<String> variables = new HashSet<>();
+
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
@@ -89,6 +94,12 @@ public class ColumnExpression implements Directive {
     // Create and build the script.
     engine = JexlHelper.getEngine();
     script = engine.createScript(expression);
+    Set<List<String>> vars = script.getVariables();
+    for(List<String> var : vars) {
+      for(String v : var) {
+        variables.add(v);
+      }
+    }
   }
 
   @Override
@@ -107,9 +118,10 @@ public class ColumnExpression implements Directive {
       // Move the fields from the row into the context.
       JexlContext ctx = new MapContext(properties);
       ctx.set("this", row);
-      for (int i = 0; i < row.length(); ++i) {
-        ctx.set(row.getColumn(i), row.getValue(i));
+      for(String var : variables) {
+        ctx.set(var, row.getValue(var));
       }
+      
       // Transient variables are added.
       if (context != null) {
         for (String variable : context.getTransientStore().getVariables()) {
