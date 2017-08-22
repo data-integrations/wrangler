@@ -130,7 +130,7 @@ public class CompositeDirectiveRegistryTest {
       iterator.next();
       count++;
     }
-    Assert.assertEquals(76, count);
+    Assert.assertEquals(75, count);
 
     registry.reload();
 
@@ -140,7 +140,7 @@ public class CompositeDirectiveRegistryTest {
       iterator.next();
       count++;
     }
-    Assert.assertEquals(76, count);
+    Assert.assertEquals(75, count);
 
   }
 }

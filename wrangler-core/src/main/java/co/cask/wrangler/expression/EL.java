@@ -67,8 +67,15 @@ public final class EL {
     return variables;
   }
 
-  public ELResult execute(ELContext context) throws ELException {
+  public ELResult execute(ELContext context, boolean nullMissingFields) throws ELException {
     try {
+      if(nullMissingFields) {
+        for(String variable : variables) {
+          if (!context.has(variable)) {
+            context.add(variable, null);
+          }
+        }
+      }
       Object value = script.execute(context);
       ELResult variable = new ELResult(value);
       return variable;
@@ -83,8 +90,8 @@ public final class EL {
       }
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
-                                              "or convert to right data type using conversion functions available. Reason : "
-                                              + e.getMessage());
+                              "or convert to right data type using conversion functions available. Reason : "
+                              + e.getMessage());
     } catch (Exception e) {
       if (e.getCause() != null) {
         throw new ELException(e.getCause().getMessage());
@@ -92,6 +99,10 @@ public final class EL {
         throw new ELException(e.getMessage());
       }
     }
+  }
+
+  public ELResult execute(ELContext context) throws ELException {
+    return execute(context, true);
   }
 
   /**

@@ -7,6 +7,9 @@ import co.cask.wrangler.expression.ELResult;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Tests {@link EL}
  */
@@ -28,5 +31,25 @@ public class ELTest {
     EL el = new EL(new EL.DefaultFunctions());
     el.compile("a + b + c");
     el.execute(new ELContext().add("a", 1).add("b", 2));
+  }
+
+  @Test
+  public void testArrays() throws Exception {
+    EL el = new EL(new EL.DefaultFunctions());
+    el.compile("runtime['map'] > token['ABC.EDFG']['input'] " +
+                 "&& math:max(toDouble(runtime['map']), toDouble(token['ABC.EDFG']['input'])) > 9");
+
+    Map<String, Object> runtime = new HashMap<>();
+    runtime.put("map", "10");
+    ELContext ctx = new ELContext();
+    ctx.add("runtime", runtime);
+
+    Map<String, Map<String, Object>> token = new HashMap<>();
+    Map<String, Object> stage1 = new HashMap<>();
+    stage1.put("input", "1");
+    token.put("ABC.EDFG", stage1);
+    ctx.add("token", token);
+    ELResult execute = el.execute(ctx);
+    Assert.assertEquals(true, execute.getBoolean());
   }
 }
