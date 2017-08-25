@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -49,7 +47,6 @@ public class TextMetricMeasure implements Directive {
   private String column1;
   private String column2;
   private String destination;
-  private String method;
   private StringMetric metric;
 
   @Override
@@ -64,7 +61,7 @@ public class TextMetricMeasure implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    method = ((Text) args.value("method")).value();
+    String method = ((Text) args.value("method")).value();
     this.column1 = ((ColumnName) args.value("column1")).value();
     this.column2 = ((ColumnName) args.value("column2")).value();
     this.destination = ((ColumnName) args.value("destination")).value();
@@ -98,7 +95,7 @@ public class TextMetricMeasure implements Directive {
         metric = StringMetrics.longestCommonSubstring();
         break;
 
-      case "overlap-coefficient":
+      case "overlap-cofficient":
         metric = StringMetrics.overlapCoefficient();
         break;
 
@@ -171,14 +168,5 @@ public class TextMetricMeasure implements Directive {
     }
 
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Method: " + method);
-    builder.addMutation(column1, MutationType.READ);
-    builder.addMutation(column2, MutationType.READ);
-    builder.addMutation(destination, MutationType.ADD);
-    return builder.build();
   }
 }

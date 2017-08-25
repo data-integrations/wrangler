@@ -34,25 +34,23 @@ import java.util.List;
  * The definition are constant (immutable) and they cannot be changed once defined.
  * For example :
  * <code>
- *   MutationDefinition token = new MutationDefinition("col1", MutationType.READ);
+ *   MutationDefinition token = new MutationDefintion("col1", MutationType.READ);
  * </code>
  *
- * <p>The class <code>TokenDefinition</code> includes methods for retrieving different members of
+ * <p>The class <code>TokenDefinition</code> includes methods for retrieveing different members of
  * like name of the token, type of the token, label associated with token, whether it's optional or not
  * and the ordinal number of the token in the <code>TokenGroup</code>.</p>
  *
- * <p>As this class is immutable, the constructor requires all the member variables to be presented
+ * <p>As this class is immutable, the constructor requires all the member variables to be presnted
  * for an instance of this object to be created.</p>
  */
 @PublicEvolving
 public final class MutationDefinition implements Serializable {
   private final String directive;
-  private final String description; // Optional
   private final List<Mutation> mutations;
 
-  private MutationDefinition(String directive, String description, List<Mutation> mutations) {
+  private MutationDefinition(String directive, List<Mutation> mutations) {
     this.directive = directive;
-    this.description = description;
     this.mutations = mutations;
   }
 
@@ -61,13 +59,6 @@ public final class MutationDefinition implements Serializable {
    */
   public String directive() {
     return directive;
-  }
-
-  /**
-   * @return description of the directive.
-   */
-  public String description() {
-    return description;
   }
 
   /**
@@ -85,7 +76,6 @@ public final class MutationDefinition implements Serializable {
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("directive", directive);
-    object.addProperty("description", description);
     JsonArray array = new JsonArray();
     for (Mutation mutation : mutations) {
       array.add(mutation.toJson());
@@ -98,30 +88,25 @@ public final class MutationDefinition implements Serializable {
     return new MutationDefinition.Builder(directive);
   }
 
-  /**
-   * Builder for {@link MutationDefinition}.
-   */
   public static class Builder {
     private final String directive;
-    private final String description;
     private final List<Mutation> mutations;
 
     public Builder(String directive) {
-      this(directive, null);
-    }
-
-    public Builder(String directive, String description) {
       this.directive = directive;
-      this.description = description;
       this.mutations = new ArrayList<>();
     }
 
     public void addMutation(String column, MutationType type) {
-      mutations.add(new Mutation(column, type));
+      addMutation(column, type, null);
+    }
+
+    public void addMutation(String column, MutationType type, String description) {
+      mutations.add(new Mutation(column, type, description));
     }
 
     public MutationDefinition build() {
-      return new MutationDefinition(directive, description, mutations);
+      return new MutationDefinition(directive, mutations);
     }
   }
 }

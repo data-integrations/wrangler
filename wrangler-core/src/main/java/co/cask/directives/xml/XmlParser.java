@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -43,7 +41,8 @@ import java.util.List;
  * A XML Parser.
  *
  * <p>
- *   TODO: This code has to be moved out into a plugin due to VTDNav once we have the plugin framework.
+ *   TODO: This code has to be moved out into a plugin due to VTDNav once we have
+ *   the plugin framework.
  * </p>
  */
 @Plugin(type = Directive.Type)
@@ -103,20 +102,14 @@ public class XmlParser implements Directive {
     return rows;
   }
 
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    builder.addMutation(column, MutationType.MODIFY);
-    return builder.build();
-  }
-
   /**
    * Converts a {@link CSVRecord} to {@link Row}.
    *
    * @param record
+   * @return
    */
   private void toRow(CSVRecord record, Row row) {
-    for (int i = 0; i < record.size(); i++) {
+    for ( int i = 0; i < record.size(); i++) {
       row.add(column + "_" + (i + 1), record.get(i));
     }
   }

@@ -28,8 +28,6 @@ import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Numeric;
@@ -138,16 +136,7 @@ public class IncrementTransientVariable implements Directive {
     return rows;
   }
 
-  @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
-      "Increment by: " + incrementBy + ", Condition: " + expression);
-    builder.addMutation(variable, MutationType.MODIFY);
-    return builder.build();
   }
 }

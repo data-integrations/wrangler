@@ -23,12 +23,10 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Pair;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -82,6 +80,7 @@ public class SplitEmail implements Directive {
             row.add(column + "_account", components.getFirst());
             row.add(column + "_domain", components.getSecond());
           } else {
+            String name = emailAddress.substring(0, nameIdx);
             int endIdx = emailAddress.lastIndexOf(">");
             if (endIdx == -1) {
               row.add(column + "_account", null);
@@ -96,7 +95,7 @@ public class SplitEmail implements Directive {
         } else {
           throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object.getClass().getName(), column)
+                          object != null ? object.getClass().getName() : "null", column)
           );
         }
       } else {
@@ -104,15 +103,6 @@ public class SplitEmail implements Directive {
       }
     }
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation(column + "_account", MutationType.ADD);
-    builder.addMutation(column + "_domain", MutationType.ADD);
-    return builder.build();
   }
 
   private Pair<String, String> extractDomainAndAccount(String emailId) {

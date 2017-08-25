@@ -26,7 +26,7 @@ import java.util.List;
  * {@link RecipePipeline} executes array of {@link Executor} in the order they are specified.
  */
 @PublicEvolving
-public interface RecipePipeline<I, M, O, E> extends Serializable {
+public interface RecipePipeline<I, O, E> extends Serializable {
   /**
    * Initializes the wrangle pipeline using the directives.
    *
@@ -34,13 +34,6 @@ public interface RecipePipeline<I, M, O, E> extends Serializable {
    * @param context
    */
   void initialize(RecipeParser directives, ExecutorContext context) throws RecipeException;
-
-  /**
-   * Gets the List of Mutations for the directives.
-   *
-   * @return a list of mutations
-   */
-  List<M> lineage();
 
   /**
    * Executes the pipeline on the input.

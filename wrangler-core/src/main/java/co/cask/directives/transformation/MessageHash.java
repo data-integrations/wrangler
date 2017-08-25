@@ -27,8 +27,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -135,7 +133,7 @@ public class MessageHash implements Directive {
     }
 
     this.encode = false;
-    if (args.contains("encode")) {
+    if(args.contains("encode")) {
       this.encode = ((Bool) args.value("encode")).value();
     }
   }
@@ -183,12 +181,5 @@ public class MessageHash implements Directive {
     }
     return rows;
   }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
-      "Algorithm: " + digest.getAlgorithm() + ", Hex encode: " + encode);
-    builder.addMutation(column, MutationType.MODIFY);
-    return builder.build();
-  }
 }
+

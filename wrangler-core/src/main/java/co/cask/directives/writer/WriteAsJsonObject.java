@@ -27,8 +27,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
@@ -104,15 +102,5 @@ public class WriteAsJsonObject implements Directive {
       row.addOrSet(column, object);
     }
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    for (String col : columns) {
-      builder.addMutation(col, MutationType.READ);
-    }
-    builder.addMutation(column, MutationType.ADD);
-    return builder.build();
   }
 }

@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Text;
@@ -74,7 +72,7 @@ public class RecordRegexFilter implements Directive {
       matched = false;
     } else {
       throw new DirectiveParseException(
-        "Match type specified is not 'if-matched' or 'if-not-matched'"
+        String.format("Match type specified is not 'if-matched' or 'if-not-matched'")
       );
     }
     column = ((ColumnName) args.value("column")).value();
@@ -108,7 +106,7 @@ public class RecordRegexFilter implements Directive {
         } else if (object instanceof String) {
           String value = (String) row.getValue(idx);
           boolean matches = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
-          if (!matched) {
+          if(!matched) {
             matches = !matches;
           }
           if (matches) {
@@ -127,13 +125,5 @@ public class RecordRegexFilter implements Directive {
     }
     return results;
   }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
-      "Regex: " + regex + ", Match Type: " + matchType);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation("all columns minus " + column, MutationType.MODIFY);
-    return builder.build();
-  }
 }
+

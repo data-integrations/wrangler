@@ -27,8 +27,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
@@ -51,11 +49,10 @@ import java.util.Set;
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
 @Plugin(type = Directive.Type)
-@Name(CsvParser.NAME)
+@Name("parse-as-csv")
 @Categories(categories = { "parser", "csv"})
 @Description("Parses a column as CSV (comma-separated values).")
 public class CsvParser implements Directive {
-  public static final String NAME = "parse-as-csv";
   private ColumnName columnArg;
   private Text delimiterArg;
   private Bool headerArg;
@@ -105,7 +102,7 @@ public class CsvParser implements Directive {
       .withRecordSeparator('\n');
 
     this.hasHeader = false;
-    if (args.contains("header")) {
+    if(args.contains("header")) {
       headerArg = args.value("header");
       this.hasHeader = headerArg.value();
     }
@@ -133,14 +130,15 @@ public class CsvParser implements Directive {
         continue;
       }
       String line = (String) row.getValue(idx);
-      if (line == null || line.isEmpty()) {
+      if(line == null || line.isEmpty()) {
         continue;
       }
+      CSVParser parser = null;
       try {
-        CSVParser parser = CSVParser.parse(line, format);
+        parser = CSVParser.parse(line, format);
         List<CSVRecord> csvRecords = parser.getRecords();
         for (CSVRecord csvRecord : csvRecords) {
-          if (!checkedHeader && hasHeader && isHeader(csvRecord)) {
+          if(!checkedHeader && hasHeader && isHeader(csvRecord)) {
             for (int i = 0; i < csvRecord.size(); i++) {
               headers.add(csvRecord.get(i));
             }
@@ -164,10 +162,11 @@ public class CsvParser implements Directive {
    * Converts a {@link CSVRecord} to {@link Row}.
    *
    * @param record
+   * @return
    */
   private void toRow(CSVRecord record, Row row) {
     int size = headers.size();
-    for (int i = 0; i < record.size(); i++) {
+    for ( int i = 0; i < record.size(); i++) {
       if (size > 0) {
         row.add(headers.get(i), record.get(i));
       } else {
@@ -195,18 +194,5 @@ public class CsvParser implements Directive {
       }
     }
     return true;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
-      "Delimiter: " + delimiterArg.value() + ", Has Header: " + hasHeader);
-    builder.addMutation(columnArg.value(), MutationType.READ);
-    if (!hasHeader) {
-      builder.addMutation("all columns formatted " + columnArg.value() + "_%d", MutationType.ADD);
-    } else {
-      builder.addMutation("all columns formatted %s", MutationType.ADD);
-    }
-    return builder.build();
   }
 }

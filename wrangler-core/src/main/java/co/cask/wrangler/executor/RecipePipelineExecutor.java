@@ -29,22 +29,19 @@ import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.lineage.MutationDefinition;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The class <code>RecipePipelineExecutor</code> compiles the recipe and executes
  * the directives.
  */
-public final class RecipePipelineExecutor implements
-  RecipePipeline<Row, MutationDefinition, StructuredRecord, ErrorRecord> {
+public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(RecipePipelineExecutor.class);
   private ExecutorContext context;
   private List<Executor> directives;
@@ -67,15 +64,6 @@ public final class RecipePipelineExecutor implements
     } catch (DirectiveNotFoundException | DirectiveLoadException e) {
       throw new RecipeException(e.getMessage(), e);
     }
-  }
-
-  @Override
-  public List<MutationDefinition> lineage() {
-    List<MutationDefinition> lineage = new ArrayList<>(directives.size());
-    for (Executor directive : directives) {
-      lineage.add(directive.lineage());
-    }
-    return lineage;
   }
 
   /**
