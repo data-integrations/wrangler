@@ -14,6 +14,7 @@ import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,6 +119,7 @@ public final class EL {
       functions.put("math", Math.class);
       functions.put("string", StringUtils.class);
       functions.put("strings", Strings.class);
+      functions.put("escape", StringEscapeUtils.class);
       functions.put("bytes", Bytes.class);
       functions.put("arrays", Arrays.class);
       functions.put("dq", DataQuality.class);
