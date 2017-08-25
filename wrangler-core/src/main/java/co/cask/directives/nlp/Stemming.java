@@ -27,8 +27,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -76,7 +74,7 @@ public class Stemming implements Directive {
       if (idx != -1) {
         Object object = row.getValue(idx);
         if (object != null && (object instanceof List || object instanceof String[] || object instanceof String)) {
-          List<String> words;
+          List<String> words = null;
           if (object instanceof String[]) {
             words = Arrays.asList((String[]) object);
           } else if (object instanceof List) {
@@ -106,13 +104,5 @@ public class Stemming implements Directive {
       }
     }
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation(String.format("%s_porter", column), MutationType.ADD);
-    return builder.build();
   }
 }

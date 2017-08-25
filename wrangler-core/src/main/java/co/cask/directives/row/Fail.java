@@ -28,8 +28,6 @@ import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -69,9 +67,9 @@ public class Fail implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     Expression expression = args.value("condition");
-    if (expression.value().isEmpty()) {
+    if(expression.value().isEmpty()) {
       throw new DirectiveParseException(
-        "No condition has been specified."
+        String.format("No condition has been specified.")
       );
     }
     condition = expression.value();
@@ -124,7 +122,7 @@ public class Fail implements Directive {
                                   "or convert to right data type using conversion functions available. " +
                                   "Reason : " + e.getMessage());
       } catch (Exception e) {
-        // We want to propagate this exception up!
+        // We want to propogate this exception up!
         if (e instanceof ErrorRowException) {
           throw e;
         }
@@ -136,12 +134,5 @@ public class Fail implements Directive {
       }
     }
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Condition" + condition);
-    builder.addMutation("all columns", MutationType.MODIFY);
-    return builder.build();
   }
 }

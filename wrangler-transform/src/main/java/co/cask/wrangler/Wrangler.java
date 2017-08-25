@@ -22,13 +22,11 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.messaging.TopicAlreadyExistsException;
 import co.cask.cdap.api.plugin.PluginConfig;
 import co.cask.cdap.api.plugin.PluginProperties;
 import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.PipelineConfigurer;
-import co.cask.cdap.etl.api.StageSubmitterContext;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
 import co.cask.directives.aggregates.DefaultTransientStore;
@@ -44,11 +42,8 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TransientStore;
-import co.cask.wrangler.api.lineage.LineageGenerationException;
 import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
-import co.cask.wrangler.lineage.FieldLevelLineage;
-import co.cask.wrangler.lineage.WranglerFieldLevelLineage;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
@@ -56,7 +51,6 @@ import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.registry.UserDirectiveRegistry;
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +59,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -166,7 +159,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
       // Check if configured field is present in the input schema.
       Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-      if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#")) &&
+      if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#") ) &&
         (inputSchema != null && inputSchema.getField(config.field) == null)) {
         throw new IllegalArgumentException(
           String.format("Field '%s' configured to wrangler is not present in the input. " +
@@ -175,7 +168,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
 
       // Check if pre-condition is not null or empty and if so compile expression.
-      if (!config.containsMacro("precondition")) {
+      if(!config.containsMacro("precondition")) {
         if (config.precondition != null && !config.precondition.trim().isEmpty()) {
           try {
             new Precondition(config.precondition);
@@ -279,7 +272,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       pipeline.initialize(directives, ctx);
     } catch (Exception e) {
       throw new Exception(
-        String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage()), e
+        String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage())
       );
     }
 
@@ -287,74 +280,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     errorCounter = 0;
   }
 
-  /**
-   * Prepares Wrangler before execution of transform. Mainly preparing and sending field-level metadata
-   *
-   * @param context framework for transform stages
-   */
-  @Override
-  public void prepareRun(StageSubmitterContext context) throws Exception {
-    if (context.getArguments().has("enable.wrangler.field.lineage")) {
-      List<String> startColumns, endColumns;
-      Schema inputSchema, outputSchema;
-      inputSchema = context.getInputSchema();
-      outputSchema = context.getOutputSchema();
-      if (inputSchema == null || inputSchema.getFields() == null) {
-        startColumns = new ArrayList<>(0);
-      } else {
-        startColumns = new ArrayList<>(inputSchema.getFields().size());
-        for (Schema.Field field : inputSchema.getFields()) {
-          startColumns.add(field.getName());
-        }
-      }
-      if (outputSchema == null || outputSchema.getFields() == null) {
-        endColumns = new ArrayList<>(0);
-      } else {
-        endColumns = new ArrayList<>(outputSchema.getFields().size());
-        for (Schema.Field field : outputSchema.getFields()) {
-          endColumns.add(field.getName());
-        }
-      }
-      FieldLevelLineage f;
-      store = new DefaultTransientStore();
-      registry = new CompositeDirectiveRegistry(
-        new SystemDirectiveRegistry(),
-        new UserDirectiveRegistry(context)
-      );
-      RecipeParser directives = new GrammarBasedParser(new MigrateToV2(config.directives).migrate(), registry);
-      ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM,
-                                                        context, store);
-      try {
-        // Create the pipeline executor with context being set.
-        pipeline = new RecipePipelineExecutor();
-        pipeline.initialize(directives, ctx);
-      } catch (Exception e) {
-        throw new Exception(
-          String.format("Stage:%s - %s", context.getStageName(), e.getMessage()), e
-        );
-      }
-      try {
-        f = (new WranglerFieldLevelLineage.Builder(startColumns, endColumns)).build(pipeline.lineage());
-      } catch (LineageGenerationException e) {
-        LOG.warn(
-          String.format("Unable to generate lineage: %s", e.getMessage())
-        );
-        f = null;
-      }
-      String json = new Gson().toJson(f);
-      try {
-        context.createTopic("wranglerTopic");
-      } catch (TopicAlreadyExistsException e) {
-        // okay
-      }
-      context.getMessagePublisher().publish(context.getNamespace(),
-                                            "wranglerTopic", json);
-      LOG.info(
-        "Field-level lineage generated"
-      );
-      // context.recordLineage(f);
-    }
-  }
 
   @Override
   public void destroy() {

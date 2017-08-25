@@ -23,12 +23,10 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
@@ -47,6 +45,7 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -107,8 +106,8 @@ public class JsParser implements Directive {
         }
 
         try {
-          JsonElement element;
-          if (value instanceof String) {
+          JsonElement element = null;
+          if(value instanceof String) {
             String document = (String) value;
             element = parser.parse(document.trim());
           } else if (value instanceof JsonObject || value instanceof JsonArray) {
@@ -117,7 +116,7 @@ public class JsParser implements Directive {
             throw new DirectiveExecutionException(
               String.format("%s : Invalid type '%s' of column '%s'. " +
                               "Should be of type string. Use paths to further parse data.",
-                            toString(), "null", column)
+                            toString(), element != null ? element.getClass().getName() : "null", column)
             );
           }
 
@@ -129,7 +128,7 @@ public class JsParser implements Directive {
               results.add(row);
             } else if (element instanceof JsonArray) {
               JsonArray array = element.getAsJsonArray();
-              for (int i = 0; i < array.size(); ++i) {
+              for(int i = 0; i < array.size(); ++i) {
                 JsonElement object = array.get(i);
                 Row newRow = new Row(row);
                 newRow.add(column, getValue(object));
@@ -147,14 +146,6 @@ public class JsParser implements Directive {
     return results;
   }
 
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Depth: " + depth);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation("all columns formatted " + column + "_%s", MutationType.ADD);
-    return builder.build();
-  }
-
   /**
    * Recursively flattens JSON until the 'depth' is reached.
    *
@@ -170,9 +161,11 @@ public class JsParser implements Directive {
       return;
     }
 
-    for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
-      String key = entry.getKey();
-      JsonElement element = entry.getValue();
+    Iterator<Map.Entry<String, JsonElement>> elements = root.entrySet().iterator();
+    while(elements.hasNext()) {
+      Map.Entry<String, JsonElement> next = elements.next();
+      String key = next.getKey();
+      JsonElement element = next.getValue();
       if (element instanceof JsonObject) {
         flattenJson(element.getAsJsonObject(),
                     String.format("%s_%s", field, key), depth++, maxDepth, row);
@@ -191,9 +184,9 @@ public class JsParser implements Directive {
    */
   public static Object getValue(JsonElement element) {
     if (element.isJsonObject()) {
-      return element.getAsJsonObject();
+      return (JsonObject) element.getAsJsonObject();
     } else if (element.isJsonArray()) {
-      return element.getAsJsonArray();
+      return (JsonArray) element.getAsJsonArray();
     } else if (element.isJsonPrimitive()) {
       return getValue(element.getAsJsonPrimitive());
     }

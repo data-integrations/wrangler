@@ -82,7 +82,7 @@ public class GrammarBasedParser implements RecipeParser {
       }
 
       Iterator<TokenGroup> tokenGroups = status.getSymbols().iterator();
-      while (tokenGroups.hasNext()) {
+      while(tokenGroups.hasNext()) {
         TokenGroup next = tokenGroups.next();
         if (next == null) {
           continue;

@@ -28,8 +28,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -96,7 +94,7 @@ public class ParseExcel implements Directive {
         int idx = record.find(column);
         if (idx != -1) {
           Object object = record.getValue(idx);
-          byte[] bytes;
+          byte[] bytes = null;
           if (object instanceof byte[]) {
             bytes = (byte[]) object;
           } else if (object instanceof ByteBuffer) {
@@ -104,62 +102,63 @@ public class ParseExcel implements Directive {
             bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
           } else {
-            throw new DirectiveExecutionException(toString() + " : column " + column +
-                                                    " is not byte array or byte buffer.");
+            throw new DirectiveExecutionException(toString() + " : column " + column + " is not byte array or byte buffer.");
           }
 
-          input = new ByteArrayInputStream(bytes);
-          XSSFWorkbook book = new XSSFWorkbook(input);
-          XSSFSheet excelsheet;
-          if (Types.isInteger(sheet)) {
-            excelsheet = book.getSheetAt(Integer.parseInt(sheet));
-          } else {
-            excelsheet = book.getSheet(sheet);
-          }
-
-          if (excelsheet == null) {
-            throw new DirectiveExecutionException(
-              String.format("Failed to extract sheet '%s' from the excel. Sheet '%s' does not exist.", sheet, sheet)
-            );
-          }
-
-          Iterator<org.apache.poi.ss.usermodel.Row> it = excelsheet.iterator();
-          int rows = 0;
-          while (it.hasNext()) {
-            org.apache.poi.ss.usermodel.Row row = it.next();
-            Iterator<Cell> cellIterator = row.cellIterator();
-            if (checkIfRowIsEmpty(row)) {
-              continue;
+          if (bytes != null) {
+            input = new ByteArrayInputStream(bytes);
+            XSSFWorkbook book = new XSSFWorkbook(input);
+            XSSFSheet excelsheet;
+            if (Types.isInteger(sheet)) {
+              excelsheet = book.getSheetAt(Integer.parseInt(sheet));
+            } else {
+              excelsheet = book.getSheet(sheet);
             }
-            Row newRow = new Row();
-            newRow.add("fwd", rows);
-            while (cellIterator.hasNext()) {
-              Cell cell = cellIterator.next();
-              String name = columnName(cell.getAddress().getColumn());
-              switch (cell.getCellTypeEnum()) {
-                case STRING:
-                  newRow.add(name, cell.getStringCellValue());
-                  break;
 
-                case NUMERIC:
-                  if (HSSFDateUtil.isCellDateFormatted(cell)) {
-                    newRow.add(name, cell.getDateCellValue());
-                  } else {
-                    newRow.add(name, cell.getNumericCellValue());
-                  }
-                  break;
+            if (excelsheet == null) {
+              throw new DirectiveExecutionException(
+                String.format("Failed to extract sheet '%s' from the excel. Sheet '%s' does not exist.", sheet, sheet)
+              );
+            }
 
-                case BOOLEAN:
-                  newRow.add(name, cell.getBooleanCellValue());
-                  break;
+            Iterator<org.apache.poi.ss.usermodel.Row> it = excelsheet.iterator();
+            int rows = 0;
+            while (it.hasNext()) {
+              org.apache.poi.ss.usermodel.Row row = it.next();
+              Iterator<Cell> cellIterator = row.cellIterator();
+              if(checkIfRowIsEmpty(row)) {
+                continue;
               }
-            }
-            results.add(newRow);
-            rows++;
-          }
+              Row newRow = new Row();
+              newRow.add("fwd", rows);
+              while (cellIterator.hasNext()) {
+                Cell cell = cellIterator.next();
+                String name = columnName(cell.getAddress().getColumn());
+                switch (cell.getCellTypeEnum()) {
+                  case STRING:
+                    newRow.add(name, cell.getStringCellValue());
+                    break;
 
-          for (int i = rows - 1; i >= 0; --i) {
-            results.get(rows - i - 1).addOrSetAtIndex(1, "bkd", i); // fwd - 0, bkd - 1.
+                  case NUMERIC:
+                    if (HSSFDateUtil.isCellDateFormatted(cell)) {
+                      newRow.add(name, cell.getDateCellValue());
+                    } else {
+                      newRow.add(name, cell.getNumericCellValue());
+                    }
+                    break;
+
+                  case BOOLEAN:
+                    newRow.add(name, cell.getBooleanCellValue());
+                    break;
+                }
+              }
+              results.add(newRow);
+              rows++;
+            }
+
+            for (int i = rows - 1; i >= 0; --i) {
+              results.get(rows - i - 1).addOrSetAtIndex(1, "bkd", i); // fwd - 0, bkd - 1.
+            }
           }
         }
       }
@@ -171,14 +170,6 @@ public class ParseExcel implements Directive {
       }
     }
     return results;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Sheet: " + sheet);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation("all columns formatted %s", MutationType.ADD);
-    return builder.build();
   }
 
   private boolean checkIfRowIsEmpty(org.apache.poi.ss.usermodel.Row row) {
@@ -203,7 +194,7 @@ public class ParseExcel implements Directive {
     int num = number;
     while (num >=  0) {
       int numChar = (num % 26)  + 65;
-      sb.append((char) numChar);
+      sb.append((char)numChar);
       num = (num  / 26) - 1;
     }
     return sb.reverse().toString();

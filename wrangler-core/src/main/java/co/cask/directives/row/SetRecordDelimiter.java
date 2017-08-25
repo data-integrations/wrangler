@@ -28,8 +28,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.Text;
@@ -44,7 +42,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.Type)
 @Name(SetRecordDelimiter.NAME)
-@Categories(categories = { "row", })
+@Categories(categories = { "row",})
 @Description("Sets the record delimiter.")
 public class SetRecordDelimiter implements Directive {
   public static final String NAME = "set-record-delim";
@@ -103,13 +101,5 @@ public class SetRecordDelimiter implements Directive {
       }
     }
     return results;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
-      "Delimiter: " + delimiter + ", Limit: " + limit);
-    builder.addMutation(column, MutationType.MODIFY);
-    return builder.build();
   }
 }

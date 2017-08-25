@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -81,7 +79,7 @@ public class ExtractRegexGroups implements Directive {
           Matcher matcher = pattern.matcher((String) value);
           int count = 1;
           while (matcher.find()) {
-            for (int i = 1; i <= matcher.groupCount(); i++) {
+            for(int i = 1; i <= matcher.groupCount(); i++) {
               row.add(String.format("%s_%d_%d", column, count, i), matcher.group(i));
             }
             count++;
@@ -91,12 +89,5 @@ public class ExtractRegexGroups implements Directive {
     }
     return rows;
   }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Regex: " + regex);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation("all columns formatted " + column + "_%d_%d", MutationType.ADD);
-    return builder.build();
-  }
 }
+
