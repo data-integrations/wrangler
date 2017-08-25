@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -89,19 +87,14 @@ public class Merge implements Directive {
       int idx1 = row.find(col1);
       int idx2 = row.find(col2);
       if (idx1 != -1 && idx2 != -1) {
-        row.add(dest, row.getValue(idx1) + delimiter + row.getValue(idx2));
+        StringBuilder builder = new StringBuilder();
+        builder.append(row.getValue(idx1));
+        builder.append(delimiter);
+        builder.append(row.getValue(idx2));
+        row.add(dest, builder.toString());
       }
       results.add(row);
     }
     return results;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    builder.addMutation(col1, MutationType.READ);
-    builder.addMutation(col2, MutationType.READ);
-    builder.addMutation(dest, MutationType.ADD);
-    return builder.build();
   }
 }

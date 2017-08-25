@@ -28,8 +28,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.Bool;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
@@ -134,7 +132,7 @@ public class RecordConditionFilter implements Directive {
         }
       } catch (NumberFormatException e) {
         throw new DirectiveExecutionException(toString() + " : " + " type mismatch. Change type of constant " +
-          "or convert to right data type using conversion functions available. Reason : " + e.getMessage());
+                                  "or convert to right data type using conversion functions available. Reason : " + e.getMessage());
       } catch (Exception e) {
         if (e.getCause() != null) {
           throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
@@ -145,12 +143,5 @@ public class RecordConditionFilter implements Directive {
       results.add(row);
     }
     return results;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Condition: " + condition);
-    builder.addMutation("all columns", MutationType.MODIFY);
-    return builder.build();
   }
 }

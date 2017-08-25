@@ -27,8 +27,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.Triplet;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.Ranges;
@@ -50,7 +48,7 @@ import java.util.List;
 @Description("Quanitize the range of numbers into label values.")
 public class Quantization implements Directive {
   public static final String NAME = "quantize";
-  private static final String RANGE_PATTERN = "([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
+  private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();
   private String col1;
   private String col2;
@@ -122,13 +120,5 @@ public class Quantization implements Directive {
     }
 
     return results;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "RangeMap: " + rangeMap);
-    builder.addMutation(col1, MutationType.READ);
-    builder.addMutation(col2, MutationType.ADD);
-    return builder.build();
   }
 }

@@ -24,12 +24,10 @@ import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
-import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -146,18 +144,6 @@ public class InvokeHttp implements Directive {
       }
     }
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    for (String column : columns) {
-      builder.addMutation(column, MutationType.ADD);
-    }
-    for (String column : headers.keySet()) {
-      builder.addMutation(column, MutationType.ADD);
-    }
-    return builder.build();
   }
 
   private class ServiceResponseHandler implements ResponseHandler<Map<String, Object>> {
