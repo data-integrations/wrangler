@@ -28,8 +28,6 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Numeric;
@@ -93,10 +91,10 @@ public class ParseAvro implements Directive {
     this.type = ((Identifier) args.value("encode-type")).value();
     if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
       throw new DirectiveParseException(
-        "Parsing AVRO can be either of type 'json' or 'binary'"
+        String.format("Parsing AVRO can be either of type 'json' or 'binary'")
       );
     }
-    if (args.contains("version")) {
+    if(args.contains("version")) {
       this.version = ((Numeric) args.value("version")).value().intValue();
     } else {
       this.version = -1;
@@ -177,8 +175,7 @@ public class ParseAvro implements Directive {
             byte[] bytes = body.getBytes(Charsets.UTF_8);
             results.addAll(decoder.decode(bytes));
           } else {
-            throw new DirectiveExecutionException(toString() + " : column " + column +
-                                                    " should be of type string or byte array");
+            throw new DirectiveExecutionException(toString() + " : column " + column + " should be of type string or byte array");
           }
         }
       }
@@ -187,14 +184,5 @@ public class ParseAvro implements Directive {
                                 (version == -1 ? "latest" : version) + "'. " + e.getMessage());
     }
     return results;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME,
-      "Schema ID: " + schemaId + ", Type: " + type + ", Version: " + version);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation("all columns formatted %s", MutationType.ADD);
-    return builder.build();
   }
 }

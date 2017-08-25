@@ -23,12 +23,10 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Pair;
+import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnNameList;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -61,7 +59,9 @@ public class Keep implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     ColumnNameList cols = args.value("column");
-    keep.addAll(cols.value());
+    for (String col : cols.value()) {
+      keep.add(col);
+    }
   }
 
   @Override
@@ -82,17 +82,5 @@ public class Keep implements Directive {
       }
     }
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    StringBuilder columns = new StringBuilder("all columns minus");
-    for (String column : keep) {
-      builder.addMutation(column, MutationType.MODIFY);
-      columns.append(" ").append(column);
-    }
-    builder.addMutation(columns.toString(), MutationType.DROP);
-    return builder.build();
   }
 }

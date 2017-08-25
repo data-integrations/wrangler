@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -44,7 +42,8 @@ import java.util.List;
  * A Executor to extract a single XML element using XPath.
  *
  * <p>
- *   TODO: This code has to be moved out into a plugin due to VTDNav once we have the plugin framework.
+ *   TODO: This code has to be moved out into a plugin due to VTDNav once we have
+ *   the plugin framework.
  * </p>
  *
  */
@@ -92,15 +91,15 @@ public class XPathElement implements Directive {
           AutoPilot ap = new AutoPilot(vNav);
           try {
             int tokenCount = vNav.getTokenCount();
-            String token;
-            String nsPrefix;
-            String nsUrl;
-            for (int i = 0; i < tokenCount; i++) {
-              token = vNav.toNormalizedString(i);
-              if (vNav.startsWith(i, "xmlns:")) {
-                nsPrefix = token.substring(token.indexOf(":") + 1);
-                nsUrl = vNav.toNormalizedString(i + 1);
-                ap.declareXPathNameSpace(nsPrefix, nsUrl);
+            String token = null;
+            String nsPrefix = null;
+            String nsUrl = null;
+            for ( int i = 0; i < tokenCount; i++ ) {
+              token = vNav.toNormalizedString( i );
+              if ( vNav.startsWith( i, "xmlns:" ) ) {
+                nsPrefix = token.substring( token.indexOf( ":" ) + 1 );
+                nsUrl = vNav.toNormalizedString( i + 1 );
+                ap.declareXPathNameSpace( nsPrefix, nsUrl );
               }// if
             }// for
             boolean found = false;
@@ -123,7 +122,7 @@ public class XPathElement implements Directive {
                 }
               }
             }
-            if (!found) {
+            if(!found) {
               row.addOrSet(destination, null);
             }
           } catch (XPathParseException | XPathEvalException | NavException e) {
@@ -145,14 +144,6 @@ public class XPathElement implements Directive {
     return rows;
   }
 
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "XPath: " + xpath);
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation(destination, MutationType.ADD);
-    return builder.build();
-  }
-
   public static String extractAttributeFromXPath(String path) {
     int index = path.lastIndexOf('/');
     if (index != -1) {
@@ -161,7 +152,8 @@ public class XPathElement implements Directive {
       if (squareIndex == -1) {
         int attrIndex = attribute.indexOf('@');
         if (attrIndex != -1) {
-          return attribute.substring(attrIndex + 1);
+          String attr = attribute.substring(attrIndex + 1);
+          return attr;
         }
       }
     }

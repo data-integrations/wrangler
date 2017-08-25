@@ -26,7 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -75,16 +74,12 @@ public class ColumnsReplace implements Directive {
           row.setColumn(i, builder.toStringResult());
         } catch (IllegalArgumentException e) {
           throw new DirectiveExecutionException(
-            toString() + " : " + e.getMessage()
+            String.format(toString() + " : " + e.getMessage())
           );
         }
       }
     }
     return rows;
   }
-
-  @Override
-  public MutationDefinition lineage() {
-    return (new MutationDefinition.Builder(NAME, sed).build());
-  }
 }
+
