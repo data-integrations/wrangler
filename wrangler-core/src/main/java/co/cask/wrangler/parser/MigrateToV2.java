@@ -36,7 +36,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
  *   <li>Convert column name from 'name' to ':name'.</li>
  *   <li>Text are quoted with with single or double quote.</li>
  *   <li>Expression or conditions are represented 'exp:{}'</li>
- *   <li>All directives are terminated by semicolon (;)</li>
+ *   <li>All directives are terminated by semicolo (;)</li>
  * </ul></p>
  */
 public final class MigrateToV2 implements GrammarMigrator {

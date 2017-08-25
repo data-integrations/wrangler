@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
@@ -95,13 +93,6 @@ public class MaskShuffle implements Directive {
     return results;
   }
 
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME);
-    builder.addMutation(column, MutationType.MODIFY);
-    return builder.build();
-  }
-
   private String maskShuffle(String str, int seed) {
     final String cons = "bcdfghjklmnpqrstvwxz";
     final String vowel = "aeiouy";
@@ -110,15 +101,14 @@ public class MaskShuffle implements Directive {
     Random r = new Random(seed);
     char data[] = str.toCharArray();
 
-    for (int n = 0; n < data.length; ++n) {
+    for (int n = 0; n < data.length; ++ n) {
       char ln = Character.toLowerCase(data[n]);
-      if (cons.indexOf(ln) >= 0) {
+      if (cons.indexOf(ln) >= 0)
         data[n] = randomChar(r, cons, ln != data[n]);
-      } else if (vowel.indexOf(ln) >= 0) {
+      else if (vowel.indexOf(ln) >= 0)
         data[n] = randomChar(r, vowel, ln != data[n]);
-      } else if (digit.indexOf(ln) >= 0) {
+      else if (digit.indexOf(ln) >= 0)
         data[n] = randomChar(r, digit, ln != data[n]);
-      }
     }
     return new String(data);
   }
@@ -128,3 +118,4 @@ public class MaskShuffle implements Directive {
     return uppercase ? Character.toUpperCase(c) : c;
   }
 }
+

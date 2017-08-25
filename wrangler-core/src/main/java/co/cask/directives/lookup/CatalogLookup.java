@@ -26,8 +26,6 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
-import co.cask.wrangler.api.lineage.MutationDefinition;
-import co.cask.wrangler.api.lineage.MutationType;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
@@ -74,7 +72,7 @@ public class CatalogLookup implements Directive {
       catalog = new ICDCatalog(type.toLowerCase());
       if (!catalog.configure()) {
         throw new DirectiveParseException(
-          "Failed to configure ICD StaticCatalog. Check with your administrator"
+          String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
         );
       }
     }
@@ -108,13 +106,5 @@ public class CatalogLookup implements Directive {
       }
     }
     return rows;
-  }
-
-  @Override
-  public MutationDefinition lineage() {
-    MutationDefinition.Builder builder = new MutationDefinition.Builder(NAME, "Catalog: " + catalog.getCatalog());
-    builder.addMutation(column, MutationType.READ);
-    builder.addMutation(String.format("%s_%s_description", column, name), MutationType.ADD);
-    return builder.build();
   }
 }
