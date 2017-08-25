@@ -122,6 +122,13 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
       if (!registry.containsKey(name)) {
         if (context != null) {
           Class<? extends Directive> directive = context.loadPluginClass(name);
+          if (directive == null) {
+            throw new DirectiveLoadException(
+              String.format("10-5 - Unable to load the user defined directive '%s'. " +
+                              "Please check if the artifact containing UDD is still present. It was there when the " +
+                              "pipeline was deployed, but don't seem to find it now.", name)
+            );
+          }
           DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
           registry.put(classz.name(), classz);
           return classz;

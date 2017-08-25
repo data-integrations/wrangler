@@ -19,7 +19,6 @@ package co.cask.directives.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.directives.JexlHelper;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -34,16 +33,13 @@ import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import org.apache.commons.jexl3.JexlContext;
-import org.apache.commons.jexl3.JexlEngine;
-import org.apache.commons.jexl3.JexlException;
-import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.jexl3.MapContext;
+import co.cask.wrangler.expression.EL;
+import co.cask.wrangler.expression.ELContext;
+import co.cask.wrangler.expression.ELException;
+import co.cask.wrangler.expression.ELResult;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A directive for erroring the record if
@@ -60,10 +56,8 @@ import java.util.Set;
 @Description("Send records that match condition to the error collector.")
 public class SendToError implements Directive {
   public static final String NAME = "send-to-error";
+  private final EL el = new EL(new EL.DefaultFunctions());
   private String condition;
-  private Set<String> variables = new HashSet<>();
-  private JexlEngine engine;
-  private JexlScript script;
   private String metric = null;
   private String message = null;
 
@@ -79,14 +73,12 @@ public class SendToError implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     condition = ((Expression) args.value("condition")).value();
-    // Create and build the script.
-    engine = JexlHelper.getEngine();
-    script = engine.createScript(condition);
-    Set<List<String>> vars = script.getVariables();
-    for(List<String> var : vars) {
-      for(String v : var) {
-        variables.add(v);
-      }
+    try {
+      el.compile(condition);
+    } catch (ELException e) {
+      throw new DirectiveParseException(
+        String.format("Invalid condition '%s'.", condition)
+      );
     }
     if (args.contains("metric")) {
       metric = ((Identifier) args.value("metric")).value();
@@ -107,9 +99,9 @@ public class SendToError implements Directive {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      JexlContext ctx = new MapContext();
+      ELContext ctx = new ELContext();
       ctx.set("this", row);
-      for(String var : variables) {
+      for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
 
@@ -123,8 +115,8 @@ public class SendToError implements Directive {
       // Execution of the script / expression based on the row data
       // mapped into context.
       try {
-        boolean result = (Boolean) script.execute(ctx);
-        if (result) {
+        ELResult result = el.execute(ctx);
+        if (result.getBoolean()) {
           if(metric != null && context != null) {
             context.getMetrics().count(metric, 1);
           }
@@ -133,34 +125,8 @@ public class SendToError implements Directive {
           }
           throw new ErrorRowException(message, 1);
         }
-      } catch (JexlException.Variable e) {
-        // If variable is not defined
-        if (e.isUndefined()) {
-          // No-op
-        }
-      } catch (JexlException e) {
-        // Generally JexlException wraps the original exception, so it's good idea
-        // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
-        // else just print the error message.
-        if (e.getCause() != null) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
-        } else {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
-        }
-      } catch (NumberFormatException e) {
-        throw new DirectiveExecutionException(toString() + " : " + " type mismatch. Change type of constant " +
-                                  "or convert to right data type using conversion functions available. Reason : "
-                                                + e.getMessage());
-      } catch (Exception e) {
-        // We want to propogate this exception up!
-        if (e instanceof ErrorRowException) {
-          throw e;
-        }
-        if (e.getCause() != null) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
-        } else {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
-        }
+      } catch (ELException e) {
+        throw new DirectiveExecutionException(e.getMessage());
       }
       results.add(row);
     }
