@@ -139,7 +139,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         if (symbols != null) {
           Set<String> dynamicDirectives = symbols.getLoadableDirectives();
           for (String directive : dynamicDirectives) {
-            configurer.usePlugin(Directive.Type, directive, directive, PluginProperties.builder().build());
+            Object o = configurer.usePlugin(Directive.Type, directive, directive, PluginProperties.builder().build());
+            if (o == null) {
+              throw new IllegalArgumentException(
+                String.format("User Defined Directive '%s' is not deployed or is not available.", directive)
+              );
+            }
           }
         }
       } catch (CompileException e) {
@@ -183,7 +188,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         configurer.getStageConfigurer().setOutputSchema(oSchema);
       }
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error(e.getMessage());
       throw new IllegalArgumentException(e.getMessage());
     }
   }
