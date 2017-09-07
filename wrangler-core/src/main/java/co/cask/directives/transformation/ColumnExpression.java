@@ -19,7 +19,6 @@ package co.cask.directives.transformation;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.directives.JexlHelper;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
@@ -31,11 +30,10 @@ import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import org.apache.commons.jexl3.JexlContext;
-import org.apache.commons.jexl3.JexlEngine;
-import org.apache.commons.jexl3.JexlException;
-import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.jexl3.MapContext;
+import co.cask.wrangler.expression.EL;
+import co.cask.wrangler.expression.ELContext;
+import co.cask.wrangler.expression.ELException;
+import co.cask.wrangler.expression.ELResult;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,21 +61,11 @@ public class ColumnExpression implements Directive {
   public static final String NAME = "set-column";
   // Column to which the result of experience is applied to.
   private String column;
-
   // The actual expression
   private String expression;
-
-  // Handler to Jexl Engine.
-  private JexlEngine engine;
-
-  // Parsed / Compiled expression.
-  private JexlScript script;
-
   // Properties associated with pipeline
   private final Map<String, Object> properties = new HashMap<>();
-
-  // Variables in expression
-  private Set<String> variables = new HashSet<>();
+  private final EL el = new EL(new EL.DefaultFunctions());
 
   @Override
   public UsageDefinition define() {
@@ -91,14 +79,10 @@ public class ColumnExpression implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     this.expression = ((Expression) args.value("expression")).value();
-    // Create and build the script.
-    engine = JexlHelper.getEngine();
-    script = engine.createScript(expression);
-    Set<List<String>> vars = script.getVariables();
-    for(List<String> var : vars) {
-      for(String v : var) {
-        variables.add(v);
-      }
+    try {
+      el.compile(expression);
+    } catch (ELException e ){
+      throw new DirectiveParseException(e.getMessage());
     }
   }
 
@@ -116,9 +100,9 @@ public class ColumnExpression implements Directive {
 
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      JexlContext ctx = new MapContext(properties);
+      ELContext ctx = new ELContext(properties);
       ctx.set("this", row);
-      for(String var : variables) {
+      for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
       
@@ -132,22 +116,15 @@ public class ColumnExpression implements Directive {
       // Execution of the script / expression based on the row data
       // mapped into context.
       try {
-        Object result = script.execute(ctx);
+        ELResult result = el.execute(ctx);
         int idx = row.find(this.column);
         if (idx == -1) {
-          row.add(this.column, result);
+          row.add(this.column, result.getObject());
         } else {
-          row.setValue(idx, result);
+          row.setValue(idx, result.getObject());
         }
-      } catch (JexlException e) {
-        // Generally JexlException wraps the original exception, so it's good idea
-        // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
-        // else just print the error message.
-        if (e.getCause() != null) {
-          throw new DirectiveExecutionException(e.getCause().getMessage());
-        } else {
-          throw new DirectiveExecutionException(e.getMessage());
-        }
+      } catch (ELException e) {
+        throw new DirectiveExecutionException(e.getMessage());
       }
     }
     return rows;

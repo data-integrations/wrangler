@@ -25,9 +25,9 @@ import org.junit.Test;
 import java.util.ArrayList;
 
 /**
- * Tests {@link Columns}
+ * Tests {@link SetHeader}
  */
-public class ColumnsTest {
+public class SetHeaderTest {
 
   @Test(expected = RecipeException.class)
   public void testEmptySetColumnsDirectiveAtStart() throws Exception {

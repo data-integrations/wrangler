@@ -97,7 +97,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
   /**
    * Tests the connection to kafka..
    *
-   * Following is the response when the connection is successfull.
+   * Following is the response when the connection is successful.
    *
    * {
    *   "status" : 200,
@@ -124,11 +124,8 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       Properties props = config.get();
 
       // Checks connection by extracting topics.
-      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-      try {
+      try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
         consumer.listTopics();
-      } finally {
-        consumer.close();
       }
       ServiceUtils.success(responder, String.format("Successfully connected to Kafka at %s", config.getConnection()));
     } catch (Exception e) {
@@ -159,13 +156,12 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       Properties props = config.get();
 
       // Extract topics from Kafka.
-      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-      try {
+      try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
         Map<String, List<PartitionInfo>> topics = consumer.listTopics();
 
         // Prepare response.
         JsonArray values = new JsonArray();
-        for(String topic : topics.keySet()) {
+        for (String topic : topics.keySet()) {
           values.add(new JsonPrimitive(topic));
         }
 
@@ -175,8 +171,6 @@ public final class KafkaService extends AbstractHttpServiceHandler {
         response.addProperty("count", values.size());
         response.add("values", values);
         ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-      } finally {
-        consumer.close();
       }
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
