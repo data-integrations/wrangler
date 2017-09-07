@@ -56,7 +56,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * extract all the <tt>DirectiveInfo</tt> from the instance of directive created.</p>
  *
  * <p>Second context is the <tt>Transform</tt> plugin, were the second constructor
- * of this class in used to intialize. Initializing this class using <tt>StageContext</tt>
+ * of this class in used to initialize. Initializing this class using <tt>StageContext</tt>
  * provides a way to create an instance of the plugin. The name of the directive is
  * used as the <tt>id</tt> for the plugin.</p>
  *
