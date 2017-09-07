@@ -19,23 +19,20 @@ package co.cask.directives.row;
 import co.cask.cdap.api.annotation.Description;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
-import co.cask.directives.JexlHelper;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import org.apache.commons.jexl3.JexlContext;
-import org.apache.commons.jexl3.JexlEngine;
-import org.apache.commons.jexl3.JexlException;
-import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.jexl3.MapContext;
+import co.cask.wrangler.expression.EL;
+import co.cask.wrangler.expression.ELContext;
+import co.cask.wrangler.expression.ELException;
+import co.cask.wrangler.expression.ELResult;
 
 import java.util.HashSet;
 import java.util.List;
@@ -51,11 +48,7 @@ import java.util.Set;
 public class Fail implements Directive {
   public static final String NAME = "fail";
   private String condition;
-  private JexlEngine engine;
-  private JexlScript script;
-  // Variables in expression
-  private Set<String> variables = new HashSet<>();
-
+  private final EL el = new EL(new EL.DefaultFunctions());
 
   @Override
   public UsageDefinition define() {
@@ -73,13 +66,10 @@ public class Fail implements Directive {
       );
     }
     condition = expression.value();
-    engine = JexlHelper.getEngine();
-    script = engine.createScript(condition);
-    Set<List<String>> vars = script.getVariables();
-    for(List<String> var : vars) {
-      for(String v : var) {
-        variables.add(v);
-      }
+    try {
+      el.compile(condition);
+    } catch (ELException e) {
+      throw new DirectiveParseException(e.getMessage());
     }
   }
 
@@ -93,44 +83,23 @@ public class Fail implements Directive {
     throws DirectiveExecutionException {
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      JexlContext ctx = new MapContext();
+      ELContext ctx = new ELContext();
       ctx.set("this", row);
-      for(String var : variables) {
+      for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
 
       // Execution of the script / expression based on the row data
       // mapped into context.
       try {
-        boolean result = (Boolean) script.execute(ctx);
-        if (result) {
+        ELResult result = el.execute(ctx);
+        if (result.getBoolean()) {
           throw new DirectiveExecutionException(
             String.format("Condition '%s' evaluated to true. Terminating processing.", condition)
           );
         }
-      } catch (JexlException e) {
-        // Generally JexlException wraps the original exception, so it's good idea
-        // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
-        // else just print the error message.
-        if (e.getCause() != null) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
-        } else {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
-        }
-      } catch (NumberFormatException e) {
-        throw new DirectiveExecutionException(toString() + " : " + " type mismatch. Change type of constant " +
-                                  "or convert to right data type using conversion functions available. " +
-                                  "Reason : " + e.getMessage());
-      } catch (Exception e) {
-        // We want to propogate this exception up!
-        if (e instanceof ErrorRowException) {
-          throw e;
-        }
-        if (e.getCause() != null) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage(), e.getCause());
-        } else {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
-        }
+      } catch (ELException e) {
+        throw new DirectiveExecutionException(e.getMessage());
       }
     }
     return rows;
