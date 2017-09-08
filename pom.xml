@@ -112,7 +112,7 @@
     <antlr4.version>4.7</antlr4.version>
     <antlr4-maven-plugin.version>4.7</antlr4-maven-plugin.version>
     <junit.version>4.12</junit.version>
-    <reflections.version>0.9.11</reflections.version>
+    <reflections.version>0.9.9</reflections.version>
     <commons.validator.version>1.6</commons.validator.version>
   </properties>
 
