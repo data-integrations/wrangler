@@ -88,7 +88,7 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   /**
    * Given the name of the directive, returns the information related to the directive.
    *
-   * @param name of the directive to be retrived from the registry.
+   * @param name of the directive to be retrieved from the registry.
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Override
