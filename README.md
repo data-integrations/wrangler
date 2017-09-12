@@ -160,14 +160,13 @@ These directives are currently available:
 ## Performance
 
 Initial performance tests show that with a set of directives of medium complexity for
-transforming data, *DataPrep* is able to process at about 60K records per second. The
-rates below are specified as *records/second*. Additional details and test results
-[are available](wrangler-docs/performance.md).
+transforming data, *DataPrep* is able to process at about 107K records per second. The
+rates below are specified as *records/second*. 
 
-| Directive Complexity | Column Count |    Records |           Size | Mean Rate | 1 Minute Rate | 5 Minute Rate | 15 Minute Rate |
-| -------------------- | :----------: | ---------: | -------------: | --------: | ------------: | ------------: | -------------: |
-| Medium               |      18      | 13,499,973 |  4,499,534,313 | 64,998.50 |     64,921.29 |     46,866.70 |      36,149.86 |
-| Medium               |      18      | 80,999,838 | 26,997,205,878 | 62,465.93 |     62,706.39 |     60,755.41 |      56,673.32 |
+| Directive Complexity | Column Count |    Records |           Size | Mean Rate |
+| -------------------- | :----------: | ---------: | -------------: | --------: |
+| Large               |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
+| Large               |      426      | 511,785,592 | 330,711,381,296 | 105,768.97 |
 
 
 ## Contact
