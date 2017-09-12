@@ -166,7 +166,7 @@ rates below are specified as *records/second*.
 | Directive Complexity | Column Count |    Records |           Size | Mean Rate |
 | -------------------- | :----------: | ---------: | -------------: | --------: |
 | Large               |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
-| Large               |      426      | 511,785,592 | 330,711,381,296 | 105,768.97 |
+| Large               |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
 
 ## Contact
