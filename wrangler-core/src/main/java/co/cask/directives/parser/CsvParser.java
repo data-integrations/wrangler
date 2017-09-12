@@ -140,7 +140,7 @@ public class CsvParser implements Directive {
         for (CSVRecord csvRecord : csvRecords) {
           if(!checkedHeader && hasHeader && isHeader(csvRecord)) {
             for (int i = 0; i < csvRecord.size(); i++) {
-              headers.add(csvRecord.get(i));
+              headers.add(csvRecord.get(i).trim());
             }
             if (rows.size() > 0) {
               return new ArrayList<>();
