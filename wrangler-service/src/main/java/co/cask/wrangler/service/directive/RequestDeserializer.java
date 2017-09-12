@@ -26,8 +26,10 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  * Serializes the HTTP Request received by the service.
@@ -52,7 +54,8 @@ public class RequestDeserializer implements JsonDeserializer<Request> {
       Workspace workspace = context.deserialize(object.get("workspace"), Workspace.class);
       Recipe recipe = context.deserialize(object.get("recipe"), Recipe.class);
       Sampling sampling = context.deserialize(object.get("sampling"), Sampling.class);
-      return new RequestV1(version, workspace, recipe, sampling);
+      JsonObject properties = context.deserialize(object.get("properties"), JsonObject.class);
+      return new RequestV1(version, workspace, recipe, sampling, properties);
     } else {
       throw new JsonParseException (
         String.format("Unsupported request version %d.", version)
