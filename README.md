@@ -159,14 +159,14 @@ These directives are currently available:
 
 ## Performance
 
-Initial performance tests show that with a set of directives of medium complexity for
+Initial performance tests show that with a set of directives of high complexity for
 transforming data, *DataPrep* is able to process at about 107K records per second. The
 rates below are specified as *records/second*. 
 
 | Directive Complexity | Column Count |    Records |           Size | Mean Rate |
 | -------------------- | :----------: | ---------: | -------------: | --------: |
-| Large               |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
-| Large               |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
+| High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
+| High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
 
 ## Contact
