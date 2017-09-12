@@ -160,7 +160,7 @@ These directives are currently available:
 ## Performance
 
 Initial performance tests show that with a set of directives of high complexity for
-transforming data, *DataPrep* is able to process at about 107K records per second. The
+transforming data, *DataPrep* is able to process at about ~106K records per second. The
 rates below are specified as *records/second*. 
 
 | Directive Complexity | Column Count |    Records |           Size | Mean Rate |
