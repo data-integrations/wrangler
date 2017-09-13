@@ -33,18 +33,16 @@ Building a custom directive involves implementing three simple methods :
   * Use the plugin as follows:
 
 ```
-    [1] #pragma version 2.0
-    [2] parse-as-csv :body ',' true
-    [3] #pragma load-directives text-reverse,text-sanatization
-    [4] !text-reverse :text
-    [5] !text-sanatization :description
+    [1] parse-as-csv :body ',' true
+    [2] #pragma load-directives text-reverse,text-sanatization;
+    [3] text-reverse :text
+    [4] text-sanatization :description
 ```
 
 More description of the above lines. 
 
-  * `[1]` Specifies the version of directive grammar.
-  * `[3]` Dynamically loads the two UDDs as CDAP Plugins. 
-  * `[4]` Uses the directive. `!` specifies the directive as external or user defined.  
+  * `[2]` Dynamically loads the two UDDs as CDAP Plugins. 
+  * `[3]` Uses the directive. 
 
 ## Developing UDD
 
@@ -147,8 +145,8 @@ cdap > load artifact my-simple-udd-1.0-SNAPSHOT.jar config-file my-simple-udd-1.
 I am going to walk through the creation of a user defined directive(udd) called `text-reverse` that takes one argument: Column Name -- it's the name of the column in a `Row` that needs to be reversed. The resulting row will have the Column Name specified in the input have reversed string of characters.
 
 ```
- !text-reverse :address
- !text-reverse :id
+ text-reverse :address
+ text-reverse :id
 ```
 
 Here is the implementation of the above UDD. 
