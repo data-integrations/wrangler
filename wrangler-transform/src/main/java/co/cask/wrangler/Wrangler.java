@@ -351,7 +351,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // If threshold is set to -1, it tolerant unlimited errors
       if (config.threshold != -1 && errorCounter > config.threshold) {
         LOG.error("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
-        throw new Exception(String.format("Reached error threshold %d, terminating processing.", config.threshold));
+        throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing.",
+                                          getContext().getStageName(), config.threshold));
       }
       // Emit error record, if the Error flattener or error handlers are not connected, then
       // the record is automatically omitted.
