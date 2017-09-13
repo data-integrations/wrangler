@@ -101,11 +101,15 @@ public class RecordRegexFilter implements Directive {
           }
         } else if (object instanceof String) {
           String value = (String) row.getValue(idx);
-          if (isMatching(value)) continue;
+          if (isMatching(value)) {
+            continue;
+          }
         } else if (object instanceof Number) {
           Number number = (Number) row.getValue(idx);
           String value = number.toString();
-          if (isMatching(value)) continue;
+          if (isMatching(value)) {
+            continue;
+          }
         } else {
           throw new DirectiveExecutionException(
             String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
