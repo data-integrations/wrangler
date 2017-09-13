@@ -100,14 +100,11 @@ public class RecordRegexFilter implements Directive {
             continue;
           }
         } else if (object instanceof String) {
-          String value = (String) row.getValue(idx);
-          if (isMatching(value)) {
+          if (matchPattern((String) row.getValue(idx))) {
             continue;
           }
         } else if (object instanceof Number) {
-          Number number = (Number) row.getValue(idx);
-          String value = number.toString();
-          if (isMatching(value)) {
+          if (matchPattern(((Number) row.getValue(idx)).toString())) {
             continue;
           }
         } else {
@@ -124,13 +121,11 @@ public class RecordRegexFilter implements Directive {
     return results;
   }
 
-  private boolean isMatching(String value) {
+  private boolean matchPattern(String value) {
     boolean matches = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
-
     if(!matched) {
       matches = !matches;
     }
-
     return matches;
   }
 }

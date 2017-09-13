@@ -21,6 +21,7 @@ import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -76,6 +77,69 @@ public class RowRegexFilterTest {
 
     // Filters all the rows that don't match the pattern .*@joltie.io
     Assert.assertEquals(1, rows.size());
+  }
+
+  @Test
+  public void testFilterOnNumericValues() throws Exception {
+    List<String> directives = new ArrayList<>();
+
+    directives.add("parse-as-csv __col ,");
+    directives.add("drop __col");
+    directives.add("set columns id,string,int,short,long,float,double");
+    directives.add("set-type :int integer");
+    directives.add("set-type :short short");
+    directives.add("set-type :long long");
+    directives.add("set-type :float float");
+    directives.add("set-type :double double");
+    directives.add("filter-rows-on condition-false int =^ \"5\"");
+
+    List<Row> originalRows = Arrays.asList(
+      new Row("__col", "1,san jose,1001,1,11,22.1,55.1"),
+      new Row("__col", "2,palo alto,2002,2,22,22.2,55.2"),
+      new Row("__col", "3,mountain view,3,3003,33,22.3,55.3"),
+      new Row("__col", "4,saratoga,4004,4,44,22.4,55.4"),
+      new Row("__col", "5,los altos,5005,5,55,22.5,55.5")
+    );
+
+    // test integer support
+    List<Row> rows = TestingRig.execute(directives.toArray(new String[directives.size()]), originalRows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals(5005, rows.get(0).getValue(2));
+
+    // test short support
+    directives.remove(8);
+    directives.add("filter-rows-on regex-not-match long .*2.*");
+    rows = TestingRig.execute(directives.toArray(new String[directives.size()]), originalRows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals(new Short("2"), rows.get(0).getValue(3));
+
+    // test long support
+    directives.remove(8);
+    directives.add("filter-rows-on regex-not-match long .*2.*");
+    rows = TestingRig.execute(directives.toArray(new String[directives.size()]), originalRows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals(22L, rows.get(0).getValue(4));
+
+    // test float support
+    directives.remove(8);
+    directives.add("filter-rows-on regex-not-match float .*22.4.*");
+    rows = TestingRig.execute(directives.toArray(new String[directives.size()]), originalRows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals(22.4f, rows.get(0).getValue(5));
+
+    // test double support
+    directives.remove(8);
+    directives.add("filter-rows-on regex-not-match double .*55.1.*");
+    rows = TestingRig.execute(directives.toArray(new String[directives.size()]), originalRows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals(55.1d, rows.get(0).getValue(6));
+
+    // test string support
+    directives.remove(8);
+    directives.add("filter-rows-on regex-not-match string .*sar.*");
+    rows = TestingRig.execute(directives.toArray(new String[directives.size()]), originalRows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("saratoga", rows.get(0).getValue(1));
   }
 
   @Test
