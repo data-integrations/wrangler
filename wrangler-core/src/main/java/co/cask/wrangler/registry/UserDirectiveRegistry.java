@@ -141,7 +141,8 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
     } catch (IllegalArgumentException e) {
       throw new DirectiveLoadException(
         String.format("Directive '%s' not found. Check if the directive is spelled correctly or artifact " +
-                        "containing the directive has been uploaded", name), e
+                        "containing the directive has been uploaded or you might be missing " +
+                        "'#pragma load-directives %s;'", name, name), e
       );
     } catch (Exception e) {
       throw new DirectiveLoadException(e.getMessage(), e);
