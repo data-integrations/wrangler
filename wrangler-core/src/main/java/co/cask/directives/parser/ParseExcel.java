@@ -167,7 +167,7 @@ public class ParseExcel implements Directive {
 
                   case BOOLEAN:
                     newRow.add(name, cell.getBooleanCellValue());
-                    value = String.valueOf(cell.getBooleanCellValue())
+                    value = String.valueOf(cell.getBooleanCellValue());
                     break;
                 }
 
