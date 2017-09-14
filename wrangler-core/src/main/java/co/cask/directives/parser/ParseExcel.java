@@ -48,6 +48,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * A step to parse Excel files.
@@ -61,12 +63,14 @@ public class ParseExcel implements Directive {
   private static final Logger LOG = LoggerFactory.getLogger(ParseExcel.class);
   private String column;
   private String sheet;
+  private boolean firstRowAsHeader = false;
 
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("sheet", TokenType.TEXT, Optional.TRUE);
+    builder.define("first-row-as-header", TokenType.BOOLEAN, Optional.TRUE);
     return builder.build();
   }
 
@@ -77,6 +81,9 @@ public class ParseExcel implements Directive {
       this.sheet = ((Text) args.value("sheet")).value();
     } else {
       this.sheet = "0";
+    }
+    if (args.contains("first-row-as-header")) {
+      this.firstRowAsHeader = ((Boolean) args.value("first-row-as-header").value());
     }
   }
 
@@ -121,6 +128,7 @@ public class ParseExcel implements Directive {
               );
             }
 
+            Map<Integer, String> columnNames = new TreeMap<>();
             Iterator<org.apache.poi.ss.usermodel.Row> it = excelsheet.iterator();
             int rows = 0;
             while (it.hasNext()) {
@@ -134,22 +142,37 @@ public class ParseExcel implements Directive {
               while (cellIterator.hasNext()) {
                 Cell cell = cellIterator.next();
                 String name = columnName(cell.getAddress().getColumn());
+                if (firstRowAsHeader && rows > 0) {
+                  String value = columnNames.get(cell.getAddress().getColumn());
+                  if (value != null) {
+                    name = value;
+                  }
+                }
+                String value = "";
                 switch (cell.getCellTypeEnum()) {
                   case STRING:
                     newRow.add(name, cell.getStringCellValue());
+                    value = cell.getStringCellValue();
                     break;
 
                   case NUMERIC:
                     if (HSSFDateUtil.isCellDateFormatted(cell)) {
                       newRow.add(name, cell.getDateCellValue());
+                      value = cell.getDateCellValue().toString();
                     } else {
                       newRow.add(name, cell.getNumericCellValue());
+                      value = String.valueOf(cell.getNumericCellValue());
                     }
                     break;
 
                   case BOOLEAN:
                     newRow.add(name, cell.getBooleanCellValue());
+                    value = String.valueOf(cell.getBooleanCellValue())
                     break;
+                }
+
+                if (rows == 0 && firstRowAsHeader) {
+                  columnNames.put(cell.getAddress().getColumn(), value);
                 }
               }
               results.add(newRow);
