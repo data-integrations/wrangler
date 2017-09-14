@@ -256,9 +256,9 @@ There are some major difference in new syntax for invoking directives, all
 Macros are be freely specified. One caveat while specifying macros is that the `#pragma load-directives` cannot be part of the macro. They should be specified in the plugin configuration itself. The reason is that we have to register the user defined directives prior to initializing and executing the transform. Macros are dereferenced only at the initialization and execution state. A configuration could look something like this.
 
 ```
-#pragma load-directive my-udd-1, my-udd2;
+#pragma load-directives my-udd-1, my-udd2;
 ${macroed_recipe}
-#pragma load-directive my-udd3
+#pragma load-directives my-udd3
 ${another_recipe}
 ```
 
