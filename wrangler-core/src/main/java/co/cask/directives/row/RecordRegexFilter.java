@@ -46,9 +46,7 @@ import java.util.regex.Pattern;
 @Description("Filters rows if the regex is matched or not matched.")
 public class RecordRegexFilter implements Directive {
   public static final String NAME = "filter-by-regex";
-  private String regex;
   private String column;
-  private String matchType;
   private Pattern pattern;
   private boolean matched = false;
 
@@ -65,20 +63,18 @@ public class RecordRegexFilter implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    matchType = ((Identifier) args.value("match-type")).value();
+    String matchType = ((Identifier) args.value("match-type")).value();
     if (matchType.equalsIgnoreCase("if-matched")) {
       matched = true;
     } else if (matchType.equalsIgnoreCase("if-not-matched")) {
       matched = false;
     } else {
-      throw new DirectiveParseException(
-        String.format("Match type specified is not 'if-matched' or 'if-not-matched'")
-      );
+      throw new DirectiveParseException("Match type specified is not 'if-matched' or 'if-not-matched'");
     }
     column = ((ColumnName) args.value("column")).value();
-    regex = ((Text) args.value("regex")).value();
+    String regex = ((Text) args.value("regex")).value();
     if (!regex.equalsIgnoreCase("null") && !regex.isEmpty()) {
-      pattern = Pattern.compile(this.regex);
+      pattern = Pattern.compile(regex);
     } else {
       pattern = null;
     }
@@ -104,12 +100,11 @@ public class RecordRegexFilter implements Directive {
             continue;
           }
         } else if (object instanceof String) {
-          String value = (String) row.getValue(idx);
-          boolean matches = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
-          if(!matched) {
-            matches = !matches;
+          if (matchPattern((String) row.getValue(idx))) {
+            continue;
           }
-          if (matches) {
+        } else if (object instanceof Number) {
+          if (matchPattern(((Number) row.getValue(idx)).toString())) {
             continue;
           }
         } else {
@@ -124,6 +119,14 @@ public class RecordRegexFilter implements Directive {
       }
     }
     return results;
+  }
+
+  private boolean matchPattern(String value) {
+    boolean matches = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
+    if(!matched) {
+      matches = !matches;
+    }
+    return matches;
   }
 }
 
