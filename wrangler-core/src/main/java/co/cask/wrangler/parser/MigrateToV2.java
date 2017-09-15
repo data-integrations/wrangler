@@ -437,14 +437,6 @@ public final class MigrateToV2 implements GrammarMigrator {
         }
         break;
 
-        // parse-as-excel <column> <sheet number | sheet name>
-        case "parse-as-excel" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String sheet = getNextToken(tokenizer, "\n", command, "sheet", lineno, true);
-          transformed.add(String.format("parse-as-excel %s %s;", col(column), quote(sheet)));
-        }
-        break;
-
         // xpath <column> <destination> <xpath>
         case "xpath" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
