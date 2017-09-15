@@ -136,8 +136,12 @@ public class ParseExcel implements Directive {
               if(checkIfRowIsEmpty(row)) {
                 continue;
               }
+
               Row newRow = new Row();
-              newRow.add("fwd", rows);
+              if(firstRowAsHeader && rows > 0) {
+                newRow.add("fwd", rows);
+              }
+
               while (cellIterator.hasNext()) {
                 Cell cell = cellIterator.next();
                 String name = columnName(cell.getAddress().getColumn());
@@ -184,7 +188,7 @@ public class ParseExcel implements Directive {
             }
 
             if (firstRowAsHeader) {
-              rows = rows - 2;
+              rows = rows - 1;
             }
 
             for (int i = rows - 1; i >= 0; --i) {
