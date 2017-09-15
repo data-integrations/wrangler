@@ -45,6 +45,7 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -73,7 +74,9 @@ import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DAT
 @Path("/connections/{connection-id}/s3/")
 public class S3Service extends AbstractHttpServiceHandler {
   private static final Gson gson =
-    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+    new GsonBuilder().
+      setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES).
+      registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final int FILE_SIZE = 10 * 1024 * 1024;
   // Abstraction over the table defined above for managing connections.
   private ConnectionStore store;
@@ -223,7 +226,8 @@ public class S3Service extends AbstractHttpServiceHandler {
           loadFile(responder, inputStream, object);
         }
       } else {
-        ServiceUtils.error(responder, "S3 Object not found");
+        ServiceUtils.error(responder,
+                           String.format("S3 Object with key %s and bucket-name %s is not found", key, bucketName));
         return;
       }
     } catch (Exception e) {
@@ -237,7 +241,7 @@ public class S3Service extends AbstractHttpServiceHandler {
     try {
 
       if (s3Object.getObjectMetadata().getContentLength() > FILE_SIZE) {
-        error(responder, "Large files greater than 10MG not supported.");
+        error(responder, "Files greater than 10MB are not supported.");
         return;
       }
 
@@ -254,9 +258,9 @@ public class S3Service extends AbstractHttpServiceHandler {
 
       // Set all properties and write to workspace.
       Map<String, String> properties = new HashMap<>();
-      properties.put("bucketName", s3Object.getBucketName());
+      properties.put("bucket-name", s3Object.getBucketName());
       properties.put("key", s3Object.getKey());
-      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       table.writeProperties(id, properties);
 
@@ -267,7 +271,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       // Preparing return response to include mandatory fields : id and name.
       JsonArray values = new JsonArray();
       JsonObject object = new JsonObject();
-      object.addProperty("bucketName", s3Object.getBucketName());
+      object.addProperty("bucket-name", s3Object.getBucketName());
       object.addProperty("key", s3Object.getKey());
       object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       values.add(object);
