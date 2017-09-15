@@ -175,7 +175,11 @@ public class ParseExcel implements Directive {
                   columnNames.put(cell.getAddress().getColumn(), value);
                 }
               }
-              results.add(newRow);
+
+              if (firstRowAsHeader && rows > 0) {
+                results.add(newRow);
+              }
+
               rows++;
             }
 
