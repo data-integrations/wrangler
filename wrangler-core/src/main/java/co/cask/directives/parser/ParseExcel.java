@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -176,11 +175,16 @@ public class ParseExcel implements Directive {
                 }
               }
 
-              if (firstRowAsHeader && rows > 0) {
-                results.add(newRow);
+              if (firstRowAsHeader && rows == 0) {
+                rows++;
+                continue;
               }
-
+              results.add(newRow);
               rows++;
+            }
+
+            if (firstRowAsHeader) {
+              rows = rows - 2;
             }
 
             for (int i = rows - 1; i >= 0; --i) {
@@ -189,8 +193,8 @@ public class ParseExcel implements Directive {
           }
         }
       }
-    } catch (IOException e) {
-      throw new DirectiveExecutionException(toString() + " Issue parsing excel file. " + e.getMessage());
+    } catch (Exception e) {
+      throw new DirectiveExecutionException(toString() + " Issue parsing excel file. " + e.getMessage(), e);
     } finally {
       if (input != null) {
         Closeables.closeQuietly(input);
