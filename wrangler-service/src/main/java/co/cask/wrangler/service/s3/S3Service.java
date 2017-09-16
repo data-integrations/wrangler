@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -200,12 +201,12 @@ public class S3Service extends AbstractHttpServiceHandler {
   }
 
   /**
-   * Loads s3 object into workspace
+   * Reads s3 object into workspace
    * @param request HTTP Request handler.
    * @param responder HTTP Response handler.
    */
   @POST
-  @Path("load/buckets/{bucket-name}")
+  @Path("buckets/{bucket-name}/read")
   public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("connection-id") String connectionId,
                          @PathParam("bucket-name") String bucketName,
@@ -232,6 +233,48 @@ public class S3Service extends AbstractHttpServiceHandler {
       }
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
+    }
+  }
+
+  /**
+   * Specification for the source.
+   *
+   * @param request HTTP request handler.
+   * @param responder HTTP response handler.
+   * @param bucketName S3 object's bucket name
+   * @param key S3 object's key
+   */
+  @Path("buckets/{bucket-name}/specification")
+  @GET
+  public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
+                            @PathParam("connection-id") String connectionId,
+                            @PathParam("bucket-name") String bucketName, @QueryParam("key") final String key) {
+    JsonObject response = new JsonObject();
+    try {
+      Connection conn = store.get(connectionId);
+      S3Configuration s3Configuration = new S3Configuration(conn);
+      JsonObject value = new JsonObject();
+      JsonObject s3 = new JsonObject();
+
+      Map<String, String> properties = new HashMap<>();
+      properties.put("accessID", s3Configuration.getAWSAccessKeyId());
+      properties.put("accessKey", s3Configuration.getAWSSecretKey());
+      properties.put("path", String.format("s3://%s/%s", bucketName, key));
+
+      s3.add("properties", gson.toJsonTree(properties));
+      s3.addProperty("name", "S3");
+      s3.addProperty("type", "source");
+      value.add("S3", s3);
+
+      JsonArray values = new JsonArray();
+      values.add(value);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
+      error(responder, e.getMessage());
     }
   }
 
