@@ -486,7 +486,7 @@ public final class MigrateToV2 implements GrammarMigrator {
         // fill-null-or-empty <column> <fixed value>
         case "fill-null-or-empty" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String value = getNextToken(tokenizer, command, "fixed-value", lineno);
+          String value = getNextToken(tokenizer, "\n", command, "fixed-value", lineno, false);
           transformed.add(String.format("fill-null-or-empty %s %s;", col(column), quote(value)));
         }
         break;
