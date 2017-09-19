@@ -63,7 +63,7 @@ public enum MutationType {
   /**
    * When a column is being modified.
    */
-  MODIY(5);
+  MODIFY(5);
 
   // Integer representation of the mutation.
   private final int type;
