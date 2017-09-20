@@ -529,12 +529,15 @@ public class DatabaseService extends AbstractHttpServiceHandler {
                 if (object instanceof java.sql.Date) {
                   java.sql.Date dt = (java.sql.Date) object;
                   object = dt.toString();
-                } else if (object instanceof java.sql.Time) {
+                } else if (object instanceof java.sql.Timestamp) {
                   java.sql.Timestamp dt = (java.sql.Timestamp) object;
                   object = dt.toString();
                 } else if (object instanceof java.sql.Time) {
                   java.sql.Time dt = (java.sql.Time) object;
                   object = dt.toString();
+                } else if (object.getClass().getName().equals("oracle.sql.ROWID")) {
+                  // If the object is Oracle ROWID, then convert it into a string.
+                  object = object.toString();
                 }
                 row.add(meta.getColumnName(i), object);
               }
