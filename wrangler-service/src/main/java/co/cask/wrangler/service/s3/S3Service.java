@@ -27,6 +27,7 @@ import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
+import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.dataset.connections.Connection;
@@ -44,6 +45,7 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -72,7 +74,6 @@ import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DAT
 /**
  * Service to explore S3 filesystem
  */
-@Path("/connections/{connection-id}/s3/")
 public class S3Service extends AbstractHttpServiceHandler {
   private static final Gson gson =
     new GsonBuilder().
@@ -106,12 +107,17 @@ public class S3Service extends AbstractHttpServiceHandler {
    * @param responder HTTP Response handler.
    */
   @POST
-  @Path("test")
-  public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder,
-                               @PathParam("connection-id") String connectionId) {
+  @Path("/connections/s3/test")
+  public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
-      Connection connection = store.get(connectionId);
-      if (!validateConnection(connectionId, connection, responder)) {
+      // Extract the body of the request and transform it to the Connection object.
+      RequestExtractor extractor = new RequestExtractor(request);
+      Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
+      ConnectionType connectionType = ConnectionType.fromString(connection.getType().getType());
+      if (connectionType == ConnectionType.UNDEFINED || connectionType != ConnectionType.S3) {
+        error(responder,
+              String.format("Invalid connection type %s set, expected 'S3' connection type.",
+                            connectionType.getType()));
         return;
       }
       intializeAndGetS3Client(connection);
@@ -149,7 +155,7 @@ public class S3Service extends AbstractHttpServiceHandler {
    * @param responder HTTP Response handler.
    */
   @POST
-  @Path("buckets")
+  @Path("/connections/{connection-id}/s3/buckets")
   public void listS3Buckets(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("connection-id") String connectionId) {
     try {
@@ -170,7 +176,7 @@ public class S3Service extends AbstractHttpServiceHandler {
    * @param responder HTTP Response handler.
    */
   @POST
-  @Path("explore/buckets/{bucket-name}")
+  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/explore")
   public void getS3BucketInfo(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("connection-id") String connectionId,
                               @PathParam("bucket-name") String bucketName,
@@ -206,7 +212,7 @@ public class S3Service extends AbstractHttpServiceHandler {
    * @param responder HTTP Response handler.
    */
   @POST
-  @Path("buckets/{bucket-name}/read")
+  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/read")
   public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("connection-id") String connectionId,
                          @PathParam("bucket-name") String bucketName,
@@ -244,7 +250,7 @@ public class S3Service extends AbstractHttpServiceHandler {
    * @param bucketName S3 object's bucket name
    * @param key S3 object's key
    */
-  @Path("buckets/{bucket-name}/specification")
+  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/specification")
   @GET
   public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
                             @PathParam("connection-id") String connectionId,
@@ -305,6 +311,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       properties.put("key", s3Object.getKey());
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+      properties.put(PropertyIds.CONNECTION_ID, id);
       table.writeProperties(id, properties);
 
       DataType dataType = DataType.fromString(s3Object.getObjectMetadata().getContentType());
