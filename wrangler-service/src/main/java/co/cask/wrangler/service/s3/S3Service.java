@@ -120,7 +120,8 @@ public class S3Service extends AbstractHttpServiceHandler {
                             connectionType.getType()));
         return;
       }
-      intializeAndGetS3Client(connection);
+      // creating a client doesn't test the connection, we will do list buckets so the connection is tested.
+      intializeAndGetS3Client(connection).listBuckets();
       ServiceUtils.success(responder, "Success");
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
