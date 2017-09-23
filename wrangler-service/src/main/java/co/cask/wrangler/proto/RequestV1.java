@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.proto;
 
+import com.google.gson.JsonObject;
+
 /**
  * Specifies the V1 version of the {@link Request} object.
  */
@@ -32,11 +34,16 @@ public final class RequestV1 implements Request {
   // Sampling information associated with request.
   private Sampling sampling;
 
-  public RequestV1(int version, Workspace workspace, Recipe recipe, Sampling sampling) {
+  // Additional properties that is of type json.
+  private JsonObject properties;
+
+  public RequestV1(int version, Workspace workspace, Recipe recipe, Sampling sampling,
+                   JsonObject properties) {
     this.version = version;
     this.workspace = workspace;
     this.recipe = recipe;
     this.sampling = sampling;
+    this.properties = properties;
   }
 
   /**
@@ -69,5 +76,13 @@ public final class RequestV1 implements Request {
   @Override
   public Recipe getRecipe() {
     return recipe;
+  }
+
+  /**
+   * @return Properties associated with the execution request.
+   */
+  @Override
+  public JsonObject getProperties() {
+    return properties;
   }
 }

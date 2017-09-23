@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.proto;
 
+import com.google.gson.JsonObject;
+
 /**
  * Dataprep request body and it's structure.
  */
@@ -36,7 +38,12 @@ public interface Request {
   Sampling getSampling();
 
   /**
-   * @return TestRecipe specification associated with the request.
+   * @return Recipe specification associated with the request.
    */
   Recipe getRecipe();
+
+  /**
+   * @return Properties associated with the request.
+   */
+  JsonObject getProperties();
 }

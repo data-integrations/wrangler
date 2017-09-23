@@ -104,4 +104,24 @@ public class FillNullOrEmptyTest {
     Assert.assertEquals("N/A", rows.get(1).getValue("value"));
     Assert.assertEquals("Should be fine", rows.get(2).getValue("value"));
   }
+
+  @Test
+  public void testSpace() throws Exception {
+    String[] directives = new String[] {
+      "fill-null-or-empty :value 'Not Available'",
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("value", null),
+      new Row("value", null),
+      new Row("value", "Should be fine")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+
+    Assert.assertTrue(rows.size() == 3);
+    Assert.assertEquals("Not Available", rows.get(0).getValue("value"));
+    Assert.assertEquals("Not Available", rows.get(1).getValue("value"));
+    Assert.assertEquals("Should be fine", rows.get(2).getValue("value"));
+  }
 }

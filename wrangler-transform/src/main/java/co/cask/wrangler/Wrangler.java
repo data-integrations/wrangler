@@ -34,6 +34,7 @@ import co.cask.wrangler.api.CompileException;
 import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
+import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.ExecutorContext;
@@ -350,8 +351,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // If error threshold is reached, then terminate processing
       // If threshold is set to -1, it tolerant unlimited errors
       if (config.threshold != -1 && errorCounter > config.threshold) {
-        LOG.error("Error threshold reached '{}' : {}", config.threshold, e.getMessage());
-        throw new Exception(String.format("Reached error threshold %d, terminating processing.", config.threshold));
+        if (e instanceof DirectiveExecutionException) {
+          throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing " +
+                                              "due to error : %s", getContext().getStageName(), config.threshold,
+                                            e.getMessage()));
+
+        } else {
+          throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing " +
+                                              "due to error : %s", getContext().getStageName(), config.threshold,
+                                            e.getMessage()), e);
+        }
       }
       // Emit error record, if the Error flattener or error handlers are not connected, then
       // the record is automatically omitted.

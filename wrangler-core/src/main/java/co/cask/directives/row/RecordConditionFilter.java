@@ -36,7 +36,9 @@ import co.cask.wrangler.expression.ELContext;
 import co.cask.wrangler.expression.ELException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -56,6 +58,8 @@ public class RecordConditionFilter implements Directive {
   private String condition;
   private final EL el = new EL(new EL.DefaultFunctions());
   private boolean isTrue;
+  // Variables in expression
+  private Set<String> variables = new HashSet<>();
 
   @Override
   public UsageDefinition define() {

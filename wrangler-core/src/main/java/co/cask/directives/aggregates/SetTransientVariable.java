@@ -36,7 +36,9 @@ import co.cask.wrangler.expression.ELContext;
 import co.cask.wrangler.expression.ELException;
 import co.cask.wrangler.expression.ELResult;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A directive that defines a transient variable who's life-expectancy is only within the record.

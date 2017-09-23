@@ -36,8 +36,10 @@ import co.cask.wrangler.expression.ELException;
 import co.cask.wrangler.expression.ELResult;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A directive for apply an expression to store the result in a column.
