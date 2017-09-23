@@ -47,4 +47,12 @@ public class MigrateToV2Test {
     migrator.migrate();
     Assert.assertTrue(true); // no exception should be thrown.
   }
+
+  @Test
+  public void testOldDirectivesWithNewSyntax() throws Exception {
+    String recipe = "parse-as-csv :body '\t' true; drop :body;";
+    GrammarMigrator migrator = new MigrateToV2(recipe);
+    migrator.migrate();
+    Assert.assertTrue(true); // no exception should be thrown.
+  }
 }

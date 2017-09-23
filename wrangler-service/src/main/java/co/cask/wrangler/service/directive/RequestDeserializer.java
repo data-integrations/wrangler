@@ -52,7 +52,8 @@ public class RequestDeserializer implements JsonDeserializer<Request> {
       Workspace workspace = context.deserialize(object.get("workspace"), Workspace.class);
       Recipe recipe = context.deserialize(object.get("recipe"), Recipe.class);
       Sampling sampling = context.deserialize(object.get("sampling"), Sampling.class);
-      return new RequestV1(version, workspace, recipe, sampling);
+      JsonObject properties = context.deserialize(object.get("properties"), JsonObject.class);
+      return new RequestV1(version, workspace, recipe, sampling, properties);
     } else {
       throw new JsonParseException (
         String.format("Unsupported request version %d.", version)

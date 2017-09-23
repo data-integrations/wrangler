@@ -38,7 +38,7 @@ public class ParseExcelTest {
       byte[] data = IOUtils.toByteArray(stream);
 
       String[] directives = new String[]{
-        "parse-as-excel body 0",
+        "parse-as-excel :body '0'",
       };
 
       List<Row> rows = new ArrayList<>();
@@ -55,7 +55,7 @@ public class ParseExcelTest {
       byte[] data = IOUtils.toByteArray(stream);
 
       String[] directives = new String[]{
-        "parse-as-excel body wrong_error",
+        "parse-as-excel :body 'wrong_error'",
       };
 
       List<Row> rows = new ArrayList<>();

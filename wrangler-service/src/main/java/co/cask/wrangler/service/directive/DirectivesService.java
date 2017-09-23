@@ -70,6 +70,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -309,9 +310,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
       Map<String, String> properties = table.getProperties(id);
       JsonObject prop = (JsonObject) GSON.toJsonTree(properties);
+
       prop.addProperty("name", name);
       prop.addProperty("id", name);
-      req.add("properties", prop);
+      req.add("properties", merge(req.getAsJsonObject("properties"), prop));
       values.add(req);
       response.addProperty("count", 1);
       response.add("values", values);
@@ -321,6 +323,29 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     } catch (WorkspaceException | JSONException e) {
       error(responder, e.getMessage());
     }
+  }
+
+  /**
+   * Merges two {@link JsonObject} into a single object. If the keys are
+   * overlapping, then the second JsonObject keys will overwrite the first.
+   *
+   * @param first {@link JsonObject}
+   * @param second  {@link JsonObject}
+   * @return merged {@link JsonObject}
+   */
+  private JsonObject merge(JsonObject first, JsonObject second) {
+    JsonObject merged = new JsonObject();
+    if (first != null && !first.isJsonNull()) {
+      for(Map.Entry<String, JsonElement> entry: first.entrySet()) {
+        merged.add(entry.getKey(), entry.getValue());
+      }
+    }
+    if (second != null && !second.isJsonNull()) {
+      for(Map.Entry<String, JsonElement> entry: second.entrySet()) {
+        merged.add(entry.getKey(), entry.getValue());
+      }
+    }
+    return merged;
   }
 
   /**
