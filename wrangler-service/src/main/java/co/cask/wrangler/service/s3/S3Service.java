@@ -58,6 +58,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -80,6 +82,7 @@ import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DAT
  * Service to explore S3 filesystem
  */
 public class S3Service extends AbstractHttpServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(S3Service.class);
   private static final Gson gson =
     new GsonBuilder().
       setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES).
@@ -182,20 +185,22 @@ public class S3Service extends AbstractHttpServiceHandler {
       }
 
       String bucketName = "";
-      String prefix = "/";
+      String prefix = null;
       int bucketStart = path.indexOf("/");
       if (bucketStart != -1) {
         int bucketEnd = path.indexOf("/", bucketStart + 1);
         if (bucketEnd != -1) {
           bucketName = path.substring(bucketStart + 1, bucketEnd);
-          prefix = path.substring(bucketEnd);
+          if((bucketEnd + 1) != path.length()) {
+            prefix = path.substring(bucketEnd + 1);
+          }
         } else {
           bucketName = path.substring(bucketStart + 1);
         }
       }
 
       AmazonS3 s3 = intializeAndGetS3Client(connection[0]);
-      if (bucketName.isEmpty() && prefix.equalsIgnoreCase("/")) {
+      if (bucketName.isEmpty() && prefix == null) {
         List<Bucket> buckets = s3.listBuckets();
         JsonObject response = new JsonObject();
         response.addProperty("status", HttpURLConnection.HTTP_OK);
@@ -218,7 +223,9 @@ public class S3Service extends AbstractHttpServiceHandler {
 
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest();
       listObjectsRequest.setBucketName(bucketName);
-      listObjectsRequest.setPrefix(prefix);
+      if(prefix != null) {
+        listObjectsRequest.setPrefix(prefix);
+      }
       listObjectsRequest.setDelimiter("/");
       ObjectListing result;
       DirectoryListing listing = new DirectoryListing();
@@ -236,6 +243,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       response.add("values", listing.get());
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
+      LOG.error("Issue with exploring S3 filesystem ", e);
       ServiceUtils.error(responder, e.getMessage());
     }
   }
@@ -404,6 +412,7 @@ public class S3Service extends AbstractHttpServiceHandler {
           object.addProperty("type", type);
           isWrangeable = detector.isWrangleable(type);
         } catch (IOException e) {
+          object.addProperty("type", FileTypeDetector.UNKNOWN);
           // We will not enable wrangling on unknown data.
         }
         object.addProperty("wrangle", isWrangeable);
