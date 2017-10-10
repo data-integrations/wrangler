@@ -45,6 +45,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
@@ -191,7 +192,7 @@ public class S3Service extends AbstractHttpServiceHandler {
         int bucketEnd = path.indexOf("/", bucketStart + 1);
         if (bucketEnd != -1) {
           bucketName = path.substring(bucketStart + 1, bucketEnd);
-          if((bucketEnd + 1) != path.length()) {
+          if ((bucketEnd + 1) != path.length()) {
             prefix = path.substring(bucketEnd + 1);
           }
         } else {
@@ -207,7 +208,7 @@ public class S3Service extends AbstractHttpServiceHandler {
         response.addProperty("message", "OK");
         response.addProperty("count", buckets.size());
         JsonArray values = new JsonArray();
-        for(Bucket bucket : buckets) {
+        for (Bucket bucket : buckets) {
           JsonObject object = new JsonObject();
           object.addProperty("name", bucket.getName());
           object.addProperty("created", bucket.getCreationDate().getTime());
@@ -223,7 +224,7 @@ public class S3Service extends AbstractHttpServiceHandler {
 
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest();
       listObjectsRequest.setBucketName(bucketName);
-      if(prefix != null) {
+      if (prefix != null) {
         listObjectsRequest.setPrefix(prefix);
       }
       listObjectsRequest.setDelimiter("/");
@@ -234,7 +235,7 @@ public class S3Service extends AbstractHttpServiceHandler {
         listing.addDirectory(result.getCommonPrefixes());
         listing.addObject(result.getObjectSummaries());
         listObjectsRequest.setMarker(result.getMarker());
-      } while(result.isTruncated() == true );
+      } while (result.isTruncated() == true);
 
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
@@ -242,8 +243,9 @@ public class S3Service extends AbstractHttpServiceHandler {
       response.addProperty("count", listing.size());
       response.add("values", listing.get());
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (AmazonS3Exception e) {
+      ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
     } catch (Exception e) {
-      LOG.error("Issue with exploring S3 filesystem ", e);
       ServiceUtils.error(responder, e.getMessage());
     }
   }
@@ -273,13 +275,15 @@ public class S3Service extends AbstractHttpServiceHandler {
       S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
       if (object != null) {
         try (InputStream inputStream = object.getObjectContent()) {
-          loadFile(responder, inputStream, object);
+          loadFile(connection.getId(), responder, inputStream, object);
         }
       } else {
         ServiceUtils.error(responder,
                            String.format("S3 Object with key %s and bucket-name %s is not found", key, bucketName));
         return;
       }
+    } catch (AmazonS3Exception e) {
+      ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -327,7 +331,7 @@ public class S3Service extends AbstractHttpServiceHandler {
     }
   }
 
-  private void loadFile(HttpServiceResponder responder, InputStream inputStream, S3Object s3Object) {
+  private void loadFile(String id, HttpServiceResponder responder, InputStream inputStream, S3Object s3Object) {
     JsonObject response = new JsonObject();
     BufferedInputStream stream = null;
     try {
@@ -340,9 +344,9 @@ public class S3Service extends AbstractHttpServiceHandler {
       // Creates workspace.
       String name = s3Object.getKey();
 
-      String id = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
-      id = ServiceUtils.generateMD5(id);
-      table.createWorkspaceMeta(id, name);
+      String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
+      String identifier = ServiceUtils.generateMD5(file);
+      table.createWorkspaceMeta(identifier, name);
 
       stream = new BufferedInputStream(inputStream);
       byte[] bytes = new byte[(int)s3Object.getObjectMetadata().getContentLength() + 1];
@@ -350,11 +354,15 @@ public class S3Service extends AbstractHttpServiceHandler {
 
       // Set all properties and write to workspace.
       Map<String, String> properties = new HashMap<>();
-      properties.put("bucket-name", s3Object.getBucketName());
-      properties.put("key", s3Object.getKey());
+      properties.put(PropertyIds.ID, identifier);
+      properties.put(PropertyIds.NAME, name);
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, id);
+
+      // S3 specific properties.
+      properties.put("bucket-name", s3Object.getBucketName());
+      properties.put("key", s3Object.getKey());
       table.writeProperties(id, properties);
 
       DataType dataType = DataType.fromString(s3Object.getObjectMetadata().getContentType());
@@ -401,14 +409,21 @@ public class S3Service extends AbstractHttpServiceHandler {
     private void addObject(List<S3ObjectSummary> summaries) {
       for (S3ObjectSummary summary : summaries) {
         JsonObject object = new JsonObject();
-        object.addProperty("name", summary.getBucketName());
-        object.addProperty("directory", "false");
+        int idx = summary.getKey().lastIndexOf("/");
+        String name = summary.getKey();
+        if (idx != -1) {
+          name = name.substring(idx + 1);
+        }
+        object.addProperty("name", name);
+        object.addProperty("path", summary.getKey());
+        object.addProperty("directory", false);
+        object.addProperty("last-modified", summary.getLastModified().getTime());
         object.addProperty("owner", summary.getOwner().getDisplayName());
         object.addProperty("size", summary.getSize());
         object.addProperty("class", summary.getStorageClass());
         boolean isWrangeable = false;
         try {
-          String type = detector.detectFileType(summary.getBucketName());
+          String type = detector.detectFileType(name);
           object.addProperty("type", type);
           isWrangeable = detector.isWrangleable(type);
         } catch (IOException e) {
@@ -423,9 +438,18 @@ public class S3Service extends AbstractHttpServiceHandler {
     private void addDirectory(List<String> dirs) {
       for (String dir : dirs) {
         JsonObject object = new JsonObject();
-        object.addProperty("name", dir);
+        if (dir.equalsIgnoreCase("/")) {
+          continue;
+        }
+        String[] parts = dir.split("/");
+        String name = dir;
+        if (parts.length > 1) {
+          name = parts[parts.length - 1];
+        }
+        object.addProperty("name", name);
         object.addProperty("type", "directory");
         object.addProperty("directory", true);
+        object.addProperty("path", dir);
         objects.add(object);
       }
     }
