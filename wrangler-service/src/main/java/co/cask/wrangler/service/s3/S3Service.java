@@ -312,7 +312,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       Map<String, String> properties = new HashMap<>();
       properties.put("accessID", s3Configuration.getAWSAccessKeyId());
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
-      properties.put("path", String.format("s3://%s/%s", bucketName, key));
+      properties.put("path", String.format("s3a://%s/%s", bucketName, key));
 
       s3.add("properties", gson.toJsonTree(properties));
       s3.addProperty("name", "S3");
@@ -331,7 +331,7 @@ public class S3Service extends AbstractHttpServiceHandler {
     }
   }
 
-  private void loadFile(String id, HttpServiceResponder responder, InputStream inputStream, S3Object s3Object) {
+  private void loadFile(String connectionId, HttpServiceResponder responder, InputStream inputStream, S3Object s3Object) {
     JsonObject response = new JsonObject();
     BufferedInputStream stream = null;
     try {
@@ -346,7 +346,8 @@ public class S3Service extends AbstractHttpServiceHandler {
 
       String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
       String identifier = ServiceUtils.generateMD5(file);
-      table.createWorkspaceMeta(identifier, name);
+      String fileName = name.substring(name.lastIndexOf("/") + 1);
+      table.createWorkspaceMeta(identifier, fileName);
 
       stream = new BufferedInputStream(inputStream);
       byte[] bytes = new byte[(int)s3Object.getObjectMetadata().getContentLength() + 1];
@@ -355,19 +356,16 @@ public class S3Service extends AbstractHttpServiceHandler {
       // Set all properties and write to workspace.
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, identifier);
-      properties.put(PropertyIds.NAME, name);
+      properties.put(PropertyIds.NAME, fileName);
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-      properties.put(PropertyIds.CONNECTION_ID, id);
+      properties.put(PropertyIds.CONNECTION_ID, connectionId);
 
       // S3 specific properties.
       properties.put("bucket-name", s3Object.getBucketName());
       properties.put("key", s3Object.getKey());
-      table.writeProperties(id, properties);
-
-      DataType dataType = DataType.fromString(s3Object.getObjectMetadata().getContentType());
-      dataType = dataType == null ? DataType.BINARY : dataType;
-      table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, dataType, bytes);
+      table.writeProperties(identifier, properties);
+      table.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, getDataType(name), bytes);
 
       // Preparing return response to include mandatory fields : id and name.
       JsonArray values = new JsonArray();
@@ -376,14 +374,13 @@ public class S3Service extends AbstractHttpServiceHandler {
       object.addProperty(PropertyIds.NAME, name);
       object.addProperty(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-      object.addProperty(PropertyIds.CONNECTION_ID, id);
+      object.addProperty(PropertyIds.CONNECTION_ID, connectionId);
       object.addProperty("bucket-name", s3Object.getBucketName());
       object.addProperty("key", s3Object.getKey());
       values.add(object);
 
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
-      response.addProperty("id", id);
       response.addProperty("count", values.size());
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
@@ -465,5 +462,18 @@ public class S3Service extends AbstractHttpServiceHandler {
     private JsonArray get() {
       return objects;
     }
+  }
+
+  /**
+   * get data type from the file type.
+   * @param fileName
+   * @return DataType
+   * @throws IOException
+   */
+  private DataType getDataType(String fileName) throws IOException {
+    // detect fileType from fileName
+    String fileType = detector.detectFileType(fileName);
+    DataType dataType = DataType.fromString(fileType);
+    return dataType == null ? DataType.BINARY : dataType;
   }
 }
