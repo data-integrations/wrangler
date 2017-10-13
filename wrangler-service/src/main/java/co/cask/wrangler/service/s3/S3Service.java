@@ -372,9 +372,13 @@ public class S3Service extends AbstractHttpServiceHandler {
       // Preparing return response to include mandatory fields : id and name.
       JsonArray values = new JsonArray();
       JsonObject object = new JsonObject();
+      object.addProperty(PropertyIds.ID, identifier);
+      object.addProperty(PropertyIds.NAME, name);
+      object.addProperty(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
+      object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+      object.addProperty(PropertyIds.CONNECTION_ID, id);
       object.addProperty("bucket-name", s3Object.getBucketName());
       object.addProperty("key", s3Object.getKey());
-      object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       values.add(object);
 
       response.addProperty("status", HttpURLConnection.HTTP_OK);
