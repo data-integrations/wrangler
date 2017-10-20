@@ -386,6 +386,9 @@ public class S3Service extends AbstractHttpServiceHandler {
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId);
+      // S3 specific properties.
+      properties.put("bucket-name", s3Object.getBucketName());
+      properties.put("key", s3Object.getKey());
       table.writeProperties(identifier, properties);
 
       // Write rows to workspace.
