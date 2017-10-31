@@ -16,7 +16,6 @@
 
 package co.cask.directives.external;
 
-import co.cask.cdap.api.common.Bytes;
 import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;
@@ -27,20 +26,20 @@ import co.cask.wrangler.api.Row;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
@@ -48,17 +47,18 @@ import javax.ws.rs.Path;
  * Tests {@link InvokeHttp}
  */
 public class InvokeHttpTest {
+  private static final Gson GSON = new Gson();
   private static NettyHttpService httpService;
-  protected static String baseURL;
+  private static String baseURL;
 
   @Before
   public void startService() throws Exception {
     List<HttpHandler> handlers = new ArrayList<>();
     handlers.add(new ServiceHandler());
     httpService = NettyHttpService.builder("Services")
-      .addHttpHandlers(handlers)
+      .setHttpHandlers(handlers)
       .build();
-    httpService.startAsync().awaitRunning(10L, TimeUnit.SECONDS);
+    httpService.start();
     int port = httpService.getBindAddress().getPort();
     baseURL = "http://localhost:" + port;
   }
@@ -76,24 +76,22 @@ public class InvokeHttpTest {
 
     @POST
     @Path("service")
-    public void append(HttpRequest request, HttpResponder responder) {
+    public void append(FullHttpRequest request, HttpResponder responder,
+                       @HeaderParam("C") String headerC) {
       Map<String, Object> object = postRequest(request);
       Map<String, Object> response = new HashMap<>();
       String c = String.format("%s:%f", object.get("a"), object.get("b"));
-      String headerC = request.getHeader("C");
       response.put("c", c);
       response.put("HeaderC", headerC);
-      responder.sendJson(HttpResponseStatus.OK, response);
+      responder.sendJson(HttpResponseStatus.OK, GSON.toJson(response));
     }
 
-    private Map<String, Object> postRequest(HttpRequest request) throws JsonParseException {
-      ByteBuffer content = request.getContent().toByteBuffer();
-      if (content != null && content.hasRemaining()) {
-        Map<String, Object> req =
-          new Gson().fromJson(Bytes.toString(content), new TypeToken<Map<String, Object>>(){}.getType());
-        return req;
+    private Map<String, Object> postRequest(FullHttpRequest request) throws JsonParseException {
+      String contentString = request.content().toString(StandardCharsets.UTF_8);
+      if (contentString.isEmpty()) {
+        return null;
       }
-      return null;
+      return new Gson().fromJson(contentString, new TypeToken<Map<String, Object>>(){}.getType());
     }
   }
 
@@ -159,7 +157,7 @@ public class InvokeHttpTest {
 
   @After
   public void stopService() throws Exception {
-    httpService.stopAsync().awaitTerminated(10L, TimeUnit.SECONDS);
+    httpService.stop();
   }
 
 }
