@@ -134,7 +134,7 @@ public class InvokeHttp implements Directive {
         }
       }
       try {
-        Map<String, Object> result = InvokeHttp(url, parameters, headers);
+        Map<String, Object> result = invokeHttp(url, parameters, headers);
         for(Map.Entry<String, Object> entry : result.entrySet()) {
           row.addOrSet(entry.getKey(), entry.getValue());
         }
@@ -148,7 +148,7 @@ public class InvokeHttp implements Directive {
 
   private class ServiceResponseHandler implements ResponseHandler<Map<String, Object>> {
     @Override
-    public Map<String, Object> handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+    public Map<String, Object> handleResponse(HttpResponse response) throws IOException {
       StatusLine statusLine = response.getStatusLine();
       HttpEntity entity = response.getEntity();
       if (statusLine.getStatusCode() >= 300) {
@@ -161,12 +161,11 @@ public class InvokeHttp implements Directive {
       }
       Gson gson = new GsonBuilder().create();
       Reader reader = new InputStreamReader(entity.getContent(), Charset.forName("UTF-8"));
-      Map<String, Object> v = gson.fromJson(reader, new TypeToken<Map<String, Object>>(){}.getType());
-      return v;
+      return gson.fromJson(reader, new TypeToken<Map<String, Object>>(){}.getType());
     }
   }
 
-  private Map<String, Object> InvokeHttp(String url, Map<String, Object> parameters,
+  private Map<String, Object> invokeHttp(String url, Map<String, Object> parameters,
                                          Map<String, String> headers) throws IOException {
     CloseableHttpClient client = null;
     try {
