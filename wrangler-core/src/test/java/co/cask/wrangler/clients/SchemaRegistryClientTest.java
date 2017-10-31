@@ -5,11 +5,12 @@ import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;
 import co.cask.http.NettyHttpService;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,10 +20,8 @@ import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -34,8 +33,9 @@ import javax.ws.rs.Path;
  * issue loading class. Hence, this test simulates the service and not actually tests the service.
  */
 public class SchemaRegistryClientTest {
+  private static final Gson GSON = new Gson();
   private static NettyHttpService httpService;
-  protected static String baseURL;
+  private static String baseURL;
   private static SchemaRegistryClient client;
 
   @Before
@@ -43,12 +43,17 @@ public class SchemaRegistryClientTest {
     List<HttpHandler> handlers = new ArrayList<>();
     handlers.add(new ServiceHandler());
     httpService = NettyHttpService.builder("SchemaService")
-      .addHttpHandlers(handlers)
+      .setHttpHandlers(handlers)
       .build();
-    httpService.startAsync().awaitRunning(10L, TimeUnit.SECONDS);
+    httpService.start();
     int port = httpService.getBindAddress().getPort();
     baseURL = "http://localhost:" + port;
     client = new SchemaRegistryClient(baseURL);
+  }
+
+  @After
+  public void stopService() throws Exception {
+    httpService.stop();
   }
 
   public static class OKResponse {
@@ -84,7 +89,7 @@ public class SchemaRegistryClientTest {
     @Path("schemas")
     public void append(HttpRequest request, HttpResponder responder) {
       OKResponse response = new OKResponse(200, "Successfully created schema entry with id '%s', name '%s'");
-      responder.sendJson(HttpResponseStatus.OK, response);
+      responder.sendJson(HttpResponseStatus.OK, GSON.toJson(response));
     }
 
     @GET
@@ -104,9 +109,8 @@ public class SchemaRegistryClientTest {
       Set<Long> vs = new HashSet<>();
       vs.add(2L);
       vs.add(3L);
-      Iterator<Long> it = vs.iterator();
-      while(it.hasNext()) {
-        versions.add(new JsonPrimitive(it.next()));
+      for (Long v : vs) {
+        versions.add(new JsonPrimitive(v));
       }
       object.add("versions", versions);
       array.add(object);
@@ -114,7 +118,7 @@ public class SchemaRegistryClientTest {
       response.addProperty("message", "Success");
       response.addProperty("count", array.size());
       response.add("values", array);
-      responder.sendJson(HttpResponseStatus.OK, response);
+      responder.sendJson(HttpResponseStatus.OK, GSON.toJson(response));
     }
 
     @GET
@@ -127,15 +131,14 @@ public class SchemaRegistryClientTest {
       versions.add(4L);
       JsonObject response = new JsonObject();
       JsonArray array = new JsonArray();
-      Iterator<Long> it = versions.iterator();
-      while(it.hasNext()) {
-        array.add(new JsonPrimitive(it.next()));
+      for (Long version : versions) {
+        array.add(new JsonPrimitive(version));
       }
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");
       response.addProperty("count", array.size());
       response.add("values", array);
-      responder.sendJson(HttpResponseStatus.OK, response);
+      responder.sendJson(HttpResponseStatus.OK, GSON.toJson(response));
     }
   }
 
@@ -157,10 +160,5 @@ public class SchemaRegistryClientTest {
   @Test (expected = RestClientException.class)
   public void testGetWrongSchemaIdVersions() throws Exception {
     client.getVersions("foo1");
-  }
-
-  @After
-  public void stopService() throws Exception {
-    httpService.stopAsync().awaitTerminated(10L, TimeUnit.SECONDS);
   }
 }
