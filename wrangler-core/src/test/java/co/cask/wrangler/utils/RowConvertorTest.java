@@ -143,16 +143,16 @@ public class RowConvertorTest {
     RecipePipeline pipeline = TestingRig.execute(directives);
     List<StructuredRecord> results = pipeline.execute(rows, schema);
     Assert.assertEquals(1, results.size());
-    Assert.assertEquals(123456L, results.get(0).get("body_TimeStamp"));
-    Assert.assertEquals(2L, results.get(0).get("i2l"));
-    Assert.assertEquals(1L, results.get(0).get("sh2l"));
-    Assert.assertEquals(2L, results.get(0).get("s2l"));
-    Assert.assertEquals(1.0f, results.get(0).get("i2f"));
-    Assert.assertEquals(2.0f, results.get(0).get("s2f"));
-    Assert.assertEquals(1.0f, results.get(0).get("l2f"));
-    Assert.assertEquals(1.0, results.get(0).get("i2d"));
-    Assert.assertEquals(3.0, results.get(0).get("s2d"));
-    Assert.assertEquals(2.0, results.get(0).get("l2d"));
-    Assert.assertEquals(2.3, (Double)results.get(0).get("f2d"), 0.01);
+    Assert.assertEquals(123456L, results.get(0).<Long>get("body_TimeStamp").longValue());
+    Assert.assertEquals(2L, results.get(0).<Long>get("i2l").longValue());
+    Assert.assertEquals(1L, results.get(0).<Long>get("sh2l").longValue());
+    Assert.assertEquals(2L, results.get(0).<Long>get("s2l").longValue());
+    Assert.assertEquals(1.0f, results.get(0).get("i2f"), 0.0001f);
+    Assert.assertEquals(2.0f, results.get(0).get("s2f"), 0.0001f);
+    Assert.assertEquals(1.0f, results.get(0).get("l2f"), 0.0001f);
+    Assert.assertEquals(1.0d, results.get(0).get("i2d"), 0.0001d);
+    Assert.assertEquals(3.0d, results.get(0).get("s2d"), 0.0001d);
+    Assert.assertEquals(2.0d, results.get(0).get("l2d"), 0.0001d);
+    Assert.assertEquals(2.3d, results.get(0).get("f2d"), 0.0001d);
   }
 }
