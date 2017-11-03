@@ -212,15 +212,21 @@
       <version>${commons.validator.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-unit-test</artifactId>
-      <version>${cdap.version}</version>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>${netty.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>co.cask.http</groupId>
       <artifactId>netty-http</artifactId>
       <version>${netty-http.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>cdap-unit-test</artifactId>
+      <version>${cdap.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

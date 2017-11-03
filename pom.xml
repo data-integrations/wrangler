@@ -97,7 +97,8 @@
     <chlorine.version>1.1.5</chlorine.version>
     <simplemagic.version>1.11</simplemagic.version>
     <httpclient.version>4.5.3</httpclient.version>
-    <netty-http.version>0.16.0</netty-http.version>
+    <netty-http.version>1.0.0-SNAPSHOT</netty-http.version>
+    <netty.version>4.1.16.Final</netty.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <avro.version>1.8.1</avro.version>
     <slf4j.version>1.7.5</slf4j.version>
@@ -146,10 +147,10 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.1</version>
+          <version>3.7.0</version>
           <configuration>
-            <source>1.7</source>
-            <target>1.7</target>
+            <source>1.8</source>
+            <target>1.8</target>
           </configuration>
         </plugin>
         <plugin>
@@ -184,6 +185,11 @@
     </pluginManagement>
 
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
