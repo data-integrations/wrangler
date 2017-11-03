@@ -93,7 +93,7 @@ public class RecipePipelineExecutorTest {
     Assert.assertEquals("Larry", record.get("first"));
     Assert.assertEquals("Perez", record.get("last"));
     Assert.assertEquals("lperezqt@umn.edu", record.get("email"));
-    Assert.assertEquals(1481666448L, record.get("timestamp"));
-    Assert.assertEquals(186.66f, record.get("weight"));
+    Assert.assertEquals(1481666448L, record.<Long>get("timestamp").longValue());
+    Assert.assertEquals(186.66f, record.get("weight"), 0.0001f);
   }
 }
