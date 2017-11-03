@@ -69,6 +69,15 @@ public class GCSServiceTest {
     }
   }
 
+  @Test
+  @Ignore
+  public void testFileName() throws Exception {
+    String path = "demo/csv/titanic.csv";
+    File file = new File(path);
+    String name = file.getName();
+    Assert.assertEquals("titanic.csv", name);
+  }
+
   private Storage getStorage(String projectId, String path) throws Exception {
     ServiceAccountCredentials credentials = GCPServiceAccount.loadLocalFile(path);
 

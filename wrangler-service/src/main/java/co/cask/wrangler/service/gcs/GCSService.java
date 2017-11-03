@@ -190,45 +190,6 @@ public class GCSService extends AbstractHttpServiceHandler {
   }
 
   /**
-   * Lists GCS buckets owned by the user identified by the credentials.
-   *
-   * @param request HTTP Request handler.
-   * @param responder HTTP Response handler.
-   */
-  @POST
-  @Path("/connections/{connection-id}/gcs/buckets")
-  public void listGCSBuckets(HttpServiceRequest request, HttpServiceResponder responder,
-                            @PathParam("connection-id") String connectionId) {
-    try {
-      Connection connection = store.get(connectionId);
-      if (!validateConnection(connectionId, connection, responder)) {
-        return;
-      }
-      Storage storage = getStorage(connection);
-      Page<Bucket> list = storage.list();
-      Iterator<Bucket> iterator = list.getValues().iterator();
-      JsonObject response =  new JsonObject();
-      response.addProperty("message", "OK");
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      JsonArray buckets = new JsonArray();
-      while(iterator.hasNext()) {
-        JsonObject object = new JsonObject();
-        com.google.cloud.storage.Bucket bucket = iterator.next();
-        object.addProperty("name", bucket.getName());
-        object.addProperty("created", bucket.getCreateTime() / 1000);
-        object.addProperty("generated-id", bucket.getGeneratedId());
-        object.addProperty("meta-generation", bucket.getMetageneration());
-        buckets.add(object);
-      }
-      response.addProperty("count", buckets.size());
-      response.add("value", buckets);
-      ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
-  }
-
-  /**
    * Lists GCS bucket's contents for the given prefix path.
    * @param request HTTP Request handler.
    * @param responder HTTP Response handler.
@@ -333,7 +294,7 @@ public class GCSService extends AbstractHttpServiceHandler {
         JsonObject object = new JsonObject();
         Blob blob = iterator.next();
         object.addProperty("bucket", blob.getBucket());
-        object.addProperty("name", blob.getName());
+        object.addProperty("name", new File(blob.getName()).getName());
         object.addProperty("generation", blob.getGeneration());
         String p = String.format("/%s/%s", bucketName, blob.getName());
         if (p.equalsIgnoreCase(path)) {
@@ -473,11 +434,12 @@ public class GCSService extends AbstractHttpServiceHandler {
         }
 
         // Set all properties and write to workspace.
-        properties.put(PropertyIds.FILE_NAME, file.getName());
+        properties.put(PropertyIds.FILE_NAME, file.getCanonicalPath());
         properties.put(PropertyIds.URI, String.format("gs://%s/%s", bucket, path));
         properties.put(PropertyIds.FILE_PATH, path);
-        properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
+        properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.GCS.getType());
         properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+        properties.put(PropertyIds.CONNECTION_ID, connectionId);
         properties.put("bucket", bucket);
         table.writeProperties(id, properties);
 

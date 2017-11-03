@@ -30,7 +30,7 @@ public enum ConnectionType {
   TABLE("table"),
   S3("s3"),
   GCS("gcs"),
-  BIGQYERY("bigquery"),
+  BIGQUERY("bigquery"),
   KAFKA("kafka");
 
   private String type;
