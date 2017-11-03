@@ -24,6 +24,8 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Map;
+
 /**
  * Tests {@link DDL}
  */
@@ -77,7 +79,7 @@ public class DDLTest {
     Assert.assertEquals(Schema.mapOf(Schema.nullableOf(Schema.of(Schema.Type.STRING)),
                                      Schema.nullableOf(inner2)),
                         DDL.select(nestedSchema, "m"));
-    Assert.assertEquals(nestedRecord.get("m"), DDL.select(nestedRecord, "m"));
+    Assert.assertEquals(nestedRecord.<Map<String, StructuredRecord>>get("m"), DDL.select(nestedRecord, "m"));
     Assert.assertEquals(Schema.nullableOf(inner2), DDL.select(nestedSchema, "m[rec2]"));
 
     Assert.assertEquals(Schema.of(Schema.Type.STRING), DDL.select(nestedSchema, "a[0]"));
@@ -89,7 +91,7 @@ public class DDLTest {
     Assert.assertEquals("str1", DDL.select(nestedRecord, "rec1.s"));
 
     Assert.assertEquals(Schema.of(Schema.Type.LONG), DDL.select(nestedSchema, "rec1.l"));
-    Assert.assertEquals(3L, DDL.select(nestedRecord, "rec1.l"));
+    Assert.assertEquals(3L, DDL.<Long>select(nestedRecord, "rec1.l").longValue());
 
     Assert.assertEquals(Schema.arrayOf(Schema.nullableOf(inner2)), DDL.select(nestedSchema, "rec1.rec2"));
 
@@ -97,8 +99,8 @@ public class DDLTest {
                                      Schema.of(Schema.Type.INT)),
                         DDL.select(nestedSchema, "rec1.m"));
     Assert.assertEquals(Schema.of(Schema.Type.INT), DDL.select(nestedSchema, "rec1.m[a]"));
-    Assert.assertEquals(1, DDL.select(nestedRecord, "rec1.m[a]"));
-    Assert.assertEquals(2, DDL.select(nestedRecord, "rec1.m[b]"));
+    Assert.assertEquals(1, DDL.<Integer>select(nestedRecord, "rec1.m[a]").intValue());
+    Assert.assertEquals(2, DDL.<Integer>select(nestedRecord, "rec1.m[b]").intValue());
 
     Assert.assertEquals(Schema.nullableOf(inner2), DDL.select(nestedSchema, "rec1.rec2[0]"));
     Assert.assertNull(DDL.select(nestedRecord, "rec1.rec2[0]"));
@@ -112,22 +114,22 @@ public class DDLTest {
 
     Assert.assertEquals(Schema.of(Schema.Type.INT), DDL.select(nestedSchema, "rec1.rec2[1].y"));
     Assert.assertEquals(Schema.of(Schema.Type.INT), DDL.select(nestedSchema, "m[rec2].y"));
-    Assert.assertEquals(5, DDL.select(nestedRecord, "rec1.rec2[1].y"));
-    Assert.assertEquals(5, DDL.select(nestedRecord, "m[rec2].y"));
+    Assert.assertEquals(5, DDL.<Integer>select(nestedRecord, "rec1.rec2[1].y").intValue());
+    Assert.assertEquals(5, DDL.<Integer>select(nestedRecord, "m[rec2].y").intValue());
 
     Assert.assertEquals(Schema.arrayOf(Schema.of(Schema.Type.INT)), DDL.select(nestedSchema, "rec1.rec2[1].z"));
     Assert.assertEquals(Schema.arrayOf(Schema.of(Schema.Type.INT)), DDL.select(nestedSchema, "m[rec2].z"));
 
     Assert.assertEquals(Schema.of(Schema.Type.INT), DDL.select(nestedSchema, "rec1.rec2[1].z[0]"));
     Assert.assertEquals(Schema.of(Schema.Type.INT), DDL.select(nestedSchema, "m[rec2].z[0]"));
-    Assert.assertEquals(0, DDL.select(nestedRecord, "rec1.rec2[1].z[0]"));
-    Assert.assertEquals(1, DDL.select(nestedRecord, "rec1.rec2[1].z[1]"));
-    Assert.assertEquals(2, DDL.select(nestedRecord, "rec1.rec2[1].z[2]"));
-    Assert.assertEquals(3, DDL.select(nestedRecord, "rec1.rec2[1].z[3]"));
-    Assert.assertEquals(0, DDL.select(nestedRecord, "m[rec2].z[0]"));
-    Assert.assertEquals(1, DDL.select(nestedRecord, "m[rec2].z[1]"));
-    Assert.assertEquals(2, DDL.select(nestedRecord, "m[rec2].z[2]"));
-    Assert.assertEquals(3, DDL.select(nestedRecord, "m[rec2].z[3]"));
+    Assert.assertEquals(0, DDL.<Integer>select(nestedRecord, "rec1.rec2[1].z[0]").intValue());
+    Assert.assertEquals(1, DDL.<Integer>select(nestedRecord, "rec1.rec2[1].z[1]").intValue());
+    Assert.assertEquals(2, DDL.<Integer>select(nestedRecord, "rec1.rec2[1].z[2]").intValue());
+    Assert.assertEquals(3, DDL.<Integer>select(nestedRecord, "rec1.rec2[1].z[3]").intValue());
+    Assert.assertEquals(0, DDL.<Integer>select(nestedRecord, "m[rec2].z[0]").intValue());
+    Assert.assertEquals(1, DDL.<Integer>select(nestedRecord, "m[rec2].z[1]").intValue());
+    Assert.assertEquals(2, DDL.<Integer>select(nestedRecord, "m[rec2].z[2]").intValue());
+    Assert.assertEquals(3, DDL.<Integer>select(nestedRecord, "m[rec2].z[3]").intValue());
 
     Schema newSchema = DDL.drop(nestedSchema, "rec1.rec2[0].z");
     newSchema = DDL.drop(newSchema, "rec1.rec2[0].x");
