@@ -301,6 +301,7 @@ public class GCSService extends AbstractHttpServiceHandler {
           continue;
         }
         object.addProperty("path", p);
+        object.addProperty("blob", blob.getName());
         if (blob.isDirectory()) {
           object.addProperty("directory", true);
         } else {
@@ -360,18 +361,18 @@ public class GCSService extends AbstractHttpServiceHandler {
    * @param request HTTP Request handler.
    * @param responder HTTP Response handler.
    */
-  @POST
+  @GET
   @Path("/connections/{connection-id}/gcs/buckets/{bucket}/read")
   public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("connection-id") String connectionId,
                          @PathParam("bucket") String bucket,
-                         @QueryParam("path") final String path) {
+                         @QueryParam("blob") final String blobPath) {
 
     RequestExtractor extractor = new RequestExtractor(request);
     String contentType = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
 
     try {
-      if (Strings.isNullOrEmpty(path)) {
+      if (Strings.isNullOrEmpty(blobPath)) {
         responder.sendError(
           HttpURLConnection.HTTP_BAD_REQUEST,
           "Required query param 'path' is missing in the input"
@@ -386,10 +387,10 @@ public class GCSService extends AbstractHttpServiceHandler {
 
       Map<String, String> properties = new HashMap<>();
       Storage storage = getStorage(connection);
-      Blob blob = storage.get(BlobId.of(bucket, path));
+      Blob blob = storage.get(BlobId.of(bucket, blobPath));
       if (blob == null) {
         throw new Exception(String.format(
-          "Bucket '%s', Path '%s' is not valid.", bucket, path
+          "Bucket '%s', Path '%s' is not valid.", bucket, blobPath
         ));
       }
 
@@ -435,8 +436,8 @@ public class GCSService extends AbstractHttpServiceHandler {
 
         // Set all properties and write to workspace.
         properties.put(PropertyIds.FILE_NAME, file.getCanonicalPath());
-        properties.put(PropertyIds.URI, String.format("gs://%s/%s", bucket, path));
-        properties.put(PropertyIds.FILE_PATH, path);
+        properties.put(PropertyIds.URI, String.format("gs://%s/%s", bucket, blobPath));
+        properties.put(PropertyIds.FILE_PATH, blobPath);
         properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.GCS.getType());
         properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
         properties.put(PropertyIds.CONNECTION_ID, connectionId);
@@ -448,8 +449,8 @@ public class GCSService extends AbstractHttpServiceHandler {
         JsonObject object = new JsonObject();
         object.addProperty(PropertyIds.ID, id);
         object.addProperty(PropertyIds.NAME, file.getName());
-        object.addProperty(PropertyIds.URI, String.format("gs://%s/%s", bucket, path));
-        object.addProperty(PropertyIds.FILE_PATH, path);
+        object.addProperty(PropertyIds.URI, String.format("gs://%s/%s", bucket, blobPath));
+        object.addProperty(PropertyIds.FILE_PATH, blobPath);
         object.addProperty(PropertyIds.FILE_NAME, blobName);
         object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
         object.addProperty("bucket", bucket);
@@ -466,7 +467,7 @@ public class GCSService extends AbstractHttpServiceHandler {
       }
     } catch (Exception e) {
       LOG.warn(
-        String.format("Read path '%s', bucket '%s' failed.", path, bucket),
+        String.format("Read path '%s', bucket '%s' failed.", blobPath, bucket),
         e
       );
       ServiceUtils.error(responder, e.getMessage());
