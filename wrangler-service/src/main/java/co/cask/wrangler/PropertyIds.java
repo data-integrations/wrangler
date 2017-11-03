@@ -53,6 +53,9 @@ public final class PropertyIds {
   // Topic.
   public static final String TOPIC = "topic";
 
+  // Plugin type
+  public static final String PLUGIN_TYPE = "plugin-type";
+
   public static final String CONNECTION_ID = "connectionid";
   public static final String BROKER = "brokers";
   public static final String KEY_DESERIALIZER = "key.deserializer";
