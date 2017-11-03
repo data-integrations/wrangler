@@ -35,12 +35,18 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.sampling.Bernoulli;
+import co.cask.wrangler.sampling.Poisson;
+import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.connections.ConnectionType;
+import co.cask.wrangler.service.explorer.BoundedLineInputStream;
+import co.cask.wrangler.utils.ObjectSerDe;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -66,7 +72,9 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.GET;
@@ -88,6 +96,7 @@ public class S3Service extends AbstractHttpServiceHandler {
     new GsonBuilder().
       setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES).
       registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+  private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
   // Abstraction over the table defined above for managing connections.
   private ConnectionStore store;
@@ -261,12 +270,15 @@ public class S3Service extends AbstractHttpServiceHandler {
   public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("connection-id") String connectionId,
                          @PathParam("bucket-name") String bucketName,
-                         @QueryParam("key") final String key) {
+                         @QueryParam("key") final String key, @QueryParam("lines") int lines,
+                         @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction) {
     try {
       if (Strings.isNullOrEmpty(key)) {
         responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Required query param 'key' is missing in the input");
         return;
       }
+      RequestExtractor extractor = new RequestExtractor(request);
+      String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
       Connection connection = store.get(connectionId);
       if (!validateConnection(connectionId, connection, responder)) {
         return;
@@ -275,6 +287,10 @@ public class S3Service extends AbstractHttpServiceHandler {
       S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
       if (object != null) {
         try (InputStream inputStream = object.getObjectContent()) {
+          if (header != null && header.equalsIgnoreCase("text/plain")) {
+            loadSamplableFile(connection.getId(), responder, inputStream, object, lines, fraction, sampler);
+            return;
+          }
           loadFile(connection.getId(), responder, inputStream, object);
         }
       } else {
@@ -326,6 +342,79 @@ public class S3Service extends AbstractHttpServiceHandler {
       response.addProperty("count", values.size());
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  private void loadSamplableFile(String connectionId, HttpServiceResponder responder,
+                                 InputStream inputStream, S3Object s3Object,
+                                 int lines, double fraction, String sampler) {
+    JsonObject response = new JsonObject();
+    SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
+    if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
+      samplingMethod = SamplingMethod.FIRST;
+    }
+
+    try(BoundedLineInputStream blis = BoundedLineInputStream.iterator(inputStream, Charsets.UTF_8, lines)) {
+      String name = s3Object.getKey();
+
+      String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
+      String identifier = ServiceUtils.generateMD5(file);
+      String fileName = name.substring(name.lastIndexOf("/") + 1);
+      table.createWorkspaceMeta(identifier, fileName);
+
+      // Iterate through lines to extract only 'limit' random lines.
+      // Depending on the type, the sampling of the input is performed.
+      List<Row> rows = new ArrayList<>();
+      Iterator<String> it = blis;
+      if (samplingMethod == SamplingMethod.POISSON) {
+        it = new Poisson<String>(fraction).sample(blis);
+      } else if (samplingMethod == SamplingMethod.BERNOULLI) {
+        it = new Bernoulli<String>(fraction).sample(blis);
+      } else if (samplingMethod == SamplingMethod.RESERVOIR) {
+        it = new Reservoir<String>(lines).sample(blis);
+      }
+      while(it.hasNext()) {
+        rows.add(new Row(COLUMN_NAME, it.next()));
+      }
+
+      // Set all properties and write to workspace.
+      Map<String, String> properties = new HashMap<>();
+      properties.put(PropertyIds.ID, identifier);
+      properties.put(PropertyIds.NAME, fileName);
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
+      properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
+      properties.put(PropertyIds.CONNECTION_ID, connectionId);
+      // S3 specific properties.
+      properties.put("bucket-name", s3Object.getBucketName());
+      properties.put("key", s3Object.getKey());
+      table.writeProperties(identifier, properties);
+
+      // Write rows to workspace.
+      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+      byte[] data = serDe.toByteArray(rows);
+      table.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
+
+      // Preparing return response to include mandatory fields : id and name.
+      JsonArray values = new JsonArray();
+      JsonObject object = new JsonObject();
+      object.addProperty(PropertyIds.ID, identifier);
+      object.addProperty(PropertyIds.NAME, name);
+      object.addProperty(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
+      object.addProperty(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
+      object.addProperty(PropertyIds.CONNECTION_ID, connectionId);
+      object.addProperty("bucket-name", s3Object.getBucketName());
+      object.addProperty("key", s3Object.getKey());
+      values.add(object);
+
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (IOException e) {
+      error(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }

@@ -20,6 +20,7 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,7 +36,7 @@ import java.util.NoSuchElementException;
  * Uses a <code>BufferedReader</code> internally to read the data. If the number of lines in file is
  * fewer than the lines in file, it will return only the lines that can be possibly read.
  */
-public final class BoundedLineInputStream implements Iterator<String> {
+public final class BoundedLineInputStream implements Iterator<String>, Closeable {
   // The reader that is being read.
   private final BufferedReader bufferedReader;
 
