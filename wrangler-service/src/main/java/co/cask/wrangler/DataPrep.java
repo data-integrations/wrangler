@@ -26,6 +26,7 @@ import co.cask.wrangler.service.connections.ConnectionService;
 import co.cask.wrangler.service.database.DatabaseService;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
+import co.cask.wrangler.service.gcs.GCSService;
 import co.cask.wrangler.service.kafka.KafkaService;
 import co.cask.wrangler.service.recipe.RecipeService;
 import co.cask.wrangler.service.s3.S3Service;
@@ -68,7 +69,8 @@ public class DataPrep extends AbstractApplication {
                new RecipeService(),
                new KafkaService(),
                new DatabaseService(),
-               new S3Service()
+               new S3Service(),
+               new GCSService()
     );
   }
 }
