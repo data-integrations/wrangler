@@ -505,7 +505,7 @@ public class GCSService extends AbstractHttpServiceHandler {
 
       if (pluginType.equalsIgnoreCase("normal")) {
         JsonObject gcs = new JsonObject();
-        properties.put("referenceName", file);
+        properties.put("referenceName", "GCS_Source");
         properties.put("serviceFilePath", (String) connection.getProp(SERVICE_ACCOUNT_KEYFILE));
         properties.put("project", (String) connection.getProp(PROJECT_ID));
         properties.put("bucket", bucket);
@@ -518,7 +518,7 @@ public class GCSService extends AbstractHttpServiceHandler {
         value.add("GCSFile", gcs);
       } else if (pluginType.equalsIgnoreCase("blob")) {
         JsonObject gcs = new JsonObject();
-        properties.put("referenceName", file);
+        properties.put("referenceName", "GCS_Blob");
         properties.put("serviceFilePath", (String) connection.getProp(SERVICE_ACCOUNT_KEYFILE));
         properties.put("project", (String) connection.getProp(PROJECT_ID));
         properties.put("bucket", bucket);
