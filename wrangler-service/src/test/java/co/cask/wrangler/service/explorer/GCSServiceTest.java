@@ -11,6 +11,7 @@ import com.google.cloud.storage.StorageOptions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.HttpURLConnection;
@@ -101,6 +102,7 @@ public class GCSServiceTest {
   }
 
   @Test
+  @Ignore
   public void testExploreGCS() throws Exception {
     JsonObject list = list("/cdap/audio/raw");
 
