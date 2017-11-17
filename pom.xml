@@ -82,7 +82,8 @@
     <cdap.version>5.0.0-SNAPSHOT</cdap.version>
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
-    <commons-lang.version>3.5</commons-lang.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <commons-lang3.version>3.5</commons-lang3.version>
     <guava.version>20.0</guava.version>
     <unix4j.version>0.4</unix4j.version>
     <json-path.version>2.2.0</json-path.version>
