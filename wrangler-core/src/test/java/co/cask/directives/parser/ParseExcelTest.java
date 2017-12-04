@@ -17,7 +17,7 @@
 package co.cask.directives.parser;
 
 import co.cask.wrangler.TestingRig;
-import co.cask.wrangler.api.RecipeException;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -49,7 +49,7 @@ public class ParseExcelTest {
     }
   }
 
-  @Test(expected = RecipeException.class)
+  @Test
   public void testNoSheetName() throws Exception {
     try (InputStream stream = ParseAvroFileTest.class.getClassLoader().getResourceAsStream("titanic.xlsx")) {
       byte[] data = IOUtils.toByteArray(stream);
@@ -60,7 +60,9 @@ public class ParseExcelTest {
 
       List<Row> rows = new ArrayList<>();
       rows.add(new Row("body", data));
-      TestingRig.execute(directives, rows);
+      Pair<List<Row>, List<Row>> pipeline = TestingRig.executeWithErrors(directives, rows);
+      Assert.assertEquals(0, pipeline.getFirst().size());
+      Assert.assertEquals(1, pipeline.getSecond().size());
     }
   }
 }

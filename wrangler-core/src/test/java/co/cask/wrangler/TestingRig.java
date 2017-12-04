@@ -24,6 +24,7 @@ import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.GrammarMigrator;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
@@ -73,6 +74,34 @@ public final class TestingRig {
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.initialize(parser, context);
     return pipeline.execute(rows);
+  }
+
+  /**
+   * Executes the directives on the record specified and returns the results as well as the errors.
+   *
+   * @param recipe to be executed.
+   * @param rows to be executed on directives.
+   * @return transformed directives and errors.
+   */
+  public static Pair<List<Row>, List<Row>> executeWithErrors(String[] recipe, List<Row> rows)
+    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    return executeWithErrors(recipe, rows, null);
+  }
+
+  public static Pair<List<Row>, List<Row>> executeWithErrors(String[] recipe, List<Row> rows, ExecutorContext context)
+    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
+      new SystemDirectiveRegistry()
+    );
+
+    String migrate = new MigrateToV2(recipe).migrate();
+    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    parser.initialize(null);
+    RecipePipeline pipeline = new RecipePipelineExecutor();
+    pipeline.initialize(parser, context);
+    List<Row> results = pipeline.execute(rows);
+    List<Row> errors = pipeline.errors();
+    return new Pair<>(results, errors);
   }
 
   public static RecipePipeline execute(String[] recipe)
