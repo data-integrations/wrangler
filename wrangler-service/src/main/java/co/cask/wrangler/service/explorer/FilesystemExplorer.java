@@ -125,7 +125,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       return;
     }
 
-    if (header.equalsIgnoreCase("text/plain")) {
+    if (header.equalsIgnoreCase("text/plain") || header.contains("text/")) {
       loadSamplableFile(responder, path, lines, fraction, sampler);
     } else if (header.equalsIgnoreCase("application/xml")) {
       loadFile(responder, path, DataType.RECORDS);
