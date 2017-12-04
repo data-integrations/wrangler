@@ -17,13 +17,12 @@
 package co.cask.wrangler.test.api;
 
 import co.cask.wrangler.api.Row;
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class description here.
+ * A simple class for collecting rows to be used for testing wrangler directives.
  */
 public class TestRows {
   private final List<Row> rows;
@@ -37,7 +36,6 @@ public class TestRows {
   }
 
   public List<Row> toList() {
-    Collections.reverse(rows);
     return rows;
   }
 }

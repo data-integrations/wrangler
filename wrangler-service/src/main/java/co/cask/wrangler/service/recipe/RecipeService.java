@@ -176,7 +176,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
    * @param recipeId id of the recipe requested.
    */
   @GET
-  @Path("recipes/{recipeId}")
+  @Path("recipes/{recipeId}/versions/{version}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("recipeId") String recipeId) {
     JSONObject response = new JSONObject();

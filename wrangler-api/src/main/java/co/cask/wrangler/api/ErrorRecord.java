@@ -14,9 +14,8 @@
  * the License.
  */
 
-package co.cask.wrangler.executor;
+package co.cask.wrangler.api;
 
-import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Public;
 
 /**

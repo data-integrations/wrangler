@@ -94,6 +94,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path,
                    @QueryParam("hidden") boolean hidden) throws Exception {
+
     try {
       Map<String, Object> listing = explorer.browse(path, hidden);
       sendJson(responder, HttpURLConnection.HTTP_OK, gson.toJson(listing));

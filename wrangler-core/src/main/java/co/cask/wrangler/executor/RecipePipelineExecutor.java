@@ -22,6 +22,7 @@ import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.ExecutorContext;
