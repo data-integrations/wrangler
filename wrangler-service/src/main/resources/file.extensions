@@ -1,3 +1,4 @@
+1st	text/plain
 3dm	x-world/x-3dmf
 3dmf	x-world/x-3dmf
 a	application/octet-stream
@@ -6,6 +7,12 @@ aam	application/x-authorware-map
 aas	application/x-authorware-seg
 abc	text/vndabc
 acgi	text/html
+adoc  text/plain
+aim	text/plain
+ans	text/plain
+apt	text/plain
+asc	text/plain
+ascii text/plain
 afl	video/animaflex
 ai	application/postscript
 aif	audio/aiff
@@ -59,6 +66,7 @@ csv	text/plain
 csh	text/x-scriptcsh
 css	text/css
 cxx	text/plain
+dat	text/plain
 dcr	application/x-director
 deepv	application/x-deepv
 def	text/plain
@@ -80,6 +88,8 @@ dwg	image/vnddwg
 dxf	application/dxf
 dxf	image/vnddwg
 dxr	application/x-director
+err	text/plain
+epp	text/plain
 el	text/x-scriptelisp
 elc	application/x-elc
 env	application/x-envoy
@@ -162,6 +172,7 @@ jps	image/x-jps
 js	text/javascript
 json	application/json
 jut	image/jutvision
+klg	text/plain
 kar	audio/midi
 ksh	text/x-scriptksh
 la	audio/nspaudio
@@ -175,7 +186,10 @@ log	text/plain
 lsp	application/x-lisp
 lst	text/plain
 lsx	text/x-la-asf
+ltr	text/plain
 ltx	application/x-latex
+lyt	text/plain
+lyx	text/plain
 lzh	application/x-lzh
 lzx	application/lzx
 m	text/plain
@@ -183,7 +197,7 @@ m1v	video/mpeg
 m2a	audio/mpeg
 m2v	video/mpeg
 m3u	audio/x-mpequrl
-man	application/x-troff-man
+man	text/plain
 map	application/x-navimap
 mar	text/plain
 mbd	application/mbedlet
@@ -192,7 +206,8 @@ mcd	application/mcad
 mcf	image/vasa
 mcf	text/mcf
 mcp	application/netmc
-md	application/markdown
+md	text/plain
+md5	text/plain
 me	application/x-troff-me
 mht	message/rfc822
 mhtml	message/rfc822
@@ -221,6 +236,7 @@ mpv	application/x-project
 mpx	application/x-project
 mrc	application/marc
 ms	application/x-troff-ms
+msg	text/plain
 mv	video/x-sgi-movie
 my	audio/make
 mzz	application/x-vndaudioexplosionmzz
@@ -250,7 +266,7 @@ part	application/pro_eng
 parquet application/parquet
 pas	text/pascal
 parquet	application/parquet
-pb  application/protobuf
+pb	application/protobuf
 pbm	image/x-portable-bitmap
 pcl	application/vndhp-pcl
 pct	image/x-pict
