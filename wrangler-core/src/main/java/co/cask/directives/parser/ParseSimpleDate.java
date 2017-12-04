@@ -23,6 +23,7 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
@@ -69,7 +70,8 @@ public class ParseSimpleDate implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context)
+    throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx != -1) {
@@ -84,17 +86,15 @@ public class ParseSimpleDate implements Directive {
             Date date = format.parse((String) object);
             row.setValue(idx, date);
           } catch (ParseException e) {
-            throw new DirectiveExecutionException(String.format("Failed to parse '%s' with pattern '%s'",
-                                                                object, format.toPattern()));
+            throw new ErrorRowException(String.format("Failed to parse '%s' with pattern '%s'",
+                                                      object, format.toPattern()), 1);
           }
         } else {
-          throw new DirectiveExecutionException(
+          throw new ErrorRowException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
+                          object != null ? object.getClass().getName() : "null", column), 2
           );
         }
-      } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
       }
     }
     return rows;
