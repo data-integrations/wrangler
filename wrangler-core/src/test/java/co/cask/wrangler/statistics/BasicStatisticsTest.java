@@ -18,6 +18,7 @@ package co.cask.wrangler.statistics;
 
 import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.Row;
+import io.dataapps.chlorine.finder.FinderEngine;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,6 +29,13 @@ import java.util.List;
  * Tests {@link BasicStatistics}
  */
 public class BasicStatisticsTest {
+
+  @Test
+  public void testFinderXMLFormat() throws Exception {
+    FinderEngine engine = new FinderEngine("wrangler-finder.xml", true, false);
+    Assert.assertNotNull(engine);
+    Assert.assertTrue(engine.getFinders().size() > 5); // 5 is minimal.
+  }
 
   @Test
   public void testMetaBasic() throws Exception {
@@ -56,7 +64,7 @@ public class BasicStatisticsTest {
     Row types = (Row) summary.getValue("types");
 
     Assert.assertEquals(7, stats.length());
-    Assert.assertEquals(7, types.length());
+    Assert.assertEquals(5, types.length());
 
 //    List<Pair<String, Object>> fields = stats.getFields();
 //    for (Pair<String, Object> field : fields) {

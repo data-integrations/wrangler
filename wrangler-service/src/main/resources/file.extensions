@@ -247,6 +247,7 @@ p7m	application/pkcs7-mime
 p7r	application/x-pkcs7-certreqresp
 p7s	application/pkcs7-signature
 part	application/pro_eng
+parquet application/parquet
 pas	text/pascal
 parquet	application/parquet
 pb  application/protobuf

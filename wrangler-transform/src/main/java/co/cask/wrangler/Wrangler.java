@@ -35,6 +35,7 @@ import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
+import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.ExecutorContext;
@@ -42,8 +43,9 @@ import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.TransientStore;
-import co.cask.wrangler.executor.ErrorRecord;
+import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.GrammarBasedParser;
@@ -61,6 +63,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -129,15 +132,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         validateInputSchema(iSchema);
       }
 
-      // Validate the DSL by compiling the DSL. In case of macros being
-      // specified, the compilation will them at this phase.
-      Compiler compiler = new RecipeCompiler();
-      try {
-        // Compile the directive extracting the loadable plugins (a.k.a
-        // Directives in this context).
-        CompileStatus status = compiler.compile(new MigrateToV2(config.directives).migrate());
-        RecipeSymbol symbols = status.getSymbols();
-        if (symbols != null) {
+      // If the 'directives' contains macro, then we would not attempt to compile
+      // it.
+      if(!config.containsMacro("directives")) {
+        // Validate the DSL by compiling the DSL. In case of macros being
+        // specified, the compilation will them at this phase.
+        Compiler compiler = new RecipeCompiler();
+        try {
+          // Compile the directive extracting the loadable plugins (a.k.a
+          // Directives in this context).
+          CompileStatus status = compiler.compile(new MigrateToV2(config.directives).migrate());
+          RecipeSymbol symbols = status.getSymbols();
+
           Set<String> dynamicDirectives = symbols.getLoadableDirectives();
           for (String directive : dynamicDirectives) {
             Object o = configurer.usePlugin(Directive.Type, directive, directive, PluginProperties.builder().build());
@@ -147,11 +153,32 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
               );
             }
           }
+
+          // Create the registry that only interacts with system directives.
+          registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry());
+
+          if (symbols != null) {
+            Iterator<TokenGroup> iterator = symbols.iterator();
+            while(iterator != null && iterator.hasNext()) {
+              TokenGroup group = iterator.next();
+              if (group != null) {
+                String directive = (String) group.get(0).value();
+                DirectiveInfo directiveInfo = registry.get(directive);
+                if (directiveInfo == null && !dynamicDirectives.contains(directive)) {
+                  throw new IllegalArgumentException(
+                    String.format("Wrangler plugin has a directive '%s' that does not exist in system or " +
+                                    "user space. Either it is a typographical error or the user directive is " +
+                                    "not loaded.", directive)
+                  );
+                }
+              }
+            }
+          }
+        } catch (CompileException e) {
+          throw new IllegalArgumentException(e.getMessage(), e);
+        } catch (DirectiveParseException e) {
+          throw new IllegalArgumentException(e.getMessage());
         }
-      } catch (CompileException e) {
-        throw new IllegalArgumentException(e.getMessage(), e);
-      } catch (DirectiveParseException e) {
-        throw new IllegalArgumentException(e.getMessage());
       }
 
       // Based on the configuration create output schema.
@@ -188,6 +215,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       if (oSchema != null) {
         configurer.getStageConfigurer().setOutputSchema(oSchema);
       }
+
     } catch (Exception e) {
       LOG.error(e.getMessage());
       throw new IllegalArgumentException(e.getMessage());

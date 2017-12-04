@@ -45,6 +45,20 @@ public class Recipe {
   }
 
   /**
+   * Adds a pragma directive at the front of the recipe.
+   */
+  public void setPragma(String directive) {
+    if (directive != null) {
+      String pragma = directives.size() > 0 ? directives.get(0) : null;
+      if (pragma != null && !pragma.matches("(.*)load-directives(.*)")) {
+        directives.add(0, directive);
+      } else {
+        directives.set(0, directive);
+      }
+    }
+  }
+
+  /**
    * @return true if directives need to be saved, else false.
    */
   public Boolean getSave() {

@@ -193,4 +193,13 @@ public class RecipeCompilerTest {
     CompileStatus compile = TestingRig.compile(recipe);
     Assert.assertTrue(true);
   }
+
+  @Test
+  public void testError() throws Exception {
+    String[] recipe = new String[] {
+      "parse-as-abababa-csv :body '\t' true; drop :body;"
+    };
+    CompileStatus compile = TestingRig.compile(recipe);
+    Assert.assertTrue(true);
+  }
 }

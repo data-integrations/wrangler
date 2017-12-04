@@ -128,11 +128,15 @@ public class JsParser implements Directive {
               results.add(row);
             } else if (element instanceof JsonArray) {
               JsonArray array = element.getAsJsonArray();
-              for(int i = 0; i < array.size(); ++i) {
-                JsonElement object = array.get(i);
-                Row newRow = new Row(row);
-                newRow.add(column, getValue(object));
-                results.add(newRow);
+              if (array.size() > 0) {
+                for (int i = 0; i < array.size(); ++i) {
+                  JsonElement object = array.get(i);
+                  Row newRow = new Row(row);
+                  newRow.add(column, getValue(object));
+                  results.add(newRow);
+                }
+              } else {
+                results.add(row);
               }
             } else if (element instanceof JsonPrimitive) {
               row.add(column, getValue(element.getAsJsonPrimitive()));
