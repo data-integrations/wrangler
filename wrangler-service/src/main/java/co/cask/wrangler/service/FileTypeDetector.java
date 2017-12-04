@@ -46,7 +46,7 @@ public class FileTypeDetector {
       Scanner scanner = new Scanner(file);
       while(scanner.hasNext()) {
         String line = scanner.nextLine();
-        String[] parts = line.split("\t");
+        String[] parts = line.split("[\t+\\s+]");
         if (parts.length == 2) {
           extensions.put(parts[0], parts[1]);
         }
@@ -74,6 +74,7 @@ public class FileTypeDetector {
       || "application/protobuf".equalsIgnoreCase(type)
       || "application/excel".equalsIgnoreCase(type)
       || type.contains("image/")
+      || type.contains("text/")
       ) {
       return true;
     }
@@ -101,7 +102,12 @@ public class FileTypeDetector {
     String extension = FilenameUtils.getExtension(location);
     if (extensions.containsKey(extension)) {
       return extensions.get(extension);
+    } else {
+      String name = FilenameUtils.getBaseName(location);
+      if (name.equalsIgnoreCase(location)) {
+        return "UNKNOWN";
+      }
+      return detectFileType(name);
     }
-    return UNKNOWN;
   }
 }
