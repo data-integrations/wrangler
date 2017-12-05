@@ -74,12 +74,12 @@ public class DatabaseServiceTest {
         object.addProperty("default.port", driver.getValue().getPort());
         values.add(object);
       }
-      Assert.assertEquals(6, values.size());
+      Assert.assertEquals(9, values.size());
     } finally {
       if (is != null) {
         is.close();
       }
     }
-    Assert.assertEquals(6, drivers.size());
+    Assert.assertEquals(9, drivers.size());
   }
 }

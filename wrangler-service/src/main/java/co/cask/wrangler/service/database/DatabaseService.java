@@ -184,7 +184,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     public void execute(java.sql.Connection connection) throws Exception;
   }
 
-  private static final Multimap<String, DriverInfo> drivers = ArrayListMultimap.create();
+  private final Multimap<String, DriverInfo> drivers = ArrayListMultimap.create();
 
   @Override
   public void initialize(HttpServiceContext context) throws Exception {
