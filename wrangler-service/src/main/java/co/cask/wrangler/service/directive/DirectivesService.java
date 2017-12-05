@@ -133,6 +133,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   private static final String DELIMITER_HEADER = "delimiter";
 
+  private final Gson gson = new Gson();
+
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
 
@@ -624,6 +626,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       response.addProperty("count", values.size());
       response.add("header", headers); // TODO: Remove this later. 
       response.add("types", types);
+      response.add("directives", gson.toJsonTree(user.getRecipe().getDirectives()));
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (JsonParseException e) {

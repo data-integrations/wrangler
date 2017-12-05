@@ -17,10 +17,10 @@
 package co.cask.wrangler;
 
 import co.cask.cdap.api.app.AbstractApplication;
+import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
-import co.cask.cdap.api.dataset.lib.KeyValueTable;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionService;
@@ -53,8 +53,22 @@ public class DataPrep extends AbstractApplication {
                   DatasetProperties.builder().setDescription("Dataprep Workspace Management").build());
     createDataset(DATAPREP_DATASET, Table.class,
                   DatasetProperties.builder().setDescription("DataPrep All Store").build());
-    createDataset(RecipeService.DATASET, KeyValueTable.class,
-                  DatasetProperties.builder().setDescription("Recipe store.").build());
+
+    Schema schema = Schema.recordOf(
+      "recipes",
+      Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("description", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("created", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
+      Schema.Field.of("updated", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
+      Schema.Field.of("directives", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
+    );
+
+    createDataset(RecipeService.DATASET, Table.class.getName(), DatasetProperties.builder()
+      .setDescription("Recipe store.")
+      .add(Table.PROPERTY_SCHEMA, schema.toString())
+      .add(Table.PROPERTY_SCHEMA_ROW_FIELD, "id")
+      .build());
 
     // Used by the file service.
     createDataset("dataprepfs", FileSet.class, FileSetProperties.builder()
