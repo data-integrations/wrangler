@@ -32,10 +32,10 @@ public final class RecipeDatum {
   private String id;
 
   // Unix timestamp about when the recipe was created.
-  private long created;
+  private Long created;
 
   // Unix timestamp about when the recipe was last updated.
-  private long updated;
+  private Long updated;
 
   // List of directives that make-up recipe.
   private String directives;
@@ -92,7 +92,7 @@ public final class RecipeDatum {
    *
    * @param created unix timestamp of when recipe was created.
    */
-  public void setCreated(long created) {
+  public void setCreated(Long created) {
     this.created = created;
   }
 
@@ -107,7 +107,7 @@ public final class RecipeDatum {
    * Sets the time when the recipe was updated.
    * @param updated unix timestamp of when recipe was updated.
    */
-  public void setUpdated(long updated) {
+  public void setUpdated(Long updated) {
     this.updated = updated;
   }
 

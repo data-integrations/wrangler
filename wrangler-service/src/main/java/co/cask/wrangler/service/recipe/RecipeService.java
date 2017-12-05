@@ -19,9 +19,9 @@ package co.cask.wrangler.service.recipe;
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.DataSetException;
-import co.cask.cdap.api.dataset.lib.CloseableIterator;
-import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.cdap.api.dataset.lib.KeyValueTable;
+import co.cask.cdap.api.dataset.table.Row;
+import co.cask.cdap.api.dataset.table.Scanner;
+import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
@@ -76,9 +76,15 @@ import static co.cask.wrangler.ServiceUtils.success;
 public class RecipeService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(RecipeService.class);
   public static final String DATASET = "recipes";
+  private static final byte[] ID = Bytes.toBytes("id");
+  private static final byte[] NAME = Bytes.toBytes("name");
+  private static final byte[] CREATED = Bytes.toBytes("created");
+  private static final byte[] UPDATED = Bytes.toBytes("updated");
+  private static final byte[] DESCRIPTION = Bytes.toBytes("description");
+  private static final byte[] DIRECTIVES = Bytes.toBytes("directives");
 
   @UseDataSet(DATASET)
-  private KeyValueTable recipeStore;
+  private Table recipeStore;
 
   private final Gson gson = new Gson();
 
@@ -101,31 +107,30 @@ public class RecipeService extends AbstractHttpServiceHandler {
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @QueryParam("description") String description,
                      @QueryParam("name") String name) {
+    String recipeId = getIdFromName(name);
     try {
       JsonObject object = new JsonObject();
-      String recipeId = getIdFromName(name);
       RecipeDatum datum = read(recipeId);
-
       if (datum != null) {
         error(responder, String.format("Recipe with name '%s' (id: '%s') already exists. Use POST to update it.",
                                        name, recipeId));
         return;
       }
 
-      RecipeDatum recipeDatum = new RecipeDatum(recipeId, name, description);
+      datum = new RecipeDatum(recipeId, name, description);
       long time = System.currentTimeMillis() / 1000;
-      recipeDatum.setCreated(time);
-      recipeDatum.setUpdated(time);
+      datum.setCreated(time);
+      datum.setUpdated(time);
 
       ByteBuffer content = request.getContent();
       if (content != null && content.hasRemaining()) {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
         List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>() {}.getType());
-        recipeDatum.setDirectives(directives);
+        datum.setDirectives(directives);
       }
 
-      write(recipeId, recipeDatum);
+      write(recipeId, datum);
 
       JsonObject response = new JsonObject();
       JsonArray values = new JsonArray();
@@ -139,6 +144,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
+      LOG.info(String.format("Error creating recipe '%s'.", recipeId), e);
       error(responder, e.getMessage());
     }
   }
@@ -151,16 +157,38 @@ public class RecipeService extends AbstractHttpServiceHandler {
   }
 
   private RecipeDatum read(String key) {
-    byte[] read = recipeStore.read(Bytes.toBytes(key));
-    if (read != null) {
-      return gson.fromJson(Bytes.toString(read), RecipeDatum.class);
+    Row row = recipeStore.get(Bytes.toBytes(key));
+    if (row != null && !row.isEmpty()) {
+      String id = row.getString(ID);
+      String name = row.getString(NAME);
+      String description = row.getString(DESCRIPTION);
+      RecipeDatum datum = new RecipeDatum(id, name, description);
+      datum.setCreated(row.getLong(UPDATED));
+      datum.setUpdated(row.getLong(CREATED));
+      String recipe = row.getString(DIRECTIVES);
+      List<String> directives = gson.fromJson(recipe, new TypeToken<List<String>>() {}.getType());
+      datum.setDirectives(directives);
+      return datum;
     }
     return null;
   }
 
   private void write(String key, RecipeDatum datum) {
-    String json = gson.toJson(datum);
-    recipeStore.write(Bytes.toBytes(key), Bytes.toBytes(json));
+    byte[][] columns = new byte[][] {
+      ID, NAME, DESCRIPTION, CREATED, UPDATED, DIRECTIVES
+    };
+
+    String directivesJson = gson.toJson(datum.getDirectives());
+
+    byte[][] values = new byte[][] {
+      Bytes.toBytes(key),
+      Bytes.toBytes(datum.getName()),
+      Bytes.toBytes(datum.getDescription()),
+      Bytes.toBytes(datum.getCreated()),
+      Bytes.toBytes(datum.getUpdated()),
+      Bytes.toBytes(directivesJson)
+    };
+    recipeStore.put(Bytes.toBytes(key), columns, values);
   }
 
   /**
@@ -184,17 +212,21 @@ public class RecipeService extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
     JsonObject response = new JsonObject();
     try {
-      try (CloseableIterator<KeyValue<byte[], byte[]>> scanner = recipeStore.scan(null, null)) {
+      try (Scanner scanner = recipeStore.scan(null, null)) {
         JsonArray values = new JsonArray();
-        while(scanner.hasNext()) {
+        Row next;
+        while ((next = scanner.next()) != null) {
+          String id = next.getString(ID);
+          String name = next.getString(NAME);
+          String description = next.getString(DESCRIPTION);
+          long created = next.getLong(CREATED);
+          long updated = next.getLong(UPDATED);
           JsonObject object = new JsonObject();
-          KeyValue<byte[], byte[]> recipe = scanner.next();
-          RecipeDatum datum = gson.fromJson(Bytes.toString(recipe.getValue()), RecipeDatum.class);
-          object.addProperty("id", datum.getId());
-          object.addProperty("name", datum.getName());
-          object.addProperty("description", datum.getDescription());
-          object.addProperty("created", datum.getCreated());
-          object.addProperty("updated", datum.getUpdated());
+          object.addProperty("id", id);
+          object.addProperty("name", name);
+          object.addProperty("description", description);
+          object.addProperty("created", created);
+          object.addProperty("updated", updated);
           values.add(object);
         }
         response.addProperty("status", HttpURLConnection.HTTP_OK);
