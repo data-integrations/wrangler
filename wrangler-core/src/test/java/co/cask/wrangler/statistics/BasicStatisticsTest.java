@@ -64,7 +64,7 @@ public class BasicStatisticsTest {
     Row types = (Row) summary.getValue("types");
 
     Assert.assertEquals(7, stats.length());
-    Assert.assertEquals(5, types.length());
+    Assert.assertEquals(5, types.length()); 
   }
 }
 
