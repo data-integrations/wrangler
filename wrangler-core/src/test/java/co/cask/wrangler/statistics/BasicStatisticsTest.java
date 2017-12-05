@@ -64,25 +64,7 @@ public class BasicStatisticsTest {
     Row types = (Row) summary.getValue("types");
 
     Assert.assertEquals(7, stats.length());
-    Assert.assertEquals(7, types.length());
-
-//    List<Pair<String, Object>> fields = stats.getFields();
-//    for (Pair<String, Object> field : fields) {
-//      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-//      for (Pair<String, Double> value : values) {
-//        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
-//                                         value.getSecond() * 100));
-//      }
-//    }
-//
-//    fields = types.getFields();
-//    for (Pair<String, Object> field : fields) {
-//      List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-//      for (Pair<String, Double> value : values) {
-//        System.out.println(String.format("%-20s %20s %3.2f%%", field.getFirst(), value.getSecond(),
-//                                         value.getSecond() * 100));
-//      }
-//    }
+    Assert.assertEquals(5, types.length());
   }
 }
 
