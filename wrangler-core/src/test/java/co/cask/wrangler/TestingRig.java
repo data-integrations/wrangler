@@ -33,6 +33,7 @@ import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
+import co.cask.wrangler.parser.NoOpDirectiveContext;
 import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
@@ -112,7 +113,7 @@ public final class TestingRig {
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(migrate, registry);
-    parser.initialize(null);
+    parser.initialize(new NoOpDirectiveContext());
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.initialize(parser, null);
     return pipeline;

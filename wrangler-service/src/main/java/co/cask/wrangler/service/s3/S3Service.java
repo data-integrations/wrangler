@@ -106,7 +106,7 @@ public class S3Service extends AbstractHttpServiceHandler {
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
 
-  @UseDataSet(DataPrep.DATAPREP_DATASET)
+  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
   private Table connectionTable;
 
   /**

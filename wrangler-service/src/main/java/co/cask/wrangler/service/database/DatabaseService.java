@@ -99,7 +99,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   private WorkspaceDataset ws;
 
   // Data Prep store which stores all the information associated with dataprep.
-  @UseDataSet(DataPrep.DATAPREP_DATASET)
+  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
   private Table table;
 
   // Abstraction over the table defined above for managing connections.

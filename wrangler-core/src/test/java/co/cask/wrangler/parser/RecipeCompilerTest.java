@@ -23,6 +23,8 @@ import co.cask.wrangler.api.Compiler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Set;
+
 /**
  * Tests {@link RecipeCompiler}
  */
@@ -201,5 +203,16 @@ public class RecipeCompilerTest {
     };
     CompileStatus compile = TestingRig.compile(recipe);
     Assert.assertTrue(true);
+  }
+
+  @Test
+  public void testRecipePragmaWithCompiler() throws Exception {
+    String[] recipe = new String[] {
+      "#pragma load-directives test1,test2,test3,test4;",
+      "${directives}"
+    };
+    CompileStatus compile = TestingRig.compile(recipe);
+    Set<String> loadableDirectives = compile.getSymbols().getLoadableDirectives();
+    Assert.assertEquals(4, loadableDirectives.size());
   }
 }
