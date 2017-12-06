@@ -39,7 +39,7 @@ import org.apache.hadoop.mapred.TextOutputFormat;
  * Wrangler Application.
  */
 public class DataPrep extends AbstractApplication {
-  public static final String DATAPREP_DATASET = "dataprep";
+  public static final String CONNECTIONS_DATASET = "connections";
 
   /**
    * Override this method to declare and configure the application.
@@ -50,9 +50,9 @@ public class DataPrep extends AbstractApplication {
     setDescription("DataPrep Backend Service");
 
     createDataset(DirectivesService.WORKSPACE_DATASET, WorkspaceDataset.class,
-                  DatasetProperties.builder().setDescription("Dataprep Workspace Management").build());
-    createDataset(DATAPREP_DATASET, Table.class,
-                  DatasetProperties.builder().setDescription("DataPrep All Store").build());
+                  DatasetProperties.builder().setDescription("Dataprep workspace dataset").build());
+    createDataset(CONNECTIONS_DATASET, Table.class,
+                  DatasetProperties.builder().setDescription("DataPrep connections store.").build());
 
     Schema schema = Schema.recordOf(
       "recipes",

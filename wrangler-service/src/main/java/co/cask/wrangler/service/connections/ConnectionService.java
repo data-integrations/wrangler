@@ -53,7 +53,7 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
 public class ConnectionService extends AbstractHttpServiceHandler {
 
   // Data Prep store which stores all the information associated with dataprep.
-  @UseDataSet(DataPrep.DATAPREP_DATASET)
+  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
   private Table table;
 
   // Abstraction over the table defined above for managing connections.

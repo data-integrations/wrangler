@@ -96,6 +96,9 @@ public class SendToErrorAndContinue implements Directive {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context)
     throws DirectiveExecutionException, ReportErrorAndProceed {
+    if (context != null) {
+      context.getTransientStore().increment("dq_total", 1);
+    }
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       // Move the fields from the row into the context.
@@ -122,6 +125,9 @@ public class SendToErrorAndContinue implements Directive {
           }
           if (message == null) {
             message = condition;
+          }
+          if (context != null) {
+            context.getTransientStore().increment("dq_failure", 1);
           }
           throw new ReportErrorAndProceed(message, 1);
         }

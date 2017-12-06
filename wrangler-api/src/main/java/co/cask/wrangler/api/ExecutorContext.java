@@ -35,7 +35,8 @@ public interface ExecutorContext extends LookupProvider, Serializable {
   enum Environment {
     SERVICE,
     TRANSFORM,
-    MICROSERVICE
+    MICROSERVICE,
+    TESTING
   };
 
   /**
