@@ -63,7 +63,7 @@ public interface Executor<I, O> extends Serializable {
    * @return Wrangled List of {@link Row}.
    */
   O execute(I rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException;
+    throws DirectiveExecutionException, ErrorRowException, ReportErrorAndProceed;
 
   /**
    * This method provides a way for the directive to de-initialize or destroy the

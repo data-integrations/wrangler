@@ -3,7 +3,7 @@
   <parent>
     <artifactId>wrangler</artifactId>
     <groupId>co.cask.wrangler</groupId>
-    <version>3.1.0-SNAPSHOT</version>
+    <version>3.0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -11,12 +11,12 @@
   <name>Wrangler Transform</name>
 
   <properties>
-    <!-- properties for script build step that creates the config files for the artifacts -->
-    <widgets.dir>widgets</widgets.dir>
-    <docs.dir>docs</docs.dir>
-    <app.parents>system:cdap-data-pipeline[5.0.0-SNAPSHOT,5.1.0-SNAPSHOT),system:cdap-data-streams[5.0.0-SNAPSHOT,5.1.0-SNAPSHOT)</app.parents>
-    <!-- this is here because project.basedir evaluates to null in the script build step -->
-    <main.basedir>${project.basedir}</main.basedir>
+  <!-- properties for script budirectivestep that creates the config files for the artifacts -->
+  <widgets.dir>widgets</widgets.dir>
+  <docs.dir>docs</docs.dir>
+  <app.parents>system:cdap-data-pipeline[4.2.0-SNAPSHOT,6.0.0-SNAPSHOT),system:cdap-data-streams[4.2.0-SNAPSHOT,6.0.0-SNAPSHOT)</app.parents>
+  <!-- this is here because project.basedir evaluates to null in the script budirectivestep -->
+  <main.basedir>${project.basedir}</main.basedir>
   </properties>
 
   <dependencies>

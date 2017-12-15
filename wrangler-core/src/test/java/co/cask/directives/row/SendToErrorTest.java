@@ -19,7 +19,7 @@ package co.cask.directives.row;
 import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.executor.ErrorRecord;
+import co.cask.wrangler.api.ErrorRecord;
 import org.junit.Assert;
 import org.junit.Test;
 

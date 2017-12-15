@@ -24,6 +24,7 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
@@ -92,7 +93,8 @@ public class ParseExcel implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> records, final ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> records, final ExecutorContext context)
+    throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
     ByteArrayInputStream input = null;
     try {
@@ -198,7 +200,7 @@ public class ParseExcel implements Directive {
         }
       }
     } catch (Exception e) {
-      throw new DirectiveExecutionException(toString() + " Issue parsing excel file. " + e.getMessage(), e);
+      throw new ErrorRowException(e.getMessage(), 1);
     } finally {
       if (input != null) {
         Closeables.closeQuietly(input);
