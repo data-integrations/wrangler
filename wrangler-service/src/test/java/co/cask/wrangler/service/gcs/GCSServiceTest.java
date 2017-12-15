@@ -22,6 +22,7 @@ import java.util.Arrays;
 /**
  * Tests parts of {@link GCSService}
  */
+@Ignore
 public class GCSServiceTest {
 
   @Test

@@ -58,7 +58,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistryService.class);
   public static final String SCHEMA_REGISTRY_NAME = "schema";
 
-  @UseDataSet(DataPrep.DATAPREP_DATASET)
+  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
   private Table table;
 
   private SchemaRegistry registry;

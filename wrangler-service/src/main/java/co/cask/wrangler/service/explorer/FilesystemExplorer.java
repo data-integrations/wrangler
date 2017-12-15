@@ -94,6 +94,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path,
                    @QueryParam("hidden") boolean hidden) throws Exception {
+
     try {
       Map<String, Object> listing = explorer.browse(path, hidden);
       sendJson(responder, HttpURLConnection.HTTP_OK, gson.toJson(listing));
@@ -124,7 +125,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       return;
     }
 
-    if (header.equalsIgnoreCase("text/plain")) {
+    if (header.equalsIgnoreCase("text/plain") || header.contains("text/")) {
       loadSamplableFile(responder, path, lines, fraction, sampler);
     } else if (header.equalsIgnoreCase("application/xml")) {
       loadFile(responder, path, DataType.RECORDS);

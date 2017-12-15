@@ -20,6 +20,7 @@ import java.util.Iterator;
 /**
  * Tests {@link GCSService}
  */
+@Ignore
 public class GCSServiceTest {
 
   private JsonObject list(String path) throws Exception {

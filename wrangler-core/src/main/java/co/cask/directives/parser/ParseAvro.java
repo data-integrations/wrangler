@@ -24,6 +24,7 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
@@ -107,7 +108,8 @@ public class ParseAvro implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, final ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, final ExecutorContext context)
+    throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
 
     if (!decoderInitialized) {
@@ -175,13 +177,15 @@ public class ParseAvro implements Directive {
             byte[] bytes = body.getBytes(Charsets.UTF_8);
             results.addAll(decoder.decode(bytes));
           } else {
-            throw new DirectiveExecutionException(toString() + " : column " + column + " should be of type string or byte array");
+            throw new ErrorRowException(
+              toString() + " : column " + column + " should be of type string or byte array", 1
+            );
           }
         }
       }
     } catch (DecoderException e) {
-      throw new DirectiveExecutionException(toString() + " Issue decoding Avro record. Check schema version '" +
-                                (version == -1 ? "latest" : version) + "'. " + e.getMessage());
+      throw new ErrorRowException(toString() + " Issue decoding Avro record. Check schema version '" +
+                                (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
     }
     return results;
   }

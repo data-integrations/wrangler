@@ -32,17 +32,25 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.CompileException;
+import co.cask.wrangler.api.CompileStatus;
+import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.DirectiveInfo;
+import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.RecipeParser;
+import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.TransientStore;
+import co.cask.wrangler.api.parser.Token;
+import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceException;
@@ -50,6 +58,7 @@ import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
+import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
@@ -78,6 +87,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.ximpleware.VTDNav;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -122,6 +132,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   private static final String COLUMN_NAME = "body";
   private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   private static final String DELIMITER_HEADER = "delimiter";
+
+  private final Gson gson = new Gson();
 
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset table;
@@ -556,6 +568,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     try {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
+      user.getRecipe().setPragma(addLoadablePragmaDirectives(user));
+
       final int limit = user.getSampling().getLimit();
       List<Row> rows = executeDirectives(id, user, new Function<List<Row>, List<Row>>() {
         @Nullable
@@ -612,6 +626,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       response.addProperty("count", values.size());
       response.add("header", headers); // TODO: Remove this later. 
       response.add("types", types);
+      response.add("directives", gson.toJsonTree(user.getRecipe().getDirectives()));
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (JsonParseException e) {
@@ -624,6 +639,53 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       LOG.error(e.getMessage(), e);
       error(responder, e.getMessage());
     }
+  }
+
+  /**
+   * Automatically adds a load-directives pragma to the list of directives.
+   */
+  private String addLoadablePragmaDirectives(Request request) {
+    StringBuilder sb = new StringBuilder();
+    // Validate the DSL by compiling the DSL. In case of macros being
+    // specified, the compilation will them at this phase.
+    Compiler compiler = new RecipeCompiler();
+    try {
+      // Compile the directive extracting the loadable plugins (a.k.a
+      // Directives in this context).
+      CompileStatus status = compiler.compile(new MigrateToV2(request.getRecipe().getDirectives()).migrate());
+      RecipeSymbol symbols = status.getSymbols();
+      Iterator<TokenGroup> iterator = symbols.iterator();
+      List<String> userDirectives = new ArrayList<>();
+      while(iterator.hasNext()) {
+        TokenGroup next = iterator.next();
+        if (next == null || next.size() < 1) {
+          continue;
+        }
+        Token token = next.get(0);
+        if (token.type() == TokenType.DIRECTIVE_NAME) {
+          String directive = (String) token.value();
+          try {
+            DirectiveInfo.Scope scope = composite.get(directive).scope();
+            if (scope == DirectiveInfo.Scope.USER) {
+              userDirectives.add(directive);
+            }
+          } catch (DirectiveLoadException e) {
+            // no-op.
+          }
+        }
+      }
+      if (userDirectives.size() > 0) {
+        sb.append("#pragma load-directives ");
+        String directives = StringUtils.join(userDirectives, ",");
+        sb.append(directives).append(";");
+        return sb.toString();
+      }
+    } catch (CompileException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    } catch (DirectiveParseException e) {
+      throw new IllegalArgumentException(e.getMessage());
+    }
+    return null;
   }
 
   /**

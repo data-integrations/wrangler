@@ -129,6 +129,7 @@ These directives are currently available:
 | [Flatten](wrangler-docs/directives/flatten.md)                                  | Separates the elements in a repeated field                       |
 | [Fail on condition](wrangler-docs/directives/fail.md)                           | Fails processing when the condition is evaluated to true.        |
 | [Send to Error](wrangler-docs/directives/send-to-error.md)                      | Filtering of records to an error collector                       |
+| [Send to Error And Continue](wrangler-docs/directives/send-to-error-and-continue.md) | Filtering of records to an error collector and continues processing                      |
 | [Split to Rows](wrangler-docs/directives/split-to-rows.md)                      | Splits based on a separator into multiple records                |
 | **Column Operations**                                                  |                                                                  |
 | [Change Column Case](wrangler-docs/directives/change-column-case.md)            | Changes column names to either lowercase or uppercase            |

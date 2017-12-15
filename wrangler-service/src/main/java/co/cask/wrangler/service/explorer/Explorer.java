@@ -212,7 +212,7 @@ public final class Explorer {
     response.put("group", group);
     response.put("owner", owner);
     response.put("permission", permissions);
-    response.put("size", location.length());
+    response.put("size", !location.isDirectory() ? location.length() : 0); // Calculate only when it's not directory.
     response.put("last-modified", location.lastModified());
     response.put("uri", location.toURI().toString());
     return response;

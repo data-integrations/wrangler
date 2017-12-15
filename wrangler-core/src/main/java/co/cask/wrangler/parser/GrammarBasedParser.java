@@ -41,7 +41,9 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * Class description here.
+ * This class <code>GrammarBasedParser</code> is an implementation of <code>RecipeParser</code>.
+ * It's responsible for compiling the recipe and checking all the directives exist before concluding
+ * that the directives are ready for execution.
  */
 public class GrammarBasedParser implements RecipeParser {
   private static final char EOL = '\n';
