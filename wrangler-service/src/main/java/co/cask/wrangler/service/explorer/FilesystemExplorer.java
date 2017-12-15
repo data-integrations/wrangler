@@ -188,7 +188,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       }
 
       if (location.length() > FILE_SIZE) {
-        error(responder, "Files larger than 10MB are currently not supported.");
+        error(responder, "Large files greater than 10MG not supported.");
         return;
       }
 

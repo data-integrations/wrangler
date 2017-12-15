@@ -49,7 +49,7 @@ public final class TestingRig {
     throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
     verify(directive);
     List<String> packages = new ArrayList<>();
-    packages.add(directive.getPackage().getName());
+    packages.add(directive.getCanonicalName());
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry(packages)
     );

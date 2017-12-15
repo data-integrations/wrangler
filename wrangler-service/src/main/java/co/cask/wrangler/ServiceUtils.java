@@ -80,19 +80,6 @@ public final class ServiceUtils {
   }
 
   /**
-   * Sends the error response back to client with error status.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static final void error(HttpServiceResponder responder, int status, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", status);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString());
-  }
-
-  /**
    * Returns a Json response back to client.
    *
    * @param responder to respond to the service request.
