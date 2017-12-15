@@ -17,15 +17,17 @@
 package co.cask.wrangler.service.explorer;
 
 import co.cask.cdap.api.dataset.lib.FileSet;
-import co.cask.wrangler.service.FileTypeDetector;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.twill.filesystem.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 /**
  * File system explorer.
@@ -50,7 +53,7 @@ public final class Explorer {
   private final String operatingSystem;
 
   // Map of file extensions to MIME names.
-  private final FileTypeDetector detector;
+  private final Map<String, String> extensions;
 
   // Some constants for unknown or device types.
   public final static String DEVICE = "device";
@@ -64,7 +67,22 @@ public final class Explorer {
     } else {
       this.operatingSystem = os.toLowerCase();
     }
-    detector = new FileTypeDetector();
+
+    this.extensions = new HashMap<>();
+    File file = new File(Explorer.class.getClassLoader().getResource("file.extensions").getFile());
+    try {
+      Scanner scanner = new Scanner(file);
+      while(scanner.hasNext()) {
+        String line = scanner.nextLine();
+        String[] parts = line.split("\t");
+        if (parts.length == 2) {
+          extensions.put(parts[0], parts[1]);
+        }
+      }
+      scanner.close();
+    } catch (FileNotFoundException e) {
+      LOG.warn("Unable to load extension map. File 'file.extensions' not packaged.");
+    }
   }
 
   /**
@@ -91,7 +109,7 @@ public final class Explorer {
         Map<String, Object> object = locationInfo(location);
         // If it's a directory, inspect the contents further attempting to detect the type
         String type = guessLocationType(location, 1);
-        boolean isWrangleable = detector.isWrangleable(type);
+        boolean isWrangleable = isWrangleable(type);
         object.put("type", type);
         object.put("wrangle", isWrangleable);
         values.add(object);
@@ -110,6 +128,28 @@ public final class Explorer {
     }
   }
 
+  /**
+   * This function checks if the type is wrangle-able of not.
+   *
+   * <p>It detects it based on the type, currently we only support
+   * types that are of MIME type 'text'</p>
+   *
+   * @param type Specifies the MIME type.
+   * @return true if it's wrangle-able, false otherwise.
+   */
+  private boolean isWrangleable(String type) {
+    if ("text/plain".equalsIgnoreCase(type)
+        || "application/json".equalsIgnoreCase(type)
+        || "application/xml".equalsIgnoreCase(type)
+        || "application/avro".equalsIgnoreCase(type)
+        || "application/protobuf".equalsIgnoreCase(type)
+        || "application/excel".equalsIgnoreCase(type)
+        || type.contains("image/")
+      ) {
+      return true;
+    }
+    return false;
+  }
 
   /**
    * This methods provides an efficiently way to read a file from the file system specified by
@@ -170,7 +210,7 @@ public final class Explorer {
       }
 
       if (!path.isDirectory()) {
-        return detector.detectFileType(path);
+        return detectFileType(path);
       } else {
         Multiset<String> types = HashMultiset.create();
         List<Location> listing = path.list();
@@ -190,6 +230,21 @@ public final class Explorer {
       }
     } catch (IOException e) {
       // We might not have permission, so ignore on look-ahead.
+    }
+    return UNKNOWN;
+  }
+
+  /**
+   * Attempts to detect the type of the file through extensions and by reading the content of the file.
+   *
+   * @param location of the file who's content type need to be detected.
+   * @return type of the file.
+   */
+  private String detectFileType(Location location) throws IOException {
+    // We first attempt to detect the type of file based on extension.
+    String extension = FilenameUtils.getExtension(location.getName());
+    if (extensions.containsKey(extension)) {
+      return extensions.get(extension);
     }
     return UNKNOWN;
   }
