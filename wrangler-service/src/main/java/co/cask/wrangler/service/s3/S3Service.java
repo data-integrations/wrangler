@@ -72,6 +72,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -550,19 +551,6 @@ public class S3Service extends AbstractHttpServiceHandler {
     private JsonArray get() {
       return objects;
     }
-  }
-
-  /**
-   * get data type from the file type.
-   * @param fileName
-   * @return DataType
-   * @throws IOException
-   */
-  private DataType getDataType(String fileName) throws IOException {
-    // detect fileType from fileName
-    String fileType = detector.detectFileType(fileName);
-    DataType dataType = DataType.fromString(fileType);
-    return dataType == null ? DataType.BINARY : dataType;
   }
 
   /**
