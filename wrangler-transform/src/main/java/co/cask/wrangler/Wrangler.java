@@ -35,15 +35,17 @@ import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
+import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.DirectiveRegistry;
+import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.TransientStore;
-import co.cask.wrangler.executor.ErrorRecord;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.GrammarBasedParser;
@@ -61,8 +63,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Wrangler - A interactive tool for data data cleansing and transformation.
@@ -129,22 +133,54 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         validateInputSchema(iSchema);
       }
 
+      String directives = config.directives;
+      if(config.udds != null && !config.udds.trim().isEmpty()) {
+        if (config.containsMacro("directives")) {
+          directives = String.format("#pragma load-directives %s;", config.udds);
+        } else {
+          directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
+        }
+      }
+
       // Validate the DSL by compiling the DSL. In case of macros being
       // specified, the compilation will them at this phase.
       Compiler compiler = new RecipeCompiler();
       try {
         // Compile the directive extracting the loadable plugins (a.k.a
         // Directives in this context).
-        CompileStatus status = compiler.compile(new MigrateToV2(config.directives).migrate());
+        CompileStatus status = compiler.compile(new MigrateToV2(directives).migrate());
         RecipeSymbol symbols = status.getSymbols();
-        if (symbols != null) {
-          Set<String> dynamicDirectives = symbols.getLoadableDirectives();
-          for (String directive : dynamicDirectives) {
-            Object o = configurer.usePlugin(Directive.Type, directive, directive, PluginProperties.builder().build());
-            if (o == null) {
-              throw new IllegalArgumentException(
-                String.format("User Defined Directive '%s' is not deployed or is not available.", directive)
-              );
+        Set<String> dynamicDirectives = symbols.getLoadableDirectives();
+        for (String directive : dynamicDirectives) {
+          Object o = configurer.usePlugin(Directive.Type, directive, directive, PluginProperties.builder().build());
+          if (o == null) {
+            throw new IllegalArgumentException(
+              String.format("User Defined Directive '%s' is not deployed or is not available.", directive)
+            );
+          }
+        }
+
+        // If the 'directives' contains macro, then we would not attempt to compile
+        // it.
+        if(!config.containsMacro("directives")) {
+          // Create the registry that only interacts with system directives.
+          registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry());
+
+          if (symbols != null) {
+            Iterator<TokenGroup> iterator = symbols.iterator();
+            while(iterator != null && iterator.hasNext()) {
+              TokenGroup group = iterator.next();
+              if (group != null) {
+                String directive = (String) group.get(0).value();
+                DirectiveInfo directiveInfo = registry.get(directive);
+                if (directiveInfo == null && !dynamicDirectives.contains(directive)) {
+                  throw new IllegalArgumentException(
+                    String.format("Wrangler plugin has a directive '%s' that does not exist in system or " +
+                                    "user space. Either it is a typographical error or the user directive is " +
+                                    "not loaded.", directive)
+                  );
+                }
+              }
             }
           }
         }
@@ -188,6 +224,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       if (oSchema != null) {
         configurer.getStageConfigurer().setOutputSchema(oSchema);
       }
+
     } catch (Exception e) {
       LOG.error(e.getMessage());
       throw new IllegalArgumentException(e.getMessage());
@@ -226,7 +263,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       new UserDirectiveRegistry(context)
     );
 
-    RecipeParser directives = new GrammarBasedParser(new MigrateToV2(config.directives).migrate(), registry);
+    String directives = config.directives;
+    if(config.udds != null && !config.udds.trim().isEmpty()) {
+      directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
+    }
+
+    RecipeParser recipe = new GrammarBasedParser(new MigrateToV2(directives).migrate(), registry);
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
@@ -256,13 +298,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       URL url = getDPServiceURL(CONFIG_METHOD);
       if (url != null) {
         ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
-        directives.initialize(dContext);
+        recipe.initialize(dContext);
       } else {
         LOG.warn(
           String.format("Stage:%s - Context is set to default, no aliasing and restriction would be applied.",
                         getContext().getStageName())
           );
-        directives.initialize(null);
+        recipe.initialize(null);
       }
     } catch (IOException | URISyntaxException e) {
       // If there is a issue, we need to fail the pipeline that has the plugin.
@@ -275,7 +317,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     try {
       // Create the pipeline executor with context being set.
       pipeline = new RecipePipelineExecutor();
-      pipeline.initialize(directives, ctx);
+      pipeline.initialize(recipe, ctx);
     } catch (Exception e) {
       throw new Exception(
         String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage())
@@ -420,6 +462,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Macro
     private String directives;
 
+    @Name("udd")
+    @Description("List of User Defined Directives (UDD) that have to be loaded.")
+    @Nullable
+    private String udds;
+
     @Name("field")
     @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
     @Macro
@@ -437,9 +484,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Macro
     private final String schema;
 
-    public Config(String precondition, String directives, String field, int threshold, String schema) {
+    public Config(String precondition, String directives, String udds, String field, int threshold, String schema) {
       this.precondition = precondition;
       this.directives = directives;
+      this.udds = udds;
       this.field = field;
       this.threshold = threshold;
       this.schema = schema;

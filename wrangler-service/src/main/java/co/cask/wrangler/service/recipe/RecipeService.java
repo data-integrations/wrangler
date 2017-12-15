@@ -19,16 +19,26 @@ package co.cask.wrangler.service.recipe;
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.DataSetException;
-import co.cask.cdap.api.dataset.lib.CloseableIterator;
-import co.cask.cdap.api.dataset.lib.KeyValue;
-import co.cask.cdap.api.dataset.lib.ObjectMappedTable;
 import co.cask.cdap.api.dataset.table.Row;
+import co.cask.cdap.api.dataset.table.Scanner;
+import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
+import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveNotFoundException;
+import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.RecipeParser;
+import co.cask.wrangler.parser.GrammarBasedParser;
+import co.cask.wrangler.parser.MigrateToV2;
+import co.cask.wrangler.registry.CompositeDirectiveRegistry;
+import co.cask.wrangler.registry.SystemDirectiveRegistry;
+import co.cask.wrangler.registry.UserDirectiveRegistry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -66,9 +76,17 @@ import static co.cask.wrangler.ServiceUtils.success;
 public class RecipeService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(RecipeService.class);
   public static final String DATASET = "recipes";
+  private static final byte[] ID = Bytes.toBytes("id");
+  private static final byte[] NAME = Bytes.toBytes("name");
+  private static final byte[] CREATED = Bytes.toBytes("created");
+  private static final byte[] UPDATED = Bytes.toBytes("updated");
+  private static final byte[] DESCRIPTION = Bytes.toBytes("description");
+  private static final byte[] DIRECTIVES = Bytes.toBytes("directives");
 
   @UseDataSet(DATASET)
-  private ObjectMappedTable<RecipeDatum> recipeStore;
+  private Table recipeStore;
+
+  private final Gson gson = new Gson();
 
   /**
    * Creates a recipe entry in the recipe store.
@@ -81,30 +99,96 @@ public class RecipeService extends AbstractHttpServiceHandler {
    *
    * @param request HTTP request handler.
    * @param responder HTTP response handler.
-   * @param recipeId id of the recipe to be stored.
    * @param description (Query Argument) for the recipe to be stored.
    * @param name (Query Argument) display name of the recipe.
    */
   @PUT
-  @Path("recipes/{recipeId}")
+  @Path("recipes")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("recipeId") String recipeId,
                      @QueryParam("description") String description,
                      @QueryParam("name") String name) {
+    String recipeId = getIdFromName(name);
     try {
-      RecipeDatum datum = recipeStore.read(Bytes.toBytes(recipeId));
-      if (datum == null) {
-        recipeStore.write(Bytes.toBytes(recipeId), new RecipeDatum(recipeId, name, description));
-      } else {
-        datum.setUpdated(System.currentTimeMillis() / 1000);
-        datum.setDescription(description);
-        datum.setName(name);
-        recipeStore.write(Bytes.toBytes(recipeId), datum);
+      JsonObject object = new JsonObject();
+      RecipeDatum datum = read(recipeId);
+      if (datum != null) {
+        error(responder, String.format("Recipe with name '%s' (id: '%s') already exists. Use POST to update it.",
+                                       name, recipeId));
+        return;
       }
-      success(responder, String.format("Successfully created recipe with id '%s'", recipeId));
-    } catch (DataSetException e) {
+
+      datum = new RecipeDatum(recipeId, name, description);
+      long time = System.currentTimeMillis() / 1000;
+      datum.setCreated(time);
+      datum.setUpdated(time);
+
+      ByteBuffer content = request.getContent();
+      if (content != null && content.hasRemaining()) {
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>() {}.getType());
+        datum.setDirectives(directives);
+      }
+
+      write(recipeId, datum);
+
+      JsonObject response = new JsonObject();
+      JsonArray values = new JsonArray();
+      object.addProperty("id", recipeId);
+      object.addProperty("name", name);
+      object.addProperty("description", description);
+      values.add(object);
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (Exception e) {
+      LOG.info(String.format("Error creating recipe '%s'.", recipeId), e);
       error(responder, e.getMessage());
     }
+  }
+
+  private String getIdFromName(String name) {
+    name = name.toLowerCase();
+    name = name.replaceAll("[_ \t]+", "-");
+    name = name.replaceAll("[/$%#@**&()!,~+=?><|}{]+", "");
+    return name;
+  }
+
+  private RecipeDatum read(String key) {
+    Row row = recipeStore.get(Bytes.toBytes(key));
+    if (row != null && !row.isEmpty()) {
+      String id = row.getString(ID);
+      String name = row.getString(NAME);
+      String description = row.getString(DESCRIPTION);
+      RecipeDatum datum = new RecipeDatum(id, name, description);
+      datum.setCreated(row.getLong(UPDATED));
+      datum.setUpdated(row.getLong(CREATED));
+      String recipe = row.getString(DIRECTIVES);
+      List<String> directives = gson.fromJson(recipe, new TypeToken<List<String>>() {}.getType());
+      datum.setDirectives(directives);
+      return datum;
+    }
+    return null;
+  }
+
+  private void write(String key, RecipeDatum datum) {
+    byte[][] columns = new byte[][] {
+      ID, NAME, DESCRIPTION, CREATED, UPDATED, DIRECTIVES
+    };
+
+    String directivesJson = gson.toJson(datum.getDirectives());
+
+    byte[][] values = new byte[][] {
+      Bytes.toBytes(key),
+      Bytes.toBytes(datum.getName()),
+      Bytes.toBytes(datum.getDescription()),
+      Bytes.toBytes(datum.getCreated()),
+      Bytes.toBytes(datum.getUpdated()),
+      Bytes.toBytes(directivesJson)
+    };
+    recipeStore.put(Bytes.toBytes(key), columns, values);
   }
 
   /**
@@ -126,19 +210,29 @@ public class RecipeService extends AbstractHttpServiceHandler {
   @GET
   @Path("recipes/list")
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
-    JSONObject response = new JSONObject();
-    Row row;
+    JsonObject response = new JsonObject();
     try {
-      try (CloseableIterator<KeyValue<byte[], RecipeDatum>> scanner = recipeStore.scan((byte[])null, (byte[]) null)) {
-        JSONArray values = new JSONArray();
-        while(scanner.hasNext()) {
-          KeyValue<byte[], RecipeDatum> datum = scanner.next();
-          values.put(new String(datum.getKey()));
+      try (Scanner scanner = recipeStore.scan(null, null)) {
+        JsonArray values = new JsonArray();
+        Row next;
+        while ((next = scanner.next()) != null) {
+          String id = next.getString(ID);
+          String name = next.getString(NAME);
+          String description = next.getString(DESCRIPTION);
+          long created = next.getLong(CREATED);
+          long updated = next.getLong(UPDATED);
+          JsonObject object = new JsonObject();
+          object.addProperty("id", id);
+          object.addProperty("name", name);
+          object.addProperty("description", description);
+          object.addProperty("created", created);
+          object.addProperty("updated", updated);
+          values.add(object);
         }
-        response.put("status", HttpURLConnection.HTTP_OK);
-        response.put("message", "Success");
-        response.put("count", values.length());
-        response.put("values", values);
+        response.addProperty("status", HttpURLConnection.HTTP_OK);
+        response.addProperty("message", "Success");
+        response.addProperty("count", values.size());
+        response.add("values", values);
         sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
       }
     } catch (DataSetException e) {
@@ -181,9 +275,9 @@ public class RecipeService extends AbstractHttpServiceHandler {
                   @PathParam("recipeId") String recipeId) {
     JSONObject response = new JSONObject();
     try {
-      RecipeDatum object = recipeStore.read(Bytes.toBytes(recipeId));
+      RecipeDatum object = read(recipeId);
       if (object == null) {
-        success(responder, String.format("TestRecipe with id '%s' not found", recipeId));
+        success(responder, String.format("Recipe with id '%s' not found", recipeId));
         return;
       } else {
         response.put("status", HttpURLConnection.HTTP_OK);
@@ -225,23 +319,38 @@ public class RecipeService extends AbstractHttpServiceHandler {
   public void post(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("recipeId") String recipeId) {
 
-    RecipeDatum datum = recipeStore.read(Bytes.toBytes(recipeId));
+    RecipeDatum datum = read(recipeId);
     if (datum == null) {
-      notFound(responder, String.format("TestRecipe id '%s' not found.", recipeId));
+      notFound(responder, String.format("Recipe id '%s' not found.", recipeId));
       return;
     }
 
-    ByteBuffer content = request.getContent();
-    if (content != null && content.hasRemaining()) {
-      GsonBuilder builder = new GsonBuilder();
-      Gson gson = builder.create();
-      List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>(){}.getType());
-      datum.setDirectives(directives);
-      datum.setUpdated(System.currentTimeMillis() / 1000);
-      recipeStore.write(Bytes.toBytes(recipeId), datum);
-      success(responder, "Successfully updated directives for recipe id '" + recipeId + "'.");
-    } else {
-      error(responder, String.format("No valid directives present to be updated for recipe '%s'", recipeId));
+    try {
+      ByteBuffer content = request.getContent();
+      if (content != null && content.hasRemaining()) {
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>(){}.getType());
+
+        CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
+          new SystemDirectiveRegistry(),
+          new UserDirectiveRegistry(getContext())
+        );
+
+        String migrate = new MigrateToV2(directives).migrate();
+        RecipeParser parser = new GrammarBasedParser(migrate, registry);
+        parser.initialize(null);
+        parser.parse();
+
+        datum.setDirectives(directives);
+        datum.setUpdated(System.currentTimeMillis() / 1000);
+        write(recipeId, datum);
+        success(responder, "Successfully updated directives for recipe id '" + recipeId + "'.");
+      } else {
+        error(responder, String.format("No valid directives present to be updated for recipe '%s'", recipeId));
+      }
+    } catch (DirectiveLoadException | DirectiveNotFoundException | DirectiveParseException e) {
+      error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     }
   }
 

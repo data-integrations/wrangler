@@ -72,7 +72,7 @@ public final class SetType implements Directive {
       int idx = row.find(col);
       if (idx != -1) {
         Object object = row.getValue(idx);
-        if (object == null) {
+        if (object == null || (object instanceof String && ((String) object).trim().isEmpty())) {
           continue;
         }
         try {

@@ -191,13 +191,6 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
         for(String directive : difference.entriesOnlyOnRight().keySet()) {
           registry.put(directive, difference.entriesOnlyOnRight().get(directive));
         }
-
-        int count = registry.size();
-        LOG.info(
-          String.format("Updating registry - Deleted %d, Updated %d, Adding %d, Final Count %d.",
-                        deleted, updated, adding, count)
-        );
-
       } catch (IllegalAccessException | InstantiationException | IOException | ClassNotFoundException e) {
         throw new DirectiveLoadException(e.getMessage(), e);
       }

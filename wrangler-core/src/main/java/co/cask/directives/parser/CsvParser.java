@@ -23,6 +23,7 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
@@ -122,7 +123,7 @@ public class CsvParser implements Directive {
    */
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException {
+    throws DirectiveExecutionException, ErrorRowException {
 
     for (Row row : rows) {
       int idx = row.find(columnArg.value());
@@ -150,9 +151,8 @@ public class CsvParser implements Directive {
           }
         }
       } catch (IOException e) {
-        throw new DirectiveExecutionException(
-          String.format("%s : Issue parsing the row. %s", toString(), e.getMessage())
-        );
+        // When there is error parsing data, the data is written to error.
+        throw new ErrorRowException(e.getMessage(), 1);
       }
     }
     return rows;

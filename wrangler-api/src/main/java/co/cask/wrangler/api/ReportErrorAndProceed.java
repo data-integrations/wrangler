@@ -14,47 +14,34 @@
  * the License.
  */
 
-package co.cask.wrangler.executor;
-
-import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.annotations.Public;
+package co.cask.wrangler.api;
 
 /**
- * Specifies the structure for Error records.
+ * Exception throw when the record needs to emitted to error collector.
+ * This class is similar to {@link ErrorRowException}, but, with a difference
+ * that it reports error and continues processing.
  */
-@Public
-public final class ErrorRecord {
-  // Actual row that is errored.
-  private final Row row;
+public class ReportErrorAndProceed extends Exception {
+  // Message as to why the record errored.
+  private String message;
 
-  // Message as to why the row errored.
-  private final String message;
+  // Code associated with the error message.
+  private int code;
 
-  // Code associated with the message.
-  private final int code;
-
-  public ErrorRecord(Row row, String message, int code) {
-    this.row = row;
+  public ReportErrorAndProceed(String message, int code) {
     this.message = message;
     this.code = code;
   }
 
   /**
-   * @return original {@link Row} that errored.
-   */
-  public Row getRow() {
-    return row;
-  }
-
-  /**
-   * @return Message associated with the {@link Row}.
+   * @return Message as why the record errored.
    */
   public String getMessage() {
     return message;
   }
 
   /**
-   * @return Code associated with the error.
+   * @return code related to the message.
    */
   public int getCode() {
     return code;

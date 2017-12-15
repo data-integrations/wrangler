@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.executor;
 
+import co.cask.wrangler.api.ErrorRecord;
 import co.cask.wrangler.api.annotations.Public;
 
 import java.util.ArrayList;

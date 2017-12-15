@@ -44,6 +44,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,6 +72,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +99,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   private WorkspaceDataset ws;
 
   // Data Prep store which stores all the information associated with dataprep.
-  @UseDataSet(DataPrep.DATAPREP_DATASET)
+  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
   private Table table;
 
   // Abstraction over the table defined above for managing connections.
@@ -181,13 +184,14 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     public void execute(java.sql.Connection connection) throws Exception;
   }
 
-  private static final Map<String, DriverInfo> drivers = new HashMap<>();
+  private final Multimap<String, DriverInfo> drivers = ArrayListMultimap.create();
 
   @Override
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
     store = new ConnectionStore(table);
     InputStream is = DatabaseService.class.getClassLoader().getResourceAsStream("drivers.mapping");
+    drivers.clear();
     try {
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
       String line;
@@ -252,28 +256,30 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         for (PluginClass plugin : plugins) {
           String type = plugin.getType();
           if (JDBC.equalsIgnoreCase(type)) {
-            JsonObject object = new JsonObject();
             String className = plugin.getClassName();
             if (drivers.containsKey(className)) {
-              DriverInfo info = drivers.get(className);
-              object.addProperty("label", info.getName());
-              object.addProperty("version", artifact.getVersion());
-              object.addProperty("url", info.getJdbcUrlPattern());
-              object.addProperty("default.port", info.getPort());
+              Collection<DriverInfo> infos = drivers.get(className);
+              for (DriverInfo info : infos) {
+                JsonObject object = new JsonObject();
+                object.addProperty("label", info.getName());
+                object.addProperty("version", artifact.getVersion());
+                object.addProperty("url", info.getJdbcUrlPattern());
+                object.addProperty("default.port", info.getPort());
 
-              JsonObject properties = new JsonObject();
-              properties.addProperty("class", plugin.getClassName());
-              properties.addProperty("type", plugin.getType());
-              properties.addProperty("name", plugin.getName());
-              JsonArray required = new JsonArray();
-              List<String> fields = getMacros(info.getJdbcUrlPattern());
-              fields.add("url");
-              for (String field : fields) {
-                required.add(new JsonPrimitive(field));
+                JsonObject properties = new JsonObject();
+                properties.addProperty("class", plugin.getClassName());
+                properties.addProperty("type", plugin.getType());
+                properties.addProperty("name", plugin.getName());
+                JsonArray required = new JsonArray();
+                List<String> fields = getMacros(info.getJdbcUrlPattern());
+                fields.add("url");
+                for (String field : fields) {
+                  required.add(new JsonPrimitive(field));
+                }
+                object.add("properties", properties);
+                object.add("fields", required);
+                values.add(object);
               }
-              object.add("properties", properties);
-              object.add("fields", required);
-              values.add(object);
             }
           }
         }
@@ -314,7 +320,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
     JsonObject response = new JsonObject();
     JsonArray values = new JsonArray();
-    for (Map.Entry<String, DriverInfo> driver : drivers.entrySet()) {
+    Collection<Map.Entry<String, DriverInfo>> entries = drivers.entries();
+    for (Map.Entry<String, DriverInfo> driver : entries) {
       JsonObject object = new JsonObject();
       object.addProperty("class", driver.getKey());
       object.addProperty("label", driver.getValue().getName());

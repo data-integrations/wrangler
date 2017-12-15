@@ -4,15 +4,15 @@
   },
   "configuration-groups": [
     {
-      "label": "Wrangler",
-      "properties": [
+      "label" : "Input Selection and Prefilters",
+      "properties" : [
         {
           "widget-type" : "hidden",
           "name" : "workspace"
         },
         {
           "widget-type": "textbox",
-          "label": "Input Field",
+          "label": "Input field name",
           "name": "field",
           "widget-attributes" : {
             "default": "*"
@@ -25,12 +25,30 @@
           "widget-attributes" : {
             "default" : "false"
           }
-        },
+        }
+      ]
+    },
+    {
+      "label": "Directives",
+      "properties": [
         {
           "widget-type": "wrangler-directives",
           "label": "Recipe",
-          "name": "directives"
+          "name": "directives",
+          "widget-attributes" : {
+            "placeholder" : "#pragma load-directives my-directive; my-directive :body;"
+          }
         },
+        {
+          "widget-type": "csv",
+          "label": "User Defined Directives(UDD)",
+          "name": "udd"
+        }
+      ]
+    },
+    {
+      "label" : "Failure Conditions and Handling",
+      "properties" : [
         {
           "widget-type": "textbox",
           "label" : "Failure Threshold",

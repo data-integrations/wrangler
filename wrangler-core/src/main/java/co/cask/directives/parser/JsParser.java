@@ -23,6 +23,7 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
@@ -91,7 +92,8 @@ public class JsParser implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context)
+    throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
     // Iterate through all the rows.
     for (Row row : rows) {
@@ -128,18 +130,22 @@ public class JsParser implements Directive {
               results.add(row);
             } else if (element instanceof JsonArray) {
               JsonArray array = element.getAsJsonArray();
-              for(int i = 0; i < array.size(); ++i) {
-                JsonElement object = array.get(i);
-                Row newRow = new Row(row);
-                newRow.add(column, getValue(object));
-                results.add(newRow);
+              if (array.size() > 0) {
+                for (int i = 0; i < array.size(); ++i) {
+                  JsonElement object = array.get(i);
+                  Row newRow = new Row(row);
+                  newRow.add(column, getValue(object));
+                  results.add(newRow);
+                }
+              } else {
+                results.add(row);
               }
             } else if (element instanceof JsonPrimitive) {
               row.add(column, getValue(element.getAsJsonPrimitive()));
             }
           }
         } catch (JSONException e) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
+          throw new ErrorRowException(toString() + " : " + e.getMessage(), 1);
         }
       }
     }
