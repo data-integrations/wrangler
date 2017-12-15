@@ -19,7 +19,7 @@
 
   <groupId>co.cask.wrangler</groupId>
   <artifactId>wrangler</artifactId>
-  <version>3.0.1</version>
+  <version>3.1.0-SNAPSHOT</version>
   <name>Wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
@@ -108,7 +108,7 @@
     <guava.retrying.version>2.0.0</guava.retrying.version>
     <geogson.version>1.1.97</geogson.version>
     <kafka.clients.version>0.10.2.1</kafka.clients.version>
-    <aws.sdk.version>1.11.133</aws.sdk.version>
+    <aws.sdk.version>1.9.6</aws.sdk.version>
     <poi.version>3.16</poi.version>
     <hadoop.version>2.4.0</hadoop.version>
     <antlr4.version>4.7</antlr4.version>
@@ -116,10 +116,6 @@
     <junit.version>4.12</junit.version>
     <reflections.version>0.9.9</reflections.version>
     <commons.validator.version>1.6</commons.validator.version>
-    <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
-    <google.cloud.bigquery.version>0.25.0-beta</google.cloud.bigquery.version>
-    <google.storage.version>1.7.0</google.storage.version>
-    <juniversalchardet.version>1.0.3</juniversalchardet.version>
   </properties>
 
   <repositories>
