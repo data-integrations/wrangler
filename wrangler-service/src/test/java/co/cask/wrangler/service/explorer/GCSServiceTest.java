@@ -23,7 +23,6 @@ import java.util.Iterator;
 @Ignore
 public class GCSServiceTest {
 
-  @Ignore
   private JsonObject list(String path) throws Exception {
     String key = "/tmp/cask-dev-clusters-729251f6adf7.json";
     ServiceAccountCredentials credentials = GCPServiceAccount.loadLocalFile(key);
