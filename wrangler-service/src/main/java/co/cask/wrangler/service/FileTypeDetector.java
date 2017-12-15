@@ -75,6 +75,7 @@ public class FileTypeDetector {
       || "application/excel".equalsIgnoreCase(type)
       || type.contains("image/")
       || type.contains("text/")
+      ) {
       return true;
     }
     return false;
