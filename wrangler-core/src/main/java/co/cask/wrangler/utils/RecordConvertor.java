@@ -18,6 +18,7 @@ package co.cask.wrangler.utils;
 
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.format.StructuredRecord;
+import co.cask.cdap.api.data.format.UnexpectedFormatException;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.directives.parser.JsParser;
 import co.cask.wrangler.api.Row;
@@ -76,9 +77,23 @@ public final class RecordConvertor implements Serializable {
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     List<Schema.Field> fields = schema.getFields();
     for (Schema.Field field : fields) {
+      Schema fSchema = field.getSchema();
+      boolean isNullable = fSchema.isNullable();
       String name = field.getName();
       Object value = row.getValue(name);
-      builder.set(name, decode(name, value, field.getSchema()));
+      try {
+        builder.set(name, decode(name, value, field.getSchema()));
+      } catch (UnexpectedFormatException e) {
+        throw new RecordConvertorException(
+          String.format("Field '%s' of type '%s' (Nullable : '%s') cannot be set to '%s'. Possibly the value being " +
+                          "set is not in inline with the schema specified. Check schema for field '%s'.",
+                        name,
+                        isNullable ? fSchema.getNonNullable().getType().name() : fSchema.getType().name(),
+                        isNullable ? "YES" : "NO",
+                        value == null ? "NULL" : "<value>",
+                        name)
+        );
+      }
     }
     return builder.build();
   }
@@ -164,6 +179,11 @@ public final class RecordConvertor implements Serializable {
       return null;
     } else if (object instanceof JsonPrimitive) {
       return JsParser.getValue((JsonPrimitive) object);
+    } else if (object instanceof String) {
+      String val = (String) object;
+      if (val.trim().isEmpty()) {
+        return null;
+      }
     }
 
     switch (type) {
