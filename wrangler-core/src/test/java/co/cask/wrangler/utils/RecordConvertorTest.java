@@ -110,6 +110,8 @@ public class RecordConvertorTest {
                                     );
     String[] directives = new String[] {
       "parse-as-csv body ','",
+      "rename body_2 value",
+      "set-type value double",
       "drop body"
     };
 
@@ -136,6 +138,8 @@ public class RecordConvertorTest {
 
     String[] directives = new String[] {
       "parse-as-csv body ','",
+      "rename body_2 value",
+      "set-type value double",
       "drop body"
     };
 
