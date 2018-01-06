@@ -19,6 +19,8 @@ package co.cask.wrangler.utils;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.wrangler.TestingRig;
+import co.cask.wrangler.api.ErrorRecord;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
 import org.junit.Assert;
@@ -30,7 +32,7 @@ import java.util.List;
 /**
  * Tests {@link RecordConvertor}
  */
-public class RowConvertorTest {
+public class RecordConvertorTest {
 
   @Test
   public void testComplexNestedStructureConversion() throws Exception {
@@ -99,6 +101,57 @@ public class RowConvertorTest {
       }
     }
     return uber;
+  }
+
+  @Test
+  public void testNullableEmptyField() throws Exception {
+    Schema schema = Schema.recordOf("test",
+                                    Schema.Field.of("value", Schema.nullableOf(Schema.of(Schema.Type.DOUBLE)))
+                                    );
+    String[] directives = new String[] {
+      "parse-as-csv body ','",
+      "drop body"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row().add("body", "a,1"),
+      new Row().add("body", "b,2"),
+      new Row().add("body", "c,"),
+      new Row().add("body", "d,3"),
+      new Row().add("body", "e,")
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<StructuredRecord> results = pipeline.execute(rows, schema);
+    List<ErrorRecord> errors = pipeline.errors();
+    Assert.assertEquals(5, results.size());
+    Assert.assertEquals(0, errors.size());
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testNonNullableEmptyField() throws Exception {
+    Schema schema = Schema.recordOf("test",
+                                    Schema.Field.of("value", Schema.of(Schema.Type.DOUBLE))
+    );
+
+    String[] directives = new String[] {
+      "parse-as-csv body ','",
+      "drop body"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row().add("body", "a,1"),
+      new Row().add("body", "b,2"),
+      new Row().add("body", "c,"),
+      new Row().add("body", "d,3"),
+      new Row().add("body", "e,")
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<StructuredRecord> results = pipeline.execute(rows, schema);
+    List<ErrorRecord> errors = pipeline.errors();
+    Assert.assertEquals(5, results.size());
+    Assert.assertEquals(0, errors.size());
   }
 
   @Test
