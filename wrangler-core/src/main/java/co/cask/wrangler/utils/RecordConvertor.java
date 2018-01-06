@@ -164,6 +164,11 @@ public final class RecordConvertor implements Serializable {
       return null;
     } else if (object instanceof JsonPrimitive) {
       return JsParser.getValue((JsonPrimitive) object);
+    } else if (object instanceof String) {
+      String val = (String) object;
+      if (val.isEmpty()) {
+        return null;
+      }
     }
 
     switch (type) {
