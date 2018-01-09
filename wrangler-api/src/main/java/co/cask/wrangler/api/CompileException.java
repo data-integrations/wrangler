@@ -22,7 +22,15 @@ import co.cask.wrangler.api.parser.SyntaxError;
 import java.util.Iterator;
 
 /**
- * Class description here.
+ * This class <code>CompileException</code> is thrown when there is
+ * any issue with compiling the <code>Recipe</code>. It's content
+ * include the exact line where the error occured and guess of what
+ * the problem is. Often times, the guess is close enough to point
+ * the problem, but, it's fair attempt to detect the exact issue.
+ *
+ * The <code>SyntaxError</code> object embedded within this exception
+ * contains the line number, character position, the raw content and
+ * the formatted content of the line.
  */
 @Public
 public class CompileException extends Exception {

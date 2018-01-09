@@ -25,7 +25,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 /**
- * Class description here.
+ * This class <code>DirectiveInfo</code> contains information about each individual
+ * directive loaded. It also holds additional information like usage, description,
+ * scope,categories and the whether the directive is deprecated or not.
+ *
+ * Each instance of this class contains information for one directive.
  */
 public final class DirectiveInfo {
   private String name;
@@ -67,7 +71,7 @@ public final class DirectiveInfo {
     }
     Categories category = directive.getAnnotation(Categories.class);
     if (category == null) {
-      categories = new String[] { "default"};
+      categories = new String[] { "default" };
     } else {
       categories = category.categories();
     }
