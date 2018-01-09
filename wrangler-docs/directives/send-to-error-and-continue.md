@@ -18,13 +18,11 @@ with optional ability to specify a error message that should be recorded.
 
 ## Usage Notes
 
-The most common use of the SEND-TO-ERROR directive is to filter out records that are not
-part of clean data. This is a data cleansing directive to remove records that do not
-conform to specified rules.
+The most common use of the SEND-TO-ERROR-AND-CONTINUE directive is to evaluate data quality of the record.
+This is a data cleansing directive to flag records that do not conform to specified rules.
 
-The record is sent to the error collector (if connected) when the condition for the record
-evaluates to `true`. If the condition evaluates to `false`, the record is passed on
-untouched.
+The record is *NOT* sent to the error collector (if connected) when the condition for the record
+evaluates to `true`. But, a internal state is maintained of the checks that record fail. 
 
 ## Example
 
