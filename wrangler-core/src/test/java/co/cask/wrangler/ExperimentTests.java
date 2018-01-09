@@ -3,6 +3,10 @@ package co.cask.wrangler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 /**
  * Class description here.
  */
@@ -43,6 +47,15 @@ public class ExperimentTests {
       String id = getIdFromName(name);
       Assert.assertEquals(expect, id);
     }
+  }
+
+  @Test
+  public void testCurrencyParsing() throws Exception {
+    NumberFormat fmt = NumberFormat.getCurrencyInstance();
+    ((DecimalFormat) fmt).setParseBigDecimal(true);
+    BigDecimal value = (BigDecimal)fmt.parse("1.234,56");
+    value.doubleValue();
+    Assert.assertEquals(1234.56, value);
   }
 
 }

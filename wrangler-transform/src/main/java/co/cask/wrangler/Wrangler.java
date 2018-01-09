@@ -54,6 +54,7 @@ import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.registry.UserDirectiveRegistry;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -387,12 +388,19 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
         }
       }
+
     } catch (Exception e) {
       getContext().getMetrics().count("failures", 1);
       errorCounter++;
       // If error threshold is reached, then terminate processing
       // If threshold is set to -1, it tolerant unlimited errors
       if (config.threshold != -1 && errorCounter > config.threshold) {
+        emitter.emitAlert(ImmutableMap.of(
+          "stage", getContext().getStageName(),
+          "code", String.valueOf(1),
+          "message", "Error threshold reached.",
+          "value", String.valueOf(errorCounter)
+        ));
         if (e instanceof DirectiveExecutionException) {
           throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing " +
                                               "due to error : %s", getContext().getStageName(), config.threshold,
@@ -484,7 +492,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Macro
     private final String schema;
 
-    public Config(String precondition, String directives, String udds, String field, int threshold, String schema) {
+    public Config(String precondition, String directives, String udds,
+                  String field, int threshold, String schema) {
       this.precondition = precondition;
       this.directives = directives;
       this.udds = udds;
