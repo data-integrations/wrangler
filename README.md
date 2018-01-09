@@ -83,10 +83,12 @@ These directives are currently available:
 | [Parse as XML](wrangler-docs/directives/parse-as-xml.md)                        | Parses an XML document                                           |
 | [Parse XML To JSON](wrangler-docs/directives/parse-xml-to-json.md)              | Parses an XML document into a JSON structure                     |
 | [XPath](wrangler-docs/directives/xpath.md)                                      | Navigate the XML elements and attributes of an XML document      |
+| [Parse as Currency](wrangler-docs/directives/parse-as-currency.md)              | Parses a string representation of currency into a number.        |
 | **Output Formatters**                                                  |                                                                  |
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
 | [Write JSON Object](wrangler-docs/directives/write-as-json-object.md)           | Composes a JSON object based on the fields specified.            |
+| [Format as Currency](wrangler-docs/directives/format-as-currency.md)            | Formats a number as currency as specified by locale.             |
 | **Transformations**                                                    |                                                                  |
 | [Changing Case](wrangler-docs/directives/changing-case.md)                      | Changes the case of column values                                |
 | [Cut Character](wrangler-docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
