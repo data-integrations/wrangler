@@ -45,13 +45,13 @@ These directives will implement these rules; any records that match any of these
 conditions will be sent to the error collector for further investigation:
 
 ```
-send-to-error Name == null
-send-to-error Age.isEmpty()
-send-to-error Age < 1 || Age > 130
-send-to-error !date:isDate(DOB)
-send-to-error Age.isEmpty age_empty 'Age field is empty'
-send-to-error Name == null name_null
-send-to-error Age < 1 || Age > 130 'Age not in range between 1 - 130'
+send-to-error-and-continue Name == null
+send-to-error-and-continue Age.isEmpty()
+send-to-error-and-continue Age < 1 || Age > 130
+send-to-error-and-continue !date:isDate(DOB)
+send-to-error-and-continue Age.isEmpty age_empty 'Age field is empty'
+send-to-error-and-continue Name == null name_null
+send-to-error-and-continue Age < 1 || Age > 130 'Age not in range between 1 - 130'
 ```
 
 In this case, for every condition that is matched the input record is emitted on the output.
