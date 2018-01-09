@@ -6,5 +6,5 @@ Convert data type of a column
 ```
 set-type <column> <type>
 ```
-The `<column>` is converted to the type in `<typpe>`.
+The `<column>` is converted to the type in `<type>`.
 Acceptable types are: int, short, long, float, double, string, bytes, boolean
