@@ -53,5 +53,17 @@ send-to-error-and-continue Age.isEmpty age_empty 'Age field is empty'
 send-to-error-and-continue Name == null name_null
 send-to-error-and-continue Age < 1 || Age > 130 'Age not in range between 1 - 130'
 ```
+Each invocation of `send-to-error-and-continue` will increment a internal transient variable `dq_total` and `dq_failure`  variable when the condition evaluates to `false`. Using the combination of transient variables, one can determine if it's worth proceeding further with processing of record. This can be achieved using the `send-to-error` to compute the percentage and set a threshold to emit the record as error.  
+
+```
+set-column error_rate (dq_failure / dq_total)*100
+send-to-error error_rate > 50.0
+```
+
+OR 
+
+```
+send-to-error ((dq_failure / dq_total))*100 > 50.0
+```
 
 In this case, for every condition that is matched the input record is emitted on the output.
