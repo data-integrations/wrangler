@@ -10,6 +10,13 @@
   <artifactId>wrangler-transform</artifactId>
   <name>Wrangler Transform</name>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <dependencies>
     <dependency>
       <groupId>co.cask.wrangler</groupId>
@@ -100,7 +107,7 @@
       <plugin>
         <groupId>co.cask</groupId>
         <artifactId>cdap-maven-plugin</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
         <configuration>
           <cdapArtifacts>
             <parent>system:cdap-data-pipeline[4.0.0,6.0.0-SNAPSHOT)</parent>
