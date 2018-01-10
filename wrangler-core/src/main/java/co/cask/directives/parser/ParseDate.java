@@ -34,6 +34,7 @@ import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import com.joestelmach.natty.DateGroup;
 import com.joestelmach.natty.Parser;
+import org.joda.time.DateTime;
 
 import java.util.Date;
 import java.util.List;
@@ -90,7 +91,7 @@ public class ParseDate implements Directive {
           for (DateGroup group : groups) {
             List<Date> dates = group.getDates();
             for (Date date : dates) {
-              row.add(String.format("%s_%d", column, i), date);
+              row.add(String.format("%s_%d", column, i), new DateTime(date));
             }
             i++;
           }

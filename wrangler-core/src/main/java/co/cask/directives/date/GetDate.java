@@ -31,7 +31,6 @@ import co.cask.wrangler.api.parser.Identifier;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import org.joda.time.DateTime;
-import org.joda.time.Seconds;
 
 import java.util.Date;
 import java.util.List;
@@ -40,72 +39,36 @@ import java.util.List;
  * A directive for taking difference in Dates.
  */
 @Plugin(type = Directive.Type)
-@Name("diff-date")
+@Name("get-date")
 @Categories(categories = {"date"})
-@Description("Calculates the difference in milliseconds between two Date objects." +
-  "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
-public class DiffDate implements Directive {
-  public static final String NAME = "diff-date";
-  private String column1;
-  private String column2;
-  private String destCol;
-  private String unit;
+@Description("")
+public class GetDate implements Directive {
+  public static final String NAME = "get-date";
+  private String source;
+  private String destination;
+  private String op;
   private final Date date = new Date();
 
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
-    builder.define("column1", TokenType.COLUMN_NAME);
-    builder.define("column2", TokenType.COLUMN_NAME);
+    builder.define("source", TokenType.COLUMN_NAME);
     builder.define("destination", TokenType.COLUMN_NAME);
-    builder.define("unit", TokenType.IDENTIFIER);
+    builder.define("op", TokenType.IDENTIFIER);
     return builder.build();
   }
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column1 = ((ColumnName) args.value("column1")).value();
-    this.column2 = ((ColumnName) args.value("column2")).value();
-    this.destCol = ((ColumnName) args.value("destination")).value();
-
-    if (args.contains("unit")) {
-      String u = ((Identifier) args.value("unit")).value();
-      u = u.toLowerCase();
-      switch (u) {
-        case "days":
-        case "day":
-          this.unit = "days";
-          break;
-
-        case "hours":
-        case "hour":
-          this.unit = "hours";
-          break;
-
-        case "minutes":
-        case "minute":
-          this.unit = "minutes";
-          break;
-
-        case "seconds":
-        case "second":
-          this.unit = "seconds";
-          break;
-
-        case "milliseconds":
-        case "millisecond":
-          this.unit = "milliseconds";
-          break;
-
-        default:
-          throw new DirectiveParseException(
-            String.format(
-              "Incorect unit specified. Possible values are days, hours, minutes or seconds."
-            )
-          );
+    this.source = ((ColumnName) args.value("source")).value();
+    this.destination = ((ColumnName) args.value("destination")).value();
+    if (args.contains("op")) {
+      String o = ((Identifier) args.value("op")).value();
+      o = o.toLowerCase();
+      switch (o) {
       }
     } else {
-      this.unit = "milliseconds";
+      this.op = "milliseconds";
     }
   }
 
@@ -117,34 +80,55 @@ public class DiffDate implements Directive {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      DateTime date1 = getDate(row, column1);
-      DateTime date2 = getDate(row, column2);
-      if (date1 != null && date2 != null) {
-        long units = Math.abs(Seconds.secondsBetween(date1, date2).getSeconds());
-        switch(unit) {
-          case "days":
-            units = units / ( 24 * 60 * 60 );
-            break;
+      int idx = row.find(source);
 
-          case "hours":
-            units = units / ( 60 * 60);
-            break;
+      if (idx == -1) {
+        continue;
+      }
 
-          case "minutes":
-            units = units / 60;
-            break;
+      Object o = row.getColumn(idx);
+      if (o == null) {
+        continue;
+      }
 
-          case "seconds":
-            units = units * 1;
-            break;
+      if (!(o instanceof DateTime)) {
+        continue;
+      }
 
-          case "milliseconds":
-            units = units * 1000;
-            break;
-        }
-        row.addOrSet(destCol, units);
-      } else {
-        row.addOrSet(destCol, null);
+      DateTime value = (DateTime) o;
+
+      switch(op) {
+        case "day-of-month":
+          row.addOrSet(destination, value.getDayOfMonth());
+          break;
+
+        case "day-of-week":
+          row.addOrSet(destination, value.getDayOfWeek());
+          break;
+
+        case "day-of-year":
+          row.addOrSet(destination, value.getDayOfYear());
+          break;
+
+        case "hour-of-day":
+          row.addOrSet(destination, value.getHourOfDay());
+          break;
+
+        case "minute-of-day":
+          row.addOrSet(destination, value.getMinuteOfDay());
+          break;
+
+        case "second-of-minute":
+          row.addOrSet(destination, value.getSecondOfMinute());
+          break;
+
+        case "century-of-era":
+          row.addOrSet(destination, value.getCenturyOfEra());
+          break;
+
+        case "month-of-year":
+          row.addOrSet(destination, value.getMonthOfYear());
+          break;
       }
     }
     return rows;
