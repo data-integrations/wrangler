@@ -45,11 +45,10 @@ conditions will be sent to the error collector for further investigation:
 ```
 send-to-error-and-continue exp:{ Name == null }
 send-to-error-and-continue exp:{ Age.isEmpty() }
-send-to-error-and-continue exp:{ exp:{ Age < 1 || Age > 130 }
 send-to-error-and-continue exp:{ !date:isDate(DOB) }
-send-to-error-and-continue exp:{ Age.isEmpty age_empty 'Age field is empty' }
-send-to-error-and-continue exp:{ Name == null name_null }
-send-to-error-and-continue exp:{ Age < 1 || Age > 130 'Age not in range between 1 - 130' }
+send-to-error-and-continue exp:{ Age.isEmpty()} age_empty 'Age field is empty'
+send-to-error-and-continue exp:{ Name == null} name_null 
+send-to-error-and-continue exp:{ Age < 1 || Age > 130} 'Age not in range between 1 - 130'
 ```
 Each invocation of `send-to-error-and-continue` will increment a internal transient variable `dq_total` and `dq_failure`  variable when the condition evaluates to `false`. Using the combination of transient variables, one can determine if it's worth proceeding further with processing of record. This can be achieved using the `send-to-error` to compute the percentage and set a threshold to emit the record as error.  
 
