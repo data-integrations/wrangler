@@ -32,7 +32,6 @@ import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import org.joda.time.DateTime;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,7 +46,6 @@ public class GetDate implements Directive {
   private String source;
   private String destination;
   private String op;
-  private final Date date = new Date();
 
   @Override
   public UsageDefinition define() {
@@ -99,58 +97,46 @@ public class GetDate implements Directive {
 
       switch(op) {
         case "day-of-month":
+        case "dom":
           row.addOrSet(destination, value.getDayOfMonth());
           break;
 
         case "day-of-week":
+        case "dow":
           row.addOrSet(destination, value.getDayOfWeek());
           break;
 
         case "day-of-year":
+        case "doy":
           row.addOrSet(destination, value.getDayOfYear());
           break;
 
         case "hour-of-day":
+        case "hod":
           row.addOrSet(destination, value.getHourOfDay());
           break;
 
         case "minute-of-day":
+        case "mod":
           row.addOrSet(destination, value.getMinuteOfDay());
           break;
 
         case "second-of-minute":
+        case "som":
           row.addOrSet(destination, value.getSecondOfMinute());
           break;
 
         case "century-of-era":
+        case "coe":
           row.addOrSet(destination, value.getCenturyOfEra());
           break;
 
         case "month-of-year":
+        case "moy":
           row.addOrSet(destination, value.getMonthOfYear());
           break;
       }
     }
     return rows;
-  }
-
-  private DateTime getDate(Row row, String colName) throws DirectiveExecutionException {
-    // If one of the column contains now, then we return
-    // the current date.
-    if (colName.equalsIgnoreCase("now")) {
-      return new DateTime(date);
-    }
-
-    // Else attempt to find the column.
-    int idx = row.find(colName);
-    if (idx == -1) {
-      throw new DirectiveExecutionException(toString() + " : '" +
-                                colName + "' column is not defined in the row.");
-    }
-    Object o = row.getValue(idx);
-    if (o == null || !(o instanceof Date)) {
-      return null;
-    }
-    return new DateTime(o);
   }
 }
