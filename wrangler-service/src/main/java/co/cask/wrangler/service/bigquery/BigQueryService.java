@@ -16,6 +16,7 @@ import com.google.cloud.bigquery.Dataset;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 
 public class BigQueryService extends AbstractHttpServiceHandler {
@@ -33,17 +34,31 @@ public class BigQueryService extends AbstractHttpServiceHandler {
   }
 
   /**
-   * List all kafka topics.
+   * List all Datasets.
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
    */
   @GET
   @Path("connections/{connection-id}/bigquery")
-  public void list(HttpServiceRequest request, HttpServiceResponder responder) {
+  public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder) {
     Page<Dataset> datasets = bigquery.listDatasets(BigQuery.DatasetListOption.all());
     for (Dataset dataset : datasets.iterateAll()) {
       dataset.list()
     }
+  }
+
+  /**
+   * List all tables in a dataset.
+   *
+   * @param request HTTP requets handler.
+   * @param responder HTTP response handler.
+   */
+  @GET
+  @Path("connections/{connection-id}/bigquery/{dataset-id}/tables")
+  public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("dataset-id") String datasetId) {
+    Dataset dataset = bigquery.getDataset(datasetId);
+
+
   }
 }

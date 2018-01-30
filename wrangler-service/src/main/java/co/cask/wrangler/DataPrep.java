@@ -23,6 +23,7 @@ import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.service.bigquery.BigQueryService;
 import co.cask.wrangler.service.connections.ConnectionService;
 import co.cask.wrangler.service.database.DatabaseService;
 import co.cask.wrangler.service.directive.DirectivesService;
@@ -87,7 +88,8 @@ public class DataPrep extends AbstractApplication {
                new KafkaService(),
                new DatabaseService(),
                new S3Service(),
-               new GCSService()
+               new GCSService(),
+               new BigQueryService()
     );
   }
 }
