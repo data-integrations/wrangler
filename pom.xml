@@ -119,6 +119,7 @@
     <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
     <google.cloud.bigquery.version>0.32.0-beta</google.cloud.bigquery.version>
     <google.storage.version>1.7.0</google.storage.version>
+    <google.cloud.core.version>1.15.0</google.cloud.core.version>
     <juniversalchardet.version>1.0.3</juniversalchardet.version>
   </properties>
 
