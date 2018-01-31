@@ -117,7 +117,7 @@
     <reflections.version>0.9.9</reflections.version>
     <commons.validator.version>1.6</commons.validator.version>
     <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
-    <google.cloud.bigquery.version>0.30.0-beta</google.cloud.bigquery.version>
+    <google.cloud.bigquery.version>0.32.0-beta</google.cloud.bigquery.version>
     <google.storage.version>1.7.0</google.storage.version>
     <juniversalchardet.version>1.0.3</juniversalchardet.version>
   </properties>

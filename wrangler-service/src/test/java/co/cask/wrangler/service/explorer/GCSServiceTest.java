@@ -1,6 +1,6 @@
 package co.cask.wrangler.service.explorer;
 
-import co.cask.wrangler.service.gcs.GCPServiceAccount;
+import co.cask.wrangler.service.gcp.GCPServiceAccount;
 import co.cask.wrangler.service.gcs.GCSService;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.ServiceAccountCredentials;
