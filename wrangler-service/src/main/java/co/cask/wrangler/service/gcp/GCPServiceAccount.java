@@ -1,4 +1,4 @@
-package co.cask.wrangler.service.gcs;
+package co.cask.wrangler.service.gcp;
 
 import com.google.auth.oauth2.ServiceAccountCredentials;
 

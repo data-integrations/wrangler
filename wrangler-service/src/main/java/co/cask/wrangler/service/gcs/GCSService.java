@@ -42,6 +42,7 @@ import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.explorer.DatasetProvider;
+import co.cask.wrangler.service.gcp.GCPServiceAccount;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.ServiceAccountCredentials;
