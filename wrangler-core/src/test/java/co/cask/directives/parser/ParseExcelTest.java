@@ -46,6 +46,8 @@ public class ParseExcelTest {
 
       List<Row> results = TestingRig.execute(directives, rows);
       Assert.assertEquals(892, results.size());
+      Assert.assertEquals(0, results.get(0).getValue("fwd"));
+      Assert.assertEquals(891, results.get(0).getValue("bkd"));
     }
   }
 
