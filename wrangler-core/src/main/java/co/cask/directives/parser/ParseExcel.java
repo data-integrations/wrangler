@@ -140,9 +140,7 @@ public class ParseExcel implements Directive {
               }
 
               Row newRow = new Row();
-              if(firstRowAsHeader && rows > 0) {
-                newRow.add("fwd", rows);
-              }
+              newRow.add("fwd", rows);
 
               while (cellIterator.hasNext()) {
                 Cell cell = cellIterator.next();
