@@ -22,13 +22,14 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
-import co.cask.wrangler.service.gcp.GCPServiceAccount;
+import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -56,7 +57,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.json.Json;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -68,28 +68,15 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
 
 
 public class BigQueryService extends AbstractWranglerService {
-  private static final String PROJECT_ID = "projectId";
   private static final String DATASET_ID = "datasetId";
   private static final String TABLE_ID = "id";
-  private static final String SERVICE_ACCOUNT_KEYFILE = "service-account-keyfile";
 
   private BigQuery getBigQuery(Connection connection) throws Exception {
-    Map<String, Object> properties = connection.getAllProps();
-    if (properties.get(PROJECT_ID) == null) {
-      throw new Exception("Configuration does not include project id.");
-    }
-
-    if (properties.get(SERVICE_ACCOUNT_KEYFILE) == null) {
-      throw new Exception("Configuration does not include path to service account file.");
-    }
-
-    String path = (String) properties.get(SERVICE_ACCOUNT_KEYFILE);
-    String projectId = (String) properties.get(PROJECT_ID);
-    ServiceAccountCredentials credentials = GCPServiceAccount.loadLocalFile(path);
+    Pair<String, ServiceAccountCredentials> projectIdAndCredentials = GCPUtils.getProjectIdAndCredentials(connection);
 
     return BigQueryOptions.newBuilder()
-      .setProjectId(projectId)
-      .setCredentials(credentials)
+      .setProjectId(projectIdAndCredentials.getFirst())
+      .setCredentials(projectIdAndCredentials.getSecond())
       .build()
       .getService();
   }
@@ -219,8 +206,8 @@ public class BigQueryService extends AbstractWranglerService {
       return;
     }
     Map<String, Object> connectionProperties = connection.getAllProps();
-    String projectId = (String) connectionProperties.get(PROJECT_ID);
-    String path = (String) connectionProperties.get(SERVICE_ACCOUNT_KEYFILE);
+    String projectId = (String) connectionProperties.get(GCPUtils.PROJECT_ID);
+    String path = (String) connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
 
     TableId tableIdObject = TableId.of(projectId, datasetId, tableId);
     List<Row> rows = getData(connection, tableIdObject);
@@ -239,8 +226,8 @@ public class BigQueryService extends AbstractWranglerService {
     properties.put(PropertyIds.CONNECTION_ID, connectionId);
     properties.put(TABLE_ID, tableId);
     properties.put(DATASET_ID, datasetId);
-    properties.put(PROJECT_ID, projectId);
-    properties.put(SERVICE_ACCOUNT_KEYFILE, path);
+    properties.put(GCPUtils.PROJECT_ID, projectId);
+    properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
     ws.writeProperties(identifier, properties);
 
     JsonArray values = new JsonArray();
@@ -276,9 +263,9 @@ public class BigQueryService extends AbstractWranglerService {
       JsonObject value = new JsonObject();
 
       JsonObject bigQuery = new JsonObject();
-      properties.put("serviceFilePath", config.get(SERVICE_ACCOUNT_KEYFILE));
+      properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("bucket", "bigquery-temporary-bucket");
-      properties.put("project", config.get(PROJECT_ID));
+      properties.put("project", config.get(GCPUtils.PROJECT_ID));
       properties.put("dataset", config.get(DATASET_ID));
       properties.put("table", config.get(TABLE_ID));
       bigQuery.add("properties", new Gson().toJsonTree(properties));

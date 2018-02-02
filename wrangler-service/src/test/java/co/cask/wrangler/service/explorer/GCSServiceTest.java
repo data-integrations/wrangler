@@ -1,6 +1,6 @@
 package co.cask.wrangler.service.explorer;
 
-import co.cask.wrangler.service.gcp.GCPServiceAccount;
+import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.service.gcs.GCSService;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -26,7 +26,7 @@ public class GCSServiceTest {
   @Ignore
   private JsonObject list(String path) throws Exception {
     String key = "/tmp/cask-dev-clusters-729251f6adf7.json";
-    ServiceAccountCredentials credentials = GCPServiceAccount.loadLocalFile(key);
+    ServiceAccountCredentials credentials = GCPUtils.loadLocalFile(key);
 
     Storage storage = StorageOptions.newBuilder()
       .setProjectId("cask-dev-clusters")
