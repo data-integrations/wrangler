@@ -85,7 +85,7 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
  */
 public class GCSService extends AbstractWranglerService {
   private static final Logger LOG = LoggerFactory.getLogger(GCSService.class);
-  private static final int FILE_SIZE = 10 * 1024 * 1024;
+  static final int FILE_SIZE = 10 * 1024 * 1024;
   private FileTypeDetector detector;
 
   @Override

@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.service.bigquery;
 
+import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.PropertyIds;
@@ -42,9 +43,10 @@ import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobInfo;
+import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryResult;
-import com.google.cloud.bigquery.Schema;
+import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
@@ -70,6 +72,7 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
 public class BigQueryService extends AbstractWranglerService {
   private static final String DATASET_ID = "datasetId";
   private static final String TABLE_ID = "id";
+  private static final String SCHEMA = "schema";
 
   private BigQuery getBigQuery(Connection connection) throws Exception {
     Pair<String, ServiceAccountCredentials> projectIdAndCredentials = GCPUtils.getProjectIdAndCredentials(connection);
@@ -210,12 +213,13 @@ public class BigQueryService extends AbstractWranglerService {
     String path = (String) connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
 
     TableId tableIdObject = TableId.of(projectId, datasetId, tableId);
-    List<Row> rows = getData(connection, tableIdObject);
+
+    Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
 
     String identifier = ServiceUtils.generateMD5(tableId);
     ws.createWorkspaceMeta(identifier, tableId);
     ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-    byte[] data = serDe.toByteArray(rows);
+    byte[] data = serDe.toByteArray(tableData.getFirst());
     ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
     Map<String, String> properties = new HashMap<>();
@@ -228,6 +232,8 @@ public class BigQueryService extends AbstractWranglerService {
     properties.put(DATASET_ID, datasetId);
     properties.put(GCPUtils.PROJECT_ID, projectId);
     properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
+    properties.put(SCHEMA, tableData.getSecond().toString());
+
     ws.writeProperties(identifier, properties);
 
     JsonArray values = new JsonArray();
@@ -268,6 +274,7 @@ public class BigQueryService extends AbstractWranglerService {
       properties.put("project", config.get(GCPUtils.PROJECT_ID));
       properties.put("dataset", config.get(DATASET_ID));
       properties.put("table", config.get(TABLE_ID));
+      properties.put("schema", config.get(SCHEMA));
       bigQuery.add("properties", new Gson().toJsonTree(properties));
       bigQuery.addProperty("name", "BigQueryTable");
       bigQuery.addProperty("type", "source");
@@ -286,7 +293,7 @@ public class BigQueryService extends AbstractWranglerService {
     }
   }
 
-  private List<Row> getData(Connection connection, TableId tableId) throws Exception {
+  private Pair<List<Row>, Schema> getData(Connection connection, TableId tableId) throws Exception {
     List<Row> rows = new ArrayList<>();
     BigQuery bigQuery = getBigQuery(connection);
     String query = String.format("SELECT * FROM `%s.%s.%s` LIMIT 1000", tableId.getProject(), tableId.getDataset(),
@@ -308,7 +315,7 @@ public class BigQueryService extends AbstractWranglerService {
 
     // Get the results
     QueryResult result = queryJob.getQueryResults().getResult();
-    Schema schema = result.getSchema();
+    com.google.cloud.bigquery.Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
     for (FieldValueList fieldValues : result.iterateAll()) {
       Row row = new Row();
@@ -320,7 +327,55 @@ public class BigQueryService extends AbstractWranglerService {
       }
       rows.add(row);
     }
-    return rows;
+
+    List<Schema.Field> schemaFields = new ArrayList<>();
+    for (Field field : fields) {
+      Schema.Field schemaField;
+      LegacySQLTypeName type = field.getType();
+      StandardSQLTypeName standardType = type.getStandardType();
+      String name = field.getName();
+      switch (standardType) {
+        case BOOL:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.BOOLEAN));
+          break;
+        case DATE:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          break;
+        case TIME:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          break;
+        case ARRAY:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.ARRAY));
+          break;
+        case BYTES:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.BYTES));
+          break;
+        case INT64:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.INT));
+          break;
+        case STRING:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.STRING));
+          break;
+        case STRUCT:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.RECORD));
+          break;
+        case FLOAT64:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.FLOAT));
+          break;
+        case DATETIME:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          break;
+        case TIMESTAMP:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          break;
+        default:
+          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.STRING));
+      }
+      schemaFields.add(schemaField);
+    }
+    Schema schemaToReturn = Schema.recordOf("bigquerySchema", schemaFields);
+
+    return new Pair<>(rows, schemaToReturn);
   }
 
   private boolean validateConnection(String connectionId, Connection connection,
