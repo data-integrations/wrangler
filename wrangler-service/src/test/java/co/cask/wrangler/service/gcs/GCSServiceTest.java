@@ -1,14 +1,10 @@
 package co.cask.wrangler.service.gcs;
 
 import co.cask.wrangler.BytesDecoder;
-import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.service.FileTypeDetector;
-import co.cask.wrangler.service.bigquery.BigQueryService;
 import co.cask.wrangler.service.gcp.GCPServiceAccount;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.ReadChannel;
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
@@ -23,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Tests parts of {@link GCSService}
@@ -95,22 +90,5 @@ public class GCSServiceTest {
       .getService();
 
     return storage;
-  }
-
-
-  @Test
-  public void testBigQuery() throws Exception {
-    BigQueryService service = new BigQueryService();
-    BigQuery bigQuery = getBigQuery("cask-dev-clusters", "/Users/edwin/Downloads/cask-dev-clusters-gcs.json");
-  }
-
-  private BigQuery getBigQuery(String projectId, String keyFile) throws Exception {
-    ServiceAccountCredentials credentials = GCPServiceAccount.loadLocalFile(keyFile);
-
-    return BigQueryOptions.newBuilder()
-      .setProjectId(projectId)
-      .setCredentials(credentials)
-      .build()
-      .getService();
   }
 }
