@@ -20,29 +20,24 @@ import co.cask.cdap.api.TxRunnable;
 import co.cask.cdap.api.annotation.ReadOnly;
 import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
-import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.data.DatasetContext;
-import co.cask.cdap.api.dataset.Dataset;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.BytesDecoder;
-import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.FileTypeDetector;
+import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
-import co.cask.wrangler.service.explorer.DatasetProvider;
-import co.cask.wrangler.service.gcp.GCPServiceAccount;
+import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -84,44 +79,19 @@ import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
  * Service to explore <code>GCS</code> filesystem
  */
-public class GCSService extends AbstractHttpServiceHandler {
+public class GCSService extends AbstractWranglerService {
   private static final Logger LOG = LoggerFactory.getLogger(GCSService.class);
-  private static final String PROJECT_ID = "projectId";
-  private static final String SERVICE_ACCOUNT_KEYFILE = "service-account-keyfile";
-  public static final int FILE_SIZE = 10 * 1024 * 1024;
-  // Abstraction over the table defined above for managing connections.
-  private ConnectionStore store;
-  private DatasetProvider provider;
+  private static final int FILE_SIZE = 10 * 1024 * 1024;
   private FileTypeDetector detector;
-
-  @UseDataSet(WORKSPACE_DATASET)
-  private WorkspaceDataset table;
-
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
-  private Table connectionTable;
 
   @Override
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
-    store = new ConnectionStore(connectionTable);
-    final HttpServiceContext ctx = context;
     Security.addProvider(new BouncyCastleProvider());
-    provider = new DatasetProvider() {
-      @Override
-      public Dataset acquire() {
-        return ctx.getDataset("dataprepfs");
-      }
-
-      @Override
-      public void release(Dataset dataset) {
-        ctx.discardDataset(dataset);
-      }
-    };
     this.detector = new FileTypeDetector();
   }
 
@@ -155,26 +125,13 @@ public class GCSService extends AbstractHttpServiceHandler {
   }
 
   private Storage getStorage(Connection connection) throws Exception {
-    Map<String, Object> properties = connection.getAllProps();
-    if (properties.get(PROJECT_ID) == null) {
-      throw new Exception("Configuration does not include project id.");
-    }
+    Pair<String, ServiceAccountCredentials> projectIdAndCredentials = GCPUtils.getProjectIdAndCredentials(connection);
 
-    if (properties.get(SERVICE_ACCOUNT_KEYFILE) == null) {
-      throw new Exception("Configuration does not include path to service account file.");
-    }
-
-    String path = (String) properties.get("service-account-keyfile");
-    String projectId = (String) properties.get("projectId");
-    ServiceAccountCredentials credentials = GCPServiceAccount.loadLocalFile(path);
-
-    Storage storage = StorageOptions.newBuilder()
-      .setProjectId(projectId)
-      .setCredentials(credentials)
+    return StorageOptions.newBuilder()
+      .setProjectId(projectIdAndCredentials.getFirst())
+      .setCredentials(projectIdAndCredentials.getSecond())
       .build()
       .getService();
-
-    return storage;
   }
 
   private boolean validateConnection(String connectionId, Connection connection,
@@ -401,7 +358,7 @@ public class GCSService extends AbstractHttpServiceHandler {
 
       if (!blob.isDirectory()) {
         byte[] bytes = readGCSFile(blob, Math.min(blob.getSize().intValue(), GCSService.FILE_SIZE));
-        table.createWorkspaceMeta(id, file.getName());
+        ws.createWorkspaceMeta(id, file.getName());
 
         String encoding = BytesDecoder.guessEncoding(bytes);
         if (contentType.equalsIgnoreCase("text/plain")
@@ -422,16 +379,16 @@ public class GCSService extends AbstractHttpServiceHandler {
 
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] records = serDe.toByteArray(rows);
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, records);
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, records);
           properties.put(PropertyIds.PLUGIN_TYPE, "normal");
         } else if (contentType.equalsIgnoreCase("application/json")) {
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.JSON, bytes);
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.JSON, bytes);
           properties.put(PropertyIds.PLUGIN_TYPE, "normal");
         } else if (contentType.equalsIgnoreCase("application/xml")) {
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.XML, bytes);
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.XML, bytes);
           properties.put(PropertyIds.PLUGIN_TYPE, "blob");
         } else {
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
           properties.put(PropertyIds.PLUGIN_TYPE, "blob");
         }
 
@@ -443,7 +400,7 @@ public class GCSService extends AbstractHttpServiceHandler {
         properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
         properties.put(PropertyIds.CONNECTION_ID, connectionId);
         properties.put("bucket", bucket);
-        table.writeProperties(id, properties);
+        ws.writeProperties(id, properties);
 
         // Preparing return response to include mandatory fields : id and name.
         JsonArray values = new JsonArray();
@@ -495,7 +452,7 @@ public class GCSService extends AbstractHttpServiceHandler {
         return;
       }
 
-      Map<String, String> config = table.getProperties(workspaceId);
+      Map<String, String> config = ws.getProperties(workspaceId);
       String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
       String bucket = config.get("bucket");
       String uri = config.get(PropertyIds.URI);
@@ -507,8 +464,8 @@ public class GCSService extends AbstractHttpServiceHandler {
       if (pluginType.equalsIgnoreCase("normal")) {
         JsonObject gcs = new JsonObject();
         properties.put("referenceName", "GCS_Source");
-        properties.put("serviceFilePath", (String) connection.getProp(SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", (String) connection.getProp(PROJECT_ID));
+        properties.put("serviceFilePath", (String) connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+        properties.put("project", (String) connection.getProp(GCPUtils.PROJECT_ID));
         properties.put("bucket", bucket);
         properties.put("path", uri);
         properties.put("recursive", "false");
@@ -520,8 +477,8 @@ public class GCSService extends AbstractHttpServiceHandler {
       } else if (pluginType.equalsIgnoreCase("blob")) {
         JsonObject gcs = new JsonObject();
         properties.put("referenceName", "GCS_Blob");
-        properties.put("serviceFilePath", (String) connection.getProp(SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", (String) connection.getProp(PROJECT_ID));
+        properties.put("serviceFilePath", (String) connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+        properties.put("project", (String) connection.getProp(GCPUtils.PROJECT_ID));
         properties.put("bucket", bucket);
         properties.put("path", uri);
         gcs.add("properties", new Gson().toJsonTree(properties));

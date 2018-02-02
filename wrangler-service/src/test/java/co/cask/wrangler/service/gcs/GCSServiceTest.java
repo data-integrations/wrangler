@@ -2,7 +2,7 @@ package co.cask.wrangler.service.gcs;
 
 import co.cask.wrangler.BytesDecoder;
 import co.cask.wrangler.service.FileTypeDetector;
-import co.cask.wrangler.service.gcp.GCPServiceAccount;
+import co.cask.wrangler.service.gcp.GCPUtils;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
@@ -81,7 +81,7 @@ public class GCSServiceTest {
   }
 
   private Storage getStorage(String projectId, String path) throws Exception {
-    ServiceAccountCredentials credentials = GCPServiceAccount.loadLocalFile(path);
+    ServiceAccountCredentials credentials = GCPUtils.loadLocalFile(path);
 
     Storage storage = StorageOptions.newBuilder()
       .setProjectId(projectId)
