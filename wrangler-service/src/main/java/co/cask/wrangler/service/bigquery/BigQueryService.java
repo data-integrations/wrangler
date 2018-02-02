@@ -1,43 +1,50 @@
+/*
+ * Copyright © 2018 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package co.cask.wrangler.service.bigquery;
 
-import co.cask.cdap.api.annotation.UseDataSet;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
-import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPServiceAccount;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
-import com.google.api.services.bigquery.model.QueryRequest;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.FieldList;
-import com.google.cloud.bigquery.FieldValue;
 import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.QueryJobConfiguration;
-import com.google.cloud.bigquery.QueryResponse;
 import com.google.cloud.bigquery.QueryResult;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.TableId;
-import com.google.cloud.storage.Storage;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -49,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.json.Json;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -57,27 +65,13 @@ import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 
-public class BigQueryService extends AbstractHttpServiceHandler {
+public class BigQueryService extends AbstractWranglerService {
   private static final String PROJECT_ID = "projectId";
   private static final String DATASET_ID = "datasetId";
-  private static final String TABLE_ID = "tableId";
+  private static final String TABLE_ID = "id";
   private static final String SERVICE_ACCOUNT_KEYFILE = "service-account-keyfile";
-  private ConnectionStore store;
-
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
-  private Table connectionTable;
-
-  @UseDataSet(WORKSPACE_DATASET)
-  private WorkspaceDataset ws;
-
-  @Override
-  public void initialize(HttpServiceContext context) throws Exception {
-    super.initialize(context);
-    store = new ConnectionStore(connectionTable);
-  }
 
   private BigQuery getBigQuery(Connection connection) throws Exception {
     Map<String, Object> properties = connection.getAllProps();
@@ -146,7 +140,7 @@ public class BigQueryService extends AbstractHttpServiceHandler {
     }
     BigQuery bigQuery = getBigQuery(connection);
     Page<Dataset> datasets = bigQuery.listDatasets(BigQuery.DatasetListOption.all());
-    List<JsonObject> allDatasets = new ArrayList<>();
+    JsonArray values = new JsonArray();
     for (Dataset dataset : datasets.iterateAll()) {
       JsonObject object =  new JsonObject();
       object.addProperty("name", dataset.getDatasetId().getDataset());
@@ -154,9 +148,14 @@ public class BigQueryService extends AbstractHttpServiceHandler {
       object.addProperty("description", dataset.getDescription());
       object.addProperty("last-modified", dataset.getLastModified());
       object.addProperty("location", dataset.getLocation());
-      allDatasets.add(object);
+      values.add(object);
     }
-    responder.sendJson(allDatasets);
+    JsonObject response = new JsonObject();
+    response.addProperty("status", HttpURLConnection.HTTP_OK);
+    response.addProperty("message", "Success");
+    response.addProperty("count", values.size());
+    response.add("values", values);
+    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
   /**
@@ -178,23 +177,28 @@ public class BigQueryService extends AbstractHttpServiceHandler {
     BigQuery bigQuery = getBigQuery(connection);
     Page<com.google.cloud.bigquery.Table> tablePage = bigQuery.listTables(datasetId);
 
-    List<JsonObject> allTables = new ArrayList<>();
+    JsonArray values = new JsonArray();
 
     for (com.google.cloud.bigquery.Table table : tablePage.iterateAll()) {
       JsonObject object = new JsonObject();
 
       object.addProperty("name", table.getFriendlyName());
-      object.addProperty("table-id", table.getTableId().getTable());
+      object.addProperty(TABLE_ID, table.getTableId().getTable());
       object.addProperty("created", table.getCreationTime());
       object.addProperty("description", table.getDescription());
       object.addProperty("last-modified", table.getLastModifiedTime());
       object.addProperty("expiration-time", table.getExpirationTime());
       object.addProperty("etag", table.getEtag());
 
-      allTables.add(object);
+      values.add(object);
     }
 
-    responder.sendJson(allTables);
+    JsonObject response = new JsonObject();
+    response.addProperty("status", HttpURLConnection.HTTP_OK);
+    response.addProperty("message", "Success");
+    response.addProperty("count", values.size());
+    response.add("values", values);
+    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
   /**
