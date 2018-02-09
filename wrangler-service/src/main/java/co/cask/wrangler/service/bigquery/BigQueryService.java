@@ -330,12 +330,16 @@ public class BigQueryService extends AbstractWranglerService {
         // Stringified these objects to be consistent with BigQueryTable batchsource plugin
         LegacySQLTypeName type = field.getType();
         StandardSQLTypeName standardType = type.getStandardType();
+        if (fieldValue.isNull()) {
+          row.add(fieldName, null);
+          continue;
+        }
         switch (standardType) {
           case TIME:
           case DATE:
           case DATETIME:
           case TIMESTAMP:
-            row.add(fieldName, fieldValue.getTimestampValue());
+            row.add(fieldName, fieldValue.getStringValue());
             break;
 
           case STRING:
@@ -359,6 +363,8 @@ public class BigQueryService extends AbstractWranglerService {
             break;
         }
       }
+
+      rows.add(row);
     }
 
     List<Schema.Field> schemaFields = new ArrayList<>();
@@ -371,10 +377,10 @@ public class BigQueryService extends AbstractWranglerService {
           schemaType = Schema.Type.BOOLEAN;
           break;
         case DATE:
-          schemaType = Schema.Type.LONG;
-          break;
         case TIME:
-          schemaType = Schema.Type.LONG;
+        case DATETIME:
+        case TIMESTAMP:
+          schemaType = Schema.Type.STRING;
           break;
         case BYTES:
           schemaType = Schema.Type.BYTES;
@@ -387,12 +393,6 @@ public class BigQueryService extends AbstractWranglerService {
           break;
         case FLOAT64:
           schemaType = Schema.Type.FLOAT;
-          break;
-        case DATETIME:
-          schemaType = Schema.Type.LONG;
-          break;
-        case TIMESTAMP:
-          schemaType = Schema.Type.LONG;
           break;
       }
 
