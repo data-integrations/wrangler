@@ -39,6 +39,7 @@ import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.FieldList;
+import com.google.cloud.bigquery.FieldValue;
 import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobId;
@@ -86,7 +87,7 @@ public class BigQueryService extends AbstractWranglerService {
   }
 
   /**
-   * Tests GCS Connection.
+   * Tests BigQuery Connection.
    *
    * @param request HTTP Request handler.
    * @param responder HTTP Response handler.
@@ -324,7 +325,7 @@ public class BigQueryService extends AbstractWranglerService {
       Row row = new Row();
       for (Field field : fields) {
         String fieldName = field.getName();
-        Object objectValue = fieldValues.get(fieldName).getValue();
+        FieldValue fieldValue = fieldValues.get(fieldName);
 
         // Stringified these objects to be consistent with BigQueryTable batchsource plugin
         LegacySQLTypeName type = field.getType();
@@ -334,31 +335,46 @@ public class BigQueryService extends AbstractWranglerService {
           case DATE:
           case DATETIME:
           case TIMESTAMP:
-            objectValue = objectValue.toString();
-        }
+            row.add(fieldName, fieldValue.getTimestampValue());
+            break;
 
-        row.add(fieldName, objectValue);
+          case STRING:
+            row.add(fieldName, fieldValue.getStringValue());
+            break;
+
+          case BOOL:
+            row.add(fieldName, fieldValue.getBooleanValue());
+            break;
+
+          case FLOAT64:
+            row.add(fieldName, fieldValue.getDoubleValue());
+            break;
+
+          case INT64:
+            row.add(fieldName, fieldValue.getLongValue());
+            break;
+
+          case BYTES:
+            row.add(fieldName, fieldValue.getBytesValue());
+            break;
+        }
       }
-      rows.add(row);
     }
 
     List<Schema.Field> schemaFields = new ArrayList<>();
     for (Field field : fields) {
       LegacySQLTypeName type = field.getType();
       StandardSQLTypeName standardType = type.getStandardType();
-      Schema.Type schemaType;
+      Schema.Type schemaType = null;
       switch (standardType) {
         case BOOL:
           schemaType = Schema.Type.BOOLEAN;
           break;
         case DATE:
-          schemaType = Schema.Type.STRING;
+          schemaType = Schema.Type.LONG;
           break;
         case TIME:
-          schemaType = Schema.Type.STRING;
-          break;
-        case ARRAY:
-          schemaType = Schema.Type.ARRAY;
+          schemaType = Schema.Type.LONG;
           break;
         case BYTES:
           schemaType = Schema.Type.BYTES;
@@ -369,20 +385,19 @@ public class BigQueryService extends AbstractWranglerService {
         case STRING:
           schemaType = Schema.Type.STRING;
           break;
-        case STRUCT:
-          schemaType = Schema.Type.RECORD;
-          break;
         case FLOAT64:
           schemaType = Schema.Type.FLOAT;
           break;
         case DATETIME:
-          schemaType = Schema.Type.STRING;
+          schemaType = Schema.Type.LONG;
           break;
         case TIMESTAMP:
-          schemaType = Schema.Type.STRING;
+          schemaType = Schema.Type.LONG;
           break;
-        default:
-          schemaType =Schema.Type.STRING;
+      }
+
+      if (schemaType == null) {
+        continue;
       }
 
       String name = field.getName();
@@ -393,11 +408,9 @@ public class BigQueryService extends AbstractWranglerService {
       } else {
         schemaField = Schema.Field.of(name, Schema.of(schemaType));
       }
-
       schemaFields.add(schemaField);
     }
     Schema schemaToReturn = Schema.recordOf("bigquerySchema", schemaFields);
-
     return new Pair<>(rows, schemaToReturn);
   }
 
