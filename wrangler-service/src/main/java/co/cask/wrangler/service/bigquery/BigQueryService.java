@@ -73,6 +73,7 @@ public class BigQueryService extends AbstractWranglerService {
   private static final String DATASET_ID = "datasetId";
   private static final String TABLE_ID = "id";
   private static final String SCHEMA = "schema";
+  private static final String BUCKET = "bucket";
 
   private BigQuery getBigQuery(Connection connection) throws Exception {
     Pair<String, ServiceAccountCredentials> projectIdAndCredentials = GCPUtils.getProjectIdAndCredentials(connection);
@@ -211,6 +212,7 @@ public class BigQueryService extends AbstractWranglerService {
     Map<String, Object> connectionProperties = connection.getAllProps();
     String projectId = (String) connectionProperties.get(GCPUtils.PROJECT_ID);
     String path = (String) connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+    String bucket = (String) connectionProperties.get(BUCKET);
 
     TableId tableIdObject = TableId.of(projectId, datasetId, tableId);
 
@@ -233,6 +235,7 @@ public class BigQueryService extends AbstractWranglerService {
     properties.put(GCPUtils.PROJECT_ID, projectId);
     properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
     properties.put(SCHEMA, tableData.getSecond().toString());
+    properties.put(BUCKET, bucket);
 
     ws.writeProperties(identifier, properties);
 
@@ -270,7 +273,7 @@ public class BigQueryService extends AbstractWranglerService {
 
       JsonObject bigQuery = new JsonObject();
       properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-      properties.put("bucket", "bigquery-temporary-bucket");
+      properties.put("bucket", config.get(BUCKET));
       properties.put("project", config.get(GCPUtils.PROJECT_ID));
       properties.put("dataset", config.get(DATASET_ID));
       properties.put("table", config.get(TABLE_ID));
@@ -323,6 +326,17 @@ public class BigQueryService extends AbstractWranglerService {
         String fieldName = field.getName();
         Object objectValue = fieldValues.get(fieldName).getValue();
 
+        // Stringified these objects to be consistent with BigQueryTable batchsource plugin
+        LegacySQLTypeName type = field.getType();
+        StandardSQLTypeName standardType = type.getStandardType();
+        switch (standardType) {
+          case TIME:
+          case DATE:
+          case DATETIME:
+          case TIMESTAMP:
+            objectValue = objectValue.toString();
+        }
+
         row.add(fieldName, objectValue);
       }
       rows.add(row);
@@ -330,47 +344,56 @@ public class BigQueryService extends AbstractWranglerService {
 
     List<Schema.Field> schemaFields = new ArrayList<>();
     for (Field field : fields) {
-      Schema.Field schemaField;
       LegacySQLTypeName type = field.getType();
       StandardSQLTypeName standardType = type.getStandardType();
-      String name = field.getName();
+      Schema.Type schemaType;
       switch (standardType) {
         case BOOL:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.BOOLEAN));
+          schemaType = Schema.Type.BOOLEAN;
           break;
         case DATE:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          schemaType = Schema.Type.STRING;
           break;
         case TIME:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          schemaType = Schema.Type.STRING;
           break;
         case ARRAY:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.ARRAY));
+          schemaType = Schema.Type.ARRAY;
           break;
         case BYTES:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.BYTES));
+          schemaType = Schema.Type.BYTES;
           break;
         case INT64:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.INT));
+          schemaType = Schema.Type.INT;
           break;
         case STRING:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.STRING));
+          schemaType = Schema.Type.STRING;
           break;
         case STRUCT:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.RECORD));
+          schemaType = Schema.Type.RECORD;
           break;
         case FLOAT64:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.FLOAT));
+          schemaType = Schema.Type.FLOAT;
           break;
         case DATETIME:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          schemaType = Schema.Type.STRING;
           break;
         case TIMESTAMP:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.LONG));
+          schemaType = Schema.Type.STRING;
           break;
         default:
-          schemaField = Schema.Field.of(name, Schema.of(Schema.Type.STRING));
+          schemaType =Schema.Type.STRING;
       }
+
+      String name = field.getName();
+      Schema.Field schemaField;
+      if (field.getMode() == null || field.getMode() == Field.Mode.NULLABLE) {
+        Schema fieldSchema = Schema.nullableOf(Schema.of(schemaType));
+        schemaField = Schema.Field.of(name, fieldSchema);
+      } else {
+        schemaField = Schema.Field.of(name, Schema.of(schemaType));
+      }
+
       schemaFields.add(schemaField);
     }
     Schema schemaToReturn = Schema.recordOf("bigquerySchema", schemaFields);
