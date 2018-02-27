@@ -116,7 +116,9 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   @GET
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
-                   @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction) {
+                   @QueryParam("sampler") String sampler,
+                   @QueryParam("fraction") double fraction,
+                   @QueryParam("group") String group) {
     RequestExtractor extractor = new RequestExtractor(request);
     String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
 
@@ -125,17 +127,21 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       return;
     }
 
+    if (group == null || group.isEmpty()) {
+      group = WorkspaceDataset.DEFAULT_GROUP;
+    }
+
     if (header.equalsIgnoreCase("text/plain") || header.contains("text/")) {
-      loadSamplableFile(responder, path, lines, fraction, sampler);
+      loadSamplableFile(responder, group, path, lines, fraction, sampler);
     } else if (header.equalsIgnoreCase("application/xml")) {
-      loadFile(responder, path, DataType.RECORDS);
+      loadFile(responder, group, path, DataType.RECORDS);
     } else if (header.equalsIgnoreCase("application/json")) {
-      loadFile(responder, path, DataType.TEXT);
+      loadFile(responder, group, path, DataType.TEXT);
     } else if (header.equalsIgnoreCase("application/avro")
       || header.equalsIgnoreCase("application/protobuf")
       || header.equalsIgnoreCase("application/excel")
       || header.contains("image/")) {
-      loadFile(responder, path, DataType.BINARY);
+      loadFile(responder, group, path, DataType.BINARY);
     } else {
       error(responder, "Currently doesn't support wrangling of this type of file.");
     }
@@ -178,7 +184,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
     }
   }
 
-  private void loadFile(HttpServiceResponder responder, String path, DataType type) {
+  private void loadFile(HttpServiceResponder responder, String group, String path, DataType type) {
     JsonObject response = new JsonObject();
     BufferedInputStream stream = null;
     try {
@@ -195,9 +201,9 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
 
       // Creates workspace.
       String name = location.getName();
-      String id = String.format("%s:%s", location.getName(), location.toURI().getPath());
+      String id = String.format("%s:%s:%s", group, location.getName(), location.toURI().getPath());
       id = ServiceUtils.generateMD5(id);
-      table.createWorkspaceMeta(id, name);
+      table.createWorkspaceMeta(id, group, name);
 
       stream = new BufferedInputStream(location.getInputStream());
       byte[] bytes = new byte[(int)location.length() + 1];
@@ -253,7 +259,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   }
 
   private void loadSamplableFile(HttpServiceResponder responder,
-                                 String path, int lines, double fraction, String sampler) {
+                                 String group, String path, int lines, double fraction, String sampler) {
     JsonObject response = new JsonObject();
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
@@ -269,7 +275,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       String name = location.getName();
       String id = String.format("%s:%s", location.getName(), location.toURI().getPath());
       id = ServiceUtils.generateMD5(id);
-      table.createWorkspaceMeta(id, name);
+      table.createWorkspaceMeta(id, group, name);
 
       // Iterate through lines to extract only 'limit' random lines.
       // Depending on the type, the sampling of the input is performed.

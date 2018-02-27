@@ -271,12 +271,18 @@ public class S3Service extends AbstractHttpServiceHandler {
                          @PathParam("connection-id") String connectionId,
                          @PathParam("bucket-name") String bucketName,
                          @QueryParam("key") final String key, @QueryParam("lines") int lines,
-                         @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction) {
+                         @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
+                         @QueryParam("group") String group) {
     try {
       if (Strings.isNullOrEmpty(key)) {
         responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Required query param 'key' is missing in the input");
         return;
       }
+
+      if (Strings.isNullOrEmpty(group)) {
+        group = WorkspaceDataset.DEFAULT_GROUP;
+      }
+
       RequestExtractor extractor = new RequestExtractor(request);
       String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
       Connection connection = store.get(connectionId);
@@ -288,7 +294,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       if (object != null) {
         try (InputStream inputStream = object.getObjectContent()) {
           if (header != null && header.equalsIgnoreCase("text/plain")) {
-            loadSamplableFile(connection.getId(), responder, inputStream, object, lines, fraction, sampler);
+            loadSamplableFile(connection.getId(), responder, group, inputStream, object, lines, fraction, sampler);
             return;
           }
           loadFile(connection.getId(), responder, inputStream, object);
@@ -348,7 +354,7 @@ public class S3Service extends AbstractHttpServiceHandler {
   }
 
   private void loadSamplableFile(String connectionId, HttpServiceResponder responder,
-                                 InputStream inputStream, S3Object s3Object,
+                                 String group, InputStream inputStream, S3Object s3Object,
                                  int lines, double fraction, String sampler) {
     JsonObject response = new JsonObject();
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
@@ -359,10 +365,10 @@ public class S3Service extends AbstractHttpServiceHandler {
     try(BoundedLineInputStream blis = BoundedLineInputStream.iterator(inputStream, Charsets.UTF_8, lines)) {
       String name = s3Object.getKey();
 
-      String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
+      String file = String.format("%s:%s:%s", group, s3Object.getBucketName(), s3Object.getKey());
       String identifier = ServiceUtils.generateMD5(file);
       String fileName = name.substring(name.lastIndexOf("/") + 1);
-      table.createWorkspaceMeta(identifier, fileName);
+      table.createWorkspaceMeta(identifier, group, fileName);
 
       // Iterate through lines to extract only 'limit' random lines.
       // Depending on the type, the sampling of the input is performed.
