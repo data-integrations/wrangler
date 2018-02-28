@@ -93,24 +93,12 @@ public class ColumnExpression implements Directive {
 
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
-    // This is done only the first time.
-    if (properties.size() == 0 && context != null) {
-      properties.putAll(context.getProperties());
-    }
-
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      ELContext ctx = new ELContext(properties);
+      ELContext ctx = new ELContext(context);
       ctx.set("this", row);
       for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
-      }
-      
-      // Transient variables are added.
-      if (context != null) {
-        for (String variable : context.getTransientStore().getVariables()) {
-          ctx.set(variable, context.getTransientStore().get(variable));
-        }
       }
 
       // Execution of the script / expression based on the row data
