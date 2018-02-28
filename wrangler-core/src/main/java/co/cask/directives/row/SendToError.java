@@ -99,17 +99,10 @@ public class SendToError implements Directive {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      ELContext ctx = new ELContext();
+      ELContext ctx = new ELContext(context);
       ctx.set("this", row);
       for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
-      }
-
-      // Transient variables are added.
-      if (context != null) {
-        for (String variable : context.getTransientStore().getVariables()) {
-          ctx.set(variable, context.getTransientStore().get(variable));
-        }
       }
 
       // Execution of the script / expression based on the row data
