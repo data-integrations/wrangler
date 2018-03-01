@@ -24,6 +24,7 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.TransientStore;
 
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -44,6 +45,11 @@ class WranglerPipelineContext implements ExecutorContext {
     this.metrics = context.getMetrics();
     this.name = context.getStageName();
     this.properties = context.getPluginProperties().getProperties();
+    Iterator<Map.Entry<String, String>> iterator = context.getArguments().iterator();
+    while(iterator != null) {
+      Map.Entry<String, String> next = iterator.next();
+      this.properties.put(next.getKey(), next.getValue());
+    }
     this.context = context;
     this.store = store;
   }
