@@ -51,7 +51,7 @@ public class SetTransientVariableTest {
     rows = TestingRig.execute(recipe, rows, new ExecutorContext() {
       @Override
       public Environment getEnvironment() {
-        return null;
+        return Environment.TESTING;
       }
 
       @Override
@@ -61,7 +61,7 @@ public class SetTransientVariableTest {
 
       @Override
       public String getContextName() {
-        return null;
+        return "test";
       }
 
       @Override
