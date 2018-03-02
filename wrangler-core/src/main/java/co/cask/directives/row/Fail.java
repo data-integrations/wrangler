@@ -83,7 +83,7 @@ public class Fail implements Directive {
     throws DirectiveExecutionException {
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      ELContext ctx = new ELContext();
+      ELContext ctx = new ELContext(context);
       ctx.set("this", row);
       for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
