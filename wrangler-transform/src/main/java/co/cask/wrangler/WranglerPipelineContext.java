@@ -46,7 +46,7 @@ class WranglerPipelineContext implements ExecutorContext {
     this.name = context.getStageName();
     this.properties = context.getPluginProperties().getProperties();
     Iterator<Map.Entry<String, String>> iterator = context.getArguments().iterator();
-    while(iterator != null) {
+    while(iterator.hasNext()) {
       Map.Entry<String, String> next = iterator.next();
       this.properties.put(next.getKey(), next.getValue());
     }
