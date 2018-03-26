@@ -79,7 +79,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <cdap.version>4.3.4-SNAPSHOT</cdap.version>
+    <cdap.version>4.3.4</cdap.version>
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang.version>3.5</commons-lang.version>
@@ -128,10 +128,6 @@
     <repository>
       <id>sonatype-snapshots</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </repository>
-    <repository>
-      <id>sonatype-release</id>
-      <url>https://oss.sonatype.org/content/repositories/release</url>
     </repository>
   </repositories>
 
