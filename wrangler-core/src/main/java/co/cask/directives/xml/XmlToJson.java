@@ -32,6 +32,8 @@ import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.json.JSONException;
 import org.json.XML;
@@ -50,6 +52,7 @@ public class XmlToJson implements Directive {
   // Column within the input row that needs to be parsed as Json
   private String col;
   private int depth;
+  private final Gson gson = new Gson();
 
   @Override
   public UsageDefinition define() {
@@ -86,8 +89,9 @@ public class XmlToJson implements Directive {
 
         try {
           if (object instanceof String) {
-            JsonObject element = JsParser.convert(XML.toJSONObject((String) object)).getAsJsonObject();
-            JsParser.flattenJson(element, col, 1, depth, row);
+            JsonObject element = gson.fromJson(XML.toJSONObject((String) object).toString(),
+                                               JsonElement.class).getAsJsonObject();
+            JsParser.jsonFlatten(element, col, 1, depth, row);
             row.remove(idx);
           } else {
             throw new DirectiveExecutionException(

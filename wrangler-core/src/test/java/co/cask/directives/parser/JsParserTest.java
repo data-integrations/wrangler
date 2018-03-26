@@ -156,4 +156,105 @@ public class JsParserTest {
     rows = TestingRig.execute(directives, rows);
     Assert.assertTrue(rows.size() == 5);
   }
+
+  @Test
+  public void testDepthParsing() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-json body1 1",
+      "parse-as-json body2 2",
+      "parse-as-json body3 3",
+      "parse-as-json body4 1",
+      "parse-as-json body5 2",
+      "parse-as-json body6 3",
+      "parse-as-json body7 4"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body1", "{\n" +
+        "  \"id\": 1,\n" +
+        "  \"name\": {\n" +
+        "    \"first\": \"Root\",\n" +
+        "    \"last\": \"Joltie\"\n" +
+        "  },\n" +
+        "  \"age\": 22,\n" +
+        "  \"weigth\": 184,\n" +
+        "  \"height\": 5.8\n" +
+        "}").add("body2","{\n" +
+        "  \"id\": 1,\n" +
+        "  \"name\": {\n" +
+        "    \"first\": \"Root\",\n" +
+        "    \"last\": \"Joltie\"\n" +
+        "  },\n" +
+        "  \"age\": 22,\n" +
+        "  \"weigth\": 184,\n" +
+        "  \"height\": 5.8\n" +
+        "}").add("body3", "{\n" +
+        "  \"id\": 1,\n" +
+        "  \"name\": {\n" +
+        "    \"first\": \"Root\",\n" +
+        "    \"last\": \"Joltie\"\n" +
+        "  },\n" +
+        "  \"age\": 22,\n" +
+        "  \"weigth\": 184,\n" +
+        "  \"height\": 5.8\n" +
+        "}").add("body4", "{\n" +
+        "  \"id\": 1,\n" +
+        "  \"name\": {\n" +
+        "    \"first\": {\n" +
+        "      \"n\" : \"Root\",\n" +
+        "      \"m\" : \"Rootie\"\n" +
+        "    },\n" +
+        "    \"last\": \"Joltie\"\n" +
+        "  },\n" +
+        "  \"age\": 22,\n" +
+        "  \"weigth\": 184,\n" +
+        "  \"height\": 5.8\n" +
+        "}").add("body5", "{\n" +
+        "  \"id\": 1,\n" +
+        "  \"name\": {\n" +
+        "    \"first\": {\n" +
+        "      \"n\" : \"Root\",\n" +
+        "      \"m\" : \"Rootie\"\n" +
+        "    },\n" +
+        "    \"last\": \"Joltie\"\n" +
+        "  },\n" +
+        "  \"age\": 22,\n" +
+        "  \"weigth\": 184,\n" +
+        "  \"height\": 5.8\n" +
+        "}").add("body6", "{\n" +
+        "  \"id\": 1,\n" +
+        "  \"name\": {\n" +
+        "    \"first\": {\n" +
+        "      \"n\" : \"Root\",\n" +
+        "      \"m\" : \"Rootie\"\n" +
+        "    },\n" +
+        "    \"last\": \"Joltie\"\n" +
+        "  },\n" +
+        "  \"age\": 22,\n" +
+        "  \"weigth\": 184,\n" +
+        "  \"height\": 5.8\n" +
+        "}").add("body7", "{\n" +
+        "  \"id\": 1,\n" +
+        "  \"name\": {\n" +
+        "    \"first\": {\n" +
+        "      \"n\" : \"Root\",\n" +
+        "      \"m\" : \"Rootie\"\n" +
+        "    },\n" +
+        "    \"last\": \"Joltie\"\n" +
+        "  },\n" +
+        "  \"age\": 22,\n" +
+        "  \"weigth\": 184,\n" +
+        "  \"height\": 5.8\n" +
+        "}")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertNotEquals(rows.get(0).find("body1_name"), -1);
+    Assert.assertNotEquals(rows.get(0).find("body2_name_first"), -1);
+    Assert.assertNotEquals(rows.get(0).find("body2_name_last"), -1);
+    Assert.assertNotEquals(rows.get(0).find("body3_name_first"), -1);
+    Assert.assertNotEquals(rows.get(0).find("body6_name_first_n"), -1);
+    Assert.assertNotEquals(rows.get(0).find("body6_name_first_m"), -1);
+  }
 }

@@ -33,7 +33,6 @@ import co.cask.wrangler.api.parser.Numeric;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 import co.cask.wrangler.dq.TypeInference;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -41,7 +40,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.internal.LazilyParsedNumber;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -51,7 +49,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A JSON Parser Stage for parsing the provided {@link Row} based on the configuration.
+ * This class is a JSON Parser directive with optional argument specifying the depth
+ * to which the JSON needs to be parsed.
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-json")
@@ -95,14 +94,13 @@ public class JsParser implements Directive {
   public List<Row> execute(List<Row> rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
+
     // Iterate through all the rows.
     for (Row row : rows) {
       int idx = row.find(column);
-
       // If the input column exists in the row, proceed further.
       if (idx != -1) {
         Object value = row.getValue(idx);
-
         if (value == null) {
           continue;
         }
@@ -117,7 +115,7 @@ public class JsParser implements Directive {
           } else {
             throw new DirectiveExecutionException(
               String.format("%s : Invalid type '%s' of column '%s'. " +
-                              "Should be of type string. Use paths to further parse data.",
+                              "Should be of type string or a valid Json object.",
                             toString(), element != null ? element.getClass().getName() : "null", column)
             );
           }
@@ -126,7 +124,7 @@ public class JsParser implements Directive {
 
           if (element != null) {
             if (element instanceof JsonObject) {
-              flattenJson(element.getAsJsonObject(), column, 1, depth, row);
+              jsonFlatten(element.getAsJsonObject(), column, 1, depth, row);
               results.add(row);
             } else if (element instanceof JsonArray) {
               JsonArray array = element.getAsJsonArray();
@@ -161,7 +159,7 @@ public class JsParser implements Directive {
    * @param maxDepth maximum depth to reach
    * @param row to which the flatten fields need to be added.
    */
-  public static void flattenJson(JsonObject root, String field, int depth, int maxDepth, Row row) {
+  public static void jsonFlatten(JsonObject root, String field, int depth, int maxDepth, Row row) {
     if (depth > maxDepth) {
       row.addOrSet(String.format("%s", field), root);
       return;
@@ -173,8 +171,8 @@ public class JsParser implements Directive {
       String key = next.getKey();
       JsonElement element = next.getValue();
       if (element instanceof JsonObject) {
-        flattenJson(element.getAsJsonObject(),
-                    String.format("%s_%s", field, key), depth++, maxDepth, row);
+        jsonFlatten(element.getAsJsonObject(),
+                    String.format("%s_%s", field, key), depth + 1, maxDepth, row);
       } else {
         row.add(String.format("%s_%s", field, key), getValue(element));
       }
@@ -190,9 +188,9 @@ public class JsParser implements Directive {
    */
   public static Object getValue(JsonElement element) {
     if (element.isJsonObject()) {
-      return (JsonObject) element.getAsJsonObject();
+      return element.getAsJsonObject();
     } else if (element.isJsonArray()) {
-      return (JsonArray) element.getAsJsonArray();
+      return element.getAsJsonArray();
     } else if (element.isJsonPrimitive()) {
       return getValue(element.getAsJsonPrimitive());
     }
@@ -238,16 +236,4 @@ public class JsParser implements Directive {
     }
     return null;
   }
-
-  /**
-   * Converts a {@link JSONObject} to {@link JsonElement}. This is used when converting
-   * XML to JSON.
-   *
-   * @param object {@link JSONObject} type to be converted.
-   * @return converted type {@link JsonElement}
-   */
-  public static JsonElement convert(JSONObject object) {
-    return new Gson().fromJson(object.toString(), JsonElement.class);
-  }
-
 }
