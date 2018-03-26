@@ -148,7 +148,7 @@ public class HL7Parser implements Directive {
 
     @Override
     public boolean end(Message message) throws HL7Exception {
-      JsParser.flattenJson(segments, column, 1, depth, row);
+      JsParser.jsonFlatten(segments, column, 1, depth, row);
       return true;
     }
 
