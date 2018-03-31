@@ -149,7 +149,7 @@ public class JsParser extends AbstractStep {
       JsonElement element = next.getValue();
       if (element instanceof JsonObject) {
         flattenJson(element.getAsJsonObject(),
-                    String.format("%s_%s", field, key), depth++, maxDepth, record);
+                    String.format("%s_%s", field, key), depth + 1, maxDepth, record);
       } else {
         record.add(String.format("%s_%s", field, key), getValue(element));
       }
