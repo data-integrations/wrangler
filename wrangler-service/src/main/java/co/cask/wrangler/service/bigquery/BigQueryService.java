@@ -201,7 +201,7 @@ public class BigQueryService extends AbstractWranglerService {
    * @param connectionId Connection Id for BigQuery Service.
    * @param datasetId id of the dataset on BigQuery.
    * @param tableId id of the BigQuery table.
-   * @param group Group the workspace is created in.
+   * @param scope Group the workspace is created in.
    */
   @GET
   @Path("connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
@@ -209,15 +209,15 @@ public class BigQueryService extends AbstractWranglerService {
                            @PathParam("connection-id") String connectionId,
                            @PathParam("dataset-id") String datasetId,
                            @PathParam("table-id") String tableId,
-                           @QueryParam("group") String group) throws Exception {
+                           @QueryParam("scope") String scope) throws Exception {
     Connection connection = store.get(connectionId);
 
     if (!validateConnection(connectionId, connection, responder)) {
       return;
     }
 
-    if (group == null || group.isEmpty()) {
-      group = WorkspaceDataset.DEFAULT_GROUP;
+    if (scope == null || scope.isEmpty()) {
+      scope = WorkspaceDataset.DEFAULT_SCOPE;
     }
 
     Map<String, Object> connectionProperties = connection.getAllProps();
@@ -229,8 +229,8 @@ public class BigQueryService extends AbstractWranglerService {
 
     Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
 
-    String identifier = ServiceUtils.generateMD5(String.format("%s:%s", group, tableId));
-    ws.createWorkspaceMeta(identifier, group, tableId);
+    String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
+    ws.createWorkspaceMeta(identifier, scope, tableId);
     ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
     byte[] data = serDe.toByteArray(tableData.getFirst());
     ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);

@@ -325,7 +325,7 @@ public class GCSService extends AbstractWranglerService {
                          @PathParam("connection-id") String connectionId,
                          @PathParam("bucket") String bucket,
                          @QueryParam("blob") final String blobPath,
-                         @QueryParam("group") String group) {
+                         @QueryParam("scope") String scope) {
 
     RequestExtractor extractor = new RequestExtractor(request);
     String contentType = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
@@ -339,8 +339,8 @@ public class GCSService extends AbstractWranglerService {
         return;
       }
 
-      if (group == null || group.isEmpty()) {
-        group = WorkspaceDataset.DEFAULT_GROUP;
+      if (scope == null || scope.isEmpty()) {
+        scope = WorkspaceDataset.DEFAULT_SCOPE;
       }
 
       Connection connection = store.get(connectionId);
@@ -358,12 +358,12 @@ public class GCSService extends AbstractWranglerService {
       }
 
       String blobName = blob.getName();
-      String id = ServiceUtils.generateMD5(String.format("%s:%s", group, blobName));
+      String id = ServiceUtils.generateMD5(String.format("%s:%s", scope, blobName));
       File file = new File(blobName);
 
       if (!blob.isDirectory()) {
         byte[] bytes = readGCSFile(blob, Math.min(blob.getSize().intValue(), GCSService.FILE_SIZE));
-        ws.createWorkspaceMeta(id, group, file.getName());
+        ws.createWorkspaceMeta(id, scope, file.getName());
 
         String encoding = BytesDecoder.guessEncoding(bytes);
         if (contentType.equalsIgnoreCase("text/plain")

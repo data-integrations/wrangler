@@ -515,13 +515,13 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param id Connection id for which the tables need to be listed from database.
    * @param table Name of the database table.
    * @param lines No of lines to be read from RDBMS table.
-   * @param group Group the workspace should be created in.
+   * @param scope Group the workspace should be created in.
    */
   @GET
   @Path("connections/{id}/tables/{table}/read")
   public void read(HttpServiceRequest request, final HttpServiceResponder responder,
                    @PathParam("id") final String id, @PathParam("table") final String table,
-                   @QueryParam("lines") final int lines, @QueryParam("group") final String group) {
+                   @QueryParam("lines") final int lines, @QueryParam("scope") final String scope) {
     final JsonObject response = new JsonObject();
     DriverCleanup cleanup = null;
     try {
@@ -529,9 +529,9 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       cleanup = loadAndExecute(id, new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
-          String grp = group;
-          if (Strings.isNullOrEmpty(group)) {
-            grp = WorkspaceDataset.DEFAULT_GROUP;
+          String grp = scope;
+          if (Strings.isNullOrEmpty(scope)) {
+            grp = WorkspaceDataset.DEFAULT_SCOPE;
           }
           try (Statement statement = connection.createStatement();
                ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {

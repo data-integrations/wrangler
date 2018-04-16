@@ -52,11 +52,11 @@ public class WorkspaceDataset extends AbstractDataset {
   private final Table table;
   private final Gson gson;
 
-  public static final String DEFAULT_GROUP  = "default";
+  public static final String DEFAULT_SCOPE = "default";
   public static final byte[] CONFIG_KEY     = Bytes.toBytes("__config__");
   public static final byte[] CONFIG_COL     = Bytes.toBytes("__ws__");
   public static final byte[] DATA_COL       = Bytes.toBytes("data");
-  public static final byte[] GROUP_COL      = Bytes.toBytes("group");
+  public static final byte[] SCOPE_COL      = Bytes.toBytes("scope");
   public static final byte[] NAME_COL       = Bytes.toBytes("name");
   public static final byte[] TYPE_COL       = Bytes.toBytes("type");
   public static final byte[] CREATED_COL    = Bytes.toBytes("created");
@@ -80,7 +80,7 @@ public class WorkspaceDataset extends AbstractDataset {
    */
   @WriteOnly
   public void createWorkspaceMeta(String id, String name) throws WorkspaceException {
-    createWorkspaceMeta(id, name, "default", DataType.BINARY);
+    createWorkspaceMeta(id, name, DEFAULT_SCOPE, DataType.BINARY);
   }
 
   /**
@@ -91,8 +91,8 @@ public class WorkspaceDataset extends AbstractDataset {
    * @throws WorkspaceException thrown when there is issue creating workspace.
    */
   @WriteOnly
-  public void createWorkspaceMeta(String id, String group, String name) throws WorkspaceException {
-    createWorkspaceMeta(id, group, name, DataType.BINARY);
+  public void createWorkspaceMeta(String id, String scope, String name) throws WorkspaceException {
+    createWorkspaceMeta(id, scope, name, DataType.BINARY);
   }
 
   /**
@@ -104,8 +104,8 @@ public class WorkspaceDataset extends AbstractDataset {
    * @throws WorkspaceException thrown when issue creating workspace meta entry.
    */
   @WriteOnly
-  public void createWorkspaceMeta(String id, String group, String name,  DataType type) throws WorkspaceException {
-    createWorkspaceMeta(id, group, name, type, new HashMap<>());
+  public void createWorkspaceMeta(String id, String scope, String name,  DataType type) throws WorkspaceException {
+    createWorkspaceMeta(id, scope, name, type, new HashMap<>());
   }
 
   /**
@@ -118,21 +118,21 @@ public class WorkspaceDataset extends AbstractDataset {
    * @throws WorkspaceException thrown when issue creating workspace meta entry.
    */
   @WriteOnly
-  public void createWorkspaceMeta(String id, String group, String name, DataType type,
+  public void createWorkspaceMeta(String id, String scope, String name, DataType type,
                      Map<String, String> properties) throws WorkspaceException {
     if (id == null || id.isEmpty()) {
       throw new WorkspaceException("Workspace id cannot be empty or null");
     }
 
     byte[][] columns = new byte[][] {
-     CREATED_COL, TYPE_COL, NAME_COL, GROUP_COL, PROPERTIES_COL
+     CREATED_COL, TYPE_COL, NAME_COL, SCOPE_COL, PROPERTIES_COL
     };
 
     byte[][] data = new byte[][] {
       Bytes.toBytes(System.currentTimeMillis() / 1000),
       Bytes.toBytes(type.getType()),
       Bytes.toBytes(name),
-      Bytes.toBytes(group),
+      Bytes.toBytes(scope),
       toJsonBytes(properties)
     };
 
@@ -168,24 +168,24 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   /**
-   * Lists all the workspaces registered.
+   * Lists all the workspaces registered in the 'default' scope.
    *
    * @return List of workspaces.
    * @throws WorkspaceException throw if there is issue listing workspaces.
    */
   @ReadOnly
   public List<Pair<String, String>> getWorkspaces() throws WorkspaceException {
-    return getWorkspaces("default");
+    return getWorkspaces(DEFAULT_SCOPE);
   }
 
   /**
-   * Lists all the workspaces registered.
+   * Lists all the workspaces registered for a scope.
    *
    * @return List of workspaces.
    * @throws WorkspaceException throw if there is issue listing workspaces.
    */
   @ReadOnly
-  public List<Pair<String, String>> getWorkspaces(String group) throws WorkspaceException {
+  public List<Pair<String, String>> getWorkspaces(String scope) throws WorkspaceException {
     List<Pair<String, String>> values = new ArrayList<>();
     co.cask.cdap.api.dataset.table.Row row;
     try (Scanner scanner = table.scan(null, null)) {
@@ -195,9 +195,9 @@ public class WorkspaceDataset extends AbstractDataset {
         if (excludedKey(id)) {
           continue;
         }
-        byte[] groupBytes = row.get(GROUP_COL);
-        String groupStr = Bytes.toString(groupBytes);
-        if (!groupStr.equalsIgnoreCase(group)) {
+        byte[] scopeBytes = row.get(SCOPE_COL);
+        String scopeStr = Bytes.toString(scopeBytes);
+        if (!scopeStr.equalsIgnoreCase(scope)) {
           continue;
         }
         byte[] name = row.get(NAME_COL);
@@ -253,7 +253,7 @@ public class WorkspaceDataset extends AbstractDataset {
         if (excludedKey(id)) {
           continue;
         }
-        byte[] groupBytes = row.get(GROUP_COL);
+        byte[] groupBytes = row.get(SCOPE_COL);
         String groupStr = Bytes.toString(groupBytes);
         if (!groupStr.equalsIgnoreCase(group)) {
           deleteWorkspace(id);
