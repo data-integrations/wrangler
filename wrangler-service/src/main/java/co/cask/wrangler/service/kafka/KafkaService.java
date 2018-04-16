@@ -189,7 +189,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("id") String id, @PathParam("topic") String topic,
                    @QueryParam("lines") int lines,
-                   @QueryParam("group") String group) {
+                   @QueryParam("scope") String scope) {
     try {
       Connection connection = store.get(id);
       if (connection == null) {
@@ -197,15 +197,15 @@ public final class KafkaService extends AbstractHttpServiceHandler {
         return;
       }
 
-      if (group == null || group.isEmpty()) {
-        group = WorkspaceDataset.DEFAULT_GROUP;
+      if (scope == null || scope.isEmpty()) {
+        scope = WorkspaceDataset.DEFAULT_SCOPE;
       }
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
-      String uuid = ServiceUtils.generateMD5(String.format("%s:%s.%s", group, id, topic));
-      ws.createWorkspaceMeta(uuid, group, topic);
+      String uuid = ServiceUtils.generateMD5(String.format("%s:%s.%s", scope, id, topic));
+      ws.createWorkspaceMeta(uuid, scope, topic);
 
       try {
         boolean running = true;
