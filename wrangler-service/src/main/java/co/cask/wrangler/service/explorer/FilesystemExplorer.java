@@ -201,7 +201,8 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
 
       // Creates workspace.
       String name = location.getName();
-      String id = String.format("%s:%s:%s", scope, location.getName(), location.toURI().getPath());
+      String id = String.format("%s:%s:%s:%d", scope, location.getName(),
+                                location.toURI().getPath(), System.nanoTime());
       id = ServiceUtils.generateMD5(id);
       table.createWorkspaceMeta(id, scope, name);
 
@@ -273,7 +274,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
         return;
       }
       String name = location.getName();
-      String id = String.format("%s:%s", location.getName(), location.toURI().getPath());
+      String id = String.format("%s:%s:%d", location.getName(), location.toURI().getPath(), System.nanoTime());
       id = ServiceUtils.generateMD5(id);
       table.createWorkspaceMeta(id, scope, name);
 
