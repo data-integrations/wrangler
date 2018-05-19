@@ -58,7 +58,8 @@ public class MapArguments implements Arguments {
     int required = definition.getTokens().size() - definition.getOptionalTokensCount();
     if ((required > group.size() - 1) || ((group.size() - 1) > definition.getTokens().size())) {
       throw new DirectiveParseException(
-        String.format("Improper usage of directive '%s', usage - '%s'", definition.getDirectiveName(), definition.toString())
+        String.format("Improper usage of directive '%s', usage - '%s'",
+                      definition.getDirectiveName(), definition.toString())
       );
     }
 
@@ -72,25 +73,29 @@ public class MapArguments implements Arguments {
         TokenDefinition specification = specifications.get(pos);
         if (!specification.optional()) {
           if (!specification.type().equals(token.type())) {
-            if (specification.type() == TokenType.COLUMN_NAME_LIST && token.type() == TokenType.COLUMN_NAME) {
+            if (specification.type() == TokenType.COLUMN_NAME_LIST &&
+              token.type() == TokenType.COLUMN_NAME) {
               List<String> values = new ArrayList<>();
               values.add(((ColumnName) token).value());
               tokens.put(specification.name(), new ColumnNameList(values));
               pos = pos + 1;
               break;
-            } else if (specification.type() == TokenType.NUMERIC_LIST && token.type() == TokenType.NUMERIC) {
+            } else if (specification.type() == TokenType.NUMERIC_LIST &&
+              token.type() == TokenType.NUMERIC) {
               List<LazyNumber> values = new ArrayList<>();
               values.add(((Numeric) token).value());
               tokens.put(specification.name(), new NumericList(values));
               pos = pos + 1;
               break;
-            } else if (specification.type() == TokenType.BOOLEAN_LIST && token.type() == TokenType.BOOLEAN) {
+            } else if (specification.type() == TokenType.BOOLEAN_LIST &&
+              token.type() == TokenType.BOOLEAN) {
               List<Boolean> values = new ArrayList<>();
               values.add(((Bool) token).value());
               tokens.put(specification.name(), new BoolList(values));
               pos = pos + 1;
               break;
-            } else if (specification.type() == TokenType.TEXT_LIST && token.type() == TokenType.TEXT) {
+            } else if (specification.type() == TokenType.TEXT_LIST &&
+              token.type() == TokenType.TEXT) {
               List<String> values = new ArrayList<>();
               values.add(((Text) token).value());
               tokens.put(specification.name(), new TextList(values));
@@ -98,7 +103,8 @@ public class MapArguments implements Arguments {
               break;
             } else {
               throw new DirectiveParseException(
-                String.format("Expected argument '%s' to be of type '%s', but it is of type '%s' - %s",
+                String.format("Expected argument '%s' to be of type '%s', " +
+                                "but it is of type '%s' - %s",
                               specification.name(), specification.type().name(),
                               token.type().name(), group.getSourceInfo().toString())
               );

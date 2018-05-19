@@ -147,7 +147,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String col2 = getNextToken(tokenizer, command, "second", lineno);
           String dest = getNextToken(tokenizer, command, "new-column", lineno);
           String delimiter = getNextToken(tokenizer, "\n", command, "delimiter", lineno);
-          transformed.add(String.format("merge %s %s %s %s;", col(col1), col(col2), col(dest), quote(delimiter)));
+          transformed.add(String.format("merge %s %s %s %s;", col(col1), col(col2), col(dest),
+                                        quote(delimiter)));
         }
         break;
 
@@ -178,7 +179,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String startStr = getNextToken(tokenizer, command, "start", lineno);
           String endStr = getNextToken(tokenizer, command, "end", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
-          transformed.add(String.format("indexsplit %s %s %s %s;", col(source), startStr, endStr, col(destination)));
+          transformed.add(String.format("indexsplit %s %s %s %s;", col(source), startStr, endStr,
+                                        col(destination)));
         }
         break;
 
@@ -197,7 +199,8 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "filter-row-if-matched": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          transformed.add(String.format("filter-by-regex if-matched %s %s;", col(column), quote(pattern)));
+          transformed.add(String.format("filter-by-regex if-matched %s %s;", col(column),
+                                        quote(pattern)));
         }
         break;
 
@@ -205,7 +208,8 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "filter-row-if-not-matched": {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-          transformed.add(String.format("filter-by-regex if-not-matched %s %s;", col(column), quote(pattern)));
+          transformed.add(String.format("filter-by-regex if-not-matched %s %s;", col(column),
+                                        quote(pattern)));
         }
         break;
 
@@ -238,18 +242,22 @@ public final class MigrateToV2 implements GrammarMigrator {
             transformed.add(String.format("filter-row exp:{%s} true;", condition));
           } else if (cmd.equalsIgnoreCase("empty-or-null-columns")) {
             String columns = getNextToken(tokenizer, "\n", command, "columns", lineno);
-            transformed.add(String.format("filter-empty-or-null %s;", toColumArray(columns.split(","))));
+            transformed.add(String.format("filter-empty-or-null %s;",
+                                          toColumArray(columns.split(","))));
           } else if (cmd.equalsIgnoreCase("regex-match")) {
             String column = getNextToken(tokenizer, command, "column", lineno);
             String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-            transformed.add(String.format("filter-by-regex if-matched %s %s;", col(column), quote(pattern)));
+            transformed.add(String.format("filter-by-regex if-matched %s %s;", col(column),
+                                          quote(pattern)));
           } else if (cmd.equalsIgnoreCase("regex-not-match")) {
             String column = getNextToken(tokenizer, command, "column", lineno);
             String pattern = getNextToken(tokenizer, "\n", command, "regex", lineno);
-            transformed.add(String.format("filter-by-regex if-not-matched %s %s;", col(column), quote(pattern)));
+            transformed.add(String.format("filter-by-regex if-not-matched %s %s;", col(column),
+                                          quote(pattern)));
           } else {
             throw new DirectiveParseException(
-              String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
+              String.format("Unknown option '%s' specified for filter-rows-on directive at " +
+                              "line no %s", cmd, lineno)
             );
           }
         }
@@ -268,7 +276,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String value = getNextToken(tokenizer, command, "value", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "expression", lineno);
-          transformed.add(String.format("increment-variable %s %s exp:{%s};", column, value, expression));
+          transformed.add(String.format("increment-variable %s %s exp:{%s};", column, value,
+                                        expression));
         }
         break;
 
@@ -298,12 +307,14 @@ public final class MigrateToV2 implements GrammarMigrator {
         // format-unix-timestamp <column> <destination-format>
         case "format-unix-timestamp": {
           String column = getNextToken(tokenizer, command, "column", lineno);
-          String dstDatePattern = getNextToken(tokenizer, "\n", command, "destination-format", lineno);
-          transformed.add(String.format("format-unix-timestamp %s %s;", col(column), quote(dstDatePattern)));
+          String dstDatePattern = getNextToken(tokenizer, "\n", command, "destination-format",
+                                               lineno);
+          transformed.add(String.format("format-unix-timestamp %s %s;", col(column),
+                                        quote(dstDatePattern)));
         }
         break;
 
-        // quantize <source-column> <destination-column> <[range1:range2)=value>,[<range1:range2=value>]*
+        // quantize <source-column> <destination-column> <[range1:range2)=value>,]*
         case "quantize": {
           String column1 = getNextToken(tokenizer, command, "source-column", lineno);
           String column2 = getNextToken(tokenizer, command, "destination-column", lineno);
@@ -316,7 +327,8 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "find-and-replace" : {
           String columns = getNextToken(tokenizer, command, "columns", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "sed-script", lineno);
-          transformed.add(String.format("find-and-replace %s %s;", toColumArray(columns.split(",")), quote(expression)));
+          transformed.add(String.format("find-and-replace %s %s;",
+                                        toColumArray(columns.split(",")), quote(expression)));
         }
         break;
 
@@ -327,7 +339,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           if(delimStr.endsWith(";")) {
             delimStr = delimStr.substring(0, delimStr.length() - 1);
           }
-          String hasHeaderLinesOpt = getNextToken(tokenizer, "\n", command, "true|false", lineno, true);
+          String hasHeaderLinesOpt = getNextToken(tokenizer, "\n", command, "true|false",
+                                                  lineno, true);
           transformed.add(String.format("parse-as-csv %s %s %s;", col(column), quote(delimStr),
                                         hasHeaderLinesOpt == null ? "" : hasHeaderLinesOpt));
         }
@@ -347,7 +360,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String schemaId = getNextToken(tokenizer, command, "schema-id", lineno);
           String type = getNextToken(tokenizer, command, "type", lineno);
           String versionOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
-          transformed.add(String.format("parse-as-avro %s %s %s %s;", col(column), schemaId, type, versionOpt));
+          transformed.add(String.format("parse-as-avro %s %s %s %s;", col(column), schemaId,
+                                        type, versionOpt));
         }
         break;
 
@@ -357,7 +371,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String schemaId = getNextToken(tokenizer, command, "schema-id", lineno);
           String recordName = getNextToken(tokenizer, command, "record-name", lineno);
           String versionOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
-          transformed.add(String.format("parse-as-protobuf %s %s %s %s;", col(column), schemaId, quote(recordName), versionOpt));
+          transformed.add(String.format("parse-as-protobuf %s %s %s %s;", col(column), schemaId,
+                                        quote(recordName), versionOpt));
         }
         break;
 
@@ -393,7 +408,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String delimiter = getNextToken(tokenizer, command, "delimiter", lineno);
           String limitStr = getNextToken(tokenizer, "\n", column, "limit", lineno, true);
-          transformed.add(String.format("set-record-delim %s %s %s;", col(column), quote(delimiter), limitStr));
+          transformed.add(String.format("set-record-delim %s %s %s;", col(column),
+                                        quote(delimiter), limitStr));
         }
         break;
 
@@ -402,7 +418,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String widthStr = getNextToken(tokenizer, command, "widths", lineno);
           String padding = getNextToken(tokenizer, "\n", column, "padding", lineno, true);
-          transformed.add(String.format("parse-as-fixed-length %s %s %s;", col(column), widthStr, quote(padding)));
+          transformed.add(String.format("parse-as-fixed-length %s %s %s;", col(column),
+                                        widthStr, quote(padding)));
         }
         break;
 
@@ -442,7 +459,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          transformed.add(String.format("xpath %s %s %s;", col(column), col(destination), quote(xpath)));
+          transformed.add(String.format("xpath %s %s %s;", col(column), col(destination),
+                                        quote(xpath)));
         }
         break;
 
@@ -451,7 +469,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          transformed.add(String.format("xpath-array %s %s %s;", col(column), col(destination), quote(xpath)));
+          transformed.add(String.format("xpath-array %s %s %s;", col(column), col(destination),
+                                        quote(xpath)));
         }
         break;
 
@@ -470,7 +489,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           if (forceOpt == null || forceOpt.isEmpty()) {
             transformed.add(String.format("copy %s %s;", col(source), col(destination)));
           } else {
-            transformed.add(String.format("copy %s %s %s;", col(source), col(destination), forceOpt));
+            transformed.add(String.format("copy %s %s %s;", col(source), col(destination),
+                                          forceOpt));
           }
         }
         break;
@@ -488,7 +508,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String source = getNextToken(tokenizer, command, "source", lineno);
           String destination = getNextToken(tokenizer, command, "destination", lineno);
           String range = getNextToken(tokenizer, command, "range", lineno);
-          transformed.add(String.format("cut-character %s %s %s;", col(source), col(destination), quote(range)));
+          transformed.add(String.format("cut-character %s %s %s;", col(source), col(destination),
+                                        quote(range)));
         }
         break;
 
@@ -542,7 +563,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column1 = getNextToken(tokenizer, command, "column1", lineno);
           String column2 = getNextToken(tokenizer, command, "column2", lineno);
           String destColumn = getNextToken(tokenizer, "\n", command, "destColumn", lineno);
-          transformed.add(String.format("diff-date %s %s %s;", col(column1), col(column2), col(destColumn)));
+          transformed.add(String.format("diff-date %s %s %s;", col(column1), col(column2),
+                                        col(destColumn)));
         }
         break;
 
@@ -581,7 +603,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String algorithm = getNextToken(tokenizer, command, "algorithm", lineno);
           String encodeOpt = getNextToken(tokenizer, "\n", command, "encode", lineno, true);
-          transformed.add(String.format("hash %s %s %s;", col(column), quote(algorithm), encodeOpt));
+          transformed.add(String.format("hash %s %s %s;", col(column), quote(algorithm),
+                                        encodeOpt));
         }
         break;
 
@@ -772,7 +795,8 @@ public final class MigrateToV2 implements GrammarMigrator {
     if (value == null) {
       return "";
     }
-    if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith("\"") && value.endsWith("\""))) {
+    if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith("\"") &&
+      value.endsWith("\""))) {
       return value;
     } else if (value.contains("'")) {
       return String.format("\"%s\"", value);
@@ -802,7 +826,8 @@ public final class MigrateToV2 implements GrammarMigrator {
   }
 
   public static String getNextToken(StringTokenizer tokenizer, String delimiter,
-                                    String directive, String field, int lineno) throws DirectiveParseException {
+                                    String directive, String field, int lineno)
+    throws DirectiveParseException {
     return getNextToken(tokenizer, delimiter, directive, field, lineno, false);
   }
 

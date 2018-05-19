@@ -101,7 +101,8 @@ public class ConfigDirectiveContext implements DirectiveContext {
 
   private class ServiceResponseHandler implements ResponseHandler<DirectiveConfig> {
     @Override
-    public DirectiveConfig handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+    public DirectiveConfig handleResponse(HttpResponse response) throws ClientProtocolException,
+      IOException {
       StatusLine statusLine = response.getStatusLine();
       HttpEntity entity = response.getEntity();
       if (statusLine.getStatusCode() >= 300) {

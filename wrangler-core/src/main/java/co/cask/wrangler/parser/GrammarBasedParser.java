@@ -98,14 +98,16 @@ public class GrammarBasedParser implements RecipeParser {
         // Checks if the directive has been excluded from being used.
         if (!root.equals(command) && context.isExcluded(command)) {
           throw new DirectiveParseException(
-            String.format("Aliased directive '%s' has been configured as restricted directive and is hence unavailable. " +
+            String.format("Aliased directive '%s' has been configured as restricted " +
+                            "directive and is hence unavailable. " +
                             "Please contact your administrator", command)
           );
         }
 
         if (context.isExcluded(root)) {
           throw new DirectiveParseException(
-            String.format("Directive '%s' has been configured as restricted directive and is hence unavailable. " +
+            String.format("Directive '%s' has been configured as restricted directive " +
+                            "and is hence unavailable. " +
                             "Please contact your administrator", command)
           );
         }
@@ -113,7 +115,8 @@ public class GrammarBasedParser implements RecipeParser {
         DirectiveInfo info = registry.get(root);
         if (info == null) {
           throw new DirectiveNotFoundException(
-            String.format("Directive '%s' not found in system and user scope. Check the name of directive.", command)
+            String.format("Directive '%s' not found in system and user scope. " +
+                            "Check the name of directive.", command)
           );
         }
         Directive directive = info.instance();
