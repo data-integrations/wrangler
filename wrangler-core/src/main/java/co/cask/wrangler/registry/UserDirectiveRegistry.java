@@ -125,8 +125,9 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
           if (directive == null) {
             throw new DirectiveLoadException(
               String.format("10-5 - Unable to load the user defined directive '%s'. " +
-                              "Please check if the artifact containing UDD is still present. It was there when the " +
-                              "pipeline was deployed, but don't seem to find it now.", name)
+                              "Please check if the artifact containing UDD is still present. " +
+                              "It was there when the pipeline was deployed, but don't seem to " +
+                              "find it now.", name)
             );
           }
           DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
@@ -140,9 +141,9 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
       throw new DirectiveLoadException(e.getMessage(), e);
     } catch (IllegalArgumentException e) {
       throw new DirectiveLoadException(
-        String.format("Directive '%s' not found. Check if the directive is spelled correctly or artifact " +
-                        "containing the directive has been uploaded or you might be missing " +
-                        "'#pragma load-directives %s;'", name, name), e
+        String.format("Directive '%s' not found. Check if the directive is spelled correctly " +
+                        "or artifact containing the directive has been uploaded or you might " +
+                        "be missing '#pragma load-directives %s;'", name, name), e
       );
     } catch (Exception e) {
       throw new DirectiveLoadException(e.getMessage(), e);
@@ -191,7 +192,8 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
         for(String directive : difference.entriesOnlyOnRight().keySet()) {
           registry.put(directive, difference.entriesOnlyOnRight().get(directive));
         }
-      } catch (IllegalAccessException | InstantiationException | IOException | ClassNotFoundException e) {
+      } catch (IllegalAccessException | InstantiationException
+        | IOException | ClassNotFoundException e) {
         throw new DirectiveLoadException(e.getMessage(), e);
       }
     }

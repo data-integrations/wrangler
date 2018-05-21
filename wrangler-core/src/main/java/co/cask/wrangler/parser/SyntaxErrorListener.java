@@ -37,7 +37,8 @@ public final class SyntaxErrorListener extends BaseErrorListener {
   private List<SyntaxError> errors = new ArrayList<>();
 
   @Override
-  public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+  public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                          int charPositionInLine,
                           String msg, RecognitionException e) {
 
     Parser parser = (Parser) recognizer;
@@ -57,7 +58,8 @@ public final class SyntaxErrorListener extends BaseErrorListener {
     if (offSymbol.getType() == -1 && thisError == tokens.size() - 1) {
       if (e != null) {
         if (e instanceof NoViableAltException) {
-          msg = "unexpected token found '" + ((NoViableAltException) e).getStartToken().getText() + "'";
+          msg = "unexpected token found '" +
+            ((NoViableAltException) e).getStartToken().getText() + "'";
         }
       }
       String message = "At line " + line + ":" + charPositionInLine +  ": " + msg;
@@ -66,7 +68,8 @@ public final class SyntaxErrorListener extends BaseErrorListener {
     }
 
     String offSymName = DirectivesLexer.VOCABULARY.getDisplayName(offSymbol.getType());
-    String message = "At line " + line + ":" + charPositionInLine + " at " + offSymName.toLowerCase() + ": " + msg;
+    String message = "At line " + line + ":" + charPositionInLine + " at " +
+      offSymName.toLowerCase() + ": " + msg;
 
 //    StringBuilder sb = new StringBuilder(message);
 //    sb.append(", alternatives = {");

@@ -64,8 +64,8 @@ public class SimpleTextParser implements RecipeParser {
   /**
    * Parses the DSL to generate a sequence of stepRegistry to be executed by {@link RecipePipeline}.
    *
-   * The transformation parsing here needs a better solution. It has many limitations and having different way would
-   * allow us to provide much more advanced semantics for directives.
+   * The transformation parsing here needs a better solution. It has many limitations and having
+   * different way would allow us to provide much more advanced semantics for directives.
    *
    * @return List of stepRegistry to be executed.
    * @throws ParseException
@@ -87,8 +87,8 @@ public class SimpleTextParser implements RecipeParser {
       StringTokenizer tokenizer = new StringTokenizer(directive, " ");
       String command = tokenizer.nextToken();
 
-      // Check if a directive has been aliased and if it's aliased then retrieve root command it's mapped
-      // to.
+      // Check if a directive has been aliased and if it's aliased then retrieve root command
+      // it's mapped to.
       String root = command;
       if (context.hasAlias(root)) {
         root = context.getAlias(command);
@@ -97,15 +97,15 @@ public class SimpleTextParser implements RecipeParser {
       // Checks if the directive has been excluded from being used.
       if (!root.equals(command) && context.isExcluded(command)) {
         throw new DirectiveParseException(
-          String.format("Aliased directive '%s' has been configured as restricted directive and is hence unavailable. " +
-                          "Please contact your administrator", command)
+          String.format("Aliased directive '%s' has been configured as restricted directive and " +
+                          "is hence unavailable. Please contact your administrator", command)
         );
       }
 
       if (context.isExcluded(root)) {
         throw new DirectiveParseException(
-          String.format("Executor '%s' has been configured as restricted directive and is hence unavailable. " +
-                          "Please contact your administrator", command)
+          String.format("Executor '%s' has been configured as restricted directive and is " +
+                          "hence unavailable. Please contact your administrator", command)
         );
       }
     }
@@ -119,7 +119,8 @@ public class SimpleTextParser implements RecipeParser {
   }
 
   public static String getNextToken(StringTokenizer tokenizer, String delimiter,
-                              String directive, String field, int lineno) throws DirectiveParseException {
+                              String directive, String field, int lineno)
+    throws DirectiveParseException {
     return getNextToken(tokenizer, delimiter, directive, field, lineno, false);
   }
 

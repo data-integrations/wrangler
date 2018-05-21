@@ -38,8 +38,8 @@ import java.util.List;
  * </code>
  *
  * <p>The class <code>TokenDefinition</code> includes methods for retrieveing different members of
- * like name of the token, type of the token, label associated with token, whether it's optional or not
- * and the ordinal number of the token in the <code>TokenGroup</code>.</p>
+ * like name of the token, type of the token, label associated with token, whether it's optional
+ * or not and the ordinal number of the token in the <code>TokenGroup</code>.</p>
  *
  * <p>As this class is immutable, the constructor requires all the member variables to be presnted
  * for an instance of this object to be created.</p>

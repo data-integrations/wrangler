@@ -30,12 +30,13 @@ import java.io.Serializable;
  * The definition are constant (immutable) and they cannot be changed once defined.
  * For example :
  * <code>
- *   TokenDefinition token = new TokenDefintion("column", TokenType.COLUMN_NAME, null, 0, Optional.FALSE);
+ *   TokenDefinition token = new TokenDefintion("column", TokenType.COLUMN_NAME, null, 0,
+ *   Optional.FALSE);
  * </code>
  *
  * <p>The class <code>TokenDefinition</code> includes methods for retrieveing different members of
- * like name of the token, type of the token, label associated with token, whether it's optional or not
- * and the ordinal number of the token in the <code>TokenGroup</code>.</p>
+ * like name of the token, type of the token, label associated with token, whether it's optional
+ * or not and the ordinal number of the token in the <code>TokenGroup</code>.</p>
  *
  * <p>As this class is immutable, the constructor requires all the member variables to be presnted
  * for an instance of this object to be created.</p>

@@ -27,8 +27,8 @@ import java.util.Random;
  * pass through the input iteration whose size is unpredictable. The basic idea behind this sampler
  * implementation is to generate a random number for each input element as its weight, select the
  * top K elements with max weight. As the weights are generated randomly, so are the selected
- * top K elements. In the first phase, we generate random numbers as the weights for each element and
- * select top K elements as the output of each partitions.
+ * top K elements. In the first phase, we generate random numbers as the weights for each element
+ * and select top K elements as the output of each partitions.
  *
  * @param <T> The type of the sampler.
  */

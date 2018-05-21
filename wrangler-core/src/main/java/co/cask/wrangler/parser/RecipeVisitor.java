@@ -1,7 +1,7 @@
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.LazyNumber;
+import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.SourceInfo;
 import co.cask.wrangler.api.Triplet;
 import co.cask.wrangler.api.parser.Bool;

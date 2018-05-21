@@ -17,7 +17,8 @@
 package co.cask.wrangler.api;
 
 /**
- * A Executor specific exception used for communicating issues with execution of pipeline in that step.
+ * A Executor specific exception used for communicating issues with execution of pipeline in that
+ * step.
  */
 public class DirectiveExecutionException extends Exception {
   public DirectiveExecutionException(Exception e) {

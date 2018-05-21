@@ -29,8 +29,8 @@ import java.util.List;
  * This class {@link UsageDefinition} provides a way for users to registers the argument for UDDs.
  *
  * {@link UsageDefinition} is a collection of {@link TokenDefinition} and the name of the directive
- * itself. Each token specification has an associated ordinal that can be used to position the argument
- * within the directive.
+ * itself. Each token specification has an associated ordinal that can be used to position the
+ * argument within the directive.
  *
  * Following is a example of how this class can be used.
  * <code>
@@ -117,9 +117,11 @@ public final class UsageDefinition implements Serializable {
           sb.append(token.name()).append(" (true/false)");
         } else if (token.type().equals(TokenType.TEXT)) {
           sb.append("'").append(token.name()).append("'");
-        } else if (token.type().equals(TokenType.IDENTIFIER) || token.type().equals(TokenType.NUMERIC)) {
+        } else if (token.type().equals(TokenType.IDENTIFIER) ||
+          token.type().equals(TokenType.NUMERIC)) {
           sb.append(token.name());
-        } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
+        } else if (token.type().equals(TokenType.BOOLEAN_LIST) ||
+          token.type().equals(TokenType.NUMERIC_LIST)
           || token.type().equals(TokenType.TEXT_LIST)) {
           sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
         } else if (token.type().equals(TokenType.EXPRESSION)) {
@@ -178,8 +180,8 @@ public final class UsageDefinition implements Serializable {
 
   /**
    * This inner builder class provides a way to create <code>UsageDefinition</code>
-   * object. It exposes different methods that allow users to configure the <code>TokenDefinition</code>
-   * for each token used within the usage of a directive.
+   * object. It exposes different methods that allow users to configure the
+   * <code>TokenDefinition</code> for each token used within the usage of a directive.
    */
   public static final class Builder {
     private String directive;
@@ -227,7 +229,8 @@ public final class UsageDefinition implements Serializable {
      *
      * @param name of the token in the definition of a directive.
      * @param type of the token to be extracted.
-     * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
+     * @param optional <code>Optional#TRUE</code> if token is optional,
+     *                 else <code>Optional#FALSE</code>.
      */
     public void define(String name, TokenType type, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, optional);
@@ -244,7 +247,8 @@ public final class UsageDefinition implements Serializable {
      * @param name of the token in the definition of a directive.
      * @param type of the token to be extracted.
      * @param label label that modifies the usage for this field.
-     * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
+     * @param optional <code>Optional#TRUE</code> if token is optional,
+     *                 else <code>Optional#FALSE</code>.
      */
     public void define(String name, TokenType type, String label, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, label, currentOrdinal, optional);

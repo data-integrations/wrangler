@@ -1,9 +1,5 @@
 package co.cask.wrangler.expression;
 
-import co.cask.wrangler.expression.EL;
-import co.cask.wrangler.expression.ELContext;
-import co.cask.wrangler.expression.ELException;
-import co.cask.wrangler.expression.ELResult;
 import org.junit.Assert;
 import org.junit.Test;
 

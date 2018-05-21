@@ -46,7 +46,8 @@ public final class DirectiveInfo {
     USER
   }
 
-  public DirectiveInfo(Scope scope, Class<?> directive) throws IllegalAccessException, InstantiationException {
+  public DirectiveInfo(Scope scope, Class<?> directive) throws IllegalAccessException,
+    InstantiationException {
     this.scope = scope;
     this.directive = directive;
     Object object = directive.newInstance();
@@ -59,7 +60,8 @@ public final class DirectiveInfo {
     this.name = directive.getAnnotation(Name.class).value();
     Description desc = directive.getAnnotation(Description.class);
     if (desc == null) {
-      this.description = "No description specified for directive class '" + directive.getSimpleName() + "'";
+      this.description = "No description specified for directive class '" + directive
+        .getSimpleName() + "'";
     } else {
       this.description = desc.value();
     }

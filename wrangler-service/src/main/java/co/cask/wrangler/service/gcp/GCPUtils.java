@@ -19,8 +19,6 @@ package co.cask.wrangler.service.gcp;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.dataset.connections.Connection;
 import com.google.auth.oauth2.ServiceAccountCredentials;
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
 
 import java.io.File;
 import java.io.FileInputStream;

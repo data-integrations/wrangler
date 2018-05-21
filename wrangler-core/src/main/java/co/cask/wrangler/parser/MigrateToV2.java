@@ -108,7 +108,8 @@ public final class MigrateToV2 implements GrammarMigrator {
 
             // set columns <name1, name2, ...>
             case "columns": {
-              String columns = getNextToken(tokenizer, "\n", "set columns", "name1, name2, ...", lineno);
+              String columns = getNextToken(tokenizer, "\n", "set columns", "name1, name2, ...",
+                                            lineno);
               String cols[] = columns.split(",");
               transformed.add(String.format("set-headers %s;", toColumArray(cols)));
             }
