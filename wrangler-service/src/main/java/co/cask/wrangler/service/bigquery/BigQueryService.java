@@ -102,7 +102,7 @@ public class BigQueryService extends AbstractWranglerService {
       ConnectionType connectionType = ConnectionType.fromString(connection.getType().getType());
       if (connectionType == ConnectionType.UNDEFINED || connectionType != ConnectionType.BIGQUERY) {
         error(responder,
-              String.format("Invalid connection type %s set, expected 'BIGQUERY' connection type.",
+              String.format("Invalid connection type %s set, expected 'bigquery' connection type.",
                             connectionType.getType()));
         return;
       }
@@ -198,18 +198,28 @@ public class BigQueryService extends AbstractWranglerService {
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
+   * @param connectionId Connection Id for BigQuery Service.
+   * @param datasetId id of the dataset on BigQuery.
+   * @param tableId id of the BigQuery table.
+   * @param scope Group the workspace is created in.
    */
   @GET
   @Path("connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
   public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("connection-id") String connectionId,
                            @PathParam("dataset-id") String datasetId,
-                           @PathParam("table-id") String tableId) throws Exception {
+                           @PathParam("table-id") String tableId,
+                           @QueryParam("scope") String scope) throws Exception {
     Connection connection = store.get(connectionId);
 
     if (!validateConnection(connectionId, connection, responder)) {
       return;
     }
+
+    if (scope == null || scope.isEmpty()) {
+      scope = WorkspaceDataset.DEFAULT_SCOPE;
+    }
+
     Map<String, Object> connectionProperties = connection.getAllProps();
     String projectId = (String) connectionProperties.get(GCPUtils.PROJECT_ID);
     String path = (String) connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
@@ -219,8 +229,8 @@ public class BigQueryService extends AbstractWranglerService {
 
     Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
 
-    String identifier = ServiceUtils.generateMD5(tableId);
-    ws.createWorkspaceMeta(identifier, tableId);
+    String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
+    ws.createWorkspaceMeta(identifier, scope, tableId);
     ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
     byte[] data = serDe.toByteArray(tableData.getFirst());
     ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
