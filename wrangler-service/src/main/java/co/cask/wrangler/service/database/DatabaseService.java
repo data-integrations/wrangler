@@ -39,6 +39,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.utils.ObjectSerDe;
+import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -512,18 +513,26 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
    * @param id Connection id for which the tables need to be listed from database.
+   * @param table Name of the database table.
+   * @param lines No of lines to be read from RDBMS table.
+   * @param scope Group the workspace should be created in.
    */
   @GET
   @Path("connections/{id}/tables/{table}/read")
   public void read(HttpServiceRequest request, final HttpServiceResponder responder,
                    @PathParam("id") final String id, @PathParam("table") final String table,
-                   @QueryParam("lines") final int lines) {
+                   @QueryParam("lines") final int lines, @QueryParam("scope") final String scope) {
     final JsonObject response = new JsonObject();
     DriverCleanup cleanup = null;
     try {
+
       cleanup = loadAndExecute(id, new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
+          String grp = scope;
+          if (Strings.isNullOrEmpty(scope)) {
+            grp = WorkspaceDataset.DEFAULT_SCOPE;
+          }
           try (Statement statement = connection.createStatement();
                ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = new ArrayList<>();
@@ -553,7 +562,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             }
 
             String identifier = ServiceUtils.generateMD5(table);
-            ws.createWorkspaceMeta(identifier, table);
+            ws.createWorkspaceMeta(identifier, grp, table);
             ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
             byte[] data = serDe.toByteArray(rows);
             ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);

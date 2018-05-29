@@ -189,12 +189,18 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @PUT
   @Path("workspaces/{id}")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id, @QueryParam("name") String name) {
+                     @PathParam("id") String id, @QueryParam("name") String name,
+                     @QueryParam("scope") String scope) {
     try {
       if (name == null || name.isEmpty()) {
         name = id;
       }
-      table.createWorkspaceMeta(id, name);
+
+      if (scope == null || scope.isEmpty()) {
+        scope = "default";
+      }
+
+      table.createWorkspaceMeta(id, name, scope);
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, id);
       properties.put(PropertyIds.NAME, name);
@@ -227,8 +233,13 @@ public class DirectivesService extends AbstractHttpServiceHandler {
    */
   @GET
   @Path("workspaces")
-  public void list(HttpServiceRequest request, HttpServiceResponder responder) {
+  public void list(HttpServiceRequest request, HttpServiceResponder responder,
+                   @QueryParam("scope") String scope) {
     try {
+      if (scope == null || scope.isEmpty()) {
+        scope = "default";
+      }
+
       JsonObject response = new JsonObject();
       List<Pair<String,String>> workspaces = table.getWorkspaces();
       JsonArray array = new JsonArray();
@@ -269,6 +280,32 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     try {
       table.deleteWorkspace(id);
       success(responder, String.format("Successfully deleted workspace '%s'", id));
+    } catch (WorkspaceException e) {
+      error(responder, e.getMessage());
+    }
+  }
+
+  /**
+   * Deletes the workspace.
+   *
+   * Following is the response
+   *
+   * {
+   *   "status" : 200,
+   *   "message" : Successfully deleted workspace 'test'.
+   * }
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param group Group of workspaces.
+   */
+  @DELETE
+  @Path("workspaces/")
+  public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
+                     @QueryParam("group") String group) {
+    try {
+      int count = table.deleteGroup(group);
+      success(responder, String.format("Successfully deleted %s workspace(s) within group '%s'", count, group));
     } catch (WorkspaceException e) {
       error(responder, e.getMessage());
     }

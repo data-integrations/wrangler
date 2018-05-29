@@ -51,9 +51,12 @@ public class WorkspaceDataset extends AbstractDataset {
   private static final Logger LOG = LoggerFactory.getLogger(WorkspaceDataset.class);
   private final Table table;
   private final Gson gson;
+
+  public static final String DEFAULT_SCOPE = "default";
   public static final byte[] CONFIG_KEY     = Bytes.toBytes("__config__");
   public static final byte[] CONFIG_COL     = Bytes.toBytes("__ws__");
   public static final byte[] DATA_COL       = Bytes.toBytes("data");
+  public static final byte[] SCOPE_COL      = Bytes.toBytes("scope");
   public static final byte[] NAME_COL       = Bytes.toBytes("name");
   public static final byte[] TYPE_COL       = Bytes.toBytes("type");
   public static final byte[] CREATED_COL    = Bytes.toBytes("created");
@@ -77,7 +80,19 @@ public class WorkspaceDataset extends AbstractDataset {
    */
   @WriteOnly
   public void createWorkspaceMeta(String id, String name) throws WorkspaceException {
-    createWorkspaceMeta(id, name, DataType.BINARY);
+    createWorkspaceMeta(id, name, DEFAULT_SCOPE, DataType.BINARY);
+  }
+
+  /**
+   * Creates a workspace meta entry, with default type as {@link DataType#BINARY} and empty properties.
+   *
+   * @param id id of workspace.
+   * @param name of the workspace to display.
+   * @throws WorkspaceException thrown when there is issue creating workspace.
+   */
+  @WriteOnly
+  public void createWorkspaceMeta(String id, String scope, String name) throws WorkspaceException {
+    createWorkspaceMeta(id, scope, name, DataType.BINARY);
   }
 
   /**
@@ -89,8 +104,8 @@ public class WorkspaceDataset extends AbstractDataset {
    * @throws WorkspaceException thrown when issue creating workspace meta entry.
    */
   @WriteOnly
-  public void createWorkspaceMeta(String id, String name, DataType type) throws WorkspaceException {
-    createWorkspaceMeta(id, name, type, new HashMap<String, String>());
+  public void createWorkspaceMeta(String id, String scope, String name,  DataType type) throws WorkspaceException {
+    createWorkspaceMeta(id, scope, name, type, new HashMap<>());
   }
 
   /**
@@ -103,20 +118,21 @@ public class WorkspaceDataset extends AbstractDataset {
    * @throws WorkspaceException thrown when issue creating workspace meta entry.
    */
   @WriteOnly
-  public void createWorkspaceMeta(String id, String name, DataType type,
+  public void createWorkspaceMeta(String id, String scope, String name, DataType type,
                      Map<String, String> properties) throws WorkspaceException {
     if (id == null || id.isEmpty()) {
       throw new WorkspaceException("Workspace id cannot be empty or null");
     }
 
     byte[][] columns = new byte[][] {
-     CREATED_COL, TYPE_COL, NAME_COL, PROPERTIES_COL
+     CREATED_COL, TYPE_COL, NAME_COL, SCOPE_COL, PROPERTIES_COL
     };
 
     byte[][] data = new byte[][] {
       Bytes.toBytes(System.currentTimeMillis() / 1000),
       Bytes.toBytes(type.getType()),
       Bytes.toBytes(name),
+      Bytes.toBytes(scope),
       toJsonBytes(properties)
     };
 
@@ -124,8 +140,7 @@ public class WorkspaceDataset extends AbstractDataset {
       table.put(toKey(id), columns, data);
     } catch (DataSetException e) {
       throw new WorkspaceException(
-        String.format("Unable to create workspace '%s'",
-                      e.getMessage())
+        String.format("Unable to create workspace '%s'", e.getMessage())
       );
     }
   }
@@ -153,13 +168,24 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   /**
-   * Lists all the workspaces registered.
+   * Lists all the workspaces registered in the 'default' scope.
    *
    * @return List of workspaces.
    * @throws WorkspaceException throw if there is issue listing workspaces.
    */
   @ReadOnly
   public List<Pair<String, String>> getWorkspaces() throws WorkspaceException {
+    return getWorkspaces(DEFAULT_SCOPE);
+  }
+
+  /**
+   * Lists all the workspaces registered for a scope.
+   *
+   * @return List of workspaces.
+   * @throws WorkspaceException throw if there is issue listing workspaces.
+   */
+  @ReadOnly
+  public List<Pair<String, String>> getWorkspaces(String scope) throws WorkspaceException {
     List<Pair<String, String>> values = new ArrayList<>();
     co.cask.cdap.api.dataset.table.Row row;
     try (Scanner scanner = table.scan(null, null)) {
@@ -167,6 +193,11 @@ public class WorkspaceDataset extends AbstractDataset {
         byte[] key = row.getRow();
         String id = Bytes.toString(key);
         if (excludedKey(id)) {
+          continue;
+        }
+        byte[] scopeBytes = row.get(SCOPE_COL);
+        String scopeStr = Bytes.toString(scopeBytes);
+        if (!scopeStr.equalsIgnoreCase(scope)) {
           continue;
         }
         byte[] name = row.get(NAME_COL);
@@ -202,6 +233,39 @@ public class WorkspaceDataset extends AbstractDataset {
         String.format("Failed to delete workspace '%s'. %s", id, e.getMessage())
       );
     }
+  }
+
+  /**
+   * Deletes a group of workspaces.
+   *
+   * @param group to be deleted.
+   * @return number of workspaces deleted within a group.
+   * @throws WorkspaceException thrown if there are issues with deleting workspace within group.
+   */
+  @WriteOnly
+  public int deleteGroup(String group) throws WorkspaceException {
+    int count = 0;
+    co.cask.cdap.api.dataset.table.Row row;
+    try (Scanner scanner = table.scan(null, null)) {
+      while((row = scanner.next()) != null) {
+        byte[] key = row.getRow();
+        String id = Bytes.toString(key);
+        if (excludedKey(id)) {
+          continue;
+        }
+        byte[] groupBytes = row.get(SCOPE_COL);
+        String groupStr = Bytes.toString(groupBytes);
+        if (!groupStr.equalsIgnoreCase(group)) {
+          deleteWorkspace(id);
+          count = count + 1;
+        }
+      }
+    } catch (DataSetException e) {
+      throw new WorkspaceException(
+        String.format("Unable to delete workspace. ", e.getMessage())
+      );
+    }
+    return count;
   }
 
   @WriteOnly
@@ -258,14 +322,6 @@ public class WorkspaceDataset extends AbstractDataset {
   public void writeProperties(String id, Map<String, String> properties) throws WorkspaceException {
     byte[] bytes = toJsonBytes(properties);
     updateWorkspace(id, PROPERTIES_COL, bytes);
-  }
-
-  @ReadWrite
-  public void updateProperty(String id, String key, String value) throws WorkspaceException {
-    byte[] bytes = getData(id, Bytes.toBytes(key));
-    Map<String, String> properties = fromJsonBytes(bytes);
-    properties.put(key, value);
-    updateWorkspace(id, PROPERTIES_COL, toJsonBytes(properties));
   }
 
   @WriteOnly
