@@ -2,6 +2,8 @@
   "metadata": {
     "spec-version": "1.6"
   },
+  "emit-alerts": true,
+  "emit-errors": true,
   "configuration-groups": [
     {
       "label" : "Input Selection and Prefilters",
