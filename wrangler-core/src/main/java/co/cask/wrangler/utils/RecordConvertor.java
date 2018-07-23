@@ -179,7 +179,8 @@ public final class RecordConvertor implements Serializable {
       return null;
     } else if (object instanceof JsonPrimitive) {
       return JsParser.getValue((JsonPrimitive) object);
-    } else if (object instanceof String) {
+    } else if (type != Schema.Type.STRING && object instanceof String) {
+      // Data prep can convert string to other primitive types. if the value is empty for non-string primitive return null
       String val = (String) object;
       if (val.trim().isEmpty()) {
         return null;
