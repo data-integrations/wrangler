@@ -103,6 +103,31 @@ public class RecordConvertorTest {
     return uber;
   }
 
+  @Test 
+  public void testEmptyString() throws Exception {
+    Schema schema = Schema.recordOf("test",
+                                    Schema.Field.of("value", Schema.of(Schema.Type.STRING))
+                                    );
+    String[] directives = new String[] {
+      "parse-as-csv body ','",
+      "rename body_2 value",
+      "drop body"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row().add("body", "a,"),
+      new Row().add("body", "b,b")
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<StructuredRecord> results = pipeline.execute(rows, schema);
+    List<ErrorRecord> errors = pipeline.errors();
+    Assert.assertEquals(2, results.size());
+    Assert.assertEquals(0, errors.size());
+    Assert.assertEquals("", results.get(0).get("value"));
+    Assert.assertEquals("b", results.get(1).get("value"));
+  } 
+
   @Test
   public void testNullableEmptyField() throws Exception {
     Schema schema = Schema.recordOf("test",
