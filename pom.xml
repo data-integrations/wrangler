@@ -19,7 +19,7 @@
 
   <groupId>co.cask.wrangler</groupId>
   <artifactId>wrangler</artifactId>
-  <version>3.1.0-SNAPSHOT</version>
+  <version>3.1.0</version>
   <name>Wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
@@ -79,7 +79,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <cdap.version>5.0.0-SNAPSHOT</cdap.version>
+    <cdap.version>5.0.0</cdap.version>
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-csv.version>1.4</commons-csv.version>
     <commons-lang.version>2.6</commons-lang.version>
@@ -98,7 +98,7 @@
     <chlorine.version>1.1.5</chlorine.version>
     <simplemagic.version>1.11</simplemagic.version>
     <httpclient.version>4.5.3</httpclient.version>
-    <netty-http.version>1.0.0-SNAPSHOT</netty-http.version>
+    <netty-http.version>1.0.0</netty-http.version>
     <netty.version>4.1.16.Final</netty.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <avro.version>1.8.1</avro.version>
