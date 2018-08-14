@@ -116,7 +116,7 @@ public class GCSService extends AbstractWranglerService {
         return;
       }
 
-      Storage storage = getStorage(connection);
+      Storage storage = GCPUtils.getStorageService(connection);
       storage.list(Storage.BucketListOption.pageSize(1));
       ServiceUtils.success(responder, "Success");
     } catch (Exception e) {
@@ -124,15 +124,7 @@ public class GCSService extends AbstractWranglerService {
     }
   }
 
-  private Storage getStorage(Connection connection) throws Exception {
-    Pair<String, ServiceAccountCredentials> projectIdAndCredentials = GCPUtils.getProjectIdAndCredentials(connection);
 
-    return StorageOptions.newBuilder()
-      .setProjectId(projectIdAndCredentials.getFirst())
-      .setCredentials(projectIdAndCredentials.getSecond())
-      .build()
-      .getService();
-  }
 
   private boolean validateConnection(String connectionId, Connection connection,
                                      HttpServiceResponder responder) {
@@ -189,7 +181,7 @@ public class GCSService extends AbstractWranglerService {
         }
       }
 
-      Storage storage = getStorage(connection[0]);
+      Storage storage = GCPUtils.getStorageService(connection[0]);
       if (bucketName.isEmpty() && prefix == null) {
         Page<Bucket> list = storage.list();
         Iterator<Bucket> iterator = list.getValues().iterator();
@@ -349,7 +341,7 @@ public class GCSService extends AbstractWranglerService {
       }
 
       Map<String, String> properties = new HashMap<>();
-      Storage storage = getStorage(connection);
+      Storage storage = GCPUtils.getStorageService(connection);
       Blob blob = storage.get(BlobId.of(bucket, blobPath));
       if (blob == null) {
         throw new Exception(String.format(
