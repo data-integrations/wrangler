@@ -16,17 +16,18 @@
 
 package co.cask.wrangler.service.gcp;
 
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.dataset.connections.Connection;
 import com.google.auth.oauth2.ServiceAccountCredentials;
+import com.google.cloud.ServiceOptions;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Class description here.
@@ -56,22 +57,36 @@ public final class GCPUtils {
     }
   }
 
-  public static Pair<String, ServiceAccountCredentials> getProjectIdAndCredentials(Connection connection)
-    throws Exception {
-    Map<String, Object> properties = connection.getAllProps();
-    if (properties.get(GCPUtils.PROJECT_ID) == null) {
-      throw new Exception("Configuration does not include project id.");
+  /**
+   * Create and return {@link Storage} based on the credentials and project information provided in the connection
+   */
+  public static Storage getStorageService(Connection connection) throws Exception {
+    StorageOptions.Builder storageOptionsBuilder = StorageOptions.newBuilder();
+    setProperties(connection, storageOptionsBuilder);
+    return storageOptionsBuilder.build().getService();
+  }
+
+  /**
+   * Create and return {@link BigQuery} based on the credentials and project information provided in the connection
+   */
+  public static BigQuery getBigQueryService(Connection connection) throws Exception {
+    BigQueryOptions.Builder bigQueryOptionsBuilder = BigQueryOptions.newBuilder();
+    setProperties(connection, bigQueryOptionsBuilder);
+    return bigQueryOptionsBuilder.build().getService();
+  }
+
+  /**
+   * set credentials and project_id if those are provided in the input connection
+   */
+  private static void setProperties(Connection connection, ServiceOptions.Builder serviceOptions) throws Exception {
+    if (connection.hasProperty(GCPUtils.SERVICE_ACCOUNT_KEYFILE)) {
+      String path = (String) connection.getAllProps().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+      serviceOptions.setCredentials(loadLocalFile(path));
     }
-
-    if (properties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE) == null) {
-      throw new Exception("Configuration does not include path to service account file.");
+    if (connection.hasProperty(GCPUtils.PROJECT_ID)) {
+      String projectId = (String) connection.getAllProps().get(GCPUtils.PROJECT_ID);
+      serviceOptions.setProjectId(projectId);
     }
-
-    String path = (String) properties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
-    String projectId = (String) properties.get(GCPUtils.PROJECT_ID);
-    ServiceAccountCredentials credentials = GCPUtils.loadLocalFile(path);
-
-    return new Pair<>(projectId, credentials);
   }
 
   private GCPUtils() {
