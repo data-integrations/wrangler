@@ -76,16 +76,6 @@ public class BigQueryService extends AbstractWranglerService {
   private static final String SCHEMA = "schema";
   private static final String BUCKET = "bucket";
 
-  private BigQuery getBigQuery(Connection connection) throws Exception {
-    Pair<String, ServiceAccountCredentials> projectIdAndCredentials = GCPUtils.getProjectIdAndCredentials(connection);
-
-    return BigQueryOptions.newBuilder()
-      .setProjectId(projectIdAndCredentials.getFirst())
-      .setCredentials(projectIdAndCredentials.getSecond())
-      .build()
-      .getService();
-  }
-
   /**
    * Tests BigQuery Connection.
    *
@@ -107,7 +97,7 @@ public class BigQueryService extends AbstractWranglerService {
         return;
       }
 
-      BigQuery bigQuery = getBigQuery(connection);
+      BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
       bigQuery.listDatasets(BigQuery.DatasetListOption.pageSize(1));
       ServiceUtils.success(responder, "Success");
     } catch (Exception e) {
@@ -130,7 +120,7 @@ public class BigQueryService extends AbstractWranglerService {
     if (!validateConnection(connectionId, connection, responder)) {
       return;
     }
-    BigQuery bigQuery = getBigQuery(connection);
+    BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
     Page<Dataset> datasets = bigQuery.listDatasets(BigQuery.DatasetListOption.all());
     JsonArray values = new JsonArray();
     for (Dataset dataset : datasets.iterateAll()) {
@@ -166,7 +156,7 @@ public class BigQueryService extends AbstractWranglerService {
     if (!validateConnection(connectionId, connection, responder)) {
       return;
     }
-    BigQuery bigQuery = getBigQuery(connection);
+    BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
     Page<com.google.cloud.bigquery.Table> tablePage = bigQuery.listTables(datasetId);
 
     JsonArray values = new JsonArray();
@@ -309,7 +299,7 @@ public class BigQueryService extends AbstractWranglerService {
 
   private Pair<List<Row>, Schema> getData(Connection connection, TableId tableId) throws Exception {
     List<Row> rows = new ArrayList<>();
-    BigQuery bigQuery = getBigQuery(connection);
+    BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
     String query = String.format("SELECT * FROM `%s.%s.%s` LIMIT 1000", tableId.getProject(), tableId.getDataset(),
                                  tableId.getTable());
     QueryJobConfiguration queryConfig = QueryJobConfiguration.newBuilder(query).build();
