@@ -282,9 +282,9 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       Map<String, String> properties = new HashMap<>();
       properties.put("topic", topic);
       properties.put("referenceName", topic);
-      properties.put("brokers", (String) conn.getProp(PropertyIds.BROKER));
-      properties.put("kafkaBrokers", (String) conn.getProp(PropertyIds.BROKER));
-      properties.put("keyField", (String) conn.getProp(PropertyIds.KEY_DESERIALIZER));
+      properties.put("brokers", conn.getProp(PropertyIds.BROKER));
+      properties.put("kafkaBrokers", conn.getProp(PropertyIds.BROKER));
+      properties.put("keyField", conn.getProp(PropertyIds.KEY_DESERIALIZER));
       properties.put("format", "text");
 
       kafka.add("properties", gson.toJsonTree(properties));
