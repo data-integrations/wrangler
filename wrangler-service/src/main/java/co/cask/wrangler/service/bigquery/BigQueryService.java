@@ -210,10 +210,10 @@ public class BigQueryService extends AbstractWranglerService {
       scope = WorkspaceDataset.DEFAULT_SCOPE;
     }
 
-    Map<String, Object> connectionProperties = connection.getAllProps();
-    String projectId = (String) connectionProperties.get(GCPUtils.PROJECT_ID);
-    String path = (String) connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
-    String bucket = (String) connectionProperties.get(BUCKET);
+    Map<String, String> connectionProperties = connection.getAllProps();
+    String projectId = connectionProperties.get(GCPUtils.PROJECT_ID);
+    String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+    String bucket = connectionProperties.get(BUCKET);
 
     TableId tableIdObject = TableId.of(projectId, datasetId, tableId);
 

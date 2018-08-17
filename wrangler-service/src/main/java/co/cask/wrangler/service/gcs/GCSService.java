@@ -461,8 +461,8 @@ public class GCSService extends AbstractWranglerService {
       if (pluginType.equalsIgnoreCase("normal")) {
         JsonObject gcs = new JsonObject();
         properties.put("referenceName", "GCS_Source");
-        properties.put("serviceFilePath", (String) connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", (String) connection.getProp(GCPUtils.PROJECT_ID));
+        properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+        properties.put("project", connection.getProp(GCPUtils.PROJECT_ID));
         properties.put("bucket", bucket);
         properties.put("path", uri);
         properties.put("recursive", "false");
@@ -474,8 +474,8 @@ public class GCSService extends AbstractWranglerService {
       } else if (pluginType.equalsIgnoreCase("blob")) {
         JsonObject gcs = new JsonObject();
         properties.put("referenceName", "GCS_Blob");
-        properties.put("serviceFilePath", (String) connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", (String) connection.getProp(GCPUtils.PROJECT_ID));
+        properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+        properties.put("project", connection.getProp(GCPUtils.PROJECT_ID));
         properties.put("bucket", bucket);
         properties.put("path", uri);
         gcs.add("properties", new Gson().toJsonTree(properties));
