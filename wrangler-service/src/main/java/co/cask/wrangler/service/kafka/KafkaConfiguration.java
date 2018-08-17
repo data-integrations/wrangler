@@ -49,25 +49,25 @@ public final class KafkaConfiguration {
       );
     }
 
-    Map<String, Object> properties = conn.getAllProps();
+    Map<String, String> properties = conn.getAllProps();
     if(properties == null || properties.size() == 0) {
       throw new IllegalArgumentException("Kafka properties are not defined. Check connection setting.");
     }
 
     if (properties.containsKey("brokers")) {
-      connection = (String) properties.get("brokers");
+      connection = properties.get("brokers");
     } else {
       throw new IllegalArgumentException("Kafka Brokers not defined.");
     }
 
     if (properties.containsKey("key.type")) {
-      keyDeserializer = deserialize((String) properties.get("key.type"));
+      keyDeserializer = deserialize(properties.get("key.type"));
     }
 
     if (properties.containsKey("value.type")) {
-      valueDeserializer = deserialize((String) properties.get("value.type"));
+      valueDeserializer = deserialize(properties.get("value.type"));
     }
-    String requestTimeoutMs = (String) properties.get(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG);
+    String requestTimeoutMs = properties.get(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG);
     // default the request timeout to 15 seconds, to avoid hanging for minutes
     if (requestTimeoutMs == null) {
       requestTimeoutMs = "15000";

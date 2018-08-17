@@ -80,11 +80,11 @@ public final class GCPUtils {
    */
   private static void setProperties(Connection connection, ServiceOptions.Builder serviceOptions) throws Exception {
     if (connection.hasProperty(GCPUtils.SERVICE_ACCOUNT_KEYFILE)) {
-      String path = (String) connection.getAllProps().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+      String path = connection.getAllProps().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
       serviceOptions.setCredentials(loadLocalFile(path));
     }
     if (connection.hasProperty(GCPUtils.PROJECT_ID)) {
-      String projectId = (String) connection.getAllProps().get(GCPUtils.PROJECT_ID);
+      String projectId = connection.getAllProps().get(GCPUtils.PROJECT_ID);
       serviceOptions.setProjectId(projectId);
     }
   }
