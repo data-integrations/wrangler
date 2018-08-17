@@ -33,9 +33,7 @@ import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.FieldList;
@@ -214,9 +212,8 @@ public class BigQueryService extends AbstractWranglerService {
     String projectId = connectionProperties.get(GCPUtils.PROJECT_ID);
     String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
     String bucket = connectionProperties.get(BUCKET);
-
-    TableId tableIdObject = TableId.of(projectId, datasetId, tableId);
-
+    TableId tableIdObject =
+      projectId == null ? TableId.of(datasetId, tableId) : TableId.of(projectId, datasetId, tableId);
     Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
 
     String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
@@ -300,10 +297,11 @@ public class BigQueryService extends AbstractWranglerService {
   private Pair<List<Row>, Schema> getData(Connection connection, TableId tableId) throws Exception {
     List<Row> rows = new ArrayList<>();
     BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
-    String query = String.format("SELECT * FROM `%s.%s.%s` LIMIT 1000", tableId.getProject(), tableId.getDataset(),
-                                 tableId.getTable());
+    String tableIdString =
+      tableId.getProject() == null ? String.format("%s.%s", tableId.getDataset(), tableId.getTable()) :
+        String.format("%s.%s.%s", tableId.getProject(), tableId.getDataset(), tableId.getTable());
+    String query = String.format("SELECT * FROM `%s` LIMIT 1000", tableIdString);
     QueryJobConfiguration queryConfig = QueryJobConfiguration.newBuilder(query).build();
-
     JobId jobId = JobId.of(UUID.randomUUID().toString());
     Job queryJob = bigQuery.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build());
 
