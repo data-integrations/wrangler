@@ -44,7 +44,7 @@ public final class Connection {
   private long updated;
 
   // Collection of properties.
-  private Map<String, Object> properties = new HashMap<>();
+  private Map<String, String> properties = new HashMap<>();
 
   /**
    * @return id of the connection.
@@ -94,7 +94,7 @@ public final class Connection {
    * @param key to be added.
    * @param value to be added.
    */
-  public void putProp(String key, Object value) {
+  public void putProp(String key, String value) {
     properties.put(key, value);
   }
 
@@ -175,7 +175,7 @@ public final class Connection {
   /**
    * @return all the properties associated with the connection.
    */
-  public Map<String, Object> getAllProps() {
+  public Map<String, String> getAllProps() {
     return properties;
   }
 

@@ -31,9 +31,15 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -51,6 +57,9 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
  */
 public class ConnectionService extends AbstractHttpServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(ConnectionService.class);
+  private static final String CONNECTION_TYPE_CONFIG = "connectionTypeConfig";
+  private static final Gson GSON = new Gson();
 
   // Data Prep store which stores all the information associated with dataprep.
   @UseDataSet(DataPrep.CONNECTIONS_DATASET)
@@ -58,6 +67,18 @@ public class ConnectionService extends AbstractHttpServiceHandler {
 
   // Abstraction over the table defined above for managing connections.
   private ConnectionStore store;
+  private ConnectionTypeConfig connectionTypeConfig;
+  private List<ConnectionTypeInfo> enabledConnectionTypes;
+
+  public ConnectionService(ConnectionTypeConfig connectionTypeConfig) {
+    this.connectionTypeConfig = connectionTypeConfig;
+  }
+
+  public void configure() {
+    Map<String, String> properties = new HashMap<>();
+    properties.put(CONNECTION_TYPE_CONFIG, GSON.toJson(connectionTypeConfig));
+    setProperties(properties);
+  }
 
   /**
    * Stores the context so that it can be used later.
@@ -68,6 +89,40 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
     store = new ConnectionStore(table);
+    // initialize available connections
+    this.enabledConnectionTypes = new ArrayList<>();
+    String connectionTypeConfigString = context.getSpecification().getProperty(CONNECTION_TYPE_CONFIG);
+    connectionTypeConfig = GSON.fromJson(connectionTypeConfigString, ConnectionTypeConfig.class);
+    Set<ConnectionType> disabled = connectionTypeConfig.getDisabledTypes();
+    for (ConnectionType connectionType : ConnectionType.values()) {
+      if (!disabled.contains(connectionType) && !connectionType.equals(ConnectionType.UNDEFINED)) {
+        enabledConnectionTypes.add(new ConnectionTypeInfo(connectionType));
+      }
+    }
+    validateAndCreateDefaultConnections();
+  }
+
+  private void validateAndCreateDefaultConnections() {
+    List<Connection> defaultConnections = connectionTypeConfig.getConnections();
+    for (Connection defaultConnection : defaultConnections) {
+      if (defaultConnection.getName() == null) {
+        LOG.warn("Skipping the default connection without name field");
+        continue;
+      }
+      if (defaultConnection.getType() == null || defaultConnection.getType() == ConnectionType.UNDEFINED) {
+        LOG.warn("Skipping the default connection {}, type is missing or un-recognized", defaultConnection.getName());
+        continue;
+      }
+      try {
+        if(!store.connectionExists(defaultConnection.getName())) {
+          store.create(defaultConnection);
+        }
+      } catch (Exception e) {
+        // we don't want to disrupt data-prep if we are not able to create a default connection,
+        // log the error and continue
+        LOG.warn("Exception while creating default connection ", e);
+      }
+    }
   }
 
   /**
@@ -402,5 +457,14 @@ public class ConnectionService extends AbstractHttpServiceHandler {
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
+  }
+
+  /**
+   * Get the list of connection types that are supported
+   */
+  @GET
+  @Path("connectionTypes")
+  public void getConnectionTypes(HttpServiceRequest request, HttpServiceResponder responder) {
+    responder.sendJson(enabledConnectionTypes);
   }
 }

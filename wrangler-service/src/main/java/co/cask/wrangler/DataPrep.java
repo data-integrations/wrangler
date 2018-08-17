@@ -25,6 +25,7 @@ import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.bigquery.BigQueryService;
 import co.cask.wrangler.service.connections.ConnectionService;
+import co.cask.wrangler.service.connections.ConnectionTypeConfig;
 import co.cask.wrangler.service.database.DatabaseService;
 import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
@@ -39,7 +40,7 @@ import org.apache.hadoop.mapred.TextOutputFormat;
 /**
  * Wrangler Application.
  */
-public class DataPrep extends AbstractApplication {
+public class DataPrep extends AbstractApplication<ConnectionTypeConfig> {
   public static final String CONNECTIONS_DATASET = "connections";
 
   /**
@@ -83,7 +84,7 @@ public class DataPrep extends AbstractApplication {
                new DirectivesService(),
                new SchemaRegistryService(),
                new FilesystemExplorer(),
-               new ConnectionService(),
+               new ConnectionService(getConfig()),
                new RecipeService(),
                new KafkaService(),
                new DatabaseService(),

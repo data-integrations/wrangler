@@ -617,14 +617,14 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       JsonObject database = new JsonObject();
 
       Map<String, String> properties = new HashMap<>();
-      properties.put("connectionString", (String) conn.getProp("url"));
+      properties.put("connectionString", conn.getProp("url"));
       properties.put("referenceName", table);
-      properties.put("user", (String) conn.getProp("username"));
-      properties.put("password", (String) conn.getProp("password"));
+      properties.put("user", conn.getProp("username"));
+      properties.put("password", conn.getProp("password"));
       properties.put("importQuery", String.format("SELECT * FROM %s WHERE $CONDITIONS", table));
       properties.put("numSplits", "1");
-      properties.put("jdbcPluginName", (String) conn.getProp("name"));
-      properties.put("jdbcPluginType", (String) conn.getProp("type"));
+      properties.put("jdbcPluginName", conn.getProp("name"));
+      properties.put("jdbcPluginType", conn.getProp("type"));
 
       database.add("properties", gson.toJsonTree(properties));
       database.addProperty("name", String.format("Database - %s", table));

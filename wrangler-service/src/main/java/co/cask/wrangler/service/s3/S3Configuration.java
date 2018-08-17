@@ -33,7 +33,7 @@ public class S3Configuration implements AWSCredentials {
   private final String region;
 
   S3Configuration(Connection connection) {
-    Map<String, Object> properties = connection.getAllProps();
+    Map<String, String> properties = connection.getAllProps();
 
     if(properties == null || properties.size() == 0) {
       throw new IllegalArgumentException("S3 properties are not defined. Check connection setting.");
@@ -44,9 +44,9 @@ public class S3Configuration implements AWSCredentials {
         throw new IllegalArgumentException("Missing configuration in connection for property " + property);
       }
     }
-    accessKeyId = String.valueOf(properties.get("accessKeyId"));
-    accessSecretKey = String.valueOf(properties.get("accessSecretKey"));
-    region = String.valueOf(properties.get("region"));
+    accessKeyId = properties.get("accessKeyId");
+    accessSecretKey = properties.get("accessSecretKey");
+    region = properties.get("region");
   }
 
   @Override

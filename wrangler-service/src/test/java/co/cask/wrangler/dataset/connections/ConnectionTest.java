@@ -41,7 +41,7 @@ public class ConnectionTest {
     connection.setCreated(System.currentTimeMillis()/1000);
     connection.setUpdated(System.currentTimeMillis()/1000);
     connection.putProp("hostname", "localhost");
-    connection.putProp("port", 3306);
+    connection.putProp("port", "3306");
     String from = gson.toJson(connection);
 
     String to = "{\n" +
