@@ -56,8 +56,7 @@ public class ConnectionTest {
       "\t}\n" +
       "}";
     Connection newConnection = gson.fromJson(to, Connection.class);
-    Number port = newConnection.getProp("port");
-    int p = port.intValue();
+    int p = Integer.parseInt(newConnection.getProp("port"));
     Assert.assertEquals(3306, p);
     Assert.assertTrue(true);
   }
