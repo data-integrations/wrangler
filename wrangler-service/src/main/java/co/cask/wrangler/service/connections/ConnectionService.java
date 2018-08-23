@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.service.connections;
 
-import co.cask.cdap.api.Predicate;
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
@@ -27,21 +26,19 @@ import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.service.ServiceResponse;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -51,7 +48,6 @@ import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.ServiceUtils.notFound;
-import static co.cask.wrangler.ServiceUtils.sendJson;
 
 /**
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
@@ -60,7 +56,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ConnectionService.class);
   private static final String CONNECTION_TYPE_CONFIG = "connectionTypeConfig";
   private static final Gson GSON = new Gson();
-
+  private static final String ALL_TYPES = "*";
   // Data Prep store which stores all the information associated with dataprep.
   @UseDataSet(DataPrep.CONNECTIONS_DATASET)
   private Table table;
@@ -114,7 +110,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
         continue;
       }
       try {
-        if(!store.connectionExists(defaultConnection.getName())) {
+        if (!store.connectionExists(defaultConnection.getName())) {
           store.create(defaultConnection);
         }
       } catch (Exception e) {
@@ -163,14 +159,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
       String id = store.create(connection);
 
       // Return the id in the response.
-      JsonObject response = new JsonObject();
-      JsonArray values = new JsonArray();
-      values.add(new JsonPrimitive(id));
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ServiceResponse<>(ImmutableList.of(id)));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -216,12 +205,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
       // Create an instance of the connection, if the connection id doesn't exist
       // it will throw an exception.
       store.update(id, connection);
-
-      // Return the id in the response.
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ServiceResponse<>(ImmutableList.of()));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -236,40 +220,21 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   @GET
   @Path("connections")
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("type") final String type) {
+                   @DefaultValue (ALL_TYPES) @QueryParam("type") final String type) {
     try {
-      List<Connection> connections = store.scan(new Predicate<Connection>() {
-        @Override
-        public boolean apply(@Nullable Connection input) {
-          if (type == null) {
-            return false;
-          }
-          if(type.equalsIgnoreCase("*") ||
-            input.getType().name().equalsIgnoreCase(type)) {
-            return true;
-          }
+      List<Connection> connections = store.scan(input -> {
+        if (input == null) {
           return false;
         }
+        if (connectionTypeConfig.getDisabledTypes().contains(input.getType())) {
+          return false;
+        }
+        if (type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type)) {
+          return true;
+        }
+        return false;
       });
-
-      // Return the id in the response.
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      JsonArray values = new JsonArray();
-      for(Connection connection : connections) {
-        JsonObject object = new JsonObject();
-        object.addProperty("id", connection.getId());
-        object.addProperty("name", connection.getName());
-        object.addProperty("description", connection.getDescription());
-        object.addProperty("created", connection.getCreated());
-        object.addProperty("updated", connection.getUpdated());
-        object.addProperty("type", connection.getType().name());
-        values.add(object);
-      }
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ConnectionResponse<>(connections, connectionTypeConfig.getDefaultConnection()));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -285,15 +250,10 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   @DELETE
   @Path("connections/{id}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                   @PathParam("id") final String id) {
+                     @PathParam("id") final String id) {
     try {
       store.delete(id);
-
-      // Return the id in the response.
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ServiceResponse<Connection>(new ArrayList<>()));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -309,7 +269,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   @GET
   @Path("connections/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") final String id) {
+                  @PathParam("id") final String id) {
     try {
       Connection connection = store.get(id);
       if (connection == null) {
@@ -318,25 +278,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
         ));
         return;
       }
-
-      // Return the id in the response.
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      JsonArray values = new JsonArray();
-      JsonObject object = new JsonObject();
-      object.addProperty("id", connection.getId());
-      object.addProperty("name", connection.getName());
-      object.addProperty("description", connection.getDescription());
-      object.addProperty("created", connection.getCreated());
-      object.addProperty("updated", connection.getUpdated());
-      object.addProperty("type", connection.getType().name());
-      JsonObject properties = (JsonObject) new Gson().toJsonTree(connection.getAllProps());
-      object.add("properties", properties);
-      values.add(object);
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection)));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -361,17 +303,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
         ));
         return;
       }
-
-      // Return the id in the response.
-      JsonObject response = new JsonObject();
-      JsonArray values = new JsonArray();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      JsonObject properties = (JsonObject) new Gson().toJsonTree(connection.getAllProps());
-      values.add(properties);
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection.getAllProps())));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -400,17 +332,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
 
       connection.putProp(key, value);
       store.update(id, connection);
-
-      // Return the id in the response.
-      JsonObject response = new JsonObject();
-      JsonArray values = new JsonArray();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      JsonObject properties = (JsonObject) new Gson().toJsonTree(connection.getAllProps());
-      values.add(properties);
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection.getAllProps())));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -426,7 +348,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   @GET
   @Path("connections/{id}/clone")
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") final String id) {
+                    @PathParam("id") final String id) {
     try {
       Connection connection = store.clone(id);
       if (connection == null) {
@@ -435,25 +357,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
         ));
         return;
       }
-
-      // Return the id in the response.
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      JsonArray values = new JsonArray();
-      JsonObject object = new JsonObject();
-      object.addProperty("id", connection.getId());
-      object.addProperty("name", connection.getName());
-      object.addProperty("description", connection.getDescription());
-      object.addProperty("created", connection.getCreated());
-      object.addProperty("updated", connection.getUpdated());
-      object.addProperty("type", connection.getType().name());
-      JsonObject properties = (JsonObject) new Gson().toJsonTree(connection.getAllProps());
-      object.add("properties", properties);
-      values.add(object);
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection)));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
