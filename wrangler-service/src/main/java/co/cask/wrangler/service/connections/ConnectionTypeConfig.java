@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Default connections to create at startup and connection types that needs to be disabled
@@ -30,14 +31,17 @@ import java.util.Set;
 public class ConnectionTypeConfig extends Config {
   private final Set<ConnectionType> disabledTypes;
   private final List<Connection> connections;
+  private final String defaultConnection;
 
   public ConnectionTypeConfig() {
-    this(Collections.EMPTY_SET, Collections.EMPTY_LIST);
+    this(Collections.EMPTY_SET, Collections.EMPTY_LIST, null);
   }
 
-  public ConnectionTypeConfig(Set<ConnectionType> disabledTypes, List<Connection> connections) {
+  public ConnectionTypeConfig(Set<ConnectionType> disabledTypes, List<Connection> connections,
+                              @Nullable String defaultConnection) {
     this.disabledTypes = disabledTypes;
     this.connections = connections;
+    this.defaultConnection = defaultConnection;
   }
 
   /**
@@ -54,6 +58,14 @@ public class ConnectionTypeConfig extends Config {
     return connections == null ? Collections.emptyList() : connections;
   }
 
+  /**
+   * Return the connection configured to be shown as default in dataprep - null if not provided
+   */
+  @Nullable
+  public String getDefaultConnection() {
+    return defaultConnection;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -66,12 +78,13 @@ public class ConnectionTypeConfig extends Config {
     ConnectionTypeConfig that = (ConnectionTypeConfig) o;
 
     return Objects.equals(disabledTypes, that.disabledTypes) &&
-      Objects.equals(connections, that.connections);
+      Objects.equals(connections, that.connections) &&
+      Objects.equals(defaultConnection, that.defaultConnection);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(disabledTypes, connections);
+    return Objects.hash(disabledTypes, connections, defaultConnection);
   }
 
 }
