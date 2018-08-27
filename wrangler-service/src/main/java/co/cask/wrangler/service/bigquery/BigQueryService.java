@@ -53,11 +53,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.net.HttpURLConnection;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -325,7 +332,6 @@ public class BigQueryService extends AbstractWranglerService {
         String fieldName = field.getName();
         FieldValue fieldValue = fieldValues.get(fieldName);
 
-        // Stringified these objects to be consistent with BigQueryTable batchsource plugin
         LegacySQLTypeName type = field.getType();
         StandardSQLTypeName standardType = type.getStandardType();
         if (fieldValue.isNull()) {
@@ -334,10 +340,17 @@ public class BigQueryService extends AbstractWranglerService {
         }
         switch (standardType) {
           case TIME:
+            row.add(fieldName, LocalTime.parse(fieldValue.getStringValue()));
+            break;
+
           case DATE:
+            row.add(fieldName, LocalDate.parse(fieldValue.getStringValue()));
+            break;
+
           case DATETIME:
           case TIMESTAMP:
-            row.add(fieldName, fieldValue.getStringValue());
+            long tsMicroValue = fieldValue.getTimestampValue();
+            row.add(fieldName, getZonedDateTime(tsMicroValue));
             break;
 
           case STRING:
@@ -369,28 +382,32 @@ public class BigQueryService extends AbstractWranglerService {
     for (Field field : fields) {
       LegacySQLTypeName type = field.getType();
       StandardSQLTypeName standardType = type.getStandardType();
-      Schema.Type schemaType = null;
+      Schema schemaType = null;
       switch (standardType) {
         case BOOL:
-          schemaType = Schema.Type.BOOLEAN;
+          schemaType = Schema.of(Schema.Type.BOOLEAN);
           break;
         case DATE:
+          schemaType = Schema.of(Schema.LogicalType.DATE);
+          break;
         case TIME:
+          schemaType = Schema.of(Schema.LogicalType.TIME_MICROS);
+          break;
         case DATETIME:
         case TIMESTAMP:
-          schemaType = Schema.Type.STRING;
+          schemaType = Schema.of(Schema.LogicalType.TIMESTAMP_MICROS);
           break;
         case BYTES:
-          schemaType = Schema.Type.BYTES;
+          schemaType = Schema.of(Schema.Type.BYTES);
           break;
         case INT64:
-          schemaType = Schema.Type.INT;
+          schemaType = Schema.of(Schema.Type.LONG);
           break;
         case STRING:
-          schemaType = Schema.Type.STRING;
+          schemaType = Schema.of(Schema.Type.STRING);
           break;
         case FLOAT64:
-          schemaType = Schema.Type.FLOAT;
+          schemaType = Schema.of(Schema.Type.DOUBLE);
           break;
       }
 
@@ -401,15 +418,23 @@ public class BigQueryService extends AbstractWranglerService {
       String name = field.getName();
       Schema.Field schemaField;
       if (field.getMode() == null || field.getMode() == Field.Mode.NULLABLE) {
-        Schema fieldSchema = Schema.nullableOf(Schema.of(schemaType));
+        Schema fieldSchema = Schema.nullableOf(schemaType);
         schemaField = Schema.Field.of(name, fieldSchema);
       } else {
-        schemaField = Schema.Field.of(name, Schema.of(schemaType));
+        schemaField = Schema.Field.of(name, schemaType);
       }
       schemaFields.add(schemaField);
     }
     Schema schemaToReturn = Schema.recordOf("bigquerySchema", schemaFields);
     return new Pair<>(rows, schemaToReturn);
+  }
+
+  private ZonedDateTime getZonedDateTime(long microTs) {
+    long tsInSeconds = TimeUnit.MICROSECONDS.toSeconds(microTs);
+    long mod = TimeUnit.MICROSECONDS.convert(1, TimeUnit.SECONDS);
+    int fraction = (int) (microTs % mod);
+    Instant instant = Instant.ofEpochSecond(tsInSeconds, TimeUnit.MICROSECONDS.toNanos(fraction));
+    return ZonedDateTime.ofInstant(instant, ZoneId.ofOffset("UTC", ZoneOffset.UTC));
   }
 
   private boolean validateConnection(String connectionId, Connection connection,

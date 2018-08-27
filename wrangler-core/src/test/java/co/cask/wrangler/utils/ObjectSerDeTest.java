@@ -21,6 +21,10 @@ import com.google.common.base.Charsets;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,4 +58,31 @@ public class ObjectSerDeTest {
     Assert.assertEquals(rows.size(), newRows.size());
   }
 
+  @Test
+  public void testLogicalTypeSerDe() throws Exception {
+    ObjectSerDe<List<Row>> objectSerDe = new ObjectSerDe<>();
+    List<Row> expectedRows = new ArrayList<>();
+
+    Row firstRow = new Row();
+    firstRow.add("id", 1);
+    firstRow.add("name", "abc");
+    firstRow.add("date", LocalDate.of(2018, 11, 11));
+    firstRow.add("time", LocalTime.of(11, 11, 11));
+    firstRow.add("timestamp", ZonedDateTime.of(2018, 11 , 11 , 11, 11, 11, 0, ZoneId.of("UTC")));
+    expectedRows.add(firstRow);
+    byte[] bytes = objectSerDe.toByteArray(expectedRows);
+    List<Row> actualRows = objectSerDe.toObject(bytes);
+    Assert.assertEquals(expectedRows.size(), actualRows.size());
+
+    Row secondRow = new Row();
+    secondRow.add("id", 2);
+    secondRow.add("name", null);
+    secondRow.add("date", LocalDate.of(2018, 12, 11));
+    secondRow.add("time", LocalTime.of(11, 12, 11));
+    secondRow.add("timestamp", null);
+    expectedRows.add(secondRow);
+    bytes = objectSerDe.toByteArray(expectedRows);
+    actualRows = objectSerDe.toObject(bytes);
+    Assert.assertEquals(expectedRows.size(), actualRows.size());
+  }
 }

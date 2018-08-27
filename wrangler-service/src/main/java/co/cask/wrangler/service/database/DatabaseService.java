@@ -1,5 +1,5 @@
-/*
- * Copyright © 2017 Cask Data, Inc.
+ /*
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -39,6 +39,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.utils.ObjectSerDe;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -65,6 +66,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.sql.DatabaseMetaData;
+import java.sql.Date;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -72,6 +74,10 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -526,67 +532,40 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     DriverCleanup cleanup = null;
     try {
 
-      cleanup = loadAndExecute(id, new Executor() {
-        @Override
-        public void execute(java.sql.Connection connection) throws Exception {
-          String grp = scope;
-          if (Strings.isNullOrEmpty(scope)) {
-            grp = WorkspaceDataset.DEFAULT_SCOPE;
-          }
-          try (Statement statement = connection.createStatement();
-               ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
-            List<Row> rows = new ArrayList<>();
-            ResultSetMetaData meta = result.getMetaData();
-            int count = lines;
-            while (result.next() && count > 0) {
-              Row row = new Row();
-              for (int i = 1; i < meta.getColumnCount() + 1; ++i) {
-                Object object = result.getObject(i);
-                if (object instanceof java.sql.Date) {
-                  java.sql.Date dt = (java.sql.Date) object;
-                  object = dt.toString();
-                } else if (object instanceof java.sql.Timestamp) {
-                  java.sql.Timestamp dt = (java.sql.Timestamp) object;
-                  object = dt.toString();
-                } else if (object instanceof java.sql.Time) {
-                  java.sql.Time dt = (java.sql.Time) object;
-                  object = dt.toString();
-                } else if (object.getClass().getName().equals("oracle.sql.ROWID")) {
-                  // If the object is Oracle ROWID, then convert it into a string.
-                  object = object.toString();
-                }
-                row.add(meta.getColumnName(i), object);
-              }
-              rows.add(row);
-              count--;
-            }
+      cleanup = loadAndExecute(id, connection -> {
+        String grp = scope;
+        if (Strings.isNullOrEmpty(scope)) {
+          grp = WorkspaceDataset.DEFAULT_SCOPE;
+        }
+        try (Statement statement = connection.createStatement();
+             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
+          List<Row> rows = getRows(lines, result);
 
-            String identifier = ServiceUtils.generateMD5(table);
-            ws.createWorkspaceMeta(identifier, grp, table);
-            ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-            byte[] data = serDe.toByteArray(rows);
-            ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
+          String identifier = ServiceUtils.generateMD5(table);
+          ws.createWorkspaceMeta(identifier, grp, table);
+          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+          byte[] data = serDe.toByteArray(rows);
+          ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(PropertyIds.ID, identifier);
-            properties.put(PropertyIds.NAME, table);
-            properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
-            properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-            properties.put(PropertyIds.CONNECTION_ID, id);
-            ws.writeProperties(identifier, properties);
+          Map<String, String> properties = new HashMap<>();
+          properties.put(PropertyIds.ID, identifier);
+          properties.put(PropertyIds.NAME, table);
+          properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
+          properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+          properties.put(PropertyIds.CONNECTION_ID, id);
+          ws.writeProperties(identifier, properties);
 
-            JsonArray values = new JsonArray();
-            JsonObject object = new JsonObject();
-            object.addProperty(PropertyIds.ID, identifier);
-            object.addProperty(PropertyIds.NAME, table);
-            object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-            values.add(object);
-            response.addProperty("status", HttpURLConnection.HTTP_OK);
-            response.addProperty("message", "Success");
-            response.addProperty("count", values.size());
-            response.add("values", values);
-            sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-          }
+          JsonArray values = new JsonArray();
+          JsonObject object = new JsonObject();
+          object.addProperty(PropertyIds.ID, identifier);
+          object.addProperty(PropertyIds.NAME, table);
+          object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+          values.add(object);
+          response.addProperty("status", HttpURLConnection.HTTP_OK);
+          response.addProperty("message", "Success");
+          response.addProperty("count", values.size());
+          response.add("values", values);
+          sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
         }
       });
     } catch (Exception e) {
@@ -596,6 +575,33 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         cleanup.destroy();
       }
     }
+  }
+
+  @VisibleForTesting
+  public static List<Row> getRows(int lines, ResultSet result) throws SQLException {
+    List<Row> rows = new ArrayList<>();
+    ResultSetMetaData meta = result.getMetaData();
+    int count = lines;
+    while (result.next() && count > 0) {
+      Row row = new Row();
+      for (int i = 1; i < meta.getColumnCount() + 1; ++i) {
+        Object object = result.getObject(i);
+        if (object instanceof Date) {
+          object = ((Date) object).toLocalDate();
+        } else if (object instanceof Time) {
+          object = ((Time) object).toLocalTime();
+        } else if (object instanceof Timestamp) {
+          object = ((Timestamp) object).toInstant().atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+        } else if (object.getClass().getName().equals("oracle.sql.ROWID")) {
+          // If the object is Oracle ROWID, then convert it into a string.
+          object = object.toString();
+        }
+        row.add(meta.getColumnName(i), object);
+      }
+      rows.add(row);
+      count--;
+    }
+    return rows;
   }
 
   /**

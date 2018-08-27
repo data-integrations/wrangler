@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,10 +31,10 @@ import com.google.gson.JsonPrimitive;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Time;
-import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +82,16 @@ public final class RecordConvertor implements Serializable {
       String name = field.getName();
       Object value = row.getValue(name);
       try {
-        builder.set(name, decode(name, value, field.getSchema()));
+        Object decodedObj = decode(name, value, field.getSchema());
+        if (decodedObj instanceof LocalDate) {
+          builder.setDate(name, (LocalDate) decodedObj);
+        } else if (decodedObj instanceof LocalTime) {
+          builder.setTime(name, (LocalTime) decodedObj);
+        } else if (decodedObj instanceof ZonedDateTime) {
+          builder.setTimestamp(name, (ZonedDateTime) decodedObj);
+        } else {
+          builder.set(name, decodedObj);
+        }
       } catch (UnexpectedFormatException e) {
         throw new RecordConvertorException(
           String.format("Field '%s' of type '%s' (Nullable : '%s') cannot be set to '%s'. Possibly the value being " +
@@ -90,7 +99,7 @@ public final class RecordConvertor implements Serializable {
                         name,
                         isNullable ? fSchema.getNonNullable().getType().name() : fSchema.getType().name(),
                         isNullable ? "YES" : "NO",
-                        value == null ? "NULL" : "<value>",
+                        value == null ? "NULL" : value,
                         name)
         );
       }
@@ -101,6 +110,20 @@ public final class RecordConvertor implements Serializable {
   private Object decode(String name, Object object, Schema schema) throws RecordConvertorException {
     // Extract the type of the field.
     Schema.Type type = schema.getType();
+    Schema.LogicalType logicalType = schema.getLogicalType();
+
+    if (logicalType != null) {
+      switch (logicalType) {
+        case DATE:
+        case TIME_MILLIS:
+        case TIME_MICROS:
+        case TIMESTAMP_MILLIS:
+        case TIMESTAMP_MICROS:
+          return object;
+        default:
+          throw new UnexpectedFormatException("field type " + logicalType + " is not supported.");
+      }
+    }
 
     // Now based on the type, do the necessary decoding.
     switch (type) {
@@ -213,14 +236,6 @@ public final class RecordConvertor implements Serializable {
           return (Long) object;
         } else if (object instanceof Integer) {
           return ((Integer) object).longValue();
-        } else if (object instanceof Date) {
-          return ((Date) object).getTime() / 1000; // Converts from milli-seconds to seconds.
-        } else if (object instanceof java.sql.Date) {
-          return ((java.sql.Date) object).getTime() / 1000;
-        } else if (object instanceof Time) {
-          return ((Time) object).getTime() / 1000;
-        } else if (object instanceof Timestamp) {
-          return ((Timestamp) object).getTime() / 1000;
         } else if (object instanceof Short) {
           return ((Short) object).longValue();
         } else if (object instanceof String) {
@@ -259,7 +274,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is float, but the value is nor a string or float. " +
-                          "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getName())
           );
         }
       case DOUBLE:
