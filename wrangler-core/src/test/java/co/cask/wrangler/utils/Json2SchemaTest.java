@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,6 +28,10 @@ import com.google.gson.JsonParser;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -80,5 +84,29 @@ public class Json2SchemaTest {
     JsonPathGenerator paths = new JsonPathGenerator();
     List<String> path = paths.get(JsonTestData.COMPLEX_1);
     Assert.assertEquals(path.size(), 23);
+  }
+
+  @Test
+  public void testLogicalType() throws Exception {
+    Row testRow = new Row();
+    testRow.add("id", 1);
+    testRow.add("name", "abc");
+    testRow.add("date", LocalDate.of(2018, 11, 11));
+    testRow.add("time", LocalTime.of(11, 11, 11));
+    testRow.add("timestamp", ZonedDateTime.of(2018, 11 , 11 , 11, 11, 11, 0, ZoneId.of("UTC")));
+
+    Json2Schema json2Schema = new Json2Schema();
+    Schema actual = json2Schema.toSchema("testRecord", testRow);
+
+    Schema expected = Schema.recordOf("expectedRecord",
+                                      Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+                                      Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+                                      Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.LogicalType.DATE))),
+                                      Schema.Field.of("time", Schema.nullableOf(
+                                        Schema.of(Schema.LogicalType.TIME_MICROS))),
+                                      Schema.Field.of("timestamp", Schema.nullableOf(
+                                        Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))));
+
+    Assert.assertEquals(expected, actual);
   }
 }

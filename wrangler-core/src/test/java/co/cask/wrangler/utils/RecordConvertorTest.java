@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,6 +26,9 @@ import co.cask.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -236,5 +239,37 @@ public class RecordConvertorTest {
     Assert.assertEquals(3.0d, results.get(0).get("s2d"), 0.0001d);
     Assert.assertEquals(2.0d, results.get(0).get("l2d"), 0.0001d);
     Assert.assertEquals(2.3d, results.get(0).get("f2d"), 0.0001d);
+  }
+
+  @Test
+  public void testRowWithLogicalType() throws Exception {
+    Row testRow = new Row();
+    testRow.add("id", 1);
+    testRow.add("name", "abc");
+    testRow.add("date", LocalDate.of(2018, 11, 11));
+    testRow.add("time", null);
+    testRow.add("timestamp", ZonedDateTime.of(2018, 11 , 11 , 11, 11, 11, 0, ZoneId.of("UTC")));
+
+    Schema schema = Schema.recordOf("expectedRecord",
+                                    Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+                                    Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+                                    Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.LogicalType.DATE))),
+                                    Schema.Field.of("time", Schema.nullableOf(
+                                      Schema.of(Schema.LogicalType.TIME_MICROS))),
+                                    Schema.Field.of("timestamp", Schema.nullableOf(
+                                      Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))));
+
+
+    StructuredRecord expected = StructuredRecord.builder(schema)
+      .set("id", 1)
+      .set("name", "abc")
+      .setDate("date", LocalDate.of(2018, 11, 11))
+      .setTime("time", null)
+      .setTimestamp("timestamp", ZonedDateTime.of(2018, 11 , 11 , 11, 11, 11, 0, ZoneId.of("UTC"))).build();
+
+    RecordConvertor rc = new RecordConvertor();
+    StructuredRecord actual = rc.decodeRecord(testRow, schema);
+
+    Assert.assertEquals(expected, actual);
   }
 }

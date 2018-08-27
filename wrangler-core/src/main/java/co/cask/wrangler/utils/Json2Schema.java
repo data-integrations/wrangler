@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -33,6 +33,9 @@ import org.json.JSONException;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -89,6 +92,22 @@ public final class Json2Schema {
         fields.add(Schema.Field.of(name, schema));
       }
 
+      if (value instanceof LocalDate) {
+        Schema schema = Schema.nullableOf(Schema.of(Schema.LogicalType.DATE));
+        fields.add(Schema.Field.of(name, schema));
+      }
+
+      if (value instanceof LocalTime) {
+        Schema schema = Schema.nullableOf(Schema.of(Schema.LogicalType.TIME_MICROS));
+        fields.add(Schema.Field.of(name, schema));
+      }
+
+      if (value instanceof ZonedDateTime) {
+        Schema schema = Schema.nullableOf(Schema.of(Schema.LogicalType.TIMESTAMP_MICROS));
+        fields.add(Schema.Field.of(name, schema));
+      }
+
+      // TODO - remove all the instaces of java.util.Date once all the directives support LogicalType.
       if (value instanceof Date || value instanceof java.sql.Date || value instanceof Time
         || value instanceof Timestamp) {
         Schema schema = Schema.nullableOf(Schema.of(Schema.Type.LONG));
