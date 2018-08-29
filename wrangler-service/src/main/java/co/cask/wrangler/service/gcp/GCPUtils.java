@@ -21,8 +21,12 @@ import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.spanner.Spanner;
+import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,7 +37,7 @@ import java.io.IOException;
  * Class description here.
  */
 public final class GCPUtils {
-
+  private static final Logger LOG = LoggerFactory.getLogger(GCPUtils.class);
   public static final String PROJECT_ID = "projectId";
   public static final String SERVICE_ACCOUNT_KEYFILE = "service-account-keyfile";
 
@@ -73,6 +77,27 @@ public final class GCPUtils {
     BigQueryOptions.Builder bigQueryOptionsBuilder = BigQueryOptions.newBuilder();
     setProperties(connection, bigQueryOptionsBuilder);
     return bigQueryOptionsBuilder.build().getService();
+  }
+
+  /**
+   * Create and return {@link Spanner} based on the credentials and project information provided in the connection
+   */
+  public static Spanner getSpannerService(Connection connection) throws Exception {
+    SpannerOptions.Builder optionsBuilder = SpannerOptions.newBuilder();
+    if (connection.hasProperty(GCPUtils.SERVICE_ACCOUNT_KEYFILE)) {
+      String path = connection.getAllProps().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+      optionsBuilder.setCredentials(loadLocalFile(path));
+    }
+
+    String projectId = connection.hasProperty(GCPUtils.PROJECT_ID) ?
+      connection.getProp(GCPUtils.PROJECT_ID) : ServiceOptions.getDefaultProjectId();
+    if (projectId == null) {
+      throw new IllegalArgumentException("Could not detect Google Cloud project id from the environment. " +
+                                           "Please specify a project id for the connection.");
+    }
+    optionsBuilder.setProjectId(projectId);
+    Spanner spanner = optionsBuilder.build().getService();
+    return spanner;
   }
 
   /**

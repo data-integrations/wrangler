@@ -60,4 +60,6 @@ public final class PropertyIds {
   public static final String BROKER = "brokers";
   public static final String KEY_DESERIALIZER = "key.deserializer";
   public static final String VALUE_DESERIALIZER = "value.deserializer";
+
+  public static final String PLUGIN_SPECIFICATION = "plugin.specification";
 }
