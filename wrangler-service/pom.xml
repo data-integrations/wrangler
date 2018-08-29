@@ -14,6 +14,7 @@
     <app.main.class>co.cask.wrangler.DataPrep</app.main.class>
     <tika.version>1.14</tika.version>
     <hadoop.version>2.3.0</hadoop.version>
+    <google.cloud.spanner.version>0.53.0-beta</google.cloud.spanner.version>
   </properties>
 
   <dependencies>
@@ -86,6 +87,11 @@
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-bigquery</artifactId>
       <version>${google.cloud.bigquery.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-spanner</artifactId>
+      <version>${google.cloud.spanner.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>

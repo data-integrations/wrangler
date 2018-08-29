@@ -31,7 +31,8 @@ public enum ConnectionType {
   S3("s3"),
   GCS("gcs"),
   BIGQUERY("bigquery"),
-  KAFKA("kafka");
+  KAFKA("kafka"),
+  SPANNER("spanner");
 
   private String type;
 
