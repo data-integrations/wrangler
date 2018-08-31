@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2017-2018 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -30,7 +30,9 @@ import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -46,7 +48,8 @@ public class DiffDate implements Directive {
   private String column1;
   private String column2;
   private String destCol;
-  private final Date date = new Date();
+  // Timestamp now UTC
+  private final ZonedDateTime date = ZonedDateTime.now(ZoneId.ofOffset("UTC", ZoneOffset.UTC));
 
   @Override
   public UsageDefinition define() {
@@ -72,10 +75,10 @@ public class DiffDate implements Directive {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      Date date1 = getDate(row, column1);
-      Date date2 = getDate(row, column2);
+      ZonedDateTime date1 = getDate(row, column1);
+      ZonedDateTime date2 = getDate(row, column2);
       if (date1 != null && date2 != null) {
-        row.addOrSet(destCol, date1.getTime() - date2.getTime());
+        row.addOrSet(destCol, date1.toInstant().toEpochMilli() - date2.toInstant().toEpochMilli());
       } else {
         row.addOrSet(destCol, null);
       }
@@ -83,7 +86,7 @@ public class DiffDate implements Directive {
     return rows;
   }
 
-  private Date getDate(Row row, String colName) throws DirectiveExecutionException {
+  private ZonedDateTime getDate(Row row, String colName) throws DirectiveExecutionException {
     // If one of the column contains now, then we return
     // the current date.
     if (colName.equalsIgnoreCase("now")) {
@@ -94,12 +97,12 @@ public class DiffDate implements Directive {
     int idx = row.find(colName);
     if (idx == -1) {
       throw new DirectiveExecutionException(toString() + " : '" +
-                                colName + "' column is not defined in the row.");
+                                              colName + "' column is not defined in the row.");
     }
     Object o = row.getValue(idx);
-    if (o == null || !(o instanceof Date)) {
+    if (o == null || !(o instanceof ZonedDateTime)) {
       return null;
     }
-    return (Date) o;
+    return (ZonedDateTime) o;
   }
 }

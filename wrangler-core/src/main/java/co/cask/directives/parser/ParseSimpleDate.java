@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2017-2018 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -34,11 +34,15 @@ import co.cask.wrangler.api.parser.UsageDefinition;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
- * A Executor to parse date into Date object.
+ * A Executor to parse date into {@link ZonedDateTime} object.
  */
 @Plugin(type = Directive.Type)
 @Name("parse-as-simple-date")
@@ -47,7 +51,7 @@ import java.util.List;
 public class ParseSimpleDate implements Directive {
   public static final String NAME = "parse-as-simple-date";
   private String column;
-  private SimpleDateFormat format;
+  private SimpleDateFormat formatter;
 
   @Override
   public UsageDefinition define() {
@@ -60,8 +64,9 @@ public class ParseSimpleDate implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
-    String fmt = ((Text) args.value("format")).value();
-    this.format = new SimpleDateFormat(fmt);
+    String format = ((Text) args.value("format")).value();
+    this.formatter = new SimpleDateFormat(format);
+    formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   @Override
@@ -78,16 +83,22 @@ public class ParseSimpleDate implements Directive {
         Object object = row.getValue(idx);
         // If the data in the cell is null or is already of date format, then
         // continue to next row.
-        if (object == null || object instanceof Date) {
+        if (object == null || object instanceof ZonedDateTime) {
           continue;
         }
         if (object instanceof String) {
           try {
-            Date date = format.parse((String) object);
-            row.setValue(idx, date);
+            // This implementation first creates Date object and then converts it into ZonedDateTime. This is because
+            // ZonedDateTime requires presence of Zone and Time components in the pattern and object to be parsed.
+            // For example if the pattern is yyyy-mm-dd, ZonedDateTime object can not be created and the call to
+            // ZonedDateTime.parse("2018-12-21", formatter) will throw DateTimeParseException
+            Date date = formatter.parse(object.toString());
+            ZonedDateTime zonedDateTime = ZonedDateTime.from(date.toInstant()
+                                                               .atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC)));
+            row.setValue(idx, zonedDateTime);
           } catch (ParseException e) {
             throw new ErrorRowException(String.format("Failed to parse '%s' with pattern '%s'",
-                                                      object, format.toPattern()), 1);
+                                                      object, formatter.toPattern()), 1);
           }
         } else {
           throw new ErrorRowException(
