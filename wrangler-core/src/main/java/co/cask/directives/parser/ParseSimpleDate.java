@@ -34,6 +34,8 @@ import co.cask.wrangler.api.parser.UsageDefinition;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -47,7 +49,7 @@ import java.util.List;
 public class ParseSimpleDate implements Directive {
   public static final String NAME = "parse-as-simple-date";
   private String column;
-  private SimpleDateFormat format;
+  private SimpleDateFormat formatter;
 
   @Override
   public UsageDefinition define() {
@@ -60,8 +62,8 @@ public class ParseSimpleDate implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
-    String fmt = ((Text) args.value("format")).value();
-    this.format = new SimpleDateFormat(fmt);
+    String format = ((Text) args.value("format")).value();
+    this.formatter = new SimpleDateFormat(format);
   }
 
   @Override
@@ -78,16 +80,24 @@ public class ParseSimpleDate implements Directive {
         Object object = row.getValue(idx);
         // If the data in the cell is null or is already of date format, then
         // continue to next row.
-        if (object == null || object instanceof Date) {
+        if (object == null || object instanceof ZonedDateTime) {
           continue;
         }
         if (object instanceof String) {
           try {
-            Date date = format.parse((String) object);
-            row.setValue(idx, date);
+            // This implementation first creates Date object and then converts it into ZonedDateTime.
+            // DateTimeFormat java 8 api to apply pattern on a string to get ZonedDateTime, throws exception when Zone
+            // and Time is not provided in the pattern.
+            // This behavior is because of JDK 1.8 bug - https://bugs.openjdk.java.net/browse/JDK-8033662
+            Date date = formatter.parse(object.toString());
+
+            // java.util.Date.toString() uses default system timezone, so ZonedDateTime instance is created with the
+            // system default ZoneId
+            ZonedDateTime zonedDateTime = ZonedDateTime.from(date.toInstant().atZone(ZoneId.systemDefault()));
+            row.setValue(idx, zonedDateTime);
           } catch (ParseException e) {
             throw new ErrorRowException(String.format("Failed to parse '%s' with pattern '%s'",
-                                                      object, format.toPattern()), 1);
+                                                      object, formatter.toPattern()), 1);
           }
         } else {
           throw new ErrorRowException(
