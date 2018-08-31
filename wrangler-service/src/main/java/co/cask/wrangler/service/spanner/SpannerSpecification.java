@@ -22,6 +22,7 @@ import co.cask.cdap.api.data.schema.Schema;
  * Spanner specification properties for spanner source plugin
  */
 public class SpannerSpecification {
+  private final String referenceName;
   // gcp properties
   private final String serviceFilePath;
   private final String project;
@@ -33,6 +34,7 @@ public class SpannerSpecification {
 
   SpannerSpecification(String serviceFilePath, String project, String instance,
                        String database, String table, Schema schema) {
+    this.referenceName = "Spanner_Source";
     this.serviceFilePath = serviceFilePath;
     this.project = project;
     this.instance = instance;
