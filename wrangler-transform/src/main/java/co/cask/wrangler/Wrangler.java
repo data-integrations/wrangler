@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Cask Data, Inc.
+ * Copyright © 2016-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ import co.cask.cdap.api.annotation.Macro;
 import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.cdap.api.data.format.StructuredRecord;
+import co.cask.cdap.api.data.format.UnexpectedFormatException;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginConfig;
 import co.cask.cdap.api.plugin.PluginProperties;
@@ -70,7 +71,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
- * Wrangler - A interactive tool for data data cleansing and transformation.
+ * Wrangler - A interactive tool for data cleansing and transformation.
  *
  * This plugin is an implementation of the transformation that are performed in the
  * backend for operationalizing all the interactive wrangling that is being performed
@@ -237,7 +238,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    *
    * @param inputSchema configured for the plugin.
    */
-  void validateInputSchema(Schema inputSchema) {
+  private void validateInputSchema(Schema inputSchema) {
     if (inputSchema != null) {
       // Check the existence of field in input schema
       Schema.Field inputSchemaField = inputSchema.getField(config.field);
@@ -249,7 +250,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
-   * Initialies the wrangler by parsing the directives and creating the runtime context.
+   * Initialize the wrangler by parsing the directives and creating the runtime context.
    *
    * @param context framework context being passed.
    */
@@ -358,12 +359,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       Row row = new Row();
       if ("*".equalsIgnoreCase(config.field)) {
         for (Schema.Field field : input.getSchema().getFields()) {
-          row.add(field.getName(), input.get(field.getName()));
+          row.add(field.getName(), getValue(input, field.getName()));
         }
       } else if ("#".equalsIgnoreCase(config.field)) {
         row.add(input.getSchema().getRecordName(), input);
       } else {
-        row.add(config.field, input.get(config.field));
+        row.add(config.field, getValue(input, config.field));
       }
 
       // If pre-condition is set, then evaluate the precondition
@@ -432,12 +433,39 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           if (wObject instanceof String) {
             builder.convertAndSet(field.getName(), (String) wObject);
           } else {
+            // No need to use specific methods for fields of logical type - timestamp, date and time. This is because
+            // the wObject should already have correct values for corresponding primitive types.
             builder.set(field.getName(), wObject);
           }
         }
       }
       emitter.emit(builder.build());
     }
+  }
+
+  private Object getValue(StructuredRecord input, String fieldName) {
+    Schema fieldSchema = input.getSchema().getField(fieldName).getSchema();
+    fieldSchema = fieldSchema.isNullable() ? fieldSchema.getNonNullable() : fieldSchema;
+    Schema.LogicalType logicalType = fieldSchema.getLogicalType();
+
+    if (logicalType != null) {
+      switch (logicalType) {
+        case DATE:
+          return input.getDate(fieldName);
+        case TIME_MILLIS:
+        case TIME_MICROS:
+          return input.getTime(fieldName);
+        case TIMESTAMP_MILLIS:
+        case TIMESTAMP_MICROS:
+          return input.getTimestamp(fieldName);
+        default:
+          throw new UnexpectedFormatException("Field type " + logicalType + " is not supported.");
+      }
+    }
+
+    // If the logical type is present in complex types, it will be retrieved as corresponding
+    // simple type (int/long).
+    return input.get(fieldName);
   }
 
   /**

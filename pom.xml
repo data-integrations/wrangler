@@ -121,6 +121,7 @@
     <google.storage.version>1.7.0</google.storage.version>
     <google.cloud.core.version>1.15.0</google.cloud.core.version>
     <juniversalchardet.version>1.0.3</juniversalchardet.version>
+    <hsql.version>2.2.4</hsql.version>
   </properties>
 
   <repositories>
@@ -183,6 +184,31 @@
           <artifactId>maven-antrun-plugin</artifactId>
           <version>1.7</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <version>0.10</version>
+          <executions>
+            <execution>
+              <id>rat-check</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <excludes>
+                  <exclude>*.md</exclude>
+                  <exclude>**/*.md</exclude>
+                  <exclude>**/*.json</exclude>
+                  <exclude>**/resources/**</exclude>
+                  <exclude>wrangler-demos/**</exclude>
+                  <exclude>**/com/example/**</exclude>
+                  <exclude>/**/icons/**</exclude>
+                </excludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -204,6 +230,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
