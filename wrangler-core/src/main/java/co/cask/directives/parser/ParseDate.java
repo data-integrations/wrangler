@@ -68,7 +68,6 @@ public class ParseDate implements Directive {
     } else {
       this.timezone = "UTC";
     }
-    TimeZone.setDefault(TimeZone.getTimeZone(timezone));
   }
 
   @Override
@@ -84,13 +83,14 @@ public class ParseDate implements Directive {
       if (idx != -1) {
         Object object = row.getValue(idx);
         if (object instanceof String) {
-          Parser parser = new Parser();
+          TimeZone timeZone = TimeZone.getTimeZone(timezone);
+          Parser parser = new Parser(timeZone);
           List<DateGroup> groups = parser.parse((String) object);
           int i = 1;
           for (DateGroup group : groups) {
             List<Date> dates = group.getDates();
             for (Date date : dates) {
-              row.add(String.format("%s_%d", column, i), date.toInstant().atZone(TimeZone.getDefault().toZoneId()));
+              row.add(String.format("%s_%d", column, i), date.toInstant().atZone(timeZone.toZoneId()));
             }
             i++;
           }

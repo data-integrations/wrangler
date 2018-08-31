@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2017-2018 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -31,10 +31,9 @@ import co.cask.wrangler.api.parser.Text;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,7 +47,7 @@ public class FormatDate implements Directive {
   public static final String NAME = "format-date";
   private String format;
   private String column;
-  private DateFormat destinationFmt;
+  private DateTimeFormatter destinationFmt;
 
   @Override
   public UsageDefinition define() {
@@ -62,7 +61,7 @@ public class FormatDate implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     this.format = ((Text) args.value("format")).value();
-    this.destinationFmt = new SimpleDateFormat(this.format);
+    this.destinationFmt = DateTimeFormatter.ofPattern(this.format);
   }
 
   @Override
@@ -78,8 +77,8 @@ public class FormatDate implements Directive {
       int idx = dt.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
-        if (object != null && object instanceof Date) {
-          dt.setValue(idx, destinationFmt.format((Date) object));
+        if (object != null && object instanceof ZonedDateTime) {
+          dt.setValue(idx, destinationFmt.format((ZonedDateTime) object));
         } else {
           throw new DirectiveExecutionException(
             String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' directive first.", toString(),
