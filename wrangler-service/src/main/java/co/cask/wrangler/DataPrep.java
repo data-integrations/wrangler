@@ -34,6 +34,7 @@ import co.cask.wrangler.service.kafka.KafkaService;
 import co.cask.wrangler.service.recipe.RecipeService;
 import co.cask.wrangler.service.s3.S3Service;
 import co.cask.wrangler.service.schema.SchemaRegistryService;
+import co.cask.wrangler.service.spanner.SpannerService;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 
@@ -90,7 +91,8 @@ public class DataPrep extends AbstractApplication<ConnectionTypeConfig> {
                new DatabaseService(),
                new S3Service(),
                new GCSService(),
-               new BigQueryService()
+               new BigQueryService(),
+               new SpannerService()
     );
   }
 }
