@@ -201,7 +201,7 @@ public class GCSService extends AbstractWranglerService {
           object.addProperty("directory", true);
 
           Acl.Entity entity = bucket.getOwner();
-          Acl.Entity.Type type = entity.getType();
+          Acl.Entity.Type type = entity == null ? null : entity.getType();
           if (type == Acl.Entity.Type.USER) {
             object.addProperty("owner", ((Acl.User) entity).getEmail());
           } else if (type == Acl.Entity.Type.DOMAIN) {
