@@ -34,6 +34,8 @@ import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.cloud.ByteArray;
+import com.google.cloud.Date;
+import com.google.cloud.Timestamp;
 import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.KeySet;
 import com.google.cloud.spanner.Options;
@@ -50,6 +52,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -286,9 +293,12 @@ public class SpannerService extends AbstractWranglerService {
           return Schema.of(Schema.Type.LONG);
         case FLOAT64:
           return Schema.of(Schema.Type.DOUBLE);
-        // todo : CDAP-14028 add date, time support
+        case DATE:
+          return Schema.of(Schema.LogicalType.DATE);
+        case TIMESTAMP:
+          return Schema.of(Schema.LogicalType.TIMESTAMP_MICROS);
         default:
-          throw new UnsupportedTypeException(String.format("Type : %s is unsupported currently" + spannerType));
+          throw new UnsupportedTypeException(String.format("Type : %s is unsupported currently", spannerType));
       }
     }
   }
@@ -323,6 +333,7 @@ public class SpannerService extends AbstractWranglerService {
       String fieldName = field.getName();
       Type columnType = resultSet.getColumnType(fieldName);
       if (columnType == null || resultSet.isNull(fieldName)) {
+        row.add(fieldName, null);
         continue;
       }
       switch (columnType.getCode()) {
@@ -342,7 +353,20 @@ public class SpannerService extends AbstractWranglerService {
           ByteArray byteArray = resultSet.getBytes(fieldName);
           row.add(fieldName, byteArray.toByteArray());
           break;
-        // todo : CDAP-14028 add date, time support
+        case DATE:
+          // spanner DATE is a date without time zone. so create LocalDate from spanner DATE
+          Date spannerDate = resultSet.getDate(fieldName);
+          LocalDate date = LocalDate.of(spannerDate.getYear(), spannerDate.getMonth(),
+                                        spannerDate.getDayOfMonth());
+          row.add(fieldName, date);
+          break;
+        case TIMESTAMP:
+          Timestamp spannerTs = resultSet.getTimestamp(fieldName);
+          // Spanner TIMESTAMP supports nano second level precision, however, cdap schema only supports
+          // microsecond level precision.
+          Instant instant = Instant.ofEpochSecond(spannerTs.getSeconds()).plusNanos(spannerTs.getNanos());
+          row.add(fieldName, ZonedDateTime.ofInstant(instant, ZoneId.ofOffset("UTC", ZoneOffset.UTC)));
+          break;
       }
     }
     return row;
