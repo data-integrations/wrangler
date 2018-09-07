@@ -586,15 +586,17 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       Row row = new Row();
       for (int i = 1; i < meta.getColumnCount() + 1; ++i) {
         Object object = result.getObject(i);
-        if (object instanceof Date) {
-          object = ((Date) object).toLocalDate();
-        } else if (object instanceof Time) {
-          object = ((Time) object).toLocalTime();
-        } else if (object instanceof Timestamp) {
-          object = ((Timestamp) object).toInstant().atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC));
-        } else if (object.getClass().getName().equals("oracle.sql.ROWID")) {
-          // If the object is Oracle ROWID, then convert it into a string.
-          object = object.toString();
+        if (object != null) {
+          if (object instanceof Date) {
+            object = ((Date) object).toLocalDate();
+          } else if (object instanceof Time) {
+            object = ((Time) object).toLocalTime();
+          } else if (object instanceof Timestamp) {
+            object = ((Timestamp) object).toInstant().atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+          } else if (object.getClass().getName().equals("oracle.sql.ROWID")) {
+            // If the object is Oracle ROWID, then convert it into a string.
+            object = object.toString();
+          }
         }
         row.add(meta.getColumnName(i), object);
       }
