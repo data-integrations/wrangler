@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2017-2018 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -24,8 +24,8 @@ import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
-import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -50,7 +50,7 @@ import java.util.TimeZone;
 public class ParseDate implements Directive {
   public static final String NAME = "parse-as-date";
   private String column;
-  private String timezone;
+  private TimeZone timezone;
 
   @Override
   public UsageDefinition define() {
@@ -64,11 +64,10 @@ public class ParseDate implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     if (args.contains("timezone")) {
-      this.timezone = ((Text) args.value("timezone")).value();
+      this.timezone = TimeZone.getTimeZone(((Text) args.value("timezone")).value());
     } else {
-      this.timezone = "UTC";
+      this.timezone = TimeZone.getTimeZone("UTC");
     }
-    TimeZone.setDefault(TimeZone.getTimeZone(timezone));
   }
 
   @Override
@@ -84,13 +83,13 @@ public class ParseDate implements Directive {
       if (idx != -1) {
         Object object = row.getValue(idx);
         if (object instanceof String) {
-          Parser parser = new Parser();
+          Parser parser = new Parser(timezone);
           List<DateGroup> groups = parser.parse((String) object);
           int i = 1;
           for (DateGroup group : groups) {
             List<Date> dates = group.getDates();
             for (Date date : dates) {
-              row.add(String.format("%s_%d", column, i), date);
+              row.add(String.format("%s_%d", column, i), date.toInstant().atZone(timezone.toZoneId()));
             }
             i++;
           }
