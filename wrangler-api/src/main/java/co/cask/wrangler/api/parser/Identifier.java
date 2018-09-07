@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2017-2018 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -21,7 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * The <code>Identifirt</code> class wraps the primitive type {@code String} in a object.
+ * The <code>Identifier</code> class wraps the primitive type {@code String} in a object.
  * An object of type {@code Identifier} contains the value in primitive type
  * as well as the type of the token this class represents.
  *

@@ -18,11 +18,17 @@ package co.cask.functions;
 
 import co.cask.wrangler.dq.TypeInference;
 import org.joda.time.DateTime;
-import org.joda.time.Days;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.joda.time.Seconds;
 
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.TimeZone;
+
+import static java.time.temporal.ChronoField.ERA;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
  * Collection of useful expression functions made available in the context
@@ -37,8 +43,9 @@ public final class Dates {
    * @param date to be converted to unix timestamp.
    * @return unixtimestamp of the date.
    */
-  public static long UNIXTIMESTAMP_MILLIS(Date date) {
-    return date.getTime();
+  public static long UNIXTIMESTAMP_MILLIS(ZonedDateTime date) {
+    validate(date, "UNIXTIMESTAMP_MILLIS");
+    return date.toInstant().toEpochMilli();
   }
 
   /**
@@ -47,22 +54,22 @@ public final class Dates {
    * @param date to be converted to unix timestamp.
    * @return unixtimestamp of the date.
    */
-  public static long UNIXTIMESTAMP_SECONDS(Date date) {
-    return date.getTime() / 1000;
+  public static long UNIXTIMESTAMP_SECONDS(ZonedDateTime date) {
+    validate(date, "UNIXTIMESTAMP_SECONDS");
+    return date.toEpochSecond();
   }
 
   /**
-   * Converts a {@link Date} to Month in year.
+   * Converts a {@link ZonedDateTime} to Month in year.
    * <p>
    *   January is 1, February is 2, and so on.
    * </p>
    * @param date to extract month.
    * @return month.
    */
-  public static int MONTH(Date date) {
-    DateTime dt = new DateTime(date);
-    DateTime.Property pMoY = dt.monthOfYear();
-    return pMoY.get();
+  public static int MONTH(ZonedDateTime date) {
+    validate(date, "MONTH");
+    return date.getMonthValue();
   }
 
   /**
@@ -71,8 +78,9 @@ public final class Dates {
    * @param date to extract short month description.
    * @return short month description.
    */
-  public static String MONTH_SHORT(Date date) {
-    DateTime dt = new DateTime(date);
+  public static String MONTH_SHORT(ZonedDateTime date) {
+    validate(date, "MONTH_SHORT");
+    DateTime dt = getDateTime(date);
     DateTime.Property pMoY = dt.monthOfYear();
     return pMoY.getAsShortText();
   }
@@ -83,8 +91,9 @@ public final class Dates {
    * @param date to extract long month description.
    * @return long month description.
    */
-  public static String MONTH_LONG(Date date) {
-    DateTime dt = new DateTime(date);
+  public static String MONTH_LONG(ZonedDateTime date) {
+    validate(date, "MONTH_LONG");
+    DateTime dt = getDateTime(date);
     DateTime.Property pMoY = dt.monthOfYear();
     return pMoY.getAsText();
   }
@@ -95,9 +104,9 @@ public final class Dates {
    * @param date to extract year from.
    * @return year as integer.
    */
-  public static int YEAR(Date date) {
-    DateTime dt = new DateTime(date);
-    return dt.getYear();
+  public static int YEAR(ZonedDateTime date) {
+    validate(date, "YEAR");
+    return date.getYear();
   }
 
   /**
@@ -106,10 +115,9 @@ public final class Dates {
    * @param date to extract date of the week.
    * @return day of the week.
    */
-  public static int DAY_OF_WEEK(Date date) {
-    DateTime dt = new DateTime(date);
-    DateTime.Property value = dt.dayOfWeek();
-    return value.get();
+  public static int DAY_OF_WEEK(ZonedDateTime date) {
+    validate(date, "DAY_OF_WEEK");
+    return date.getDayOfWeek().getValue();
   }
 
   /**
@@ -118,8 +126,9 @@ public final class Dates {
    * @param date to extract date of the week.
    * @return day of the week.
    */
-  public static String DAY_OF_WEEK_SHORT(Date date) {
-    DateTime dt = new DateTime(date);
+  public static String DAY_OF_WEEK_SHORT(ZonedDateTime date) {
+    validate(date, "DAY_OF_WEEK_SHORT");
+    DateTime dt = getDateTime(date);
     DateTime.Property value = dt.dayOfWeek();
     return value.getAsShortText();
   }
@@ -130,8 +139,9 @@ public final class Dates {
    * @param date to extract date of the week.
    * @return day of the week.
    */
-  public static String DAY_OF_WEEK_LONG(Date date) {
-    DateTime dt = new DateTime(date);
+  public static String DAY_OF_WEEK_LONG(ZonedDateTime date) {
+    validate(date, "DAY_OF_WEEK_LONG");
+    DateTime dt = getDateTime(date);
     DateTime.Property value = dt.dayOfWeek();
     return value.getAsText();
   }
@@ -142,10 +152,9 @@ public final class Dates {
    * @param date to extract date of the year.
    * @return date of the year.
    */
-  public static int DAY_OF_YEAR(Date date) {
-    DateTime dt = new DateTime(date);
-    DateTime.Property value = dt.dayOfYear();
-    return value.get();
+  public static int DAY_OF_YEAR(ZonedDateTime date) {
+    validate(date, "DAY_OF_YEAR");
+    return date.getDayOfYear();
   }
 
   /**
@@ -154,10 +163,9 @@ public final class Dates {
    * @param date to extract era.
    * @return era.
    */
-  public static int ERA(Date date) {
-    DateTime dt = new DateTime(date);
-    DateTime.Property value = dt.era();
-    return value.get();
+  public static int ERA(ZonedDateTime date) {
+    validate(date, "ERA");
+    return date.get(ERA);
   }
 
   /**
@@ -166,8 +174,9 @@ public final class Dates {
    * @param date to extract era.
    * @return era.
    */
-  public static String ERA_SHORT(Date date) {
-    DateTime dt = new DateTime(date);
+  public static String ERA_SHORT(ZonedDateTime date) {
+    validate(date, "ERA_SHORT");
+    DateTime dt = getDateTime(date);
     DateTime.Property value = dt.era();
     return value.getAsShortText();
   }
@@ -178,8 +187,9 @@ public final class Dates {
    * @param date to extract era.
    * @return era.
    */
-  public static String ERA_LONG(Date date) {
-    DateTime dt = new DateTime(date);
+  public static String ERA_LONG(ZonedDateTime date) {
+    validate(date, "ERA_LONG");
+    DateTime dt = getDateTime(date);
     DateTime.Property value = dt.era();
     return value.getAsText();
   }
@@ -191,10 +201,10 @@ public final class Dates {
    * @param date2 Second date.
    * @return Number of days.
    */
-  public static int DAYS_BETWEEN(Date date1, Date date2) {
-    DateTime dt1 = new DateTime(date1);
-    DateTime dt2 = new DateTime(date2);
-    return Days.daysBetween(dt1, dt2).getDays();
+  public static int DAYS_BETWEEN(ZonedDateTime date1, ZonedDateTime date2) {
+    validate(date1, "ERA_LONG");
+    validate(date2, "ERA_LONG");
+    return (int) DAYS.between(date1, date2);
   }
 
   /**
@@ -203,10 +213,11 @@ public final class Dates {
    * @param date Now - this date.
    * @return Number of days.
    */
-  public static int DAYS_BETWEEN_NOW(Date date) {
-    DateTime dt1 = new DateTime();
-    DateTime dt2 = new DateTime(date);
-    return Days.daysBetween(dt1, dt2).getDays();
+  public static int DAYS_BETWEEN_NOW(ZonedDateTime date) {
+    validate(date, "DAYS_BETWEEN_NOW");
+    ZonedDateTime now = ZonedDateTime.now(ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+    // returns number of days between date and now, date being lower.
+    return (int) DAYS.between(date, now);
   }
 
   /**
@@ -271,5 +282,17 @@ public final class Dates {
    */
   public static boolean isTime(String value) {
     return TypeInference.isTime(value);
+  }
+
+  private static DateTime getDateTime(ZonedDateTime zonedDateTime) {
+    return new DateTime(
+      zonedDateTime.toInstant().toEpochMilli(),
+      DateTimeZone.forTimeZone(TimeZone.getTimeZone(zonedDateTime.getZone())));
+  }
+
+  private static void validate(ZonedDateTime date, String method) {
+    if (date == null) {
+      throw new IllegalArgumentException(String.format("Date can not be null for %s", method));
+    }
   }
 }
