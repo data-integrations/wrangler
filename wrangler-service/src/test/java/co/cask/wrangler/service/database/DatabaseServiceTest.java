@@ -157,6 +157,13 @@ public class DatabaseServiceTest {
     row.add("TIME_COL", new Time(CURRENT_TS).toLocalTime());
     row.add("TIMESTAMP_COL", new Timestamp(CURRENT_TS).toInstant().atZone(ZoneId.of("UTC")));
     expected.add(row);
+    row = new Row();
+    row.add("ID", 2);
+    row.add("NAME", "bob");
+    row.add("DATE_COL", new Date(CURRENT_TS).toLocalDate());
+    row.add("TIME_COL", null);
+    row.add("TIMESTAMP_COL", null);
+    expected.add(row);
 
     try (Connection conn = getConnection();
          Statement stmt = conn.createStatement()) {
@@ -168,6 +175,12 @@ public class DatabaseServiceTest {
         Assert.assertEquals(expected.get(0).getValue(2), actual.get(0).getValue(2));
         Assert.assertEquals(expected.get(0).getValue(3), actual.get(0).getValue(3));
         Assert.assertEquals(expected.get(0).getValue(4), actual.get(0).getValue(4));
+
+        Assert.assertEquals(expected.get(1).getValue(0), actual.get(1).getValue(0));
+        Assert.assertEquals(expected.get(1).getValue(1), actual.get(1).getValue(1));
+        Assert.assertEquals(expected.get(1).getValue(2), actual.get(1).getValue(2));
+        Assert.assertEquals(expected.get(1).getValue(3), actual.get(1).getValue(3));
+        Assert.assertEquals(expected.get(1).getValue(4), actual.get(1).getValue(4));
       }
     }
   }
@@ -201,6 +214,13 @@ public class DatabaseServiceTest {
       pStmt1.setDate(3, new Date(CURRENT_TS));
       pStmt1.setTime(4, new Time(CURRENT_TS));
       pStmt1.setTimestamp(5, new Timestamp(CURRENT_TS));
+      pStmt1.executeUpdate();
+
+      pStmt1.setInt(1, 2);
+      pStmt1.setString(2, "bob");
+      pStmt1.setDate(3, new Date(CURRENT_TS));
+      pStmt1.setTime(4, null);
+      pStmt1.setTimestamp(5, null);
       pStmt1.executeUpdate();
     }
   }
