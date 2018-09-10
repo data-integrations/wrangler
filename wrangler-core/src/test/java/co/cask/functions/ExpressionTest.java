@@ -25,6 +25,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -154,6 +157,47 @@ public class ExpressionTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertTrue(rows.size() == 1);
+
+    ZonedDateTime date = ZonedDateTime.of(2017, 2, 2, 21, 6, 44, 0, ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+    ZonedDateTime other = ZonedDateTime.of(2017, 2, 3, 21, 6, 44, 0, ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+    Assert.assertEquals(date, rows.get(0).getValue("date"));
+    Assert.assertEquals(other, rows.get(0).getValue("other"));
+    Assert.assertEquals(1486069604000L, rows.get(0).getValue("unixtimestamp"));
+    Assert.assertEquals(2, rows.get(0).getValue("month_no"));
+    Assert.assertEquals("Feb", rows.get(0).getValue("month_short"));
+    Assert.assertEquals("February", rows.get(0).getValue("month_long"));
+    Assert.assertEquals(2017, rows.get(0).getValue("year"));
+    Assert.assertEquals(33, rows.get(0).getValue("day_of_year"));
+    Assert.assertEquals("AD", rows.get(0).getValue("era_long"));
+    Assert.assertEquals(1, rows.get(0).getValue("days"));
+    Assert.assertEquals(24, rows.get(0).getValue("hours"));
+    Assert.assertEquals(1, rows.get(0).getValue("diff"));
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testInvalidDateFunction() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-simple-date date yyyy-MM-dd'T'HH:mm:ss",
+      "parse-as-simple-date other yyyy-MM-dd'T'HH:mm:ss",
+      "set-column unixtimestamp date:UNIXTIMESTAMP_MILLIS(date)",
+      "set-column month_no date:MONTH(date)",
+      "set-column month_short date:MONTH_SHORT(date)",
+      "set-column month_long date:MONTH_LONG(date)",
+      "set-column year date:YEAR(date)",
+      "set-column day_of_year date:DAY_OF_YEAR(date)",
+      "set-column era_long date:ERA_LONG(date)",
+      "set-column days date:SECONDS_TO_DAYS(seconds)",
+      "set-column hours date:SECONDS_TO_HOURS(seconds)",
+      "set-column diff_days date:DAYS_BETWEEN_NOW(date)",
+      "set-column diff date:DAYS_BETWEEN(date, other)"
+    };
+
+    //2017-02-02T21:06:44Z
+    List<Row> rows = Arrays.asList(
+      new Row("date", null).add("seconds", 86401).add("other", "2017-02-03T21:06:44Z")
+    );
+
+    rows = TestingRig.execute(directives, rows);
   }
 
   @Test
