@@ -28,8 +28,11 @@ import co.cask.cdap.api.plugin.PluginProperties;
 import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.PipelineConfigurer;
+import co.cask.cdap.etl.api.StageSubmitterContext;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.TransformContext;
+import co.cask.cdap.etl.api.lineage.field.FieldOperation;
+import co.cask.cdap.etl.api.lineage.field.FieldTransformOperation;
 import co.cask.directives.aggregates.DefaultTransientStore;
 import co.cask.wrangler.api.CompileException;
 import co.cask.wrangler.api.CompileStatus;
@@ -64,10 +67,13 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -231,6 +237,40 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       LOG.error(e.getMessage());
       throw new IllegalArgumentException(e.getMessage());
     }
+  }
+
+  @Override
+  public void prepareRun(StageSubmitterContext context) throws Exception {
+    super.prepareRun(context);
+    List<String> inputFields = new ArrayList<>();
+    List<String> outputFields = new ArrayList<>();
+    Schema inputSchema = context.getInputSchema();
+    if (checkSchema(inputSchema, "input")) {
+      //noinspection ConstantConditions
+      inputFields = inputSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
+    }
+    Schema outputSchema = context.getOutputSchema();
+    if (checkSchema(outputSchema, "output")) {
+      //noinspection ConstantConditions
+      outputFields = outputSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
+    }
+    FieldOperation dataPrepOperation = new FieldTransformOperation("Prepare Data",
+                                                                   new MigrateToV2(config.directives).migrate(),
+                                                                   inputFields,
+                                                                   outputFields);
+    context.record(Collections.singletonList(dataPrepOperation));
+  }
+
+  private boolean checkSchema(Schema schema, String name) {
+    if (schema == null) {
+      LOG.debug(String.format("The %s schema is null. Field level lineage will not be recorded", name));
+      return false;
+    }
+    if (schema.getFields() == null) {
+      LOG.debug(String.format("The %s schema fields are null. Field level lineage will not be recorded", name));
+      return false;
+    }
+    return true;
   }
 
   /**
