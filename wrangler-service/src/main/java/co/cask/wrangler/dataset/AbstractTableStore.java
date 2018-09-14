@@ -165,12 +165,12 @@ public abstract class AbstractTableStore<T> {
   }
 
   /**
-   * Mangles the name.
+   * Get connection id for the given connection name
    *
-   * @param name to be mangled.
-   * @return mangled name.
+   * @param name name of the connection.
+   * @return connection id.
    */
-  protected String mangle(String name) {
+  public String getConnectionId(String name) {
     name = name.trim();
     // Lower case columns
     name = name.toLowerCase();
