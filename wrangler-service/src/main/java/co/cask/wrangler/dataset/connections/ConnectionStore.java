@@ -73,7 +73,7 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
         String.format("Connection name '%s' already exists.", name)
       );
     }
-    String mangled = mangle(name);
+    String mangled = getConnectionId(name);
     connection.setId(mangled);
     connection.setCreated(now());
     connection.setUpdated(now());
@@ -89,7 +89,7 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
    */
   @Override
   public void update(String id, Connection connection) {
-    if(!hasKey(id)) {
+    if (!hasKey(id)) {
       throw new IllegalArgumentException(
         String.format("Connection '%s' does not exists. Create connection before updating", id)
       );
@@ -120,7 +120,7 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
    * Returns true if connection identified by connectionName already exists
    */
   public boolean connectionExists(String connectionName) {
-    String mangled = mangle(connectionName);
+    String mangled = getConnectionId(connectionName);
     return hasKey(mangled);
   }
 }
