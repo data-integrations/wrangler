@@ -32,11 +32,14 @@ import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -234,10 +237,22 @@ public class ConnectionService extends AbstractHttpServiceHandler {
         }
         return false;
       });
-      responder.sendJson(new ConnectionResponse<>(connections, connectionTypeConfig.getDefaultConnection()));
+      responder.sendJson(new ConnectionResponse<>(connections,
+                                                  getDefaultConnection(connections, connectionTypeConfig)));
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
+  }
+
+  @Nullable
+  private String getDefaultConnection(List<Connection> connections, ConnectionTypeConfig connectionTypeConfig) {
+    String defaultConnectionName = connectionTypeConfig.getDefaultConnection();
+    if (defaultConnectionName == null) {
+      return null;
+    }
+    Optional<Connection> connection =
+      connections.stream().filter(e -> defaultConnectionName.equals(e.getName())).findFirst();
+    return connection.isPresent() ? connection.get().getName() : null;
   }
 
   /**
@@ -252,6 +267,16 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("id") final String id) {
     try {
+      List<Connection> preConfiguredConnections = connectionTypeConfig.getConnections();
+      // pre-configured connections provided as part of config only contains name and type of connection
+      // since connection id is derived from connection name, we get the connection-id for the
+      // pre-configured connection name and check with the input connection id.
+      if (preConfiguredConnections.stream()
+        .filter(c -> id.equals(store.getConnectionId(c.getName()))).findFirst().isPresent()) {
+        responder.sendError(HttpURLConnection.HTTP_UNAUTHORIZED,
+                            String.format("Cannot delete admin controlled connection %s", id));
+        return;
+      }
       store.delete(id);
       responder.sendJson(new ServiceResponse<Connection>(new ArrayList<>()));
     } catch (Exception e) {
