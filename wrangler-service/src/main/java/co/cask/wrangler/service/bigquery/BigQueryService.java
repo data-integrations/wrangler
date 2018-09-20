@@ -34,6 +34,7 @@ import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.FieldList;
@@ -162,30 +163,38 @@ public class BigQueryService extends AbstractWranglerService {
       return;
     }
     BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
-    Page<com.google.cloud.bigquery.Table> tablePage = bigQuery.listTables(datasetId);
+    try {
+      Page<com.google.cloud.bigquery.Table> tablePage = bigQuery.listTables(datasetId);
+      JsonArray values = new JsonArray();
 
-    JsonArray values = new JsonArray();
+      for (com.google.cloud.bigquery.Table table : tablePage.iterateAll()) {
+        JsonObject object = new JsonObject();
 
-    for (com.google.cloud.bigquery.Table table : tablePage.iterateAll()) {
-      JsonObject object = new JsonObject();
+        object.addProperty("name", table.getFriendlyName());
+        object.addProperty(TABLE_ID, table.getTableId().getTable());
+        object.addProperty("created", table.getCreationTime());
+        object.addProperty("description", table.getDescription());
+        object.addProperty("last-modified", table.getLastModifiedTime());
+        object.addProperty("expiration-time", table.getExpirationTime());
+        object.addProperty("etag", table.getEtag());
 
-      object.addProperty("name", table.getFriendlyName());
-      object.addProperty(TABLE_ID, table.getTableId().getTable());
-      object.addProperty("created", table.getCreationTime());
-      object.addProperty("description", table.getDescription());
-      object.addProperty("last-modified", table.getLastModifiedTime());
-      object.addProperty("expiration-time", table.getExpirationTime());
-      object.addProperty("etag", table.getEtag());
+        values.add(object);
+      }
 
-      values.add(object);
+      JsonObject response = new JsonObject();
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (BigQueryException e) {
+      if (e.getReason() != null) {
+        // CDAP-14155 - BigQueryException message is too large. Instead just throw reason of the exception
+        throw new RuntimeException(e.getReason());
+      }
+      // Its possible that reason of the BigQueryException is null, in that case use exception message
+      throw new RuntimeException(e.getMessage());
     }
-
-    JsonObject response = new JsonObject();
-    response.addProperty("status", HttpURLConnection.HTTP_OK);
-    response.addProperty("message", "Success");
-    response.addProperty("count", values.size());
-    response.add("values", values);
-    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
   /**
