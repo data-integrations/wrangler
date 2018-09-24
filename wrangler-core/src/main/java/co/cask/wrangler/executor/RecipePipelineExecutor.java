@@ -138,7 +138,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         i++;
       }
     } catch (DirectiveExecutionException e) {
-      throw new RecipeException(e);
+      throw new RecipeException(e.getMessage(), e);
     }
     return results;
   }
