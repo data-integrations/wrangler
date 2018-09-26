@@ -142,7 +142,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
 
       String directives = config.directives;
-      if(config.udds != null && !config.udds.trim().isEmpty()) {
+      if (config.udds != null && !config.udds.trim().isEmpty()) {
         if (config.containsMacro("directives")) {
           directives = String.format("#pragma load-directives %s;", config.udds);
         } else {
@@ -306,7 +306,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     );
 
     String directives = config.directives;
-    if(config.udds != null && !config.udds.trim().isEmpty()) {
+    if (config.udds != null && !config.udds.trim().isEmpty()) {
       directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
     }
 
@@ -536,6 +536,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Name("directives")
     @Description("Recipe for wrangling the input records")
     @Macro
+    @Nullable
     private String directives;
 
     @Name("udd")

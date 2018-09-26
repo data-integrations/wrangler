@@ -24,6 +24,7 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import javax.annotation.Nullable;
 
 import static org.apache.commons.lang3.StringUtils.trim;
 
@@ -50,7 +51,7 @@ public final class MigrateToV2 implements GrammarMigrator {
     this(Arrays.asList(recipe));
   }
 
-  public MigrateToV2(String recipe, String delimiter) {
+  public MigrateToV2(@Nullable String recipe, String delimiter) {
     this(recipe != null ? recipe.trim().split(delimiter) : new String[]{});
   }
 
