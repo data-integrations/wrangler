@@ -77,10 +77,11 @@ public final class SetType implements Directive {
         }
         try {
           row.setValue(idx, convertType(type, object));
+        } catch (DirectiveExecutionException e) {
+          throw e;
         } catch (Exception e) {
-          throw new DirectiveExecutionException(
-            String.format(toString() + ":" + e.getMessage())
-          );
+          throw new DirectiveExecutionException(String.format("Invalid data: Column '%s' can not be converted to '%s'",
+                                                              col, type));
         }
       }
     }
