@@ -29,7 +29,6 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.workspace.DataType;
@@ -40,14 +39,13 @@ import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Acl;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.StorageException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
@@ -67,10 +65,14 @@ import java.nio.channels.WritableByteChannel;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -103,7 +105,7 @@ public class GCSService extends AbstractWranglerService {
    */
   @POST
   @Path("/connections/gcs/test")
-  public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder) {
+  public void testGCSConnection(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
@@ -123,8 +125,6 @@ public class GCSService extends AbstractWranglerService {
       ServiceUtils.error(responder, e.getMessage());
     }
   }
-
-
 
   private boolean validateConnection(String connectionId, Connection connection,
                                      HttpServiceResponder responder) {
@@ -155,19 +155,19 @@ public class GCSService extends AbstractWranglerService {
     String prefix = null;
 
     try {
-      final Connection[] connection = new Connection[1];
+      final Connection[] connections = new Connection[1];
       getContext().execute(new TxRunnable() {
         @Override
         public void run(DatasetContext datasetContext) throws Exception {
-          connection[0] = store.get(connectionId);
+          connections[0] = store.get(connectionId);
         }
       });
 
-      if (!validateConnection(connectionId, connection[0], responder)) {
+      if (!validateConnection(connectionId, connections[0], responder)) {
         return;
       }
 
-
+      Connection connection = connections[0];
       int bucketStart = path.indexOf("/");
       if (bucketStart != -1) {
         int bucketEnd = path.indexOf("/", bucketStart + 1);
@@ -181,18 +181,17 @@ public class GCSService extends AbstractWranglerService {
         }
       }
 
-      Storage storage = GCPUtils.getStorageService(connection[0]);
+      Storage storage = GCPUtils.getStorageService(connection);
+      Set<String> bucketWhitelist = getBucketWhitelist(connection);
+
       if (bucketName.isEmpty() && prefix == null) {
-        Page<Bucket> list = storage.list();
-        Iterator<Bucket> iterator = list.getValues().iterator();
         JsonObject response = new JsonObject();
         response.addProperty("status", HttpURLConnection.HTTP_OK);
         response.addProperty("message", "OK");
         JsonArray values = new JsonArray();
-        while(iterator.hasNext()) {
-          com.google.cloud.storage.Bucket bucket = iterator.next();
-          JsonObject object = new JsonObject();
+        for (Bucket bucket : getBuckets(storage, bucketWhitelist)) {
           String name = bucket.getName();
+          JsonObject object = new JsonObject();
           object.addProperty("name", name);
           object.addProperty("created", bucket.getCreateTime() / 1000);
           object.addProperty("generated-id", bucket.getGeneratedId());
@@ -462,7 +461,7 @@ public class GCSService extends AbstractWranglerService {
         JsonObject gcs = new JsonObject();
         properties.put("referenceName", "GCS_Source");
         properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", connection.getProp(GCPUtils.PROJECT_ID));
+        properties.put("project", GCPUtils.getProjectId(connection));
         properties.put("bucket", bucket);
         properties.put("path", uri);
         properties.put("recursive", "false");
@@ -475,7 +474,7 @@ public class GCSService extends AbstractWranglerService {
         JsonObject gcs = new JsonObject();
         properties.put("referenceName", "GCS_Blob");
         properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", connection.getProp(GCPUtils.PROJECT_ID));
+        properties.put("project", GCPUtils.getProjectId(connection));
         properties.put("bucket", bucket);
         properties.put("path", uri);
         gcs.add("properties", new Gson().toJsonTree(properties));
@@ -493,5 +492,48 @@ public class GCSService extends AbstractWranglerService {
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
+  }
+
+  private Set<String> getBucketWhitelist(Connection connection) {
+    String whitelistStr = connection.getAllProps().get("bucketWhitelist");
+    Set<String> whitelist = new LinkedHashSet<>();
+    if (whitelistStr == null) {
+      return whitelist;
+    }
+    for (String bucket : whitelistStr.split(",")) {
+      whitelist.add(bucket.trim());
+    }
+    return whitelist;
+  }
+
+  private Collection<Bucket> getBuckets(Storage storage, Set<String> whitelist) {
+    // this will include buckets that can be listed by the service account, but may not include all buckets
+    // in the whitelist, if the whitelist contains publicly accessible buckets from other projects.
+    // do some post-processing to filter out anything not in the whitelist and also try and lookup buckets
+    // that are in the whitelist but not in the returned list
+    Page<Bucket> list = storage.list();
+    List<Bucket> output = new ArrayList<>();
+    Set<String> missingBuckets = new HashSet<>(whitelist);
+    // use iterateAll to make sure we get all results
+    for (Bucket bucket : list.iterateAll()) {
+      String bucketName = bucket.getName();
+      missingBuckets.remove(bucketName);
+      if (whitelist.isEmpty() || whitelist.contains(bucketName)) {
+        output.add(bucket);
+      }
+    }
+    // this only contains buckets that are in the whitelist but were not returned by the list call
+    for (String whitelistBucket : missingBuckets) {
+      try {
+        Bucket bucket = storage.get(whitelistBucket);
+        if (bucket != null) {
+          output.add(bucket);
+        }
+      } catch (StorageException e) {
+        // ignore and move on
+        LOG.debug("Exception getting bucket {} from the whitelist.", whitelistBucket, e);
+      }
+    }
+    return output;
   }
 }
