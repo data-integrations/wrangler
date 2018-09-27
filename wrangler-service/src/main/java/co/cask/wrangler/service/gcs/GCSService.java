@@ -379,10 +379,10 @@ public class GCSService extends AbstractWranglerService {
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, records);
           properties.put(PropertyIds.PLUGIN_TYPE, "normal");
         } else if (contentType.equalsIgnoreCase("application/json")) {
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.JSON, bytes);
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
           properties.put(PropertyIds.PLUGIN_TYPE, "normal");
         } else if (contentType.equalsIgnoreCase("application/xml")) {
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.XML, bytes);
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
           properties.put(PropertyIds.PLUGIN_TYPE, "blob");
         } else {
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
