@@ -26,12 +26,6 @@ public enum DataType {
   // This defines the text files.
   TEXT("text/plain"),
 
-  // This defines the XML files.
-  XML("application/xml"),
-
-  // This defines the JSON files.
-  JSON("application/json"),
-
   // Special format native to Dataprep, this converts the data into records using the delimiter.
   RECORDS("application/data-prep");
 
