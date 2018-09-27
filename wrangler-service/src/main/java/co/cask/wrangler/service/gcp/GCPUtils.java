@@ -25,8 +25,6 @@ import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,7 +35,6 @@ import java.io.IOException;
  * Class description here.
  */
 public final class GCPUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(GCPUtils.class);
   public static final String PROJECT_ID = "projectId";
   public static final String SERVICE_ACCOUNT_KEYFILE = "service-account-keyfile";
 
@@ -84,13 +81,13 @@ public final class GCPUtils {
    */
   public static Spanner getSpannerService(Connection connection) throws Exception {
     SpannerOptions.Builder optionsBuilder = SpannerOptions.newBuilder();
-    if (connection.hasProperty(GCPUtils.SERVICE_ACCOUNT_KEYFILE)) {
-      String path = connection.getAllProps().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+    if (connection.hasProperty(SERVICE_ACCOUNT_KEYFILE)) {
+      String path = connection.getAllProps().get(SERVICE_ACCOUNT_KEYFILE);
       optionsBuilder.setCredentials(loadLocalFile(path));
     }
 
-    String projectId = connection.hasProperty(GCPUtils.PROJECT_ID) ?
-      connection.getProp(GCPUtils.PROJECT_ID) : ServiceOptions.getDefaultProjectId();
+    String projectId = connection.hasProperty(PROJECT_ID) ?
+      connection.getProp(PROJECT_ID) : ServiceOptions.getDefaultProjectId();
     if (projectId == null) {
       throw new IllegalArgumentException("Could not detect Google Cloud project id from the environment. " +
                                            "Please specify a project id for the connection.");
@@ -104,14 +101,22 @@ public final class GCPUtils {
    * set credentials and project_id if those are provided in the input connection
    */
   private static void setProperties(Connection connection, ServiceOptions.Builder serviceOptions) throws Exception {
-    if (connection.hasProperty(GCPUtils.SERVICE_ACCOUNT_KEYFILE)) {
-      String path = connection.getAllProps().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+    if (connection.hasProperty(SERVICE_ACCOUNT_KEYFILE)) {
+      String path = connection.getAllProps().get(SERVICE_ACCOUNT_KEYFILE);
       serviceOptions.setCredentials(loadLocalFile(path));
     }
-    if (connection.hasProperty(GCPUtils.PROJECT_ID)) {
-      String projectId = connection.getAllProps().get(GCPUtils.PROJECT_ID);
+    if (connection.hasProperty(PROJECT_ID)) {
+      String projectId = connection.getAllProps().get(PROJECT_ID);
       serviceOptions.setProjectId(projectId);
     }
+  }
+
+  /**
+   * Get the project id for the connection
+   */
+  public static String getProjectId(Connection connection) {
+    String projectId = connection.getAllProps().get(GCPUtils.PROJECT_ID);
+    return projectId == null ? ServiceOptions.getDefaultProjectId() : projectId;
   }
 
   private GCPUtils() {
