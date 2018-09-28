@@ -246,12 +246,12 @@ public class ConnectionService extends AbstractHttpServiceHandler {
 
   @Nullable
   private String getDefaultConnection(List<Connection> connections, ConnectionTypeConfig connectionTypeConfig) {
-    String defaultConnectionName = connectionTypeConfig.getDefaultConnection();
-    if (defaultConnectionName == null) {
+    String defaultConnection = connectionTypeConfig.getDefaultConnection();
+    if (defaultConnection == null) {
       return null;
     }
     Optional<Connection> connection =
-      connections.stream().filter(e -> defaultConnectionName.equals(e.getName())).findFirst();
+      connections.stream().filter(e -> defaultConnection.equals(e.getId())).findFirst();
     return connection.isPresent() ? connection.get().getName() : null;
   }
 
