@@ -252,7 +252,7 @@ public class ConnectionService extends AbstractHttpServiceHandler {
     }
     Optional<Connection> connection =
       connections.stream().filter(e -> defaultConnection.equals(e.getId())).findFirst();
-    return connection.isPresent() ? connection.get().getName() : null;
+    return connection.map(Connection::getId).orElse(null);
   }
 
   /**
