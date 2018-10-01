@@ -7,12 +7,12 @@ aam	application/x-authorware-map
 aas	application/x-authorware-seg
 abc	text/vndabc
 acgi	text/html
-adoc  text/plain
+adoc	text/plain
 aim	text/plain
 ans	text/plain
 apt	text/plain
 asc	text/plain
-ascii text/plain
+ascii	text/plain
 afl	video/animaflex
 ai	application/postscript
 aif	audio/aiff
@@ -263,9 +263,8 @@ p7m	application/pkcs7-mime
 p7r	application/x-pkcs7-certreqresp
 p7s	application/pkcs7-signature
 part	application/pro_eng
-parquet application/parquet
-pas	text/pascal
 parquet	application/parquet
+pas	text/pascal
 pb	application/protobuf
 pbm	image/x-portable-bitmap
 pcl	application/vndhp-pcl
