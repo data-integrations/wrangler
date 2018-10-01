@@ -46,7 +46,7 @@ public class FileTypeDetector {
       Scanner scanner = new Scanner(file);
       while(scanner.hasNext()) {
         String line = scanner.nextLine();
-        String[] parts = line.split("[\t+\\s+]");
+        String[] parts = line.split("[\t+]");
         if (parts.length == 2) {
           extensions.put(parts[0], parts[1]);
         }
@@ -105,7 +105,8 @@ public class FileTypeDetector {
     } else {
       String name = FilenameUtils.getBaseName(location);
       if (name.equalsIgnoreCase(location)) {
-        return "UNKNOWN";
+        // CDAP-14397 return text type if there is no extension in the filename.
+        return "text/plain";
       }
       return detectFileType(name);
     }
