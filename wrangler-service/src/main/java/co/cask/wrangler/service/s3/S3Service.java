@@ -77,6 +77,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -181,7 +182,8 @@ public class S3Service extends AbstractHttpServiceHandler {
   @Path("/connections/{connection-id}/s3/explore")
   public void getS3BucketInfo(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("connection-id") final String connectionId,
-                              @QueryParam("path") String path) {
+                              @QueryParam("path") String path,
+                              @QueryParam("bucket-limit") @DefaultValue("10000") int bucketLimit) {
     try {
       final Connection[] connection = new Connection[1];
       getContext().execute(new TxRunnable() {
@@ -239,18 +241,27 @@ public class S3Service extends AbstractHttpServiceHandler {
       listObjectsRequest.setDelimiter("/");
       ObjectListing result;
       DirectoryListing listing = new DirectoryListing();
+      // TODO: Remove this once CDAP-14446 is fixed.
+      boolean limitExceeded = false;
       do {
+        if (listing.size() == bucketLimit) {
+          limitExceeded = true;
+          break;
+        }
         result = s3.listObjects(listObjectsRequest);
         listing.addDirectory(result.getCommonPrefixes());
         listing.addObject(result.getObjectSummaries());
         listObjectsRequest.setMarker(result.getMarker());
-      } while (result.isTruncated() == true);
+      } while (result.isTruncated());
 
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "OK");
       response.addProperty("count", listing.size());
       response.add("values", listing.get());
+      if (limitExceeded) {
+        response.addProperty("truncated", "true");
+      }
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (AmazonS3Exception e) {
       ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
