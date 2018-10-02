@@ -309,8 +309,10 @@ public class BigQueryService extends AbstractWranglerService {
 
       Map<String, String> properties = new HashMap<>();
       JsonObject value = new JsonObject();
-
+      String externalDatasetName =
+        new StringJoiner(".").add(config.get(DATASET_ID)).add(config.get(TABLE_ID)).toString();
       JsonObject bigQuery = new JsonObject();
+      properties.put("referenceName", externalDatasetName);
       properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("bucket", config.get(BUCKET));
       properties.put("project", config.get(GCPUtils.PROJECT_ID));
