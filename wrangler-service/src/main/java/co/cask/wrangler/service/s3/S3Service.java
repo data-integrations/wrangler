@@ -98,6 +98,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
+  private static final int BUCKET_LIMIT = 10000;
   // Abstraction over the table defined above for managing connections.
   private ConnectionStore store;
 
@@ -239,18 +240,26 @@ public class S3Service extends AbstractHttpServiceHandler {
       listObjectsRequest.setDelimiter("/");
       ObjectListing result;
       DirectoryListing listing = new DirectoryListing();
+      boolean limitExceeded = false;
       do {
+        if (listing.size() == BUCKET_LIMIT) {
+          limitExceeded = true;
+          break;
+        }
         result = s3.listObjects(listObjectsRequest);
         listing.addDirectory(result.getCommonPrefixes());
         listing.addObject(result.getObjectSummaries());
         listObjectsRequest.setMarker(result.getMarker());
-      } while (result.isTruncated() == true);
+      } while (result.isTruncated());
 
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "OK");
       response.addProperty("count", listing.size());
       response.add("values", listing.get());
+      if (limitExceeded) {
+        response.addProperty("truncated", "true");
+      }
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (AmazonS3Exception e) {
       ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
