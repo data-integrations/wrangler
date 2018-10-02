@@ -35,7 +35,8 @@ public class FileTypeDetectorTest {
       "syslog.txt.1",
       "titanic.csv",
       "titanic.csv.1",
-      "titanic.csv.1.2"
+      "titanic.csv.1.2",
+      "noextension"
     };
 
     for (String filename : filenames) {
