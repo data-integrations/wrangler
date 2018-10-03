@@ -38,7 +38,6 @@ import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Acl;
@@ -60,7 +59,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
@@ -455,6 +453,7 @@ public class GCSService extends AbstractWranglerService {
 
       Map<String, String> config = ws.getProperties(workspaceId);
       String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+      String bucket = config.get("bucket");
       String uri = config.get(PropertyIds.URI);
       String[] parts = uri.split("/");
       String filename = parts[parts.length -1];
@@ -462,30 +461,23 @@ public class GCSService extends AbstractWranglerService {
 
       Map<String, String> properties = new HashMap<>();
       JsonObject value = new JsonObject();
-
-      if (pluginType.equalsIgnoreCase("normal")) {
-        JsonObject gcs = new JsonObject();
-        properties.put("referenceName", externalDatasetName);
-        properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", GCPUtils.getProjectId(connection));
-        properties.put("path", uri);
-        properties.put("recursive", "false");
-        properties.put("filenameOnly", "false");
-        gcs.add("properties", new Gson().toJsonTree(properties));
-        gcs.addProperty("name", "GCSFile");
-        gcs.addProperty("type", "source");
-        value.add("GCSFile", gcs);
-      } else if (pluginType.equalsIgnoreCase("blob")) {
-        JsonObject gcs = new JsonObject();
-        properties.put("referenceName", externalDatasetName);
-        properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", GCPUtils.getProjectId(connection));
-        properties.put("path", uri);
-        gcs.add("properties", new Gson().toJsonTree(properties));
-        gcs.addProperty("name", "GCSFileBlob");
-        gcs.addProperty("type", "source");
-        value.add("GCSFileBlob", gcs);
+      if (pluginType.equalsIgnoreCase("blob")) {
+        properties.put("format", "blob");
+      } else {
+        // text, json and xml will have pluginType set text and not blob
+        properties.put("format", "text");
       }
+      JsonObject gcs = new JsonObject();
+      properties.put("referenceName", externalDatasetName);
+      properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+      properties.put("project", GCPUtils.getProjectId(connection));
+      properties.put("path", uri);
+      properties.put("recursive", "false");
+      properties.put("filenameOnly", "false");
+      gcs.add("properties", new Gson().toJsonTree(properties));
+      gcs.addProperty("name", "GCSFile");
+      gcs.addProperty("type", "source");
+      value.add("GCSFile", gcs);
       JsonArray values = new JsonArray();
       values.add(value);
       response.addProperty("status", HttpURLConnection.HTTP_OK);
