@@ -474,6 +474,7 @@ public class GCSService extends AbstractWranglerService {
       properties.put("path", uri);
       properties.put("recursive", "false");
       properties.put("filenameOnly", "false");
+      properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
       gcs.add("properties", new Gson().toJsonTree(properties));
       gcs.addProperty("name", "GCSFile");
       gcs.addProperty("type", "source");

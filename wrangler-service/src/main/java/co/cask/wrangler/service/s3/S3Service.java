@@ -21,29 +21,24 @@ import co.cask.cdap.api.annotation.ReadOnly;
 import co.cask.cdap.api.annotation.ReadWrite;
 import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
-import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.data.DatasetContext;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
-import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.FileTypeDetector;
+import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.explorer.BoundedLineInputStream;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -65,8 +60,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -86,41 +79,19 @@ import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
  * Service to explore S3 filesystem
  */
-public class S3Service extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(S3Service.class);
+public class S3Service extends AbstractWranglerService {
   private static final Gson gson =
     new GsonBuilder().
       setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES).
       registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
-  // Abstraction over the table defined above for managing connections.
-  private ConnectionStore store;
 
-  private FileTypeDetector detector;
-
-  @UseDataSet(WORKSPACE_DATASET)
-  private WorkspaceDataset table;
-
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
-  private Table connectionTable;
-
-  /**
-   * Stores the context so that it can be used later.
-   *
-   * @param context the HTTP service runtime context
-   */
-  @Override
-  public void initialize(HttpServiceContext context) throws Exception {
-    super.initialize(context);
-    store = new ConnectionStore(connectionTable);
-    this.detector = new FileTypeDetector();
-  }
+  private static final FileTypeDetector detector = new FileTypeDetector();
 
   /**
    * Tests S3 Connection.
@@ -338,7 +309,7 @@ public class S3Service extends AbstractHttpServiceHandler {
                             @QueryParam("wid") String workspaceId) {
     JsonObject response = new JsonObject();
     try {
-      Map<String, String> config = table.getProperties(workspaceId);
+      Map<String, String> config = ws.getProperties(workspaceId);
       String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
       Map<String, String> properties = new HashMap<>();
       if (pluginType.equalsIgnoreCase("blob")) {
@@ -354,6 +325,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       properties.put("accessID", s3Configuration.getAWSAccessKeyId());
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
       properties.put("path", String.format("s3a://%s/%s", bucketName, key));
+      properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
 
       s3.add("properties", gson.toJsonTree(properties));
       s3.addProperty("name", "S3");
@@ -387,7 +359,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       String file = String.format("%s:%s:%s", scope, s3Object.getBucketName(), s3Object.getKey());
       String identifier = ServiceUtils.generateMD5(file);
       String fileName = name.substring(name.lastIndexOf("/") + 1);
-      table.createWorkspaceMeta(identifier, scope, fileName);
+      ws.createWorkspaceMeta(identifier, scope, fileName);
 
       // Iterate through lines to extract only 'limit' random lines.
       // Depending on the type, the sampling of the input is performed.
@@ -414,12 +386,12 @@ public class S3Service extends AbstractHttpServiceHandler {
       // S3 specific properties.
       properties.put("bucket-name", s3Object.getBucketName());
       properties.put("key", s3Object.getKey());
-      table.writeProperties(identifier, properties);
+      ws.writeProperties(identifier, properties);
 
       // Write rows to workspace.
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] data = serDe.toByteArray(rows);
-      table.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
+      ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
       // Preparing return response to include mandatory fields : id and name.
       JsonArray values = new JsonArray();
@@ -461,7 +433,7 @@ public class S3Service extends AbstractHttpServiceHandler {
       String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
       String identifier = ServiceUtils.generateMD5(file);
       String fileName = name.substring(name.lastIndexOf("/") + 1);
-      table.createWorkspaceMeta(identifier, fileName);
+      ws.createWorkspaceMeta(identifier, fileName);
 
       stream = new BufferedInputStream(inputStream);
       byte[] bytes = new byte[(int)s3Object.getObjectMetadata().getContentLength() + 1];
@@ -478,8 +450,8 @@ public class S3Service extends AbstractHttpServiceHandler {
       // S3 specific properties.
       properties.put("bucket-name", s3Object.getBucketName());
       properties.put("key", s3Object.getKey());
-      table.writeProperties(identifier, properties);
-      table.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, getDataType(name), bytes);
+      ws.writeProperties(identifier, properties);
+      ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, getDataType(name), bytes);
 
       // Preparing return response to include mandatory fields : id and name.
       JsonArray values = new JsonArray();
