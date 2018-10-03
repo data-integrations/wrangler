@@ -157,13 +157,21 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
   @Path("explorer/fs/specification")
   @GET
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @QueryParam("path") String path) {
+                            @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     JsonObject response = new JsonObject();
     try {
+      Map<String, String> config = table.getProperties(workspaceId);
+      String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+      Map<String, String> properties = new HashMap<>();
+      if (pluginType.equalsIgnoreCase("blob")) {
+        properties.put("format", "blob");
+      } else {
+        // text, json and xml will have pluginType set text and not blob
+        properties.put("format", "text");
+      }
       Location location = explorer.getLocation(path);
       JsonObject value = new JsonObject();
       JsonObject file = new JsonObject();
-      Map<String, String> properties = new HashMap<>();
       properties.put("path", location.toURI().toString());
       properties.put("referenceName", location.getName());
       properties.put("ignoreNonExistingFolders", "false");
@@ -179,7 +187,7 @@ public class FilesystemExplorer extends AbstractHttpServiceHandler {
       response.addProperty("count", values.size());
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (ExplorerException e) {
+    } catch (Exception e) {
       error(responder, e.getMessage());
     }
   }
