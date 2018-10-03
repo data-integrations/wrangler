@@ -334,15 +334,23 @@ public class S3Service extends AbstractHttpServiceHandler {
   @GET
   public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
                             @PathParam("connection-id") String connectionId,
-                            @PathParam("bucket-name") String bucketName, @QueryParam("key") final String key) {
+                            @PathParam("bucket-name") String bucketName, @QueryParam("key") final String key,
+                            @QueryParam("wid") String workspaceId) {
     JsonObject response = new JsonObject();
     try {
+      Map<String, String> config = table.getProperties(workspaceId);
+      String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+      Map<String, String> properties = new HashMap<>();
+      if (pluginType.equalsIgnoreCase("blob")) {
+        properties.put("format", "blob");
+      } else {
+        // text, json and xml will have pluginType set text and not blob
+        properties.put("format", "text");
+      }
       Connection conn = store.get(connectionId);
       S3Configuration s3Configuration = new S3Configuration(conn);
       JsonObject value = new JsonObject();
       JsonObject s3 = new JsonObject();
-
-      Map<String, String> properties = new HashMap<>();
       properties.put("accessID", s3Configuration.getAWSAccessKeyId());
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
       properties.put("path", String.format("s3a://%s/%s", bucketName, key));
