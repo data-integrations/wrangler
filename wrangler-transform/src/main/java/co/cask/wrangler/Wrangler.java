@@ -342,10 +342,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
         recipe.initialize(dContext);
       } else {
-        LOG.warn(
-          String.format("Stage:%s - Context is set to default, no aliasing and restriction would be applied.",
-                        getContext().getStageName())
-          );
+        // this is normal in cloud environments
+        LOG.info(String.format("Stage:%s - The Dataprep service is not accessible in this environment. "
+                                 + "No aliasing and restriction will be applied.", getContext().getStageName()));
         recipe.initialize(null);
       }
     } catch (IOException | URISyntaxException e) {
