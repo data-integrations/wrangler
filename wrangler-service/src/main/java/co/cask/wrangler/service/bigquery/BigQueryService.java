@@ -115,6 +115,7 @@ public class BigQueryService extends AbstractWranglerService {
                             connectionType.getType()));
         return;
       }
+      GCPUtils.validateProjectCredentials(connection);
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
       bigQuery.listDatasets(BigQuery.DatasetListOption.pageSize(1));
