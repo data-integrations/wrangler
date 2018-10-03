@@ -38,6 +38,7 @@ import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Acl;
@@ -117,6 +118,8 @@ public class GCSService extends AbstractWranglerService {
                             connectionType.getType()));
         return;
       }
+
+      GCPUtils.validateProjectCredentials(connection);
 
       Storage storage = GCPUtils.getStorageService(connection);
       storage.list(Storage.BucketListOption.pageSize(1));

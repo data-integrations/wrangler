@@ -99,6 +99,7 @@ public class SpannerService extends AbstractWranglerService {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
+      GCPUtils.validateProjectCredentials(connection);
       getInstances(connection);
       ServiceUtils.success(responder, "Success");
     } catch (BadRequestException e) {
