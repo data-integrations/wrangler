@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
@@ -203,8 +204,10 @@ public class SpannerService extends AbstractWranglerService {
       String projectId = connectionProperties.get(GCPUtils.PROJECT_ID);
       String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
 
+      String externalDsName = new StringJoiner(".").add(instanceId).add(databaseId).add(tableId).toString();
+
       SpannerSpecification specification =
-        new SpannerSpecification(path, projectId, instanceId, databaseId, tableId, schema);
+        new SpannerSpecification(externalDsName, path, projectId, instanceId, databaseId, tableId, schema);
 
       // initialize and store workspace properties
       Map<String, String> workspaceProperties = new HashMap<>();
