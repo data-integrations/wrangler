@@ -17,6 +17,7 @@
 package co.cask.wrangler.service.gcp;
 
 import co.cask.wrangler.dataset.connections.Connection;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.bigquery.BigQuery;
@@ -117,6 +118,28 @@ public final class GCPUtils {
   public static String getProjectId(Connection connection) {
     String projectId = connection.getAllProps().get(GCPUtils.PROJECT_ID);
     return projectId == null ? ServiceOptions.getDefaultProjectId() : projectId;
+  }
+
+  /**
+   * Validates that the project and credentials are either explicitly set in the connection or are available through
+   * the environment.
+   *
+   * @param connection the connection to validate
+   * @throws IllegalArgumentException if the project or credentials are not available
+   */
+  public static void validateProjectCredentials(Connection connection) {
+    if (connection.getProp(PROJECT_ID) == null && ServiceOptions.getDefaultProjectId() == null) {
+      throw new IllegalArgumentException("Project ID could not be found from the environment. " +
+                                           "Please provide the Project ID.");
+    }
+    if (connection.getProp(SERVICE_ACCOUNT_KEYFILE) == null) {
+      try {
+        GoogleCredential.getApplicationDefault();
+      } catch (IOException e) {
+        throw new IllegalArgumentException("Google credentials could not be found from the environment. " +
+                                             "Please provide a service account key.");
+      }
+    }
   }
 
   private GCPUtils() {
