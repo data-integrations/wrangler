@@ -27,6 +27,7 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ReportErrorAndProceed;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Identifier;
@@ -97,7 +98,7 @@ public class SendToErrorAndContinue implements Directive {
   public List<Row> execute(List<Row> rows, ExecutorContext context)
     throws DirectiveExecutionException, ReportErrorAndProceed {
     if (context != null) {
-      context.getTransientStore().increment("dq_total", 1);
+      context.getTransientStore().increment(TransientVariableScope.LOCAL, "dq_total", 1);
     }
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
@@ -127,7 +128,7 @@ public class SendToErrorAndContinue implements Directive {
             message = condition;
           }
           if (context != null) {
-            context.getTransientStore().increment("dq_failure", 1);
+            context.getTransientStore().increment(TransientVariableScope.LOCAL, "dq_failure", 1);
           }
           throw new ReportErrorAndProceed(message, 1);
         }

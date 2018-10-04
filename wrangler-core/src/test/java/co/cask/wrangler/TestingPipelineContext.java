@@ -55,7 +55,27 @@ class TestingPipelineContext implements ExecutorContext {
    */
   @Override
   public StageMetrics getMetrics() {
-    return null;
+    return new StageMetrics() {
+      @Override
+      public void count(String s, int i) {
+
+      }
+
+      @Override
+      public void gauge(String s, long l) {
+
+      }
+
+      @Override
+      public void pipelineCount(String s, int i) {
+
+      }
+
+      @Override
+      public void pipelineGauge(String s, long l) {
+
+      }
+    };
   }
 
   /**

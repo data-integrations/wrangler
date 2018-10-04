@@ -16,6 +16,7 @@
 
 package co.cask.directives.aggregates;
 
+import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.api.TransientStore;
 
 import java.util.HashMap;
@@ -32,7 +33,8 @@ import java.util.Set;
  * being processed.
  */
 public class DefaultTransientStore implements TransientStore {
-  private final Map<String, Object> variables = new HashMap<>();
+  private final Map<String, Object> global = new HashMap<>();
+  private final Map<String, Object> local = new HashMap<>();
 
   /**
    * Increments a value of the variable.
@@ -41,12 +43,23 @@ public class DefaultTransientStore implements TransientStore {
    * @param value associated with the variable.
    */
   @Override
-  public void increment(String name, long value) {
-    Long count = get(name);
+  public void increment(TransientVariableScope scope, String name, long value) {
+    if(scope == TransientVariableScope.GLOBAL) {
+      increment(global, name, value);
+    } else if (scope == TransientVariableScope.LOCAL) {
+      increment(local, name, value);
+    }
+  }
+
+  private void increment(Map<String, Object> variables, String name, long value) {
+    Long count = null;
+    if (variables.containsKey(name)) {
+      count = (Long) variables.get(name);
+    }
     if (count == null) {
       count = 0L;
     }
-    set(name, count + value);
+    variables.put(name, count + value);
   }
 
   /**
@@ -56,18 +69,29 @@ public class DefaultTransientStore implements TransientStore {
    */
   @Override
   public Set<String> getVariables() {
-    if(variables == null) {
+    Set<String> vars = new HashSet<>();
+    if(global == null && local == null) {
       return new HashSet<>();
     }
-    return variables.keySet();
+    if (global != null) {
+      vars.addAll(global.keySet());
+    }
+    if (local != null) {
+      vars.addAll(local.keySet());
+    }
+    return vars;
   }
 
   /**
    * Resets the state of this store.
    */
   @Override
-  public void reset() {
-    variables.clear();
+  public void reset(TransientVariableScope scope) {
+    if (scope == TransientVariableScope.GLOBAL) {
+      global.clear();
+    } else if (scope == TransientVariableScope.LOCAL) {
+      local.clear();
+    }
   }
 
   /**
@@ -78,7 +102,10 @@ public class DefaultTransientStore implements TransientStore {
    */
   @Override
   public <T> T get(String name) {
-    return (T) variables.get(name);
+    if (global.containsKey(name)) {
+      return (T) global.get(name);
+    }
+    return (T) local.get(name);
   }
 
   /**
@@ -88,7 +115,11 @@ public class DefaultTransientStore implements TransientStore {
    * @param value of the variable.
    */
   @Override
-  public void set(String name, Object value) {
-    variables.put(name, value);
+  public void set(TransientVariableScope scope, String name, Object value) {
+    if (scope == TransientVariableScope.GLOBAL) {
+      global.put(name, value);
+    } else if (scope == TransientVariableScope.LOCAL) {
+      local.put(name, value);
+    }
   }
 }
