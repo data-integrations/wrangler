@@ -154,7 +154,7 @@ public class S3Service extends AbstractWranglerService {
   public void getS3BucketInfo(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("connection-id") final String connectionId,
                               @QueryParam("path") String path,
-                              @QueryParam("bucket-limit") @DefaultValue("10000") int bucketLimit) {
+                              @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
     try {
       final Connection[] connection = new Connection[1];
       getContext().execute(new TxRunnable() {
@@ -215,7 +215,7 @@ public class S3Service extends AbstractWranglerService {
       // TODO: Remove this once CDAP-14446 is fixed.
       boolean limitExceeded = false;
       do {
-        if (listing.size() == bucketLimit) {
+        if (listing.size() >= bucketLimit) {
           limitExceeded = true;
           break;
         }
