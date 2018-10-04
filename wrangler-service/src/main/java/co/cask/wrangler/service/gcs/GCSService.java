@@ -65,7 +65,6 @@ import java.nio.channels.WritableByteChannel;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -74,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -152,8 +152,9 @@ public class GCSService extends AbstractWranglerService {
   @GET
   @Path("/connections/{connection-id}/gcs/explore")
   public void exploreGCS(HttpServiceRequest request, HttpServiceResponder responder,
-                              @PathParam("connection-id") final String connectionId,
-                              @QueryParam("path") String path) {
+                         @PathParam("connection-id") final String connectionId,
+                         @QueryParam("path") String path,
+                         @QueryParam("limit") @DefaultValue("1000") int objectLimit) {
     String bucketName = "";
     String prefix = null;
 
@@ -192,7 +193,9 @@ public class GCSService extends AbstractWranglerService {
         response.addProperty("status", HttpURLConnection.HTTP_OK);
         response.addProperty("message", "OK");
         JsonArray values = new JsonArray();
-        for (Bucket bucket : getBuckets(storage, bucketWhitelist)) {
+        // TODO: Remove objectLimit once CDAP-14446 is fixed.
+        Buckets buckets = getBuckets(storage, bucketWhitelist, objectLimit);
+        for (Bucket bucket : buckets.getBuckets()) {
           String name = bucket.getName();
           JsonObject object = new JsonObject();
           object.addProperty("name", name);
@@ -228,6 +231,9 @@ public class GCSService extends AbstractWranglerService {
         }
         response.addProperty("count", values.size());
         response.add("values", values);
+        if (buckets.isLimitExceeded()) {
+          response.addProperty("truncated", "true");
+        }
         sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
         return;
       }
@@ -242,6 +248,7 @@ public class GCSService extends AbstractWranglerService {
 
       Iterator<Blob> iterator = list.iterateAll().iterator();
       JsonArray values = new JsonArray();
+      boolean limitExceeded = false;
       while(iterator.hasNext()) {
         JsonObject object = new JsonObject();
         Blob blob = iterator.next();
@@ -273,12 +280,19 @@ public class GCSService extends AbstractWranglerService {
           object.addProperty("wrangle", isWrangeable);
         }
         values.add(object);
+        if (values.size() >= objectLimit) {
+          limitExceeded = true;
+          break;
+        }
       }
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "OK");
       response.addProperty("count", values.size());
       response.add("values", values);
+      if (limitExceeded) {
+        response.addProperty("truncated", "true");
+      }
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
       LOG.warn(
@@ -503,19 +517,24 @@ public class GCSService extends AbstractWranglerService {
     return whitelist;
   }
 
-  private Collection<Bucket> getBuckets(Storage storage, Set<String> whitelist) {
+  private Buckets getBuckets(Storage storage, Set<String> whitelist, int objectLimit) {
     // this will include buckets that can be listed by the service account, but may not include all buckets
     // in the whitelist, if the whitelist contains publicly accessible buckets from other projects.
     // do some post-processing to filter out anything not in the whitelist and also try and lookup buckets
     // that are in the whitelist but not in the returned list
     Page<Bucket> list = storage.list();
     List<Bucket> output = new ArrayList<>();
+    boolean limitExceeded = false;
     Set<String> missingBuckets = new HashSet<>(whitelist);
     // use iterateAll to make sure we get all results
     for (Bucket bucket : list.iterateAll()) {
       String bucketName = bucket.getName();
       missingBuckets.remove(bucketName);
       if (whitelist.isEmpty() || whitelist.contains(bucketName)) {
+        if (output.size() >= objectLimit) {
+          limitExceeded = true;
+          break;
+        }
         output.add(bucket);
       }
     }
@@ -524,6 +543,10 @@ public class GCSService extends AbstractWranglerService {
       try {
         Bucket bucket = storage.get(whitelistBucket);
         if (bucket != null) {
+          if (output.size() >= objectLimit) {
+            limitExceeded = true;
+            break;
+          }
           output.add(bucket);
         }
       } catch (StorageException e) {
@@ -531,6 +554,7 @@ public class GCSService extends AbstractWranglerService {
         LOG.debug("Exception getting bucket {} from the whitelist.", whitelistBucket, e);
       }
     }
-    return output;
+
+    return new Buckets(output, limitExceeded);
   }
 }
