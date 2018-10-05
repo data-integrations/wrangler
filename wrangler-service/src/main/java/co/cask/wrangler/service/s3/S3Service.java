@@ -328,7 +328,7 @@ public class S3Service extends AbstractWranglerService {
       JsonObject s3 = new JsonObject();
       properties.put("accessID", s3Configuration.getAWSAccessKeyId());
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
-      properties.put("path", String.format("s3a://%s/%s", bucketName, key));
+      properties.put("path", String.format("s3n://%s/%s", bucketName, key));
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
       properties.put("schema", Schemas.TEXT.toString());
 
