@@ -35,6 +35,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.Schemas;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -457,6 +458,10 @@ public class GCSService extends AbstractWranglerService {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
 
+    if (workspaceId == null) {
+      responder.sendError(400, "Workspace ID must be passed as query parameter 'wid'.");
+      return;
+    }
     JsonObject response = new JsonObject();
     try {
 
@@ -489,6 +494,7 @@ public class GCSService extends AbstractWranglerService {
       properties.put("recursive", "false");
       properties.put("filenameOnly", "false");
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
+      properties.put("schema", Schemas.TEXT.toString());
       gcs.add("properties", new Gson().toJsonTree(properties));
       gcs.addProperty("name", "GCSFile");
       gcs.addProperty("type", "source");
