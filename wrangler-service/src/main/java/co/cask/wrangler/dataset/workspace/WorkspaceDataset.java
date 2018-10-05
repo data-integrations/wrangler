@@ -80,7 +80,7 @@ public class WorkspaceDataset extends AbstractDataset {
    */
   @WriteOnly
   public void createWorkspaceMeta(String id, String name) throws WorkspaceException {
-    createWorkspaceMeta(id, name, DEFAULT_SCOPE, DataType.BINARY);
+    createWorkspaceMeta(id, DEFAULT_SCOPE, name, DataType.BINARY);
   }
 
   /**
