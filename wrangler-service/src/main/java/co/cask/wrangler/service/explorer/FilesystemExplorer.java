@@ -35,6 +35,7 @@ import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.Schemas;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.base.Charsets;
@@ -44,6 +45,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.twill.filesystem.Location;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -66,6 +69,7 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
  * It provides capabilities for listing file(s) and directories. It also provides metadata.
  */
 public class FilesystemExplorer extends AbstractWranglerService {
+  private static final Logger LOG = LoggerFactory.getLogger(FilesystemExplorer.class);
   private static final Gson gson =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private Explorer explorer;
@@ -152,10 +156,13 @@ public class FilesystemExplorer extends AbstractWranglerService {
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     JsonObject response = new JsonObject();
     try {
-      Map<String, String> config = ws.getProperties(workspaceId);
-      String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+      String pluginType = null;
+      if (workspaceId != null) {
+        Map<String, String> config = ws.getProperties(workspaceId);
+        pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+      }
       Map<String, String> properties = new HashMap<>();
-      if (pluginType.equalsIgnoreCase("blob")) {
+      if ("blob".equalsIgnoreCase(pluginType)) {
         properties.put("format", "blob");
       } else {
         // text, json and xml will have pluginType set text and not blob
@@ -169,6 +176,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
       properties.put("ignoreNonExistingFolders", "false");
       properties.put("recursive", "false");
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
+      properties.put("schema", Schemas.TEXT.toString());
       file.add("properties", gson.toJsonTree(properties));
       file.addProperty("name", "File");
       file.addProperty("type", "source");

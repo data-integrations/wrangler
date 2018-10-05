@@ -39,6 +39,7 @@ import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.Schemas;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.explorer.BoundedLineInputStream;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -309,10 +310,13 @@ public class S3Service extends AbstractWranglerService {
                             @QueryParam("wid") String workspaceId) {
     JsonObject response = new JsonObject();
     try {
-      Map<String, String> config = ws.getProperties(workspaceId);
-      String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+      String pluginType = null;
+      if (workspaceId != null) {
+        Map<String, String> config = ws.getProperties(workspaceId);
+        pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+      }
       Map<String, String> properties = new HashMap<>();
-      if (pluginType.equalsIgnoreCase("blob")) {
+      if ("blob".equalsIgnoreCase(pluginType)) {
         properties.put("format", "blob");
       } else {
         // text, json and xml will have pluginType set text and not blob
@@ -326,6 +330,7 @@ public class S3Service extends AbstractWranglerService {
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
       properties.put("path", String.format("s3a://%s/%s", bucketName, key));
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
+      properties.put("schema", Schemas.TEXT.toString());
 
       s3.add("properties", gson.toJsonTree(properties));
       s3.addProperty("name", "S3");
