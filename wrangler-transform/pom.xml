@@ -3,7 +3,7 @@
   <parent>
     <artifactId>wrangler</artifactId>
     <groupId>co.cask.wrangler</groupId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>3.2.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -110,9 +110,9 @@
         <version>1.0.1</version>
         <configuration>
           <cdapArtifacts>
-            <parent>system:cdap-data-pipeline[5.0.0,6.0.0-SNAPSHOT)</parent>
-            <parent>system:cdap-data-streams[5.0.0,6.0.0-SNAPSHOT)</parent>
-            <parent>system:mmds-app[1.0.0-SNAPSHOT,2.0.0-SNAPSHOT)</parent>
+            <parent>system:cdap-data-pipeline[5.1.0,6.0.0-SNAPSHOT)</parent>
+            <parent>system:cdap-data-streams[5.1.0,6.0.0-SNAPSHOT)</parent>
+            <parent>system:mmds-app[1.1.0-SNAPSHOT,2.0.0-SNAPSHOT)</parent>
           </cdapArtifacts>
         </configuration>
         <executions>
