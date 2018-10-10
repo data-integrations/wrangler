@@ -39,7 +39,7 @@ import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerService;
-import co.cask.wrangler.service.common.Schemas;
+import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.explorer.BoundedLineInputStream;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -310,18 +310,14 @@ public class S3Service extends AbstractWranglerService {
                             @QueryParam("wid") String workspaceId) {
     JsonObject response = new JsonObject();
     try {
-      String pluginType = null;
+      Format format = Format.TEXT;
       if (workspaceId != null) {
         Map<String, String> config = ws.getProperties(workspaceId);
-        pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+        String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
+        format = Format.valueOf(formatStr);
       }
       Map<String, String> properties = new HashMap<>();
-      if ("blob".equalsIgnoreCase(pluginType)) {
-        properties.put("format", "blob");
-      } else {
-        // text, json and xml will have pluginType set text and not blob
-        properties.put("format", "text");
-      }
+      properties.put("format", format.name().toLowerCase());
       Connection conn = store.get(connectionId);
       S3Configuration s3Configuration = new S3Configuration(conn);
       JsonObject value = new JsonObject();
@@ -330,7 +326,7 @@ public class S3Service extends AbstractWranglerService {
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
       properties.put("path", String.format("s3n://%s/%s", bucketName, key));
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
-      properties.put("schema", Schemas.TEXT.toString());
+      properties.put("schema", format.getSchema().toString());
 
       s3.add("properties", gson.toJsonTree(properties));
       s3.addProperty("name", "S3");
@@ -451,6 +447,9 @@ public class S3Service extends AbstractWranglerService {
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId);
+      DataType dataType = getDataType(name);
+      Format format = dataType == DataType.BINARY ? Format.BLOB : Format.TEXT;
+      properties.put(PropertyIds.FORMAT, format.name());
 
       // S3 specific properties.
       properties.put("bucket-name", s3Object.getBucketName());

@@ -19,13 +19,18 @@ package co.cask.wrangler.service.common;
 import co.cask.cdap.api.data.schema.Schema;
 
 /**
- * Utilities around schemas.
+ * Different formats for file based sources.
  */
-public class Schemas {
-  public static final Schema TEXT = Schema.recordOf("text", Schema.Field.of("body", Schema.of(Schema.Type.STRING)));
+public enum Format {
+  TEXT(Schema.recordOf("text", Schema.Field.of("body", Schema.of(Schema.Type.STRING)))),
+  BLOB(Schema.recordOf("blob", Schema.Field.of("body", Schema.of(Schema.Type.BYTES))));
+  private final Schema schema;
 
-  private Schemas() {
-    // private constructor for util class
+  Format(Schema schema) {
+    this.schema = schema;
   }
 
+  public Schema getSchema() {
+    return schema;
+  }
 }
