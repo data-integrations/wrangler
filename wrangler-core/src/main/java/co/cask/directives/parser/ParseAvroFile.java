@@ -35,6 +35,7 @@ import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.SeekableByteArrayInput;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,8 +83,7 @@ public class ParseAvroFile implements Directive {
           DataFileReader<GenericRecord> reader = null;
           try {
             reader =
-              new DataFileReader<>(new SeekableByteArrayInput((byte[]) object),
-                                                new GenericDatumReader<GenericRecord>());
+              new DataFileReader<>(new SeekableByteArrayInput((byte[]) object), new GenericDatumReader<>());
             while(reader.hasNext()) {
               Row newRow = new Row();
               add(reader.next(), newRow, null);
@@ -101,7 +101,8 @@ public class ParseAvroFile implements Directive {
             }
           }
         } else {
-          throw new DirectiveExecutionException(toString() + " : column " + column + " should be of type byte array avro file.");
+          throw new DirectiveExecutionException(toString() + " : column " + column +
+                                                  " should be of type byte array avro file.");
         }
       }
     }
@@ -129,6 +130,8 @@ public class ParseAvroFile implements Directive {
         add((GenericRecord) v, row, colname);
       } else if (v instanceof Map || v instanceof List) {
         row.add(colname, gson.toJson(v));
+      } else if (v instanceof Utf8) {
+        row.add(colname, v.toString());
       } else {
         row.add(colname, genericRecord.get(field.name()));
       }
