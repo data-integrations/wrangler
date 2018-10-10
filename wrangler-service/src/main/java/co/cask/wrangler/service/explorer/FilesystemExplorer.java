@@ -35,7 +35,7 @@ import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.common.AbstractWranglerService;
-import co.cask.wrangler.service.common.Schemas;
+import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.base.Charsets;
@@ -156,18 +156,14 @@ public class FilesystemExplorer extends AbstractWranglerService {
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     JsonObject response = new JsonObject();
     try {
-      String pluginType = null;
+      Format format = Format.TEXT;
       if (workspaceId != null) {
         Map<String, String> config = ws.getProperties(workspaceId);
-        pluginType = config.get(PropertyIds.PLUGIN_TYPE);
+        String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
+        format = Format.valueOf(formatStr);
       }
       Map<String, String> properties = new HashMap<>();
-      if ("blob".equalsIgnoreCase(pluginType)) {
-        properties.put("format", "blob");
-      } else {
-        // text, json and xml will have pluginType set text and not blob
-        properties.put("format", "text");
-      }
+      properties.put("format", format.name().toLowerCase());
       Location location = explorer.getLocation(path);
       JsonObject value = new JsonObject();
       JsonObject file = new JsonObject();
@@ -176,7 +172,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
       properties.put("ignoreNonExistingFolders", "false");
       properties.put("recursive", "false");
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
-      properties.put("schema", Schemas.TEXT.toString());
+      properties.put("schema", format.getSchema().toString());
       file.add("properties", gson.toJsonTree(properties));
       file.addProperty("name", "File");
       file.addProperty("type", "source");
@@ -226,6 +222,8 @@ public class FilesystemExplorer extends AbstractWranglerService {
       properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+      Format format = type == DataType.BINARY ? Format.BLOB : Format.TEXT;
+      properties.put(PropertyIds.FORMAT, format.name());
       ws.writeProperties(id, properties);
 
       // Write records to workspace.

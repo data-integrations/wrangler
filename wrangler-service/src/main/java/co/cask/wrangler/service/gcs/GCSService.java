@@ -35,7 +35,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerService;
-import co.cask.wrangler.service.common.Schemas;
+import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -394,16 +394,16 @@ public class GCSService extends AbstractWranglerService {
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] records = serDe.toByteArray(rows);
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, records);
-          properties.put(PropertyIds.PLUGIN_TYPE, "normal");
+          properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/json")) {
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
-          properties.put(PropertyIds.PLUGIN_TYPE, "normal");
+          properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/xml")) {
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
-          properties.put(PropertyIds.PLUGIN_TYPE, "blob");
+          properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         } else {
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
-          properties.put(PropertyIds.PLUGIN_TYPE, "blob");
+          properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         }
 
         // Set all properties and write to workspace.
@@ -471,8 +471,8 @@ public class GCSService extends AbstractWranglerService {
       }
 
       Map<String, String> config = ws.getProperties(workspaceId);
-      String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
-      String bucket = config.get("bucket");
+      String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
+      Format format = Format.valueOf(formatStr);
       String uri = config.get(PropertyIds.URI);
       String[] parts = uri.split("/");
       String filename = parts[parts.length -1];
@@ -480,12 +480,7 @@ public class GCSService extends AbstractWranglerService {
 
       Map<String, String> properties = new HashMap<>();
       JsonObject value = new JsonObject();
-      if (pluginType.equalsIgnoreCase("blob")) {
-        properties.put("format", "blob");
-      } else {
-        // text, json and xml will have pluginType set text and not blob
-        properties.put("format", "text");
-      }
+      properties.put("format", format.name().toLowerCase());
       JsonObject gcs = new JsonObject();
       properties.put("referenceName", externalDatasetName);
       properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
@@ -494,7 +489,7 @@ public class GCSService extends AbstractWranglerService {
       properties.put("recursive", "false");
       properties.put("filenameOnly", "false");
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
-      properties.put("schema", Schemas.TEXT.toString());
+      properties.put("schema", format.getSchema().toString());
       gcs.add("properties", new Gson().toJsonTree(properties));
       gcs.addProperty("name", "GCSFile");
       gcs.addProperty("type", "source");
