@@ -36,10 +36,8 @@ import co.cask.wrangler.expression.ELException;
 import co.cask.wrangler.expression.ELResult;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A directive for apply an expression to store the result in a column.
@@ -99,6 +97,13 @@ public class ColumnExpression implements Directive {
       ctx.set("this", row);
       for(String var : el.variables()) {
         ctx.set(var, row.getValue(var));
+      }
+
+      // Transient variables are added.
+      if (context != null) {
+        for (String variable : context.getTransientStore().getVariables()) {
+          ctx.set(variable, context.getTransientStore().get(variable));
+        }
       }
 
       // Execution of the script / expression based on the row data
