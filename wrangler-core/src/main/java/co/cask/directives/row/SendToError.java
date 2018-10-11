@@ -105,6 +105,13 @@ public class SendToError implements Directive {
         ctx.set(var, row.getValue(var));
       }
 
+      // Transient variables are added.
+      if (context != null) {
+        for (String variable : context.getTransientStore().getVariables()) {
+          ctx.set(variable, context.getTransientStore().get(variable));
+        }
+      }
+
       // Execution of the script / expression based on the row data
       // mapped into context.
       try {

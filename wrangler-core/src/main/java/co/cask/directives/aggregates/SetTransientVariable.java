@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Identifier;
@@ -36,9 +37,7 @@ import co.cask.wrangler.expression.ELContext;
 import co.cask.wrangler.expression.ELException;
 import co.cask.wrangler.expression.ELResult;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A directive that defines a transient variable who's life-expectancy is only within the record.
@@ -103,7 +102,7 @@ public class SetTransientVariable implements Directive {
       try {
         ELResult result = el.execute(ctx);
         if (context != null) {
-          context.getTransientStore().set(variable, result.getObject());
+          context.getTransientStore().set(TransientVariableScope.GLOBAL, variable, result.getObject());
         }
       } catch (ELException e) {
         throw new DirectiveExecutionException(e.getMessage());

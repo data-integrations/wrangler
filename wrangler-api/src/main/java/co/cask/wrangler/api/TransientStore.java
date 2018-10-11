@@ -28,7 +28,7 @@ public interface TransientStore extends Serializable {
   /**
    * Resets the state of this store.
    */
-  void reset();
+  void reset(TransientVariableScope scope);
 
   /**
    * A value associated with the variable in the transient store.
@@ -45,7 +45,7 @@ public interface TransientStore extends Serializable {
    * @param name of the variable for which the value needs to be set.
    * @param value of the variable.
    */
-  void set(String name, Object value);
+  void set(TransientVariableScope scope, String name, Object value);
 
   /**
    * Increments a value of the variable.
@@ -53,7 +53,7 @@ public interface TransientStore extends Serializable {
    * @param name of the variable.
    * @param value associated with the variable.
    */
-  void increment(String name, long value);
+  void increment(TransientVariableScope scope, String name, long value);
 
   /**
    * Set of all the variables.

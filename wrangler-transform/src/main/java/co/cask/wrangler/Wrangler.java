@@ -50,6 +50,7 @@ import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.TransientStore;
+import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.GrammarBasedParser;
@@ -417,7 +418,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
 
       // Reset record aggregation store.
-      store.reset();
+      store.reset(TransientVariableScope.GLOBAL);
+      store.reset(TransientVariableScope.LOCAL);
 
       start = System.nanoTime();
       records = pipeline.execute(Arrays.asList(row), oSchema);

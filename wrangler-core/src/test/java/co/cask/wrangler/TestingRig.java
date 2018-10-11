@@ -16,19 +16,10 @@
 
 package co.cask.wrangler;
 
-import co.cask.wrangler.api.CompileException;
-import co.cask.wrangler.api.CompileStatus;
+import co.cask.cdap.etl.api.Lookup;
+import co.cask.cdap.etl.api.StageMetrics;
+import co.cask.wrangler.api.*;
 import co.cask.wrangler.api.Compiler;
-import co.cask.wrangler.api.DirectiveLoadException;
-import co.cask.wrangler.api.DirectiveNotFoundException;
-import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.ExecutorContext;
-import co.cask.wrangler.api.GrammarMigrator;
-import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.RecipeException;
-import co.cask.wrangler.api.RecipeParser;
-import co.cask.wrangler.api.RecipePipeline;
-import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.GrammarBasedParser;
@@ -39,8 +30,10 @@ import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import org.junit.Assert;
 
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utilities for testing.
@@ -115,7 +108,7 @@ public final class TestingRig {
     RecipeParser parser = new GrammarBasedParser(migrate, registry);
     parser.initialize(new NoOpDirectiveContext());
     RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.initialize(parser, null);
+    pipeline.initialize(parser, new TestingPipelineContext());
     return pipeline;
   }
 
