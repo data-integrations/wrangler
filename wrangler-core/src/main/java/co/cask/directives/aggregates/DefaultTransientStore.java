@@ -44,7 +44,7 @@ public class DefaultTransientStore implements TransientStore {
    */
   @Override
   public void increment(TransientVariableScope scope, String name, long value) {
-    if(scope == TransientVariableScope.GLOBAL) {
+    if (scope == TransientVariableScope.GLOBAL) {
       increment(global, name, value);
     } else if (scope == TransientVariableScope.LOCAL) {
       increment(local, name, value);
@@ -70,7 +70,7 @@ public class DefaultTransientStore implements TransientStore {
   @Override
   public Set<String> getVariables() {
     Set<String> vars = new HashSet<>();
-    if(global == null && local == null) {
+    if (global == null && local == null) {
       return new HashSet<>();
     }
     if (global != null) {
