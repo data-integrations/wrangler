@@ -31,12 +31,14 @@ import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.ReportErrorAndProceed;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.utils.RecordConvertor;
 import co.cask.wrangler.utils.RecordConvertorException;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -112,11 +114,17 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
    */
   @Override
   public List<Row> execute(List<Row> rows) throws RecipeException {
+    List<String> messages = new ArrayList<>();
     List<Row> results = Lists.newArrayList();
     try {
       int i = 0;
       collector.reset();
       while (i < rows.size()) {
+        messages.clear();
+        // Resets the scope of local variable.
+        if (context != null) {
+          context.getTransientStore().reset(TransientVariableScope.LOCAL);
+        }
         List<Row> newRows = rows.subList(i, i+1);
         try {
           for (Executor<List<Row>, List<Row>> directive : directives) {
@@ -126,14 +134,15 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
                 break;
               }
             } catch (ReportErrorAndProceed e) {
-              collector.add(new ErrorRecord(newRows.get(0), e.getMessage(), e.getCode()));
+              messages.add(String.format("%d:%s", e.getCode(), e.getMessage()));
             }
           }
           if(newRows.size() > 0) {
             results.addAll(newRows);
           }
         } catch (ErrorRowException e) {
-          collector.add(new ErrorRecord(newRows.get(0), e.getMessage(), e.getCode()));
+          messages.add(String.format("%s", e.getMessage()));
+          collector.add(new ErrorRecord(newRows.get(0), String.join(",", messages), e.getCode()));
         }
         i++;
       }

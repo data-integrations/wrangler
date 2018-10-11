@@ -26,6 +26,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.Expression;
 import co.cask.wrangler.api.parser.Identifier;
@@ -37,9 +38,8 @@ import co.cask.wrangler.expression.ELContext;
 import co.cask.wrangler.expression.ELException;
 import co.cask.wrangler.expression.ELResult;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
 
 /**
  * A directive for incrementing the a transient variable based on conditions.
@@ -99,7 +99,7 @@ public class IncrementTransientVariable implements Directive {
       try {
         ELResult result = el.execute(ctx);
         if (result.getBoolean()) {
-          context.getTransientStore().increment(variable, incrementBy);
+          context.getTransientStore().increment(TransientVariableScope.GLOBAL, variable, incrementBy);
         }
       } catch (ELException e) {
         throw new DirectiveExecutionException(e.getMessage());

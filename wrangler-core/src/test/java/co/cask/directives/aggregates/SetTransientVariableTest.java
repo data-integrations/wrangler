@@ -21,6 +21,7 @@ import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.api.TransientStore;
 import org.junit.Assert;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public class SetTransientVariableTest {
       public TransientStore getTransientStore() {
         return new TransientStore() {
           @Override
-          public void reset() {
+          public void reset(TransientVariableScope scope) {
 
           }
 
@@ -88,12 +89,12 @@ public class SetTransientVariableTest {
           }
 
           @Override
-          public void set(String name, Object value) {
+          public void set(TransientVariableScope scope, String name, Object value) {
             s.put(name, value);
           }
 
           @Override
-          public void increment(String name, long value) {
+          public void increment(TransientVariableScope scope, String name, long value) {
 
           }
 
