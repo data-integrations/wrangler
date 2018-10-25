@@ -80,7 +80,6 @@ These directives are currently available:
 | [Parse as Log](wrangler-docs/directives/parse-as-log.md)                        | Parses access log files as from Apache HTTPD and nginx servers   |
 | [Parse as Protobuf](wrangler-docs/directives/parse-as-log.md)                   | Parses an Protobuf encoded in-memory message using descriptor    |
 | [Parse as Simple Date](wrangler-docs/directives/parse-as-simple-date.md)        | Parses date strings                                              |
-| [Parse as XML](wrangler-docs/directives/parse-as-xml.md)                        | Parses an XML document                                           |
 | [Parse XML To JSON](wrangler-docs/directives/parse-xml-to-json.md)              | Parses an XML document into a JSON structure                     |
 | [XPath](wrangler-docs/directives/xpath.md)                                      | Navigate the XML elements and attributes of an XML document      |
 | [Parse as Currency](wrangler-docs/directives/parse-as-currency.md)              | Parses a string representation of currency into a number.        |
