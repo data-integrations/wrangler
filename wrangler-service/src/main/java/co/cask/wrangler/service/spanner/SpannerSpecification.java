@@ -34,7 +34,7 @@ public class SpannerSpecification {
 
   SpannerSpecification(String serviceFilePath, String project, String instance,
                        String database, String table, Schema schema) {
-    this.referenceName = "Spanner_Source";
+    this.referenceName = String.format("%s_%s_%s", instance, database, table);
     this.serviceFilePath = serviceFilePath;
     this.project = project;
     this.instance = instance;
