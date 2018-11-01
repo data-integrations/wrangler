@@ -91,6 +91,7 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
 public class BigQueryService extends AbstractWranglerService {
   private static final Logger LOG = LoggerFactory.getLogger(BigQueryService.class);
   private static final String DATASET_ID = "datasetId";
+  private static final String DATASET_PROJECT = "datasetProject";
   private static final String TABLE_ID = "id";
   private static final String SCHEMA = "schema";
   private static final String BUCKET = "bucket";
@@ -252,7 +253,8 @@ public class BigQueryService extends AbstractWranglerService {
     }
 
     Map<String, String> connectionProperties = connection.getAllProps();
-    DatasetId datasetId = getDatasetId(datasetStr, GCPUtils.getProjectId(connection));
+    String connectionProject = GCPUtils.getProjectId(connection);
+    DatasetId datasetId = getDatasetId(datasetStr, connectionProject);
     String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
     String bucket = connectionProperties.get(BUCKET);
     TableId tableIdObject = TableId.of(datasetId.getProject(), datasetId.getDataset(), tableId);
@@ -271,7 +273,8 @@ public class BigQueryService extends AbstractWranglerService {
     properties.put(PropertyIds.CONNECTION_ID, connectionId);
     properties.put(TABLE_ID, tableId);
     properties.put(DATASET_ID, datasetId.getDataset());
-    properties.put(GCPUtils.PROJECT_ID, datasetId.getProject());
+    properties.put(DATASET_PROJECT, datasetId.getProject());
+    properties.put(GCPUtils.PROJECT_ID, connectionProject);
     properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
     properties.put(SCHEMA, tableData.getSecond().toString());
     properties.put(BUCKET, bucket);
@@ -316,6 +319,7 @@ public class BigQueryService extends AbstractWranglerService {
       properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("bucket", config.get(BUCKET));
       properties.put("project", config.get(GCPUtils.PROJECT_ID));
+      properties.put(DATASET_PROJECT, config.get(DATASET_PROJECT));
       properties.put("dataset", config.get(DATASET_ID));
       properties.put("table", config.get(TABLE_ID));
       properties.put("schema", config.get(SCHEMA));
