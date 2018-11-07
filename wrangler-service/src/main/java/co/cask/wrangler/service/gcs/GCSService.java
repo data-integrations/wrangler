@@ -29,25 +29,24 @@ import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Acl;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.StorageException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
@@ -68,9 +67,14 @@ import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -103,7 +107,7 @@ public class GCSService extends AbstractWranglerService {
    */
   @POST
   @Path("/connections/gcs/test")
-  public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder) {
+  public void testGCSConnection(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
@@ -116,6 +120,8 @@ public class GCSService extends AbstractWranglerService {
         return;
       }
 
+      GCPUtils.validateProjectCredentials(connection);
+
       Storage storage = GCPUtils.getStorageService(connection);
       storage.list(Storage.BucketListOption.pageSize(1));
       ServiceUtils.success(responder, "Success");
@@ -123,8 +129,6 @@ public class GCSService extends AbstractWranglerService {
       ServiceUtils.error(responder, e.getMessage());
     }
   }
-
-
 
   private boolean validateConnection(String connectionId, Connection connection,
                                      HttpServiceResponder responder) {
@@ -149,25 +153,26 @@ public class GCSService extends AbstractWranglerService {
   @GET
   @Path("/connections/{connection-id}/gcs/explore")
   public void exploreGCS(HttpServiceRequest request, HttpServiceResponder responder,
-                              @PathParam("connection-id") final String connectionId,
-                              @QueryParam("path") String path) {
+                         @PathParam("connection-id") final String connectionId,
+                         @QueryParam("path") String path,
+                         @QueryParam("limit") @DefaultValue("1000") int objectLimit) {
     String bucketName = "";
     String prefix = null;
 
     try {
-      final Connection[] connection = new Connection[1];
+      final Connection[] connections = new Connection[1];
       getContext().execute(new TxRunnable() {
         @Override
         public void run(DatasetContext datasetContext) throws Exception {
-          connection[0] = store.get(connectionId);
+          connections[0] = store.get(connectionId);
         }
       });
 
-      if (!validateConnection(connectionId, connection[0], responder)) {
+      if (!validateConnection(connectionId, connections[0], responder)) {
         return;
       }
 
-
+      Connection connection = connections[0];
       int bucketStart = path.indexOf("/");
       if (bucketStart != -1) {
         int bucketEnd = path.indexOf("/", bucketStart + 1);
@@ -181,18 +186,19 @@ public class GCSService extends AbstractWranglerService {
         }
       }
 
-      Storage storage = GCPUtils.getStorageService(connection[0]);
+      Storage storage = GCPUtils.getStorageService(connection);
+      Set<String> bucketWhitelist = getBucketWhitelist(connection);
+
       if (bucketName.isEmpty() && prefix == null) {
-        Page<Bucket> list = storage.list();
-        Iterator<Bucket> iterator = list.getValues().iterator();
         JsonObject response = new JsonObject();
         response.addProperty("status", HttpURLConnection.HTTP_OK);
         response.addProperty("message", "OK");
         JsonArray values = new JsonArray();
-        while(iterator.hasNext()) {
-          com.google.cloud.storage.Bucket bucket = iterator.next();
-          JsonObject object = new JsonObject();
+        // TODO: Remove objectLimit once CDAP-14446 is fixed.
+        Buckets buckets = getBuckets(storage, bucketWhitelist, objectLimit);
+        for (Bucket bucket : buckets.getBuckets()) {
           String name = bucket.getName();
+          JsonObject object = new JsonObject();
           object.addProperty("name", name);
           object.addProperty("created", bucket.getCreateTime() / 1000);
           object.addProperty("generated-id", bucket.getGeneratedId());
@@ -226,6 +232,9 @@ public class GCSService extends AbstractWranglerService {
         }
         response.addProperty("count", values.size());
         response.add("values", values);
+        if (buckets.isLimitExceeded()) {
+          response.addProperty("truncated", "true");
+        }
         sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
         return;
       }
@@ -240,6 +249,7 @@ public class GCSService extends AbstractWranglerService {
 
       Iterator<Blob> iterator = list.iterateAll().iterator();
       JsonArray values = new JsonArray();
+      boolean limitExceeded = false;
       while(iterator.hasNext()) {
         JsonObject object = new JsonObject();
         Blob blob = iterator.next();
@@ -271,12 +281,19 @@ public class GCSService extends AbstractWranglerService {
           object.addProperty("wrangle", isWrangeable);
         }
         values.add(object);
+        if (values.size() >= objectLimit) {
+          limitExceeded = true;
+          break;
+        }
       }
       JsonObject response = new JsonObject();
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "OK");
       response.addProperty("count", values.size());
       response.add("values", values);
+      if (limitExceeded) {
+        response.addProperty("truncated", "true");
+      }
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (Exception e) {
       LOG.warn(
@@ -377,16 +394,16 @@ public class GCSService extends AbstractWranglerService {
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] records = serDe.toByteArray(rows);
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, records);
-          properties.put(PropertyIds.PLUGIN_TYPE, "normal");
+          properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/json")) {
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.JSON, bytes);
-          properties.put(PropertyIds.PLUGIN_TYPE, "normal");
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
+          properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/xml")) {
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.XML, bytes);
-          properties.put(PropertyIds.PLUGIN_TYPE, "blob");
+          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
+          properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         } else {
           ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
-          properties.put(PropertyIds.PLUGIN_TYPE, "blob");
+          properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         }
 
         // Set all properties and write to workspace.
@@ -441,6 +458,10 @@ public class GCSService extends AbstractWranglerService {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
 
+    if (workspaceId == null) {
+      responder.sendError(400, "Workspace ID must be passed as query parameter 'wid'.");
+      return;
+    }
     JsonObject response = new JsonObject();
     try {
 
@@ -450,39 +471,29 @@ public class GCSService extends AbstractWranglerService {
       }
 
       Map<String, String> config = ws.getProperties(workspaceId);
-      String pluginType = config.get(PropertyIds.PLUGIN_TYPE);
-      String bucket = config.get("bucket");
+      String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
+      Format format = Format.valueOf(formatStr);
       String uri = config.get(PropertyIds.URI);
-      String file = config.get(PropertyIds.FILE_NAME);
+      String[] parts = uri.split("/");
+      String filename = parts[parts.length -1];
+      String externalDatasetName = new StringJoiner(".").add(config.get("bucket")).add(filename).toString();
 
       Map<String, String> properties = new HashMap<>();
       JsonObject value = new JsonObject();
-
-      if (pluginType.equalsIgnoreCase("normal")) {
-        JsonObject gcs = new JsonObject();
-        properties.put("referenceName", "GCS_Source");
-        properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", connection.getProp(GCPUtils.PROJECT_ID));
-        properties.put("bucket", bucket);
-        properties.put("path", uri);
-        properties.put("recursive", "false");
-        properties.put("filenameOnly", "false");
-        gcs.add("properties", new Gson().toJsonTree(properties));
-        gcs.addProperty("name", "GCSFile");
-        gcs.addProperty("type", "source");
-        value.add("GCSFile", gcs);
-      } else if (pluginType.equalsIgnoreCase("blob")) {
-        JsonObject gcs = new JsonObject();
-        properties.put("referenceName", "GCS_Blob");
-        properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
-        properties.put("project", connection.getProp(GCPUtils.PROJECT_ID));
-        properties.put("bucket", bucket);
-        properties.put("path", uri);
-        gcs.add("properties", new Gson().toJsonTree(properties));
-        gcs.addProperty("name", "GCSFileBlob");
-        gcs.addProperty("type", "source");
-        value.add("GCSFileBlob", gcs);
-      }
+      properties.put("format", format.name().toLowerCase());
+      JsonObject gcs = new JsonObject();
+      properties.put("referenceName", externalDatasetName);
+      properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+      properties.put("project", GCPUtils.getProjectId(connection));
+      properties.put("path", uri);
+      properties.put("recursive", "false");
+      properties.put("filenameOnly", "false");
+      properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
+      properties.put("schema", format.getSchema().toString());
+      gcs.add("properties", new Gson().toJsonTree(properties));
+      gcs.addProperty("name", "GCSFile");
+      gcs.addProperty("type", "source");
+      value.add("GCSFile", gcs);
       JsonArray values = new JsonArray();
       values.add(value);
       response.addProperty("status", HttpURLConnection.HTTP_OK);
@@ -493,5 +504,58 @@ public class GCSService extends AbstractWranglerService {
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
+  }
+
+  private Set<String> getBucketWhitelist(Connection connection) {
+    String whitelistStr = connection.getAllProps().get("bucketWhitelist");
+    Set<String> whitelist = new LinkedHashSet<>();
+    if (whitelistStr == null) {
+      return whitelist;
+    }
+    for (String bucket : whitelistStr.split(",")) {
+      whitelist.add(bucket.trim());
+    }
+    return whitelist;
+  }
+
+  private Buckets getBuckets(Storage storage, Set<String> whitelist, int objectLimit) {
+    // this will include buckets that can be listed by the service account, but may not include all buckets
+    // in the whitelist, if the whitelist contains publicly accessible buckets from other projects.
+    // do some post-processing to filter out anything not in the whitelist and also try and lookup buckets
+    // that are in the whitelist but not in the returned list
+    Page<Bucket> list = storage.list();
+    List<Bucket> output = new ArrayList<>();
+    boolean limitExceeded = false;
+    Set<String> missingBuckets = new HashSet<>(whitelist);
+    // use iterateAll to make sure we get all results
+    for (Bucket bucket : list.iterateAll()) {
+      String bucketName = bucket.getName();
+      missingBuckets.remove(bucketName);
+      if (whitelist.isEmpty() || whitelist.contains(bucketName)) {
+        if (output.size() >= objectLimit) {
+          limitExceeded = true;
+          break;
+        }
+        output.add(bucket);
+      }
+    }
+    // this only contains buckets that are in the whitelist but were not returned by the list call
+    for (String whitelistBucket : missingBuckets) {
+      try {
+        Bucket bucket = storage.get(whitelistBucket);
+        if (bucket != null) {
+          if (output.size() >= objectLimit) {
+            limitExceeded = true;
+            break;
+          }
+          output.add(bucket);
+        }
+      } catch (StorageException e) {
+        // ignore and move on
+        LOG.debug("Exception getting bucket {} from the whitelist.", whitelistBucket, e);
+      }
+    }
+
+    return new Buckets(output, limitExceeded);
   }
 }

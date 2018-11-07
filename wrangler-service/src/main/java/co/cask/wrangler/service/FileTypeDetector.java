@@ -16,14 +16,11 @@
 
 package co.cask.wrangler.service;
 
-import co.cask.wrangler.service.explorer.Explorer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.twill.filesystem.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,19 +38,17 @@ public class FileTypeDetector {
 
   public FileTypeDetector() {
     this.extensions = new HashMap<>();
-    File file = new File(Explorer.class.getClassLoader().getResource("file.extensions").getFile());
-    try {
-      Scanner scanner = new Scanner(file);
-      while(scanner.hasNext()) {
+    try (Scanner scanner = new Scanner(getClass().getClassLoader().getResource("file.extensions").openStream(),
+                                       "UTF-8")) {
+      while (scanner.hasNext()) {
         String line = scanner.nextLine();
-        String[] parts = line.split("[\t+\\s+]");
+        String[] parts = line.split("\\s+");
         if (parts.length == 2) {
           extensions.put(parts[0], parts[1]);
         }
       }
-      scanner.close();
-    } catch (FileNotFoundException e) {
-      LOG.warn("Unable to load extension map. File 'file.extensions' not packaged.");
+    } catch (IOException e) {
+      LOG.warn("Unable to load extension map.", e);
     }
   }
 
@@ -105,7 +100,8 @@ public class FileTypeDetector {
     } else {
       String name = FilenameUtils.getBaseName(location);
       if (name.equalsIgnoreCase(location)) {
-        return "UNKNOWN";
+        // CDAP-14397 return text type if there is no extension in the filename.
+        return extensions.get("txt");
       }
       return detectFileType(name);
     }

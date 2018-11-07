@@ -22,12 +22,20 @@ import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceException;
+import co.cask.wrangler.proto.Recipe;
+import co.cask.wrangler.proto.RequestV1;
+import com.google.gson.Gson;
+
+import java.util.List;
+import javax.annotation.Nullable;
 
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 public class AbstractWranglerService extends AbstractHttpServiceHandler {
-
+  private static final Gson GSON = new Gson();
   protected ConnectionStore store;
 
   @UseDataSet(DataPrep.CONNECTIONS_DATASET)
@@ -40,5 +48,27 @@ public class AbstractWranglerService extends AbstractHttpServiceHandler {
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
     store = new ConnectionStore(connectionTable);
+  }
+
+  /**
+   * Return whether the header needs to be copied when creating the pipeline source for the specified workspace.
+   * This just amounts to checking whether parse-as-csv with the first line as a header is used as a directive.
+   */
+  protected boolean shouldCopyHeader(@Nullable String workspaceId) throws WorkspaceException {
+    if (workspaceId == null) {
+      return false;
+    }
+    String data = ws.getData(workspaceId, WorkspaceDataset.REQUEST_COL, DataType.TEXT);
+    if (data == null) {
+      return false;
+    }
+
+    RequestV1 workspaceReq = GSON.fromJson(data, RequestV1.class);
+    Recipe recipe = workspaceReq.getRecipe();
+    List<String> directives = recipe.getDirectives();
+    // yes this is really hacky, but there doesn't seem to be a good way to get the actual directive classes
+    return directives.stream()
+      .map(String::trim)
+      .anyMatch(directive -> directive.startsWith("parse-as-csv") && directive.endsWith("true"));
   }
 }

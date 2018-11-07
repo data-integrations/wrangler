@@ -34,7 +34,9 @@ import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.Dataset;
+import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.FieldList;
 import com.google.cloud.bigquery.FieldValue;
@@ -46,11 +48,15 @@ import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryResult;
 import com.google.cloud.bigquery.StandardSQLTypeName;
+import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.time.Instant;
@@ -60,9 +66,14 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.GET;
@@ -74,9 +85,13 @@ import javax.ws.rs.QueryParam;
 import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.ServiceUtils.sendJson;
 
-
+/**
+ * Service for testing, browsing, and reading using a BigQuery connection.
+ */
 public class BigQueryService extends AbstractWranglerService {
+  private static final Logger LOG = LoggerFactory.getLogger(BigQueryService.class);
   private static final String DATASET_ID = "datasetId";
+  private static final String DATASET_PROJECT = "datasetProject";
   private static final String TABLE_ID = "id";
   private static final String SCHEMA = "schema";
   private static final String BUCKET = "bucket";
@@ -101,6 +116,7 @@ public class BigQueryService extends AbstractWranglerService {
                             connectionType.getType()));
         return;
       }
+      GCPUtils.validateProjectCredentials(connection);
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
       bigQuery.listDatasets(BigQuery.DatasetListOption.pageSize(1));
@@ -111,7 +127,7 @@ public class BigQueryService extends AbstractWranglerService {
   }
 
   /**
-   * List all Datasets.
+   * List all datasets.
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
@@ -125,12 +141,20 @@ public class BigQueryService extends AbstractWranglerService {
     if (!validateConnection(connectionId, connection, responder)) {
       return;
     }
+
     BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
-    Page<Dataset> datasets = bigQuery.listDatasets(BigQuery.DatasetListOption.all());
+    String connectionProject = GCPUtils.getProjectId(connection);
+    Set<DatasetId> datasetWhitelist = getDatasetWhitelist(connection);
     JsonArray values = new JsonArray();
-    for (Dataset dataset : datasets.iterateAll()) {
+    for (Dataset dataset : getDatasets(bigQuery, datasetWhitelist)) {
       JsonObject object =  new JsonObject();
-      object.addProperty("name", dataset.getDatasetId().getDataset());
+      String name = dataset.getDatasetId().getDataset();
+      String datasetProject = dataset.getDatasetId().getProject();
+      // if the dataset is not in the connection's project, add the <project>: to the front of the name
+      if (!connectionProject.equals(datasetProject)) {
+        name = new StringJoiner(":").add(datasetProject).add(name).toString();
+      }
+      object.addProperty("name", name);
       object.addProperty("created", dataset.getCreationTime());
       object.addProperty("description", dataset.getDescription());
       object.addProperty("last-modified", dataset.getLastModified());
@@ -146,65 +170,78 @@ public class BigQueryService extends AbstractWranglerService {
   }
 
   /**
-   * List all Datasets.
+   * List all tables in a dataset.
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
+   * @param datasetStr the dataset id as a string. It will be of the form [project:]name.
+   *   The project prefix is optional. When not given, the connection project should be used.
    */
   @GET
   @Path("connections/{connection-id}/bigquery/{dataset-id}/tables")
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("connection-id") String connectionId,
-                           @PathParam("dataset-id") String datasetId) throws Exception {
+                         @PathParam("connection-id") String connectionId,
+                         @PathParam("dataset-id") String datasetStr) throws Exception {
     Connection connection = store.get(connectionId);
 
     if (!validateConnection(connectionId, connection, responder)) {
       return;
     }
     BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
-    Page<com.google.cloud.bigquery.Table> tablePage = bigQuery.listTables(datasetId);
 
-    JsonArray values = new JsonArray();
+    DatasetId datasetId = getDatasetId(datasetStr, GCPUtils.getProjectId(connection));
 
-    for (com.google.cloud.bigquery.Table table : tablePage.iterateAll()) {
-      JsonObject object = new JsonObject();
+    try {
+      Page<Table> tablePage = bigQuery.listTables(datasetId);
+      JsonArray values = new JsonArray();
 
-      object.addProperty("name", table.getFriendlyName());
-      object.addProperty(TABLE_ID, table.getTableId().getTable());
-      object.addProperty("created", table.getCreationTime());
-      object.addProperty("description", table.getDescription());
-      object.addProperty("last-modified", table.getLastModifiedTime());
-      object.addProperty("expiration-time", table.getExpirationTime());
-      object.addProperty("etag", table.getEtag());
+      for (Table table : tablePage.iterateAll()) {
+        JsonObject object = new JsonObject();
 
-      values.add(object);
+        object.addProperty("name", table.getFriendlyName());
+        object.addProperty(TABLE_ID, table.getTableId().getTable());
+        object.addProperty("created", table.getCreationTime());
+        object.addProperty("description", table.getDescription());
+        object.addProperty("last-modified", table.getLastModifiedTime());
+        object.addProperty("expiration-time", table.getExpirationTime());
+        object.addProperty("etag", table.getEtag());
+
+        values.add(object);
+      }
+
+      JsonObject response = new JsonObject();
+      response.addProperty("status", HttpURLConnection.HTTP_OK);
+      response.addProperty("message", "Success");
+      response.addProperty("count", values.size());
+      response.add("values", values);
+      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    } catch (BigQueryException e) {
+      if (e.getReason() != null) {
+        // CDAP-14155 - BigQueryException message is too large. Instead just throw reason of the exception
+        throw new RuntimeException(e.getReason());
+      }
+      // Its possible that reason of the BigQueryException is null, in that case use exception message
+      throw new RuntimeException(e.getMessage());
     }
-
-    JsonObject response = new JsonObject();
-    response.addProperty("status", HttpURLConnection.HTTP_OK);
-    response.addProperty("message", "Success");
-    response.addProperty("count", values.size());
-    response.add("values", values);
-    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
   /**
-   * List all Datasets.
+   * Read a table.
    *
    * @param request HTTP requets handler.
    * @param responder HTTP response handler.
    * @param connectionId Connection Id for BigQuery Service.
-   * @param datasetId id of the dataset on BigQuery.
+   * @param datasetStr id of the dataset on BigQuery.
    * @param tableId id of the BigQuery table.
    * @param scope Group the workspace is created in.
    */
   @GET
   @Path("connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
   public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("connection-id") String connectionId,
-                           @PathParam("dataset-id") String datasetId,
-                           @PathParam("table-id") String tableId,
-                           @QueryParam("scope") String scope) throws Exception {
+                        @PathParam("connection-id") String connectionId,
+                        @PathParam("dataset-id") String datasetStr,
+                        @PathParam("table-id") String tableId,
+                        @QueryParam("scope") String scope) throws Exception {
     Connection connection = store.get(connectionId);
 
     if (!validateConnection(connectionId, connection, responder)) {
@@ -216,11 +253,11 @@ public class BigQueryService extends AbstractWranglerService {
     }
 
     Map<String, String> connectionProperties = connection.getAllProps();
-    String projectId = connectionProperties.get(GCPUtils.PROJECT_ID);
+    String connectionProject = GCPUtils.getProjectId(connection);
+    DatasetId datasetId = getDatasetId(datasetStr, connectionProject);
     String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
     String bucket = connectionProperties.get(BUCKET);
-    TableId tableIdObject =
-      projectId == null ? TableId.of(datasetId, tableId) : TableId.of(projectId, datasetId, tableId);
+    TableId tableIdObject = TableId.of(datasetId.getProject(), datasetId.getDataset(), tableId);
     Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
 
     String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
@@ -230,14 +267,14 @@ public class BigQueryService extends AbstractWranglerService {
     ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
     Map<String, String> properties = new HashMap<>();
-    properties.put(PropertyIds.ID, identifier);
     properties.put(PropertyIds.NAME, tableId);
     properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.BIGQUERY.getType());
     properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
     properties.put(PropertyIds.CONNECTION_ID, connectionId);
     properties.put(TABLE_ID, tableId);
-    properties.put(DATASET_ID, datasetId);
-    properties.put(GCPUtils.PROJECT_ID, projectId);
+    properties.put(DATASET_ID, datasetId.getDataset());
+    properties.put(DATASET_PROJECT, datasetId.getProject());
+    properties.put(GCPUtils.PROJECT_ID, connectionProject);
     properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
     properties.put(SCHEMA, tableData.getSecond().toString());
     properties.put(BUCKET, bucket);
@@ -275,11 +312,14 @@ public class BigQueryService extends AbstractWranglerService {
 
       Map<String, String> properties = new HashMap<>();
       JsonObject value = new JsonObject();
-
+      String externalDatasetName =
+        new StringJoiner(".").add(config.get(DATASET_ID)).add(config.get(TABLE_ID)).toString();
       JsonObject bigQuery = new JsonObject();
+      properties.put("referenceName", externalDatasetName);
       properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("bucket", config.get(BUCKET));
       properties.put("project", config.get(GCPUtils.PROJECT_ID));
+      properties.put(DATASET_PROJECT, config.get(DATASET_PROJECT));
       properties.put("dataset", config.get(DATASET_ID));
       properties.put("table", config.get(TABLE_ID));
       properties.put("schema", config.get(SCHEMA));
@@ -448,5 +488,89 @@ public class BigQueryService extends AbstractWranglerService {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Parses the dataset whitelist in the connection properties into a set of DatasetId.
+   * The whitelist is expected to be a comma separated list of dataset ids, where each dataset id is of the form:
+   *
+   * [project:]name
+   *
+   * The project is optional. If it is not given, it is assumed that the dataset is in the connection project.
+   *
+   * For example, consider the following whitelist:
+   *
+   * abc:articles,123:d10,d11
+   *
+   * If the connection is in project 'abc', this will be parsed into 3 dataset ids --
+   * [abc,articles], [123,d10], and [abc,d11].
+   */
+  @VisibleForTesting
+  static Set<DatasetId> getDatasetWhitelist(Connection connection) {
+    String connectionProject = GCPUtils.getProjectId(connection);
+    String whitelistStr = connection.getAllProps().get("datasetWhitelist");
+    Set<DatasetId> whitelist = new LinkedHashSet<>();
+    if (whitelistStr == null) {
+      return whitelist;
+    }
+    for (String whitelistedDataset : whitelistStr.split(",")) {
+      whitelistedDataset = whitelistedDataset.trim();
+      // whitelistedDataset should be of the form <project>:<dataset>, or just <dataset>
+      // if it ends with ':', the admin provided an invalid entry in the whitelist and it should be ignored.
+      if (whitelistedDataset.endsWith(":")) {
+        continue;
+      }
+      int idx = whitelistedDataset.indexOf(':');
+      if (idx > 0) {
+        String datasetProject = whitelistedDataset.substring(0, idx);
+        String datasetName = whitelistedDataset.substring(idx + 1);
+        whitelist.add(DatasetId.of(datasetProject, datasetName));
+      } else if (idx == 0) {
+        // if the value is :<dataset>, treat it like it's just <dataset>
+        whitelist.add(DatasetId.of(connectionProject, whitelistedDataset.substring(1)));
+      } else {
+        whitelist.add(DatasetId.of(connectionProject, whitelistedDataset));
+      }
+    }
+    return whitelist;
+  }
+
+  private DatasetId getDatasetId(String datasetStr, String connectionProject) {
+    int idx = datasetStr.indexOf(":");
+    if (idx > 0) {
+      String project = datasetStr.substring(0, idx);
+      String name = datasetStr.substring(idx + 1);
+      return DatasetId.of(project, name);
+    }
+    return DatasetId.of(connectionProject, datasetStr);
+  }
+
+  private Collection<Dataset> getDatasets(BigQuery bigQuery, Set<DatasetId> datasetWhitelist) {
+    // this will include datasets that can be listed by the service account, but may not include all datasets
+    // in the whitelist, if the whitelist contains publicly accessible datasets from other projects.
+    // do some post-processing to filter out anything not in the whitelist and also try and lookup datasets
+    // that are in the whitelist but not in the returned list
+    Page<Dataset> datasets = bigQuery.listDatasets(BigQuery.DatasetListOption.all());
+    Set<DatasetId> missingDatasets = new HashSet<>(datasetWhitelist);
+    List<Dataset> output = new ArrayList<>();
+    for (Dataset dataset : datasets.iterateAll()) {
+      missingDatasets.remove(dataset.getDatasetId());
+      if (datasetWhitelist.isEmpty() || datasetWhitelist.contains(dataset.getDatasetId())) {
+        output.add(dataset);
+      }
+    }
+    // this only contains datasets that are in the whitelist but were not returned by the list call
+    for (DatasetId whitelistDataset : missingDatasets) {
+      try {
+        Dataset dataset = bigQuery.getDataset(whitelistDataset);
+        if (dataset != null) {
+          output.add(dataset);
+        }
+      } catch (BigQueryException e) {
+        // ignore and move on
+        LOG.debug("Exception getting dataset {} from the whitelist.", whitelistDataset, e);
+      }
+    }
+    return output;
   }
 }

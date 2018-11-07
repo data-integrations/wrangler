@@ -906,7 +906,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
   }
 
-
   /**
    * This REST API returns an array of all the directives, their usage and description.
    *
