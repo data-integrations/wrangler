@@ -3,7 +3,7 @@
   <parent>
     <artifactId>wrangler</artifactId>
     <groupId>co.cask.wrangler</groupId>
-    <version>3.0.6</version>
+    <version>3.0.7</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -190,11 +190,6 @@
       <groupId>com.github.mpkorstanje</groupId>
       <artifactId>simmetrics-core</artifactId>
       <version>${simmetrics.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.ximpleware</groupId>
-      <artifactId>vtd-xml</artifactId>
-      <version>${vtd.xml.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
