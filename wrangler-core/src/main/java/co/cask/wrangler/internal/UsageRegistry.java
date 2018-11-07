@@ -41,7 +41,6 @@ import co.cask.wrangler.steps.parser.JsonParser;
 import co.cask.wrangler.steps.parser.ParseDate;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
-import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
 import co.cask.wrangler.steps.row.RecordMissingOrNullFilter;
@@ -68,9 +67,6 @@ import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
-import co.cask.wrangler.steps.transformation.XPathArrayElement;
-import co.cask.wrangler.steps.transformation.XPathAttr;
-import co.cask.wrangler.steps.transformation.XPathElement;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.slf4j.Logger;
@@ -172,11 +168,7 @@ public final class UsageRegistry {
     SplitURL.class,
     GenerateUUID.class,
     FixedLengthParser.class,
-    CleanseColumnNames.class,
-    XmlParser.class,
-    XPathElement.class,
-    XPathArrayElement.class,
-    XPathAttr.class
+    CleanseColumnNames.class
   );
 
   public UsageRegistry() {
