@@ -56,6 +56,8 @@ public final class PropertyIds {
   // Plugin type
   public static final String PLUGIN_TYPE = "plugin-type";
 
+  // File format to use when reading data as a pipeline source
+  public static final String FORMAT = "format";
   public static final String CONNECTION_ID = "connectionid";
   public static final String BROKER = "brokers";
   public static final String KEY_DESERIALIZER = "key.deserializer";
