@@ -48,8 +48,6 @@ import co.cask.wrangler.steps.parser.ParseExcel;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
-import co.cask.wrangler.steps.parser.XmlParser;
-import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.row.Fail;
 import co.cask.wrangler.steps.row.Flatten;
 import co.cask.wrangler.steps.row.RecordConditionFilter;
@@ -88,8 +86,6 @@ import co.cask.wrangler.steps.transformation.Trim;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlDecode;
 import co.cask.wrangler.steps.transformation.UrlEncode;
-import co.cask.wrangler.steps.transformation.XPathArrayElement;
-import co.cask.wrangler.steps.transformation.XPathElement;
 import co.cask.wrangler.steps.writer.WriteAsCSV;
 import co.cask.wrangler.steps.writer.WriteAsJsonMap;
 import org.slf4j.Logger;
@@ -207,10 +203,6 @@ public final class UsageRegistry implements Serializable {
     UrlEncode.class,
     WriteAsCSV.class,
     WriteAsJsonMap.class,
-    XmlParser.class,
-    XmlToJson.class,
-    XPathArrayElement.class,
-    XPathElement.class,
     ParseExcel.class,
     SetTransientVariable.class,
     IncrementTransientVariable.class

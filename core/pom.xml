@@ -161,11 +161,6 @@
       <version>${simmetrics.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.ximpleware</groupId>
-      <artifactId>vtd-xml</artifactId>
-      <version>${vtd.xml.version}</version>
-    </dependency>
-    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons.io.version}</version>

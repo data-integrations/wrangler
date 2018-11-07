@@ -53,7 +53,6 @@ import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.steps.DefaultTransientStore;
 import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.RecordConvertorException;
-import co.cask.wrangler.utils.XPathUtil;
 import co.cask.wrangler.validator.ColumnNameValidator;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -65,7 +64,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.ximpleware.VTDNav;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -741,75 +739,6 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     response.addProperty("count", values.size());
     response.add("values", values);
     sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-  }
-
-  /**
-   * Executes the directives on the record stored in the workspace and returns the possible xpaths for a
-   * particular column.
-   *
-   * Following is the response from this request
-   * {
-   *   "status" : 200,
-   *   "message" : "Success",
-   *   "xmlpaths" : [
-   *     /ns1:XYZ/ns1:Summary
-   *     /ns1:XYZ/ns1:ChangeIndicators/ns1:Itinerary
-   *     /ns1:XYZ/ns1:ChangeIndicators/ns1:Name
-   *   ]
-   * }
-   *
-   * @param request to gather information of the request.
-   * @param responder to respond to the service request.
-   * @param ws workspace in which the directives are executed.
-   */
-  @GET
-  @Path("workspaces/{workspace}/xpaths/{column}")
-  public void getXPaths(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("workspace") String ws,
-                        @PathParam("column") String column) {
-    try {
-
-      // Read the request body
-      RequestExtractor handler = new RequestExtractor(request);
-      Request reqBody = handler.getContent("UTF-8", Request.class);
-      if (reqBody == null) {
-        error(responder, "Request is empty. Please check if the request is sent as HTTP POST body.");
-        return;
-      }
-
-      final int limit = reqBody.getSampling().getLimit();
-      List<Record> newRecords = executeDirectives(ws, reqBody, new Function<List<Record>, List<Record>>() {
-        @Nullable
-        @Override
-        public List<Record> apply(@Nullable List<Record> records) {
-          int min = Math.min(records.size(), limit);
-          return Lists.newArrayList(new Reservoir<Record>(min).sample(records.iterator()));
-        }
-      });
-
-
-      Record firstRow = newRecords.get(0);
-      Object columnValue = firstRow.getValue(column);
-      if (!(columnValue instanceof VTDNav)) {
-        error(responder, String.format("Column '%s' is not parsed as XML.", column));
-        return;
-      }
-
-      Set<String> xmlPaths = XPathUtil.getXMLPaths((VTDNav) columnValue);
-
-      JSONObject response = new JSONObject();
-      response.put("status", HttpURLConnection.HTTP_OK);
-      response.put("message", "Success");
-      response.put("count", xmlPaths.size());
-      response.put("values", xmlPaths);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (JsonParseException e) {
-      error(responder, "Issue parsing request. " + e.getMessage());
-    } catch (DataSetException e) {
-      error(responder, e.getMessage());
-    } catch (Exception e) {
-      error(responder, e.getMessage());
-    }
   }
 
   /**

@@ -51,7 +51,6 @@ import co.cask.wrangler.steps.parser.ParseExcel;
 import co.cask.wrangler.steps.parser.ParseLog;
 import co.cask.wrangler.steps.parser.ParseProtobuf;
 import co.cask.wrangler.steps.parser.ParseSimpleDate;
-import co.cask.wrangler.steps.parser.XmlParser;
 import co.cask.wrangler.steps.parser.XmlToJson;
 import co.cask.wrangler.steps.row.Fail;
 import co.cask.wrangler.steps.row.Flatten;
@@ -88,8 +87,6 @@ import co.cask.wrangler.steps.transformation.TextMetricMeasure;
 import co.cask.wrangler.steps.transformation.TitleCase;
 import co.cask.wrangler.steps.transformation.Upper;
 import co.cask.wrangler.steps.transformation.UrlEncode;
-import co.cask.wrangler.steps.transformation.XPathArrayElement;
-import co.cask.wrangler.steps.transformation.XPathElement;
 import co.cask.wrangler.steps.transformation.Trim;
 import co.cask.wrangler.steps.transformation.LeftTrim;
 import co.cask.wrangler.steps.transformation.RightTrim;
@@ -589,36 +586,11 @@ public class TextDirectives implements Directives {
         }
         break;
 
-        // parse-as-xml <column>
-        case "parse-as-xml" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          steps.add(new XmlParser(lineno, directive, column));
-        }
-        break;
-
         // parse-as-excel <column> <sheet number | sheet name>
         case "parse-as-excel" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String sheet = getNextToken(tokenizer, "\n", command, "sheet", lineno, true);
           steps.add(new ParseExcel(lineno, directive, column, sheet));
-        }
-        break;
-
-        // xpath <column> <destination> <xpath>
-        case "xpath" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          steps.add(new XPathElement(lineno, directive, column, destination, xpath));
-        }
-        break;
-
-        // xpath-array <column> <destination> <xpath>
-        case "xpath-array" : {
-          String column = getNextToken(tokenizer, command, "column", lineno);
-          String destination = getNextToken(tokenizer, command, "destination", lineno);
-          String xpath = getNextToken(tokenizer, "\n", command, "xpath", lineno);
-          steps.add(new XPathArrayElement(lineno, directive, column, destination, xpath));
         }
         break;
 
