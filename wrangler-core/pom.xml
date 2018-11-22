@@ -56,6 +56,12 @@
       <groupId>org.unix4j</groupId>
       <artifactId>unix4j-command</artifactId>
       <version>${unix4j.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
