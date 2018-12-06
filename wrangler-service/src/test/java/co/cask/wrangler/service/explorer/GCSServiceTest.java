@@ -72,7 +72,7 @@ public class GCSServiceTest {
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "OK");
       JsonArray values = new JsonArray();
-      while(iterator.hasNext()) {
+      while (iterator.hasNext()) {
         com.google.cloud.storage.Bucket bucket = iterator.next();
         JsonObject object = new JsonObject();
         object.addProperty("name", bucket.getName());
@@ -97,7 +97,7 @@ public class GCSServiceTest {
 
     Iterator<Blob> iterator = list.iterateAll().iterator();
     JsonArray values = new JsonArray();
-    while(iterator.hasNext()) {
+    while (iterator.hasNext()) {
       JsonObject object = new JsonObject();
       Blob blob = iterator.next();
 
@@ -122,8 +122,7 @@ public class GCSServiceTest {
   @Test
   @Ignore
   public void testExploreGCS() throws Exception {
-    JsonObject list = list("/cdap/audio/raw");
-
+    list("/cdap/audio/raw");
     Assert.assertTrue(true);
   }
 

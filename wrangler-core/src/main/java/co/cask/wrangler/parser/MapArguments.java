@@ -58,7 +58,8 @@ public class MapArguments implements Arguments {
     int required = definition.getTokens().size() - definition.getOptionalTokensCount();
     if ((required > group.size() - 1) || ((group.size() - 1) > definition.getTokens().size())) {
       throw new DirectiveParseException(
-        String.format("Improper usage of directive '%s', usage - '%s'", definition.getDirectiveName(), definition.toString())
+        String.format("Improper usage of directive '%s', usage - '%s'",
+                      definition.getDirectiveName(), definition.toString())
       );
     }
 
@@ -68,7 +69,7 @@ public class MapArguments implements Arguments {
     it.next(); // skip directive name.
     while (it.hasNext()) {
       Token token = it.next();
-      while(pos < specifications.size()) {
+      while (pos < specifications.size()) {
         TokenDefinition specification = specifications.get(pos);
         if (!specification.optional()) {
           if (!specification.type().equals(token.type())) {
@@ -225,7 +226,7 @@ public class MapArguments implements Arguments {
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
     JsonObject arguments = new JsonObject();
-    for(Map.Entry<String, Token> entry : tokens.entrySet()) {
+    for (Map.Entry<String, Token> entry : tokens.entrySet()) {
       arguments.add(entry.getKey(), entry.getValue().toJson());
     }
     object.addProperty("line", lineno);

@@ -26,7 +26,7 @@ public final class Trimmer {
   /**
    * Defines all the white spaces for all the different UTF-8 Character set.
    */
-  public static String[] WHITESPACE_CHARS = new String[] {
+  public static final String[] WHITESPACE_CHARS = new String[] {
     "\t" // CHARACTER TABULATION
     , "\n" // LINE FEED (LF)
     , '\u000B' + "" // LINE TABULATION

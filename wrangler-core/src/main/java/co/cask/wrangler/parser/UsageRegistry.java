@@ -106,7 +106,7 @@ public final class UsageRegistry implements Serializable {
    * @return null if not found, else the usage.
    */
   public String getUsage(String directive) {
-    if(usages.containsKey(directive)) {
+    if (usages.containsKey(directive)) {
       return usages.get(directive).getUsage();
     }
     return null;
@@ -119,7 +119,7 @@ public final class UsageRegistry implements Serializable {
    * @return null if not found, else the description of usage.
    */
   public String getDescription(String directive) {
-    if(usages.containsKey(directive)) {
+    if (usages.containsKey(directive)) {
       return usages.get(directive).getDescription();
     }
     return null;

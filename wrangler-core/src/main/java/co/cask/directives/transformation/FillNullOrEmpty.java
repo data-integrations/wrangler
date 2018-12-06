@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive to fill null or empty column values with a fixed value.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(FillNullOrEmpty.NAME)
 @Categories(categories = { "transform"})
 @Description("Fills a value of a column with a fixed value if it is either null or empty.")

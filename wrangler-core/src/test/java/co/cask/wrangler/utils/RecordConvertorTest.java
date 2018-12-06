@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -89,7 +90,7 @@ public class RecordConvertorTest {
     List<StructuredRecord> outputs = convertor.toStructureRecord(rows, schema);
 
     Assert.assertEquals(1, outputs.size());
-    Assert.assertEquals(6, ((List)outputs.get(0).get("body_numbers")).size());
+    Assert.assertEquals(6, ((List) outputs.get(0).get("body_numbers")).size());
   }
 
   private static Row createUberRecord(List<Row> rows) {
@@ -207,22 +208,21 @@ public class RecordConvertorTest {
       "drop body"
     };
 
-    List<Row> rows = Arrays.asList(
+    List<Row> rows = Collections.singletonList(
       new Row("body", "{\"DeviceID\":\"xyz-abc\",\"SeqNo\":1000,\"TimeStamp\":123456,\"LastContact\":123456," +
         "\"IMEI\":\"345rft567hy65\",\"MSISDN\":\"+19999999999\",\"AuthToken\":\"erdfgg34gtded\",\"Position\":" +
         "{\"Lat\":\"20.22\",\"Lon\":\"-130.45\",\"Accuracy\":16,\"Compass\":108.22,\"TimeStamp\":123456}," +
         "\"Battery\":50,\"Alert\":{\"Id\":26,\"Type\":\"SOS\",\"TimeStamp\":123456},\"Steps\":100,\"Calories\":15}")
-        .add("i2l", new Integer(2))
-        .add("sh2l", new Short((short)1))
-        .add("s2l", new String("2"))
-        .add("i2f", new Integer(1))
-        .add("s2f", new Short((short)2))
-        .add("l2f", new Long(1))
-        .add("i2d", new Integer(1))
-        .add("s2d", new Short((short)3))
-        .add("l2d", new Long(2))
-        .add("f2d", new Float(2.3))
-
+        .add("i2l", 2)
+        .add("sh2l", (short) 1)
+        .add("s2l", "2")
+        .add("i2f", 1)
+        .add("s2f", (short) 2)
+        .add("l2f", 1L)
+        .add("i2d", 1)
+        .add("s2d", (short) 3)
+        .add("l2d", 2L)
+        .add("f2d", 2.3f)
     );
 
     RecipePipeline pipeline = TestingRig.execute(directives);

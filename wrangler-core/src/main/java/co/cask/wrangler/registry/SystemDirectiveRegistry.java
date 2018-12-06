@@ -57,7 +57,7 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   private final List<String> namespaces;
 
   public SystemDirectiveRegistry() throws DirectiveLoadException {
-    this(new ArrayList<String>());
+    this(new ArrayList<>());
   }
 
   /**
@@ -75,7 +75,7 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
       try {
         Reflections reflections = new Reflections(namespace);
         Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
-        for(Class<? extends Directive> directive : system) {
+        for (Class<? extends Directive> directive : system) {
           DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.SYSTEM, directive);
           registry.put(classz.name(), classz);
         }
@@ -92,12 +92,12 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Override
-  public DirectiveInfo get(String name) throws DirectiveLoadException {
+  public DirectiveInfo get(String name) {
     return registry.get(name);
   }
 
   @Override
-  public void reload() throws DirectiveLoadException {
+  public void reload() {
     // No-op.
   }
 
@@ -111,7 +111,7 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   @Override
   public JsonElement toJson() {
     JsonObject response = new JsonObject();
-    for(Map.Entry<String, DirectiveInfo> entry : registry.entrySet()) {
+    for (Map.Entry<String, DirectiveInfo> entry : registry.entrySet()) {
       response.add(entry.getKey(), entry.getValue().toJson());
     }
     return response;
@@ -130,7 +130,7 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
    * Closes any resources acquired during initialization or otherwise.
    */
   @Override
-  public void close() throws IOException {
+  public void close() {
     // no-op
   }
 }

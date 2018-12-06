@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * A Fixed length Parser Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-fixed-length")
 @Categories(categories = { "parser"})
 @Description("Parses fixed-length records using the specified widths and padding-character.")
@@ -74,7 +74,7 @@ public final class FixedLengthParser implements Directive {
       idx = idx + 1;
     }
     this.recordLength = sum;
-    if(args.contains("padding")) {
+    if (args.contains("padding")) {
       this.padding = ((Text) args.value("padding")).value();
     } else {
       this.padding = null;
@@ -118,7 +118,7 @@ public final class FixedLengthParser implements Directive {
               }
               newRow.add(String.format("%s_%d", col, colid), val);
               recPosition += width;
-              colid+=1;
+              colid += 1;
             }
             results.add(newRow);
             index = (index + recordLength);

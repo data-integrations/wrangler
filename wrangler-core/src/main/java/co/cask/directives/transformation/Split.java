@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A directive for splitting a col into two additional columns based on a delimiter.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Split.NAME)
 @Categories(categories = { "transform"})
 @Description("Use 'split-to-columns' or 'split-to-rows'.")

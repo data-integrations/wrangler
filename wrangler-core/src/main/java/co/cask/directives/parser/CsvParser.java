@@ -49,7 +49,7 @@ import java.util.Set;
 /**
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-csv")
 @Categories(categories = { "parser", "csv"})
 @Description("Parses a column as CSV (comma-separated values).")
@@ -103,7 +103,7 @@ public class CsvParser implements Directive {
       .withRecordSeparator('\n');
 
     this.hasHeader = false;
-    if(args.contains("header")) {
+    if (args.contains("header")) {
       headerArg = args.value("header");
       this.hasHeader = headerArg.value();
     }
@@ -131,7 +131,7 @@ public class CsvParser implements Directive {
         continue;
       }
       String line = (String) row.getValue(idx);
-      if(line == null || line.isEmpty()) {
+      if (line == null || line.isEmpty()) {
         continue;
       }
       CSVParser parser = null;
@@ -139,7 +139,7 @@ public class CsvParser implements Directive {
         parser = CSVParser.parse(line, format);
         List<CSVRecord> csvRecords = parser.getRecords();
         for (CSVRecord csvRecord : csvRecords) {
-          if(!checkedHeader && hasHeader && isHeader(csvRecord)) {
+          if (!checkedHeader && hasHeader && isHeader(csvRecord)) {
             for (int i = 0; i < csvRecord.size(); i++) {
               headers.add(csvRecord.get(i).trim());
             }
@@ -166,7 +166,7 @@ public class CsvParser implements Directive {
    */
   private void toRow(CSVRecord record, Row row) {
     int size = headers.size();
-    for ( int i = 0; i < record.size(); i++) {
+    for (int i = 0; i < record.size(); i++) {
       if (size > 0) {
         row.add(headers.get(i), record.get(i));
       } else {

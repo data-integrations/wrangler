@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A Executor to parse timestamp as date.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-timestamp")
 @Categories(categories = {"parser", "date"})
 @Description("Parses column values representing unix timestamp as date.")

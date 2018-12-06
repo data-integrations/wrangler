@@ -54,7 +54,7 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
   @Nullable
   @Override
   public DirectiveInfo get(String directive) throws DirectiveLoadException {
-    for(int i = 0; i < registries.length; ++i) {
+    for (int i = 0; i < registries.length; ++i) {
       DirectiveInfo info = registries[i].get(directive);
       if (info != null) {
         return info;
@@ -65,7 +65,7 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
 
   @Override
   public void reload() throws DirectiveLoadException {
-    for(int idx = 0; idx < registries.length; ++idx) {
+    for (int idx = 0; idx < registries.length; ++idx) {
       registries[idx].reload();
     }
   }
@@ -101,7 +101,7 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
    */
   @Override
   public void close() throws IOException {
-    for(int idx = 0; idx < registries.length; ++idx) {
+    for (int idx = 0; idx < registries.length; ++idx) {
       registries[idx].close();
     }
   }
@@ -116,7 +116,7 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
     private int idx;
     private Iterator<DirectiveInfo> iterator;
 
-    public CompositeRegistryIterator() {
+    CompositeRegistryIterator() {
       this.count = registries.length;
       this.idx = 0;
       this.iterator = registries[idx].iterator();

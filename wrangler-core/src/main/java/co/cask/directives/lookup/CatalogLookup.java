@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive that looks up ICD Code from the catalog.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(CatalogLookup.NAME)
 @Categories(categories = { "lookup"})
 @Description("Looks-up values from pre-loaded (static) catalogs.")

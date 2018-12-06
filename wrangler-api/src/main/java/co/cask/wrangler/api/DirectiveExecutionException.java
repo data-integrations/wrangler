@@ -29,7 +29,7 @@ public class DirectiveExecutionException extends Exception {
   }
 
   public DirectiveExecutionException(String s, Throwable e) {
-    super(s,e);
+    super(s, e);
   }
 
   public DirectiveExecutionException(Throwable e) {

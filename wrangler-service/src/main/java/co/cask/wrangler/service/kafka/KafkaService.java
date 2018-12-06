@@ -211,9 +211,9 @@ public final class KafkaService extends AbstractHttpServiceHandler {
         boolean running = true;
         List<Row> recs = new ArrayList<>();
         int count = lines;
-        while(running) {
+        while (running) {
           ConsumerRecords<String, String> records = consumer.poll(10000);
-          for(ConsumerRecord<String, String> record : records) {
+          for (ConsumerRecord<String, String> record : records) {
             Row rec = new Row();
             rec.add("body", record.value());
             recs.add(rec);

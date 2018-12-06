@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * Filters records if they don't have all the columns specified or they have null values or combination.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(RecordMissingOrNullFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters row that have empty or null columns.")

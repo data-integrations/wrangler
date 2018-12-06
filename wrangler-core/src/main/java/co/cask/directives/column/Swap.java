@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive for swapping the column names.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Swap.NAME)
 @Categories(categories = { "column"})
 @Description("Swaps the column names of two columns.")

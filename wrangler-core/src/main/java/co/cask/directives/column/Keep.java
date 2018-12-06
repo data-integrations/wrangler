@@ -23,8 +23,8 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnNameList;
@@ -41,7 +41,7 @@ import java.util.Set;
  * columns specified, it keeps only those columns that are
  * specified.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("keep")
 @Categories(categories = { "column"})
 @Description("Keeps the specified columns and drops all others.")

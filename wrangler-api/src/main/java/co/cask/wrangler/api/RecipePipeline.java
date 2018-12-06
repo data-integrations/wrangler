@@ -24,6 +24,10 @@ import java.util.List;
 
 /**
  * {@link RecipePipeline} executes array of {@link Executor} in the order they are specified.
+ *
+ * @param <I> type of input object
+ * @param <O> type of output object
+ * @param <E> type of error object
  */
 @PublicEvolving
 public interface RecipePipeline<I, O, E> extends Serializable {

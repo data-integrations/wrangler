@@ -16,8 +16,8 @@
 
 package co.cask.directives.aggregates;
 
-import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.api.TransientStore;
+import co.cask.wrangler.api.TransientVariableScope;
 
 import java.util.HashMap;
 import java.util.HashSet;

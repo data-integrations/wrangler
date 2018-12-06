@@ -45,7 +45,7 @@ import java.util.List;
  * The value set as transient variable is available to all the directives after that. But, it's
  * not available beyond the input record.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(SetTransientVariable.NAME)
 @Categories(categories = { "transient"})
 @Description("Sets the value for a transient variable for the record being processed.")
@@ -80,13 +80,12 @@ public class SetTransientVariable implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context);
       ctx.set("this", row);
-      for(String var : el.variables()) {
+      for (String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
 

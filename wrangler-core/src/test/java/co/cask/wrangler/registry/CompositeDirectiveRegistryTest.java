@@ -49,14 +49,14 @@ import javax.annotation.Nullable;
  */
 public class CompositeDirectiveRegistryTest {
 
-  @Plugin(type = Directive.Type)
+  @Plugin(type = Directive.TYPE)
   @Name("my-test")
   @Description("Test")
   public static final class MyTest implements Directive {
     private String column;
 
     @Override
-    public List<Row> execute(List<Row> row, ExecutorContext context) throws DirectiveExecutionException, ErrorRowException {
+    public List<Row> execute(List<Row> row, ExecutorContext context) {
       return row;
     }
 
@@ -68,7 +68,7 @@ public class CompositeDirectiveRegistryTest {
     }
 
     @Override
-    public void initialize(Arguments args) throws DirectiveParseException {
+    public void initialize(Arguments args) {
       column = ((ColumnName) args.value("column")).value();
     }
 
@@ -81,24 +81,18 @@ public class CompositeDirectiveRegistryTest {
   private class TestDirectiveRegistry implements DirectiveRegistry {
     private Map<String, DirectiveInfo> registry = new HashMap<>();
 
-    public TestDirectiveRegistry() {
-      try {
-        registry.put("my-test", new DirectiveInfo(DirectiveInfo.Scope.USER, MyTest.class));
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InstantiationException e) {
-        e.printStackTrace();
-      }
+    public TestDirectiveRegistry() throws InstantiationException, IllegalAccessException {
+      registry.put("my-test", new DirectiveInfo(DirectiveInfo.Scope.USER, MyTest.class));
     }
 
     @Nullable
     @Override
-    public DirectiveInfo get(String name) throws DirectiveLoadException {
+    public DirectiveInfo get(String name) {
       return registry.get(name);
     }
 
     @Override
-    public void reload() throws DirectiveLoadException {
+    public void reload() {
       // no-op
     }
 
@@ -113,7 +107,7 @@ public class CompositeDirectiveRegistryTest {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
       // no-op
     }
   }
@@ -126,7 +120,7 @@ public class CompositeDirectiveRegistryTest {
 
     Iterator<DirectiveInfo> iterator = registry.iterator();
     int count = 0;
-    while(iterator.hasNext()) {
+    while (iterator.hasNext()) {
       iterator.next();
       count++;
     }
@@ -136,7 +130,7 @@ public class CompositeDirectiveRegistryTest {
 
     iterator = registry.iterator();
     count = 0;
-    while(iterator.hasNext()) {
+    while (iterator.hasNext()) {
       iterator.next();
       count++;
     }

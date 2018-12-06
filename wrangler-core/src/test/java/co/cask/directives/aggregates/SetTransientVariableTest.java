@@ -21,8 +21,8 @@ import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.api.TransientVariableScope;
 import co.cask.wrangler.api.TransientStore;
+import co.cask.wrangler.api.TransientVariableScope;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,7 +40,7 @@ public class SetTransientVariableTest {
 
   @Test
   public void testSettingOfVariable() throws Exception {
-    String[] recipe = new String[] {
+    String[] recipe = new String[]{
       "set-variable test fwd == 0 ? A : test"
     };
 

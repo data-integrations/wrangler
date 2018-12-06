@@ -68,7 +68,7 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
    *   }
    * </code>
    */
-  String Type = "directive";
+  String TYPE = "directive";
 
   /**
    * This method provides a way for the developer to provide information

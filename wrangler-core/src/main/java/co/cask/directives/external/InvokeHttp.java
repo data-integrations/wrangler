@@ -24,8 +24,8 @@ import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
-import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnNameList;
@@ -60,7 +60,7 @@ import java.util.Map;
 /**
  * A directives that invokes HTTP endpoint to merge the results back into dataset.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(InvokeHttp.NAME)
 @Categories(categories = { "http"})
 @Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
@@ -135,7 +135,7 @@ public class InvokeHttp implements Directive {
       }
       try {
         Map<String, Object> result = invokeHttp(url, parameters, headers);
-        for(Map.Entry<String, Object> entry : result.entrySet()) {
+        for (Map.Entry<String, Object> entry : result.entrySet()) {
           row.addOrSet(entry.getKey(), entry.getValue());
         }
       } catch (Exception e) {
@@ -161,7 +161,7 @@ public class InvokeHttp implements Directive {
       }
       Gson gson = new GsonBuilder().create();
       Reader reader = new InputStreamReader(entity.getContent(), Charset.forName("UTF-8"));
-      return gson.fromJson(reader, new TypeToken<Map<String, Object>>(){}.getType());
+      return gson.fromJson(reader, new TypeToken<Map<String, Object>>() { }.getType());
     }
   }
 

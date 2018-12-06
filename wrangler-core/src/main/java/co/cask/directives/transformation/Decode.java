@@ -42,7 +42,7 @@ import java.util.Locale;
 /**
  * A directive that decodes a column that was encoded as base-32, base-64, or hex.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Decode.NAME)
 @Categories(categories = { "transform"})
 @Description("Decodes column values using one of base32, base64, or hex.")

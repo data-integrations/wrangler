@@ -41,6 +41,9 @@ public final class DirectiveInfo {
   private boolean deprecated;
   private String[] categories;
 
+  /**
+   * Scope of the directive
+   */
   public enum Scope {
     SYSTEM,
     USER
@@ -93,7 +96,9 @@ public final class DirectiveInfo {
     return usage;
   }
 
-  public String description() { return description; }
+  public String description() {
+    return description;
+  }
 
   public UsageDefinition definition() {
     return definition;
@@ -103,11 +108,11 @@ public final class DirectiveInfo {
     return categories;
   }
 
-  public final Directive instance() throws IllegalAccessException, InstantiationException {
+  public Directive instance() throws IllegalAccessException, InstantiationException {
     return (Directive) directive.newInstance();
   }
 
-  public final JsonObject toJson() {
+  public JsonObject toJson() {
     JsonObject response = new JsonObject();
     response.addProperty("plugin", name);
     response.addProperty("usage", usage);

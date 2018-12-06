@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A directive for merging two columns and creates a third column.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Merge.NAME)
 @Categories(categories = { "column"})
 @Description("Merges values from two columns using a separator into a new column.")

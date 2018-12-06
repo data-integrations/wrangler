@@ -41,7 +41,7 @@ import java.util.Locale;
 /**
  * A directive for taking difference in Dates.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(FormatAsCurrency.NAME)
 @Categories(categories = {"currency"})
 @Description("Formats a number as currency using the locale specified. Default locale is en_US.")

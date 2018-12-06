@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A directive for taking difference in Dates.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("diff-date")
 @Categories(categories = {"date"})
 @Description("Calculates the difference in milliseconds between two Date objects." +

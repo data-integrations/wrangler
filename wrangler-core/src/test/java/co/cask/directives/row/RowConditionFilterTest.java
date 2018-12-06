@@ -32,7 +32,7 @@ public class RowConditionFilterTest {
 
   @Test(expected = RecipeException.class)
   public void testRHSLHSTypeDisconnect() throws Exception {
-    String[] directives = new String[] {
+    String[] directives = new String[]{
       "parse-as-csv body ,",
       "drop body",
       "set columns PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
@@ -52,7 +52,7 @@ public class RowConditionFilterTest {
 
   @Test
   public void testSameRHSAndLHSType() throws Exception {
-    String[] directives = new String[] {
+    String[] directives = new String[]{
       "parse-as-csv body ,",
       "drop body",
       "set columns PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
@@ -69,5 +69,4 @@ public class RowConditionFilterTest {
 
     Assert.assertTrue(rows.size() == 1);
   }
-
 }

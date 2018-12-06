@@ -36,21 +36,19 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 
 /**
  * A step to write the record fields as CSV.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("write-as-csv")
 @Categories(categories = { "writer", "csv"})
 @Description("Writes the records files as well-formatted CSV")
 public class WriteAsCSV implements Directive {
   public static final String NAME = "write-as-csv";
   private String column;
-  private CSVPrinter writer;
 
   @Override
   public UsageDefinition define() {
@@ -62,11 +60,6 @@ public class WriteAsCSV implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
-    try {
-      this.writer = CSVFormat.DEFAULT.print(new StringWriter());
-    } catch (IOException e) {
-      throw new DirectiveParseException(toString() + " : " + "Unable to create CSV writer. " + e.getMessage());
-    }
   }
 
   @Override
@@ -79,7 +72,7 @@ public class WriteAsCSV implements Directive {
     for (Row row : rows) {
       try {
         final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-        try(Writer out = new BufferedWriter(new OutputStreamWriter(bOut))) {
+        try (Writer out = new BufferedWriter(new OutputStreamWriter(bOut))) {
           CSVPrinter csvPrinter = new CSVPrinter(out, CSVFormat.DEFAULT);
 
           for (int i = 0; i < row.length(); ++i) {

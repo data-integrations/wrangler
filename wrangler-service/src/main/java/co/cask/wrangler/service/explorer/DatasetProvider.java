@@ -20,6 +20,8 @@ import co.cask.cdap.api.dataset.Dataset;
 
 /**
  * This class implements the provider pattern for providing dataset at runtime.
+ *
+ * @param <T> type of dataset provided
  */
 public interface DatasetProvider<T extends Dataset> {
   T acquire() throws Exception;

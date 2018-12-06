@@ -91,7 +91,7 @@ public class InvokeHttpTest {
       if (contentString.isEmpty()) {
         return null;
       }
-      return new Gson().fromJson(contentString, new TypeToken<Map<String, Object>>(){}.getType());
+      return new Gson().fromJson(contentString, new TypeToken<Map<String, Object>>() { }.getType());
     }
   }
 

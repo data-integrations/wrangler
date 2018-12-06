@@ -29,7 +29,7 @@ public final class TypeConvertor {
    * @param object of any type.
    * @return object converted to type string.
    */
-  public static final String toString(Object object) throws IllegalArgumentException {
+  public static String toString(Object object) throws IllegalArgumentException {
     if (object == null) {
       return null;
     }

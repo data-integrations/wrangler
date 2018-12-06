@@ -36,9 +36,7 @@ import co.cask.wrangler.expression.ELContext;
 import co.cask.wrangler.expression.ELException;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -49,7 +47,7 @@ import java.util.Set;
  *   false, then the row will be accepted.
  * </p>
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(RecordConditionFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows based on condition type specified.")
@@ -58,8 +56,6 @@ public class RecordConditionFilter implements Directive {
   private String condition;
   private final EL el = new EL(new EL.DefaultFunctions());
   private boolean isTrue;
-  // Variables in expression
-  private Set<String> variables = new HashSet<>();
 
   @Override
   public UsageDefinition define() {
@@ -94,7 +90,7 @@ public class RecordConditionFilter implements Directive {
     for (Row row : rows) {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context);
-      for(String var : el.variables()) {
+      for (String var : el.variables()) {
         Object value = row.getValue(var);
         String strValue;
         // support numeric values by converting them to string

@@ -19,27 +19,20 @@ package co.cask.wrangler.utils;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.format.StructuredRecord;
 import co.cask.cdap.api.data.schema.Schema;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -68,22 +61,6 @@ public final class StructuredRecordJsonConverter {
       .build()
   );
 
-  private static final EnumMap<Schema.Type, JsonToken> SCHEMA_TO_JSON_TYPE = new EnumMap<>(
-    ImmutableMap.<Schema.Type, JsonToken>builder()
-      .put(Schema.Type.NULL, JsonToken.NULL)
-      .put(Schema.Type.BOOLEAN, JsonToken.BOOLEAN)
-      .put(Schema.Type.INT, JsonToken.NUMBER)
-      .put(Schema.Type.LONG, JsonToken.NUMBER)
-      .put(Schema.Type.FLOAT, JsonToken.NUMBER)
-      .put(Schema.Type.DOUBLE, JsonToken.NUMBER)
-      .put(Schema.Type.STRING, JsonToken.STRING)
-      .put(Schema.Type.BYTES, JsonToken.BEGIN_ARRAY)
-      .put(Schema.Type.ARRAY, JsonToken.BEGIN_ARRAY)
-      .put(Schema.Type.MAP, JsonToken.BEGIN_OBJECT)
-      .put(Schema.Type.RECORD, JsonToken.BEGIN_OBJECT)
-      .build()
-  );
-
   /**
    * Converts a {@link StructuredRecord} to a json string.
    */
@@ -96,47 +73,6 @@ public final class StructuredRecordJsonConverter {
     } finally {
       writer.close();
     }
-  }
-
-  /**
-   * Converts a json string to a {@link StructuredRecord} based on the schema.
-   */
-  public static StructuredRecord fromJsonString(String json, Schema schema) throws IOException {
-    JsonReader reader = new JsonReader(new StringReader(json));
-    try {
-      return (StructuredRecord) readJson(reader, schema);
-    } finally {
-      reader.close();
-    }
-  }
-
-  /**
-   * Converts a {@link StructuredRecord} to a delimited string.
-   */
-  public static String toDelimitedString(final StructuredRecord record, String delimiter) {
-    return Joiner.on(delimiter).join(
-      Iterables.transform(record.getSchema().getFields(), new Function<Schema.Field, String>() {
-        @Override
-        public String apply(Schema.Field field) {
-          return record.get(field.getName()).toString();
-        }
-      }));
-  }
-
-  /**
-   * Converts a delimited string to a {@link StructuredRecord} based on the schema.
-   */
-  public static StructuredRecord fromDelimitedString(String delimitedString, String delimiter, Schema schema) {
-    StructuredRecord.Builder builder = StructuredRecord.builder(schema);
-    Iterator<Schema.Field> fields = schema.getFields().iterator();
-
-    for (String part : Splitter.on(delimiter).split(delimitedString)) {
-      if (!part.isEmpty()) {
-        builder.convertAndSet(fields.next().getName(), part);
-      }
-    }
-
-    return builder.build();
   }
 
   private static Object readJson(JsonReader reader, Schema schema) throws IOException {

@@ -35,7 +35,7 @@ class Response<T> {
   // Instance of object in the list.
   private List<T> values;
 
-  public Response(int status, String message) {
+  Response(int status, String message) {
     this.status = status;
     this.message = message;
   }

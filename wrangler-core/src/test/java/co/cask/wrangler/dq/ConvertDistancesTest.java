@@ -31,7 +31,7 @@ public class ConvertDistancesTest {
   public void testConvertDoubleNan() {
     double nan = Double.NaN;
     ConvertDistances converter = new ConvertDistances(ConvertDistances.Distance.MILE,
-                                                        ConvertDistances.Distance.KILOMETER);
+                                                      ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(nan, converter.convert(nan), delta);
   }
 
@@ -39,25 +39,29 @@ public class ConvertDistancesTest {
   public void testConvertZero() {
     double zero = 0.0;
     ConvertDistances converter = new ConvertDistances(ConvertDistances.Distance.MILE,
-                                                        ConvertDistances.Distance.KILOMETER);
+                                                      ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(zero, converter.convert(zero), delta);
   }
 
   @Test
   public void testConvertMaxValue() {
     double max = Double.MAX_VALUE;
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(Double.POSITIVE_INFINITY, converter0.convert(max), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(1.900163142869793E289, converter1.convert(max), delta);
   }
 
   @Test
   public void testConvertMinValue() {
     double min = Double.MIN_VALUE;
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(0.0, converter0.convert(min), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(0.0, converter1.convert(min), delta);
   }
 
@@ -86,31 +90,44 @@ public class ConvertDistancesTest {
     double nm = 5.399568034557235E-7;
     double ly = 1.0570008340246155E-19;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter0.convert(mm), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter1.convert(mm), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter2.convert(mm), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.METER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter3.convert(mm), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter4.convert(mm), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(mm), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter6.convert(mm), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.INCH);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter7.convert(mm), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(mm), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(mm), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(mm), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(mm), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.MILLIMETER,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(mm), delta);
   }
 
@@ -130,31 +147,44 @@ public class ConvertDistancesTest {
     double nm = 5.399568034557236E-6;
     double ly = 1.0570008340246153E-18;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter0.convert(cm), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(cm), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter2.convert(cm), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.METER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter3.convert(cm), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter4.convert(cm), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(cm), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter6.convert(cm), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.INCH);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter7.convert(cm), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(cm), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(cm), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(cm), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(cm), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.CENTIMETER,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(cm), delta);
   }
 
@@ -174,31 +204,44 @@ public class ConvertDistancesTest {
     double nm = 5.399568034557236E-5;
     double ly = 1.0570008340246154E-17;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter0.convert(dm), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(dm), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(dm), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.METER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter3.convert(dm), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter4.convert(dm), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(dm), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter6.convert(dm), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.INCH);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter7.convert(dm), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(dm), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(dm), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(dm), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(dm), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.DECIMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.DECIMETER,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(dm), delta);
   }
 
@@ -218,31 +261,44 @@ public class ConvertDistancesTest {
     double nm = 5.399568034557236E-4;
     double ly = 1.0570008340246154E-16;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.METER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter0.convert(m), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(m), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(m), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(m), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter4.convert(m), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(m), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter6.convert(m), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.INCH);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter7.convert(m), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(m), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(m), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(m), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(m), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.METER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.METER,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(m), delta);
   }
 
@@ -262,31 +318,44 @@ public class ConvertDistancesTest {
     double nm = 0.005399568034557236;
     double ly = 1.0570008340246154E-15;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter0.convert(dam), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(dam), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(dam), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(dam), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(dam), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(dam), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter6.convert(dam), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.INCH);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter7.convert(dam), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(dam), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(dam), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(dam), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(dam), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.DEKAMETER,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(dam), delta);
   }
 
@@ -306,31 +375,44 @@ public class ConvertDistancesTest {
     double nm = 0.05399568034557236;
     double ly = 1.0570008340246154E-14;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter0.convert(hm), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(hm), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(hm), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(hm), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(hm), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter5.convert(hm), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter6.convert(hm), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.INCH);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter7.convert(hm), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(hm), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(hm), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(hm), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(hm), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.HECTOMETER,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(hm), delta);
   }
 
@@ -350,31 +432,44 @@ public class ConvertDistancesTest {
     double nm = 0.5399568034557236;
     double ly = 1.0570008340246153E-13;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter0.convert(km), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(km), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(km), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(km), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(km), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(km), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter6.convert(km), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.INCH);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter7.convert(km), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(km), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(km), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(km), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(km), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.KILOMETER, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.KILOMETER,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(km), delta);
   }
 
@@ -394,31 +489,44 @@ public class ConvertDistancesTest {
     double nm = 1.371490280777538E-5;
     double ly = 2.684782118422523E-18;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.INCH);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter0.convert(in), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(in), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(in), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(in), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(in), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(in), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter6.convert(in), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter7.convert(in), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter8.convert(in), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(in), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(in), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(in), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.INCH, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.INCH,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(in), delta);
   }
 
@@ -438,31 +546,44 @@ public class ConvertDistancesTest {
     double nm = 1.6457883369330455E-4;
     double ly = 3.221738542107028E-17;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter0.convert(ft), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(ft), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(ft), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(ft), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(ft), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(ft), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter6.convert(ft), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter7.convert(ft), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.INCH);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter8.convert(ft), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.YARD);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter9.convert(ft), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(ft), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(ft), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.FOOT, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.FOOT,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(ft), delta);
   }
 
@@ -482,31 +603,44 @@ public class ConvertDistancesTest {
     double nm = 4.937365010799136E-4;
     double ly = 9.665215626321083E-17;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.YARD);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter0.convert(yd), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(yd), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(yd), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(yd), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(yd), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(yd), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter6.convert(yd), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter7.convert(yd), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.INCH);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter8.convert(yd), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter9.convert(yd), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.MILE);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter10.convert(yd), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(yd), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.YARD, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.YARD,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(yd), delta);
   }
 
@@ -526,31 +660,44 @@ public class ConvertDistancesTest {
     double nm = 0.868976241900648;
     double ly = 1.7010779502325107E-13;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.MILE);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter0.convert(mi), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(mi), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(mi), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(mi), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(mi), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(mi), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter6.convert(mi), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter7.convert(mi), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.INCH);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter8.convert(mi), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter9.convert(mi), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.YARD);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                        ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter10.convert(mi), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter11.convert(mi), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.MILE, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.MILE,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(mi), delta);
   }
 
@@ -570,31 +717,44 @@ public class ConvertDistancesTest {
     double mi = 1.1507794480235425;
     double ly = 1.9575655446135877E-13;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter0.convert(nm), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(nm), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(nm), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(nm), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(nm), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(nm), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter6.convert(nm), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter7.convert(nm), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.INCH);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter8.convert(nm), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter9.convert(nm), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.YARD);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                        ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter10.convert(nm), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter11.convert(nm), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.NAUTICAL_MILE,
+                                                        ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter12.convert(nm), delta);
   }
 
@@ -614,31 +774,44 @@ public class ConvertDistancesTest {
     double mi = 5.878625373183607E12;
     double nm = 5.108385784330886E12;
 
-    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.LIGHT_YEAR);
+    ConvertDistances converter0 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.LIGHT_YEAR);
     Assert.assertEquals(ly, converter0.convert(ly), delta);
-    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.MILLIMETER);
+    ConvertDistances converter1 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.MILLIMETER);
     Assert.assertEquals(mm, converter1.convert(ly), delta);
-    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.CENTIMETER);
+    ConvertDistances converter2 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.CENTIMETER);
     Assert.assertEquals(cm, converter2.convert(ly), delta);
-    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.DECIMETER);
+    ConvertDistances converter3 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.DECIMETER);
     Assert.assertEquals(dm, converter3.convert(ly), delta);
-    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.METER);
+    ConvertDistances converter4 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.METER);
     Assert.assertEquals(m, converter4.convert(ly), delta);
-    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.HECTOMETER);
+    ConvertDistances converter5 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.HECTOMETER);
     Assert.assertEquals(hm, converter5.convert(ly), delta);
-    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.DEKAMETER);
+    ConvertDistances converter6 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.DEKAMETER);
     Assert.assertEquals(dam, converter6.convert(ly), delta);
-    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.KILOMETER);
+    ConvertDistances converter7 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.KILOMETER);
     Assert.assertEquals(km, converter7.convert(ly), delta);
-    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.INCH);
+    ConvertDistances converter8 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.INCH);
     Assert.assertEquals(in, converter8.convert(ly), delta);
-    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.FOOT);
+    ConvertDistances converter9 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                       ConvertDistances.Distance.FOOT);
     Assert.assertEquals(ft, converter9.convert(ly), delta);
-    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.YARD);
+    ConvertDistances converter10 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                        ConvertDistances.Distance.YARD);
     Assert.assertEquals(yd, converter10.convert(ly), delta);
-    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.MILE);
+    ConvertDistances converter11 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                        ConvertDistances.Distance.MILE);
     Assert.assertEquals(mi, converter11.convert(ly), delta);
-    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR, ConvertDistances.Distance.NAUTICAL_MILE);
+    ConvertDistances converter12 = new ConvertDistances(ConvertDistances.Distance.LIGHT_YEAR,
+                                                        ConvertDistances.Distance.NAUTICAL_MILE);
     Assert.assertEquals(nm, converter12.convert(ly), delta);
   }
 }

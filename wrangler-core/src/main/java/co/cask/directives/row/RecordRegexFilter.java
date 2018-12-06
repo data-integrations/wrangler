@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 /**
  * A Wrangle step for filtering rows that match the pattern specified on the column.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(RecordRegexFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows if the regex is matched or not matched.")
@@ -104,7 +104,7 @@ public class RecordRegexFilter implements Directive {
             continue;
           }
         } else if (object instanceof Number) {
-          if (matchPattern(((Number) row.getValue(idx)).toString())) {
+          if (matchPattern((row.getValue(idx)).toString())) {
             continue;
           }
         } else {
@@ -123,7 +123,7 @@ public class RecordRegexFilter implements Directive {
 
   private boolean matchPattern(String value) {
     boolean matches = pattern.matcher(value).matches(); // pattern.matcher(value).matches();
-    if(!matched) {
+    if (!matched) {
       matches = !matches;
     }
     return matches;

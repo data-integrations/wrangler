@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive for splitting the columns into multiple columns.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(SplitToColumns.NAME)
 @Categories(categories = { "column"})
 @Description("Splits a column into one or more columns around matches of the specified regular expression.")

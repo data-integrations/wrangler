@@ -44,7 +44,7 @@ import java.util.TimeZone;
 /**
  * A Executor to parse date into {@link ZonedDateTime} object.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-simple-date")
 @Categories(categories = { "parser", "date"})
 @Description("Parses a column as date using format.")

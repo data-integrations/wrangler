@@ -84,7 +84,7 @@ public class GrammarBasedParser implements RecipeParser {
       }
 
       Iterator<TokenGroup> tokenGroups = status.getSymbols().iterator();
-      while(tokenGroups.hasNext()) {
+      while (tokenGroups.hasNext()) {
         TokenGroup next = tokenGroups.next();
         if (next == null) {
           continue;
@@ -98,8 +98,8 @@ public class GrammarBasedParser implements RecipeParser {
         // Checks if the directive has been excluded from being used.
         if (!root.equals(command) && context.isExcluded(command)) {
           throw new DirectiveParseException(
-            String.format("Aliased directive '%s' has been configured as restricted directive and is hence unavailable. " +
-                            "Please contact your administrator", command)
+            String.format("Aliased directive '%s' has been configured as restricted directive and "
+                            + "is hence unavailable. Please contact your administrator", command)
           );
         }
 

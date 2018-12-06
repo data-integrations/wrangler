@@ -163,7 +163,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     private String tag;
     private String port;
 
-    public DriverInfo(String name, String jdbcUrlPattern, String tag, String port) {
+    DriverInfo(String name, String jdbcUrlPattern, String tag, String port) {
       this.name = name;
       this.jdbcUrlPattern = jdbcUrlPattern;
       this.tag = tag;
@@ -187,8 +187,11 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     }
   }
 
+  /**
+   * Executes something using a SQL connection.
+   */
   public interface Executor {
-    public void execute(java.sql.Connection connection) throws Exception;
+    void execute(java.sql.Connection connection) throws Exception;
   }
 
   private final Multimap<String, DriverInfo> drivers = ArrayListMultimap.create();
