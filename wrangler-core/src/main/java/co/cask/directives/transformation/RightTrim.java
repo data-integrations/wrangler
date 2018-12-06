@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * A directive for trimming whitespace from right side of a string
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(RightTrim.NAME)
 @Categories(categories = { "transform"})
 @Description("Trimming whitespace from right side of a string.")

@@ -41,7 +41,7 @@ import java.util.List;
  *   </ul>
  * </p>
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(CleanseColumnNames.NAME)
 @Categories(categories = { "column"})
 @Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +

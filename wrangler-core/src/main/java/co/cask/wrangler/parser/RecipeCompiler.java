@@ -78,7 +78,7 @@ public final class RecipeCompiler implements Compiler {
       parser.setBuildParseTree(true);
       ParseTree tree = parser.statements();
 
-      if(errorListener.hasErrors()) {
+      if (errorListener.hasErrors()) {
         return new CompileStatus(true, errorListener.iterator());
       }
 

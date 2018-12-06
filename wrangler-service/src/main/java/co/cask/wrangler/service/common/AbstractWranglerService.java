@@ -34,6 +34,9 @@ import javax.annotation.Nullable;
 
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
+/**
+ * Common functionality for wrangler services.
+ */
 public class AbstractWranglerService extends AbstractHttpServiceHandler {
   private static final Gson GSON = new Gson();
   protected ConnectionStore store;

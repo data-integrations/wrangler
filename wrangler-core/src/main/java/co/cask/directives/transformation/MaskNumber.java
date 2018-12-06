@@ -56,7 +56,7 @@ import java.util.List;
  *  </blockquote>
  * </p>
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(MaskNumber.NAME)
 @Categories(categories = { "transform"})
 @Description("Masks a column value using the specified masking pattern.")

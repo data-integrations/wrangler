@@ -47,8 +47,6 @@ import com.github.rholder.retry.StopStrategies;
 import com.github.rholder.retry.WaitStrategies;
 import com.google.common.base.Charsets;
 import org.apache.avro.Schema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,13 +58,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * A step to parse AVRO json or binary format.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-avro")
 @Categories(categories = { "parser", "avro"})
 @Description("Parses column as AVRO generic record.")
 public class ParseAvro implements Directive {
   public static final String NAME = "parse-as-avro";
-  private static final Logger LOG = LoggerFactory.getLogger(ParseAvro.class);
   private String column;
   private String schemaId;
   private String type;
@@ -91,11 +88,9 @@ public class ParseAvro implements Directive {
     this.schemaId = ((Identifier) args.value("schema-id")).value();
     this.type = ((Identifier) args.value("encode-type")).value();
     if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
-      throw new DirectiveParseException(
-        String.format("Parsing AVRO can be either of type 'json' or 'binary'")
-      );
+      throw new DirectiveParseException("Parsing AVRO can be either of type 'json' or 'binary'");
     }
-    if(args.contains("version")) {
+    if (args.contains("version")) {
       this.version = ((Numeric) args.value("version")).value().intValue();
     } else {
       this.version = -1;
@@ -115,25 +110,22 @@ public class ParseAvro implements Directive {
     if (!decoderInitialized) {
       // Retryer callable, that allows this step attempt to connect to schema registry service
       // before giving up.
-      Callable<Decoder<Row>> decoderCallable = new Callable<Decoder<Row>>() {
-        @Override
-        public Decoder<Row> call() throws Exception {
-          client = SchemaRegistryClient.getInstance(context);
-          byte[] bytes;
-          if (version != -1) {
-            bytes = client.getSchema(schemaId, version);
-          } else {
-            bytes = client.getSchema(schemaId);
-          }
-          Schema.Parser parser = new Schema.Parser();
-          Schema schema = parser.parse(Bytes.toString(bytes));
-          if ("json".equalsIgnoreCase(type)) {
-            return new JsonAvroDecoder(schema);
-          } else if ("binary".equalsIgnoreCase(type)) {
-            return new BinaryAvroDecoder(schema);
-          }
-          return null;
+      Callable<Decoder<Row>> decoderCallable = () -> {
+        client = SchemaRegistryClient.getInstance(context);
+        byte[] bytes;
+        if (version != -1) {
+          bytes = client.getSchema(schemaId, version);
+        } else {
+          bytes = client.getSchema(schemaId);
         }
+        Schema.Parser parser = new Schema.Parser();
+        Schema schema = parser.parse(Bytes.toString(bytes));
+        if ("json".equalsIgnoreCase(type)) {
+          return new JsonAvroDecoder(schema);
+        } else if ("binary".equalsIgnoreCase(type)) {
+          return new BinaryAvroDecoder(schema);
+        }
+        return null;
       };
 
       // Retryer that retries when there is connection issue or any request / response

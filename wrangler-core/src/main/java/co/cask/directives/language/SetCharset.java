@@ -43,7 +43,7 @@ import java.util.List;
  * This directive will convert the data from {@link Byte[]} or {@link ByteBuffer}
  * to {@link String}. This conversion is through the character set encoding.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("set-charset")
 @Categories(categories = {"language"})
 @Description("Sets the character set decoding to UTF-8.")

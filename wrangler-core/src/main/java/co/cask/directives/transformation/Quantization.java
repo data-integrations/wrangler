@@ -42,13 +42,12 @@ import java.util.List;
 /**
  * A Wrangler step for quantizing a column.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Quantization.NAME)
 @Categories(categories = { "transform"})
 @Description("Quanitize the range of numbers into label values.")
 public class Quantization implements Directive {
   public static final String NAME = "quantize";
-  private static final String RANGE_PATTERN="([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();
   private String col1;
   private String col2;

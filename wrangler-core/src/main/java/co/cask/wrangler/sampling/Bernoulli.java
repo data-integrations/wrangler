@@ -27,7 +27,8 @@ import java.util.Random;
  * Bernoulli experiment.
  *
  * @param <T> The type of sample.
- * @see <a href="http://erikerlandson.github.io/blog/2014/09/11/faster-random-samples-with-gap-sampling/">Gap Sampling</a>
+ * @see
+ * <a href="http://erikerlandson.github.io/blog/2014/09/11/faster-random-samples-with-gap-sampling/">Gap Sampling</a>
  */
 public class Bernoulli<T> extends Sampler<T> {
 
@@ -35,7 +36,7 @@ public class Bernoulli<T> extends Sampler<T> {
   private final Random random;
 
   // THRESHOLD is a tuning parameter for choosing sampling method according to the fraction.
-  private final static double THRESHOLD = 0.33;
+  private static final double THRESHOLD = 0.33;
 
   /**
    * Create a Bernoulli sampler with sample fraction and default random number generator.
@@ -77,7 +78,7 @@ public class Bernoulli<T> extends Sampler<T> {
   @Override
   public Iterator<T> sample(final Iterator<T> input) {
     if (fraction == 0) {
-      return EMPTY_ITERABLE;
+      return emptyIterable;
     }
 
     return new SamplingIterator<T>() {

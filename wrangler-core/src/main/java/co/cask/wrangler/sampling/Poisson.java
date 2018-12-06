@@ -27,8 +27,10 @@ import java.util.Random;
  * and replacement, the selected number of each element follows a given poisson distribution.
  *
  * @param <T> The type of sample.
- * @see <a href="https://en.wikipedia.org/wiki/Poisson_distribution">https://en.wikipedia.org/wiki/Poisson_distribution</a>
- * @see <a href="http://erikerlandson.github.io/blog/2014/09/11/faster-random-samples-with-gap-sampling/">Gap Sampling</a>
+ * @see
+ * <a href="https://en.wikipedia.org/wiki/Poisson_distribution">https://en.wikipedia.org/wiki/Poisson_distribution</a>
+ * @see
+ * <a href="http://erikerlandson.github.io/blog/2014/09/11/faster-random-samples-with-gap-sampling/">Gap Sampling</a>
  */
 public class Poisson<T> extends Sampler<T> {
 
@@ -37,7 +39,7 @@ public class Poisson<T> extends Sampler<T> {
   private final Random random;
 
   // THRESHOLD is a tuning parameter for choosing sampling method according to the fraction.
-  private final static double THRESHOLD = 0.4;
+  private static final double THRESHOLD = 0.4;
 
   /**
    * Create a poisson sampler which can sample elements with replacement.
@@ -79,7 +81,7 @@ public class Poisson<T> extends Sampler<T> {
   @Override
   public Iterator<T> sample(final Iterator<T> input) {
     if (fraction == 0) {
-      return EMPTY_ITERABLE;
+      return emptyIterable;
     }
 
     return new SamplingIterator<T>() {
@@ -109,7 +111,7 @@ public class Poisson<T> extends Sampler<T> {
         return currentElement;
       }
 
-      public int poisson_ge1(double p){
+      public int poisson_ge1(double p) {
         // sample 'k' from Poisson(p), conditioned to k >= 1.
         double q = Math.pow(Math.E, -p);
         // simulate a poisson trial such that k >= 1.
@@ -127,13 +129,13 @@ public class Poisson<T> extends Sampler<T> {
       private void skipGapElements(int num) {
         // skip the elements that occurrence number is zero.
         int elementCount = 0;
-        while (input.hasNext() && elementCount < num){
+        while (input.hasNext() && elementCount < num) {
           currentElement = input.next();
           elementCount++;
         }
       }
 
-      private void samplingProcess(){
+      private void samplingProcess() {
         if (fraction <= THRESHOLD) {
           double u = Math.max(random.nextDouble(), EPSILON);
           int gap = (int) (Math.log(u) / -fraction);
@@ -143,7 +145,7 @@ public class Poisson<T> extends Sampler<T> {
             currentCount = poisson_ge1(fraction);
           }
         } else {
-          while (input.hasNext()){
+          while (input.hasNext()) {
             currentElement = input.next();
             currentCount = poissonDistribution.sample();
             if (currentCount > 0) {

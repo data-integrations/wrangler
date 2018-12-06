@@ -76,7 +76,7 @@ public class FixedLengthParserTest {
       "parse-as-fixed-length body A-B,C-D,12",
     };
 
-    List<Row> errors = TestingRig.execute(directives, new ArrayList<Row>());
+    TestingRig.execute(directives, new ArrayList<>());
   }
 
   @Test
@@ -103,7 +103,8 @@ public class FixedLengthParserTest {
   @Test
   public void testFixedLengthComprehensive() throws Exception {
     int[] lengths = new int[] {
-      1,9,20,12,1,2,1,3,14,14,14,14,15,9,2,3,8,4,8,7,4,11,14,14,2,1,1,1,1,1,1,1,1,6,6,6,42,1
+      1, 9, 20, 12, 1, 2, 1, 3, 14, 14, 14, 14, 15, 9, 2, 3, 8, 4, 8, 7, 4, 11, 14, 14, 2, 1, 1, 1, 1, 1, 1, 1, 1, 6,
+      6, 6, 42, 1
     };
 
     List<Row> rows = new ArrayList<>();
@@ -116,7 +117,8 @@ public class FixedLengthParserTest {
     rows.add(new Row("body", sb.toString()));
 
     String[] d = new String[] {
-      "parse-as-fixed-length :body 1,9,20,12,1,2,1,3,14,14,14,14,15,9,2,3,8,4,8,7,4,11,14,14,2,1,1,1,1,1,1,1,1,6,6,6,42,1 ' '",
+      "parse-as-fixed-length :body 1,9,20,12,1,2,1,3,14,14,14,14,15,9,2,3,8,4,8,7,"
+        + "4,11,14,14,2,1,1,1,1,1,1,1,1,6,6,6,42,1 ' '",
       "drop :body",
       "set columns A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,Z,W,X,Y,Z,A1,B1,C1,D1,E1,F1,G1,H1,I1,J1,K1,L1"
     };
@@ -131,7 +133,7 @@ public class FixedLengthParserTest {
   }
 
   public static String fixedLengthString(String string, int length) {
-    return String.format("%1$"+length+ "s", string);
+    return String.format("%1$" + length + "s", string);
   }
 
 }

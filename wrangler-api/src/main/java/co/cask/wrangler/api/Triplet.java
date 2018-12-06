@@ -22,6 +22,10 @@ import co.cask.wrangler.api.annotations.Public;
  * A triplet consisting of three elements - first, second & third.
  *
  * This class provides immutable access to elements of the triplet.
+ *
+ * @param <F> type of the first element
+ * @param <S> type of the second element
+ * @param <T> type of the third element
  */
 @Public
 public final class Triplet<F, S, T> {

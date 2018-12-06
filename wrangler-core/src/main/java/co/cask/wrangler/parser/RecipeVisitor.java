@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.parser;
 
-import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.LazyNumber;
+import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.SourceInfo;
 import co.cask.wrangler.api.Triplet;
 import co.cask.wrangler.api.parser.Bool;
@@ -105,7 +105,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   public RecipeSymbol.Builder visitPropertyList(DirectivesParser.PropertyListContext ctx) {
     Map<String, Token> props = new HashMap<>();
     List<DirectivesParser.PropertyContext> properties = ctx.property();
-    for(DirectivesParser.PropertyContext property : properties) {
+    for (DirectivesParser.PropertyContext property : properties) {
       String identifier = property.Identifier().getText();
       Token token;
       if (property.number() != null) {
@@ -114,7 +114,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
         token = new Bool(Boolean.valueOf(property.bool().getText()));
       } else {
         String text = property.text().getText();
-        token = new Text(text.substring(1, text.length()-1));
+        token = new Text(text.substring(1, text.length() - 1));
       }
       props.put(identifier, token);
     }
@@ -155,9 +155,9 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
    */
   @Override
   public RecipeSymbol.Builder visitNumberRanges(DirectivesParser.NumberRangesContext ctx) {
-    List<Triplet<Numeric, Numeric,String>> output = new ArrayList<>();
+    List<Triplet<Numeric, Numeric, String>> output = new ArrayList<>();
     List<DirectivesParser.NumberRangeContext> ranges = ctx.numberRange();
-    for(DirectivesParser.NumberRangeContext range : ranges) {
+    for (DirectivesParser.NumberRangeContext range : ranges) {
       List<TerminalNode> numbers = range.Number();
       String text = range.value().getText();
       if (text.startsWith("'") && text.endsWith("'")) {
@@ -203,7 +203,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   @Override
   public RecipeSymbol.Builder visitText(DirectivesParser.TextContext ctx) {
     String value = ctx.String().getText();
-    builder.addToken(new Text(value.substring(1, value.length()-1)));
+    builder.addToken(new Text(value.substring(1, value.length() - 1)));
     return builder;
   }
 

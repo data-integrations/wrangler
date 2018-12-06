@@ -354,7 +354,7 @@ public class S3Service extends AbstractWranglerService {
       samplingMethod = SamplingMethod.FIRST;
     }
 
-    try(BoundedLineInputStream blis = BoundedLineInputStream.iterator(inputStream, Charsets.UTF_8, lines)) {
+    try (BoundedLineInputStream blis = BoundedLineInputStream.iterator(inputStream, Charsets.UTF_8, lines)) {
       String name = s3Object.getKey();
 
       String file = String.format("%s:%s:%s", scope, s3Object.getBucketName(), s3Object.getKey());
@@ -373,7 +373,7 @@ public class S3Service extends AbstractWranglerService {
       } else if (samplingMethod == SamplingMethod.RESERVOIR) {
         it = new Reservoir<String>(lines).sample(blis);
       }
-      while(it.hasNext()) {
+      while (it.hasNext()) {
         rows.add(new Row(COLUMN_NAME, it.next()));
       }
 
@@ -418,7 +418,8 @@ public class S3Service extends AbstractWranglerService {
     }
   }
 
-  private void loadFile(String connectionId, HttpServiceResponder responder, InputStream inputStream, S3Object s3Object) {
+  private void loadFile(String connectionId, HttpServiceResponder responder, InputStream inputStream,
+                        S3Object s3Object) {
     JsonObject response = new JsonObject();
     BufferedInputStream stream = null;
     try {
@@ -437,7 +438,7 @@ public class S3Service extends AbstractWranglerService {
       ws.createWorkspaceMeta(identifier, fileName);
 
       stream = new BufferedInputStream(inputStream);
-      byte[] bytes = new byte[(int)s3Object.getObjectMetadata().getContentLength() + 1];
+      byte[] bytes = new byte[(int) s3Object.getObjectMetadata().getContentLength() + 1];
       stream.read(bytes);
 
       // Set all properties and write to workspace.
@@ -474,7 +475,7 @@ public class S3Service extends AbstractWranglerService {
       response.addProperty("count", values.size());
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (Exception e){
+    } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {
       if (stream != null) {

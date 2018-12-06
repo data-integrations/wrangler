@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A directive for copying value of one column to another.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Copy.NAME)
 @Categories(categories = { "column"})
 @Description("Copies values from a source column into a destination column.")

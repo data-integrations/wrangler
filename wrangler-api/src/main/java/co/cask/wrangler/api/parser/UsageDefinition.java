@@ -100,11 +100,11 @@ public final class UsageDefinition implements Serializable {
 
     int count = tokens.size();
     for (TokenDefinition token : tokens) {
-      if(token.optional()) {
+      if (token.optional()) {
         sb.append(" [");
       }
 
-      if(token.label() != null) {
+      if (token.label() != null) {
         sb.append(token.label());
       } else {
         if (token.type().equals(TokenType.DIRECTIVE_NAME)) {
@@ -133,7 +133,7 @@ public final class UsageDefinition implements Serializable {
 
       count--;
 
-      if(token.optional()) {
+      if (token.optional()) {
         sb.append("]");
       } else {
         if (count > 0) {

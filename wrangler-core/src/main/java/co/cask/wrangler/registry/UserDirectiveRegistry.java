@@ -29,8 +29,6 @@ import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,7 +49,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  *
  * <p>One context is the service context in which construction of this object
  * would result in investigating all the different artifacts that are of type
- * {@link Directive#Type} and creating a classloader for the same. The classload is
+ * {@link Directive#TYPE} and creating a classloader for the same. The classload is
  * then used to create an instance of plugin, in this case it's a directive and
  * extract all the <tt>DirectiveInfo</tt> from the instance of directive created.</p>
  *
@@ -64,7 +62,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * @see CompositeDirectiveRegistry
  */
 public final class  UserDirectiveRegistry implements DirectiveRegistry {
-  private static final Logger LOG = LoggerFactory.getLogger(UserDirectiveRegistry.class);
   private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
   private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
   private StageContext context = null;
@@ -97,7 +94,7 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
    *
    * @param context of <tt>Stage</tt> in <tt>Transform</tt>.
    */
-  public UserDirectiveRegistry(StageContext context) throws DirectiveLoadException {
+  public UserDirectiveRegistry(StageContext context) {
     this.context = context;
   }
 
@@ -157,10 +154,10 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
     if (manager != null) {
       try {
         List<ArtifactInfo> artifacts = manager.listArtifacts();
-        for(ArtifactInfo artifact : artifacts) {
+        for (ArtifactInfo artifact : artifacts) {
           Set<PluginClass> plugins = artifact.getClasses().getPlugins();
           for (PluginClass plugin : plugins) {
-            if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
+            if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
               CloseableClassLoader closeableClassLoader
                     = manager.createClassLoader(artifact, getClass().getClassLoader());
               Class<? extends Directive> directive =
@@ -174,21 +171,18 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
 
         MapDifference<String, DirectiveInfo> difference = Maps.difference(registry, newRegistry);
 
-        int deleted = difference.entriesOnlyOnLeft().size();
         // Remove elements from the registry that are not present in newly loaded registry
-        for(String directive : difference.entriesOnlyOnLeft().keySet()) {
+        for (String directive : difference.entriesOnlyOnLeft().keySet()) {
           registry.remove(directive);
         }
 
         // Update common directives
-        int updated = difference.entriesInCommon().size();
-        for(String directive : difference.entriesInCommon().keySet()) {
+        for (String directive : difference.entriesInCommon().keySet()) {
           registry.put(directive, difference.entriesInCommon().get(directive));
         }
 
         // Update new directives
-        int adding = difference.entriesOnlyOnRight().size();
-        for(String directive : difference.entriesOnlyOnRight().keySet()) {
+        for (String directive : difference.entriesOnlyOnRight().keySet()) {
           registry.put(directive, difference.entriesOnlyOnRight().get(directive));
         }
       } catch (IllegalAccessException | InstantiationException | IOException | ClassNotFoundException e) {
@@ -207,7 +201,7 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
   @Override
   public JsonElement toJson() {
     JsonObject response = new JsonObject();
-    for(Map.Entry<String, DirectiveInfo> entry : registry.entrySet()) {
+    for (Map.Entry<String, DirectiveInfo> entry : registry.entrySet()) {
       response.add(entry.getKey(), entry.getValue().toJson());
     }
     return response;

@@ -34,7 +34,7 @@ public class WriteAsCSVTest {
 
   @Test
   public void testWriteAsCSV() throws Exception {
-    String[] directives = new String[] {
+    String[] directives = new String[]{
       "write-as-csv test",
     };
 
@@ -54,13 +54,13 @@ public class WriteAsCSVTest {
 
     // Due to double, the string comparision might not be appropriate.
     float value = metric.compare("http://www.yahoo.com?a=b c&b=ab&xyz=1,\"{\"\"b\"\":\"\"2\"\",\"\"a\"\":1}\"," +
-                     "1,1.7999999523162842", (String) rows.get(0).getValue(4));
+                                   "1,1.7999999523162842", (String) rows.get(0).getValue(4));
     Assert.assertTrue(value > 0.4);
   }
 
   @Test
   public void testExample() throws Exception {
-    String[] directives = new String[] {
+    String[] directives = new String[]{
       "write-as-csv body",
     };
 

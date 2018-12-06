@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Executor for stemming the words provided using Porter Stemming.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("stemming")
 @Categories(categories = { "nlp"})
 @Description("Apply Porter Stemming on the column value.")

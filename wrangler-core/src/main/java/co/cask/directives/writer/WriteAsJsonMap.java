@@ -23,8 +23,8 @@ import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * A step to write the record fields as JSON.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("write-as-json-map")
 @Categories(categories = { "writer", "json"})
 @Description("Writes all record columns as JSON map.")

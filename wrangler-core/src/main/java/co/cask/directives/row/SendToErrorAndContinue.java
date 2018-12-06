@@ -51,7 +51,7 @@ import java.util.List;
  *   false, then the row will be accepted.
  * </p>
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(SendToErrorAndContinue.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Send records that match condition to the error collector and continues processing.")
@@ -105,7 +105,7 @@ public class SendToErrorAndContinue implements Directive {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context);
       ctx.set("this", row);
-      for(String var : el.variables()) {
+      for (String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
 
@@ -121,7 +121,7 @@ public class SendToErrorAndContinue implements Directive {
       try {
         ELResult result = el.execute(ctx);
         if (result.getBoolean()) {
-          if(metric != null && context != null) {
+          if (metric != null && context != null) {
             context.getMetrics().count(metric, 1);
           }
           if (message == null) {

@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive for splitting the string into multiple {@link Row}s.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(SplitToRows.NAME)
 @Categories(categories = { "row"})
 @Description("Splits a column into multiple rows, copies the rest of the columns.")

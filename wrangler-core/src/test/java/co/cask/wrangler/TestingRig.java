@@ -16,10 +16,19 @@
 
 package co.cask.wrangler;
 
-import co.cask.cdap.etl.api.Lookup;
-import co.cask.cdap.etl.api.StageMetrics;
-import co.cask.wrangler.api.*;
+import co.cask.wrangler.api.CompileException;
+import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
+import co.cask.wrangler.api.DirectiveLoadException;
+import co.cask.wrangler.api.DirectiveNotFoundException;
+import co.cask.wrangler.api.DirectiveParseException;
+import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.GrammarMigrator;
+import co.cask.wrangler.api.Pair;
+import co.cask.wrangler.api.RecipeException;
+import co.cask.wrangler.api.RecipeParser;
+import co.cask.wrangler.api.RecipePipeline;
+import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.GrammarBasedParser;
@@ -30,10 +39,8 @@ import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import org.junit.Assert;
 
-import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Utilities for testing.
@@ -52,12 +59,12 @@ public final class TestingRig {
    * @return transformed directives.
    */
   public static List<Row> execute(String[] recipe, List<Row> rows)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    throws RecipeException, DirectiveParseException, DirectiveLoadException {
     return execute(recipe, rows, null);
   }
 
   public static List<Row> execute(String[] recipe, List<Row> rows, ExecutorContext context)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    throws RecipeException, DirectiveParseException, DirectiveLoadException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry()
     );
@@ -112,8 +119,7 @@ public final class TestingRig {
     return pipeline;
   }
 
-  public static RecipeParser parse(String[] recipe)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+  public static RecipeParser parse(String[] recipe) throws DirectiveParseException, DirectiveLoadException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry()
     );
@@ -139,7 +145,7 @@ public final class TestingRig {
     CompileStatus status = compile(recipe);
     if (!status.isSuccess()) {
       Iterator<SyntaxError> iterator = status.getErrors();
-      while(iterator.hasNext()) {
+      while (iterator.hasNext()) {
         System.out.println(iterator.next().toString());
       }
     }

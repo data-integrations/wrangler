@@ -88,6 +88,9 @@ public final class MutationDefinition implements Serializable {
     return new MutationDefinition.Builder(directive);
   }
 
+  /**
+   * Builder to create MutationDefinitions
+   */
   public static class Builder {
     private final String directive;
     private final List<Mutation> mutations;

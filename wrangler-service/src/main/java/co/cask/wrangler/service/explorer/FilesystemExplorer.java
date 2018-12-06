@@ -45,8 +45,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.twill.filesystem.Location;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -69,7 +67,6 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
  * It provides capabilities for listing file(s) and directories. It also provides metadata.
  */
 public class FilesystemExplorer extends AbstractWranglerService {
-  private static final Logger LOG = LoggerFactory.getLogger(FilesystemExplorer.class);
   private static final Gson gson =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private Explorer explorer;
@@ -77,19 +74,18 @@ public class FilesystemExplorer extends AbstractWranglerService {
   private static final int FILE_SIZE = 10 * 1024 * 1024;
 
   /**
-   * Lists the content of the path specified using the {@Location}.
+   * Lists the content of the path specified using the {@link Location}.
    *
    * @param request HTTP Request Handler
    * @param responder HTTP Response Handler
    * @param path to the location in the filesystem
-   * @throws Exception
    */
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("explorer/fs")
   @GET
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("path") String path,
-                   @QueryParam("hidden") boolean hidden) throws Exception {
+                   @QueryParam("hidden") boolean hidden) {
 
     try {
       Map<String, Object> listing = explorer.browse(path, hidden);
@@ -212,7 +208,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
       ws.createWorkspaceMeta(id, scope, name);
 
       stream = new BufferedInputStream(location.getInputStream());
-      byte[] bytes = new byte[(int)location.length() + 1];
+      byte[] bytes = new byte[(int) location.length() + 1];
       stream.read(bytes);
 
       // Set all properties and write to workspace.
@@ -227,7 +223,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
       ws.writeProperties(id, properties);
 
       // Write records to workspace.
-      if(type == DataType.RECORDS) {
+      if (type == DataType.RECORDS) {
         List<Row> rows = new ArrayList<>();
         rows.add(new Row(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
@@ -253,7 +249,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
       response.addProperty("count", values.size());
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (Exception e){
+    } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {
       if (stream != null) {
@@ -297,7 +293,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
       } else if (samplingMethod == SamplingMethod.RESERVOIR) {
         it = new Reservoir<String>(lines).sample(blis);
       }
-      while(it.hasNext()) {
+      while (it.hasNext()) {
         rows.add(new Row(COLUMN_NAME, it.next()));
       }
 
@@ -331,10 +327,6 @@ public class FilesystemExplorer extends AbstractWranglerService {
       response.addProperty("count", values.size());
       response.add("values", values);
       sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (ExplorerException e) {
-      error(responder, e.getMessage());
-    } catch (IOException e) {
-      error(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {

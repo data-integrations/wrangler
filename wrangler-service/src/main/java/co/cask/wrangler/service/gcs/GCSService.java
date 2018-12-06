@@ -16,11 +16,9 @@
 
 package co.cask.wrangler.service.gcs;
 
-import co.cask.cdap.api.TxRunnable;
 import co.cask.cdap.api.annotation.ReadOnly;
 import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
-import co.cask.cdap.api.data.DatasetContext;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
@@ -161,12 +159,7 @@ public class GCSService extends AbstractWranglerService {
 
     try {
       final Connection[] connections = new Connection[1];
-      getContext().execute(new TxRunnable() {
-        @Override
-        public void run(DatasetContext datasetContext) throws Exception {
-          connections[0] = store.get(connectionId);
-        }
-      });
+      getContext().execute(datasetContext -> connections[0] = store.get(connectionId));
 
       if (!validateConnection(connectionId, connections[0], responder)) {
         return;
@@ -250,7 +243,7 @@ public class GCSService extends AbstractWranglerService {
       Iterator<Blob> iterator = list.iterateAll().iterator();
       JsonArray values = new JsonArray();
       boolean limitExceeded = false;
-      while(iterator.hasNext()) {
+      while (iterator.hasNext()) {
         JsonObject object = new JsonObject();
         Blob blob = iterator.next();
         object.addProperty("bucket", blob.getBucket());
@@ -475,7 +468,7 @@ public class GCSService extends AbstractWranglerService {
       Format format = Format.valueOf(formatStr);
       String uri = config.get(PropertyIds.URI);
       String[] parts = uri.split("/");
-      String filename = parts[parts.length -1];
+      String filename = parts[parts.length - 1];
       String externalDatasetName = new StringJoiner(".").add(config.get("bucket")).add(filename).toString();
 
       Map<String, String> properties = new HashMap<>();

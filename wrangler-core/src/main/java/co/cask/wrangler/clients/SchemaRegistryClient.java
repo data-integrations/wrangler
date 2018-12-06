@@ -69,7 +69,6 @@ import java.util.Map;
  * </code>
  */
 public final class SchemaRegistryClient {
-  private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistryClient.class);
   private final Gson gson;
 
   // Defines the service base url.
@@ -111,7 +110,7 @@ public final class SchemaRegistryClient {
   public byte[] getSchema(String id, long version)
     throws URISyntaxException, IOException, RestClientException {
     URL url = concat(new URI(baseUrl), String.format("schemas/%s/versions/%d", id, version)).toURL();
-    Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
+    Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>() { }.getType());
     if (response.getCount() == 1) {
       return Bytes.fromHexString(response.getValues().get(0).getSpecification());
     }
@@ -130,7 +129,7 @@ public final class SchemaRegistryClient {
   public byte[] getSchema(String id)
     throws URISyntaxException, IOException, RestClientException {
     URL url = concat(new URI(baseUrl), String.format("schemas/%s", id)).toURL();
-    Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>(){}.getType());
+    Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>() { }.getType());
     if (response.getCount() == 1) {
       return Bytes.fromHexString(response.getValues().get(0).getSpecification());
     }
@@ -149,7 +148,7 @@ public final class SchemaRegistryClient {
   public List<Long> getVersions(String id)
     throws URISyntaxException, IOException, RestClientException {
     URL url = concat(new URI(baseUrl), String.format("schemas/%s/versions", id)).toURL();
-    Response<Long> response = request(url, "GET", new TypeToken<Response<Long>>(){}.getType());
+    Response<Long> response = request(url, "GET", new TypeToken<Response<Long>>() { }.getType());
     return response.getValues();
   }
 

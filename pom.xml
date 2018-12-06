@@ -208,6 +208,55 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.17</version>
+          <executions>
+            <execution>
+              <id>validate</id>
+              <phase>process-test-classes</phase>
+              <configuration>
+                <configLocation>checkstyle.xml</configLocation>
+                <suppressionsLocation>suppressions.xml</suppressionsLocation>
+                <encoding>UTF-8</encoding>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                <!--
+                  excludes don't apply to the target directory, so need to specify this to
+                  avoid checking generated antlr code
+                -->
+                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                <!--
+                  functions has some user visible functions that we can't change without breaking
+                  compatibility.
+
+                  tutorial has some proto code that doesn't need to be enforced.
+
+                  MigrateToV2 has a gigantic method that can't be broken down without a lot of
+                  refactoring. Migration logic should be handled by each individual directive,
+                  not by some central class that somehow understands all directives.
+                 -->
+                <excludes>
+                  **/co/cask/functions/**,
+                  **/com/example/tutorial/**,
+                  **/co/cask/wrangler/parser/MigrateToV2.java
+                </excludes>
+              </configuration>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>6.19</version>
+            </dependency>
+          </dependencies>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -229,6 +278,10 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

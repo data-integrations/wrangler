@@ -236,7 +236,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       JsonObject response = new JsonObject();
-      List<Pair<String,String>> workspaces = table.getWorkspaces();
+      List<Pair<String, String>> workspaces = table.getWorkspaces();
       JsonArray array = new JsonArray();
       for (Pair<String, String> workspace : workspaces) {
         JsonObject object = new JsonObject();
@@ -380,12 +380,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   private JsonObject merge(JsonObject first, JsonObject second) {
     JsonObject merged = new JsonObject();
     if (first != null && !first.isJsonNull()) {
-      for(Map.Entry<String, JsonElement> entry: first.entrySet()) {
+      for (Map.Entry<String, JsonElement> entry: first.entrySet()) {
         merged.add(entry.getKey(), entry.getValue());
       }
     }
     if (second != null && !second.isJsonNull()) {
-      for(Map.Entry<String, JsonElement> entry: second.entrySet()) {
+      for (Map.Entry<String, JsonElement> entry: second.entrySet()) {
         merged.add(entry.getKey(), entry.getValue());
       }
     }
@@ -688,7 +688,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RecipeSymbol symbols = status.getSymbols();
       Iterator<TokenGroup> iterator = symbols.iterator();
       List<String> userDirectives = new ArrayList<>();
-      while(iterator.hasNext()) {
+      while (iterator.hasNext()) {
         TokenGroup next = iterator.next();
         if (next == null || next.size() < 1) {
           continue;
@@ -790,7 +790,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         JsonObject v = new JsonObject();
         JsonObject o = new JsonObject();
         for (Pair<String, Double> value : values) {
-          o.addProperty(value.getFirst(), value.getSecond().floatValue()*100);
+          o.addProperty(value.getFirst(), value.getSecond().floatValue() * 100);
         }
         v.add("general", o);
         statistics.add(field.getFirst(), v);
@@ -802,7 +802,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         JsonObject v = new JsonObject();
         JsonObject o = new JsonObject();
         for (Pair<String, Double> value : values) {
-          o.addProperty(value.getFirst(), value.getSecond().floatValue()*100);
+          o.addProperty(value.getFirst(), value.getSecond().floatValue() * 100);
         }
         v.add("types", o);
         JsonObject object = (JsonObject) statistics.get(field.getFirst());
@@ -883,7 +883,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
     Properties props = new Properties();
-    try(InputStream resourceStream = loader.getResourceAsStream(resourceName)) {
+    try (InputStream resourceStream = loader.getResourceAsStream(resourceName)) {
       props.load(resourceStream);
     } catch (IOException e) {
       error(responder, "There was problem reading the capability matrix. " +
@@ -892,7 +892,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
 
     JsonObject object = new JsonObject();
-    for(String key : props.stringPropertyNames()) {
+    for (String key : props.stringPropertyNames()) {
       String value = props.getProperty(key);
       object.addProperty(key, value);
     }
@@ -936,10 +936,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       JsonArray values = new JsonArray();
 
       int count = 0;
-      Iterator<DirectiveInfo> iterator = composite.iterator();
-      while(iterator.hasNext()) {
+      for (DirectiveInfo directive : composite) {
         JsonObject usage = new JsonObject();
-        DirectiveInfo directive = iterator.next();
         usage.addProperty("directive", directive.name());
         usage.addProperty("usage", directive.usage());
         usage.addProperty("description", directive.description());
@@ -954,7 +952,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         // description.
         if (aliases.containsKey(directive)) {
           List<String> list = aliases.get(directive);
-          for(String alias : list) {
+          for (String alias : list) {
             JsonObject aliasUsage = new JsonObject();
             aliasUsage.addProperty("directive", alias);
             aliasUsage.addProperty("usage", directive.usage());
@@ -994,10 +992,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     JsonArray values = new JsonArray();
     try {
       List<ArtifactInfo> artifacts = getContext().listArtifacts();
-      for(ArtifactInfo artifact : artifacts) {
+      for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         for (PluginClass plugin : plugins) {
-          if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
+          if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
             JsonObject object = new JsonObject();
             object.addProperty("name", artifact.getName());
             object.addProperty("version", artifact.getVersion());
@@ -1030,14 +1028,14 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     JsonArray values = new JsonArray();
     try {
       List<ArtifactInfo> artifacts = getContext().listArtifacts();
-      for(ArtifactInfo artifact : artifacts) {
+      for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         JsonObject object = new JsonObject();
         object.addProperty("name", artifact.getName());
         object.addProperty("version", artifact.getVersion());
         object.addProperty("scope", artifact.getScope().name());
         for (PluginClass plugin : plugins) {
-          if (Directive.Type.equalsIgnoreCase(plugin.getType())) {
+          if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
             JsonObject directive = new JsonObject();
             directive.addProperty("name", plugin.getName());
             directive.addProperty("description", plugin.getDescription());

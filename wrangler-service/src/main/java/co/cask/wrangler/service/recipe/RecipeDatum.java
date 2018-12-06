@@ -116,7 +116,7 @@ public final class RecipeDatum {
    */
   public List<String> getDirectives() {
     if (directives != null) {
-      return gson.fromJson(directives, new TypeToken<List<String>>() {}.getType());
+      return gson.fromJson(directives, new TypeToken<List<String>>() { }.getType());
     } else {
       return new ArrayList<>();
     }

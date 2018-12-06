@@ -66,14 +66,14 @@ public class ParseAsCurrencyTest {
     Assert.assertEquals(1, errors.size());
 
     int i = 0;
-    for(Row row : results) {
+    for (Row row : results) {
       double val = (double) row.getValue("dst");
       Assert.assertEquals(expected[i], val, 0.001);
       ++i;
     }
 
     i = 0;
-    for(Row row : results) {
+    for (Row row : results) {
       double val = (double) row.getValue("dst1");
       Assert.assertEquals(expected[i], val, 0.001);
       ++i;

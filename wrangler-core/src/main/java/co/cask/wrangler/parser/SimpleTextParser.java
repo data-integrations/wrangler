@@ -97,8 +97,8 @@ public class SimpleTextParser implements RecipeParser {
       // Checks if the directive has been excluded from being used.
       if (!root.equals(command) && context.isExcluded(command)) {
         throw new DirectiveParseException(
-          String.format("Aliased directive '%s' has been configured as restricted directive and is hence unavailable. " +
-                          "Please contact your administrator", command)
+          String.format("Aliased directive '%s' has been configured as restricted directive and "
+                          + "is hence unavailable. Please contact your administrator", command)
         );
       }
 

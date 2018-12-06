@@ -57,10 +57,18 @@ public class FlattenTest {
       "flatten col1,col2,col3",
     };
 
-    JsonArray a1 = new JsonArray(); a1.add(new JsonPrimitive("x1"));a1.add(new JsonPrimitive("y1"));
-    JsonArray a2 = new JsonArray(); a2.add(new JsonPrimitive("x2"));a2.add(new JsonPrimitive("y2"));
-    List<String> b1 = new ArrayList<>();b1.add("x1"); b1.add("y1");
-    List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
+    JsonArray a1 = new JsonArray();
+    a1.add(new JsonPrimitive("x1"));
+    a1.add(new JsonPrimitive("y1"));
+    JsonArray a2 = new JsonArray();
+    a2.add(new JsonPrimitive("x2"));
+    a2.add(new JsonPrimitive("y2"));
+    List<String> b1 = new ArrayList<>();
+    b1.add("x1");
+    b1.add("y1");
+    List<String> b2 = new ArrayList<>();
+    b2.add("x2");
+    b2.add("y2");
     List<Row> rows = Arrays.asList(
       new Row("col1", "A"),
       new Row("col1", "B"),
@@ -107,8 +115,13 @@ public class FlattenTest {
     JsonArray a2 = new JsonArray();
     a2.add(new JsonPrimitive("x2"));
     a2.add(new JsonPrimitive("y2"));
-    List<String> b1 = new ArrayList<>();b1.add("x1"); b1.add("y1"); b1.add("z1");
-    List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
+    List<String> b1 = new ArrayList<>();
+    b1.add("x1");
+    b1.add("y1");
+    b1.add("z1");
+    List<String> b2 = new ArrayList<>();
+    b2.add("x2");
+    b2.add("y2");
     List<Row> rows = Arrays.asList(
       new Row("col1", "A"),
       new Row("col1", "B"),
@@ -162,10 +175,20 @@ public class FlattenTest {
     JsonArray a4 = new JsonArray();
     a4.add(new JsonPrimitive("a2"));
     a4.add(new JsonPrimitive("b2"));
-    List<String> b1 = new ArrayList<>();b1.add("x1"); b1.add("y1"); b1.add("z1");
-    List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
-    List<String> b3 = new ArrayList<>();b3.add("a1"); b3.add("b1"); b3.add("c1");
-    List<String> b4 = new ArrayList<>();b4.add("a2"); b4.add("b2");
+    List<String> b1 = new ArrayList<>();
+    b1.add("x1");
+    b1.add("y1");
+    b1.add("z1");
+    List<String> b2 = new ArrayList<>();
+    b2.add("x2");
+    b2.add("y2");
+    List<String> b3 = new ArrayList<>();
+    b3.add("a1");
+    b3.add("b1");
+    b3.add("c1");
+    List<String> b4 = new ArrayList<>();
+    b4.add("a2");
+    b4.add("b2");
     List<Row> rows = Arrays.asList(
       new Row("col1", "A"),
       new Row("col1", "B"),
@@ -220,10 +243,20 @@ public class FlattenTest {
     a4.add(new JsonPrimitive("a2"));
     a4.add(new JsonPrimitive("b2"));
     a4.add(new JsonPrimitive("c2"));
-    List<String> b1 = new ArrayList<>();b1.add("x1"); b1.add("y1"); b1.add("z1");
-    List<String> b2 = new ArrayList<>();b2.add("x2"); b2.add("y2");
-    List<String> b3 = new ArrayList<>();b3.add("a1"); b3.add("b1");
-    List<String> b4 = new ArrayList<>();b4.add("a2"); b4.add("b2"); b4.add("c2");
+    List<String> b1 = new ArrayList<>();
+    b1.add("x1");
+    b1.add("y1");
+    b1.add("z1");
+    List<String> b2 = new ArrayList<>();
+    b2.add("x2");
+    b2.add("y2");
+    List<String> b3 = new ArrayList<>();
+    b3.add("a1");
+    b3.add("b1");
+    List<String> b4 = new ArrayList<>();
+    b4.add("a2");
+    b4.add("b2");
+    b4.add("c2");
     List<Row> rows = Arrays.asList(
       new Row("col1", "A"),
       new Row("col1", "B"),

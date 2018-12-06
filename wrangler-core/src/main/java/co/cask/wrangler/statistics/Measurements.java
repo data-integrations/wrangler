@@ -40,14 +40,14 @@ public final class Measurements {
      * Constructor to initialize with starting value.
      * @param value to be set.
      */
-    public MutableDouble(double value) {
+    MutableDouble(double value) {
       this.value = value;
     }
 
     /**
      * Increments the value associated with {@link MutableDouble}
      */
-    public void increment(){
+    public void increment() {
       ++value;
     }
 

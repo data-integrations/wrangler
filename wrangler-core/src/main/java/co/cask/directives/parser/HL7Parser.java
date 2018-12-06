@@ -56,7 +56,7 @@ import java.util.List;
 /**
  * A step for parsing the HL7 Message.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-hl7")
 @Categories(categories = { "parser", "hl7"})
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
@@ -135,42 +135,41 @@ public class HL7Parser implements Directive {
     private JsonObject compositeObject = new JsonObject();
     private boolean inComposite = false;
 
-    public HL7MessageVisitor(Row row, String column, int depth) {
+    HL7MessageVisitor(Row row, String column, int depth) {
       this.row = row;
       this.column = column;
       this.depth = depth;
     }
 
     @Override
-    public boolean start(Message message) throws HL7Exception {
+    public boolean start(Message message) {
       return true;
     }
 
     @Override
-    public boolean end(Message message) throws HL7Exception {
+    public boolean end(Message message) {
       JsParser.jsonFlatten(segments, column, 1, depth, row);
       return true;
     }
 
     @Override
-    public boolean start(Group group, Location location) throws HL7Exception {
-
+    public boolean start(Group group, Location location) {
       return true;
     }
 
     @Override
-    public boolean end(Group group, Location location) throws HL7Exception {
+    public boolean end(Group group, Location location) {
       return true;
     }
 
     @Override
-    public boolean start(Segment segment, Location location) throws HL7Exception {
+    public boolean start(Segment segment, Location location) {
       segmentObject = new JsonObject();
       return true;
     }
 
     @Override
-    public boolean end(Segment segment, Location location) throws HL7Exception {
+    public boolean end(Segment segment, Location location) {
       if (!segments.has(segment.getName())) {
         segments.add(segment.getName(), segmentObject);
       } else {
@@ -187,31 +186,31 @@ public class HL7Parser implements Directive {
     }
 
     @Override
-    public boolean start(Field field, Location location) throws HL7Exception {
+    public boolean start(Field field, Location location) {
       return true;
     }
 
     @Override
-    public boolean end(Field field, Location location) throws HL7Exception {
+    public boolean end(Field field, Location location) {
       return true;
     }
 
     @Override
-    public boolean start(Composite composite, Location location) throws HL7Exception {
+    public boolean start(Composite composite, Location location) {
       inComposite = true;
       compositeObject = new JsonObject();
       return true;
     }
 
     @Override
-    public boolean end(Composite composite, Location location) throws HL7Exception {
+    public boolean end(Composite composite, Location location) {
       segmentObject.add(Integer.toString(location.getField()), compositeObject);
       inComposite = false;
       return true;
     }
 
     @Override
-    public boolean visit(Primitive primitive, Location location) throws HL7Exception {
+    public boolean visit(Primitive primitive, Location location) {
       if (inComposite) {
         compositeObject.addProperty(Integer.toString(location.getComponent()), primitive.getValue());
       } else {

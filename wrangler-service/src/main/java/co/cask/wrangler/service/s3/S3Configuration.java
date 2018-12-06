@@ -35,7 +35,7 @@ public class S3Configuration implements AWSCredentials {
   S3Configuration(Connection connection) {
     Map<String, String> properties = connection.getAllProps();
 
-    if(properties == null || properties.size() == 0) {
+    if (properties == null || properties.size() == 0) {
       throw new IllegalArgumentException("S3 properties are not defined. Check connection setting.");
     }
 

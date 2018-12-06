@@ -31,7 +31,7 @@ import java.util.Scanner;
  */
 public class FileTypeDetector {
   private static final Logger LOG = LoggerFactory.getLogger(FileTypeDetector.class);
-  public final static String UNKNOWN = "UNKNOWN";
+  public static final String UNKNOWN = "UNKNOWN";
 
   // Map of file extensions to MIME names.
   private final Map<String, String> extensions;
