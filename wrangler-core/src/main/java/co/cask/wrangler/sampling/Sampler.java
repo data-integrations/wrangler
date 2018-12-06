@@ -25,12 +25,14 @@ import java.util.Iterator;
  * a set of data selected from a statistical population by the defined implementation.
  *
  * It helps create random samples of data easily.
+ *
+ * @param <T> type of element to sample
  */
 @PublicEvolving
 public abstract class Sampler<T> {
-  protected final static double EPSILON = 1e-5;
+  protected static final double EPSILON = 1e-5;
 
-  protected final Iterator<T> EMPTY_ITERABLE = new SamplingIterator<T>() {
+  protected final Iterator<T> emptyIterable = new SamplingIterator<T>() {
     @Override
     public boolean hasNext() {
       return false;

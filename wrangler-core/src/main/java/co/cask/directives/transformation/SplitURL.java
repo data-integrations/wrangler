@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive to split a URL into it's components.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(SplitURL.NAME)
 @Categories(categories = { "transform", "url"})
 @Description("Split a url into it's components host,protocol,port,etc.")

@@ -18,8 +18,6 @@ package co.cask.wrangler.executor;
 
 
 import co.cask.directives.lookup.StaticCatalog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,7 +35,6 @@ import java.util.Map;
  * </p>
  */
 public final class ICDCatalog implements StaticCatalog {
-  private static final Logger LOG = LoggerFactory.getLogger(ICDCatalog.class);
 
   // Type of ICD code 9 or 10 {2016,2017}.
   private final String name;
@@ -52,7 +49,7 @@ public final class ICDCatalog implements StaticCatalog {
     // Description associated with the code.
     String description;
 
-    public ICDCode(String description) {
+    ICDCode(String description) {
       this.description = description;
     }
 
@@ -84,7 +81,7 @@ public final class ICDCatalog implements StaticCatalog {
     InputStreamReader isr = new InputStreamReader(in);
     try (BufferedReader reader = new BufferedReader(isr)) {
       String line;
-      while((line = reader.readLine()) != null) {
+      while ((line = reader.readLine()) != null) {
         String code = line.substring(0, 7).trim();
         String description = line.substring(8).trim();
         lookupTable.put(code, new ICDCode(description));

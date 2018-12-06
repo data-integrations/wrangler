@@ -38,7 +38,6 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -131,20 +130,6 @@ public final class Json2Schema {
     return Schema.recordOf(id, fields);
   }
 
-  /**
-   * Converts a json string to a {@link Schema}.
-   *
-   * @param id of the {@link Schema}
-   * @param json represents the JSON as {@link String}
-   * @return instance of {@link Schema} representing the JSON.
-   * @throws RecordConvertorException throw if there are any issues parsing to {@link Schema}
-   * @see {@link #toSchema(String, Row)}
-   */
-  public Schema toSchema(String id, String json) throws RecordConvertorException {
-    JsonElement element = parser.parse(json);
-    return toSchema(id, element);
-  }
-
   @Nullable
   private Schema toSchema(String name, JsonElement element) throws RecordConvertorException {
     Schema schema = null;
@@ -164,7 +149,7 @@ public final class Json2Schema {
   private Schema toSchema(String name, JsonArray array) throws RecordConvertorException {
     int[] types = new int[3];
     types[0] = types[1] = types[2] = 0;
-    for(int i = 0; i < array.size(); ++i) {
+    for (int i = 0; i < array.size(); ++i) {
       JsonElement item = array.get(i);
       if (item.isJsonArray()) {
         types[1]++;
@@ -200,9 +185,7 @@ public final class Json2Schema {
 
   private Schema toSchema(String name, JsonObject object) throws RecordConvertorException {
     List<Schema.Field> fields = new ArrayList<>();
-    Iterator<Map.Entry<String, JsonElement>> iterator = object.entrySet().iterator();
-    while(iterator.hasNext()) {
-      Map.Entry<String, JsonElement> next = iterator.next();
+    for (Map.Entry<String, JsonElement> next : object.entrySet()) {
       String key = next.getKey();
       JsonElement child = next.getValue();
       Schema schema = null;
@@ -224,7 +207,7 @@ public final class Json2Schema {
   private Schema toComplexSchema(String name, JsonElement element) throws RecordConvertorException {
     if (element.isJsonObject()) {
       return toSchema(name, element.getAsJsonObject());
-    } else if (element.isJsonArray()){
+    } else if (element.isJsonArray()) {
       return toSchema(name, element.getAsJsonArray());
     } else if (element.isJsonPrimitive()) {
       return toSchema(name, element.getAsJsonPrimitive());

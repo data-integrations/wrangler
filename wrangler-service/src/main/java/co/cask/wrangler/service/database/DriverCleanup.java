@@ -23,6 +23,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.annotation.Nullable;
 
+/**
+ * Cleans up JDBC drivers.
+ */
 public class DriverCleanup implements Destroyable {
   private final JDBCDriverShim driverShim;
 

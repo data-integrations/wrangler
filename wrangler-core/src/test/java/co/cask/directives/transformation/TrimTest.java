@@ -48,7 +48,7 @@ public class TrimTest {
 
     rows = TestingRig.execute(directives, rows);
     Assert.assertEquals(rows.size(), rows.size());
-    for(int i = 0; i < rows.size(); ++i) {
+    for (int i = 0; i < rows.size(); ++i) {
       Assert.assertEquals(expected, rows.get(i).getValue("body"));
     }
   }
@@ -90,7 +90,7 @@ public class TrimTest {
     Assert.assertEquals("TITLE IS TITLE", rows.get(2).getValue("body"));
     Assert.assertEquals("TITLE    IS TITLE", rows.get(3).getValue("body"));
     Assert.assertEquals("TITLE IS TITLE", rows.get(4).getValue("body"));
-    for(int i = 5; i < rows.size(); ++i) {
+    for (int i = 5; i < rows.size(); ++i) {
       Assert.assertEquals(expected, rows.get(i).getValue("body"));
     }
   }

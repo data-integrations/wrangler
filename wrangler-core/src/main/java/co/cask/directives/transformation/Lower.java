@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * A directive for lower casing the 'column' value of type String.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Lower.NAME)
 @Categories(categories = { "transform"})
 @Description("Changes the column values to lowercase.")

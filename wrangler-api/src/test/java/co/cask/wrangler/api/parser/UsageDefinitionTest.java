@@ -29,7 +29,7 @@ import java.util.List;
 public class UsageDefinitionTest {
 
   @Test
-  public void testUsageDefinitionCreation() throws Exception {
+  public void testUsageDefinitionCreation() {
     UsageDefinition.Builder builder = UsageDefinition.builder("test");
     builder.define("fname", TokenType.COLUMN_NAME);
     builder.define("lname", TokenType.COLUMN_NAME, Optional.TRUE);
@@ -39,7 +39,7 @@ public class UsageDefinitionTest {
   }
 
   @Test
-  public void testUsageStringCreation() throws Exception {
+  public void testUsageStringCreation() {
     List<String> usages = new ArrayList<>();
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
@@ -71,9 +71,6 @@ public class UsageDefinitionTest {
     usages.add(usage);
 
     Assert.assertTrue(true);
-
-
   }
-
 
 }

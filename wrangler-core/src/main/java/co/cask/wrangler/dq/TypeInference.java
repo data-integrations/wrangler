@@ -25,21 +25,22 @@ import java.util.regex.Pattern;
 public class TypeInference {
   private static final Pattern patternInteger = Pattern.compile("^(\\+|-)?\\d+$");
 
-  private static final Pattern patternDouble = Pattern.compile("^[-+]?"// Positive/Negative sign
-                                                                 + "("// BEGIN Decimal part
-                                                                 + "[0-9]+([,\\.][0-9]+)?|"// Alternative I (w/o grouped integer part)
-                                                                 + "(" // BEGIN Alternative II (with grouped integer part)
-                                                                 + "[0-9]{1,3}" // starting digits
-                                                                 + "(" // BEGIN grouped part
-                                                                 + "((,[0-9]{3})*"// US integer part
-                                                                 + "(\\.[0-9]+)?"// US float part
-                                                                 + "|" // OR
-                                                                 + "((\\.[0-9]{3})*|([ \u00A0\u2007\u202F][0-9]{3})*)"// EU integer part
-                                                                 + "(,[0-9]+)?)"// EU float part
-                                                                 + ")"// END grouped part
-                                                                 + ")" // END Alternative II
-                                                                 + ")" // END Decimal part
-                                                                 + "([ ]?[eE][-+]?[0-9]+)?$"); // scientific part
+  private static final Pattern patternDouble = Pattern.compile(
+    "^[-+]?"// Positive/Negative sign
+      + "("// BEGIN Decimal part
+      + "[0-9]+([,\\.][0-9]+)?|"// Alternative I (w/o grouped integer part)
+      + "(" // BEGIN Alternative II (with grouped integer part)
+      + "[0-9]{1,3}" // starting digits
+      + "(" // BEGIN grouped part
+      + "((,[0-9]{3})*"// US integer part
+      + "(\\.[0-9]+)?"// US float part
+      + "|" // OR
+      + "((\\.[0-9]{3})*|([ \u00A0\u2007\u202F][0-9]{3})*)"// EU integer part
+      + "(,[0-9]+)?)"// EU float part
+      + ")"// END grouped part
+      + ")" // END Alternative II
+      + ")" // END Decimal part
+      + "([ ]?[eE][-+]?[0-9]+)?$"); // scientific part
 
   /**
    * Detect if the given value is a double type.

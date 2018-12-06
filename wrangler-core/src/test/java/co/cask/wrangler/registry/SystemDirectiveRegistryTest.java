@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.registry;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -26,8 +25,7 @@ public class SystemDirectiveRegistryTest {
 
   @Test
   public void testLoadingDefaults() throws Exception {
-    SystemDirectiveRegistry registry = new SystemDirectiveRegistry();
-    Assert.assertTrue(true);
+    new SystemDirectiveRegistry();
   }
 
 }

@@ -70,7 +70,7 @@ public class Reservoir<T> extends Sampler<T> {
   @Override
   public Iterator<T> sample(Iterator<T> input) {
     if (numSamples == 0) {
-      return EMPTY_ITERABLE;
+      return emptyIterable;
     }
 
     // This queue holds fixed number elements with the top K weight for current partition.
@@ -114,6 +114,11 @@ public class Reservoir<T> extends Sampler<T> {
     };
   }
 
+  /**
+   * An intermediate sample
+   *
+   * @param <T> the element type
+   */
   public static class IntermediateSample<T> implements Comparable<IntermediateSample<T>> {
     private double weight;
     private T element;

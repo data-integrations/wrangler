@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * A directive for writing selected columns as Json Objects.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("write-as-json-object")
 @Categories(categories = { "writer", "json"})
 @Description("Creates a JSON object based on source columns specified. JSON object is written into dest-column.")

@@ -83,9 +83,10 @@ public class QuantizationTest {
     String s = rangeMap.get(2.2);
     Assert.assertEquals("B", s);
 
-    Matcher m = Pattern.compile("([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)").matcher("0.9:2.1=Foo,2.2:3.4=9.2");
+    Matcher m = Pattern.compile("([+-]?\\d+(?:\\.\\d+)?):([+-]?\\d+(?:\\.\\d+)?)=(.[^,]*)")
+      .matcher("0.9:2.1=Foo,2.2:3.4=9.2");
     RangeMap<String, String> rm = TreeRangeMap.create();
-    while(m.find()) {
+    while (m.find()) {
       String lower = m.group(1);
       String upper = m.group(2);
       String value = m.group(3);

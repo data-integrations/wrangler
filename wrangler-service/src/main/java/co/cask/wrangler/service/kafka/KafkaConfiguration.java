@@ -50,7 +50,7 @@ public final class KafkaConfiguration {
     }
 
     Map<String, String> properties = conn.getAllProps();
-    if(properties == null || properties.size() == 0) {
+    if (properties == null || properties.size() == 0) {
       throw new IllegalArgumentException("Kafka properties are not defined. Check connection setting.");
     }
 

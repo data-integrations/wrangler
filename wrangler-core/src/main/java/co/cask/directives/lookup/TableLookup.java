@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * An directive that performs a lookup into a Table Dataset and adds the row values into the record.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(TableLookup.NAME)
 @Categories(categories = { "lookup"})
 @Description("Uses the given column as a key to perform a lookup into the specified table.")

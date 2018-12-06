@@ -41,7 +41,7 @@ import java.util.Locale;
 /**
  * A directive that encodes a column as base-32, base-64, or hex.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Encode.NAME)
 @Categories(categories = { "transform"})
 @Description("Encodes column values using one of base32, base64, or hex.")

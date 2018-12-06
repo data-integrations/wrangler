@@ -76,11 +76,9 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
    */
   @Override
   public void destroy() {
-    for(Executor directive : directives) {
+    for (Executor directive : directives) {
       try {
         directive.destroy();
-      } catch (Exception e) {
-        LOG.warn(e.getMessage());
       } catch (Throwable t) {
         LOG.warn(t.getMessage());
       }
@@ -125,7 +123,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         if (context != null) {
           context.getTransientStore().reset(TransientVariableScope.LOCAL);
         }
-        List<Row> newRows = rows.subList(i, i+1);
+        List<Row> newRows = rows.subList(i, i + 1);
         try {
           for (Executor<List<Row>, List<Row>> directive : directives) {
             try {
@@ -137,7 +135,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
               messages.add(String.format("%d:%s", e.getCode(), e.getMessage()));
             }
           }
-          if(newRows.size() > 0) {
+          if (newRows.size() > 0) {
             results.addAll(newRows);
           }
         } catch (ErrorRowException e) {

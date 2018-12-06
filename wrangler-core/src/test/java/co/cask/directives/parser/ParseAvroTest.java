@@ -91,7 +91,7 @@ public class ParseAvroTest {
     ByteArrayInputStream in = new ByteArrayInputStream(serializedBytes);
     BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(in, null);
     List<GenericRecord> records = new ArrayList<>();
-    while(true) {
+    while (true) {
       try {
         GenericRecord record = datumReader.read(null, decoder);
         records.add(record);
@@ -115,7 +115,7 @@ public class ParseAvroTest {
     ByteArrayInputStream in = new ByteArrayInputStream(bytes);
     JsonDecoder decoder = DecoderFactory.get().jsonDecoder(schema, in);
     List<GenericRecord> records = new ArrayList<>();
-    while(true) {
+    while (true) {
       try {
         GenericRecord record = datumReader.read(null, decoder);
         records.add(record);

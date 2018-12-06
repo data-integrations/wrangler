@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 /**
  * A directive extracts regex groups into separate columns.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(ExtractRegexGroups.NAME)
 @Categories(categories = { "transform"})
 @Description("Extracts data from a regex group into its own column.")
@@ -79,7 +79,7 @@ public class ExtractRegexGroups implements Directive {
           Matcher matcher = pattern.matcher((String) value);
           int count = 1;
           while (matcher.find()) {
-            for(int i = 1; i <= matcher.groupCount(); i++) {
+            for (int i = 1; i <= matcher.groupCount(); i++) {
               row.add(String.format("%s_%d_%d", column, count, i), matcher.group(i));
             }
             count++;

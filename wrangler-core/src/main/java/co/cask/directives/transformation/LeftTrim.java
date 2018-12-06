@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * A directive for trimming whitespace from left side of a string
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(LeftTrim.NAME)
 @Categories(categories = { "transform"})
 @Description("Trimming whitespace from left side of a string.")

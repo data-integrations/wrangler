@@ -31,12 +31,9 @@ import co.cask.wrangler.dataset.schema.SchemaRegistryException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.Set;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -55,8 +52,6 @@ import static co.cask.wrangler.ServiceUtils.success;
  * This class {@link SchemaRegistryService} provides schema management service.
  */
 public class SchemaRegistryService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistryService.class);
-  public static final String SCHEMA_REGISTRY_NAME = "schema";
 
   @UseDataSet(DataPrep.CONNECTIONS_DATASET)
   private Table table;
@@ -99,7 +94,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
         return;
       }
       if (name == null || name.isEmpty()) {
-        error(responder,"name field is empty. name cannot be null");
+        error(responder, "name field is empty. name cannot be null");
         return;
       }
       if (type == null || SchemaDescriptorType.fromString(type) == null) {
@@ -112,9 +107,7 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
       }
       registry.create(id, name, description, SchemaDescriptorType.fromString(type));
       success(responder, String.format("Successfully created schema entry with id '%s', name '%s'", id, name));
-    } catch (IllegalArgumentException e) {
-      error(responder, e.getMessage());
-    } catch (SchemaRegistryException e) {
+    } catch (IllegalArgumentException | SchemaRegistryException e) {
       error(responder, e.getMessage());
     }
   }
@@ -259,9 +252,8 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
       object.addProperty("current", entry.getCurrent());
       object.addProperty("specification", Bytes.toHexString(entry.getSpecification()));
       JsonArray versions = new JsonArray();
-      Iterator<Long> it = entry.getVersions().iterator();
-      while(it.hasNext()) {
-        versions.add(new JsonPrimitive(it.next()));
+      for (Long elementVersion : entry.getVersions()) {
+        versions.add(new JsonPrimitive(elementVersion));
       }
       object.add("versions", versions);
       array.add(object);
@@ -304,9 +296,8 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
       object.addProperty("current", entry.getCurrent());
       object.addProperty("specification", Bytes.toHexString(entry.getSpecification()));
       JsonArray versions = new JsonArray();
-      Iterator<Long> it = entry.getVersions().iterator();
-      while(it.hasNext()) {
-        versions.add(new JsonPrimitive(it.next()));
+      for (Long elementVersion : entry.getVersions()) {
+        versions.add(new JsonPrimitive(elementVersion));
       }
       object.add("versions", versions);
       array.add(object);
@@ -335,9 +326,8 @@ public class SchemaRegistryService extends AbstractHttpServiceHandler {
       Set<Long> versions = registry.getVersions(id);
       JsonObject response = new JsonObject();
       JsonArray array = new JsonArray();
-      Iterator<Long> it = versions.iterator();
-      while(it.hasNext()) {
-        array.add(new JsonPrimitive(it.next()));
+      for (Long elementVersion : versions) {
+        array.add(new JsonPrimitive(elementVersion));
       }
       response.addProperty("status", HttpURLConnection.HTTP_OK);
       response.addProperty("message", "Success");

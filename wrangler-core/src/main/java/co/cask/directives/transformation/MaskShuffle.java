@@ -48,7 +48,7 @@ import java.util.Random;
  *   </blockquote>
  * </p>
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(MaskShuffle.NAME)
 @Categories(categories = { "transform"})
 @Description("Masks a column value by shuffling characters while maintaining the same length.")
@@ -101,14 +101,15 @@ public class MaskShuffle implements Directive {
     Random r = new Random(seed);
     char data[] = str.toCharArray();
 
-    for (int n = 0; n < data.length; ++ n) {
+    for (int n = 0; n < data.length; ++n) {
       char ln = Character.toLowerCase(data[n]);
-      if (cons.indexOf(ln) >= 0)
+      if (cons.indexOf(ln) >= 0) {
         data[n] = randomChar(r, cons, ln != data[n]);
-      else if (vowel.indexOf(ln) >= 0)
+      } else if (vowel.indexOf(ln) >= 0) {
         data[n] = randomChar(r, vowel, ln != data[n]);
-      else if (digit.indexOf(ln) >= 0)
+      } else if (digit.indexOf(ln) >= 0) {
         data[n] = randomChar(r, digit, ln != data[n]);
+      }
     }
     return new String(data);
   }

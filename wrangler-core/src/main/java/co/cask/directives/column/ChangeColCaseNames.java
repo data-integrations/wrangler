@@ -37,7 +37,7 @@ import java.util.List;
  * This class <code>ChangeColCaseNames</code> converts the case of the columns
  * to either lower-case or uppercase.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(ChangeColCaseNames.NAME)
 @Categories(categories = { "column"})
 @Description("Changes the case of column names to either lowercase or uppercase.")

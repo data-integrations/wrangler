@@ -49,8 +49,8 @@ public class ExtractRegexGroupsTest {
     TIME_REGEX = hoursMinutes + seconds + ampm + timezone;
   }
 
-  public final static String DATE_REGEX;
-  public final static String TIME_REGEX;
+  public static final String DATE_REGEX;
+  public static final String TIME_REGEX;
 
   private static class RegexInputOutput {
     public final String input;
@@ -208,7 +208,8 @@ public class ExtractRegexGroupsTest {
       "</[aA]>";
     RegexInputOutput[] regexInputOutputs = {
       new RegexInputOutput("<a href=\"cask.co\">Cask Data</a>", "cask.co", "Cask Data"),
-      new RegexInputOutput("<a target=\"_self\" href=\"http://cask.co/\">Cask Data</a>", "http://cask.co/", "Cask Data"),
+      new RegexInputOutput("<a target=\"_self\" href=\"http://cask.co/\">Cask Data</a>", "http://cask.co/",
+                           "Cask Data"),
       new RegexInputOutput("<a  target=\"_self\"    href=\"http://cask.co/\">Cask Data</a>",
                            "http://cask.co/", "Cask Data"),
       new RegexInputOutput("<a  target=\"_self\"    href=\"http://cask.co/\" type=\"text\">Cask Data</a>",

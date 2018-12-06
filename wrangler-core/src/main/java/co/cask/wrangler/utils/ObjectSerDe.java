@@ -28,6 +28,8 @@ import java.io.ObjectOutputStream;
 
 /**
  * This class allows one to serialize the object of T into bytes.
+ *
+ * @param <T> type of object to serialize
  */
 @PublicEvolving
 public final class ObjectSerDe<T> {

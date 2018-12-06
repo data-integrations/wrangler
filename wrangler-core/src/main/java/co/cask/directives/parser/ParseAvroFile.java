@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * A step to parse AVRO File.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-avro-file")
 @Categories(categories = { "parser", "avro"})
 @Description("parse-as-avro-file <column>.")
@@ -84,7 +84,7 @@ public class ParseAvroFile implements Directive {
           try {
             reader =
               new DataFileReader<>(new SeekableByteArrayInput((byte[]) object), new GenericDatumReader<>());
-            while(reader.hasNext()) {
+            while (reader.hasNext()) {
               Row newRow = new Row();
               add(reader.next(), newRow, null);
               results.add(newRow);

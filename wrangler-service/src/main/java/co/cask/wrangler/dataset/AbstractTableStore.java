@@ -47,14 +47,16 @@ import java.util.List;
  *   <li>
  *     Implement a few abstract methods relevant to the data being stored.
  *     <code>
- *       @Override protected String getKeySpace() { ... }
- *       @Override protected String getDelimiter() { ... }
- *       @Override public String create(Connection connection) { ... }
- *       @Override public void update(String id, Connection connection) { ... }
- *       @Override public Connection clone(String id) { ... }
+ *       protected String getKeySpace() { ... }
+ *       protected String getDelimiter() { ... }
+ *       public String create(Connection connection) { ... }
+ *       public void update(String id, Connection connection) { ... }
+ *       public Connection clone(String id) { ... }
  *     </code>
  *   </li>
  * </ul>
+ *
+ * @param <T> type of object stored in the table
  */
 public abstract class AbstractTableStore<T> {
 
@@ -219,7 +221,7 @@ public abstract class AbstractTableStore<T> {
         byte[] bytes = next.get(column);
         T object = fromJson(bytes);
         if (filter != null) {
-          if(filter.apply(object)) {
+          if (filter.apply(object)) {
             result.add(object);
           }
         } else {
@@ -239,7 +241,7 @@ public abstract class AbstractTableStore<T> {
   public boolean hasKey(String id) {
     byte[] bytes = generateKey(id);
     Row row = table.get(bytes);
-    if(row.isEmpty()) {
+    if (row.isEmpty()) {
       return false;
     }
     return true;

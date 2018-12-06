@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive for splitting a col into two additional columns based on a start and end.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(IndexSplit.NAME)
 @Categories(categories = { "transform"})
 @Description("[DEPRECATED] Use the 'split-to-columns' or 'parse-as-fixed-length' directives instead.")

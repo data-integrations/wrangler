@@ -24,8 +24,8 @@ import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
-import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -52,7 +52,7 @@ import java.util.Map;
  * This class is a JSON Parser directive with optional argument specifying the depth
  * to which the JSON needs to be parsed.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-json")
 @Categories(categories = { "parser", "json"})
 @Description("Parses a column as JSON.")
@@ -107,7 +107,7 @@ public class JsParser implements Directive {
 
         try {
           JsonElement element = null;
-          if(value instanceof String) {
+          if (value instanceof String) {
             String document = (String) value;
             element = parser.parse(document.trim());
           } else if (value instanceof JsonObject || value instanceof JsonArray) {
@@ -166,7 +166,7 @@ public class JsParser implements Directive {
     }
 
     Iterator<Map.Entry<String, JsonElement>> elements = root.entrySet().iterator();
-    while(elements.hasNext()) {
+    while (elements.hasNext()) {
       Map.Entry<String, JsonElement> next = elements.next();
       String key = next.getKey();
       JsonElement element = next.getValue();

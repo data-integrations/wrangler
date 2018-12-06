@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * A directive for 'find-and-replace' transformations on the column.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(FindAndReplace.NAME)
 @Categories(categories = { "transform"})
 @Description("Finds and replaces text in column values using a sed-format expression.")

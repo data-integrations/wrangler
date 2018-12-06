@@ -23,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,9 +33,9 @@ public class SetTypeTest {
 
   @Test
   public void testToInt() throws Exception {
-    List<Row> rows = Arrays.asList(
-      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{0, 0, 39, 16})
     );
     String[] directives = new String[] {
@@ -45,19 +46,19 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i ++) {
+    for (int i = 0; i < row.length(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Integer);
       Integer intValue = (Integer) object;
-      Assert.assertTrue(intValue.equals(10000));
+      Assert.assertEquals(10000, (int) intValue);
     }
   }
 
   @Test
   public void testToShort() throws Exception {
-    List<Row> rows = Arrays.asList(
-      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{39, 16})
     );
     String[] directives = new String[] {
@@ -67,7 +68,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i ++) {
+    for (int i = 0; i < row.length(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Short);
       Short value = (Short) object;
@@ -77,9 +78,9 @@ public class SetTypeTest {
 
   @Test
   public void testToLong() throws Exception {
-    List<Row> rows = Arrays.asList(
-      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.0))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{0, 0, 0, 0 , 0, 0, 39, 16})
     );
     String[] directives = new String[] {
@@ -89,19 +90,19 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i ++) {
+    for (int i = 0; i < row.length(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Long);
       Long value = (Long) object;
-      Assert.assertTrue(value.equals(new Long(10000)));
+      Assert.assertEquals(10000L, (long) value);
     }
   }
 
   @Test
   public void testToFloat() throws Exception {
-    List<Row> rows = Arrays.asList(
-      new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", 10000.00d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{70, 28, 64, 0})
     );
     String[] directives = new String[] {
@@ -111,7 +112,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i ++) {
+    for (int i = 0; i < row.length(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Float);
       Float value = (Float) object;
@@ -121,9 +122,9 @@ public class SetTypeTest {
 
   @Test
   public void testToDouble() throws Exception {
-    List<Row> rows = Arrays.asList(
-      new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", new Double(10000.00))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", 10000.00d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0})
     );
     String[] directives = new String[] {
@@ -133,7 +134,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i ++) {
+    for (int i = 0; i < row.length(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Double);
       Double value = (Double) object;
@@ -143,21 +144,22 @@ public class SetTypeTest {
 
   @Test
   public void testToBoolean() throws Exception {
-    List<Row> trueRows = Arrays.asList(
+    List<Row> trueRows = Collections.singletonList(
       new Row("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
-        .add("int_col", 10000).add("double_col", new Double(10000.00))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000))
-        .add("float_col", new Float(10000.0)).add("true_col", true)
+        .add("int_col", 10000).add("double_col", 10000.00d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L)
+        .add("float_col", 10000.0f).add("true_col", true)
     );
-    List<Row> falseRows = Arrays.asList(
+    List<Row> falseRows = Collections.singletonList(
       new Row("str_1", "false").add("str_2", "False").add("str_3", "FALSE")
-        .add("int_col", -10000).add("double_col", new Double(-10000.00))
-        .add("short_col", new Short("-10000")).add("long_col", new Long(-10000))
-        .add("float_col", new Float(-10000.0)).add("false_col", false)
+        .add("int_col", -10000).add("double_col", -10000.00d)
+        .add("short_col", new Short("-10000")).add("long_col", -10000L)
+        .add("float_col", -10000.0f).add("false_col", false)
     );
     String[] directives = new String[] {
-      "set-type str_1 bool", "set-type str_2 bool", "set-type str_3 bool", "set-type int_col Bool", "set-type double_col BOOL",
-      "set-type short_col boolean", "set-type long_col Boolean", "set-type float_col BOOLEAN", "set-type bytes_col bool"
+      "set-type str_1 bool", "set-type str_2 bool", "set-type str_3 bool", "set-type int_col Bool",
+      "set-type double_col BOOL", "set-type short_col boolean", "set-type long_col Boolean",
+      "set-type float_col BOOLEAN", "set-type bytes_col bool"
     };
 
     List<Row> trueResults = TestingRig.execute(directives, trueRows);
@@ -165,7 +167,7 @@ public class SetTypeTest {
     Row trueRow = trueResults.get(0);
     Row falseRow = falseResults.get(0);
 
-    for (int i = 0; i < trueRow.length(); i ++) {
+    for (int i = 0; i < trueRow.length(); i++) {
       Object trueObject = trueRow.getValue(i);
       Object falseObject = falseRow.getValue(i);
       Assert.assertTrue(trueObject instanceof Boolean);
@@ -179,9 +181,9 @@ public class SetTypeTest {
 
   @Test
   public void testToString() throws Exception {
-    List<Row> rows = Arrays.asList(
-      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000))
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000f)
         .add("bytes_col", new byte[]{49, 48, 48, 48, 48})
     );
     String[] directives = new String[] {
@@ -191,25 +193,24 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i ++) {
+    for (int i = 0; i < row.length(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof String);
       String value = (String) object;
       if (i == 2 || i == 5) {
-        Assert.assertTrue(value.equals("10000.0"));
-      }
-      else {
-        Assert.assertTrue(value.equals("10000"));
+        Assert.assertEquals("10000.0", value);
+      } else {
+        Assert.assertEquals("10000", value);
       }
     }
   }
 
   @Test
   public void testToBytes() throws Exception {
-    List<Row> rows = Arrays.asList(
-      new Row("str_col", "10000").add("int_col", 10000).add("double_col", new Double(10000.00))
-        .add("short_col", new Short("10000")).add("long_col", new Long(10000)).add("float_col", new Float(10000.0))
-        .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0})
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.00d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("bytes_col", new byte[] {64, -61, -120, 0, 0, 0, 0, 0})
     );
     byte[][] bytesResults = new byte[][] {
       new byte[] {49, 48, 48, 48, 48},
@@ -227,7 +228,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i ++) {
+    for (int i = 0; i < row.length(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof byte[]);
       byte [] value = (byte[]) object;

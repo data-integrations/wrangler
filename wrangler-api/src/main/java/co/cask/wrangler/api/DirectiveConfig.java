@@ -81,9 +81,9 @@ public final class DirectiveConfig {
     if (aliases == null) {
       return reverse;
     }
-    for(Map.Entry<String, String> alias : aliases.entrySet()) {
+    for (Map.Entry<String, String> alias : aliases.entrySet()) {
       List<String> list;
-      if(reverse.containsKey(alias.getValue())) {
+      if (reverse.containsKey(alias.getValue())) {
         list = reverse.get(alias.getValue());
       } else {
         list = new ArrayList<>();

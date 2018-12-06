@@ -32,8 +32,6 @@ import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,7 +44,6 @@ import java.util.Set;
  * This class <code>EL</code> is a Expression Language Handler.
  */
 public final class EL {
-  private static final Logger LOG = LoggerFactory.getLogger(EL.class);
   private Set<String> variables = new HashSet<>();
   private final JexlEngine engine;
   private JexlScript script = null;
@@ -86,8 +83,8 @@ public final class EL {
 
   public ELResult execute(ELContext context, boolean nullMissingFields) throws ELException {
     try {
-      if(nullMissingFields) {
-        for(String variable : variables) {
+      if (nullMissingFields) {
+        for (String variable : variables) {
           if (!context.has(variable)) {
             context.add(variable, null);
           }

@@ -23,7 +23,6 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
-import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
@@ -56,9 +55,9 @@ public final class SetType implements Directive {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
-    col = ((ColumnName)args.value("column")).value();
-    type = ((Identifier)args.value("type")).value();
+  public void initialize(Arguments args) {
+    col = ((ColumnName) args.value("column")).value();
+    type = ((Identifier) args.value("type")).value();
   }
 
   @Override
@@ -94,7 +93,7 @@ public final class SetType implements Directive {
       case "INTEGER":
       case "I64":
       case "INT": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return Integer.parseInt((String) object);
         } else if (object instanceof Short) {
           return ((Short) object).intValue();
@@ -115,7 +114,7 @@ public final class SetType implements Directive {
 
       case "I32":
       case "SHORT": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return Short.parseShort((String) object);
         } else if (object instanceof Short) {
           return object;
@@ -135,7 +134,7 @@ public final class SetType implements Directive {
       }
 
       case "LONG": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return Long.parseLong((String) object);
         } else if (object instanceof Short) {
           return ((Short) object).longValue();
@@ -156,7 +155,7 @@ public final class SetType implements Directive {
 
       case "BOOL":
       case "BOOLEAN": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return Boolean.parseBoolean((String) object);
         } else if (object instanceof Short) {
           return ((Short) object) > 0 ? true : false;
@@ -176,7 +175,7 @@ public final class SetType implements Directive {
       }
 
       case "STRING": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return object;
         } else if (object instanceof Short) {
           return Short.toString((Short) object);
@@ -190,7 +189,7 @@ public final class SetType implements Directive {
           return Long.toString((Long) object);
         } else if (object instanceof byte[]) {
           return Bytes.toString((byte[]) object);
-        } else if (object instanceof Boolean){
+        } else if (object instanceof Boolean) {
           return Boolean.toString((Boolean) object);
         } else {
           return object;
@@ -198,7 +197,7 @@ public final class SetType implements Directive {
       }
 
       case "FLOAT": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return Float.parseFloat((String) object);
         } else if (object instanceof Short) {
           return ((Short) object).floatValue();
@@ -218,7 +217,7 @@ public final class SetType implements Directive {
       }
 
       case "DOUBLE": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return Double.parseDouble((String) object);
         } else if (object instanceof Short) {
           return ((Short) object).doubleValue();
@@ -238,7 +237,7 @@ public final class SetType implements Directive {
       }
 
       case "BYTES": {
-        if(object instanceof String) {
+        if (object instanceof String) {
           return Bytes.toBytes((String) object);
         } else if (object instanceof Short) {
           return Bytes.toBytes((Short) object);

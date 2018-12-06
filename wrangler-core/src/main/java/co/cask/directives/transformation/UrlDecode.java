@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A Executor to decodes a column with url encoding.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(UrlDecode.NAME)
 @Categories(categories = { "transform"})
 @Description("URL decode a column value.")
