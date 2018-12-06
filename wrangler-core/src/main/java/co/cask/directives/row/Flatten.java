@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * A directive that Flattens a record
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Flatten.NAME)
 @Categories(categories = { "row"})
 @Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
@@ -94,7 +94,7 @@ public class Flatten implements Directive {
           int m = -1;
           if (value instanceof JsonArray) {
             m = ((JsonArray) value).size();
-          } else if (value instanceof List){
+          } else if (value instanceof List) {
             m = ((List) value).size();
           } else {
             m = 1;
@@ -106,7 +106,7 @@ public class Flatten implements Directive {
       }
 
       // We iterate through the arrays and populate all the columns.
-      for(int k = 0; k < max; ++k) {
+      for (int k = 0; k < max; ++k) {
         Row r = new Row(row);
         for (int i = 0; i < count; ++i) {
           if (locations[i] != -1) {
@@ -132,7 +132,7 @@ public class Flatten implements Directive {
                 r.addOrSet(columns[i], null);
               } else {
                 if (v instanceof JsonElement) {
-                  r.setValue(locations[i], JsParser.getValue((JsonElement)v));
+                  r.setValue(locations[i], JsParser.getValue((JsonElement) v));
                 } else {
                   r.setValue(locations[i], v);
                 }

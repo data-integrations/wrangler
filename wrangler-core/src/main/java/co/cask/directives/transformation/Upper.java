@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * A Wrangler step for upper casing the 'column' value of type String.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Upper.NAME)
 @Categories(categories = { "transform"})
 @Description("Changes the column values to uppercase.")

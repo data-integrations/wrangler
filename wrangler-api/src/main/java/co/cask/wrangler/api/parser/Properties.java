@@ -46,7 +46,7 @@ public class Properties implements Token {
   @Override
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
-    for(Map.Entry<String, Token> entry : values.entrySet()) {
+    for (Map.Entry<String, Token> entry : values.entrySet()) {
       object.add(entry.getKey(), entry.getValue().toJson());
     }
     return object;

@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  */
 public class ConvertString {
 
-  public String[] WHITESPACE_CHARS = new String[] { "\t" // CHARACTER TABULATION
+  public static final String[] WHITESPACE_CHARS = new String[] { "\t" // CHARACTER TABULATION
     , "\n" // LINE FEED (LF)
     , '\u000B' + "" // LINE TABULATION
     , "\f" // FORM FEED (FF)
@@ -59,7 +59,8 @@ public class ConvertString {
   private Pattern removeWhiteSpacesPattern = null;
 
   /**
-   * This constructor is used to some cases but except removing a specify repeated String {@link #removeRepeatedChar(String)}.
+   * This constructor is used to some cases but except removing a specify repeated String
+   * {@link #removeRepeatedChar(String)}.
    */
   public ConvertString() {
     this(null);

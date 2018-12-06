@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * A XML to Json Parser Stage.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-xml-to-json")
 @Categories(categories = { "xml"})
 @Description("Parses a XML document to JSON representation.")

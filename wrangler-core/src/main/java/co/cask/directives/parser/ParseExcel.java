@@ -54,7 +54,7 @@ import java.util.TreeMap;
 /**
  * A step to parse Excel files.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-excel")
 @Categories(categories = { "parser", "excel"})
 @Description("Parses column as Excel file.")
@@ -110,7 +110,8 @@ public class ParseExcel implements Directive {
             bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
           } else {
-            throw new DirectiveExecutionException(toString() + " : column " + column + " is not byte array or byte buffer.");
+            throw new DirectiveExecutionException(toString() + " : column " + column +
+                                                    " is not byte array or byte buffer.");
           }
 
           if (bytes != null) {
@@ -135,7 +136,7 @@ public class ParseExcel implements Directive {
             while (it.hasNext()) {
               org.apache.poi.ss.usermodel.Row row = it.next();
               Iterator<Cell> cellIterator = row.cellIterator();
-              if(checkIfRowIsEmpty(row)) {
+              if (checkIfRowIsEmpty(row)) {
                 continue;
               }
 
@@ -229,7 +230,7 @@ public class ParseExcel implements Directive {
     int num = number;
     while (num >=  0) {
       int numChar = (num % 26)  + 65;
-      sb.append((char)numChar);
+      sb.append((char) numChar);
       num = (num  / 26) - 1;
     }
     return sb.reverse().toString();

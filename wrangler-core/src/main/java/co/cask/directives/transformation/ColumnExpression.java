@@ -51,7 +51,7 @@ import java.util.Map;
  *   Executor step = new ColumnExpression(lineno, directive, column, "if (age > 24 ) { 'adult' } else { 'teen' }");
  * </p>
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(ColumnExpression.NAME)
 @Categories(categories = { "transform"})
 @Description("Sets a column by evaluating a JEXL expression.")
@@ -79,7 +79,7 @@ public class ColumnExpression implements Directive {
     this.expression = ((Expression) args.value("expression")).value();
     try {
       el.compile(expression);
-    } catch (ELException e ){
+    } catch (ELException e) {
       throw new DirectiveParseException(e.getMessage());
     }
   }
@@ -95,7 +95,7 @@ public class ColumnExpression implements Directive {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context);
       ctx.set("this", row);
-      for(String var : el.variables()) {
+      for (String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
 

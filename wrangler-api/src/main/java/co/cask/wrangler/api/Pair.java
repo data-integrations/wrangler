@@ -20,6 +20,9 @@ package co.cask.wrangler.api;
  * A pair consisting of two elements - first & second.
  *
  * This class provides immutable access to elements of the pair.
+ *
+ * @param <F> type of the first element
+ * @param <S> type of the second element
  */
 public final class Pair<F, S> {
   private final F first;

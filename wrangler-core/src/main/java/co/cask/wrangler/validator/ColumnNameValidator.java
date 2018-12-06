@@ -53,7 +53,7 @@ public class ColumnNameValidator implements Validator<String> {
     InputStreamReader isr = new InputStreamReader(in);
     try (BufferedReader reader = new BufferedReader(isr)) {
       String word;
-      while((word = reader.readLine()) != null) {
+      while ((word = reader.readLine()) != null) {
         reservedWords.add(word.toLowerCase(Locale.ENGLISH));
       }
     }

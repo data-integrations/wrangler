@@ -21,7 +21,6 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveLoadException;
-import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
@@ -46,7 +45,7 @@ public final class TestingRig {
   }
 
   public static RecipePipeline pipeline(Class<? extends Directive> directive, TestRecipe recipe)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    throws RecipeException, DirectiveParseException, DirectiveLoadException {
     verify(directive);
     List<String> packages = new ArrayList<>();
     packages.add(directive.getPackage().getName());
@@ -63,7 +62,7 @@ public final class TestingRig {
   }
 
   public static RecipeParser parser(Class<? extends Directive> directive, String[] recipe)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    throws DirectiveParseException, DirectiveLoadException {
     verify(directive);
     List<String> packages = new ArrayList<>();
     packages.add(directive.getCanonicalName());
@@ -80,15 +79,15 @@ public final class TestingRig {
   private static void verify(Class<? extends Directive> directive) {
     String classz = directive.getCanonicalName();
     Plugin plugin = directive.getAnnotation(Plugin.class);
-    if (plugin == null || !plugin.type().equalsIgnoreCase(Directive.Type)) {
+    if (plugin == null || !plugin.type().equalsIgnoreCase(Directive.TYPE)) {
       throw new IllegalArgumentException(
         String.format("Class '%s' @Plugin annotation is not of type '%s', Set it as @Plugin(type=UDD.Type)",
-                      classz, Directive.Type)
+                      classz, Directive.TYPE)
       );
     }
 
     Name name = directive.getAnnotation(Name.class);
-    if(name == null) {
+    if (name == null) {
       throw new IllegalArgumentException(
         String.format("Class '%s' is missing @Name annotation. E.g. @Name(\"directive-name\")", classz)
       );

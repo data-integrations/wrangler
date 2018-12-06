@@ -44,7 +44,7 @@ import java.util.Locale;
 /**
  * A directive for taking difference in Dates.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(ParseAsCurrency.NAME)
 @Categories(categories = {"currency"})
 @Description("Parses the string as a currency using specified locale. Default locale is en_US.")
@@ -78,7 +78,7 @@ public class ParseAsCurrency implements Directive {
 
     this.lcl = LocaleUtils.toLocale(locale);
     this.fmt = NumberFormat.getCurrencyInstance(lcl);
-    ((DecimalFormat)this.fmt).setParseBigDecimal(true);
+    ((DecimalFormat) this.fmt).setParseBigDecimal(true);
   }
 
   @Override
@@ -101,7 +101,7 @@ public class ParseAsCurrency implements Directive {
           continue;
         }
         try {
-          BigDecimal number = (BigDecimal)fmt.parse(value);
+          BigDecimal number = (BigDecimal) fmt.parse(value);
           row.addOrSet(destination, number.doubleValue());
         } catch (ParseException e) {
           throw new ErrorRowException(e.getMessage(), 1);

@@ -37,8 +37,7 @@ class ServicePipelineContext implements ExecutorContext {
   private final DatasetContextLookupProvider lookupProvider;
   private final TransientStore store;
 
-  public ServicePipelineContext(Environment environment, HttpServiceContext serviceContext,
-                                TransientStore store) {
+  ServicePipelineContext(Environment environment, HttpServiceContext serviceContext, TransientStore store) {
     this.environment = environment;
     this.serviceContext = serviceContext;
     this.lookupProvider = new DatasetContextLookupProvider(serviceContext);

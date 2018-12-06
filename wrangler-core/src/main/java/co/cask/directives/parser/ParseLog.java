@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A Executor for parsing Apache HTTPD and NGINX log files.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-log")
 @Categories(categories = { "parser", "logs"})
 @Description("Parses Apache HTTPD and NGINX logs.")
@@ -106,15 +106,18 @@ public class ParseLog implements Directive {
     return rows;
   }
 
+  /**
+   * A log line
+   */
   public final class LogLine {
     private Row row;
 
-    public void setValue(final String name, final String value) {
+    public void setValue(String name, String value) {
       String key = name.toLowerCase();
-      if (key.contains("original") || key.contains("bytesclf") || key.contains("cookie") ) {
+      if (key.contains("original") || key.contains("bytesclf") || key.contains("cookie")) {
         return;
       }
-      key = key.replaceAll("[^a-zA-Z0-9_]","_");
+      key = key.replaceAll("[^a-zA-Z0-9_]", "_");
       row.addOrSet(key, value);
     }
 

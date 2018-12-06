@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * A directive for title casing the 'column' value of type String.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(TitleCase.NAME)
 @Categories(categories = { "transform"})
 @Description("Changes the column values to title case.")

@@ -134,10 +134,10 @@ public final class RecipeSymbol {
     output.addProperty("count", tokens.size());
     JsonArray array = new JsonArray();
     Iterator<TokenGroup> iterator = tokens.iterator();
-    while(iterator.hasNext()) {
+    while (iterator.hasNext()) {
       JsonArray darray = new JsonArray();
       Iterator<Token> it = iterator.next().iterator();
-      while(it.hasNext()) {
+      while (it.hasNext()) {
         Token tok = it.next();
         JsonObject object = new JsonObject();
         object.addProperty("token", tok.type().toString());

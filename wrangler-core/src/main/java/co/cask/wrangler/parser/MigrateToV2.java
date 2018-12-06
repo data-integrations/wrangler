@@ -317,7 +317,8 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "find-and-replace" : {
           String columns = getNextToken(tokenizer, command, "columns", lineno);
           String expression = getNextToken(tokenizer, "\n", command, "sed-script", lineno);
-          transformed.add(String.format("find-and-replace %s %s;", toColumArray(columns.split(",")), quote(expression)));
+          transformed.add(String.format("find-and-replace %s %s;",
+                                        toColumArray(columns.split(",")), quote(expression)));
         }
         break;
 
@@ -325,7 +326,7 @@ public final class MigrateToV2 implements GrammarMigrator {
         case "parse-as-csv" : {
           String column = getNextToken(tokenizer, command, "column", lineno);
           String delimStr = getNextToken(tokenizer, command, "delimiter", lineno);
-          if(delimStr.endsWith(";")) {
+          if (delimStr.endsWith(";")) {
             delimStr = delimStr.substring(0, delimStr.length() - 1);
           }
           String hasHeaderLinesOpt = getNextToken(tokenizer, "\n", command, "true|false", lineno, true);
@@ -358,7 +359,8 @@ public final class MigrateToV2 implements GrammarMigrator {
           String schemaId = getNextToken(tokenizer, command, "schema-id", lineno);
           String recordName = getNextToken(tokenizer, command, "record-name", lineno);
           String versionOpt = getNextToken(tokenizer, "\n", command, "depth", lineno, true);
-          transformed.add(String.format("parse-as-protobuf %s %s %s %s;", col(column), schemaId, quote(recordName), versionOpt));
+          transformed.add(String.format("parse-as-protobuf %s %s %s %s;",
+                                        col(column), schemaId, quote(recordName), versionOpt));
         }
         break;
 

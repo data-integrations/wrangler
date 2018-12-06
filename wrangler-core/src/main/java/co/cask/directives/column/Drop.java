@@ -36,7 +36,7 @@ import java.util.List;
  * This class <code>Drop</code> implements a directive that will drop
  * the list of columns specified.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Drop.NAME)
 @Categories(categories = { "column"})
 @Description("Drop one or more columns.")

@@ -24,8 +24,8 @@ import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveExecutionException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ErrorRowException;
-import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.api.Optional;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.annotations.Categories;
 import co.cask.wrangler.api.parser.ColumnName;
@@ -57,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A step to parse Protobuf encoded memory representations.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name("parse-as-protobuf")
 @Categories(categories = { "parser", "protobuf"})
 @Description("Parses column as protobuf encoded memory representations.")
@@ -87,7 +87,7 @@ public class ParseProtobuf implements Directive {
     this.column = ((ColumnName) args.value("column")).value();
     this.schemaId = ((Identifier) args.value("schema-id")).value();
     this.recordName = ((Text) args.value("record-name")).value();
-    if(args.contains("version")) {
+    if (args.contains("version")) {
       this.version = ((Numeric) args.value("version")).value().intValue();
     } else {
       this.version = -1;

@@ -32,5 +32,5 @@ public interface Statistics {
    * @param rows to be aggregated.
    * @return Summary in the form of {@link Row}
    */
-  public Row aggregate(List<Row> rows);
+  Row aggregate(List<Row> rows);
 }

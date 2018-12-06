@@ -34,14 +34,12 @@ import co.cask.wrangler.expression.ELContext;
 import co.cask.wrangler.expression.ELException;
 import co.cask.wrangler.expression.ELResult;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A directive for erroring the processing if condition is set to true.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(Fail.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Fails when the condition is evaluated to true.")
@@ -60,10 +58,8 @@ public class Fail implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     Expression expression = args.value("condition");
-    if(expression.value().isEmpty()) {
-      throw new DirectiveParseException(
-        String.format("No condition has been specified.")
-      );
+    if (expression.value().isEmpty()) {
+      throw new DirectiveParseException("No condition has been specified.");
     }
     condition = expression.value();
     try {
@@ -85,7 +81,7 @@ public class Fail implements Directive {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context);
       ctx.set("this", row);
-      for(String var : el.variables()) {
+      for (String var : el.variables()) {
         ctx.set(var, row.getValue(var));
       }
 

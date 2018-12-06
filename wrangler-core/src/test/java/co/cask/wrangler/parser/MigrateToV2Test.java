@@ -17,7 +17,6 @@
 package co.cask.wrangler.parser;
 
 import co.cask.wrangler.api.GrammarMigrator;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -26,33 +25,32 @@ import org.junit.Test;
 public class MigrateToV2Test {
   @Test
   public void testNullRecipe() throws Exception {
-    String recipe = null;
-    GrammarMigrator migrator = new MigrateToV2(recipe);
+    GrammarMigrator migrator = new MigrateToV2((String) null);
+    // no exception should be thrown.
     migrator.migrate();
-    Assert.assertTrue(true); // no exception should be thrown.
   }
 
   @Test
   public void testEmptyRecipe() throws Exception {
     String recipe = "";
     GrammarMigrator migrator = new MigrateToV2(recipe);
+    // no exception should be thrown.
     migrator.migrate();
-    Assert.assertTrue(true); // no exception should be thrown.
   }
 
   @Test
   public void testCommentOnlyRecipe() throws Exception {
     String recipe = "// test";
     GrammarMigrator migrator = new MigrateToV2(recipe);
+    // no exception should be thrown.
     migrator.migrate();
-    Assert.assertTrue(true); // no exception should be thrown.
   }
 
   @Test
   public void testOldDirectivesWithNewSyntax() throws Exception {
     String recipe = "parse-as-csv :body '\t' true; drop :body;";
     GrammarMigrator migrator = new MigrateToV2(recipe);
+    // no exception should be thrown.
     migrator.migrate();
-    Assert.assertTrue(true); // no exception should be thrown.
   }
 }

@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A directive for implementing the directive for measuring the difference between two sequence of characters.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(TextDistanceMeasure.NAME)
 @Categories(categories = { "transform"})
 @Description("Calculates a text distance measure between two columns containing string.")

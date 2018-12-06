@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Workspace dataset.
  */
 public class WorkspaceDataset extends AbstractDataset {
   private static final Logger LOG = LoggerFactory.getLogger(WorkspaceDataset.class);
@@ -65,7 +65,7 @@ public class WorkspaceDataset extends AbstractDataset {
   public static final byte[] REQUEST_COL    = Bytes.toBytes("request");
 
   public WorkspaceDataset(DatasetSpecification specification,
-                          @EmbeddedDataset("workspace") Table table){
+                          @EmbeddedDataset("workspace") Table table) {
     super(specification.getName(), table);
     this.table = table;
     this.gson = new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
@@ -189,7 +189,7 @@ public class WorkspaceDataset extends AbstractDataset {
     List<Pair<String, String>> values = new ArrayList<>();
     co.cask.cdap.api.dataset.table.Row row;
     try (Scanner scanner = table.scan(null, null)) {
-      while((row = scanner.next()) != null) {
+      while ((row = scanner.next()) != null) {
         byte[] key = row.getRow();
         String id = Bytes.toString(key);
         if (excludedKey(id)) {
@@ -228,7 +228,7 @@ public class WorkspaceDataset extends AbstractDataset {
   public void deleteWorkspace(String id) throws WorkspaceException {
     try {
       table.delete(toKey(id));
-    } catch (DataSetException e){
+    } catch (DataSetException e) {
       throw new WorkspaceException(
         String.format("Failed to delete workspace '%s'. %s", id, e.getMessage())
       );
@@ -247,7 +247,7 @@ public class WorkspaceDataset extends AbstractDataset {
     int count = 0;
     co.cask.cdap.api.dataset.table.Row row;
     try (Scanner scanner = table.scan(null, null)) {
-      while((row = scanner.next()) != null) {
+      while ((row = scanner.next()) != null) {
         byte[] key = row.getRow();
         String id = Bytes.toString(key);
         if (excludedKey(id)) {
@@ -334,7 +334,7 @@ public class WorkspaceDataset extends AbstractDataset {
   public DirectiveConfig getConfig() {
     byte[] bytes = table.get(CONFIG_KEY, CONFIG_COL);
     String json;
-    if(bytes == null) {
+    if (bytes == null) {
       json = "{}";
     } else {
       json = Bytes.toString(bytes);
@@ -352,7 +352,7 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   @ReadOnly
-  public Map<String, String> getProperties(String id) throws WorkspaceException {
+  public Map<String, String> getProperties(String id) {
     byte[] bytes = table.get(toKey(id), PROPERTIES_COL);
     return fromJsonBytes(bytes);
   }
@@ -365,7 +365,7 @@ public class WorkspaceDataset extends AbstractDataset {
    * @return if key is found, returns the data, else returns null.
    */
   @ReadOnly
-  public byte[] getData(String id, byte[] key) throws WorkspaceException {
+  public byte[] getData(String id, byte[] key) {
     byte[] bytes = table.get(toKey(id), key);
     return bytes;
   }
@@ -373,15 +373,15 @@ public class WorkspaceDataset extends AbstractDataset {
   @ReadOnly
   public <T> T getData(String id, byte[] key, DataType type) throws WorkspaceException {
     byte[] bytes = table.get(toKey(id), key);
-    if(bytes == null) {
+    if (bytes == null) {
       return null;
     }
-    if (type == DataType.BINARY){
+    if (type == DataType.BINARY) {
       return (T) bytes;
     } else if (type == DataType.TEXT) {
       String value = Bytes.toString(bytes);
       return (T) value;
-    } else if (type == DataType.RECORDS){
+    } else if (type == DataType.RECORDS) {
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       try {
         List<Row> rows = serDe.toObject(bytes);

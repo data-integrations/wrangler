@@ -20,6 +20,8 @@ import co.cask.wrangler.api.annotations.PublicEvolving;
 
 /**
  * Interface for Validating 'T' properties.
+ *
+ * @param <T> type of object to validate
  */
 @PublicEvolving
 public interface Validator<T> {
@@ -27,7 +29,7 @@ public interface Validator<T> {
    * Initializes the validator.
    * @throws Exception thrown when there are initialization error.
    */
-  public void initialize() throws Exception;
+  void initialize() throws Exception;
 
   /**
    * Validates the T properties.
@@ -35,5 +37,5 @@ public interface Validator<T> {
    * @param value to be validated.
    * @throws ValidatorException thrown when there are issues with validation.
    */
-  public void validate(T value) throws ValidatorException;
+  void validate(T value) throws ValidatorException;
 }

@@ -30,32 +30,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * Date time patterns
+ */
 public class DateTimePattern {
-  private static List<Map<Pattern, String>> DATE_PATTERN_GROUP_LIST = new ArrayList<Map<Pattern, String>>();
-  private static List<Map<Pattern, String>> TIME_PATTERN_GROUP_LIST = new ArrayList<Map<Pattern, String>>();
+  private static final List<Map<Pattern, String>> DATE_PATTERN_GROUP_LIST = new ArrayList<>();
+  private static final List<Map<Pattern, String>> TIME_PATTERN_GROUP_LIST = new ArrayList<>();
 
   static {
-    try {
-      // Load date patterns
-      loadPatterns("DateRegexesGrouped.txt", DATE_PATTERN_GROUP_LIST);
-      // Load time patterns
-      loadPatterns("TimeRegexes.txt", TIME_PATTERN_GROUP_LIST);
-    } catch (IOException e) {
-      // Throw exception
-    }
-
+    loadPatterns("DateRegexesGrouped.txt", DATE_PATTERN_GROUP_LIST);
+    // Load time patterns
+    loadPatterns("TimeRegexes.txt", TIME_PATTERN_GROUP_LIST);
   }
 
-  private static void loadPatterns(String patternFileName, List<Map<Pattern, String>> patternParsers) throws IOException {
+  private static void loadPatterns(String patternFileName, List<Map<Pattern, String>> patternParsers) {
     InputStream stream = DateTimePattern.class.getClassLoader().getResourceAsStream(patternFileName);
     try {
       List<String> lines = IOUtils.readLines(stream, "UTF-8");
-      Map<Pattern, String> currentGroupMap = new LinkedHashMap<Pattern, String>();
+      Map<Pattern, String> currentGroupMap = new LinkedHashMap<>();
       patternParsers.add(currentGroupMap);
       for (String line : lines) {
         if (!"".equals(line.trim())) { // Not empty
           if (line.startsWith("--")) { // group separator
-            currentGroupMap = new LinkedHashMap<Pattern, String>();
+            currentGroupMap = new LinkedHashMap<>();
             patternParsers.add(currentGroupMap);
           } else {
             String[] lineArray = StringUtils.splitByWholeSeparatorPreserveAllTokens(line, "\t");

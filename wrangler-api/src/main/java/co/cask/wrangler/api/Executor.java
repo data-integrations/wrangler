@@ -22,6 +22,9 @@ import java.io.Serializable;
 
 /**
  * A interface defining the wrangle Executor in the wrangling {@link RecipePipeline}.
+ *
+ * @param <I> type of input object
+ * @param <O> type of output object
  */
 @PublicEvolving
 public interface Executor<I, O> extends Serializable {

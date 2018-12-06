@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * A directive for implementing the directive for measuring the metrics between two sequence of characters.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(TextMetricMeasure.NAME)
 @Categories(categories = { "transform"})
 @Description("Calculates the metric for comparing two string values.")

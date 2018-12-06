@@ -126,7 +126,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
       if (content != null && content.hasRemaining()) {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
-        List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>() {}.getType());
+        List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>() { }.getType());
         datum.setDirectives(directives);
       }
 
@@ -166,7 +166,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
       datum.setCreated(row.getLong(UPDATED));
       datum.setUpdated(row.getLong(CREATED));
       String recipe = row.getString(DIRECTIVES);
-      List<String> directives = gson.fromJson(recipe, new TypeToken<List<String>>() {}.getType());
+      List<String> directives = gson.fromJson(recipe, new TypeToken<List<String>>() { }.getType());
       datum.setDirectives(directives);
       return datum;
     }
@@ -330,7 +330,7 @@ public class RecipeService extends AbstractHttpServiceHandler {
       if (content != null && content.hasRemaining()) {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
-        List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>(){}.getType());
+        List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>() { }.getType());
 
         CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
           new SystemDirectiveRegistry(),

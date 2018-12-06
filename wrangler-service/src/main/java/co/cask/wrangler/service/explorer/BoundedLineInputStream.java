@@ -96,7 +96,7 @@ public final class BoundedLineInputStream implements Iterator<String>, Closeable
             return true;
           }
         }
-      } catch(IOException ioe) {
+      } catch (IOException ioe) {
         close();
         throw new IllegalStateException(ioe);
       }

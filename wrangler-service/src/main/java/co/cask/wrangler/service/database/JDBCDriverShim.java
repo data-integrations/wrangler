@@ -24,6 +24,9 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+/**
+ * JDBC driver shim. Doesn't do anything but delegate.
+ */
 public class JDBCDriverShim implements Driver {
   private final Driver delegate;
 

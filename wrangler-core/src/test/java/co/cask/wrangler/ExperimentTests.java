@@ -69,7 +69,7 @@ public class ExperimentTests {
   public void testCurrencyParsing() throws Exception {
     NumberFormat fmt = NumberFormat.getCurrencyInstance();
     ((DecimalFormat) fmt).setParseBigDecimal(true);
-    BigDecimal value = (BigDecimal)fmt.parse("1.234,56");
+    BigDecimal value = (BigDecimal) fmt.parse("1.234,56");
     value.doubleValue();
     Assert.assertEquals(1234.56, value);
   }

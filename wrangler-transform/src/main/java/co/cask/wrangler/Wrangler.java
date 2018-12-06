@@ -161,7 +161,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         RecipeSymbol symbols = status.getSymbols();
         Set<String> dynamicDirectives = symbols.getLoadableDirectives();
         for (String directive : dynamicDirectives) {
-          Object o = configurer.usePlugin(Directive.Type, directive, directive, PluginProperties.builder().build());
+          Object o = configurer.usePlugin(Directive.TYPE, directive, directive, PluginProperties.builder().build());
           if (o == null) {
             throw new IllegalArgumentException(
               String.format("User Defined Directive '%s' is not deployed or is not available.", directive)
@@ -171,13 +171,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
         // If the 'directives' contains macro, then we would not attempt to compile
         // it.
-        if(!config.containsMacro("directives")) {
+        if (!config.containsMacro("directives")) {
           // Create the registry that only interacts with system directives.
           registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry());
 
           if (symbols != null) {
             Iterator<TokenGroup> iterator = symbols.iterator();
-            while(iterator != null && iterator.hasNext()) {
+            while (iterator != null && iterator.hasNext()) {
               TokenGroup group = iterator.next();
               if (group != null) {
                 String directive = (String) group.get(0).value();
@@ -210,7 +210,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
       // Check if configured field is present in the input schema.
       Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-      if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#") ) &&
+      if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#")) &&
         (inputSchema != null && inputSchema.getField(config.field) == null)) {
         throw new IllegalArgumentException(
           String.format("Field '%s' configured to wrangler is not present in the input. " +
@@ -219,7 +219,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
 
       // Check if pre-condition is not null or empty and if so compile expression.
-      if(!config.containsMacro("precondition")) {
+      if (!config.containsMacro("precondition")) {
         if (config.precondition != null && !config.precondition.trim().isEmpty()) {
           try {
             new Precondition(config.precondition);

@@ -37,7 +37,7 @@ public class BoundedLineInputStreamTest {
     int i = 0;
     List<String> lines = new ArrayList<>();
     try {
-      while(blis.hasNext()) {
+      while (blis.hasNext()) {
         String line = blis.next();
         lines.add(line);
         Assert.assertNotNull(line);

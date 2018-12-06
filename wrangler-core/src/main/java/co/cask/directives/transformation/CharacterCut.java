@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * A directive implements unix cut directive.
  */
-@Plugin(type = Directive.Type)
+@Plugin(type = Directive.TYPE)
 @Name(CharacterCut.NAME)
 @Categories(categories = { "transform"})
 @Description("UNIX-like 'cut' directive for splitting text.")
@@ -84,7 +84,8 @@ public class CharacterCut implements Directive {
           );
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Scope column '" + source + "' does not exist in the row.");
+        throw new DirectiveExecutionException(toString() + " : Scope column '" + source +
+                                                "' does not exist in the row.");
       }
     }
     return rows;

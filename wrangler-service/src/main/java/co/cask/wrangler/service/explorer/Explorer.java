@@ -53,13 +53,13 @@ public final class Explorer {
   private final FileTypeDetector detector;
 
   // Some constants for unknown or device types.
-  public final static String DEVICE = "device";
-  public final static String UNKNOWN = "UNKNOWN";
+  public static final String DEVICE = "device";
+  public static final String UNKNOWN = "UNKNOWN";
 
   public Explorer(DatasetProvider provider) {
     this.provider = provider;
     String os = System.getProperty("os.name");
-    if (os == null || os.isEmpty() ) {
+    if (os == null || os.isEmpty()) {
       this.operatingSystem = "unknown";
     } else {
       this.operatingSystem = os.toLowerCase();
@@ -83,9 +83,9 @@ public final class Explorer {
       // Get the list of all the files.
       List<Location> locations = base.list();
       // Iterate through each file.
-      for(Location location : locations) {
+      for (Location location : locations) {
         // If hidden is true, then hide all the files that start with . (dot)
-        if(hidden && location.getName().toString().startsWith(".")) {
+        if (hidden && location.getName().startsWith(".")) {
           continue;
         }
         Map<String, Object> object = locationInfo(location);
@@ -101,11 +101,11 @@ public final class Explorer {
       response.put("count", values.size());
       response.put("values", values);
       return response;
-    } catch(AccessControlException e) {
+    } catch (AccessControlException e) {
       throw new ExplorerException(String.format(
         "Insufficient permission to access path '%s'", path
       ));
-    } catch (IOException e){
+    } catch (IOException e) {
       throw new ExplorerException(e.getMessage());
     }
   }
@@ -181,7 +181,7 @@ public final class Explorer {
           }
           String topType = UNKNOWN;
           for (Multiset.Entry<String> top : types.entrySet()) {
-            if(topType.equalsIgnoreCase(UNKNOWN)) {
+            if (topType.equalsIgnoreCase(UNKNOWN)) {
               topType = top.getElement();
             }
           }
