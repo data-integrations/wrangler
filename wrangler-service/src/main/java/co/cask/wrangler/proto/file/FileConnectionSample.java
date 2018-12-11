@@ -14,25 +14,23 @@
  * the License.
  */
 
-package co.cask.wrangler.service.connections;
+package co.cask.wrangler.proto.file;
 
-import co.cask.wrangler.proto.ServiceResponse;
-import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
-import javax.annotation.Nullable;
+import co.cask.wrangler.proto.ConnectionSample;
 
 /**
- * Response sent by listing connections endpoint
- * @param <T>
+ * Information about a sample taken from a GCS Object.
  */
-public class ConnectionResponse<T> extends ServiceResponse {
-  // default connection to show in DataPrep UI
-  @SerializedName("default")
-  String defaultConnection;
+public class FileConnectionSample extends ConnectionSample {
+  private final String uri;
+  private final String path;
+  private final String file;
 
-  public ConnectionResponse(List<T> values, @Nullable String defaultConnectionId) {
-    super(values);
-    this.defaultConnection = defaultConnectionId;
+  public FileConnectionSample(String id, String name, String connection, String sampler, String connectionid,
+                              String uri, String path, String file) {
+    super(id, name, connection, sampler, connectionid);
+    this.uri = uri;
+    this.path = path;
+    this.file = file;
   }
 }

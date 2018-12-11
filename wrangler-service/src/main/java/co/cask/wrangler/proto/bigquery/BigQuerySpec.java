@@ -14,15 +14,21 @@
  * the License.
  */
 
-package co.cask.wrangler.service.spanner;
+package co.cask.wrangler.proto.bigquery;
+
+import co.cask.wrangler.proto.PluginSpec;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Spanner table information
+ * Plugin specification for a BigQuery pipeline source.
+ *
+ * TODO: clean up this API. There is no reason for this class to exist.
  */
-public class SpannerTable {
-  private final String name;
+public class BigQuerySpec {
+  @SerializedName("BigQueryTable")
+  private final PluginSpec spec;
 
-  SpannerTable(String name) {
-    this.name = name;
+  public BigQuerySpec(PluginSpec spec) {
+    this.spec = spec;
   }
 }

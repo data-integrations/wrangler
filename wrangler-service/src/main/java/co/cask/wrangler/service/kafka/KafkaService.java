@@ -34,6 +34,8 @@ import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.collect.Lists;
@@ -41,7 +43,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -158,19 +159,8 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       // Extract topics from Kafka.
       try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
         Map<String, List<PartitionInfo>> topics = consumer.listTopics();
-
-        // Prepare response.
-        JsonArray values = new JsonArray();
-        for (String topic : topics.keySet()) {
-          values.add(new JsonPrimitive(topic));
-        }
-
-        JsonObject response = new JsonObject();
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "Success");
-        response.addProperty("count", values.size());
-        response.add("values", values);
-        ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+        ServiceResponse<String> response = new ServiceResponse<>(topics.keySet());
+        responder.sendJson(response);
       }
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
@@ -242,17 +232,10 @@ public final class KafkaService extends AbstractHttpServiceHandler {
         properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.FIRST.getMethod());
         ws.writeProperties(uuid, properties);
 
-        JsonObject response = new JsonObject();
-        JsonArray values = new JsonArray();
-        JsonObject object = new JsonObject();
-        object.addProperty(PropertyIds.ID, uuid);
-        object.addProperty(PropertyIds.NAME, topic);
-        values.add(object);
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "Success");
-        response.addProperty("count", values.size());
-        response.add("values", values);
-        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+        ConnectionSample sample = new ConnectionSample(uuid, topic, ConnectionType.KAFKA.getType(),
+                                                       SamplingMethod.FIRST.getMethod(), id);
+        ServiceResponse<ConnectionSample> response = new ServiceResponse<>(sample);
+        responder.sendJson(response);
       } finally {
         consumer.close();
       }

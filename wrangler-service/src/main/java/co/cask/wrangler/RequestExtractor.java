@@ -24,6 +24,7 @@ import com.google.gson.GsonBuilder;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import javax.annotation.Nullable;
 
 /**
  * This class {@link RequestExtractor} provides utility functions for extracting different aspects of the request.
@@ -100,6 +101,7 @@ public final class RequestExtractor {
    * @param type class to converted to.
    * @return instance of type T as defined by the class.
    */
+  @Nullable
   public <T> T getContent(String charset, Class<?> type) {
     String data = getContent(charset);
     if (data != null) {

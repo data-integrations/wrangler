@@ -42,4 +42,32 @@ public class SpannerSpecification {
     this.table = table;
     this.schema = schema.toString();
   }
+
+  public String getReferenceName() {
+    return referenceName;
+  }
+
+  public String getServiceFilePath() {
+    return serviceFilePath;
+  }
+
+  public String getProject() {
+    return project;
+  }
+
+  public String getInstance() {
+    return instance;
+  }
+
+  public String getDatabase() {
+    return database;
+  }
+
+  public String getTable() {
+    return table;
+  }
+
+  public String getSchema() {
+    return schema;
+  }
 }

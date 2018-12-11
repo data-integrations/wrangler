@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service.recipe;
+package co.cask.wrangler.proto.recipe;
 
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -27,7 +27,7 @@ import java.util.List;
  * TestRecipe pojo that stores information about a recipe in the backend dataset.
  */
 public final class RecipeDatum {
-  private static final Gson gson = new GsonBuilder().create();
+  private static final Gson GSON = new GsonBuilder().create();
   // Id of the recipe.
   private String id;
 
@@ -46,23 +46,16 @@ public final class RecipeDatum {
   // Description for the recipe.
   private String description;
 
-  public RecipeDatum(String id) {
+  /**
+   * Create information about a recipe. Timestamps are in seconds.
+   */
+  public RecipeDatum(String id, String name, String description, long created, long updated, List<String> directives) {
     this.id = id;
-    this.created = System.currentTimeMillis() / 1000;
-    this.updated = created;
-    this.directives = null;
-    this.name = "No name";
-    this.description = "No description";
-  }
-
-  public RecipeDatum(String id, String name) {
-    this(id);
     this.name = name;
-  }
-
-  public RecipeDatum(String id, String name, String description) {
-    this(id, name);
     this.description = description;
+    this.created = created;
+    this.updated = updated;
+    this.directives = GSON.toJson(directives);
   }
 
   /**
@@ -73,27 +66,10 @@ public final class RecipeDatum {
   }
 
   /**
-   * Sets the recipe id for the recipe.
-   * @param id of the recipe.
-   */
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  /**
    * @return Unix timestamp about when the recipe was created.
    */
   public long getCreated() {
     return created;
-  }
-
-  /**
-   * Sets the time of when the recipe was created.
-   *
-   * @param created unix timestamp of when recipe was created.
-   */
-  public void setCreated(Long created) {
-    this.created = created;
   }
 
   /**
@@ -116,19 +92,10 @@ public final class RecipeDatum {
    */
   public List<String> getDirectives() {
     if (directives != null) {
-      return gson.fromJson(directives, new TypeToken<List<String>>() { }.getType());
+      return GSON.fromJson(directives, new TypeToken<List<String>>() { }.getType());
     } else {
       return new ArrayList<>();
     }
-  }
-
-  /**
-   * Sets the list of directives that make a recipe.
-   *
-   * @param directives List of directives that are part of recipe.
-   */
-  public void setDirectives(List<String> directives) {
-    this.directives = gson.toJson(directives);
   }
 
   /**
@@ -139,27 +106,10 @@ public final class RecipeDatum {
   }
 
   /**
-   * Sets the display name of the directive.
-   *
-   * @param name to be displayed for the directive.
-   */
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  /**
    * @return Description associated with the directive.
    */
   public String getDescription() {
     return description;
   }
 
-  /**
-   * Sets the recipe description.
-   *
-   * @param description for the recipe.
-   */
-  public void setDescription(String description) {
-    this.description = description;
-  }
 }

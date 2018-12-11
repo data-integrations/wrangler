@@ -26,7 +26,7 @@ import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
-import co.cask.wrangler.service.ServiceResponse;
+import co.cask.wrangler.proto.ServiceResponse;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import org.slf4j.Logger;

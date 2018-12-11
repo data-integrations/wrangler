@@ -18,7 +18,8 @@ package co.cask.wrangler.service;
 
 /**
  * Plugin configuration specifying the name, type and properties of the plugin
- * @param <T>
+ *
+ * @param <T> type of properties
  */
 public class PluginConfiguration<T> {
   private final String name;
