@@ -13,17 +13,24 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package co.cask.wrangler.service.spanner;
+
+package co.cask.wrangler.proto.s3;
+
+import co.cask.wrangler.proto.ConnectionSample;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Workspace identifier information sent as response after reading table data into workspace
+ * S3 connection sample information.
  */
-public class WorkspaceIdentifier {
-  private final String id;
-  private final String name;
+public class S3ConnectionSample extends ConnectionSample {
+  @SerializedName("bucket-name")
+  private final String bucketName;
+  private final String key;
 
-  public WorkspaceIdentifier(String id, String name) {
-    this.id = id;
-    this.name = name;
+  public S3ConnectionSample(String id, String name, String connection, String sampler, String connectionid,
+                            String bucketName, String key) {
+    super(id, name, connection, sampler, connectionid);
+    this.bucketName = bucketName;
+    this.key = key;
   }
 }

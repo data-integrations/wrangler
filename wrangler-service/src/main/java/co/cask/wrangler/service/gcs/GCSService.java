@@ -31,6 +31,12 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.proto.PluginSpec;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.gcs.GCSBucketInfo;
+import co.cask.wrangler.proto.gcs.GCSConnectionSample;
+import co.cask.wrangler.proto.gcs.GCSObjectInfo;
+import co.cask.wrangler.proto.gcs.GCSSpec;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.common.Format;
@@ -47,9 +53,6 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +83,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.sendJson;
 
 /**
  * Service to explore <code>GCS</code> filesystem
@@ -110,6 +112,10 @@ public class GCSService extends AbstractWranglerService {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
+      if (connection == null) {
+        responder.sendError(400, "Connection information is missing from the request body.");
+        return;
+      }
       ConnectionType connectionType = ConnectionType.fromString(connection.getType().getType());
       if (connectionType == ConnectionType.UNDEFINED || connectionType != ConnectionType.GCS) {
         error(responder,
@@ -183,56 +189,35 @@ public class GCSService extends AbstractWranglerService {
       Set<String> bucketWhitelist = getBucketWhitelist(connection);
 
       if (bucketName.isEmpty() && prefix == null) {
-        JsonObject response = new JsonObject();
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "OK");
-        JsonArray values = new JsonArray();
+        List<GCSBucketInfo> values = new ArrayList<>();
         // TODO: Remove objectLimit once CDAP-14446 is fixed.
         Buckets buckets = getBuckets(storage, bucketWhitelist, objectLimit);
         for (Bucket bucket : buckets.getBuckets()) {
           String name = bucket.getName();
-          JsonObject object = new JsonObject();
-          object.addProperty("name", name);
-          object.addProperty("created", bucket.getCreateTime() / 1000);
-          object.addProperty("generated-id", bucket.getGeneratedId());
-          object.addProperty("meta-generation", bucket.getMetageneration());
-          object.addProperty("type", "bucket");
-          object.addProperty("directory", true);
-
           Acl.Entity entity = bucket.getOwner();
           Acl.Entity.Type type = entity == null ? null : entity.getType();
+          String owner = "unknown";
           if (type == Acl.Entity.Type.USER) {
-            object.addProperty("owner", ((Acl.User) entity).getEmail());
+            owner = ((Acl.User) entity).getEmail();
           } else if (type == Acl.Entity.Type.DOMAIN) {
-            object.addProperty("owner", ((Acl.Domain) entity).getDomain());
-          } else if (type == Acl.Entity.Type.DOMAIN) {
-            object.addProperty("owner", ((Acl.Project) entity).getProjectId());
-          } else {
-            object.addProperty("owner", "unknown");
+            owner = ((Acl.Domain) entity).getDomain();
+          } else if (type == Acl.Entity.Type.PROJECT) {
+            owner = ((Acl.Project) entity).getProjectId();
           }
-
-          boolean isWrangeable = false;
-          try {
-            String fileType = detector.detectFileType(name.substring(name.lastIndexOf("/") + 1));
-            object.addProperty("type", fileType);
-            isWrangeable = detector.isWrangleable(fileType);
-          } catch (IOException e) {
-            object.addProperty("type", FileTypeDetector.UNKNOWN);
-            // We will not enable wrangling on unknown data.
-          }
-          object.addProperty("wrangle", isWrangeable);
-          values.add(object);
+          String fileType = detector.detectFileType(name.substring(name.lastIndexOf("/") + 1));
+          boolean isWrangeable = detector.isWrangleable(fileType);
+          // TODO: seems like file type and isWrangleable should not be done for buckets... is the UI ignoring these?
+          GCSBucketInfo bucketInfo = new GCSBucketInfo(name, fileType, owner, bucket.getMetageneration(),
+                                                       bucket.getGeneratedId(), bucket.getCreateTime() / 1000,
+                                                       isWrangeable);
+          values.add(bucketInfo);
         }
-        response.addProperty("count", values.size());
-        response.add("values", values);
-        if (buckets.isLimitExceeded()) {
-          response.addProperty("truncated", "true");
-        }
-        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+        ServiceResponse<GCSBucketInfo> response = new ServiceResponse<>(values, buckets.isLimitExceeded());
+        responder.sendJson(response);
         return;
       }
 
-      Page<Blob> list = null;
+      Page<Blob> list;
       if (prefix == null) {
         list = storage.list(bucketName, Storage.BlobListOption.currentDirectory());
       } else {
@@ -241,58 +226,37 @@ public class GCSService extends AbstractWranglerService {
       }
 
       Iterator<Blob> iterator = list.iterateAll().iterator();
-      JsonArray values = new JsonArray();
+      List<GCSObjectInfo> values = new ArrayList<>();
       boolean limitExceeded = false;
       while (iterator.hasNext()) {
-        JsonObject object = new JsonObject();
         Blob blob = iterator.next();
-        object.addProperty("bucket", blob.getBucket());
-        object.addProperty("name", new File(blob.getName()).getName());
-        object.addProperty("generation", blob.getGeneration());
         String p = String.format("/%s/%s", bucketName, blob.getName());
         if (p.equalsIgnoreCase(path)) {
           continue;
         }
-        object.addProperty("path", p);
-        object.addProperty("blob", blob.getName());
+        String name = new File(blob.getName()).getName();
+        String bucket = blob.getBucket();
+        String blobName = blob.getName();
+        long generation = blob.getGeneration();
+
         if (blob.isDirectory()) {
-          object.addProperty("directory", true);
+          values.add(new GCSObjectInfo(name, bucket, p, blobName, generation, true));
         } else {
-          object.addProperty("created", blob.getCreateTime() / 1000);
-          object.addProperty("updated", blob.getUpdateTime() / 1000);
-          object.addProperty("directory", false);
-          object.addProperty("size", blob.getSize());
-          boolean isWrangeable = false;
-          try {
-            String fileType = detector.detectFileType(blob.getName());
-            object.addProperty("type", fileType);
-            isWrangeable = detector.isWrangleable(fileType);
-          } catch (IOException e) {
-            object.addProperty("type", FileTypeDetector.UNKNOWN);
-            // We will not enable wrangling on unknown data.
-          }
-          object.addProperty("wrangle", isWrangeable);
+          String fileType = detector.detectFileType(blob.getName());
+          boolean isWrangeable = detector.isWrangleable(fileType);
+          values.add(new GCSObjectInfo(name, bucket, p, blobName, generation, false, fileType,
+                                       blob.getCreateTime() / 1000, blob.getUpdateTime() / 1000, blob.getSize(),
+                                       isWrangeable));
         }
-        values.add(object);
         if (values.size() >= objectLimit) {
           limitExceeded = true;
           break;
         }
       }
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "OK");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      if (limitExceeded) {
-        response.addProperty("truncated", "true");
-      }
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      ServiceResponse<GCSObjectInfo> response = new ServiceResponse<>(values, limitExceeded);
+      responder.sendJson(response);
     } catch (Exception e) {
-      LOG.warn(
-        String.format("Listing failure for bucket '%s', prefix '%s'", bucketName, prefix),
-        e
-      );
+      LOG.warn(String.format("Listing failure for bucket '%s', prefix '%s'", bucketName, prefix), e);
       ServiceUtils.error(responder, e.getMessage());
     }
   }
@@ -410,23 +374,13 @@ public class GCSService extends AbstractWranglerService {
         ws.writeProperties(id, properties);
 
         // Preparing return response to include mandatory fields : id and name.
-        JsonArray values = new JsonArray();
-        JsonObject object = new JsonObject();
-        object.addProperty(PropertyIds.ID, id);
-        object.addProperty(PropertyIds.NAME, file.getName());
-        object.addProperty(PropertyIds.URI, String.format("gs://%s/%s", bucket, blobPath));
-        object.addProperty(PropertyIds.FILE_PATH, blobPath);
-        object.addProperty(PropertyIds.FILE_NAME, blobName);
-        object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-        object.addProperty("bucket", bucket);
-        values.add(object);
+        GCSConnectionSample connectionSample =
+          new GCSConnectionSample(id, file.getName(), ConnectionType.GCS.getType(), SamplingMethod.NONE.getMethod(),
+                                  connectionId, String.format("gs://%s/%s", bucket, blobPath), blobPath, blobName,
+                                  bucket);
 
-        JsonObject response = new JsonObject();
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "Success");
-        response.addProperty("count", values.size());
-        response.add("values", values);
-        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+        ServiceResponse<GCSConnectionSample> response = new ServiceResponse<>(connectionSample);
+        responder.sendJson(response);
       } else {
         error(responder, HttpURLConnection.HTTP_BAD_REQUEST, "Path specified is not a file.");
       }
@@ -455,7 +409,6 @@ public class GCSService extends AbstractWranglerService {
       responder.sendError(400, "Workspace ID must be passed as query parameter 'wid'.");
       return;
     }
-    JsonObject response = new JsonObject();
     try {
 
       Connection connection = store.get(connectionId);
@@ -472,9 +425,7 @@ public class GCSService extends AbstractWranglerService {
       String externalDatasetName = new StringJoiner(".").add(config.get("bucket")).add(filename).toString();
 
       Map<String, String> properties = new HashMap<>();
-      JsonObject value = new JsonObject();
       properties.put("format", format.name().toLowerCase());
-      JsonObject gcs = new JsonObject();
       properties.put("referenceName", externalDatasetName);
       properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("project", GCPUtils.getProjectId(connection));
@@ -483,17 +434,11 @@ public class GCSService extends AbstractWranglerService {
       properties.put("filenameOnly", "false");
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
       properties.put("schema", format.getSchema().toString());
-      gcs.add("properties", new Gson().toJsonTree(properties));
-      gcs.addProperty("name", "GCSFile");
-      gcs.addProperty("type", "source");
-      value.add("GCSFile", gcs);
-      JsonArray values = new JsonArray();
-      values.add(value);
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      PluginSpec pluginSpec = new PluginSpec("GCSFile", "source", properties);
+      GCSSpec spec = new GCSSpec(pluginSpec);
+
+      ServiceResponse<GCSSpec> response = new ServiceResponse<>(spec);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     }

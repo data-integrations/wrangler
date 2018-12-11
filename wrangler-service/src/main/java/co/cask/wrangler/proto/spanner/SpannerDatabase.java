@@ -14,25 +14,15 @@
  * the License.
  */
 
-package co.cask.wrangler.service.connections;
-
-import co.cask.wrangler.proto.ServiceResponse;
-import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
-import javax.annotation.Nullable;
+package co.cask.wrangler.proto.spanner;
 
 /**
- * Response sent by listing connections endpoint
- * @param <T>
+ * Spanner database information
  */
-public class ConnectionResponse<T> extends ServiceResponse {
-  // default connection to show in DataPrep UI
-  @SerializedName("default")
-  String defaultConnection;
+public class SpannerDatabase {
+  private final String name;
 
-  public ConnectionResponse(List<T> values, @Nullable String defaultConnectionId) {
-    super(values);
-    this.defaultConnection = defaultConnectionId;
+  public SpannerDatabase(String name) {
+    this.name = name;
   }
 }

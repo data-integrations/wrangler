@@ -28,6 +28,12 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.PluginSpec;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.bigquery.BigQuerySpec;
+import co.cask.wrangler.proto.bigquery.DatasetInfo;
+import co.cask.wrangler.proto.bigquery.TableInfo;
 import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
@@ -52,13 +58,9 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.HttpURLConnection;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -83,7 +85,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.sendJson;
 
 /**
  * Service for testing, browsing, and reading using a BigQuery connection.
@@ -145,28 +146,19 @@ public class BigQueryService extends AbstractWranglerService {
     BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
     String connectionProject = GCPUtils.getProjectId(connection);
     Set<DatasetId> datasetWhitelist = getDatasetWhitelist(connection);
-    JsonArray values = new JsonArray();
+    List<DatasetInfo> values = new ArrayList<>();
     for (Dataset dataset : getDatasets(bigQuery, datasetWhitelist)) {
-      JsonObject object =  new JsonObject();
       String name = dataset.getDatasetId().getDataset();
       String datasetProject = dataset.getDatasetId().getProject();
       // if the dataset is not in the connection's project, add the <project>: to the front of the name
       if (!connectionProject.equals(datasetProject)) {
         name = new StringJoiner(":").add(datasetProject).add(name).toString();
       }
-      object.addProperty("name", name);
-      object.addProperty("created", dataset.getCreationTime());
-      object.addProperty("description", dataset.getDescription());
-      object.addProperty("last-modified", dataset.getLastModified());
-      object.addProperty("location", dataset.getLocation());
-      values.add(object);
+      values.add(new DatasetInfo(name, dataset.getDescription(), dataset.getLocation(), dataset.getCreationTime(),
+                                 dataset.getLastModified()));
     }
-    JsonObject response = new JsonObject();
-    response.addProperty("status", HttpURLConnection.HTTP_OK);
-    response.addProperty("message", "Success");
-    response.addProperty("count", values.size());
-    response.add("values", values);
-    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    ServiceResponse<DatasetInfo> response = new ServiceResponse<>(values);
+    responder.sendJson(response);
   }
 
   /**
@@ -193,28 +185,15 @@ public class BigQueryService extends AbstractWranglerService {
 
     try {
       Page<Table> tablePage = bigQuery.listTables(datasetId);
-      JsonArray values = new JsonArray();
-
+      List<TableInfo> values = new ArrayList<>();
       for (Table table : tablePage.iterateAll()) {
-        JsonObject object = new JsonObject();
-
-        object.addProperty("name", table.getFriendlyName());
-        object.addProperty(TABLE_ID, table.getTableId().getTable());
-        object.addProperty("created", table.getCreationTime());
-        object.addProperty("description", table.getDescription());
-        object.addProperty("last-modified", table.getLastModifiedTime());
-        object.addProperty("expiration-time", table.getExpirationTime());
-        object.addProperty("etag", table.getEtag());
-
-        values.add(object);
+        values.add(new TableInfo(table.getTableId().getTable(), table.getFriendlyName(), table.getDescription(),
+                                 table.getEtag(), table.getCreationTime(), table.getLastModifiedTime(),
+                                 table.getExpirationTime()));
       }
 
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      ServiceResponse<TableInfo> response = new ServiceResponse<>(values);
+      responder.sendJson(response);
     } catch (BigQueryException e) {
       if (e.getReason() != null) {
         // CDAP-14155 - BigQueryException message is too large. Instead just throw reason of the exception
@@ -280,19 +259,10 @@ public class BigQueryService extends AbstractWranglerService {
     properties.put(BUCKET, bucket);
 
     ws.writeProperties(identifier, properties);
-
-    JsonArray values = new JsonArray();
-    JsonObject object = new JsonObject();
-    object.addProperty(PropertyIds.ID, identifier);
-    object.addProperty(PropertyIds.NAME, tableId);
-    object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-    values.add(object);
-    JsonObject response = new JsonObject();
-    response.addProperty("status", HttpURLConnection.HTTP_OK);
-    response.addProperty("message", "Success");
-    response.addProperty("count", values.size());
-    response.add("values", values);
-    sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
+                                                   SamplingMethod.NONE.getMethod(), connectionId);
+    ServiceResponse<ConnectionSample> response = new ServiceResponse<>(sample);
+    responder.sendJson(response);
   }
 
   /**
@@ -306,15 +276,12 @@ public class BigQueryService extends AbstractWranglerService {
   public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
-    JsonObject response = new JsonObject();
     try {
       Map<String, String> config = ws.getProperties(workspaceId);
 
       Map<String, String> properties = new HashMap<>();
-      JsonObject value = new JsonObject();
       String externalDatasetName =
         new StringJoiner(".").add(config.get(DATASET_ID)).add(config.get(TABLE_ID)).toString();
-      JsonObject bigQuery = new JsonObject();
       properties.put("referenceName", externalDatasetName);
       properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("bucket", config.get(BUCKET));
@@ -323,19 +290,12 @@ public class BigQueryService extends AbstractWranglerService {
       properties.put("dataset", config.get(DATASET_ID));
       properties.put("table", config.get(TABLE_ID));
       properties.put("schema", config.get(SCHEMA));
-      bigQuery.add("properties", new Gson().toJsonTree(properties));
-      bigQuery.addProperty("name", "BigQueryTable");
-      bigQuery.addProperty("type", "source");
-      value.add("BigQueryTable", bigQuery);
 
-      JsonArray values = new JsonArray();
-      values.add(value);
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      PluginSpec pluginSpec = new PluginSpec("BigQueryTable", "source", properties);
+      BigQuerySpec spec = new BigQuerySpec(pluginSpec);
 
+      ServiceResponse<BigQuerySpec> response = new ServiceResponse<>(spec);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     }

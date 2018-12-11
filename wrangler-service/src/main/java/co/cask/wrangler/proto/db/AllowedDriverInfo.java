@@ -14,25 +14,27 @@
  * the License.
  */
 
-package co.cask.wrangler.service.connections;
+package co.cask.wrangler.proto.db;
 
-import co.cask.wrangler.proto.ServiceResponse;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
-import javax.annotation.Nullable;
-
 /**
- * Response sent by listing connections endpoint
- * @param <T>
+ * Information about an allowed JDBC driver plugin.
  */
-public class ConnectionResponse<T> extends ServiceResponse {
-  // default connection to show in DataPrep UI
-  @SerializedName("default")
-  String defaultConnection;
+public class AllowedDriverInfo {
+  @SerializedName("class")
+  private final String clazz;
+  private final String label;
+  private final String tag;
+  private final String name;
+  @SerializedName("default.port")
+  private final String port;
 
-  public ConnectionResponse(List<T> values, @Nullable String defaultConnectionId) {
-    super(values);
-    this.defaultConnection = defaultConnectionId;
+  public AllowedDriverInfo(String clazz, String label, String tag, String name, String port) {
+    this.clazz = clazz;
+    this.label = label;
+    this.tag = tag;
+    this.name = name;
+    this.port = port;
   }
 }

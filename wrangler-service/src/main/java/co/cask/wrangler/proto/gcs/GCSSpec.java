@@ -14,25 +14,21 @@
  * the License.
  */
 
-package co.cask.wrangler.service.connections;
+package co.cask.wrangler.proto.gcs;
 
-import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.PluginSpec;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
-import javax.annotation.Nullable;
-
 /**
- * Response sent by listing connections endpoint
- * @param <T>
+ * Plugin specification for a GCS pipeline source.
+ *
+ * TODO: clean up this API. There is no reason for this class to exist.
  */
-public class ConnectionResponse<T> extends ServiceResponse {
-  // default connection to show in DataPrep UI
-  @SerializedName("default")
-  String defaultConnection;
+public class GCSSpec {
+  @SerializedName("GCSFile")
+  private final PluginSpec spec;
 
-  public ConnectionResponse(List<T> values, @Nullable String defaultConnectionId) {
-    super(values);
-    this.defaultConnection = defaultConnectionId;
+  public GCSSpec(PluginSpec spec) {
+    this.spec = spec;
   }
 }

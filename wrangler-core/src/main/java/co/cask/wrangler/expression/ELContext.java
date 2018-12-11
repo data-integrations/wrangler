@@ -21,7 +21,6 @@ import org.apache.commons.jexl3.JexlContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Manages variables which can be referenced in a JEXL expression.

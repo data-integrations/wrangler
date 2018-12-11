@@ -14,25 +14,21 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.proto.spanner;
 
-import java.net.HttpURLConnection;
-import java.util.List;
+import co.cask.wrangler.proto.PluginSpec;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Response sent by spanner service methods
- * @param <T>
+ * Plugin specification for a spanner pipeline source.
+ *
+ * TODO: clean up this API. There is no reason for this class to exist.
  */
-public class ServiceResponse<T> {
-  private final int httpStatusCode;
-  private final String statusMessage;
-  private final int count;
-  private final List<T> values;
+public class SpannerSpec {
+  @SerializedName("Spanner")
+  private final PluginSpec spec;
 
-  public ServiceResponse(List<T> values) {
-    this.httpStatusCode = HttpURLConnection.HTTP_OK;
-    this.statusMessage = "Success";
-    this.count = values.size();
-    this.values = values;
+  public SpannerSpec(PluginSpec spec) {
+    this.spec = spec;
   }
 }
