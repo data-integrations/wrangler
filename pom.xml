@@ -19,7 +19,7 @@
 
   <groupId>co.cask.wrangler</groupId>
   <artifactId>wrangler</artifactId>
-  <version>3.3.0-SNAPSHOT</version>
+  <version>4.0.0-SNAPSHOT</version>
   <name>Wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
