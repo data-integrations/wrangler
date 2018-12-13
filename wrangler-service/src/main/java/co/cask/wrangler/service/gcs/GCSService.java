@@ -237,7 +237,7 @@ public class GCSService extends AbstractWranglerService {
         String name = new File(blob.getName()).getName();
         String bucket = blob.getBucket();
         String blobName = blob.getName();
-        long generation = blob.getGeneration();
+        Long generation = blob.getGeneration();
 
         if (blob.isDirectory()) {
           values.add(new GCSObjectInfo(name, bucket, p, blobName, generation, true));

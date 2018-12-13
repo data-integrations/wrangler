@@ -39,16 +39,6 @@ public final class RequestExtractor {
     this.request = request;
   }
 
-  /**
-   * Checks if the request has a HTTP header.
-   *
-   * @param name of the header to be checked.
-   * @return true if header is found, false otherwise.
-   */
-  public boolean hasHeader(String name) {
-    String header = request.getHeader(name);
-    return (header == null ? false : true);
-  }
 
   /**
    * Extracts the HTTP header, if the header is not present, then default value is returned.
@@ -57,14 +47,15 @@ public final class RequestExtractor {
    * @param defaultValue value to returned if header doesn't exist.
    * @return value defined for the header.
    */
-  public <T> T getHeader(String name, String defaultValue) {
+  public String getHeader(String name, String defaultValue) {
     String header = request.getHeader(name);
-    return (T) (header == null ? defaultValue : header);
+    return header == null ? defaultValue : header;
   }
 
   /**
    * @return Content as received by the HTTP multipart/form body.
    */
+  @Nullable
   public byte[] getContent() {
     ByteBuffer content = request.getContent();
     if (content != null && content.hasRemaining()) {
@@ -81,6 +72,7 @@ public final class RequestExtractor {
    * @param charset of the content being extracted and converted to UNICODE.
    * @return UNICODE representation of the content, else null.
    */
+  @Nullable
   public String getContent(Charset charset) {
     ByteBuffer content = request.getContent();
     if (content != null && content.hasRemaining()) {
@@ -89,6 +81,7 @@ public final class RequestExtractor {
     return null;
   }
 
+  @Nullable
   public String getContent(String charset) {
     return getContent(Charset.forName(charset));
   }
@@ -102,28 +95,14 @@ public final class RequestExtractor {
    * @return instance of type T as defined by the class.
    */
   @Nullable
-  public <T> T getContent(String charset, Class<?> type) {
+  public <T> T getContent(String charset, Class<T> type) {
     String data = getContent(charset);
     if (data != null) {
       GsonBuilder builder = new GsonBuilder();
       builder.registerTypeAdapter(Request.class, new RequestDeserializer());
       Gson gson = builder.create();
-      return (T) gson.fromJson(data, type);
+      return gson.fromJson(data, type);
     }
     return null;
-  }
-
-  /**
-   * Checks if the 'Content-Type' matches expected.
-   *
-   * @param expectedType to be checked for content type.
-   * @return true if it matches, false if it's not present or doesn't match expected.
-   */
-  public boolean isContentType(String expectedType) {
-    if (hasHeader(CONTENT_TYPE_HEADER)) {
-      String header = getHeader(CONTENT_TYPE_HEADER, null);
-      return (header != null && !header.equalsIgnoreCase(expectedType)) ? false : true;
-    }
-    return false;
   }
 }
