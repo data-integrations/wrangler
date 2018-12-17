@@ -14,20 +14,23 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.proto.s3;
+
+import co.cask.wrangler.proto.ConnectionSample;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Plugin configuration specifying the name, type and properties of the plugin
- * @param <T>
+ * S3 connection sample information.
  */
-public class PluginConfiguration<T> {
-  private final String name;
-  private final String type;
-  private final T properties;
+public class S3ConnectionSample extends ConnectionSample {
+  @SerializedName("bucket-name")
+  private final String bucketName;
+  private final String key;
 
-  public PluginConfiguration(String name, String type, T properties) {
-    this.name = name;
-    this.type = type;
-    this.properties = properties;
+  public S3ConnectionSample(String id, String name, String connection, String sampler, String connectionid,
+                            String bucketName, String key) {
+    super(id, name, connection, sampler, connectionid);
+    this.bucketName = bucketName;
+    this.key = key;
   }
 }

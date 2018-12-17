@@ -60,6 +60,9 @@ import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
 import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.WorkspaceIdentifier;
+import co.cask.wrangler.proto.workspace.WorkspaceInfo;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.registry.UserDirectiveRegistry;
@@ -103,6 +106,7 @@ import java.util.Properties;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -185,14 +189,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Path("workspaces/{id}")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("id") String id, @QueryParam("name") String name,
-                     @QueryParam("scope") String scope) {
+                     @QueryParam("scope") @DefaultValue("default") String scope) {
     try {
       if (name == null || name.isEmpty()) {
         name = id;
-      }
-
-      if (scope == null || scope.isEmpty()) {
-        scope = "default";
       }
 
       table.createWorkspaceMeta(id, name, scope);
@@ -229,26 +229,15 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @GET
   @Path("workspaces")
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("scope") String scope) {
+                   @QueryParam("scope") @DefaultValue("default") String scope) {
     try {
-      if (scope == null || scope.isEmpty()) {
-        scope = "default";
-      }
-
-      JsonObject response = new JsonObject();
-      List<Pair<String, String>> workspaces = table.getWorkspaces();
-      JsonArray array = new JsonArray();
+      List<Pair<String, String>> workspaces = table.getWorkspaces(scope);
+      List<WorkspaceIdentifier> array = new ArrayList<>(workspaces.size());
       for (Pair<String, String> workspace : workspaces) {
-        JsonObject object = new JsonObject();
-        object.addProperty("id", workspace.getFirst());
-        object.addProperty("name", workspace.getSecond());
-        array.add(object);
+        array.add(new WorkspaceIdentifier(workspace.getFirst(), workspace.getSecond()));
       }
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", array.size());
-      response.add("values", array);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      ServiceResponse<WorkspaceIdentifier> response = new ServiceResponse<>(array);
+      responder.sendJson(response);
     } catch (WorkspaceException e) {
       error(responder, e.getMessage());
     }
@@ -477,17 +466,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
       table.writeProperties(id, properties);
 
-      JsonArray array = new JsonArray();
-      JsonObject object = (JsonObject) GSON.toJsonTree(properties);
-      object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-      array.add(object);
-
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", array.size());
-      response.add("values", array);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      WorkspaceInfo workspaceInfo = new WorkspaceInfo(id, name, delimiter, charset, contentType,
+                                                      ConnectionType.UPLOAD.getType(), SamplingMethod.NONE.getMethod());
+      ServiceResponse<WorkspaceInfo> response = new ServiceResponse<>(workspaceInfo);
+      responder.sendJson(response);
     } catch (WorkspaceException | IOException e) {
       error(responder, e.getMessage());
     }

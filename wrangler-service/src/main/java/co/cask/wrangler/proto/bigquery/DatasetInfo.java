@@ -14,25 +14,26 @@
  * the License.
  */
 
-package co.cask.wrangler.service.connections;
+package co.cask.wrangler.proto.bigquery;
 
-import co.cask.wrangler.proto.ServiceResponse;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
-import javax.annotation.Nullable;
-
 /**
- * Response sent by listing connections endpoint
- * @param <T>
+ * Information about a BigQuery dataset.
  */
-public class ConnectionResponse<T> extends ServiceResponse {
-  // default connection to show in DataPrep UI
-  @SerializedName("default")
-  String defaultConnection;
+public class DatasetInfo {
+  private final String name;
+  private final String description;
+  private final String location;
+  private final Long created;
+  @SerializedName("last-modified")
+  private final Long lastModified;
 
-  public ConnectionResponse(List<T> values, @Nullable String defaultConnectionId) {
-    super(values);
-    this.defaultConnection = defaultConnectionId;
+  public DatasetInfo(String name, String description, String location, Long created, Long lastModified) {
+    this.name = name;
+    this.description = description;
+    this.location = location;
+    this.created = created;
+    this.lastModified = lastModified;
   }
 }

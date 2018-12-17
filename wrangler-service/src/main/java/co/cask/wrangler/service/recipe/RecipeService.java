@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -32,20 +32,20 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.recipe.RecipeDatum;
+import co.cask.wrangler.proto.recipe.RecipeInfo;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.registry.UserDirectiveRegistry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -57,7 +57,6 @@ import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
 import static co.cask.wrangler.ServiceUtils.notFound;
-import static co.cask.wrangler.ServiceUtils.sendJson;
 import static co.cask.wrangler.ServiceUtils.success;
 
 /**
@@ -97,6 +96,8 @@ public class RecipeService extends AbstractHttpServiceHandler {
    *   "message" : "Successfully created recipe with id 'test'"
    * }
    *
+   * TODO: (CDAP-14652) correct the REST semantics, this should be a POST
+   *
    * @param request HTTP request handler.
    * @param responder HTTP response handler.
    * @param description (Query Argument) for the recipe to be stored.
@@ -109,7 +110,6 @@ public class RecipeService extends AbstractHttpServiceHandler {
                      @QueryParam("name") String name) {
     String recipeId = getIdFromName(name);
     try {
-      JsonObject object = new JsonObject();
       RecipeDatum datum = read(recipeId);
       if (datum != null) {
         error(responder, String.format("Recipe with name '%s' (id: '%s') already exists. Use POST to update it.",
@@ -117,32 +117,21 @@ public class RecipeService extends AbstractHttpServiceHandler {
         return;
       }
 
-      datum = new RecipeDatum(recipeId, name, description);
-      long time = System.currentTimeMillis() / 1000;
-      datum.setCreated(time);
-      datum.setUpdated(time);
-
+      List<String> directives = new ArrayList<>();
       ByteBuffer content = request.getContent();
       if (content != null && content.hasRemaining()) {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
-        List<String> directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>() { }.getType());
-        datum.setDirectives(directives);
+        directives = gson.fromJson(Bytes.toString(content), new TypeToken<List<String>>() { }.getType());
       }
+
+      long time = System.currentTimeMillis() / 1000;
+      datum = new RecipeDatum(recipeId, name, description, time, time, directives);
 
       write(recipeId, datum);
 
-      JsonObject response = new JsonObject();
-      JsonArray values = new JsonArray();
-      object.addProperty("id", recipeId);
-      object.addProperty("name", name);
-      object.addProperty("description", description);
-      values.add(object);
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      ServiceResponse<RecipeDatum> response = new ServiceResponse<>(datum);
+      responder.sendJson(response);
     } catch (Exception e) {
       LOG.info(String.format("Error creating recipe '%s'.", recipeId), e);
       error(responder, e.getMessage());
@@ -159,18 +148,21 @@ public class RecipeService extends AbstractHttpServiceHandler {
   private RecipeDatum read(String key) {
     Row row = recipeStore.get(Bytes.toBytes(key));
     if (row != null && !row.isEmpty()) {
-      String id = row.getString(ID);
-      String name = row.getString(NAME);
-      String description = row.getString(DESCRIPTION);
-      RecipeDatum datum = new RecipeDatum(id, name, description);
-      datum.setCreated(row.getLong(UPDATED));
-      datum.setUpdated(row.getLong(CREATED));
-      String recipe = row.getString(DIRECTIVES);
-      List<String> directives = gson.fromJson(recipe, new TypeToken<List<String>>() { }.getType());
-      datum.setDirectives(directives);
-      return datum;
+      return read(row);
     }
     return null;
+  }
+
+  private RecipeDatum read(Row row) {
+    String id = row.getString(ID);
+    String name = row.getString(NAME);
+    String description = row.getString(DESCRIPTION);
+    long created = row.getLong(CREATED);
+    long updated = row.getLong(UPDATED);
+    String recipe = row.getString(DIRECTIVES);
+    List<String> directives = gson.fromJson(recipe, new TypeToken<List<String>>() { }.getType());
+    RecipeDatum datum = new RecipeDatum(id, name, description, created, updated, directives);
+    return datum;
   }
 
   private void write(String key, RecipeDatum datum) {
@@ -195,45 +187,22 @@ public class RecipeService extends AbstractHttpServiceHandler {
    * Lists all the recipes.
    * Following is a response returned
    *
-   * {
-   *   "status" : 200,
-   *   "message" : "Success",
-   *   "count" : 2,
-   *   "values" : [
-   *      "parse_titanic_csv",
-   *      "ccda_hl7_xml"
-   *   ]
-   * }
    * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
   @GET
   @Path("recipes/list")
   public void list(HttpServiceRequest request, HttpServiceResponder responder) {
-    JsonObject response = new JsonObject();
     try {
       try (Scanner scanner = recipeStore.scan(null, null)) {
-        JsonArray values = new JsonArray();
+        List<RecipeDatum> values = new ArrayList<>();
         Row next;
         while ((next = scanner.next()) != null) {
-          String id = next.getString(ID);
-          String name = next.getString(NAME);
-          String description = next.getString(DESCRIPTION);
-          long created = next.getLong(CREATED);
-          long updated = next.getLong(UPDATED);
-          JsonObject object = new JsonObject();
-          object.addProperty("id", id);
-          object.addProperty("name", name);
-          object.addProperty("description", description);
-          object.addProperty("created", created);
-          object.addProperty("updated", updated);
-          values.add(object);
+          RecipeDatum recipeDatum = read(next);
+          values.add(recipeDatum);
         }
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "Success");
-        response.addProperty("count", values.size());
-        response.add("values", values);
-        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+        ServiceResponse<RecipeDatum> response = new ServiceResponse<>(values);
+        responder.sendJson(response);
       }
     } catch (DataSetException e) {
       error(responder, e.getMessage());
@@ -271,36 +240,17 @@ public class RecipeService extends AbstractHttpServiceHandler {
    */
   @GET
   @Path("recipes/{recipeId}")
-  public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("recipeId") String recipeId) {
-    JSONObject response = new JSONObject();
+  public void get(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("recipeId") String recipeId) {
     try {
       RecipeDatum object = read(recipeId);
       if (object == null) {
-        success(responder, String.format("Recipe with id '%s' not found", recipeId));
-        return;
+        notFound(responder, String.format("Recipe with id '%s' not found", recipeId));
       } else {
-        response.put("status", HttpURLConnection.HTTP_OK);
-        response.put("message", "Success");
-        response.put("count", 1);
-
-        JSONArray values = new JSONArray();
-        JSONObject o = new JSONObject();
-        o.put("id", object.getId());
-        o.put("name", object.getName());
-        o.put("description", object.getDescription());
-        o.put("created", object.getCreated());
-        o.put("updated", object.getUpdated());
-        JSONArray directives = new JSONArray();
-        for (String directive : object.getDirectives()) {
-          directives.put(directive);
-        }
-        o.put("length", object.getDirectives().size());
-        o.put("directives", directives);
-        values.put(o);
-        response.put("values", values);
+        RecipeInfo recipeInfo = new RecipeInfo(object.getId(), object.getName(), object.getDescription(),
+                                               object.getCreated(), object.getUpdated(), object.getDirectives());
+        ServiceResponse<RecipeInfo> response = new ServiceResponse<>(recipeInfo);
+        responder.sendJson(response);
       }
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
     } catch (DataSetException e) {
       error(responder, e.getMessage());
     }
@@ -342,9 +292,9 @@ public class RecipeService extends AbstractHttpServiceHandler {
         parser.initialize(null);
         parser.parse();
 
-        datum.setDirectives(directives);
-        datum.setUpdated(System.currentTimeMillis() / 1000);
-        write(recipeId, datum);
+        RecipeDatum updated = new RecipeDatum(datum.getId(), datum.getName(), datum.getDescription(),
+                                              datum.getCreated(), System.currentTimeMillis() / 1000, directives);
+        write(recipeId, updated);
         success(responder, "Successfully updated directives for recipe id '" + recipeId + "'.");
       } else {
         error(responder, String.format("No valid directives present to be updated for recipe '%s'", recipeId));

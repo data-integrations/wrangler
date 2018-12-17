@@ -13,16 +13,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package co.cask.wrangler.service.spanner;
+package co.cask.wrangler.proto;
 
 /**
- * Spanner database information
+ * Workspace identifier information sent as response after reading table data into workspace
  */
-public class SpannerDatabase {
+public class WorkspaceIdentifier {
+  private final String id;
   private final String name;
 
-  SpannerDatabase(String name) {
+  public WorkspaceIdentifier(String id, String name) {
+    this.id = id;
     this.name = name;
   }
 }

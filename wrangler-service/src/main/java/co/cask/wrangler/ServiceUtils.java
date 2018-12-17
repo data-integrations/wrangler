@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,8 +17,8 @@
 package co.cask.wrangler;
 
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.wrangler.proto.ServiceResponse;
 import com.google.common.base.Charsets;
-import com.google.gson.JsonObject;
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -60,10 +60,7 @@ public final class ServiceUtils {
    * @param message to be included as part of the error
    */
   public static void error(HttpServiceResponder responder, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", HttpURLConnection.HTTP_INTERNAL_ERROR);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, error.toString());
+    error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, message);
   }
 
   /**
@@ -73,10 +70,7 @@ public final class ServiceUtils {
    * @param message to be included as part of the error
    */
   public static void notFound(HttpServiceResponder responder, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", HttpURLConnection.HTTP_NOT_FOUND);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString());
+    error(responder, HttpURLConnection.HTTP_NOT_FOUND, message);
   }
 
   /**
@@ -86,10 +80,8 @@ public final class ServiceUtils {
    * @param message to be included as part of the error
    */
   public static void error(HttpServiceResponder responder, int status, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", status);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_NOT_FOUND, error.toString());
+    ServiceResponse<Void> response = new ServiceResponse<>(message);
+    responder.sendJson(status, response);
   }
 
   /**
@@ -111,9 +103,7 @@ public final class ServiceUtils {
    * @param message to be included as part of the error
    */
   public static void success(HttpServiceResponder responder, String message) {
-    JsonObject error = new JsonObject();
-    error.addProperty("status", HttpURLConnection.HTTP_OK);
-    error.addProperty("message", message);
-    sendJson(responder, HttpURLConnection.HTTP_OK, error.toString());
+    ServiceResponse<Void> response = new ServiceResponse<>(message);
+    responder.sendJson(response);
   }
 }

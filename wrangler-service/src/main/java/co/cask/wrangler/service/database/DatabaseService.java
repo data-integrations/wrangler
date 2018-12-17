@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -37,7 +37,14 @@ import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.PluginSpec;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.db.AllowedDriverInfo;
+import co.cask.wrangler.proto.db.DBSpec;
+import co.cask.wrangler.proto.db.JDBCDriverInfo;
 import co.cask.wrangler.service.connections.ConnectionType;
+import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -51,9 +58,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
@@ -64,7 +68,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.net.HttpURLConnection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.Driver;
@@ -91,9 +94,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.sendJson;
-import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
  * Class description here.
@@ -102,7 +102,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseService.class);
   private static final String JDBC = "jdbc";
 
-  @UseDataSet(WORKSPACE_DATASET)
+  @UseDataSet(DirectivesService.WORKSPACE_DATASET)
   private WorkspaceDataset ws;
 
   // Data Prep store which stores all the information associated with dataprep.
@@ -200,10 +200,14 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
     store = new ConnectionStore(table);
-    InputStream is = DatabaseService.class.getClassLoader().getResourceAsStream("drivers.mapping");
     drivers.clear();
-    try {
-      BufferedReader br = new BufferedReader(new InputStreamReader(is));
+    InputStream is = DatabaseService.class.getClassLoader().getResourceAsStream("drivers.mapping");
+    if (is == null) {
+      // shouldn't happen unless packaging changes
+      LOG.error("Unable to get JDBC driver mapping.");
+      return;
+    }
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
       String line;
       while ((line = br.readLine()) != null) {
         String[] columns = line.split(",");
@@ -211,11 +215,6 @@ public class DatabaseService extends AbstractHttpServiceHandler {
           DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3], columns[4]);
           drivers.put(columns[1].trim(), info);
         }
-      }
-      br.close();
-    } finally {
-      if (is != null) {
-        is.close();
       }
     }
   }
@@ -258,49 +257,39 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   @Path("jdbc/drivers")
   public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
-      JsonObject response = new JsonObject();
-      JsonArray values = new JsonArray();
+      List<JDBCDriverInfo> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts();
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         for (PluginClass plugin : plugins) {
           String type = plugin.getType();
-          if (JDBC.equalsIgnoreCase(type)) {
-            String className = plugin.getClassName();
-            if (drivers.containsKey(className)) {
-              Collection<DriverInfo> infos = drivers.get(className);
-              for (DriverInfo info : infos) {
-                JsonObject object = new JsonObject();
-                object.addProperty("label", info.getName());
-                object.addProperty("version", artifact.getVersion());
-                object.addProperty("url", info.getJdbcUrlPattern());
-                object.addProperty("default.port", info.getPort());
+          if (!JDBC.equalsIgnoreCase(type)) {
+            continue;
+          }
+          String className = plugin.getClassName();
+          if (!drivers.containsKey(className)) {
+            continue;
+          }
+          Collection<DriverInfo> infos = drivers.get(className);
+          for (DriverInfo info : infos) {
+            Map<String, String> properties = new HashMap<>();
+            properties.put("class", plugin.getClassName());
+            properties.put("type", plugin.getType());
+            properties.put("name", plugin.getName());
+            List<String> fields = getMacros(info.getJdbcUrlPattern());
+            fields.add("url");
 
-                JsonObject properties = new JsonObject();
-                properties.addProperty("class", plugin.getClassName());
-                properties.addProperty("type", plugin.getType());
-                properties.addProperty("name", plugin.getName());
-                JsonArray required = new JsonArray();
-                List<String> fields = getMacros(info.getJdbcUrlPattern());
-                fields.add("url");
-                for (String field : fields) {
-                  required.add(new JsonPrimitive(field));
-                }
-                object.add("properties", properties);
-                object.add("fields", required);
-                values.add(object);
-              }
-            }
+            JDBCDriverInfo jdbcDriverInfo =
+              new JDBCDriverInfo(info.getName(), artifact.getVersion(), info.getJdbcUrlPattern(), info.getPort(),
+                                 fields, properties);
+            values.add(jdbcDriverInfo);
           }
         }
       }
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      ServiceResponse<JDBCDriverInfo> response = new ServiceResponse<>(values);
+      responder.sendJson(response);
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -322,30 +311,22 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    *   ]
    * }
    *
+   * TODO: figure out why this and the listDrivers() method both exist and why they have different response fields
    * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
   @GET
   @Path("jdbc/allowed")
   public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
-    JsonObject response = new JsonObject();
-    JsonArray values = new JsonArray();
+    List<AllowedDriverInfo> values = new ArrayList<>();
     Collection<Map.Entry<String, DriverInfo>> entries = drivers.entries();
     for (Map.Entry<String, DriverInfo> driver : entries) {
-      JsonObject object = new JsonObject();
-      object.addProperty("class", driver.getKey());
-      object.addProperty("label", driver.getValue().getName());
       String shortTag = driver.getValue().getTag();
-      object.addProperty("tag", shortTag);
-      object.addProperty("name", shortTag);
-      object.addProperty("default.port", driver.getValue().getPort());
-      values.add(object);
+      values.add(new AllowedDriverInfo(driver.getKey(), driver.getValue().getName(), shortTag, shortTag,
+                                       driver.getValue().getPort()));
     }
-    response.addProperty("status", HttpURLConnection.HTTP_OK);
-    response.addProperty("message", "Success");
-    response.addProperty("count", values.size());
-    response.add("values", values);
-    ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+    ServiceResponse<AllowedDriverInfo> response = new ServiceResponse<>(values);
+    responder.sendJson(response);
   }
 
   /**
@@ -363,7 +344,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    */
   @POST
   @Path("connections/jdbc/test")
-  public void testConnection(HttpServiceRequest request, final HttpServiceResponder responder) {
+  public void testConnection(HttpServiceRequest request, HttpServiceResponder responder) {
     DriverCleanup cleanup = null;
     try {
       // Extract the body of the request and transform it to the Connection object.
@@ -371,22 +352,17 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       Connection connection = extractor.getContent("utf-8", Connection.class);
 
       if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
-        error(responder, "Invalid connection type set.");
+        ServiceUtils.error(responder, "Invalid connection type set.");
         return;
       }
 
-      cleanup = loadAndExecute(connection, new Executor() {
-        @Override
-        public void execute(java.sql.Connection connection) throws Exception {
-          connection.getMetaData();
-          JsonObject response = new JsonObject();
-          response.addProperty("status", HttpURLConnection.HTTP_OK);
-          response.addProperty("message", "Successfully connected to database.");
-          sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-        }
+      cleanup = loadAndExecute(connection, sqlConnection -> {
+        sqlConnection.getMetaData();
+        ServiceResponse<Void> response = new ServiceResponse<>("Successfully connected to database.");
+        responder.sendJson(response);
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -402,9 +378,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    */
   @POST
   @Path("connections/databases")
-  public void listDatabases(HttpServiceRequest request, final HttpServiceResponder responder) {
-    final JsonObject response = new JsonObject();
-    final JsonArray values = new JsonArray();
+  public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder) {
     DriverCleanup cleanup = null;
     try {
       // Extract the body of the request and transform it to the Connection object.
@@ -425,9 +399,10 @@ public class DatabaseService extends AbstractHttpServiceHandler {
           } else {
             resultSet = metaData.getCatalogs();
           }
+          List<String> values = new ArrayList<>();
           try {
             while (resultSet.next()) {
-              values.add(new JsonPrimitive(resultSet.getString("TABLE_CAT")));
+              values.add(resultSet.getString("TABLE_CAT"));
             }
           } finally {
             resultSet.close();
@@ -435,15 +410,12 @@ public class DatabaseService extends AbstractHttpServiceHandler {
               ps.close();
             }
           }
-          response.addProperty("status", HttpURLConnection.HTTP_OK);
-          response.addProperty("message", "Success.");
-          response.addProperty("count", values.size());
-          response.add("values", values);
-          sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+          ServiceResponse<String> response = new ServiceResponse<>(values);
+          responder.sendJson(response);
         }
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -460,10 +432,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    */
   @GET
   @Path("connections/{id}/tables")
-  public void listTables(HttpServiceRequest request, final HttpServiceResponder responder,
-                         @PathParam("id") String id) {
-    final JsonObject response = new JsonObject();
-    final JsonArray values = new JsonArray();
+  public void listTables(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
     DriverCleanup cleanup = null;
     try {
       cleanup = loadAndExecute(id, new Executor() {
@@ -479,6 +448,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
             resultSet = metaData.getTables(null, null, "%", null);
           }
           try {
+            List<Name> values = new ArrayList<>();
             while (resultSet.next()) {
               String name;
               if (product.equalsIgnoreCase("oracle")) {
@@ -489,17 +459,10 @@ public class DatabaseService extends AbstractHttpServiceHandler {
               } else {
                 name = resultSet.getString(3);
               }
-              JsonObject object = new JsonObject();
-              object.addProperty("name", name);
-              // TODO: For compatibility. Please remove after 4.2, after the UI is fixed.
-              object.addProperty("count", 0);
-              values.add(object);
+              values.add(new Name(name));
             }
-            response.addProperty("status", HttpURLConnection.HTTP_OK);
-            response.addProperty("message", "Success");
-            response.addProperty("count", values.size());
-            response.add("values", values);
-            sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+            ServiceResponse<Name> response = new ServiceResponse<>(values);
+            responder.sendJson(response);
           } finally {
             if (resultSet != null) {
               resultSet.close();
@@ -508,7 +471,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         }
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -528,10 +491,9 @@ public class DatabaseService extends AbstractHttpServiceHandler {
    */
   @GET
   @Path("connections/{id}/tables/{table}/read")
-  public void read(HttpServiceRequest request, final HttpServiceResponder responder,
-                   @PathParam("id") final String id, @PathParam("table") final String table,
-                   @QueryParam("lines") final int lines, @QueryParam("scope") final String scope) {
-    final JsonObject response = new JsonObject();
+  public void read(HttpServiceRequest request, HttpServiceResponder responder,
+                   @PathParam("id") String id, @PathParam("table") String table,
+                   @QueryParam("lines") int lines, @QueryParam("scope") String scope) {
     DriverCleanup cleanup = null;
     try {
 
@@ -558,21 +520,15 @@ public class DatabaseService extends AbstractHttpServiceHandler {
           properties.put(PropertyIds.CONNECTION_ID, id);
           ws.writeProperties(identifier, properties);
 
-          JsonArray values = new JsonArray();
-          JsonObject object = new JsonObject();
-          object.addProperty(PropertyIds.ID, identifier);
-          object.addProperty(PropertyIds.NAME, table);
-          object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-          values.add(object);
-          response.addProperty("status", HttpURLConnection.HTTP_OK);
-          response.addProperty("message", "Success");
-          response.addProperty("count", values.size());
-          response.add("values", values);
-          sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+
+          ConnectionSample sample = new ConnectionSample(identifier, table, ConnectionType.DATABASE.getType(),
+                                                         SamplingMethod.NONE.getMethod(), id);
+          ServiceResponse<ConnectionSample> response = new ServiceResponse<>(sample);
+          responder.sendJson(response);
         }
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -621,11 +577,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   @GET
   public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
                             @PathParam("id") String id, @PathParam("table") final String table) {
-    JsonObject response = new JsonObject();
     try {
       Connection conn = store.get(id);
-      JsonObject value = new JsonObject();
-      JsonObject database = new JsonObject();
 
       Map<String, String> properties = new HashMap<>();
       properties.put("connectionString", conn.getProp("url"));
@@ -637,20 +590,13 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       properties.put("jdbcPluginName", conn.getProp("name"));
       properties.put("jdbcPluginType", conn.getProp("type"));
 
-      database.add("properties", gson.toJsonTree(properties));
-      database.addProperty("name", String.format("Database - %s", table));
-      database.addProperty("type", "source");
-      value.add("Database", database);
+      PluginSpec pluginSpec = new PluginSpec(String.format("Database - %s", table), "source", properties);
+      DBSpec spec = new DBSpec(pluginSpec);
 
-      JsonArray values = new JsonArray();
-      values.add(value);
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      ServiceResponse<DBSpec> response = new ServiceResponse<>(spec);
+      responder.sendJson(response);
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -750,6 +696,20 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       if (d.getClass().getClassLoader().equals(classz.getClassLoader())) {
         list.remove(driverInfo);
       }
+    }
+  }
+
+  /**
+   * Table name object.
+   */
+  public static class Name {
+    private final String name;
+    private final int count;
+
+    public Name(String name) {
+      this.name = name;
+      // TODO: check whether this can be removed
+      this.count = 0;
     }
   }
 }

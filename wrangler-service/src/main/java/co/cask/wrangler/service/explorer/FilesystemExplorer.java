@@ -25,12 +25,15 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.PropertyIds;
-import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.proto.PluginSpec;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.file.FileConnectionSample;
+import co.cask.wrangler.proto.file.FileSpec;
 import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
@@ -41,8 +44,6 @@ import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.apache.twill.filesystem.Location;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -111,8 +112,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
                    @QueryParam("sampler") String sampler,
                    @QueryParam("fraction") double fraction,
                    @QueryParam("scope") String scope) {
-    RequestExtractor extractor = new RequestExtractor(request);
-    String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
+    String header = request.getHeader(PropertyIds.CONTENT_TYPE);
 
     if (header == null) {
       error(responder, "Content-Type header not specified.");
@@ -150,7 +150,6 @@ public class FilesystemExplorer extends AbstractWranglerService {
   @GET
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
-    JsonObject response = new JsonObject();
     try {
       Format format = Format.TEXT;
       if (workspaceId != null) {
@@ -161,32 +160,23 @@ public class FilesystemExplorer extends AbstractWranglerService {
       Map<String, String> properties = new HashMap<>();
       properties.put("format", format.name().toLowerCase());
       Location location = explorer.getLocation(path);
-      JsonObject value = new JsonObject();
-      JsonObject file = new JsonObject();
       properties.put("path", location.toURI().toString());
       properties.put("referenceName", location.getName());
       properties.put("ignoreNonExistingFolders", "false");
       properties.put("recursive", "false");
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
       properties.put("schema", format.getSchema().toString());
-      file.add("properties", gson.toJsonTree(properties));
-      file.addProperty("name", "File");
-      file.addProperty("type", "source");
-      value.add("File", file);
-      JsonArray values = new JsonArray();
-      values.add(value);
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+
+      PluginSpec pluginSpec = new PluginSpec("File", "source", properties);
+      FileSpec fileSpec = new FileSpec(pluginSpec);
+      ServiceResponse<FileSpec> response = new ServiceResponse<>(fileSpec);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
   }
 
   private void loadFile(HttpServiceResponder responder, String scope, String path, DataType type) {
-    JsonObject response = new JsonObject();
     BufferedInputStream stream = null;
     try {
       Location location = explorer.getLocation(path);
@@ -233,22 +223,12 @@ public class FilesystemExplorer extends AbstractWranglerService {
         ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, type, bytes);
       }
 
-      // Preparing return response to include mandatory fields : id and name.
-      JsonArray values = new JsonArray();
-      JsonObject object = new JsonObject();
-      object.addProperty(PropertyIds.ID, id);
-      object.addProperty(PropertyIds.NAME, name);
-      object.addProperty(PropertyIds.URI, location.toURI().toString());
-      object.addProperty(PropertyIds.FILE_PATH, location.toURI().getPath());
-      object.addProperty(PropertyIds.FILE_NAME, location.getName());
-      object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-      values.add(object);
-
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      FileConnectionSample sample = new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
+                                                             SamplingMethod.NONE.getMethod(), null,
+                                                             location.toURI().toString(), location.toURI().getPath(),
+                                                             location.getName());
+      ServiceResponse<FileConnectionSample> response = new ServiceResponse<>(sample);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {
@@ -264,7 +244,6 @@ public class FilesystemExplorer extends AbstractWranglerService {
 
   private void loadSamplableFile(HttpServiceResponder responder,
                                  String scope, String path, int lines, double fraction, String sampler) {
-    JsonObject response = new JsonObject();
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
@@ -311,22 +290,12 @@ public class FilesystemExplorer extends AbstractWranglerService {
       byte[] data = serDe.toByteArray(rows);
       ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
-      // Preparing return response to include mandatory fields : id and name.
-      JsonArray values = new JsonArray();
-      JsonObject object = new JsonObject();
-      object.addProperty(PropertyIds.ID, id);
-      object.addProperty(PropertyIds.NAME, name);
-      object.addProperty(PropertyIds.URI, location.toURI().toString());
-      object.addProperty(PropertyIds.FILE_PATH, location.toURI().getPath());
-      object.addProperty(PropertyIds.FILE_NAME, location.getName());
-      object.addProperty(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
-      values.add(object);
-
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      FileConnectionSample sample = new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
+                                                             samplingMethod.getMethod(), null,
+                                                             location.toURI().toString(), location.toURI().getPath(),
+                                                             location.getName());
+      ServiceResponse<FileConnectionSample> response = new ServiceResponse<>(sample);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {
