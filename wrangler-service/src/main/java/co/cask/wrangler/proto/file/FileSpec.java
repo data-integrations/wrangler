@@ -13,17 +13,22 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package co.cask.wrangler.service.spanner;
+
+package co.cask.wrangler.proto.file;
+
+import co.cask.wrangler.proto.PluginSpec;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Workspace identifier information sent as response after reading table data into workspace
+ * Plugin specification for a File pipeline source.
+ *
+ * TODO: (CDAP-14652) clean up this API. There is no reason for this class to exist.
  */
-public class WorkspaceIdentifier {
-  private final String id;
-  private final String name;
+public class FileSpec {
+  @SerializedName("File")
+  private final PluginSpec spec;
 
-  public WorkspaceIdentifier(String id, String name) {
-    this.id = id;
-    this.name = name;
+  public FileSpec(PluginSpec spec) {
+    this.spec = spec;
   }
 }

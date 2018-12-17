@@ -14,15 +14,21 @@
  * the License.
  */
 
-package co.cask.wrangler.service.spanner;
+package co.cask.wrangler.proto.s3;
+
+import co.cask.wrangler.proto.PluginSpec;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Spanner table information
+ * Specification for an S3 plugin.
+ *
+ * TODO: (CDAP-14652) clean up this API. There is no reason for this class to exist.
  */
-public class SpannerTable {
-  private final String name;
+public class S3Spec {
+  @SerializedName("S3")
+  private final PluginSpec s3;
 
-  SpannerTable(String name) {
-    this.name = name;
+  public S3Spec(PluginSpec s3) {
+    this.s3 = s3;
   }
 }

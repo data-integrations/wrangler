@@ -22,13 +22,18 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
+import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
-import co.cask.wrangler.service.PluginConfiguration;
-import co.cask.wrangler.service.ServiceResponse;
+import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.PluginSpec;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.spanner.SpannerDatabase;
+import co.cask.wrangler.proto.spanner.SpannerSpec;
+import co.cask.wrangler.proto.spanner.SpannerTable;
 import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
@@ -44,12 +49,8 @@ import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.time.Instant;
@@ -75,7 +76,6 @@ import javax.ws.rs.QueryParam;
  * Spanner data prep connection service
  */
 public class SpannerService extends AbstractWranglerService {
-  private static final Logger LOG = LoggerFactory.getLogger(SpannerService.class);
   private static final String TABLE_NAME = "TableName";
   // Spanner queries for listing tables and listing schema of table are documented at
   // https://cloud.google.com/spanner/docs/information-schema
@@ -219,9 +219,9 @@ public class SpannerService extends AbstractWranglerService {
 
       ws.writeProperties(identifier, workspaceProperties);
 
-      // send the workspace identifier as response
-      WorkspaceIdentifier workspaceIdentifier = new WorkspaceIdentifier(identifier, tableId);
-      responder.sendJson(new ServiceResponse<>(ImmutableList.of(workspaceIdentifier)));
+      ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.SPANNER.getType(),
+                                                     SamplingMethod.NONE.getMethod(), connectionId);
+      responder.sendJson(new ServiceResponse<>(sample));
     } catch (BadRequestException e) {
       responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
@@ -241,15 +241,19 @@ public class SpannerService extends AbstractWranglerService {
       Map<String, String> config = ws.getProperties(workspaceId);
 
       // deserialize and send spanner source specification
-      SpannerSpecification specification =
+      SpannerSpecification conf =
         GSON.fromJson(config.get(PropertyIds.PLUGIN_SPECIFICATION), SpannerSpecification.class);
-      PluginConfiguration<SpannerSpecification> pluginConfiguration =
-        new PluginConfiguration<>("Spanner", "source", specification);
-
-      // creating map of name -> PluginConfiguration to be consistent with other services response format
-      Map<String, PluginConfiguration> pluginMap = ImmutableMap.of("Spanner", pluginConfiguration);
-      ServiceResponse<ImmutableMap<String, ImmutableList<PluginConfiguration>>> response =
-        new ServiceResponse(ImmutableList.of(pluginMap));
+      Map<String, String> properties = new HashMap<>();
+      properties.put("referenceName", conf.getReferenceName());
+      properties.put("serviceFilePath", conf.getServiceFilePath());
+      properties.put("project", conf.getProject());
+      properties.put("instance", conf.getInstance());
+      properties.put("database", conf.getDatabase());
+      properties.put("table", conf.getTable());
+      properties.put("schema", conf.getSchema());
+      PluginSpec pluginSpec = new PluginSpec("Spanner", "source", properties);
+      SpannerSpec spannerSpec = new SpannerSpec(pluginSpec);
+      ServiceResponse<SpannerSpec> response = new ServiceResponse<>(spannerSpec);
       responder.sendJson(response);
     } catch (JsonSyntaxException | BadRequestException e) {
       responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());

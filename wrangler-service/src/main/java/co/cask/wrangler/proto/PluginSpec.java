@@ -14,25 +14,21 @@
  * the License.
  */
 
-package co.cask.wrangler.service.connections;
+package co.cask.wrangler.proto;
 
-import co.cask.wrangler.proto.ServiceResponse;
-import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
-import javax.annotation.Nullable;
+import java.util.Map;
 
 /**
- * Response sent by listing connections endpoint
- * @param <T>
+ * Specification for a plugin to use in a pipeline.
  */
-public class ConnectionResponse<T> extends ServiceResponse {
-  // default connection to show in DataPrep UI
-  @SerializedName("default")
-  String defaultConnection;
+public class PluginSpec {
+  private final String name;
+  private final String type;
+  private final Map<String, String> properties;
 
-  public ConnectionResponse(List<T> values, @Nullable String defaultConnectionId) {
-    super(values);
-    this.defaultConnection = defaultConnectionId;
+  public PluginSpec(String name, String type, Map<String, String> properties) {
+    this.name = name;
+    this.type = type;
+    this.properties = properties;
   }
 }

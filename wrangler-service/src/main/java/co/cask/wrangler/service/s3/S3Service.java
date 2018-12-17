@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,16 +16,12 @@
 
 package co.cask.wrangler.service.s3;
 
-import co.cask.cdap.api.TxRunnable;
 import co.cask.cdap.api.annotation.ReadOnly;
 import co.cask.cdap.api.annotation.ReadWrite;
 import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
-import co.cask.cdap.api.data.DatasetContext;
-import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
@@ -34,6 +30,11 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.proto.PluginSpec;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.s3.S3ConnectionSample;
+import co.cask.wrangler.proto.s3.S3ObjectInfo;
+import co.cask.wrangler.proto.s3.S3Spec;
 import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
@@ -56,11 +57,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -79,16 +75,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.sendJson;
 
 /**
  * Service to explore S3 filesystem
  */
 public class S3Service extends AbstractWranglerService {
-  private static final Gson gson =
-    new GsonBuilder().
-      setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES).
-      registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
 
@@ -107,6 +98,10 @@ public class S3Service extends AbstractWranglerService {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
+      if (connection == null) {
+        responder.sendError(400, "Connection information is missing from the request body.");
+        return;
+      }
       ConnectionType connectionType = ConnectionType.fromString(connection.getType().getType());
       if (connectionType == ConnectionType.UNDEFINED || connectionType != ConnectionType.S3) {
         error(responder,
@@ -157,13 +152,8 @@ public class S3Service extends AbstractWranglerService {
                               @QueryParam("path") String path,
                               @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
     try {
-      final Connection[] connection = new Connection[1];
-      getContext().execute(new TxRunnable() {
-        @Override
-        public void run(DatasetContext datasetContext) throws Exception {
-          connection[0] = store.get(connectionId);
-        }
-      });
+      Connection[] connection = new Connection[1];
+      getContext().execute(datasetContext -> connection[0] = store.get(connectionId));
       if (!validateConnection(connectionId, connection[0], responder)) {
         return;
       }
@@ -186,22 +176,12 @@ public class S3Service extends AbstractWranglerService {
       AmazonS3 s3 = intializeAndGetS3Client(connection[0]);
       if (bucketName.isEmpty() && prefix == null) {
         List<Bucket> buckets = s3.listBuckets();
-        JsonObject response = new JsonObject();
-        response.addProperty("status", HttpURLConnection.HTTP_OK);
-        response.addProperty("message", "OK");
-        response.addProperty("count", buckets.size());
-        JsonArray values = new JsonArray();
+        List<S3ObjectInfo> bucketInfo = new ArrayList<>(buckets.size());
         for (Bucket bucket : buckets) {
-          JsonObject object = new JsonObject();
-          object.addProperty("name", bucket.getName());
-          object.addProperty("created", bucket.getCreationDate().getTime());
-          object.addProperty("owner", bucket.getOwner().getDisplayName());
-          object.addProperty("type", "bucket");
-          object.addProperty("directory", true);
-          values.add(object);
+          bucketInfo.add(S3ObjectInfo.ofBucket(bucket));
         }
-        response.add("values", values);
-        sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+        ServiceResponse<S3ObjectInfo> response = new ServiceResponse<>(bucketInfo);
+        responder.sendJson(response);
         return;
       }
 
@@ -212,29 +192,29 @@ public class S3Service extends AbstractWranglerService {
       }
       listObjectsRequest.setDelimiter("/");
       ObjectListing result;
-      DirectoryListing listing = new DirectoryListing();
+      List<S3ObjectInfo> objects = new ArrayList<>();
       // TODO: Remove this once CDAP-14446 is fixed.
       boolean limitExceeded = false;
       do {
-        if (listing.size() >= bucketLimit) {
+        if (objects.size() >= bucketLimit) {
           limitExceeded = true;
           break;
         }
         result = s3.listObjects(listObjectsRequest);
-        listing.addDirectory(result.getCommonPrefixes());
-        listing.addObject(result.getObjectSummaries());
+        for (String dir : result.getCommonPrefixes()) {
+          if (dir.equalsIgnoreCase("/")) {
+            continue;
+          }
+          objects.add(S3ObjectInfo.ofDir(dir));
+        }
+        for (S3ObjectSummary summary : result.getObjectSummaries()) {
+          objects.add(S3ObjectInfo.ofObject(summary, detector));
+        }
         listObjectsRequest.setMarker(result.getMarker());
       } while (result.isTruncated());
 
-      JsonObject response = new JsonObject();
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "OK");
-      response.addProperty("count", listing.size());
-      response.add("values", listing.get());
-      if (limitExceeded) {
-        response.addProperty("truncated", "true");
-      }
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      ServiceResponse<S3ObjectInfo> response = new ServiceResponse<>(objects, limitExceeded);
+      responder.sendJson(response);
     } catch (AmazonS3Exception e) {
       ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
     } catch (Exception e) {
@@ -266,8 +246,7 @@ public class S3Service extends AbstractWranglerService {
         scope = WorkspaceDataset.DEFAULT_SCOPE;
       }
 
-      RequestExtractor extractor = new RequestExtractor(request);
-      String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
+      String header = request.getHeader(PropertyIds.CONTENT_TYPE);
       Connection connection = store.get(connectionId);
       if (!validateConnection(connectionId, connection, responder)) {
         return;
@@ -285,7 +264,6 @@ public class S3Service extends AbstractWranglerService {
       } else {
         ServiceUtils.error(responder,
                            String.format("S3 Object with key %s and bucket-name %s is not found", key, bucketName));
-        return;
       }
     } catch (AmazonS3Exception e) {
       ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
@@ -308,7 +286,6 @@ public class S3Service extends AbstractWranglerService {
                             @PathParam("connection-id") String connectionId,
                             @PathParam("bucket-name") String bucketName, @QueryParam("key") final String key,
                             @QueryParam("wid") String workspaceId) {
-    JsonObject response = new JsonObject();
     try {
       Format format = Format.TEXT;
       if (workspaceId != null) {
@@ -316,30 +293,20 @@ public class S3Service extends AbstractWranglerService {
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         format = Format.valueOf(formatStr);
       }
-      Map<String, String> properties = new HashMap<>();
-      properties.put("format", format.name().toLowerCase());
       Connection conn = store.get(connectionId);
       S3Configuration s3Configuration = new S3Configuration(conn);
-      JsonObject value = new JsonObject();
-      JsonObject s3 = new JsonObject();
+      Map<String, String> properties = new HashMap<>();
+      properties.put("format", format.name().toLowerCase());
       properties.put("accessID", s3Configuration.getAWSAccessKeyId());
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
       properties.put("path", String.format("s3n://%s/%s", bucketName, key));
       properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
       properties.put("schema", format.getSchema().toString());
 
-      s3.add("properties", gson.toJsonTree(properties));
-      s3.addProperty("name", "S3");
-      s3.addProperty("type", "source");
-      value.add("S3", s3);
-
-      JsonArray values = new JsonArray();
-      values.add(value);
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      PluginSpec pluginSpec = new PluginSpec("S3", "source", properties);
+      S3Spec spec = new S3Spec(pluginSpec);
+      ServiceResponse<S3Spec> response = new ServiceResponse<>(spec);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -348,7 +315,6 @@ public class S3Service extends AbstractWranglerService {
   private void loadSamplableFile(String connectionId, HttpServiceResponder responder,
                                  String scope, InputStream inputStream, S3Object s3Object,
                                  int lines, double fraction, String sampler) {
-    JsonObject response = new JsonObject();
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
@@ -395,24 +361,11 @@ public class S3Service extends AbstractWranglerService {
       ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
       // Preparing return response to include mandatory fields : id and name.
-      JsonArray values = new JsonArray();
-      JsonObject object = new JsonObject();
-      object.addProperty(PropertyIds.ID, identifier);
-      object.addProperty(PropertyIds.NAME, name);
-      object.addProperty(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
-      object.addProperty(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
-      object.addProperty(PropertyIds.CONNECTION_ID, connectionId);
-      object.addProperty("bucket-name", s3Object.getBucketName());
-      object.addProperty("key", s3Object.getKey());
-      values.add(object);
-
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
-    } catch (IOException e) {
-      error(responder, e.getMessage());
+      S3ConnectionSample sampleInfo = new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),
+                                                             samplingMethod.getMethod(), connectionId,
+                                                             s3Object.getBucketName(), s3Object.getKey());
+      ServiceResponse<S3ConnectionSample> response = new ServiceResponse<>(sampleInfo);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -420,7 +373,6 @@ public class S3Service extends AbstractWranglerService {
 
   private void loadFile(String connectionId, HttpServiceResponder responder, InputStream inputStream,
                         S3Object s3Object) {
-    JsonObject response = new JsonObject();
     BufferedInputStream stream = null;
     try {
 
@@ -459,22 +411,11 @@ public class S3Service extends AbstractWranglerService {
       ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, getDataType(name), bytes);
 
       // Preparing return response to include mandatory fields : id and name.
-      JsonArray values = new JsonArray();
-      JsonObject object = new JsonObject();
-      object.addProperty(PropertyIds.ID, identifier);
-      object.addProperty(PropertyIds.NAME, name);
-      object.addProperty(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
-      object.addProperty(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-      object.addProperty(PropertyIds.CONNECTION_ID, connectionId);
-      object.addProperty("bucket-name", s3Object.getBucketName());
-      object.addProperty("key", s3Object.getKey());
-      values.add(object);
-
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      S3ConnectionSample sampleInfo = new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),
+                                                             SamplingMethod.NONE.getMethod(), connectionId,
+                                                             s3Object.getBucketName(), s3Object.getKey());
+      ServiceResponse<S3ConnectionSample> response = new ServiceResponse<>(sampleInfo);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     } finally {
@@ -489,79 +430,12 @@ public class S3Service extends AbstractWranglerService {
   }
 
   /**
-   * Constructed and returned while exploring the S3 fs
-   */
-  private class DirectoryListing {
-    JsonArray objects;
-
-    private DirectoryListing() {
-      this.objects = new JsonArray();
-    }
-
-    private void addObject(List<S3ObjectSummary> summaries) {
-      for (S3ObjectSummary summary : summaries) {
-        JsonObject object = new JsonObject();
-        int idx = summary.getKey().lastIndexOf("/");
-        String name = summary.getKey();
-        if (idx != -1) {
-          name = name.substring(idx + 1);
-        }
-        object.addProperty("name", name);
-        object.addProperty("path", summary.getKey());
-        object.addProperty("directory", false);
-        object.addProperty("last-modified", summary.getLastModified().getTime());
-        object.addProperty("owner", summary.getOwner().getDisplayName());
-        object.addProperty("size", summary.getSize());
-        object.addProperty("class", summary.getStorageClass());
-        boolean isWrangeable = false;
-        try {
-          String type = detector.detectFileType(name);
-          object.addProperty("type", type);
-          isWrangeable = detector.isWrangleable(type);
-        } catch (IOException e) {
-          object.addProperty("type", FileTypeDetector.UNKNOWN);
-          // We will not enable wrangling on unknown data.
-        }
-        object.addProperty("wrangle", isWrangeable);
-        objects.add(object);
-      }
-    }
-
-    private void addDirectory(List<String> dirs) {
-      for (String dir : dirs) {
-        JsonObject object = new JsonObject();
-        if (dir.equalsIgnoreCase("/")) {
-          continue;
-        }
-        String[] parts = dir.split("/");
-        String name = dir;
-        if (parts.length > 1) {
-          name = parts[parts.length - 1];
-        }
-        object.addProperty("name", name);
-        object.addProperty("type", "directory");
-        object.addProperty("directory", true);
-        object.addProperty("path", dir);
-        objects.add(object);
-      }
-    }
-
-    private int size() {
-      return objects.size();
-    }
-
-    private JsonArray get() {
-      return objects;
-    }
-  }
-
-  /**
    * get data type from the file type.
-   * @param fileName
+   *
+   * @param fileName the file name
    * @return DataType
-   * @throws IOException
    */
-  private DataType getDataType(String fileName) throws IOException {
+  private DataType getDataType(String fileName) {
     // detect fileType from fileName
     String fileType = detector.detectFileType(fileName);
     DataType dataType = DataType.fromString(fileType);
