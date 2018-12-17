@@ -103,8 +103,7 @@ public class ParseSimpleDate implements Directive {
         } else {
           throw new ErrorRowException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column), 2
-          );
+                          object.getClass().getName(), column), 2);
         }
       }
     }
