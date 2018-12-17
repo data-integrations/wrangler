@@ -293,8 +293,7 @@ public class GCSService extends AbstractWranglerService {
                          @QueryParam("blob") final String blobPath,
                          @QueryParam("scope") String scope) {
 
-    RequestExtractor extractor = new RequestExtractor(request);
-    String contentType = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
+    String contentType = request.getHeader(PropertyIds.CONTENT_TYPE);
 
     try {
       if (Strings.isNullOrEmpty(blobPath)) {

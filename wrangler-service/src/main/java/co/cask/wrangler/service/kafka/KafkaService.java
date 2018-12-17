@@ -17,13 +17,11 @@
 package co.cask.wrangler.service.kafka;
 
 import co.cask.cdap.api.annotation.UseDataSet;
-import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
@@ -35,22 +33,17 @@ import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.kafka.KafkaSpec;
 import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,16 +56,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.sendJson;
 import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
  * Service for handling Kafka connections.
  */
 public final class KafkaService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(KafkaService.class);
-  private static final Gson gson =
-    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
 
   @UseDataSet(WORKSPACE_DATASET)
   private WorkspaceDataset ws;
@@ -256,11 +245,8 @@ public final class KafkaService extends AbstractHttpServiceHandler {
   @GET
   public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
                             @PathParam("id") String id, @PathParam("topic") final String topic) {
-    JsonObject response = new JsonObject();
     try {
       Connection conn = store.get(id);
-      JsonObject value = new JsonObject();
-      JsonObject kafka = new JsonObject();
 
       Map<String, String> properties = new HashMap<>();
       properties.put("topic", topic);
@@ -270,18 +256,10 @@ public final class KafkaService extends AbstractHttpServiceHandler {
       properties.put("keyField", conn.getProp(PropertyIds.KEY_DESERIALIZER));
       properties.put("format", "text");
 
-      kafka.add("properties", gson.toJsonTree(properties));
-      kafka.addProperty("name", "Kafka");
-      kafka.addProperty("type", "source");
-      value.add("Kafka", kafka);
-
-      JsonArray values = new JsonArray();
-      values.add(value);
-      response.addProperty("status", HttpURLConnection.HTTP_OK);
-      response.addProperty("message", "Success");
-      response.addProperty("count", values.size());
-      response.add("values", values);
-      sendJson(responder, HttpURLConnection.HTTP_OK, response.toString());
+      PluginSpec pluginSpec = new PluginSpec("Kafka", "source", properties);
+      KafkaSpec kafkaSpec = new KafkaSpec(pluginSpec);
+      ServiceResponse<KafkaSpec> response = new ServiceResponse<>(kafkaSpec);
+      responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
     }

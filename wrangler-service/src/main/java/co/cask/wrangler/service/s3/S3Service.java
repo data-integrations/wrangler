@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -246,8 +246,7 @@ public class S3Service extends AbstractWranglerService {
         scope = WorkspaceDataset.DEFAULT_SCOPE;
       }
 
-      RequestExtractor extractor = new RequestExtractor(request);
-      String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
+      String header = request.getHeader(PropertyIds.CONTENT_TYPE);
       Connection connection = store.get(connectionId);
       if (!validateConnection(connectionId, connection, responder)) {
         return;

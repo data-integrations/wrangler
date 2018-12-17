@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -60,8 +60,7 @@ public final class ServiceUtils {
    * @param message to be included as part of the error
    */
   public static void error(HttpServiceResponder responder, String message) {
-    ServiceResponse<Void> response = new ServiceResponse<>(message);
-    responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, response);
+    error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, message);
   }
 
   /**
@@ -71,8 +70,7 @@ public final class ServiceUtils {
    * @param message to be included as part of the error
    */
   public static void notFound(HttpServiceResponder responder, String message) {
-    ServiceResponse<Void> response = new ServiceResponse<>(message);
-    responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND, response);
+    error(responder, HttpURLConnection.HTTP_NOT_FOUND, message);
   }
 
   /**

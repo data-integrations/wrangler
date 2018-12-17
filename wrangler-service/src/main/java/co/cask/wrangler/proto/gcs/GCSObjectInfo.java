@@ -34,11 +34,13 @@ public class GCSObjectInfo {
   private final boolean directory;
   private final Boolean wrangle;
 
-  public GCSObjectInfo(String name, String bucket, String path, String blob, Long generation, boolean directory) {
+  public GCSObjectInfo(String name, String bucket, String path, String blob, @Nullable Long generation,
+                       boolean directory) {
     this(name, bucket, path, blob, generation, directory, null, null, null, null, null);
   }
 
-  public GCSObjectInfo(String name, String bucket, String path, String blob, Long generation, boolean directory,
+  public GCSObjectInfo(String name, String bucket, String path, String blob, @Nullable Long generation,
+                       boolean directory,
                        @Nullable String type, @Nullable Long created, @Nullable Long updated, @Nullable Long size,
                        @Nullable Boolean wrangle) {
     this.name = name;

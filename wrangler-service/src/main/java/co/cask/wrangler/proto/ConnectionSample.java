@@ -19,7 +19,7 @@ package co.cask.wrangler.proto;
 /**
  * Information about a sample taken using a connection.
  *
- * TODO: check if these fields are all used/needed.
+ * TODO: (CDAP-14652) check if these fields are all used/needed.
  * For example, why are 'connection' (actually connection type) and connection id in this object
  * when the client must supply this information in order to get the sample
  */
