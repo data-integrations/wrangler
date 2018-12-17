@@ -387,12 +387,12 @@ public class BigQueryService extends AbstractWranglerService {
             row.add(fieldName, LocalDate.parse(fieldValue.getStringValue()));
             break;
 
-          case DATETIME:
           case TIMESTAMP:
             long tsMicroValue = fieldValue.getTimestampValue();
             row.add(fieldName, getZonedDateTime(tsMicroValue));
             break;
 
+          case DATETIME:
           case STRING:
             row.add(fieldName, fieldValue.getStringValue());
             break;
@@ -433,7 +433,6 @@ public class BigQueryService extends AbstractWranglerService {
         case TIME:
           schemaType = Schema.of(Schema.LogicalType.TIME_MICROS);
           break;
-        case DATETIME:
         case TIMESTAMP:
           schemaType = Schema.of(Schema.LogicalType.TIMESTAMP_MICROS);
           break;
@@ -443,6 +442,7 @@ public class BigQueryService extends AbstractWranglerService {
         case INT64:
           schemaType = Schema.of(Schema.Type.LONG);
           break;
+        case DATETIME:
         case STRING:
           schemaType = Schema.of(Schema.Type.STRING);
           break;
