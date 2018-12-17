@@ -25,7 +25,6 @@ import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.PropertyIds;
-import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
@@ -113,8 +112,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
                    @QueryParam("sampler") String sampler,
                    @QueryParam("fraction") double fraction,
                    @QueryParam("scope") String scope) {
-    RequestExtractor extractor = new RequestExtractor(request);
-    String header = extractor.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, null);
+    String header = request.getHeader(PropertyIds.CONTENT_TYPE);
 
     if (header == null) {
       error(responder, "Content-Type header not specified.");

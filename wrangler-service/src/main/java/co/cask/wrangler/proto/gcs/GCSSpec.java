@@ -22,7 +22,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Plugin specification for a GCS pipeline source.
  *
- * TODO: clean up this API. There is no reason for this class to exist.
+ * TODO: (CDAP-14652) clean up this API. There is no reason for this class to exist.
  */
 public class GCSSpec {
   @SerializedName("GCSFile")

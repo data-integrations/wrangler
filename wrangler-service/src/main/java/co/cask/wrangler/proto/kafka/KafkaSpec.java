@@ -14,21 +14,21 @@
  * the License.
  */
 
-package co.cask.wrangler.service;
+package co.cask.wrangler.proto.kafka;
+
+import co.cask.wrangler.proto.PluginSpec;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Plugin configuration specifying the name, type and properties of the plugin
+ * Plugin specification for a Kafka pipeline source.
  *
- * @param <T> type of properties
+ * TODO: clean up this API. There is no reason for this class to exist.
  */
-public class PluginConfiguration<T> {
-  private final String name;
-  private final String type;
-  private final T properties;
+public class KafkaSpec {
+  @SerializedName("Kafka")
+  private final PluginSpec spec;
 
-  public PluginConfiguration(String name, String type, T properties) {
-    this.name = name;
-    this.type = type;
-    this.properties = properties;
+  public KafkaSpec(PluginSpec spec) {
+    this.spec = spec;
   }
 }

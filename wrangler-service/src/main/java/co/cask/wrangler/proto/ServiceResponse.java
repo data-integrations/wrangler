@@ -28,7 +28,7 @@ public class ServiceResponse<T> {
   private final String message;
   private final Integer count;
   private final Collection<T> values;
-  // TODO: see if this is used by UI. It should be a boolean and not a string...
+  // TODO: (CDAP-14652) see if this is used by UI. It should be a boolean and not a string...
   private final String truncated;
 
   public ServiceResponse(String message) {

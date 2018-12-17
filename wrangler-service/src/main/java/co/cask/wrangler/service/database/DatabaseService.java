@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright © 2017-2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -16,85 +16,84 @@
 
 package co.cask.wrangler.service.database;
 
- import co.cask.cdap.api.annotation.UseDataSet;
- import co.cask.cdap.api.artifact.ArtifactInfo;
- import co.cask.cdap.api.artifact.CloseableClassLoader;
- import co.cask.cdap.api.data.schema.Schema;
- import co.cask.cdap.api.dataset.table.Table;
- import co.cask.cdap.api.plugin.PluginClass;
- import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
- import co.cask.cdap.api.service.http.HttpServiceContext;
- import co.cask.cdap.api.service.http.HttpServiceRequest;
- import co.cask.cdap.api.service.http.HttpServiceResponder;
- import co.cask.cdap.internal.io.SchemaTypeAdapter;
- import co.cask.wrangler.DataPrep;
- import co.cask.wrangler.PropertyIds;
- import co.cask.wrangler.RequestExtractor;
- import co.cask.wrangler.SamplingMethod;
- import co.cask.wrangler.ServiceUtils;
- import co.cask.wrangler.api.Row;
- import co.cask.wrangler.dataset.connections.Connection;
- import co.cask.wrangler.dataset.connections.ConnectionStore;
- import co.cask.wrangler.dataset.workspace.DataType;
- import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
- import co.cask.wrangler.proto.ConnectionSample;
- import co.cask.wrangler.proto.PluginSpec;
- import co.cask.wrangler.proto.ServiceResponse;
- import co.cask.wrangler.proto.db.AllowedDriverInfo;
- import co.cask.wrangler.proto.db.DBSpec;
- import co.cask.wrangler.proto.db.JDBCDriverInfo;
- import co.cask.wrangler.service.connections.ConnectionType;
- import co.cask.wrangler.utils.ObjectSerDe;
- import com.google.common.annotations.VisibleForTesting;
- import com.google.common.base.Strings;
- import com.google.common.cache.CacheBuilder;
- import com.google.common.cache.CacheLoader;
- import com.google.common.cache.LoadingCache;
- import com.google.common.cache.RemovalListener;
- import com.google.common.cache.RemovalNotification;
- import com.google.common.collect.ArrayListMultimap;
- import com.google.common.collect.Multimap;
- import com.google.common.io.Closeables;
- import com.google.gson.Gson;
- import com.google.gson.GsonBuilder;
- import org.apache.commons.lang3.text.StrLookup;
- import org.apache.commons.lang3.text.StrSubstitutor;
- import org.slf4j.Logger;
- import org.slf4j.LoggerFactory;
+import co.cask.cdap.api.annotation.UseDataSet;
+import co.cask.cdap.api.artifact.ArtifactInfo;
+import co.cask.cdap.api.artifact.CloseableClassLoader;
+import co.cask.cdap.api.data.schema.Schema;
+import co.cask.cdap.api.dataset.table.Table;
+import co.cask.cdap.api.plugin.PluginClass;
+import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
+import co.cask.cdap.api.service.http.HttpServiceContext;
+import co.cask.cdap.api.service.http.HttpServiceRequest;
+import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.DataPrep;
+import co.cask.wrangler.PropertyIds;
+import co.cask.wrangler.RequestExtractor;
+import co.cask.wrangler.SamplingMethod;
+import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.api.Row;
+import co.cask.wrangler.dataset.connections.Connection;
+import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.dataset.workspace.DataType;
+import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.PluginSpec;
+import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.db.AllowedDriverInfo;
+import co.cask.wrangler.proto.db.DBSpec;
+import co.cask.wrangler.proto.db.JDBCDriverInfo;
+import co.cask.wrangler.service.connections.ConnectionType;
+import co.cask.wrangler.service.directive.DirectivesService;
+import co.cask.wrangler.utils.ObjectSerDe;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.io.Closeables;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.text.StrLookup;
+import org.apache.commons.lang3.text.StrSubstitutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
- import java.io.BufferedReader;
- import java.io.IOException;
- import java.io.InputStream;
- import java.io.InputStreamReader;
- import java.lang.reflect.Field;
- import java.sql.DatabaseMetaData;
- import java.sql.Date;
- import java.sql.Driver;
- import java.sql.DriverManager;
- import java.sql.PreparedStatement;
- import java.sql.ResultSet;
- import java.sql.ResultSetMetaData;
- import java.sql.SQLException;
- import java.sql.Statement;
- import java.sql.Time;
- import java.sql.Timestamp;
- import java.time.ZoneId;
- import java.time.ZoneOffset;
- import java.util.ArrayList;
- import java.util.Collection;
- import java.util.HashMap;
- import java.util.List;
- import java.util.Map;
- import java.util.Set;
- import java.util.concurrent.TimeUnit;
- import javax.ws.rs.GET;
- import javax.ws.rs.POST;
- import javax.ws.rs.Path;
- import javax.ws.rs.PathParam;
- import javax.ws.rs.QueryParam;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.sql.DatabaseMetaData;
+import java.sql.Date;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
- import static co.cask.wrangler.ServiceUtils.error;
- import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
  * Class description here.
@@ -103,7 +102,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseService.class);
   private static final String JDBC = "jdbc";
 
-  @UseDataSet(WORKSPACE_DATASET)
+  @UseDataSet(DirectivesService.WORKSPACE_DATASET)
   private WorkspaceDataset ws;
 
   // Data Prep store which stores all the information associated with dataprep.
@@ -204,6 +203,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     drivers.clear();
     InputStream is = DatabaseService.class.getClassLoader().getResourceAsStream("drivers.mapping");
     if (is == null) {
+      // shouldn't happen unless packaging changes
+      LOG.error("Unable to get JDBC driver mapping.");
       return;
     }
     try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -288,7 +289,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       ServiceResponse<JDBCDriverInfo> response = new ServiceResponse<>(values);
       responder.sendJson(response);
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -351,7 +352,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       Connection connection = extractor.getContent("utf-8", Connection.class);
 
       if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
-        error(responder, "Invalid connection type set.");
+        ServiceUtils.error(responder, "Invalid connection type set.");
         return;
       }
 
@@ -361,7 +362,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         responder.sendJson(response);
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -414,7 +415,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         }
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -470,7 +471,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         }
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -527,7 +528,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
         }
       });
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     } finally {
       if (cleanup != null) {
         cleanup.destroy();
@@ -595,7 +596,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
       ServiceResponse<DBSpec> response = new ServiceResponse<>(spec);
       responder.sendJson(response);
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
