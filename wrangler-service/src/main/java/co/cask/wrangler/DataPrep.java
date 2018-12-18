@@ -17,7 +17,6 @@
 package co.cask.wrangler;
 
 import co.cask.cdap.api.app.AbstractApplication;
-import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
@@ -31,7 +30,6 @@ import co.cask.wrangler.service.directive.DirectivesService;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
 import co.cask.wrangler.service.gcs.GCSService;
 import co.cask.wrangler.service.kafka.KafkaService;
-import co.cask.wrangler.service.recipe.RecipeService;
 import co.cask.wrangler.service.s3.S3Service;
 import co.cask.wrangler.service.schema.SchemaRegistryService;
 import co.cask.wrangler.service.spanner.SpannerService;
@@ -57,22 +55,6 @@ public class DataPrep extends AbstractApplication<ConnectionTypeConfig> {
     createDataset(CONNECTIONS_DATASET, Table.class,
                   DatasetProperties.builder().setDescription("DataPrep connections store.").build());
 
-    Schema schema = Schema.recordOf(
-      "recipes",
-      Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
-      Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
-      Schema.Field.of("description", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
-      Schema.Field.of("created", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
-      Schema.Field.of("updated", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
-      Schema.Field.of("directives", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
-    );
-
-    createDataset(RecipeService.DATASET, Table.class.getName(), DatasetProperties.builder()
-      .setDescription("Recipe store.")
-      .add(Table.PROPERTY_SCHEMA, schema.toString())
-      .add(Table.PROPERTY_SCHEMA_ROW_FIELD, "id")
-      .build());
-
     // Used by the file service.
     createDataset("dataprepfs", FileSet.class, FileSetProperties.builder()
       .setBasePath("dataprepfs/indexds")
@@ -86,7 +68,6 @@ public class DataPrep extends AbstractApplication<ConnectionTypeConfig> {
                new SchemaRegistryService(),
                new FilesystemExplorer(),
                new ConnectionService(getConfig()),
-               new RecipeService(),
                new KafkaService(),
                new DatabaseService(),
                new S3Service(),
