@@ -35,6 +35,7 @@ import co.cask.wrangler.api.parser.UsageDefinition;
 import com.joestelmach.natty.DateGroup;
 import com.joestelmach.natty.Parser;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -82,6 +83,11 @@ public class ParseDate implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
+        // If the data in the cell is null or is already of date format, then
+        // continue to next row.
+        if (object == null || object instanceof ZonedDateTime) {
+          continue;
+        }
         if (object instanceof String) {
           Parser parser = new Parser(timezone);
           List<DateGroup> groups = parser.parse((String) object);
@@ -96,8 +102,7 @@ public class ParseDate implements Directive {
         } else {
           throw new ErrorRowException(
             String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column), 1
-          );
+                          object.getClass().getName(), column), 1);
         }
       }
     }
