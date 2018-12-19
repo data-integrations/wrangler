@@ -16,9 +16,6 @@
 
 package co.cask.wrangler.proto.s3;
 
-import co.cask.wrangler.service.FileTypeDetector;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.gson.annotations.SerializedName;
 
 import javax.annotation.Nullable;
@@ -53,42 +50,6 @@ public class S3ObjectInfo {
     this.size = size;
     this.directory = directory;
     this.wrangle = wrangle;
-  }
-
-  public static S3ObjectInfo ofBucket(Bucket bucket) {
-    return builder(bucket.getName(), "bucket")
-      .setCreated(bucket.getCreationDate().getTime())
-      .setOwner(bucket.getOwner().getDisplayName())
-      .setIsDirectory(true)
-      .build();
-  }
-
-  public static S3ObjectInfo ofDir(String dir) {
-    String[] parts = dir.split("/");
-    String name = dir;
-    if (parts.length > 1) {
-      name = parts[parts.length - 1];
-    }
-    return builder(name, "directory").setPath(dir).setIsDirectory(true).build();
-  }
-
-  public static S3ObjectInfo ofObject(S3ObjectSummary summary, FileTypeDetector detector) {
-    int idx = summary.getKey().lastIndexOf("/");
-    String name = summary.getKey();
-    if (idx != -1) {
-      name = name.substring(idx + 1);
-    }
-    String type = detector.detectFileType(name);
-    boolean canWrangle = detector.isWrangleable(type);
-    return builder(name, type)
-      .setPath(summary.getKey())
-      .setOwner(summary.getOwner().getDisplayName())
-      .setStorageClass(summary.getStorageClass())
-      .setLastModified(summary.getLastModified().getTime())
-      .setSize(summary.getSize())
-      .setIsDirectory(false)
-      .setCanWrangle(canWrangle)
-      .build();
   }
 
   public static Builder builder(String name, String type) {

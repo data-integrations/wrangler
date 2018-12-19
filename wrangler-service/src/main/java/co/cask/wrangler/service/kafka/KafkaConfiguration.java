@@ -17,7 +17,7 @@
 package co.cask.wrangler.service.kafka;
 
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.service.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionType;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.DoubleDeserializer;

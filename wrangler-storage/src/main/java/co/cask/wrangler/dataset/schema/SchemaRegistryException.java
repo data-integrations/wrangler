@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017-2018 Cask Data, Inc.
+ *  Copyright © 2018 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -17,7 +17,7 @@
 package co.cask.wrangler.dataset.schema;
 
 /**
- * Class description here.
+ * Thrown when something went wrong reading from or writing to the Schema Registry.
  */
 public class SchemaRegistryException extends Exception {
   public SchemaRegistryException(String message) {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2018 Cask Data, Inc.
+ * Copyright © 2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,27 +29,32 @@ import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveConfig;
 import co.cask.wrangler.api.Pair;
-import co.cask.wrangler.api.Row;
-import co.cask.wrangler.utils.ObjectSerDe;
-import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Workspace dataset.
  */
 public class WorkspaceDataset extends AbstractDataset {
   private static final Logger LOG = LoggerFactory.getLogger(WorkspaceDataset.class);
+  private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
+  private static final Gson GSON = new GsonBuilder()
+    .registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private final Table table;
-  private final Gson gson;
 
   public static final String DEFAULT_SCOPE = "default";
   public static final byte[] CONFIG_KEY     = Bytes.toBytes("__config__");
@@ -67,7 +72,6 @@ public class WorkspaceDataset extends AbstractDataset {
                           @EmbeddedDataset("workspace") Table table) {
     super(specification.getName(), table);
     this.table = table;
-    this.gson = new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   }
 
   /**
@@ -103,7 +107,7 @@ public class WorkspaceDataset extends AbstractDataset {
    * @throws WorkspaceException thrown when issue creating workspace meta entry.
    */
   @WriteOnly
-  public void createWorkspaceMeta(String id, String scope, String name,  DataType type) throws WorkspaceException {
+  public void createWorkspaceMeta(String id, String scope, String name, DataType type) throws WorkspaceException {
     createWorkspaceMeta(id, scope, name, type, new HashMap<>());
   }
 
@@ -118,7 +122,7 @@ public class WorkspaceDataset extends AbstractDataset {
    */
   @WriteOnly
   public void createWorkspaceMeta(String id, String scope, String name, DataType type,
-                     Map<String, String> properties) throws WorkspaceException {
+                                  Map<String, String> properties) throws WorkspaceException {
     if (id == null || id.isEmpty()) {
       throw new WorkspaceException("Workspace id cannot be empty or null");
     }
@@ -154,27 +158,13 @@ public class WorkspaceDataset extends AbstractDataset {
   public boolean hasWorkspace(String id) throws WorkspaceException {
     try {
       co.cask.cdap.api.dataset.table.Row row = table.get(toKey(id));
-      if (!row.isEmpty()) {
-        return true;
-      }
-      return false;
+      return !row.isEmpty();
     } catch (DataSetException e) {
       throw new WorkspaceException(
         String.format("Unable to check if workspace '%s' exists '%s'",
                       id, e.getMessage())
       );
     }
-  }
-
-  /**
-   * Lists all the workspaces registered in the 'default' scope.
-   *
-   * @return List of workspaces.
-   * @throws WorkspaceException throw if there is issue listing workspaces.
-   */
-  @ReadOnly
-  public List<Pair<String, String>> getWorkspaces() throws WorkspaceException {
-    return getWorkspaces(DEFAULT_SCOPE);
   }
 
   /**
@@ -204,17 +194,14 @@ public class WorkspaceDataset extends AbstractDataset {
       }
     } catch (DataSetException e) {
       throw new WorkspaceException(
-        String.format("Unable to list workspace. ", e.getMessage())
+        String.format("Unable to list workspace. %s", e.getMessage())
       );
     }
     return values;
   }
 
   private boolean excludedKey(String id) {
-    if (id.equalsIgnoreCase(Bytes.toString(CONFIG_KEY))) {
-      return true;
-    }
-    return false;
+    return id.equalsIgnoreCase(Bytes.toString(CONFIG_KEY));
   }
 
   /**
@@ -314,7 +301,7 @@ public class WorkspaceDataset extends AbstractDataset {
 
   @WriteOnly
   public void updateWorkspace(String id, byte[] key, String data) throws WorkspaceException {
-    updateWorkspace(id, key, data.getBytes(Charsets.UTF_8));
+    updateWorkspace(id, key, data.getBytes(StandardCharsets.UTF_8));
   }
 
   @WriteOnly
@@ -325,7 +312,7 @@ public class WorkspaceDataset extends AbstractDataset {
 
   @WriteOnly
   public void updateConfig(DirectiveConfig config) {
-    byte[] bytes = Bytes.toBytes(gson.toJson(config));
+    byte[] bytes = Bytes.toBytes(GSON.toJson(config));
     table.put(CONFIG_KEY, CONFIG_COL, bytes);
   }
 
@@ -338,7 +325,7 @@ public class WorkspaceDataset extends AbstractDataset {
     } else {
       json = Bytes.toString(bytes);
     }
-    return gson.fromJson(json, DirectiveConfig.class);
+    return GSON.fromJson(json, DirectiveConfig.class);
   }
 
   @ReadOnly
@@ -363,12 +350,13 @@ public class WorkspaceDataset extends AbstractDataset {
    * @param key the key to be retrieved.
    * @return if key is found, returns the data, else returns null.
    */
+  @Nullable
   @ReadOnly
   public byte[] getData(String id, byte[] key) {
-    byte[] bytes = table.get(toKey(id), key);
-    return bytes;
+    return table.get(toKey(id), key);
   }
 
+  @Nullable
   @ReadOnly
   public <T> T getData(String id, byte[] key, DataType type) throws WorkspaceException {
     byte[] bytes = table.get(toKey(id), key);
@@ -381,10 +369,10 @@ public class WorkspaceDataset extends AbstractDataset {
       String value = Bytes.toString(bytes);
       return (T) value;
     } else if (type == DataType.RECORDS) {
-      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-      try {
-        List<Row> rows = serDe.toObject(bytes);
-        return (T) rows;
+      // TODO: (CDAP-14619) serialization and deserialization logic should happen in the same place,
+      //       not spread across the data store and the client.
+      try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+        return (T) ois.readObject();
       } catch (IOException | ClassNotFoundException e) {
         throw new WorkspaceException(e.getMessage());
       }
@@ -415,13 +403,13 @@ public class WorkspaceDataset extends AbstractDataset {
   }
 
   private byte[] toJsonBytes(Map<String, String> properties) {
-    String value = gson.toJson(properties);
+    String value = GSON.toJson(properties);
     return Bytes.toBytes(value);
   }
 
   private Map<String, String> fromJsonBytes(byte[] bytes) {
     String value = Bytes.toString(bytes);
-    return gson.fromJson(value, Map.class);
+    return GSON.fromJson(value, MAP_TYPE);
   }
 
 }

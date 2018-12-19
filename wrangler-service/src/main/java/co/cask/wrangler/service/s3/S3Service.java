@@ -28,6 +28,7 @@ import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
+import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.proto.PluginSpec;
@@ -41,7 +42,6 @@ import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerService;
 import co.cask.wrangler.service.common.Format;
-import co.cask.wrangler.service.connections.ConnectionType;
 import co.cask.wrangler.service.explorer.BoundedLineInputStream;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.amazonaws.regions.Region;
@@ -178,7 +178,7 @@ public class S3Service extends AbstractWranglerService {
         List<Bucket> buckets = s3.listBuckets();
         List<S3ObjectInfo> bucketInfo = new ArrayList<>(buckets.size());
         for (Bucket bucket : buckets) {
-          bucketInfo.add(S3ObjectInfo.ofBucket(bucket));
+          bucketInfo.add(fromBucket(bucket));
         }
         ServiceResponse<S3ObjectInfo> response = new ServiceResponse<>(bucketInfo);
         responder.sendJson(response);
@@ -205,10 +205,10 @@ public class S3Service extends AbstractWranglerService {
           if (dir.equalsIgnoreCase("/")) {
             continue;
           }
-          objects.add(S3ObjectInfo.ofDir(dir));
+          objects.add(fromDir(dir));
         }
         for (S3ObjectSummary summary : result.getObjectSummaries()) {
-          objects.add(S3ObjectInfo.ofObject(summary, detector));
+          objects.add(fromObject(summary, detector));
         }
         listObjectsRequest.setMarker(result.getMarker());
       } while (result.isTruncated());
@@ -440,5 +440,41 @@ public class S3Service extends AbstractWranglerService {
     String fileType = detector.detectFileType(fileName);
     DataType dataType = DataType.fromString(fileType);
     return dataType == null ? DataType.BINARY : dataType;
+  }
+
+  private static S3ObjectInfo fromBucket(Bucket bucket) {
+    return S3ObjectInfo.builder(bucket.getName(), "bucket")
+      .setCreated(bucket.getCreationDate().getTime())
+      .setOwner(bucket.getOwner().getDisplayName())
+      .setIsDirectory(true)
+      .build();
+  }
+
+  public static S3ObjectInfo fromDir(String dir) {
+    String[] parts = dir.split("/");
+    String name = dir;
+    if (parts.length > 1) {
+      name = parts[parts.length - 1];
+    }
+    return S3ObjectInfo.builder(name, "directory").setPath(dir).setIsDirectory(true).build();
+  }
+
+  public static S3ObjectInfo fromObject(S3ObjectSummary summary, FileTypeDetector detector) {
+    int idx = summary.getKey().lastIndexOf("/");
+    String name = summary.getKey();
+    if (idx != -1) {
+      name = name.substring(idx + 1);
+    }
+    String type = detector.detectFileType(name);
+    boolean canWrangle = detector.isWrangleable(type);
+    return S3ObjectInfo.builder(name, type)
+      .setPath(summary.getKey())
+      .setOwner(summary.getOwner().getDisplayName())
+      .setStorageClass(summary.getStorageClass())
+      .setLastModified(summary.getLastModified().getTime())
+      .setSize(summary.getSize())
+      .setIsDirectory(false)
+      .setCanWrangle(canWrangle)
+      .build();
   }
 }
