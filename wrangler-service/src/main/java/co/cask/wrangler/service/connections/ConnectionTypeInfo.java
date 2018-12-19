@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.service.connections;
 
+import co.cask.wrangler.dataset.connections.ConnectionType;
+
 /**
  * ConnectionTypeInfo - sent as response in listing connection types
  */

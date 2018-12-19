@@ -17,7 +17,7 @@
 package co.cask.wrangler.service.bigquery;
 
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.service.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import com.google.cloud.bigquery.DatasetId;
 import org.junit.Assert;

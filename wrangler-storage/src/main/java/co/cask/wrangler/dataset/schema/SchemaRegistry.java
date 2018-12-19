@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,14 +20,17 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.DataSetException;
 import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.api.dataset.table.Table;
-import com.google.common.base.Charsets;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * This class {@link SchemaRegistry} is a {@link co.cask.cdap.api.dataset.Dataset} that is responsible
  * for managing the schema registry store.
+ *
+ * TODO: (CDAP-14619) fix error handling for this class. It assumes the user never does anything wrong, like try
+ *       and fetch a schema that doesn't exist.
  */
 public final class SchemaRegistry  {
   // Table in which all the information of the schema is stored.
@@ -105,7 +108,7 @@ public final class SchemaRegistry  {
    * @param specification of the schema to be added.
    * @throws SchemaRegistryException
    */
-  public long add(String id,  byte[] specification) throws SchemaRegistryException {
+  public long add(String id, byte[] specification) throws SchemaRegistryException {
     long version = getNextVersion(id);
     // Schema registry columns.
     byte[][] columns = new byte[][] {
@@ -206,7 +209,7 @@ public final class SchemaRegistry  {
       Set<byte[]> versions = row.getColumns().keySet();
       Set<Long> versionSet = new HashSet<>();
       for (byte[] version : versions) {
-        String v = new String(version, Charsets.UTF_8);
+        String v = new String(version, StandardCharsets.UTF_8);
         int idx = v.indexOf("ver:");
         if (idx != -1) {
           String number = v.substring(idx + 4);
@@ -228,7 +231,7 @@ public final class SchemaRegistry  {
    * @param id of the schema for which name needs to be returned.
    * @return string value for the id.
    */
-  public String getName(String id) throws SchemaRegistryException {
+  private String getName(String id) throws SchemaRegistryException {
     try {
       return Bytes.toString(table.get(toIdKey(id), NAME_COL));
     } catch (DataSetException e) {
@@ -239,7 +242,7 @@ public final class SchemaRegistry  {
     }
   }
 
-  public String getDescription(String id) throws SchemaRegistryException {
+  private String getDescription(String id) throws SchemaRegistryException {
     try {
       return Bytes.toString(table.get(toIdKey(id), DESC_COL));
     } catch (DataSetException e) {
@@ -250,7 +253,7 @@ public final class SchemaRegistry  {
     }
   }
 
-  public SchemaDescriptorType getType(String id) throws SchemaRegistryException {
+  private SchemaDescriptorType getType(String id) throws SchemaRegistryException {
     try {
       String type = Bytes.toString(table.get(toIdKey(id), TYPE_COL));
       return SchemaDescriptorType.fromString(type);
@@ -258,17 +261,6 @@ public final class SchemaRegistry  {
       throw new SchemaRegistryException(
         String.format("Unable to retrieve description field for id '%s'. '%s'",
                       id, e.getMessage())
-      );
-    }
-  }
-
-  public byte[] getSchema(String id, long version) throws SchemaRegistryException {
-    try {
-      return table.get(toIdKey(id), toVersionColumn(version));
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to check if schema id and version exists. '%s'",
-                      e.getMessage())
       );
     }
   }
@@ -308,12 +300,7 @@ public final class SchemaRegistry  {
     }
   }
 
-  public byte[] getSchema(String id) throws SchemaRegistryException {
-    long version = getCurrentVersion(id);
-    return getSchema(id, version);
-  }
-
-  public long getCurrentVersion(String id) throws SchemaRegistryException {
+  private long getCurrentVersion(String id) throws SchemaRegistryException {
     try {
       byte[] bytes = table.get(toIdKey(id), ACTIVE_VERSION_COL);
       return Bytes.toLong(bytes);
@@ -343,7 +330,7 @@ public final class SchemaRegistry  {
 
   private byte[] toVersionColumn(long version) {
     String ver = String.format("ver:%d", version);
-    return ver.getBytes(Charsets.UTF_8);
+    return ver.getBytes(StandardCharsets.UTF_8);
   }
 
 
