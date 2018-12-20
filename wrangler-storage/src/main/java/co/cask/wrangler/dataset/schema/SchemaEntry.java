@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.dataset.schema;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -67,5 +69,30 @@ public final class SchemaEntry {
 
   public long getCurrent() {
     return current;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SchemaEntry that = (SchemaEntry) o;
+    return current == that.current &&
+      Objects.equals(id, that.id) &&
+      Objects.equals(name, that.name) &&
+      Objects.equals(description, that.description) &&
+      type == that.type &&
+      Objects.equals(versions, that.versions) &&
+      Arrays.equals(specification, that.specification);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(id, name, description, type, versions, current);
+    result = 31 * result + Arrays.hashCode(specification);
+    return result;
   }
 }
