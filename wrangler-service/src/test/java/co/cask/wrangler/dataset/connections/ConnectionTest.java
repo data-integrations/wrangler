@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.dataset.connections;
 
-import co.cask.wrangler.service.connections.ConnectionType;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;

@@ -57,6 +57,10 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
    *
    * This method creates the id and returns if after successfully updating the store.
    *
+   * TODO: (CDAP-14619) pass in a CreateRequest object that doesn't contain created, updated, and id fields.
+   *       Also improve error handling. There is currently no way to differentiate an invalid request from
+   *       the connection already existing.
+   *
    * @param connection to be stored in the store.
    * @return id of the connection stored.
    */

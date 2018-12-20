@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2018 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,13 +16,13 @@
 
 package co.cask.wrangler.dataset.connections;
 
-import co.cask.wrangler.service.connections.ConnectionType;
-
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Basic connection object.
+ *
+ * TODO: (CDAP-14619) Make this immutable instead of having setters for everything
  */
 public final class Connection {
   // Id of the connection.

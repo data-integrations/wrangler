@@ -209,7 +209,7 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>${commons.io.version}</version>
+      <version>${commons-io.version}</version>
     </dependency>
     <dependency>
       <groupId>com.github.filosganga</groupId>
