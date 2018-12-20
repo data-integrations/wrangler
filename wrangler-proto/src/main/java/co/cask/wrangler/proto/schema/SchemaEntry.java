@@ -14,14 +14,19 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset.schema;
+package co.cask.wrangler.proto.schema;
 
-import java.util.Arrays;
+import co.cask.cdap.api.common.Bytes;
+
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
- * Schema Entry
+ * Schema Entry.
+ *
+ * TODO: (CDAP-14679) Create another SchemaInfo class for the schema itself
+ *   and remove version list and current field from this class.
  */
 public final class SchemaEntry {
   private final String id;
@@ -29,17 +34,17 @@ public final class SchemaEntry {
   private final String description;
   private final SchemaDescriptorType type;
   private final Set<Long> versions;
-  private final byte[] specification;
-  private final long current;
+  private final String specification;
+  private final Long current;
 
   public SchemaEntry(String id, String name, String description, SchemaDescriptorType type,
-                     Set<Long> versions, byte[] specification, long current) {
+                     Set<Long> versions, @Nullable byte[] specification, @Nullable Long current) {
     this.id = id;
     this.name = name;
     this.description = description;
     this.type = type;
     this.versions = versions;
-    this.specification = specification;
+    this.specification = specification == null ? null : Bytes.toHexString(specification);
     this.current = current;
   }
 
@@ -63,12 +68,14 @@ public final class SchemaEntry {
     return versions;
   }
 
-  public byte[] getSpecification() {
-    return specification;
+  @Nullable
+  public Long getCurrent() {
+    return current;
   }
 
-  public long getCurrent() {
-    return current;
+  @Nullable
+  public byte[] getSpecification() {
+    return specification == null ? null : Bytes.fromHexString(specification);
   }
 
   @Override
@@ -80,19 +87,17 @@ public final class SchemaEntry {
       return false;
     }
     SchemaEntry that = (SchemaEntry) o;
-    return current == that.current &&
-      Objects.equals(id, that.id) &&
+    return Objects.equals(id, that.id) &&
       Objects.equals(name, that.name) &&
       Objects.equals(description, that.description) &&
       type == that.type &&
       Objects.equals(versions, that.versions) &&
-      Arrays.equals(specification, that.specification);
+      Objects.equals(specification, that.specification) &&
+      Objects.equals(current, that.current);
   }
 
   @Override
   public int hashCode() {
-    int result = Objects.hash(id, name, description, type, versions, current);
-    result = 31 * result + Arrays.hashCode(specification);
-    return result;
+    return Objects.hash(id, name, description, type, versions, specification, current);
   }
 }
