@@ -21,6 +21,7 @@ import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.lib.FileSet;
 import co.cask.cdap.api.dataset.lib.FileSetProperties;
 import co.cask.cdap.api.dataset.table.Table;
+import co.cask.wrangler.dataset.schema.SchemaRegistry;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.service.bigquery.BigQueryService;
 import co.cask.wrangler.service.connections.ConnectionService;
@@ -51,9 +52,11 @@ public class DataPrep extends AbstractApplication<ConnectionTypeConfig> {
     setDescription("DataPrep Backend Service");
 
     createDataset(DirectivesService.WORKSPACE_DATASET, WorkspaceDataset.class,
-                  DatasetProperties.builder().setDescription("Dataprep workspace dataset").build());
+                  DatasetProperties.builder().setDescription("DataPrep workspace dataset").build());
     createDataset(CONNECTIONS_DATASET, Table.class,
                   DatasetProperties.builder().setDescription("DataPrep connections store.").build());
+    createDataset(SchemaRegistry.DATASET_NAME, Table.class,
+                  DatasetProperties.builder().setDescription("DataPrep schema registry.").build());
 
     // Used by the file service.
     createDataset("dataprepfs", FileSet.class, FileSetProperties.builder()

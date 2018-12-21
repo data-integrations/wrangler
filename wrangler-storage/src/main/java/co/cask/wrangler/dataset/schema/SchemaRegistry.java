@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
  * of the latest schema entry.
  */
 public final class SchemaRegistry  {
+  public static final String DATASET_NAME = "schemaRegistry";
   // Table in which all the information of the schema is stored.
   private final Table table;
 

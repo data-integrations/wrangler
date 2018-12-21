@@ -22,7 +22,6 @@ import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.dataset.schema.SchemaDescriptor;
 import co.cask.wrangler.dataset.schema.SchemaNotFoundException;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
@@ -53,7 +52,7 @@ import static co.cask.wrangler.ServiceUtils.success;
 public class SchemaRegistryService extends AbstractHttpServiceHandler {
   private static final Gson GSON = new Gson();
 
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
+  @UseDataSet(SchemaRegistry.DATASET_NAME)
   private Table table;
 
   private SchemaRegistry registry;
