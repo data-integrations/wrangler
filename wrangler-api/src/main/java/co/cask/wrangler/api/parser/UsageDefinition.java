@@ -17,9 +17,6 @@
 package co.cask.wrangler.api.parser;
 
 import co.cask.wrangler.api.Optional;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -142,23 +139,6 @@ public final class UsageDefinition implements Serializable {
       }
     }
     return sb.toString();
-  }
-
-  /**
-   * This method provides a <code>JsonElement</code> object for this <code>UsageDefinition</code>
-   * object.
-   *
-   * @return A instance of <code>JsonElement</code> representing the state of this object.
-   */
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("directive", directive);
-    JsonArray array = new JsonArray();
-    for (TokenDefinition token : tokens) {
-      array.add(token.toJson());
-    }
-    object.add("tokens", array);
-    return object;
   }
 
   /**

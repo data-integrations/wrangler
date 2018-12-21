@@ -1,22 +1,22 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2018 Cask Data, Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
-package co.cask.wrangler.api;
+package co.cask.wrangler.registry;
 
-import com.google.gson.JsonElement;
+import co.cask.wrangler.api.DirectiveLoadException;
 
 import java.io.Closeable;
 import javax.annotation.Nullable;
@@ -50,12 +50,4 @@ public interface DirectiveRegistry extends Iterable<DirectiveInfo>, Closeable {
    */
   void reload() throws DirectiveLoadException;
 
-  /**
-   * Returns an <tt>JsonElement</tt> representation of this implementation of object.
-   * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
-   * are represented as <tt>JsonObject</tt>.
-   *
-   * @return An instance of {@link JsonElement} of this object.
-   */
-  JsonElement toJson();
 }
