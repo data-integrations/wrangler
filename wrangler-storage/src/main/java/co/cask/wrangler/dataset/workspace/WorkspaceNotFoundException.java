@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,11 +17,11 @@
 package co.cask.wrangler.dataset.workspace;
 
 /**
- * This class {@link WorkspaceException} is thrown when there is any issue with dealing with workspace
- * abnormalities.
+ * Thrown when a workspace is not found when it is expected to exist.
  */
-public class WorkspaceException extends Exception {
-  public WorkspaceException(String message) {
+public class WorkspaceNotFoundException extends Exception {
+
+  public WorkspaceNotFoundException(String message) {
     super(message);
   }
 }

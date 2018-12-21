@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2018-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,13 +29,14 @@ import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.spanner.SpannerDatabase;
 import co.cask.wrangler.proto.spanner.SpannerSpec;
 import co.cask.wrangler.proto.spanner.SpannerTable;
-import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.cloud.ByteArray;
@@ -75,7 +76,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Spanner data prep connection service
  */
-public class SpannerService extends AbstractWranglerService {
+public class SpannerHandler extends AbstractWranglerHandler {
   private static final String TABLE_NAME = "TableName";
   // Spanner queries for listing tables and listing schema of table are documented at
   // https://cloud.google.com/spanner/docs/information-schema
@@ -193,12 +194,6 @@ public class SpannerService extends AbstractWranglerService {
 
       // create workspace id
       String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-      ws.createWorkspaceMeta(identifier, scope, tableId);
-
-      // write data to workspace
-      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-      byte[] dataBytes = serDe.toByteArray(data);
-      ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, dataBytes);
 
       Map<String, String> connectionProperties = connection.getAllProps();
       String projectId = connectionProperties.get(GCPUtils.PROJECT_ID);
@@ -209,15 +204,22 @@ public class SpannerService extends AbstractWranglerService {
       SpannerSpecification specification =
         new SpannerSpecification(externalDsName, path, projectId, instanceId, databaseId, tableId, schema);
 
-      // initialize and store workspace properties
       Map<String, String> workspaceProperties = new HashMap<>();
       workspaceProperties.put(PropertyIds.ID, identifier);
       workspaceProperties.put(PropertyIds.NAME, tableId);
       workspaceProperties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.SPANNER.getType());
       workspaceProperties.put(PropertyIds.CONNECTION_ID, connectionId);
       workspaceProperties.put(PropertyIds.PLUGIN_SPECIFICATION, GSON.toJson(specification));
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, tableId)
+        .setScope(scope)
+        .setProperties(workspaceProperties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
 
-      ws.writeProperties(identifier, workspaceProperties);
+      // write data to workspace
+      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+      byte[] dataBytes = serDe.toByteArray(data);
+      ws.updateWorkspaceData(identifier, DataType.RECORDS, dataBytes);
 
       ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.SPANNER.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
@@ -238,7 +240,7 @@ public class SpannerService extends AbstractWranglerService {
   public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
                             @PathParam("workspace-id") String workspaceId) {
     try {
-      Map<String, String> config = ws.getProperties(workspaceId);
+      Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
 
       // deserialize and send spanner source specification
       SpannerSpecification conf =

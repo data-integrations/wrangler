@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,15 +16,22 @@
 
 package co.cask.wrangler.proto;
 
+import java.util.Objects;
+
 /**
  * Specification about workspace for the {@link Request}
  */
 public final class Workspace {
   // Name of the workspace.
-  private String name;
+  private final String name;
 
   // Number of results to be returned for the workspace.
-  private Integer results;
+  private final Integer results;
+
+  public Workspace(String name, Integer results) {
+    this.name = name;
+    this.results = results;
+  }
 
   /**
    * @return Name of the workspace.
@@ -38,5 +45,23 @@ public final class Workspace {
    */
   public Integer getResults() {
     return results;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Workspace workspace = (Workspace) o;
+    return Objects.equals(name, workspace.name) &&
+      Objects.equals(results, workspace.results);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, results);
   }
 }

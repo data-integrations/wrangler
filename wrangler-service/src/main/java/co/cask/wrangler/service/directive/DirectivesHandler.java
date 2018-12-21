@@ -16,12 +16,10 @@
 
 package co.cask.wrangler.service.directive;
 
-import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginClass;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
@@ -50,8 +48,10 @@ import co.cask.wrangler.api.parser.Token;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
+import co.cask.wrangler.dataset.workspace.Workspace;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
-import co.cask.wrangler.dataset.workspace.WorkspaceException;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
+import co.cask.wrangler.dataset.workspace.WorkspaceNotFoundException;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.GrammarBasedParser;
@@ -74,6 +74,7 @@ import co.cask.wrangler.registry.DirectiveInfo;
 import co.cask.wrangler.registry.DirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.registry.UserDirectiveRegistry;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.statistics.Statistics;
 import co.cask.wrangler.utils.Json2Schema;
@@ -82,7 +83,6 @@ import co.cask.wrangler.utils.RecordConvertorException;
 import co.cask.wrangler.validator.ColumnNameValidator;
 import co.cask.wrangler.validator.Validator;
 import co.cask.wrangler.validator.ValidatorException;
-import com.google.common.base.Function;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -95,8 +95,10 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -110,6 +112,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -120,38 +123,21 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.sendJson;
-import static co.cask.wrangler.ServiceUtils.success;
-
 /**
  * Service for managing workspaces and also application of directives on to the workspace.
  */
-public class DirectivesService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(DirectivesService.class);
+public class DirectivesHandler extends AbstractWranglerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(DirectivesHandler.class);
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
-  public static final String WORKSPACE_DATASET = "workspace";
   private static final String resourceName = ".properties";
 
   private static final String COLUMN_NAME = "body";
   private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   private static final String DELIMITER_HEADER = "delimiter";
 
-  private final Gson gson = new Gson();
-
-  @UseDataSet(WORKSPACE_DATASET)
-  private WorkspaceDataset table;
-
   private DirectiveRegistry composite;
 
-  /**
-   * An implementation of HttpService. Stores the context
-   * so that it can be used later.
-   *
-   * @param context the HTTP service runtime context
-   * @throws Exception
-   */
   @Override
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
@@ -195,20 +181,23 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Path("workspaces/{id}")
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("id") String id, @QueryParam("name") String name,
-                     @QueryParam("scope") @DefaultValue("default") String scope) {
+                     @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     try {
       if (name == null || name.isEmpty()) {
         name = id;
       }
 
-      table.createWorkspaceMeta(id, name, scope);
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, id);
       properties.put(PropertyIds.NAME, name);
-      table.writeProperties(id, properties);
-      success(responder, String.format("Successfully created workspace '%s'", id));
-    } catch (WorkspaceException e) {
-      error(responder, e.getMessage());
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, name)
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
+      ServiceUtils.success(responder, String.format("Successfully created workspace '%s'", id));
+    } catch (RuntimeException e) {
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -237,15 +226,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @QueryParam("scope") @DefaultValue("default") String scope) {
     try {
-      List<Pair<String, String>> workspaces = table.getWorkspaces(scope);
-      List<WorkspaceIdentifier> array = new ArrayList<>(workspaces.size());
-      for (Pair<String, String> workspace : workspaces) {
-        array.add(new WorkspaceIdentifier(workspace.getFirst(), workspace.getSecond()));
-      }
-      ServiceResponse<WorkspaceIdentifier> response = new ServiceResponse<>(array);
+      List<WorkspaceIdentifier> workspaces = ws.listWorkspaces(scope);
+      ServiceResponse<WorkspaceIdentifier> response = new ServiceResponse<>(workspaces);
       responder.sendJson(response);
-    } catch (WorkspaceException e) {
-      error(responder, e.getMessage());
+    } catch (RuntimeException e) {
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -268,10 +253,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("id") String id) {
     try {
-      table.deleteWorkspace(id);
-      success(responder, String.format("Successfully deleted workspace '%s'", id));
-    } catch (WorkspaceException e) {
-      error(responder, e.getMessage());
+      ws.deleteWorkspace(id);
+      ServiceUtils.success(responder, String.format("Successfully deleted workspace '%s'", id));
+    } catch (Throwable t) {
+      ServiceUtils.error(responder, t.getMessage());
     }
   }
 
@@ -294,10 +279,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
                      @QueryParam("group") String group) {
     try {
-      int count = table.deleteGroup(group);
-      success(responder, String.format("Successfully deleted %s workspace(s) within group '%s'", count, group));
-    } catch (WorkspaceException e) {
-      error(responder, e.getMessage());
+      int count = ws.deleteScope(group);
+      ServiceUtils.success(responder, String.format("Successfully deleted %s workspace(s) within group '%s'",
+                                                    count, group));
+    } catch (RuntimeException e) {
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -335,27 +321,25 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("id") String id) {
     try {
-      byte[] bytes = table.getData(id, WorkspaceDataset.NAME_COL);
-      String name = "";
-      if (bytes != null) {
-        name = Bytes.toString(bytes);
-      }
-      String data = table.getData(id, WorkspaceDataset.REQUEST_COL, DataType.TEXT);
+      Workspace workspace = ws.getWorkspace(id);
+      String name = workspace.getName();
+      Request workspaceReq = workspace.getRequest();
       JsonObject req = new JsonObject();
-      if (data != null) {
-        req = (JsonObject) new JsonParser().parse(data);
+      if (workspaceReq != null) {
+        req = (JsonObject) GSON.toJsonTree(workspaceReq);
       }
-      Map<String, String> properties = table.getProperties(id);
-      JsonObject prop = (JsonObject) GSON.toJsonTree(properties);
+      Map<String, String> properties = workspace.getProperties();
+      JsonObject prop = workspaceReq == null ? new JsonObject() : (JsonObject) GSON.toJsonTree(properties);
 
       prop.addProperty("name", name);
       prop.addProperty("id", name);
       req.add("properties", merge(req.getAsJsonObject("properties"), prop));
-
       ServiceResponse<JsonObject> response = new ServiceResponse<>(req);
       responder.sendJson(response);
-    } catch (WorkspaceException | JSONException e) {
-      error(responder, e.getMessage());
+    } catch (WorkspaceNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
+    } catch (JSONException e) {
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -394,12 +378,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
     try {
       String name = request.getHeader(PropertyIds.FILE_NAME);
+      if (name == null) {
+        ServiceUtils.error(responder, 400, "Name must be provided in the 'file' header");
+        return;
+      }
       String id = ServiceUtils.generateMD5(name);
 
       // if workspace doesn't exist, then we create the workspace before
       // adding data to the workspace.
-      if (!table.hasWorkspace(id)) {
-        table.createWorkspaceMeta(id, name);
+      if (!ws.hasWorkspace(id)) {
+        ws.writeWorkspaceMeta(WorkspaceMeta.builder(id, name).build());
       }
 
       RequestExtractor handler = new RequestExtractor(request);
@@ -418,43 +406,39 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       // Extract content.
       byte[] content = handler.getContent();
       if (content == null) {
-        error(responder, "Body not present, please post the file containing the records to be wrangled.");
+        ServiceUtils.error(responder, "Body not present, please post the file containing the records to be wrangled.");
         return;
       }
 
       // Depending on content type, load data.
       DataType type = DataType.fromString(contentType);
-      switch(type) {
-        case TEXT: {
+      if (type == null) {
+        ServiceUtils.error(responder, "Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
+          "or 'application/data-prep'");
+        return;
+      }
+      switch (type) {
+        case TEXT:
           // Convert the type into unicode.
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, Bytes.toBytes(body));
+          ws.updateWorkspaceData(id, DataType.TEXT, Bytes.toBytes(body));
           break;
-        }
 
-        case RECORDS: {
+        case RECORDS:
           delimiter = StringEscapeUtils.unescapeJava(delimiter);
-          String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+          body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
           List<Row> rows = new ArrayList<>();
           for (String line : body.split(delimiter)) {
             rows.add(new Row(COLUMN_NAME, line));
           }
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] bytes = serDe.toByteArray(rows);
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, bytes);
+          ws.updateWorkspaceData(id, DataType.RECORDS, bytes);
           break;
-        }
 
-        case BINARY: {
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, content);
+        case BINARY:
+          ws.updateWorkspaceData(id, DataType.BINARY, content);
           break;
-        }
-
-        default: {
-          error(responder, "Invalid content type. Supports text/plain, application/octet-stream " +
-            "and application/data-prep");
-          break;
-        }
       }
 
       // Write properties for workspace.
@@ -465,14 +449,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       properties.put(PropertyIds.CHARSET, charset);
       properties.put(PropertyIds.CONTENT_TYPE, contentType);
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
-      table.writeProperties(id, properties);
+      ws.updateWorkspaceProperties(id, properties);
 
       WorkspaceInfo workspaceInfo = new WorkspaceInfo(id, name, delimiter, charset, contentType,
                                                       ConnectionType.UPLOAD.getType(), SamplingMethod.NONE.getMethod());
       ServiceResponse<WorkspaceInfo> response = new ServiceResponse<>(workspaceInfo);
       responder.sendJson(response);
-    } catch (WorkspaceException | IOException e) {
-      error(responder, e.getMessage());
+    } catch (WorkspaceNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
+    } catch (IOException e) {
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -504,43 +490,39 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       // Extract content.
       byte[] content = handler.getContent();
       if (content == null) {
-        error(responder, "Body not present, please post the file containing the records to be wrangle.");
+        ServiceUtils.error(responder, "Body not present, please post the file containing the records to be wrangled.");
         return;
       }
 
       // Depending on content type, load data.
       DataType type = DataType.fromString(contentType);
-      switch(type) {
-        case TEXT: {
+      if (type == null) {
+        ServiceUtils.error(responder, "Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
+          "or 'application/data-prep'");
+        return;
+      }
+      switch (type) {
+        case TEXT:
           // Convert the type into unicode.
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, Bytes.toBytes(body));
+          ws.updateWorkspaceData(id, DataType.TEXT, Bytes.toBytes(body));
           break;
-        }
 
-        case RECORDS: {
+        case RECORDS:
           delimiter = StringEscapeUtils.unescapeJava(delimiter);
-          String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+          body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
           List<Row> rows = new ArrayList<>();
           for (String line : body.split(delimiter)) {
             rows.add(new Row(id, line));
           }
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] bytes = serDe.toByteArray(rows);
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, bytes);
+          ws.updateWorkspaceData(id, DataType.RECORDS, bytes);
           break;
-        }
 
-        case BINARY: {
-          table.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, content);
+        case BINARY:
+          ws.updateWorkspaceData(id, DataType.BINARY, content);
           break;
-        }
-
-        default: {
-          error(responder, "Invalid content type. Supports text/plain, application/octet-stream " +
-            "and application/data-prep");
-          break;
-        }
       }
 
       // Write properties for workspace.
@@ -549,11 +531,13 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       properties.put(PropertyIds.CHARSET, charset);
       properties.put(PropertyIds.CONTENT_TYPE, contentType);
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
-      table.writeProperties(id, properties);
+      ws.updateWorkspaceProperties(id, properties);
 
-      success(responder, String.format("Successfully uploaded data to workspace '%s'", id));
-    } catch (WorkspaceException | IOException e) {
-      error(responder, e.getMessage());
+      ServiceUtils.success(responder, String.format("Successfully uploaded data to workspace '%s'", id));
+    } catch (WorkspaceNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
+    } catch (IOException e) {
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -581,17 +565,20 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void execute(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
     try {
       RequestExtractor handler = new RequestExtractor(request);
-      Request user = handler.getContent("UTF-8", Request.class);
-      user.getRecipe().setPragma(addLoadablePragmaDirectives(user));
+      Request directiveRequest = handler.getContent("UTF-8", Request.class);
+      if (directiveRequest == null) {
+        ServiceUtils.error(responder, 400, "Request body is empty.");
+        return;
+      }
+      directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(directiveRequest));
 
-      final int limit = user.getSampling().getLimit();
-      List<Row> rows = executeDirectives(id, user, new Function<List<Row>, List<Row>>() {
-        @Nullable
-        @Override
-        public List<Row> apply(@Nullable List<Row> records) {
-          int min = Math.min(records.size(), limit);
-          return records.subList(0, min);
+      int limit = directiveRequest.getSampling().getLimit();
+      List<Row> rows = executeDirectives(id, directiveRequest, records -> {
+        if (records == null) {
+          return Collections.emptyList();
         }
+        int min = Math.min(records.size(), limit);
+        return records.subList(0, min);
       });
 
       List<Map<String, Object>> values = new ArrayList<>(rows.size());
@@ -601,7 +588,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       // Iterate through all the new rows.
       for (Row row : rows) {
         // If output array has more than return result values, we terminate.
-        if (values.size() >= user.getWorkspace().getResults()) {
+        if (values.size() >= directiveRequest.getWorkspace().getResults()) {
           break;
         }
 
@@ -628,20 +615,18 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       // Save the recipes being executed.
-      table.updateWorkspace(id, WorkspaceDataset.REQUEST_COL, GSON.toJson(user));
+      ws.updateWorkspaceRequest(id, directiveRequest);
 
-      DirectiveExecutionResponse response = new DirectiveExecutionResponse(values, headers, types,
-                                                                           user.getRecipe().getDirectives());
+      DirectiveExecutionResponse response =
+        new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
       responder.sendJson(response);
     } catch (JsonParseException e) {
-      LOG.warn(e.getMessage(), e);
-      error(responder, "Issue parsing request. " + e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, "Issue parsing request. " + e.getMessage());
     } catch (DirectiveParseException e) {
-      LOG.warn(e.getMessage(), e);
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -705,15 +690,18 @@ public class DirectivesService extends AbstractHttpServiceHandler {
                        @PathParam("id") String id) {
     try {
       RequestExtractor handler = new RequestExtractor(request);
-      Request user = handler.getContent("UTF-8", Request.class);
-      final int limit = user.getSampling().getLimit();
-      List<Row> rows = executeDirectives(id, user, new Function<List<Row>, List<Row>>() {
-        @Nullable
-        @Override
-        public List<Row> apply(@Nullable List<Row> records) {
-          int min = Math.min(records.size(), limit);
-          return records.subList(0, min);
+      Request directiveRequest = handler.getContent("UTF-8", Request.class);
+      if (directiveRequest == null) {
+        ServiceUtils.error(responder, 400, "Request body is empty.");
+        return;
+      }
+      int limit = directiveRequest.getSampling().getLimit();
+      List<Row> rows = executeDirectives(id, directiveRequest, records -> {
+        if (records == null) {
+          return Collections.emptyList();
         }
+        int min = Math.min(records.size(), limit);
+        return records.subList(0, min);
       });
 
       // Validate Column names.
@@ -772,8 +760,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       WorkspaceValidationResult validationResult = new WorkspaceValidationResult(columnValidationResults, statistics);
       WorkspaceSummaryResponse response = new WorkspaceSummaryResponse(validationResult);
       responder.sendJson(response);
-    } catch (Exception e) {
-      error(responder, e.getMessage());
+    } catch (JsonParseException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, "Issue parsing request. " + e.getMessage());
+    } catch (DirectiveParseException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+    }  catch (Exception e) {
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -784,14 +776,17 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     try {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
-      final int limit = user.getSampling().getLimit();
-      List<Row> rows = executeDirectives(id, user, new Function<List<Row>, List<Row>>() {
-        @Nullable
-        @Override
-        public List<Row> apply(@Nullable List<Row> records) {
-          int min = Math.min(records.size(), limit);
-          return records.subList(0, min);
+      if (user == null) {
+        ServiceUtils.error(responder, 400, "Request body is empty.");
+        return;
+      }
+      int limit = user.getSampling().getLimit();
+      List<Row> rows = executeDirectives(id, user, records -> {
+        if (records == null) {
+          return Collections.emptyList();
         }
+        int min = Math.min(records.size(), limit);
+        return records.subList(0, min);
       });
 
       // generate a schema based upon the first record
@@ -808,13 +803,12 @@ public class DirectivesService extends AbstractHttpServiceHandler {
         String fieldsJson = new JsonParser().parse(schemaJson)
                                     .getAsJsonObject()
                                     .get("fields").toString();
-        sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
+        ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
       } catch (RecordConvertorException e) {
-        error(responder, "There was a problem in generating schema for the record. " + e.getMessage());
-        return;
+        ServiceUtils.error(responder, "There was a problem in generating schema for the record. " + e.getMessage());
       }
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -832,7 +826,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     try (InputStream resourceStream = loader.getResourceAsStream(resourceName)) {
       props.load(resourceStream);
     } catch (IOException e) {
-      error(responder, "There was problem reading the capability matrix. " +
+      ServiceUtils.error(responder, "There was problem reading the capability matrix. " +
         "Please check the environment to ensure you have right verions of jar." + e.getMessage());
       return;
     }
@@ -870,7 +864,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Path("usage")
   public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
-      DirectiveConfig config = table.getConfig();
+      DirectiveConfig config = ws.getConfig();
       Map<String, List<String>> aliases = config.getReverseAlias();
       List<DirectiveUsage> values = new ArrayList<>();
 
@@ -899,7 +893,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       responder.sendJson(response);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -926,7 +920,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       ServiceResponse<DirectiveArtifact> response = new ServiceResponse<>(values);
       responder.sendJson(response);
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -956,7 +950,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       ServiceResponse<DirectiveDescriptor> response = new ServiceResponse<>(values);
       responder.sendJson(response);
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -970,9 +964,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
       composite.reload();
-      success(responder, "Successfully reloaded all user defined directives.");
+      ServiceUtils.success(responder, "Successfully reloaded all user defined directives.");
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -1003,13 +997,13 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       RequestExtractor handler = new RequestExtractor(request);
       DirectiveConfig config = handler.getContent("UTF-8", DirectiveConfig.class);
       if (config == null) {
-        error(responder, "Config is empty. Please check if the request is sent as HTTP POST body.");
+        ServiceUtils.error(responder, "Config is empty. Please check if the request is sent as HTTP POST body.");
         return;
       }
-      table.updateConfig(config);
-      success(responder, "Successfully updated configuration.");
+      ws.updateConfig(config);
+      ServiceUtils.success(responder, "Successfully updated configuration.");
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -1023,10 +1017,10 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   @Path("config")
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
     try {
-      String response = table.getConfigString();
-      sendJson(responder, HttpURLConnection.HTTP_OK, response);
+      String response = ws.getConfigString();
+      ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response);
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -1055,22 +1049,16 @@ public class DirectivesService extends AbstractHttpServiceHandler {
   /**
    * Converts the data in workspace into records.
    *
-   * @param id name of the workspace from which the records are generated.
+   * @param workspace the workspace to get records from
    * @return list of records.
-   * @throws WorkspaceException thrown when there is issue retrieving data.
    */
-  private List<Row> fromWorkspace(String id) throws WorkspaceException {
-    DataType type = table.getType(id);
+  private List<Row> fromWorkspace(Workspace workspace) throws IOException, ClassNotFoundException {
+    DataType type = workspace.getType();
     List<Row> rows = new ArrayList<>();
-
-    if (type == null) {
-      throw new WorkspaceException("Workspace you are currently working on seemed to have " +
-                                     "disappeared, please reload the data.");
-    }
 
     switch(type) {
       case TEXT: {
-        String data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.TEXT);
+        String data = Bytes.toString(workspace.getData());
         if (data != null) {
           rows.add(new Row("body", data));
         }
@@ -1078,7 +1066,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       case BINARY: {
-        byte[] data = table.getData(id, WorkspaceDataset.DATA_COL, DataType.BINARY);
+        byte[] data = workspace.getData();
         if (data != null) {
           rows.add(new Row("body", data));
         }
@@ -1086,7 +1074,11 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       }
 
       case RECORDS: {
-        rows = table.getData(id, WorkspaceDataset.DATA_COL, DataType.RECORDS);
+        if (workspace.getData() != null) {
+          try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(workspace.getData()))) {
+            rows = (List<Row>) ois.readObject();
+          }
+        }
         break;
       }
     }
@@ -1109,8 +1101,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
     }
 
     TransientStore store = new DefaultTransientStore();
+    Workspace workspace = ws.getWorkspace(id);
     // Extract rows from the workspace.
-    List<Row> rows = fromWorkspace(id);
+    List<Row> rows = fromWorkspace(workspace);
     // Execute the pipeline.
     ExecutorContext context = new ServicePipelineContext(ExecutorContext.Environment.SERVICE,
                                                          getContext(),
@@ -1120,7 +1113,7 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
       String migrate = migrator.migrate();
       RecipeParser recipe = new GrammarBasedParser(migrate, composite);
-      recipe.initialize(new ConfigDirectiveContext(table.getConfigString()));
+      recipe.initialize(new ConfigDirectiveContext(ws.getConfigString()));
       executor.initialize(recipe, context);
       rows = executor.execute(sample.apply(rows));
       executor.destroy();
