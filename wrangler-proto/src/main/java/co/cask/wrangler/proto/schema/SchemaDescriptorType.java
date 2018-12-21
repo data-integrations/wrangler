@@ -14,50 +14,27 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset.schema;
+package co.cask.wrangler.proto.schema;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * This class {@link SchemaDescriptorType} defines types of Schema supported by the Schema registry
  */
 public enum SchemaDescriptorType {
+  @SerializedName("avro")
   // Represents an AVRO schema.
-  AVRO("avro"),
+  AVRO,
 
+  @SerializedName("protobuf-desc")
   // Represents a protobuf descriptor schema.
-  PROTOBUF_DESC("protobuf-desc"),
+  PROTOBUF_DESC,
 
+  @SerializedName("protobuf-binary")
   // Represents schema is of type protobuf-binary which is compiled classes on protobuf.
-  PROTOBUF_BINARY("protobuf-binary"),
+  PROTOBUF_BINARY,
 
+  @SerializedName("copybook")
   // Defines copybook for COBOL EBCDIC data.
-  COPYBOOK("copybook");
-
-  // Defines the type of data.
-  String type;
-
-  SchemaDescriptorType(String type) {
-    this.type = type;
-  }
-
-  /**
-   * @return Type of schema definition.
-   */
-  public String getType() {
-    return type;
-  }
-
-  /**
-   * Converts the string representation of type into a {@link SchemaDescriptorType}.
-   *
-   * @param text representation of the type.
-   * @return an instance of {@link SchemaDescriptorType} based on it's string representation, null if not found.
-   */
-  public static SchemaDescriptorType fromString(String text) {
-    for (SchemaDescriptorType b : SchemaDescriptorType.values()) {
-      if (b.type.equalsIgnoreCase(text)) {
-        return b;
-      }
-    }
-    return null;
-  }
+  COPYBOOK;
 }
