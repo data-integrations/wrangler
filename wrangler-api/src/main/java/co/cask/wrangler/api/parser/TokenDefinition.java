@@ -93,18 +93,4 @@ public final class TokenDefinition implements Serializable {
     return type;
   }
 
-  /**
-   * Returns the <code>JsonElement</code> of this object <code>TokenDefinition</code>.
-   * @return An instance of <code>JsonElement</code> representing <code>TokenDefinition</code>
-   * this object.
-   */
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("name", name);
-    object.addProperty("type", type.name());
-    object.addProperty("ordinal", ordinal);
-    object.addProperty("optional", optional);
-    object.addProperty("label", label);
-    return object;
-  }
 }

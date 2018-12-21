@@ -16,11 +16,7 @@
 
 package co.cask.wrangler.registry;
 
-import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
-import co.cask.wrangler.api.DirectiveRegistry;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -68,23 +64,6 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
     for (int idx = 0; idx < registries.length; ++idx) {
       registries[idx].reload();
     }
-  }
-
-  /**
-   * Returns an <tt>JsonElement</tt> representation of this implementation of object.
-   * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
-   * are represented as <tt>JsonObject</tt>.
-   *
-   * @return An instance of {@link JsonElement} of this object.
-   */
-  @Override
-  public JsonElement toJson() {
-    JsonArray array = new JsonArray();
-    for (int i = 0; i < registries.length; ++i) {
-      JsonElement element = registries[i].toJson();
-      array.add(element);
-    }
-    return array;
   }
 
   /**
