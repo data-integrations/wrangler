@@ -52,7 +52,7 @@ import java.util.TimeZone;
 /**
  * Class description here.
  */
-public class DatabaseServiceTest {
+public class DatabaseHandlerTest {
   private static HSQLDBServer hsqlDBServer;
   private static final long CURRENT_TS = System.currentTimeMillis();
 
@@ -114,7 +114,7 @@ public class DatabaseServiceTest {
   @Test
   public void testReadingDriverConfiguration() throws Exception {
     Multimap<String, DriverInfo> drivers = ArrayListMultimap.create();
-    InputStream is = DatabaseService.class.getClassLoader().getResourceAsStream("drivers.mapping");
+    InputStream is = DatabaseHandler.class.getClassLoader().getResourceAsStream("drivers.mapping");
     try {
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
       String line;
@@ -169,7 +169,7 @@ public class DatabaseServiceTest {
          Statement stmt = conn.createStatement()) {
       stmt.execute("SELECT * FROM \"my_table\"");
       try (ResultSet resultSet = stmt.getResultSet()) {
-        List<Row> actual = DatabaseService.getRows(2, resultSet);
+        List<Row> actual = DatabaseHandler.getRows(2, resultSet);
         Assert.assertEquals(expected.get(0).getValue(0), actual.get(0).getValue(0));
         Assert.assertEquals(expected.get(0).getValue(1), actual.get(0).getValue(1));
         Assert.assertEquals(expected.get(0).getValue(2), actual.get(0).getValue(2));

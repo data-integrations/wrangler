@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2018-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,6 +15,8 @@
  */
 package co.cask.wrangler.proto;
 
+import java.util.Objects;
+
 /**
  * Workspace identifier information sent as response after reading table data into workspace
  */
@@ -25,5 +27,30 @@ public class WorkspaceIdentifier {
   public WorkspaceIdentifier(String id, String name) {
     this.id = id;
     this.name = name;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    WorkspaceIdentifier that = (WorkspaceIdentifier) o;
+    return Objects.equals(id, that.id) && Objects.equals(name, that.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, name);
   }
 }

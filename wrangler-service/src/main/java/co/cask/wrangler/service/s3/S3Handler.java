@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2018 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,6 +31,7 @@ import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.s3.S3ConnectionSample;
@@ -40,7 +41,7 @@ import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
 import co.cask.wrangler.service.FileTypeDetector;
-import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.service.explorer.BoundedLineInputStream;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -79,7 +80,7 @@ import static co.cask.wrangler.ServiceUtils.error;
 /**
  * Service to explore S3 filesystem
  */
-public class S3Service extends AbstractWranglerService {
+public class S3Handler extends AbstractWranglerHandler {
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
 
@@ -235,15 +236,11 @@ public class S3Service extends AbstractWranglerService {
                          @PathParam("bucket-name") String bucketName,
                          @QueryParam("key") final String key, @QueryParam("lines") int lines,
                          @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
-                         @QueryParam("scope") String scope) {
+                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     try {
       if (Strings.isNullOrEmpty(key)) {
         responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Required query param 'key' is missing in the input");
         return;
-      }
-
-      if (Strings.isNullOrEmpty(scope)) {
-        scope = WorkspaceDataset.DEFAULT_SCOPE;
       }
 
       String header = request.getHeader(PropertyIds.CONTENT_TYPE);
@@ -259,7 +256,7 @@ public class S3Service extends AbstractWranglerService {
             loadSamplableFile(connection.getId(), responder, scope, inputStream, object, lines, fraction, sampler);
             return;
           }
-          loadFile(connection.getId(), responder, inputStream, object);
+          loadFile(connection.getId(), scope, responder, inputStream, object);
         }
       } else {
         ServiceUtils.error(responder,
@@ -289,7 +286,7 @@ public class S3Service extends AbstractWranglerService {
     try {
       Format format = Format.TEXT;
       if (workspaceId != null) {
-        Map<String, String> config = ws.getProperties(workspaceId);
+        Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         format = Format.valueOf(formatStr);
       }
@@ -326,7 +323,19 @@ public class S3Service extends AbstractWranglerService {
       String file = String.format("%s:%s:%s", scope, s3Object.getBucketName(), s3Object.getKey());
       String identifier = ServiceUtils.generateMD5(file);
       String fileName = name.substring(name.lastIndexOf("/") + 1);
-      ws.createWorkspaceMeta(identifier, scope, fileName);
+      Map<String, String> properties = new HashMap<>();
+      properties.put(PropertyIds.ID, identifier);
+      properties.put(PropertyIds.NAME, fileName);
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
+      properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
+      properties.put(PropertyIds.CONNECTION_ID, connectionId);
+      properties.put("bucket-name", s3Object.getBucketName());
+      properties.put("key", s3Object.getKey());
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, fileName)
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
 
       // Iterate through lines to extract only 'limit' random lines.
       // Depending on the type, the sampling of the input is performed.
@@ -343,22 +352,10 @@ public class S3Service extends AbstractWranglerService {
         rows.add(new Row(COLUMN_NAME, it.next()));
       }
 
-      // Set all properties and write to workspace.
-      Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, identifier);
-      properties.put(PropertyIds.NAME, fileName);
-      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
-      properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
-      properties.put(PropertyIds.CONNECTION_ID, connectionId);
-      // S3 specific properties.
-      properties.put("bucket-name", s3Object.getBucketName());
-      properties.put("key", s3Object.getKey());
-      ws.writeProperties(identifier, properties);
-
       // Write rows to workspace.
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] data = serDe.toByteArray(rows);
-      ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
+      ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
 
       // Preparing return response to include mandatory fields : id and name.
       S3ConnectionSample sampleInfo = new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),
@@ -371,7 +368,7 @@ public class S3Service extends AbstractWranglerService {
     }
   }
 
-  private void loadFile(String connectionId, HttpServiceResponder responder, InputStream inputStream,
+  private void loadFile(String connectionId, String scope, HttpServiceResponder responder, InputStream inputStream,
                         S3Object s3Object) {
     BufferedInputStream stream = null;
     try {
@@ -387,13 +384,11 @@ public class S3Service extends AbstractWranglerService {
       String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
       String identifier = ServiceUtils.generateMD5(file);
       String fileName = name.substring(name.lastIndexOf("/") + 1);
-      ws.createWorkspaceMeta(identifier, fileName);
 
       stream = new BufferedInputStream(inputStream);
       byte[] bytes = new byte[(int) s3Object.getObjectMetadata().getContentLength() + 1];
       stream.read(bytes);
 
-      // Set all properties and write to workspace.
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, identifier);
       properties.put(PropertyIds.NAME, fileName);
@@ -407,8 +402,12 @@ public class S3Service extends AbstractWranglerService {
       // S3 specific properties.
       properties.put("bucket-name", s3Object.getBucketName());
       properties.put("key", s3Object.getKey());
-      ws.writeProperties(identifier, properties);
-      ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, getDataType(name), bytes);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, fileName)
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
+      ws.updateWorkspaceData(identifier, getDataType(name), bytes);
 
       // Preparing return response to include mandatory fields : id and name.
       S3ConnectionSample sampleInfo = new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),

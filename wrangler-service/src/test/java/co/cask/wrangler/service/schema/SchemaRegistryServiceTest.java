@@ -17,7 +17,7 @@
 package co.cask.wrangler.service.schema;
 
 /**
- * Tests {@link SchemaRegistryService}
+ * Tests {@link SchemaRegistryHandler}
  */
 public class SchemaRegistryServiceTest {
   // NOTE: Once, we fix the issue with the guava inclusion in TestBase, need to add tests here.

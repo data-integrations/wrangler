@@ -16,18 +16,14 @@
 
 package co.cask.wrangler.service.connections;
 
-import co.cask.cdap.api.annotation.UseDataSet;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
@@ -56,21 +52,16 @@ import static co.cask.wrangler.ServiceUtils.notFound;
 /**
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
  */
-public class ConnectionService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(ConnectionService.class);
+public class ConnectionHandler extends AbstractWranglerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(ConnectionHandler.class);
   private static final String CONNECTION_TYPE_CONFIG = "connectionTypeConfig";
   private static final Gson GSON = new Gson();
   private static final String ALL_TYPES = "*";
-  // Data Prep store which stores all the information associated with dataprep.
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
-  private Table table;
 
-  // Abstraction over the table defined above for managing connections.
-  private ConnectionStore store;
   private ConnectionTypeConfig connectionTypeConfig;
   private List<ConnectionTypeInfo> enabledConnectionTypes;
 
-  public ConnectionService(ConnectionTypeConfig connectionTypeConfig) {
+  public ConnectionHandler(ConnectionTypeConfig connectionTypeConfig) {
     this.connectionTypeConfig = connectionTypeConfig;
   }
 
@@ -88,7 +79,6 @@ public class ConnectionService extends AbstractHttpServiceHandler {
   @Override
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
-    store = new ConnectionStore(table);
     // initialize available connections
     this.enabledConnectionTypes = new ArrayList<>();
     String connectionTypeConfigString = context.getSpecification().getProperty(CONNECTION_TYPE_CONFIG);
