@@ -57,7 +57,7 @@ public class GCSServiceTest {
       String fileType = detector.detectFileType(blobName);
 
       try (ReadChannel reader = blob.reader()) {
-        int min = Math.min(blob.getSize().intValue(), GCSService.FILE_SIZE);
+        int min = (int) Math.min(blob.getSize(), GCSService.FILE_SIZE);
         reader.setChunkSize(min);
         byte[] bytes = new byte[min];
         WritableByteChannel writable = Channels.newChannel(new ByteArrayOutputStream(min));
