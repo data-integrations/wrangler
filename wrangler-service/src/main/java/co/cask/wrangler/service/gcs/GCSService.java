@@ -89,7 +89,7 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
  */
 public class GCSService extends AbstractWranglerService {
   private static final Logger LOG = LoggerFactory.getLogger(GCSService.class);
-  static final int FILE_SIZE = 10 * 1024 * 1024;
+  static final long FILE_SIZE = 10 * 1024 * 1024;
   private FileTypeDetector detector;
 
   @Override
@@ -305,11 +305,11 @@ public class GCSService extends AbstractWranglerService {
   }
 
   private byte[] readGCSFile(Blob blob, int len) throws IOException {
-    try (ReadChannel reader = blob.reader()) {
+    try (ReadChannel reader = blob.reader();
+      ByteArrayOutputStream os = new ByteArrayOutputStream(len)) {
       reader.setChunkSize(len);
-      byte[] bytes = new byte[len];
-      WritableByteChannel writable = Channels.newChannel(new ByteArrayOutputStream(len));
-      ByteBuffer buf = ByteBuffer.wrap(bytes);
+      WritableByteChannel writable = Channels.newChannel(os);
+      ByteBuffer buf = ByteBuffer.wrap(new byte[8192]);
       long total = len;
       while (reader.read(buf) != -1 && total > 0) {
         buf.flip();
@@ -318,7 +318,7 @@ public class GCSService extends AbstractWranglerService {
         }
         buf.clear();
       }
-      return bytes;
+      return os.toByteArray();
     }
   }
 
@@ -371,7 +371,8 @@ public class GCSService extends AbstractWranglerService {
       File file = new File(blobName);
 
       if (!blob.isDirectory()) {
-        byte[] bytes = readGCSFile(blob, Math.min(blob.getSize().intValue(), GCSService.FILE_SIZE));
+        boolean shouldTruncate = blob.getSize() > FILE_SIZE;
+        byte[] bytes = readGCSFile(blob, (int) (shouldTruncate ? FILE_SIZE : blob.getSize()));
         ws.createWorkspaceMeta(id, scope, file.getName());
 
         String encoding = BytesDecoder.guessEncoding(bytes);
@@ -387,8 +388,10 @@ public class GCSService extends AbstractWranglerService {
           }
 
           List<Row> rows = new ArrayList<>();
-          for (String line : lines) {
-            rows.add(new Row("body", line));
+          // if the content was truncated, ignore the last line because it's probably not complete.
+          int numLines = shouldTruncate && lines.length > 1 ? lines.length - 1 : lines.length;
+          for (int i = 0; i < numLines; i++) {
+            rows.add(new Row("body", lines[i]));
           }
 
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
