@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,9 +17,6 @@
 package co.cask.wrangler.api.parser;
 
 import co.cask.wrangler.api.Optional;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -46,7 +43,8 @@ import java.util.List;
  * @see TokenDefinition
  */
 public final class UsageDefinition implements Serializable {
-  private final int optionalCnt;
+  // transient so it doesn't show up when serialized using gson in service endpoint responses
+  private final transient int optionalCnt;
   private String directive;
   private final List<TokenDefinition> tokens;
 
@@ -142,23 +140,6 @@ public final class UsageDefinition implements Serializable {
       }
     }
     return sb.toString();
-  }
-
-  /**
-   * This method provides a <code>JsonElement</code> object for this <code>UsageDefinition</code>
-   * object.
-   *
-   * @return A instance of <code>JsonElement</code> representing the state of this object.
-   */
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("directive", directive);
-    JsonArray array = new JsonArray();
-    for (TokenDefinition token : tokens) {
-      array.add(token.toJson());
-    }
-    object.add("tokens", array);
-    return object;
   }
 
   /**

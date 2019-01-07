@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017-2018 Cask Data, Inc.
+ *  Copyright © 2017-2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -17,9 +17,7 @@
 package co.cask.wrangler.registry;
 
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
-import co.cask.wrangler.api.DirectiveRegistry;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.reflections.Reflections;
@@ -98,22 +96,6 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   @Override
   public void reload() {
     // No-op.
-  }
-
-  /**
-   * Returns an <tt>JsonElement</tt> representation of this implementation of object.
-   * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
-   * are represented as <tt>JsonObject</tt>.
-   *
-   * @return An instance of {@link JsonElement} of this object.
-   */
-  @Override
-  public JsonElement toJson() {
-    JsonObject response = new JsonObject();
-    for (Map.Entry<String, DirectiveInfo> entry : registry.entrySet()) {
-      response.add(entry.getKey(), entry.getValue().toJson());
-    }
-    return response;
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2017-2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -22,17 +22,17 @@ import co.cask.wrangler.api.CompileStatus;
 import co.cask.wrangler.api.Compiler;
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveContext;
-import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
 import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
-import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.parser.DirectiveName;
 import co.cask.wrangler.api.parser.SyntaxError;
 import co.cask.wrangler.api.parser.UsageDefinition;
+import co.cask.wrangler.registry.DirectiveInfo;
+import co.cask.wrangler.registry.DirectiveRegistry;
 import com.google.common.base.Joiner;
 
 import java.util.ArrayList;
