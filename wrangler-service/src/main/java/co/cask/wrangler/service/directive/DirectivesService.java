@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2018 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -732,9 +732,9 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       for (String name : uniqueColumns) {
         try {
           validator.validate(name);
-          columnValidationResults.put(name, new ColumnValidationResult(true, null));
+          columnValidationResults.put(name, new ColumnValidationResult(null));
         } catch (ValidatorException e) {
-          columnValidationResults.put(name, new ColumnValidationResult(false, e.getMessage()));
+          columnValidationResults.put(name, new ColumnValidationResult(e.getMessage()));
         }
       }
 
@@ -883,8 +883,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
 
         // For this directive we find all aliases and add them to the
         // description.
-        if (aliases.containsKey(directive)) {
-          List<String> list = aliases.get(directive);
+        if (aliases.containsKey(directive.name())) {
+          List<String> list = aliases.get(directive.name());
           for (String alias : list) {
             directiveUsage = new DirectiveUsage(alias, directive.usage(), directive.description(),
                                                 config.isExcluded(directive.name()), true,
@@ -945,7 +945,8 @@ public class DirectivesService extends AbstractHttpServiceHandler {
       List<ArtifactInfo> artifacts = getContext().listArtifacts();
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
-        DirectiveArtifact directiveArtifact = new DirectiveArtifact(artifact);
+        DirectiveArtifact directiveArtifact =
+          new DirectiveArtifact(artifact.getName(), artifact.getVersion(), artifact.getScope().name());
         for (PluginClass plugin : plugins) {
           if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
             values.add(new DirectiveDescriptor(plugin, directiveArtifact));

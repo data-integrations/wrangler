@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -25,8 +25,8 @@ public class ColumnValidationResult {
   private final boolean valid;
   private final String message;
 
-  public ColumnValidationResult(boolean valid, @Nullable String message) {
-    this.valid = valid;
+  public ColumnValidationResult(@Nullable String message) {
+    this.valid = message != null;
     this.message = message;
   }
 }

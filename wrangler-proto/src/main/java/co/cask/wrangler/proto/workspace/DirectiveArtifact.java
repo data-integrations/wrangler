@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -34,5 +34,12 @@ public class DirectiveArtifact {
     this.version = artifactInfo.getVersion();
     this.scope = artifactInfo.getScope().name();
     this.properties = artifactInfo.getProperties();
+  }
+
+  public DirectiveArtifact(String name, String version, String scope) {
+    this.name = name;
+    this.version = version;
+    this.scope = scope;
+    this.properties = null;
   }
 }
