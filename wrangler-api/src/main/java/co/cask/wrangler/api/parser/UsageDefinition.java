@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -43,7 +43,8 @@ import java.util.List;
  * @see TokenDefinition
  */
 public final class UsageDefinition implements Serializable {
-  private final int optionalCnt;
+  // transient so it doesn't show up when serialized using gson in service endpoint responses
+  private final transient int optionalCnt;
   private String directive;
   private final List<TokenDefinition> tokens;
 
