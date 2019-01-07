@@ -32,6 +32,11 @@
       <version>${cdap.version}</version>
     </dependency>
     <dependency>
+      <groupId>co.cask.wrangler</groupId>
+      <artifactId>wrangler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>${gson.version}</version>

@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017-2018 Cask Data, Inc.
+ *  Copyright © 2017-2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -21,15 +21,11 @@ import co.cask.cdap.api.annotation.Name;
 import co.cask.cdap.api.annotation.Plugin;
 import co.cask.wrangler.api.Arguments;
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.api.DirectiveInfo;
-import co.cask.wrangler.api.DirectiveRegistry;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -89,11 +85,6 @@ public class CompositeDirectiveRegistryTest {
     @Override
     public void reload() {
       // no-op
-    }
-
-    @Override
-    public JsonElement toJson() {
-      return new JsonObject();
     }
 
     @Override

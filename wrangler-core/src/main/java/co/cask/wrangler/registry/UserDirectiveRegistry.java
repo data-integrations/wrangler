@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2017-2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -22,13 +22,9 @@ import co.cask.cdap.api.artifact.CloseableClassLoader;
 import co.cask.cdap.api.plugin.PluginClass;
 import co.cask.cdap.etl.api.StageContext;
 import co.cask.wrangler.api.Directive;
-import co.cask.wrangler.api.DirectiveInfo;
 import co.cask.wrangler.api.DirectiveLoadException;
-import co.cask.wrangler.api.DirectiveRegistry;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,7 +57,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * @see SystemDirectiveRegistry
  * @see CompositeDirectiveRegistry
  */
-public final class  UserDirectiveRegistry implements DirectiveRegistry {
+public final class UserDirectiveRegistry implements DirectiveRegistry {
   private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
   private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
   private StageContext context = null;
@@ -189,22 +185,6 @@ public final class  UserDirectiveRegistry implements DirectiveRegistry {
         throw new DirectiveLoadException(e.getMessage(), e);
       }
     }
-  }
-
-  /**
-   * Returns an <tt>JsonElement</tt> representation of this implementation of object.
-   * Arrays, Sets are represented as <tt>JsonArray</tt> and other object and map types
-   * are represented as <tt>JsonObject</tt>.
-   *
-   * @return An instance of {@link JsonElement} of this object.
-   */
-  @Override
-  public JsonElement toJson() {
-    JsonObject response = new JsonObject();
-    for (Map.Entry<String, DirectiveInfo> entry : registry.entrySet()) {
-      response.add(entry.getKey(), entry.getValue().toJson());
-    }
-    return response;
   }
 
   /**

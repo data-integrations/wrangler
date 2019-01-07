@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -93,18 +93,4 @@ public final class TokenDefinition implements Serializable {
     return type;
   }
 
-  /**
-   * Returns the <code>JsonElement</code> of this object <code>TokenDefinition</code>.
-   * @return An instance of <code>JsonElement</code> representing <code>TokenDefinition</code>
-   * this object.
-   */
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("name", name);
-    object.addProperty("type", type.name());
-    object.addProperty("ordinal", ordinal);
-    object.addProperty("optional", optional);
-    object.addProperty("label", label);
-    return object;
-  }
 }
