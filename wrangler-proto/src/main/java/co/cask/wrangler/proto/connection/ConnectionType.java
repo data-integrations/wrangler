@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,16 +14,16 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset.connections;
+package co.cask.wrangler.proto.connection;
 
-import co.cask.wrangler.api.annotations.PublicEvolving;
 
 /**
  * This class {@link ConnectionType} defines different connections from which the data is extracted.
+ *
+ * TODO: (CDAP-14619) make casing consistent. User requests currently must have the type as upper case,
+ *  then the lower case version is stored in several places and returned in several responses.
  */
-@PublicEvolving
 public enum ConnectionType {
-  UNDEFINED("undefined"),
   UPLOAD("upload"),
   FILE("file"),
   DATABASE("database"),
@@ -47,21 +47,4 @@ public enum ConnectionType {
     return type;
   }
 
-  /**
-   * Provided the connection type as string, determine the enum type of {@link ConnectionType}.
-   *
-   * @param from string for which the {@link ConnectionType} instance need to be determined.
-   * @return if there is a string representation of enum, else null.
-   */
-  public static ConnectionType fromString(String from) {
-    if (from == null || from.isEmpty()) {
-      return null;
-    }
-    for (ConnectionType method : ConnectionType.values()) {
-      if (method.type.equalsIgnoreCase(from)) {
-        return method;
-      }
-    }
-    return null;
-  }
 }

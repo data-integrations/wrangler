@@ -20,16 +20,25 @@ import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
+import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.DataPrep;
+import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.Workspace;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceNotFoundException;
 import co.cask.wrangler.proto.Recipe;
 import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionType;
+import org.apache.tephra.TransactionFailureException;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
+
+import static co.cask.wrangler.ServiceUtils.error;
 
 /**
  * Common functionality for wrangler services.
@@ -75,5 +84,38 @@ public class AbstractWranglerHandler extends AbstractHttpServiceHandler {
     } catch (WorkspaceNotFoundException e) {
       return false;
     }
+  }
+
+  /**
+   * Validates that the specified connection exists and is of the expected type.
+   * Returns null if the connection does not exist or is invalid. Callers should return immediately if
+   * a null is returned, as a response has already been sent. This method should only be called from endpoints
+   * that use explicit transaction control.
+   *
+   * @param connectionId the id of the connection
+   * @param expectedType the expected type of the connection
+   * @param responder http responder
+   * @return the validated connection, or null if it does not exist or is invalid
+   */
+  @Nullable
+  protected Connection getValidatedConnection(String connectionId, ConnectionType expectedType,
+                                              HttpServiceResponder responder) {
+    AtomicReference<Connection> connectionRef = new AtomicReference<>();
+    try {
+      getContext().execute(datasetContext -> connectionRef.set(store.get(connectionId)));
+    } catch (TransactionFailureException e) {
+      if (e.getCause() instanceof ConnectionNotFoundException) {
+        ServiceUtils.notFound(responder, e.getCause().getMessage());
+        return null;
+      }
+      ServiceUtils.error(responder, e.getMessage());
+      return null;
+    }
+    Connection connection = connectionRef.get();
+    if (expectedType != connection.getType()) {
+      error(responder, "Invalid connection type set, this endpoint only accepts GCS connection type");
+      return null;
+    }
+    return connection;
   }
 }

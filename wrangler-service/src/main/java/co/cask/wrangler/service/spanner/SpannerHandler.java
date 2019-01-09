@@ -25,14 +25,16 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.proto.spanner.SpannerDatabase;
 import co.cask.wrangler.proto.spanner.SpannerSpec;
 import co.cask.wrangler.proto.spanner.SpannerTable;
@@ -49,7 +51,6 @@ import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
-import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -100,12 +101,12 @@ public class SpannerHandler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.SPANNER);
       GCPUtils.validateProjectCredentials(connection);
       getInstances(connection);
       ServiceUtils.success(responder, "Success");
     } catch (BadRequestException e) {
-      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -117,16 +118,18 @@ public class SpannerHandler extends AbstractWranglerHandler {
   @GET
   @Path("/connections/{connection-id}/spanner/instances")
   public void getSpannerInstances(HttpServiceRequest request, HttpServiceResponder responder,
-                                  @PathParam("connection-id") final String connectionId) {
+                                  @PathParam("connection-id") String connectionId) {
     try {
       Connection connection = store.get(connectionId);
-      validateConnection(connectionId, connection);
+      validateConnection(connection);
       List<SpannerInstance> instances = getInstances(connection);
       responder.sendJson(new ServiceResponse<>(instances));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_NOT_FOUND, e.getMessage());
     } catch (BadRequestException e) {
-      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      responder.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
     }
   }
 
@@ -136,17 +139,19 @@ public class SpannerHandler extends AbstractWranglerHandler {
   @GET
   @Path("/connections/{connection-id}/spanner/instances/{instance-id}/databases")
   public void getSpannerDatabases(HttpServiceRequest request, HttpServiceResponder responder,
-                                  @PathParam("connection-id") final String connectionId,
-                                  @PathParam("instance-id") final String instanceId) {
+                                  @PathParam("connection-id") String connectionId,
+                                  @PathParam("instance-id") String instanceId) {
     try {
       Connection connection = store.get(connectionId);
-      validateConnection(connectionId, connection);
+      validateConnection(connection);
       List<SpannerDatabase> databases = getDatabases(connection, instanceId);
       responder.sendJson(new ServiceResponse<>(databases));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_NOT_FOUND, e.getMessage());
     } catch (BadRequestException e) {
-      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      responder.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
     }
   }
 
@@ -159,18 +164,20 @@ public class SpannerHandler extends AbstractWranglerHandler {
   @GET
   @Path("/connections/{connection-id}/spanner/instances/{instance-id}/databases/{database-id}/tables")
   public void getSpannerTables(HttpServiceRequest request, HttpServiceResponder responder,
-                               @PathParam("connection-id") final String connectionId,
-                               @PathParam("instance-id") final String instanceId,
-                               @PathParam("database-id") final String databaseId) {
+                               @PathParam("connection-id") String connectionId,
+                               @PathParam("instance-id") String instanceId,
+                               @PathParam("database-id") String databaseId) {
     try {
       Connection connection = store.get(connectionId);
-      validateConnection(connectionId, connection);
+      validateConnection(connection);
       List<SpannerTable> tables = getTables(connection, instanceId, databaseId);
       responder.sendJson(new ServiceResponse<>(tables));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_NOT_FOUND, e.getMessage());
     } catch (BadRequestException e) {
-      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      responder.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
     }
   }
 
@@ -180,22 +187,22 @@ public class SpannerHandler extends AbstractWranglerHandler {
   @GET
   @Path("/connections/{connection-id}/spanner/instances/{instance-id}/databases/{database-id}/tables/{table-id}/read")
   public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("connection-id") final String connectionId,
-                        @PathParam("instance-id") final String instanceId,
-                        @PathParam("database-id") final String databaseId,
-                        @PathParam("table-id") final String tableId,
+                        @PathParam("connection-id") String connectionId,
+                        @PathParam("instance-id") String instanceId,
+                        @PathParam("database-id") String databaseId,
+                        @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
                         @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
     try {
       Connection connection = store.get(connectionId);
-      validateConnection(connectionId, connection);
+      validateConnection(connection);
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
       List<Row> data = getTableData(connection, instanceId, databaseId, tableId, schema, Long.parseLong(limit));
 
       // create workspace id
       String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
 
-      Map<String, String> connectionProperties = connection.getAllProps();
+      Map<String, String> connectionProperties = connection.getProperties();
       String projectId = connectionProperties.get(GCPUtils.PROJECT_ID);
       String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
 
@@ -224,10 +231,12 @@ public class SpannerHandler extends AbstractWranglerHandler {
       ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.SPANNER.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
       responder.sendJson(new ServiceResponse<>(sample));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_NOT_FOUND, e.getMessage());
     } catch (BadRequestException e) {
-      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      responder.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
     }
   }
 
@@ -258,9 +267,9 @@ public class SpannerHandler extends AbstractWranglerHandler {
       ServiceResponse<SpannerSpec> response = new ServiceResponse<>(spannerSpec);
       responder.sendJson(response);
     } catch (JsonSyntaxException | BadRequestException e) {
-      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
-      responder.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, e.getMessage());
     }
   }
 
@@ -382,10 +391,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
     return row;
   }
 
-  private void validateConnection(String inputConnectionId, Connection connection) throws BadRequestException {
-    if (connection == null) {
-      throw new BadRequestException("Unable to find connection in store for the connection id - " + inputConnectionId);
-    }
+  private void validateConnection(Connection connection) throws BadRequestException {
     if (ConnectionType.SPANNER != connection.getType()) {
       throw new BadRequestException(
         String.format("Invalid connection type %s set, this endpoint only accepts %s",
@@ -393,7 +399,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
     }
   }
 
-  private List<SpannerInstance> getInstances(Connection connection) throws Exception {
+  private List<SpannerInstance> getInstances(ConnectionMeta connection) throws Exception {
     Spanner spanner = GCPUtils.getSpannerService(connection);
     try {
       List<SpannerInstance> instanceNames = new ArrayList<>();
@@ -405,7 +411,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
     }
   }
 
-  private List<SpannerDatabase> getDatabases(Connection connection, String instanceId) throws Exception {
+  private List<SpannerDatabase> getDatabases(ConnectionMeta connection, String instanceId) throws Exception {
     Spanner spanner = GCPUtils.getSpannerService(connection);
     try {
       List<SpannerDatabase> databases = new ArrayList<>();

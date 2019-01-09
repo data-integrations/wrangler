@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.service.kafka;
 
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.DoubleDeserializer;
@@ -39,17 +39,17 @@ public final class KafkaConfiguration {
   private String keyDeserializer;
   private String valueDeserializer;
 
-  public KafkaConfiguration(Connection conn) {
+  public KafkaConfiguration(ConnectionMeta conn) {
     keyDeserializer = StringDeserializer.class.getName();
     valueDeserializer = keyDeserializer;
 
     if (conn.getType() != ConnectionType.KAFKA) {
       throw new IllegalArgumentException(
-        String.format("Connection id '%s', name '%s' is not a Kafka configuration.", conn.getId(), conn.getName())
+        String.format("Connection '%s' is not a Kafka configuration.", conn.getName())
       );
     }
 
-    Map<String, String> properties = conn.getAllProps();
+    Map<String, String> properties = conn.getProperties();
     if (properties == null || properties.size() == 0) {
       throw new IllegalArgumentException("Kafka properties are not defined. Check connection setting.");
     }
