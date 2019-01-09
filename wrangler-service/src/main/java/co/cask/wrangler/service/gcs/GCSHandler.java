@@ -28,13 +28,15 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.proto.gcs.GCSBucketInfo;
 import co.cask.wrangler.proto.gcs.GCSConnectionSample;
 import co.cask.wrangler.proto.gcs.GCSObjectInfo;
@@ -52,7 +54,6 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
@@ -112,24 +113,14 @@ public class GCSHandler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
-      if (connection == null) {
-        responder.sendError(400, "Connection information is missing from the request body.");
-        return;
-      }
-      ConnectionType connectionType = ConnectionType.fromString(connection.getType().getType());
-      if (connectionType == ConnectionType.UNDEFINED || connectionType != ConnectionType.GCS) {
-        error(responder,
-              String.format("Invalid connection type %s set, expected 'GCS' connection type.",
-                            connectionType.getType()));
-        return;
-      }
-
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.GCS);
       GCPUtils.validateProjectCredentials(connection);
 
       Storage storage = GCPUtils.getStorageService(connection);
       storage.list(Storage.BucketListOption.pageSize(1));
       ServiceUtils.success(responder, "Success");
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -158,21 +149,18 @@ public class GCSHandler extends AbstractWranglerHandler {
   @GET
   @Path("/connections/{connection-id}/gcs/explore")
   public void exploreGCS(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("connection-id") final String connectionId,
+                         @PathParam("connection-id") String connectionId,
                          @QueryParam("path") String path,
                          @QueryParam("limit") @DefaultValue("1000") int objectLimit) {
     String bucketName = "";
     String prefix = null;
 
+    Connection connection = getValidatedConnection(connectionId, ConnectionType.GCS, responder);
+    if (connection == null) {
+      return;
+    }
+
     try {
-      final Connection[] connections = new Connection[1];
-      getContext().execute(datasetContext -> connections[0] = store.get(connectionId));
-
-      if (!validateConnection(connectionId, connections[0], responder)) {
-        return;
-      }
-
-      Connection connection = connections[0];
       int bucketStart = path.indexOf("/");
       if (bucketStart != -1) {
         int bucketEnd = path.indexOf("/", bucketStart + 1);
@@ -292,7 +280,7 @@ public class GCSHandler extends AbstractWranglerHandler {
                          @PathParam("connection-id") String connectionId,
                          @PathParam("bucket") String bucket,
                          @QueryParam("blob") final String blobPath,
-                         @QueryParam("scope") String scope) {
+                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
 
     String contentType = request.getHeader(PropertyIds.CONTENT_TYPE);
 
@@ -305,16 +293,12 @@ public class GCSHandler extends AbstractWranglerHandler {
         return;
       }
 
-      if (scope == null || scope.isEmpty()) {
-        scope = WorkspaceDataset.DEFAULT_SCOPE;
-      }
+      Map<String, String> properties = new HashMap<>();
 
       Connection connection = store.get(connectionId);
       if (!validateConnection(connectionId, connection, responder)) {
         return;
       }
-
-      Map<String, String> properties = new HashMap<>();
       Storage storage = GCPUtils.getStorageService(connection);
       Blob blob = storage.get(BlobId.of(bucket, blobPath));
       if (blob == null) {
@@ -326,6 +310,20 @@ public class GCSHandler extends AbstractWranglerHandler {
       String blobName = blob.getName();
       String id = ServiceUtils.generateMD5(String.format("%s:%s", scope, blobName));
       File file = new File(blobName);
+
+      // Set all properties and write to workspace.
+      properties.put(PropertyIds.FILE_NAME, file.getCanonicalPath());
+      properties.put(PropertyIds.URI, String.format("gs://%s/%s", bucket, blobPath));
+      properties.put(PropertyIds.FILE_PATH, blobPath);
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.GCS.getType());
+      properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+      properties.put(PropertyIds.CONNECTION_ID, connectionId);
+      properties.put("bucket", bucket);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, file.getName())
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
 
       if (!blob.isDirectory()) {
         boolean shouldTruncate = blob.getSize() > FILE_SIZE;
@@ -365,20 +363,6 @@ public class GCSHandler extends AbstractWranglerHandler {
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         }
 
-        // Set all properties and write to workspace.
-        properties.put(PropertyIds.FILE_NAME, file.getCanonicalPath());
-        properties.put(PropertyIds.URI, String.format("gs://%s/%s", bucket, blobPath));
-        properties.put(PropertyIds.FILE_PATH, blobPath);
-        properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.GCS.getType());
-        properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-        properties.put(PropertyIds.CONNECTION_ID, connectionId);
-        properties.put("bucket", bucket);
-        WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, file.getName())
-          .setScope(scope)
-          .setProperties(properties)
-          .build();
-        ws.writeWorkspaceMeta(workspaceMeta);
-
         // Preparing return response to include mandatory fields : id and name.
         GCSConnectionSample connectionSample =
           new GCSConnectionSample(id, file.getName(), ConnectionType.GCS.getType(), SamplingMethod.NONE.getMethod(),
@@ -390,6 +374,8 @@ public class GCSHandler extends AbstractWranglerHandler {
       } else {
         error(responder, HttpURLConnection.HTTP_BAD_REQUEST, "Path specified is not a file.");
       }
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       LOG.warn(
         String.format("Read path '%s', bucket '%s' failed.", blobPath, bucket),
@@ -415,6 +401,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       responder.sendError(400, "Workspace ID must be passed as query parameter 'wid'.");
       return;
     }
+
     try {
 
       Connection connection = store.get(connectionId);
@@ -433,7 +420,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       Map<String, String> properties = new HashMap<>();
       properties.put("format", format.name().toLowerCase());
       properties.put("referenceName", externalDatasetName);
-      properties.put("serviceFilePath", connection.getProp(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+      properties.put("serviceFilePath", connection.getProperties().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("project", GCPUtils.getProjectId(connection));
       properties.put("path", uri);
       properties.put("recursive", "false");
@@ -445,13 +432,15 @@ public class GCSHandler extends AbstractWranglerHandler {
 
       ServiceResponse<GCSSpec> response = new ServiceResponse<>(spec);
       responder.sendJson(response);
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
   }
 
   private Set<String> getBucketWhitelist(Connection connection) {
-    String whitelistStr = connection.getAllProps().get("bucketWhitelist");
+    String whitelistStr = connection.getProperties().get("bucketWhitelist");
     Set<String> whitelist = new LinkedHashSet<>();
     if (whitelistStr == null) {
       return whitelist;

@@ -16,9 +16,27 @@
 
 package co.cask.wrangler.dataset.connections;
 
+import co.cask.cdap.api.Predicate;
 import co.cask.cdap.api.common.Bytes;
+import co.cask.cdap.api.data.schema.Schema;
+import co.cask.cdap.api.dataset.table.Put;
+import co.cask.cdap.api.dataset.table.Row;
+import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
-import co.cask.wrangler.dataset.AbstractTableStore;
+import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * This class {@link ConnectionStore} manages all the connections defined.
@@ -35,21 +53,23 @@ import co.cask.wrangler.dataset.AbstractTableStore;
  *    store.update(id, connection);
  *  }
  *  Connection newConnection = store.clone(id);
- *  List<Connection> s = store.scan();
+ *  List<Connection> s = store.list();
  * </code>
  */
-public class ConnectionStore extends AbstractTableStore<Connection> {
+public class ConnectionStore {
+  private static final Gson GSON = new GsonBuilder()
+    .registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+  private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
+  private static final String TYPE_COL = "type";
+  private static final String NAME_COL = "name";
+  private static final String DESC_COL = "description";
+  private static final String PROPERTIES_COL = "properties";
+  private static final String CREATED_COL = "created";
+  private static final String UPDATED_COL = "updated";
+  private final Table table;
 
   public ConnectionStore(Table table) {
-    super(table, Bytes.toBytes("a"), Connection.class);
-  }
-
-  /**
-   * @return key namespace for all the objects stored in the {@link ConnectionStore}
-   */
-  @Override
-  public String getKeySpace() {
-    return "c:";
+    this.table = table;
   }
 
   /**
@@ -57,74 +77,138 @@ public class ConnectionStore extends AbstractTableStore<Connection> {
    *
    * This method creates the id and returns if after successfully updating the store.
    *
-   * TODO: (CDAP-14619) pass in a CreateRequest object that doesn't contain created, updated, and id fields.
-   *       Also improve error handling. There is currently no way to differentiate an invalid request from
-   *       the connection already existing.
-   *
-   * @param connection to be stored in the store.
-   * @return id of the connection stored.
+   * @param meta the metadata of the connection create
+   * @return id of the connection stored
+   * @throws ConnectionAlreadyExistsException if the connection already exists
    */
-  @Override
-  public String create(Connection connection) {
-    String name = connection.getName();
-    if (name == null || name.isEmpty()) {
-      throw new IllegalArgumentException(
-        String.format("Name not present for connection.")
-      );
+  public String create(ConnectionMeta meta) throws ConnectionAlreadyExistsException {
+    String id = getConnectionId(meta.getName());
+    Connection existing = read(id);
+    if (existing != null) {
+      throw new ConnectionAlreadyExistsException(
+        String.format("Connection named '%s' with id '%s' already exists.", meta.getName(), id));
     }
-    if (connectionExists(name)) {
-      throw new IllegalArgumentException(
-        String.format("Connection name '%s' already exists.", name)
-      );
+
+    long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+    Connection connection = Connection.builder(id, meta)
+      .setCreated(now)
+      .setUpdated(now)
+      .build();
+    table.put(toPut(connection));
+    return connection.getId();
+  }
+
+  /**
+   * Get the specified connection.
+   *
+   * @param id the id of the connection
+   * @return the connection information
+   * @throws ConnectionNotFoundException if the connection does not exist
+   */
+  public Connection get(String id) throws ConnectionNotFoundException {
+    Connection existing = read(id);
+    if (existing == null) {
+      throw new ConnectionNotFoundException(String.format("Connection '%s' does not exist", id));
     }
-    String mangled = getConnectionId(name);
-    connection.setId(mangled);
-    connection.setCreated(now());
-    connection.setUpdated(now());
-    putObject(Bytes.toBytes(mangled), connection);
-    return mangled;
+    return existing;
   }
 
   /**
    * Updates an existing connection in the store.
    *
-   * @param id of the object to be updated.
-   * @param connection to be updated.
+   * @param id the id of the object to be update
+   * @param meta metadata to update
+   * @throws ConnectionNotFoundException if the specified connection does not exist
    */
-  @Override
-  public void update(String id, Connection connection) {
-    if (!hasKey(id)) {
-      throw new IllegalArgumentException(
-        String.format("Connection '%s' does not exists. Create connection before updating", id)
-      );
-    }
-    connection.setUpdated(now());
-    updateTable(id, connection);
+  public void update(String id, ConnectionMeta meta) throws ConnectionNotFoundException {
+    Connection existing = get(id);
+
+    Connection updated = Connection.builder(id, meta)
+      .setCreated(existing.getCreated())
+      .setUpdated(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
+      .build();
+    table.put(toPut(updated));
   }
 
   /**
-   * Clones a connection with the id.
+   * Deletes the specified connection.
    *
-   * @param id of the object to be cloned.
-   * @return new instance of connection object.
+   * @param id the connection to delete
    */
-  @Override
-  public Connection clone(String id) {
-    Connection connection = get(id);
-    String name = connection.getName();
-    name = name + "_Clone";
-    connection.setId(null);
-    connection.setName(name);
-    connection.setCreated(now());
-    connection.setUpdated(now());
-    return connection;
+  public void delete(String id) {
+    table.delete(Bytes.toBytes(id));
   }
 
   /**
-   * Returns true if connection identified by connectionName already exists
+   * Returns true if connection identified by connectionName already exists.
    */
   public boolean connectionExists(String connectionName) {
-    String mangled = getConnectionId(connectionName);
-    return hasKey(mangled);
+    return read(getConnectionId(connectionName)) != null;
+  }
+
+  /**
+   * Scans the namespace to list all the keys applying the filter.
+   *
+   * @param filter to be applied on the data being returned.
+   * @return List of connections
+   */
+  public List<Connection> list(Predicate<Connection> filter) {
+    List<Connection> result = new ArrayList<>();
+    try (Scanner scan = table.scan(null, null)) {
+      Row row;
+      while ((row = scan.next()) != null) {
+        Connection connection = fromRow(row);
+        if (filter.apply(connection)) {
+          result.add(connection);
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Get connection id for the given connection name
+   *
+   * @param name name of the connection.
+   * @return connection id.
+   */
+  public static String getConnectionId(String name) {
+    name = name.trim();
+    // Lower case columns
+    name = name.toLowerCase();
+    // Filtering unwanted characters
+    name = name.replaceAll("[^a-zA-Z0-9_]", "_");
+    return name;
+  }
+
+  @Nullable
+  private Connection read(String id) {
+    Row row = table.get(Bytes.toBytes(id));
+    if (row.isEmpty()) {
+      return null;
+    }
+    return fromRow(row);
+  }
+
+  private Put toPut(Connection connection) {
+    Put put = new Put(connection.getId());
+    put.add(TYPE_COL, connection.getType().name());
+    put.add(NAME_COL, connection.getName());
+    put.add(DESC_COL, connection.getDescription());
+    put.add(PROPERTIES_COL, GSON.toJson(connection.getProperties()));
+    put.add(CREATED_COL, connection.getCreated());
+    put.add(UPDATED_COL, connection.getUpdated());
+    return put;
+  }
+
+  private Connection fromRow(Row row) {
+    return Connection.builder(Bytes.toString(row.getRow()))
+      .setType(ConnectionType.valueOf(row.getString(TYPE_COL)))
+      .setName(row.getString(NAME_COL))
+      .setDescription(row.getString(DESC_COL))
+      .setProperties(GSON.fromJson(row.getString(PROPERTIES_COL), MAP_TYPE))
+      .setCreated(row.getLong(CREATED_COL))
+      .setUpdated(row.getLong(UPDATED_COL))
+      .build();
   }
 }

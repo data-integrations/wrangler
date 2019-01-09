@@ -23,13 +23,15 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.proto.kafka.KafkaSpec;
 import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -39,6 +41,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
 
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,12 +80,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent("utf-8", Connection.class);
-
-      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
-        error(responder, "Invalid connection type set.");
-        return;
-      }
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       Properties props = config.get();
@@ -92,6 +90,8 @@ public final class KafkaHandler extends AbstractWranglerHandler {
         consumer.listTopics();
       }
       ServiceUtils.success(responder, String.format("Successfully connected to Kafka at %s", config.getConnection()));
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -109,12 +109,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent("utf-8", Connection.class);
-
-      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
-        error(responder, "Invalid connection type set.");
-        return;
-      }
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       Properties props = config.get();
@@ -125,6 +120,8 @@ public final class KafkaHandler extends AbstractWranglerHandler {
         ServiceResponse<String> response = new ServiceResponse<>(topics.keySet());
         responder.sendJson(response);
       }
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -145,10 +142,6 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                    @QueryParam("scope") @DefaultValue("default") String scope) {
     try {
       Connection connection = store.get(id);
-      if (connection == null) {
-        error(responder, String.format("Invalid connection id '%s' specified or connection does not exist.", id));
-        return;
-      }
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
@@ -200,6 +193,8 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       } finally {
         consumer.close();
       }
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
@@ -219,19 +214,22 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                             @PathParam("id") String id, @PathParam("topic") final String topic) {
     try {
       Connection conn = store.get(id);
+      Map<String, String> connProperties = conn.getProperties();
 
       Map<String, String> properties = new HashMap<>();
       properties.put("topic", topic);
       properties.put("referenceName", topic);
-      properties.put("brokers", conn.getProp(PropertyIds.BROKER));
-      properties.put("kafkaBrokers", conn.getProp(PropertyIds.BROKER));
-      properties.put("keyField", conn.getProp(PropertyIds.KEY_DESERIALIZER));
+      properties.put("brokers", connProperties.get(PropertyIds.BROKER));
+      properties.put("kafkaBrokers", connProperties.get(PropertyIds.BROKER));
+      properties.put("keyField", connProperties.get(PropertyIds.KEY_DESERIALIZER));
       properties.put("format", "text");
 
       PluginSpec pluginSpec = new PluginSpec("Kafka", "source", properties);
       KafkaSpec kafkaSpec = new KafkaSpec(pluginSpec);
       ServiceResponse<KafkaSpec> response = new ServiceResponse<>(kafkaSpec);
       responder.sendJson(response);
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }

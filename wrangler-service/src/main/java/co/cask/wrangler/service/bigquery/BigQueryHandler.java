@@ -25,8 +25,7 @@ import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
@@ -36,6 +35,9 @@ import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.bigquery.BigQuerySpec;
 import co.cask.wrangler.proto.bigquery.DatasetInfo;
 import co.cask.wrangler.proto.bigquery.TableInfo;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -58,10 +60,11 @@ import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -111,19 +114,14 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
-      ConnectionType connectionType = ConnectionType.fromString(connection.getType().getType());
-      if (connectionType == ConnectionType.UNDEFINED || connectionType != ConnectionType.BIGQUERY) {
-        error(responder,
-              String.format("Invalid connection type %s set, expected 'bigquery' connection type.",
-                            connectionType.getType()));
-        return;
-      }
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.BIGQUERY);
       GCPUtils.validateProjectCredentials(connection);
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
       bigQuery.listDatasets(BigQuery.DatasetListOption.pageSize(1));
       ServiceUtils.success(responder, "Success");
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -138,8 +136,15 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @GET
   @Path("connections/{connection-id}/bigquery")
   public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("connection-id") String connectionId) throws Exception {
-    Connection connection = store.get(connectionId);
+                           @PathParam("connection-id") String connectionId) throws IOException {
+    Connection connection;
+
+    try {
+      connection = store.get(connectionId);
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
+      return;
+    }
 
     if (!validateConnection(connectionId, connection, responder)) {
       return;
@@ -175,8 +180,14 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @Path("connections/{connection-id}/bigquery/{dataset-id}/tables")
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("connection-id") String connectionId,
-                         @PathParam("dataset-id") String datasetStr) throws Exception {
-    Connection connection = store.get(connectionId);
+                         @PathParam("dataset-id") String datasetStr) throws IOException {
+    Connection connection;
+    try {
+      connection = store.get(connectionId);
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
+      return;
+    }
 
     if (!validateConnection(connectionId, connection, responder)) {
       return;
@@ -224,13 +235,20 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                         @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope)
     throws Exception {
-    Connection connection = store.get(connectionId);
+    Connection connection;
+
+    try {
+      connection = store.get(connectionId);
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
+      return;
+    }
 
     if (!validateConnection(connectionId, connection, responder)) {
       return;
     }
 
-    Map<String, String> connectionProperties = connection.getAllProps();
+    Map<String, String> connectionProperties = connection.getProperties();
     String connectionProject = GCPUtils.getProjectId(connection);
     DatasetId datasetId = getDatasetId(datasetStr, connectionProject);
     String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
@@ -304,7 +322,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     }
   }
 
-  private Pair<List<Row>, Schema> getData(Connection connection, TableId tableId) throws Exception {
+  private Pair<List<Row>, Schema> getData(Connection connection, TableId tableId)
+    throws IOException, InterruptedException {
     List<Row> rows = new ArrayList<>();
     BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
     String tableIdString =
@@ -469,9 +488,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
    * [abc,articles], [123,d10], and [abc,d11].
    */
   @VisibleForTesting
-  static Set<DatasetId> getDatasetWhitelist(Connection connection) {
+  static Set<DatasetId> getDatasetWhitelist(ConnectionMeta connection) {
     String connectionProject = GCPUtils.getProjectId(connection);
-    String whitelistStr = connection.getAllProps().get("datasetWhitelist");
+    String whitelistStr = connection.getProperties().get("datasetWhitelist");
     Set<DatasetId> whitelist = new LinkedHashSet<>();
     if (whitelistStr == null) {
       return whitelist;

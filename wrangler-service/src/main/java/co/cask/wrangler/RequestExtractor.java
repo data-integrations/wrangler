@@ -19,11 +19,15 @@ package co.cask.wrangler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.wrangler.dataset.workspace.RequestDeserializer;
 import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
 
 /**
@@ -31,6 +35,9 @@ import javax.annotation.Nullable;
  * It provides functionality to extract headers and content.
  */
 public final class RequestExtractor {
+  private static final Gson GSON = new GsonBuilder()
+    .registerTypeAdapter(Request.class, new RequestDeserializer())
+    .create();
   private final HttpServiceRequest request;
   public static final String CONTENT_TYPE_HEADER = PropertyIds.CONTENT_TYPE;
   public static final String CHARSET_HEADER = PropertyIds.CHARSET;
@@ -87,6 +94,42 @@ public final class RequestExtractor {
   }
 
   /**
+   * Get a ConnectionMeta object from the request body.
+   *
+   * @return the connection meta object
+   * @throws IllegalArgumentException if the body is empty or not a valid ConnectionMeta
+   */
+  public ConnectionMeta getConnectionMeta() {
+    String bodyStr = getContent(StandardCharsets.UTF_8);
+    if (bodyStr == null) {
+      throw new IllegalArgumentException("No connection was found in the request body.");
+    }
+    ConnectionMeta connectionMeta;
+    try {
+      connectionMeta = GSON.fromJson(bodyStr, ConnectionMeta.class);
+    } catch (JsonParseException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
+    connectionMeta.validate();
+    return connectionMeta;
+  }
+
+  /**
+   * Get a ConnectionMeta object from the request body.
+   *
+   * @return the connection meta object
+   * @throws IllegalArgumentException if the body is empty or not a valid ConnectionMeta
+   */
+  public ConnectionMeta getConnectionMeta(ConnectionType expectedType) {
+    ConnectionMeta meta = getConnectionMeta();
+    if (expectedType != meta.getType()) {
+      throw new IllegalArgumentException(String.format("Expected connection of type '%s' but found '%s'.",
+                                                       expectedType, meta.getType()));
+    }
+    return meta;
+  }
+
+  /**
    * Returns the content transformed into a Class defined.
    * It first transforms from the charset into unicode and then applies the transformation.
    *
@@ -98,10 +141,7 @@ public final class RequestExtractor {
   public <T> T getContent(String charset, Class<T> type) {
     String data = getContent(charset);
     if (data != null) {
-      GsonBuilder builder = new GsonBuilder();
-      builder.registerTypeAdapter(Request.class, new RequestDeserializer());
-      Gson gson = builder.create();
-      return gson.fromJson(data, type);
+      return GSON.fromJson(data, type);
     }
     return null;
   }

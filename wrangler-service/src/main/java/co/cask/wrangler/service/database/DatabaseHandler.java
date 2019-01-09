@@ -27,14 +27,16 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.proto.db.AllowedDriverInfo;
 import co.cask.wrangler.proto.db.DBSpec;
 import co.cask.wrangler.proto.db.JDBCDriverInfo;
@@ -59,6 +61,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.Driver;
@@ -327,18 +330,15 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent("utf-8", Connection.class);
-
-      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
-        ServiceUtils.error(responder, "Invalid connection type set.");
-        return;
-      }
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
       cleanup = loadAndExecute(connection, sqlConnection -> {
         sqlConnection.getMetaData();
         ServiceResponse<Void> response = new ServiceResponse<>("Successfully connected to database.");
         responder.sendJson(response);
       });
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     } finally {
@@ -358,11 +358,18 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @Path("connections/databases")
   public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder) {
     DriverCleanup cleanup = null;
-    try {
-      // Extract the body of the request and transform it to the Connection object.
-      RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent("utf-8", Connection.class);
 
+    // Extract the body of the request and transform it to the Connection object.
+    RequestExtractor extractor = new RequestExtractor(request);
+    ConnectionMeta connection;
+    try {
+      connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      return;
+    }
+
+    try {
       cleanup = loadAndExecute(connection, new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
@@ -412,8 +419,9 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @Path("connections/{id}/tables")
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
     DriverCleanup cleanup = null;
+
     try {
-      cleanup = loadAndExecute(id, new Executor() {
+      cleanup = loadAndExecute(store.get(id), new Executor() {
         @Override
         public void execute(java.sql.Connection connection) throws Exception {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
@@ -448,6 +456,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
           }
         }
       });
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     } finally {
@@ -476,7 +486,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     DriverCleanup cleanup = null;
     try {
 
-      cleanup = loadAndExecute(id, connection -> {
+      cleanup = loadAndExecute(store.get(id), connection -> {
         try (Statement statement = connection.createStatement();
              ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
           List<Row> rows = getRows(lines, result);
@@ -504,6 +514,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
           responder.sendJson(response);
         }
       });
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     } finally {
@@ -558,20 +570,22 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       Connection conn = store.get(id);
 
       Map<String, String> properties = new HashMap<>();
-      properties.put("connectionString", conn.getProp("url"));
+      properties.put("connectionString", conn.getProperties().get("url"));
       properties.put("referenceName", table);
-      properties.put("user", conn.getProp("username"));
-      properties.put("password", conn.getProp("password"));
+      properties.put("user", conn.getProperties().get("username"));
+      properties.put("password", conn.getProperties().get("password"));
       properties.put("importQuery", String.format("SELECT * FROM %s WHERE $CONDITIONS", table));
       properties.put("numSplits", "1");
-      properties.put("jdbcPluginName", conn.getProp("name"));
-      properties.put("jdbcPluginType", conn.getProp("type"));
+      properties.put("jdbcPluginName", conn.getProperties().get("name"));
+      properties.put("jdbcPluginType", conn.getProperties().get("type"));
 
       PluginSpec pluginSpec = new PluginSpec(String.format("Database - %s", table), "source", properties);
       DBSpec spec = new DBSpec(pluginSpec);
 
       ServiceResponse<DBSpec> response = new ServiceResponse<>(spec);
       responder.sendJson(response);
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -599,27 +613,16 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   /**
    * Loads the driver and gets the connection to the database.
    *
-   * @param id of the connection to be connected to.
+   * @param connection the connection to be connected to.
    * @return pair of connection and the driver cleanup.
    */
-  private DriverCleanup loadAndExecute(String id, Executor executor) throws Exception {
-    Connection connection = store.get(id);
-    if (connection == null) {
-      throw new IllegalArgumentException(
-        String.format(
-          "Invalid connection id '%s' specified or connection does not exist.", id)
-      );
-    }
-    return loadAndExecute(connection, executor);
-  }
-
-  private DriverCleanup loadAndExecute(Connection connection, Executor executor) throws Exception {
+  private DriverCleanup loadAndExecute(ConnectionMeta connection, Executor executor) throws Exception {
     DriverCleanup cleanup = null;
-    String name = connection.getProp("name");
-    String classz = connection.getProp("class");
-    String url = connection.getProp("url");
-    String username = connection.getProp("username");
-    String password = connection.getProp("password");
+    String name = connection.getProperties().get("name");
+    String classz = connection.getProperties().get("class");
+    String url = connection.getProperties().get("url");
+    String username = connection.getProperties().get("username");
+    String password = connection.getProperties().get("password");
 
     CloseableClassLoader closeableClassLoader = cache.get(name);
     Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
