@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2018-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,136 +16,101 @@
 
 package co.cask.wrangler.dataset.workspace;
 
-import co.cask.cdap.api.annotation.ReadOnly;
-import co.cask.cdap.api.annotation.WriteOnly;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.dataset.DataSetException;
-import co.cask.cdap.api.dataset.DatasetSpecification;
-import co.cask.cdap.api.dataset.lib.AbstractDataset;
-import co.cask.cdap.api.dataset.module.EmbeddedDataset;
+import co.cask.cdap.api.dataset.table.Put;
+import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveConfig;
-import co.cask.wrangler.api.Pair;
+import co.cask.wrangler.proto.Request;
+import co.cask.wrangler.proto.WorkspaceIdentifier;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /**
- * Workspace dataset.
+ * Workspace store for workspaces and a special row for the DirectiveConfig, which allows admins to configure a
+ * directive blacklist and to alias directives to other names.
+ * TODO: (CDAP-14619) check if the DirectiveConfig is used by anything/anyone. If so, see if it can be moved to app
+ *   configuration instead of stored in a one row table.
+ *
+ * A workspace contains a data sample, metadata about the workspace, and a set of directives that can be used to
+ * process the data sample. A workspace is tagged with a scope, which can be used to group workspaces together.
+ * It also stores a map of properties, which are connection specific properties that are used to generate the
+ * pipeline source configuration when a pipeline is created from a workspace.
  */
-public class WorkspaceDataset extends AbstractDataset {
-  private static final Logger LOG = LoggerFactory.getLogger(WorkspaceDataset.class);
+public class WorkspaceDataset {
+  public static final String DATASET_NAME = "workspaces";
   private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
   private static final Gson GSON = new GsonBuilder()
-    .registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+    .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
+    .registerTypeAdapter(Request.class, new RequestDeserializer())
+    .create();
   private final Table table;
 
   public static final String DEFAULT_SCOPE = "default";
-  public static final byte[] CONFIG_KEY     = Bytes.toBytes("__config__");
-  public static final byte[] CONFIG_COL     = Bytes.toBytes("__ws__");
-  public static final byte[] DATA_COL       = Bytes.toBytes("data");
-  public static final byte[] SCOPE_COL      = Bytes.toBytes("scope");
-  public static final byte[] NAME_COL       = Bytes.toBytes("name");
-  public static final byte[] TYPE_COL       = Bytes.toBytes("type");
-  public static final byte[] CREATED_COL    = Bytes.toBytes("created");
-  public static final byte[] UPDATED_COL    = Bytes.toBytes("updated");
-  public static final byte[] PROPERTIES_COL = Bytes.toBytes("properties");
-  public static final byte[] REQUEST_COL    = Bytes.toBytes("request");
+  private static final byte[] CONFIG_KEY = Bytes.toBytes("__config__");
+  private static final byte[] CONFIG_COL = Bytes.toBytes("__ws__");
 
-  public WorkspaceDataset(DatasetSpecification specification,
-                          @EmbeddedDataset("workspace") Table table) {
-    super(specification.getName(), table);
+  private static final String DATA_COL = "data";
+  private static final String SCOPE_COL = "scope";
+  private static final String NAME_COL = "name";
+  private static final String TYPE_COL = "type";
+  private static final String CREATED_COL = "created";
+  private static final String UPDATED_COL = "updated";
+  private static final String PROPERTIES_COL = "properties";
+  private static final String REQUEST_COL = "request";
+
+  public WorkspaceDataset(Table table) {
     this.table = table;
   }
 
   /**
-   * Creates a workspace meta entry, with default type as {@link DataType#BINARY} and empty properties.
+   * Creates a workspace if it does not already exist, or update an existing workspace if it does.
    *
-   * @param id id of workspace.
-   * @param name of the workspace to display.
-   * @throws WorkspaceException thrown when there is issue creating workspace.
+   * @param meta the workspace metadata
    */
-  @WriteOnly
-  public void createWorkspaceMeta(String id, String name) throws WorkspaceException {
-    createWorkspaceMeta(id, DEFAULT_SCOPE, name, DataType.BINARY);
-  }
-
-  /**
-   * Creates a workspace meta entry, with default type as {@link DataType#BINARY} and empty properties.
-   *
-   * @param id id of workspace.
-   * @param name of the workspace to display.
-   * @throws WorkspaceException thrown when there is issue creating workspace.
-   */
-  @WriteOnly
-  public void createWorkspaceMeta(String id, String scope, String name) throws WorkspaceException {
-    createWorkspaceMeta(id, scope, name, DataType.BINARY);
-  }
-
-  /**
-   * Creates a workspace meta entry, with the type specified and empty properties.
-   *
-   * @param id id of the workspace to be created.
-   * @param name of the workspace to display.
-   * @param type of data in workspace.
-   * @throws WorkspaceException thrown when issue creating workspace meta entry.
-   */
-  @WriteOnly
-  public void createWorkspaceMeta(String id, String scope, String name, DataType type) throws WorkspaceException {
-    createWorkspaceMeta(id, scope, name, type, new HashMap<>());
-  }
-
-  /**
-   * Creates a workspace meta entry with the type specified and properties.
-   *
-   * @param id id of workspace to be created.
-   * @param name name of workspace to be created.
-   * @param type of data stored in workspace.
-   * @param properties associated with workspace.
-   * @throws WorkspaceException thrown when issue creating workspace meta entry.
-   */
-  @WriteOnly
-  public void createWorkspaceMeta(String id, String scope, String name, DataType type,
-                                  Map<String, String> properties) throws WorkspaceException {
-    if (id == null || id.isEmpty()) {
-      throw new WorkspaceException("Workspace id cannot be empty or null");
+  public void writeWorkspaceMeta(WorkspaceMeta meta) {
+    Workspace existing = readWorkspace(meta.getId());
+    long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+    Workspace.Builder updated = Workspace.builder(meta.getId(), meta.getName());
+    if (existing != null) {
+      updated.setCreated(existing.getCreated())
+        .setData(existing.getData())
+        .setRequest(existing.getRequest());
+    } else {
+      updated.setCreated(now);
     }
+    updated.setUpdated(now)
+      .setScope(meta.getScope())
+      .setProperties(meta.getProperties())
+      .setType(meta.getType());
+    table.put(toPut(updated.build()));
+  }
 
-    byte[][] columns = new byte[][] {
-     CREATED_COL, TYPE_COL, NAME_COL, SCOPE_COL, PROPERTIES_COL
-    };
-
-    byte[][] data = new byte[][] {
-      Bytes.toBytes(System.currentTimeMillis() / 1000),
-      Bytes.toBytes(type.getType()),
-      Bytes.toBytes(name),
-      Bytes.toBytes(scope),
-      toJsonBytes(properties)
-    };
-
-    try {
-      table.put(toKey(id), columns, data);
-    } catch (DataSetException e) {
-      throw new WorkspaceException(
-        String.format("Unable to create workspace '%s'", e.getMessage())
-      );
+  /**
+   * Get information about the workspace.
+   *
+   * @param id the workspace id
+   * @return information about the workspace
+   * @throws WorkspaceNotFoundException if the workspace does not exist
+   */
+  public Workspace getWorkspace(String id) throws WorkspaceNotFoundException {
+    Workspace workspace = readWorkspace(id);
+    if (workspace == null) {
+      throw new WorkspaceNotFoundException(String.format("Workspace '%s' does not exist.", id));
     }
+    return workspace;
   }
 
   /**
@@ -153,29 +118,19 @@ public class WorkspaceDataset extends AbstractDataset {
    *
    * @param id of the workspace to be checked for.
    * @return true if workspace exists, false otherwise.
-   * @throws WorkspaceException thrown if there are any issues with workspace.
    */
-  public boolean hasWorkspace(String id) throws WorkspaceException {
-    try {
-      co.cask.cdap.api.dataset.table.Row row = table.get(toKey(id));
-      return !row.isEmpty();
-    } catch (DataSetException e) {
-      throw new WorkspaceException(
-        String.format("Unable to check if workspace '%s' exists '%s'",
-                      id, e.getMessage())
-      );
-    }
+  public boolean hasWorkspace(String id) {
+    co.cask.cdap.api.dataset.table.Row row = table.get(Bytes.toBytes(id));
+    return !row.isEmpty();
   }
 
   /**
    * Lists all the workspaces registered for a scope.
    *
    * @return List of workspaces.
-   * @throws WorkspaceException throw if there is issue listing workspaces.
    */
-  @ReadOnly
-  public List<Pair<String, String>> getWorkspaces(String scope) throws WorkspaceException {
-    List<Pair<String, String>> values = new ArrayList<>();
+  public List<WorkspaceIdentifier> listWorkspaces(String scope) {
+    List<WorkspaceIdentifier> values = new ArrayList<>();
     co.cask.cdap.api.dataset.table.Row row;
     try (Scanner scanner = table.scan(null, null)) {
       while ((row = scanner.next()) != null) {
@@ -186,50 +141,83 @@ public class WorkspaceDataset extends AbstractDataset {
         }
         byte[] scopeBytes = row.get(SCOPE_COL);
         String scopeStr = Bytes.toString(scopeBytes);
-        if (!scopeStr.equalsIgnoreCase(scope)) {
+        if (!scope.equals(scopeStr)) {
           continue;
         }
         byte[] name = row.get(NAME_COL);
-        values.add(new Pair<>(id, Bytes.toString(name)));
+        values.add(new WorkspaceIdentifier(id, Bytes.toString(name)));
       }
-    } catch (DataSetException e) {
-      throw new WorkspaceException(
-        String.format("Unable to list workspace. %s", e.getMessage())
-      );
     }
     return values;
   }
 
-  private boolean excludedKey(String id) {
-    return id.equalsIgnoreCase(Bytes.toString(CONFIG_KEY));
+  /**
+   * Update the properties of the specified workspace.
+   *
+   * @param id the workspace id
+   * @param properties the properties to update
+   * @throws WorkspaceNotFoundException if the workspace does not exist
+   */
+  public void updateWorkspaceProperties(String id, Map<String, String> properties) throws WorkspaceNotFoundException {
+    Workspace existing = getWorkspace(id);
+    Workspace updated = Workspace.builder(existing)
+      .setProperties(properties)
+      .setUpdated(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
+      .build();
+    table.put(toPut(updated));
+  }
+
+  /**
+   * Update the directive execution request for the specified workspace.
+   *
+   * @param id the workspace id
+   * @param request the directive execution request
+   * @throws WorkspaceNotFoundException if the workspace does not exist
+   */
+  public void updateWorkspaceRequest(String id, Request request) throws WorkspaceNotFoundException {
+    Workspace existing = getWorkspace(id);
+    Workspace updated = Workspace.builder(existing)
+      .setRequest(request)
+      .setUpdated(System.currentTimeMillis() / 1000)
+      .build();
+    table.put(toPut(updated));
+  }
+
+  /**
+   * Update the sample data for the specified workspace.
+   *
+   * @param id the workspace id
+   * @param data the sample data
+   * @throws WorkspaceNotFoundException if the workspace does not exist
+   */
+  public void updateWorkspaceData(String id, DataType dataType, byte[] data) throws WorkspaceNotFoundException {
+    Workspace existing = getWorkspace(id);
+    Workspace updated = Workspace.builder(existing)
+      .setType(dataType)
+      .setData(data)
+      .setUpdated(System.currentTimeMillis() / 1000)
+      .build();
+    table.put(toPut(updated));
   }
 
   /**
    * Deletes the workspace.
    *
    * @param id to be deleted.
-   * @throws WorkspaceException thrown if there is issue deleting workspace.
    */
-  @WriteOnly
-  public void deleteWorkspace(String id) throws WorkspaceException {
-    try {
-      table.delete(toKey(id));
-    } catch (DataSetException e) {
-      throw new WorkspaceException(
-        String.format("Failed to delete workspace '%s'. %s", id, e.getMessage())
-      );
-    }
+  public void deleteWorkspace(String id) {
+    table.delete(Bytes.toBytes(id));
   }
 
   /**
-   * Deletes a group of workspaces.
+   * Deletes a workspaces that have the specified scope.
    *
-   * @param group to be deleted.
-   * @return number of workspaces deleted within a group.
-   * @throws WorkspaceException thrown if there are issues with deleting workspace within group.
+   * TODO: (CDAP-14692) make sure scope is indexed so this doesn't require a full table scan
+   *
+   * @param scope to be deleted
+   * @return number of workspaces deleted
    */
-  @WriteOnly
-  public int deleteGroup(String group) throws WorkspaceException {
+  public int deleteScope(String scope) {
     int count = 0;
     co.cask.cdap.api.dataset.table.Row row;
     try (Scanner scanner = table.scan(null, null)) {
@@ -241,82 +229,20 @@ public class WorkspaceDataset extends AbstractDataset {
         }
         byte[] groupBytes = row.get(SCOPE_COL);
         String groupStr = Bytes.toString(groupBytes);
-        if (!groupStr.equalsIgnoreCase(group)) {
+        if (scope.equals(groupStr)) {
           deleteWorkspace(id);
           count = count + 1;
         }
       }
-    } catch (DataSetException e) {
-      throw new WorkspaceException(
-        String.format("Unable to delete workspace. ", e.getMessage())
-      );
     }
     return count;
   }
 
-  @WriteOnly
-  public void writeToWorkspace(String id, byte[] key, DataType type, byte[] data)
-    throws WorkspaceException {
-    byte[][] columns = new byte[][] {
-      UPDATED_COL, TYPE_COL, key
-    };
-
-    byte[][] bytes = new byte[][] {
-      Bytes.toBytes(System.currentTimeMillis() / 1000),
-      Bytes.toBytes(type.getType()),
-      data
-    };
-
-    try {
-      table.put(toKey(id), columns, bytes);
-    } catch (DataSetException e) {
-      throw new WorkspaceException(
-        String.format("Unable to create workspace '%s'",
-                      e.getMessage())
-      );
-    }
-  }
-
-  @WriteOnly
-  public void updateWorkspace(String id, byte[] key, byte[] data)
-    throws WorkspaceException {
-    byte[][] columns = new byte[][] {
-      UPDATED_COL, key
-    };
-
-    byte[][] bytes = new byte[][] {
-      Bytes.toBytes(System.currentTimeMillis() / 1000),
-      data
-    };
-
-    try {
-      table.put(toKey(id), columns, bytes);
-    } catch (DataSetException e) {
-      throw new WorkspaceException(
-        String.format("Unable to create workspace '%s'",
-                      e.getMessage())
-      );
-    }
-  }
-
-  @WriteOnly
-  public void updateWorkspace(String id, byte[] key, String data) throws WorkspaceException {
-    updateWorkspace(id, key, data.getBytes(StandardCharsets.UTF_8));
-  }
-
-  @WriteOnly
-  public void writeProperties(String id, Map<String, String> properties) throws WorkspaceException {
-    byte[] bytes = toJsonBytes(properties);
-    updateWorkspace(id, PROPERTIES_COL, bytes);
-  }
-
-  @WriteOnly
   public void updateConfig(DirectiveConfig config) {
     byte[] bytes = Bytes.toBytes(GSON.toJson(config));
     table.put(CONFIG_KEY, CONFIG_COL, bytes);
   }
 
-  @ReadOnly
   public DirectiveConfig getConfig() {
     byte[] bytes = table.get(CONFIG_KEY, CONFIG_COL);
     String json;
@@ -328,7 +254,6 @@ public class WorkspaceDataset extends AbstractDataset {
     return GSON.fromJson(json, DirectiveConfig.class);
   }
 
-  @ReadOnly
   public String getConfigString() {
     byte[] bytes = table.get(CONFIG_KEY, CONFIG_COL);
     if (bytes == null) {
@@ -337,79 +262,50 @@ public class WorkspaceDataset extends AbstractDataset {
     return Bytes.toString(bytes);
   }
 
-  @ReadOnly
-  public Map<String, String> getProperties(String id) {
-    byte[] bytes = table.get(toKey(id), PROPERTIES_COL);
-    return fromJsonBytes(bytes);
+  private boolean excludedKey(String id) {
+    return id.equalsIgnoreCase(Bytes.toString(CONFIG_KEY));
   }
 
-  /**
-   * Retrieves the data from the workspace provided the key.
-   *
-   * @param id id of the workspace.
-   * @param key the key to be retrieved.
-   * @return if key is found, returns the data, else returns null.
-   */
-  @Nullable
-  @ReadOnly
-  public byte[] getData(String id, byte[] key) {
-    return table.get(toKey(id), key);
+  private Put toPut(Workspace workspace) {
+    Put put = new Put(workspace.getId());
+    put.add(NAME_COL, workspace.getName());
+    put.add(SCOPE_COL, workspace.getScope());
+    put.add(TYPE_COL, workspace.getType().name());
+    put.add(PROPERTIES_COL, GSON.toJson(workspace.getProperties()));
+    put.add(CREATED_COL, workspace.getCreated());
+    put.add(UPDATED_COL, workspace.getUpdated());
+    if (workspace.getRequest() != null) {
+      put.add(REQUEST_COL, GSON.toJson(workspace.getRequest()));
+    }
+    if (workspace.getData() != null) {
+      put.add(DATA_COL, workspace.getData());
+    }
+    return put;
   }
 
   @Nullable
-  @ReadOnly
-  public <T> T getData(String id, byte[] key, DataType type) throws WorkspaceException {
-    byte[] bytes = table.get(toKey(id), key);
-    if (bytes == null) {
+  private Workspace readWorkspace(String id) {
+    Row row = table.get(Bytes.toBytes(id));
+    if (row.isEmpty()) {
       return null;
     }
-    if (type == DataType.BINARY) {
-      return (T) bytes;
-    } else if (type == DataType.TEXT) {
-      String value = Bytes.toString(bytes);
-      return (T) value;
-    } else if (type == DataType.RECORDS) {
-      // TODO: (CDAP-14619) serialization and deserialization logic should happen in the same place,
-      //       not spread across the data store and the client.
-      try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
-        return (T) ois.readObject();
-      } catch (IOException | ClassNotFoundException e) {
-        throw new WorkspaceException(e.getMessage());
-      }
-    } else {
-      throw new WorkspaceException("Unknown retrieval type");
-    }
-  }
 
-  /**
-   * Returns the type of content stored within the workspace.
-   *
-   * Workspace can store types of data as defined in {@link DataType} class.
-   *
-   * @param id id of the workspace for which the stored content type is stored.
-   * @return string representation of the type defined in {@link DataType} if found, null otherwise.
-   * @see DataType
-   */
-  @ReadOnly
-  public DataType getType(String id)  {
-    byte[] bytes = table.get(toKey(id), TYPE_COL);
-    DataType type = DataType.fromString(Bytes.toString(bytes));
-    return type;
-  }
+    String propertiesStr = row.getString(PROPERTIES_COL);
+    Map<String, String> properties = propertiesStr == null || propertiesStr.isEmpty() ?
+      Collections.emptyMap() : GSON.fromJson(propertiesStr, MAP_TYPE);
+    String requestStr = row.getString(REQUEST_COL);
+    Request request = requestStr == null || requestStr.isEmpty() ?
+      null : GSON.fromJson(requestStr, Request.class);
 
-  private byte[] toKey(String value) {
-    value = String.format("%s", value);
-    return Bytes.toBytes(value);
-  }
-
-  private byte[] toJsonBytes(Map<String, String> properties) {
-    String value = GSON.toJson(properties);
-    return Bytes.toBytes(value);
-  }
-
-  private Map<String, String> fromJsonBytes(byte[] bytes) {
-    String value = Bytes.toString(bytes);
-    return GSON.fromJson(value, MAP_TYPE);
+    return Workspace.builder(id, row.getString(NAME_COL))
+      .setCreated(row.getLong(CREATED_COL))
+      .setUpdated(row.getLong(UPDATED_COL))
+      .setData(row.get(DATA_COL))
+      .setRequest(request)
+      .setScope(row.getString(SCOPE_COL))
+      .setType(DataType.valueOf(row.getString(TYPE_COL)))
+      .setProperties(properties)
+      .build();
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,17 +23,17 @@ import co.cask.cdap.api.dataset.lib.FileSetProperties;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
-import co.cask.wrangler.service.bigquery.BigQueryService;
-import co.cask.wrangler.service.connections.ConnectionService;
+import co.cask.wrangler.service.bigquery.BigQueryHandler;
+import co.cask.wrangler.service.connections.ConnectionHandler;
 import co.cask.wrangler.service.connections.ConnectionTypeConfig;
-import co.cask.wrangler.service.database.DatabaseService;
-import co.cask.wrangler.service.directive.DirectivesService;
+import co.cask.wrangler.service.database.DatabaseHandler;
+import co.cask.wrangler.service.directive.DirectivesHandler;
 import co.cask.wrangler.service.explorer.FilesystemExplorer;
-import co.cask.wrangler.service.gcs.GCSService;
-import co.cask.wrangler.service.kafka.KafkaService;
-import co.cask.wrangler.service.s3.S3Service;
-import co.cask.wrangler.service.schema.SchemaRegistryService;
-import co.cask.wrangler.service.spanner.SpannerService;
+import co.cask.wrangler.service.gcs.GCSHandler;
+import co.cask.wrangler.service.kafka.KafkaHandler;
+import co.cask.wrangler.service.s3.S3Handler;
+import co.cask.wrangler.service.schema.SchemaRegistryHandler;
+import co.cask.wrangler.service.spanner.SpannerHandler;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 
@@ -51,8 +51,8 @@ public class DataPrep extends AbstractApplication<ConnectionTypeConfig> {
     setName("dataprep");
     setDescription("DataPrep Backend Service");
 
-    createDataset(DirectivesService.WORKSPACE_DATASET, WorkspaceDataset.class,
-                  DatasetProperties.builder().setDescription("DataPrep workspace dataset").build());
+    createDataset(WorkspaceDataset.DATASET_NAME, Table.class,
+                  DatasetProperties.builder().setDescription("DataPrep workspace dataset.").build());
     createDataset(CONNECTIONS_DATASET, Table.class,
                   DatasetProperties.builder().setDescription("DataPrep connections store.").build());
     createDataset(SchemaRegistry.DATASET_NAME, Table.class,
@@ -67,16 +67,16 @@ public class DataPrep extends AbstractApplication<ConnectionTypeConfig> {
       .build());
 
     addService("service",
-               new DirectivesService(),
-               new SchemaRegistryService(),
+               new DirectivesHandler(),
+               new SchemaRegistryHandler(),
                new FilesystemExplorer(),
-               new ConnectionService(getConfig()),
-               new KafkaService(),
-               new DatabaseService(),
-               new S3Service(),
-               new GCSService(),
-               new BigQueryService(),
-               new SpannerService()
+               new ConnectionHandler(getConfig()),
+               new KafkaHandler(),
+               new DatabaseHandler(),
+               new S3Handler(),
+               new GCSHandler(),
+               new BigQueryHandler(),
+               new SpannerHandler()
     );
   }
 }

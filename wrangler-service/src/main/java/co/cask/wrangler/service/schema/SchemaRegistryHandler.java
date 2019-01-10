@@ -47,9 +47,9 @@ import static co.cask.wrangler.ServiceUtils.notFound;
 import static co.cask.wrangler.ServiceUtils.success;
 
 /**
- * This class {@link SchemaRegistryService} provides schema management service.
+ * This class {@link SchemaRegistryHandler} provides schema management service.
  */
-public class SchemaRegistryService extends AbstractHttpServiceHandler {
+public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
   private static final Gson GSON = new Gson();
 
   @UseDataSet(SchemaRegistry.DATASET_NAME)

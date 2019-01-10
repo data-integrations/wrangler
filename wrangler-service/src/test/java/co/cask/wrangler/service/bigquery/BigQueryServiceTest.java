@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Tests for {@link BigQueryService}.
+ * Tests for {@link BigQueryHandler}.
  */
 public class BigQueryServiceTest {
 
@@ -46,7 +46,7 @@ public class BigQueryServiceTest {
     expected.add(DatasetId.of("p1", "d1"));
     expected.add(DatasetId.of("pX", "d2"));
     expected.add(DatasetId.of("pX", "d3"));
-    Set<DatasetId> actual = BigQueryService.getDatasetWhitelist(connection);
+    Set<DatasetId> actual = BigQueryHandler.getDatasetWhitelist(connection);
     Assert.assertEquals(expected, actual);
   }
 }

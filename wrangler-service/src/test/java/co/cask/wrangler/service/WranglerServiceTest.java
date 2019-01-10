@@ -26,7 +26,7 @@ import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
 import co.cask.wrangler.DataPrep;
-import co.cask.wrangler.service.directive.DirectivesService;
+import co.cask.wrangler.service.directive.DirectivesHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests for {@link DirectivesService}.
+ * Tests for {@link DirectivesHandler}.
  */
 @Ignore
 public class WranglerServiceTest extends WranglerServiceTestBase {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2018-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,13 +29,14 @@ import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.bigquery.BigQuerySpec;
 import co.cask.wrangler.proto.bigquery.DatasetInfo;
 import co.cask.wrangler.proto.bigquery.TableInfo;
-import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.api.gax.paging.Page;
@@ -78,6 +79,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -89,8 +91,8 @@ import static co.cask.wrangler.ServiceUtils.error;
 /**
  * Service for testing, browsing, and reading using a BigQuery connection.
  */
-public class BigQueryService extends AbstractWranglerService {
-  private static final Logger LOG = LoggerFactory.getLogger(BigQueryService.class);
+public class BigQueryHandler extends AbstractWranglerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(BigQueryHandler.class);
   private static final String DATASET_ID = "datasetId";
   private static final String DATASET_PROJECT = "datasetProject";
   private static final String TABLE_ID = "id";
@@ -220,15 +222,12 @@ public class BigQueryService extends AbstractWranglerService {
                         @PathParam("connection-id") String connectionId,
                         @PathParam("dataset-id") String datasetStr,
                         @PathParam("table-id") String tableId,
-                        @QueryParam("scope") String scope) throws Exception {
+                        @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope)
+    throws Exception {
     Connection connection = store.get(connectionId);
 
     if (!validateConnection(connectionId, connection, responder)) {
       return;
-    }
-
-    if (scope == null || scope.isEmpty()) {
-      scope = WorkspaceDataset.DEFAULT_SCOPE;
     }
 
     Map<String, String> connectionProperties = connection.getAllProps();
@@ -238,12 +237,6 @@ public class BigQueryService extends AbstractWranglerService {
     String bucket = connectionProperties.get(BUCKET);
     TableId tableIdObject = TableId.of(datasetId.getProject(), datasetId.getDataset(), tableId);
     Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
-
-    String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-    ws.createWorkspaceMeta(identifier, scope, tableId);
-    ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-    byte[] data = serDe.toByteArray(tableData.getFirst());
-    ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
 
     Map<String, String> properties = new HashMap<>();
     properties.put(PropertyIds.NAME, tableId);
@@ -258,7 +251,17 @@ public class BigQueryService extends AbstractWranglerService {
     properties.put(SCHEMA, tableData.getSecond().toString());
     properties.put(BUCKET, bucket);
 
-    ws.writeProperties(identifier, properties);
+    String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, tableId)
+      .setScope(scope)
+      .setProperties(properties)
+      .build();
+    ws.writeWorkspaceMeta(workspaceMeta);
+
+    ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+    byte[] data = serDe.toByteArray(tableData.getFirst());
+    ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
+
     ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
                                                    SamplingMethod.NONE.getMethod(), connectionId);
     ServiceResponse<ConnectionSample> response = new ServiceResponse<>(sample);
@@ -277,7 +280,7 @@ public class BigQueryService extends AbstractWranglerService {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
     try {
-      Map<String, String> config = ws.getProperties(workspaceId);
+      Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
 
       Map<String, String> properties = new HashMap<>();
       String externalDatasetName =

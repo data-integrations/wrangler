@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,19 +17,20 @@
 package co.cask.wrangler.proto;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Defines the recipe object that is part of the {@link Request}
  */
 public class Recipe {
   // RecipeParser specified by the user
-  private List<String> directives;
+  private final List<String> directives;
 
   // Ability to save the directives
-  private Boolean save;
+  private final Boolean save;
 
   // Name of the recipe.
-  private String name;
+  private final String name;
 
   public Recipe(List<String> directives, Boolean save, String name) {
     this.directives = directives;
@@ -70,5 +71,24 @@ public class Recipe {
    */
   public String getName() {
     return name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Recipe recipe = (Recipe) o;
+    return Objects.equals(directives, recipe.directives) &&
+      Objects.equals(save, recipe.save) &&
+      Objects.equals(name, recipe.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(directives, save, name);
   }
 }

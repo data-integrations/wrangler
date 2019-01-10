@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2018-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,6 +15,8 @@
  */
 
 package co.cask.wrangler.dataset.workspace;
+
+import javax.annotation.Nullable;
 
 /**
  * This class {@link DataType} defines types of data that can be stored in a workspace.
@@ -50,6 +52,7 @@ public enum DataType {
    * @param text representation of the type.
    * @return an instance of {@link DataType} based on it's string representation, null if not found.
    */
+  @Nullable
   public static DataType fromString(String text) {
     for (DataType b : DataType.values()) {
       if (b.type.equalsIgnoreCase(text)) {

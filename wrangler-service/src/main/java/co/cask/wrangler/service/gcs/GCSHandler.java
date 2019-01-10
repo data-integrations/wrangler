@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -32,6 +32,7 @@ import co.cask.wrangler.dataset.connections.Connection;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.gcs.GCSBucketInfo;
@@ -39,7 +40,7 @@ import co.cask.wrangler.proto.gcs.GCSConnectionSample;
 import co.cask.wrangler.proto.gcs.GCSObjectInfo;
 import co.cask.wrangler.proto.gcs.GCSSpec;
 import co.cask.wrangler.service.FileTypeDetector;
-import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import co.cask.wrangler.utils.ObjectSerDe;
@@ -87,8 +88,8 @@ import static co.cask.wrangler.ServiceUtils.error;
 /**
  * Service to explore <code>GCS</code> filesystem
  */
-public class GCSService extends AbstractWranglerService {
-  private static final Logger LOG = LoggerFactory.getLogger(GCSService.class);
+public class GCSHandler extends AbstractWranglerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(GCSHandler.class);
   static final long FILE_SIZE = 10 * 1024 * 1024;
   private FileTypeDetector detector;
 
@@ -329,14 +330,13 @@ public class GCSService extends AbstractWranglerService {
       if (!blob.isDirectory()) {
         boolean shouldTruncate = blob.getSize() > FILE_SIZE;
         byte[] bytes = readGCSFile(blob, (int) (shouldTruncate ? FILE_SIZE : blob.getSize()));
-        ws.createWorkspaceMeta(id, scope, file.getName());
 
         String encoding = BytesDecoder.guessEncoding(bytes);
         if (contentType.equalsIgnoreCase("text/plain")
           && (encoding.equalsIgnoreCase("utf-8") || encoding.equalsIgnoreCase("ascii"))) {
           String data = new String(bytes, encoding);
           String[] lines = data.split("\r\n|\r|\n");
-          if (blob.getSize() > GCSService.FILE_SIZE) {
+          if (blob.getSize() > GCSHandler.FILE_SIZE) {
             lines = Arrays.copyOf(lines, lines.length - 1);
             if (lines.length == 0) {
               throw new Exception("A single of text file is larger than " + FILE_SIZE + ", unable to process");
@@ -352,16 +352,16 @@ public class GCSService extends AbstractWranglerService {
 
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] records = serDe.toByteArray(rows);
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, records);
+          ws.updateWorkspaceData(id, DataType.RECORDS, records);
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/json")) {
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
+          ws.updateWorkspaceData(id, DataType.TEXT, bytes);
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/xml")) {
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.TEXT, bytes);
+          ws.updateWorkspaceData(id, DataType.TEXT, bytes);
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         } else {
-          ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.BINARY, bytes);
+          ws.updateWorkspaceData(id, DataType.BINARY, bytes);
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         }
 
@@ -373,7 +373,11 @@ public class GCSService extends AbstractWranglerService {
         properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
         properties.put(PropertyIds.CONNECTION_ID, connectionId);
         properties.put("bucket", bucket);
-        ws.writeProperties(id, properties);
+        WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, file.getName())
+          .setScope(scope)
+          .setProperties(properties)
+          .build();
+        ws.writeWorkspaceMeta(workspaceMeta);
 
         // Preparing return response to include mandatory fields : id and name.
         GCSConnectionSample connectionSample =
@@ -418,7 +422,7 @@ public class GCSService extends AbstractWranglerService {
         return;
       }
 
-      Map<String, String> config = ws.getProperties(workspaceId);
+      Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
       String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
       Format format = Format.valueOf(formatStr);
       String uri = config.get(PropertyIds.URI);

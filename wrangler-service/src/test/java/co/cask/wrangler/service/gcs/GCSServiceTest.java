@@ -37,7 +37,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 
 /**
- * Tests parts of {@link GCSService}
+ * Tests parts of {@link GCSHandler}
  */
 @Ignore
 public class GCSServiceTest {
@@ -57,7 +57,7 @@ public class GCSServiceTest {
       String fileType = detector.detectFileType(blobName);
 
       try (ReadChannel reader = blob.reader()) {
-        int min = (int) Math.min(blob.getSize(), GCSService.FILE_SIZE);
+        int min = (int) Math.min(blob.getSize(), GCSHandler.FILE_SIZE);
         reader.setChunkSize(min);
         byte[] bytes = new byte[min];
         WritableByteChannel writable = Channels.newChannel(new ByteArrayOutputStream(min));
@@ -75,7 +75,7 @@ public class GCSServiceTest {
           && (encoding.equalsIgnoreCase("utf-8") || encoding.equalsIgnoreCase("ascii"))) {
           String data = new String(bytes, encoding);
           String[] lines = data.split("\r\n|\r|\n");
-          if (blob.getSize() > GCSService.FILE_SIZE) {
+          if (blob.getSize() > GCSHandler.FILE_SIZE) {
             lines = Arrays.copyOf(lines, lines.length - 1);
           }
           Assert.assertTrue(lines.length == lines.length - 1);
