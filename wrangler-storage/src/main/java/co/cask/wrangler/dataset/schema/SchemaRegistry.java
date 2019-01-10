@@ -113,7 +113,7 @@ public final class SchemaRegistry  {
   public long add(NamespacedId id, byte[] specification) throws SchemaRegistryException {
     SchemaRow existing = getSchemaRow(id);
     if (existing == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id));
+      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
     }
 
     long version = existing.getAutoVersion() + 1;
@@ -150,7 +150,7 @@ public final class SchemaRegistry  {
     try {
       SchemaRow row = getSchemaRow(id);
       if (row == null) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id));
+        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
       }
       table.delete(NamespacedKeys.getRowKey(id), toVersionColumn(version));
     } catch (DataSetException e) {
@@ -171,7 +171,7 @@ public final class SchemaRegistry  {
     try {
       Row row = table.get(NamespacedKeys.getRowKey(id));
       if (row.isEmpty()) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist", id));
+        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist", id.getId()));
       }
       return row.getColumns().keySet().contains(toVersionColumn(version));
     } catch (DataSetException e) {
@@ -209,7 +209,7 @@ public final class SchemaRegistry  {
     try {
       Row row = table.get(NamespacedKeys.getRowKey(id));
       if (row.isEmpty()) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id));
+        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
       }
       Set<byte[]> versions = row.getColumns().keySet();
       Set<Long> versionSet = new LinkedHashSet<>();
@@ -241,7 +241,7 @@ public final class SchemaRegistry  {
     try {
       SchemaRow schemaRow = getSchemaRow(id);
       if (schemaRow == null) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id));
+        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
       }
       return getEntry(schemaRow, version);
     } catch (DataSetException e) {
@@ -262,7 +262,7 @@ public final class SchemaRegistry  {
     try {
       SchemaRow schemaRow = getSchemaRow(id);
       if (schemaRow == null) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id));
+        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
       }
       Long version = schemaRow.getCurrentVersion();
       if (version == null) {
@@ -280,7 +280,7 @@ public final class SchemaRegistry  {
     NamespacedId id = schemaRow.getDescriptor().getId();
     byte[] specification = table.get(NamespacedKeys.getRowKey(id), toVersionColumn(version));
     if (specification == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' version '%d' does not exist.", id, version));
+      throw new SchemaNotFoundException(String.format("Schema '%s' version '%d' does not exist.", id.getId(), version));
     }
     Set<Long> versions = getVersions(id);
     return new SchemaEntry(id, schemaRow.getDescriptor().getName(), schemaRow.getDescriptor().getDescription(),
