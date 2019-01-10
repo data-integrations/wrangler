@@ -35,6 +35,7 @@ import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
 import co.cask.wrangler.parser.NoOpDirectiveContext;
 import co.cask.wrangler.parser.RecipeCompiler;
+import co.cask.wrangler.proto.Contexts;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import org.junit.Assert;
@@ -70,7 +71,7 @@ public final class TestingRig {
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
     parser.initialize(null);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.initialize(parser, context);
@@ -96,7 +97,7 @@ public final class TestingRig {
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
     parser.initialize(null);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.initialize(parser, context);
@@ -112,7 +113,7 @@ public final class TestingRig {
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
     parser.initialize(new NoOpDirectiveContext());
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.initialize(parser, new TestingPipelineContext());
@@ -125,7 +126,7 @@ public final class TestingRig {
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
     parser.initialize(null);
     return parser;
   }

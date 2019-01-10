@@ -17,6 +17,7 @@
 package co.cask.wrangler.proto.schema;
 
 import co.cask.cdap.api.common.Bytes;
+import co.cask.wrangler.proto.NamespacedId;
 
 import java.util.Objects;
 import java.util.Set;
@@ -28,8 +29,7 @@ import javax.annotation.Nullable;
  * TODO: (CDAP-14679) Create another SchemaInfo class for the schema itself
  *   and remove version list and current field from this class.
  */
-public final class SchemaEntry {
-  private final String id;
+public final class SchemaEntry extends NamespacedId {
   private final String name;
   private final String description;
   private final SchemaDescriptorType type;
@@ -37,19 +37,15 @@ public final class SchemaEntry {
   private final String specification;
   private final Long current;
 
-  public SchemaEntry(String id, String name, String description, SchemaDescriptorType type,
+  public SchemaEntry(NamespacedId id, String name, String description, SchemaDescriptorType type,
                      Set<Long> versions, @Nullable byte[] specification, @Nullable Long current) {
-    this.id = id;
+    super(id);
     this.name = name;
     this.description = description;
     this.type = type;
     this.versions = versions;
     this.specification = specification == null ? null : Bytes.toHexString(specification);
     this.current = current;
-  }
-
-  public String getId() {
-    return id;
   }
 
   public String getName() {
@@ -86,9 +82,11 @@ public final class SchemaEntry {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
+    if (!super.equals(o)) {
+      return false;
+    }
     SchemaEntry that = (SchemaEntry) o;
-    return Objects.equals(id, that.id) &&
-      Objects.equals(name, that.name) &&
+    return Objects.equals(name, that.name) &&
       Objects.equals(description, that.description) &&
       type == that.type &&
       Objects.equals(versions, that.versions) &&
@@ -98,6 +96,6 @@ public final class SchemaEntry {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, name, description, type, versions, specification, current);
+    return Objects.hash(super.hashCode(), name, description, type, versions, specification, current);
   }
 }

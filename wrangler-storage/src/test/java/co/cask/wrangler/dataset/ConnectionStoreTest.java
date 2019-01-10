@@ -24,6 +24,7 @@ import co.cask.cdap.test.TestConfiguration;
 import co.cask.wrangler.dataset.connections.ConnectionAlreadyExistsException;
 import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
 import co.cask.wrangler.proto.connection.ConnectionType;
@@ -48,15 +49,16 @@ public class ConnectionStoreTest extends TestBase {
     Table table = tableManager.get();
     ConnectionStore connectionStore = new ConnectionStore(table);
 
+    NamespacedId id = NamespacedId.of("c0", "id");
     try {
-      connectionStore.get("id");
+      connectionStore.get(id);
       Assert.fail("Getting a non-existent connection did not throw an exception.");
     } catch (ConnectionNotFoundException e) {
       // expected
     }
 
     try {
-      connectionStore.update("id", ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build());
+      connectionStore.update(id, ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build());
       Assert.fail("Getting a non-existent connection did not throw an exception.");
     } catch (ConnectionNotFoundException e) {
       // expected
@@ -71,9 +73,9 @@ public class ConnectionStoreTest extends TestBase {
     ConnectionStore connectionStore = new ConnectionStore(table);
 
     ConnectionMeta meta = ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build();
-    connectionStore.create(meta);
+    connectionStore.create("c0", meta);
     try {
-      connectionStore.create(meta);
+      connectionStore.create("c0", meta);
       Assert.fail("Creating a duplicate connection did not throw an exception.");
     } catch (ConnectionAlreadyExistsException e) {
       // expected
@@ -87,7 +89,8 @@ public class ConnectionStoreTest extends TestBase {
     Table table = tableManager.get();
     ConnectionStore connectionStore = new ConnectionStore(table);
 
-    Assert.assertTrue(connectionStore.list(x -> true).isEmpty());
+    String ns = "n0";
+    Assert.assertTrue(connectionStore.list(ns, x -> true).isEmpty());
 
     // test creation
     ConnectionMeta expected = ConnectionMeta.builder()
@@ -95,14 +98,11 @@ public class ConnectionStoreTest extends TestBase {
       .setType(ConnectionType.FILE)
       .putProperty("k1", "v1")
       .build();
-    String id = connectionStore.create(expected);
+    NamespacedId id = connectionStore.create(ns, expected);
     tableManager.flush();
 
     Connection actual = connectionStore.get(id);
-    // can't just compare objects since the store sets created, id, and updated fields
-    Assert.assertEquals(expected.getName(), actual.getName());
-    Assert.assertEquals(expected.getType(), actual.getType());
-    Assert.assertEquals(expected.getProperties(), actual.getProperties());
+    assertConnectionMetaEquality(expected, actual);
 
     // test update
     ConnectionMeta updated = ConnectionMeta.builder()
@@ -113,18 +113,14 @@ public class ConnectionStoreTest extends TestBase {
     connectionStore.update(id, updated);
     tableManager.flush();
     actual = connectionStore.get(id);
-    Assert.assertEquals(updated.getName(), actual.getName());
-    Assert.assertEquals(updated.getType(), actual.getType());
-    Assert.assertEquals(updated.getProperties(), actual.getProperties());
+    assertConnectionMetaEquality(updated, actual);
 
     // test scan with non-matching filter
-    Assert.assertTrue(connectionStore.list(c -> c.getType().equals(ConnectionType.DATABASE.getType())).isEmpty());
+    Assert.assertTrue(connectionStore.list(ns, c -> c.getType() == ConnectionType.DATABASE).isEmpty());
     // text scan
-    List<Connection> list = connectionStore.list(x -> true);
+    List<Connection> list = connectionStore.list(ns, x -> true);
     Assert.assertEquals(1, list.size());
-    Assert.assertEquals(updated.getName(), actual.getName());
-    Assert.assertEquals(updated.getType(), actual.getType());
-    Assert.assertEquals(updated.getProperties(), actual.getProperties());
+    assertConnectionMetaEquality(updated, actual);
 
     // test delete
     connectionStore.delete(id);
@@ -135,6 +131,67 @@ public class ConnectionStoreTest extends TestBase {
     } catch (ConnectionNotFoundException e) {
       // expected
     }
-    Assert.assertTrue(connectionStore.list(x -> true).isEmpty());
+    Assert.assertTrue(connectionStore.list(ns, x -> true).isEmpty());
+  }
+
+  @Test
+  public void testNamespaceIsolation() throws Exception {
+    addDatasetInstance("table", "nstest");
+    DataSetManager<Table> tableManager = getDataset("nstest");
+    Table table = tableManager.get();
+    ConnectionStore connectionStore = new ConnectionStore(table);
+
+    String ns1 = "ns1";
+    String ns2 = "ns2";
+
+    // test creation in different namespaces
+    ConnectionMeta expected1 = ConnectionMeta.builder()
+      .setName("My Connection")
+      .setType(ConnectionType.FILE)
+      .putProperty("k1", "v1")
+      .build();
+    NamespacedId id1 = connectionStore.create(ns1, expected1);
+    ConnectionMeta expected2 = ConnectionMeta.builder()
+      .setName("My Connection")
+      .setType(ConnectionType.GCS)
+      .putProperty("k2", "v2")
+      .build();
+    NamespacedId id2 = connectionStore.create(ns2, expected2);
+    tableManager.flush();
+
+    Connection actual1 = connectionStore.get(id1);
+    assertConnectionMetaEquality(expected1, actual1);
+    Connection actual2 = connectionStore.get(id2);
+    assertConnectionMetaEquality(expected2, actual2);
+
+    List<Connection> list1 = connectionStore.list(ns1, x -> true);
+    Assert.assertEquals(1, list1.size());
+    assertConnectionMetaEquality(expected1, list1.iterator().next());
+    List<Connection> list2 = connectionStore.list(ns2, x -> true);
+    Assert.assertEquals(1, list2.size());
+    assertConnectionMetaEquality(expected2, list2.iterator().next());
+
+    // test deletion from one namespace
+    connectionStore.delete(id1);
+    tableManager.flush();
+    Assert.assertTrue(connectionStore.list(ns1, x -> true).isEmpty());
+    try {
+      connectionStore.get(id1);
+      Assert.fail("Connection store did not properly delete connection 1");
+    } catch (ConnectionNotFoundException e) {
+      // expected
+    }
+    actual2 = connectionStore.get(id2);
+    assertConnectionMetaEquality(expected2, actual2);
+    list2 = connectionStore.list(ns2, x -> true);
+    Assert.assertEquals(1, list2.size());
+    assertConnectionMetaEquality(expected2, list2.iterator().next());
+  }
+
+  private void assertConnectionMetaEquality(ConnectionMeta expected, Connection actual) {
+    // can't just compare objects since the store sets created, id, and updated fields
+    Assert.assertEquals(expected.getName(), actual.getName());
+    Assert.assertEquals(expected.getType(), actual.getType());
+    Assert.assertEquals(expected.getProperties(), actual.getProperties());
   }
 }

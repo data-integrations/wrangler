@@ -16,25 +16,26 @@
 
 package co.cask.wrangler.dataset.schema;
 
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
 
 /**
  * Describes a schema.
  */
 public class SchemaDescriptor {
-  protected final String id;
-  protected final String name;
-  protected final String description;
-  protected final SchemaDescriptorType type;
+  private final NamespacedId id;
+  private final String name;
+  private final String description;
+  private final SchemaDescriptorType type;
 
-  public SchemaDescriptor(String id, String name, String description, SchemaDescriptorType type) {
+  public SchemaDescriptor(NamespacedId id, String name, String description, SchemaDescriptorType type) {
     this.id = id;
     this.name = name;
     this.description = description;
     this.type = type;
   }
 
-  public String getId() {
+  public NamespacedId getId() {
     return id;
   }
 

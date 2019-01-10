@@ -28,6 +28,7 @@ import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
+import co.cask.wrangler.proto.Contexts;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import co.cask.wrangler.test.api.TestRecipe;
@@ -54,7 +55,7 @@ public final class TestingRig {
     );
 
     String migrate = new MigrateToV2(recipe.toArray()).migrate();
-    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
     parser.initialize(null);
     RecipePipeline pipeline = new RecipePipelineExecutor();
     pipeline.initialize(parser, null);
@@ -71,7 +72,7 @@ public final class TestingRig {
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(migrate, registry);
+    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
     parser.initialize(null);
     return parser;
   }

@@ -20,6 +20,8 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.RequestExtractor;
+import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.UnauthorizedException;
 import co.cask.wrangler.proto.connection.Connection;
@@ -30,6 +32,7 @@ import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -90,7 +93,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     validateAndCreateDefaultConnections();
   }
 
-  private void validateAndCreateDefaultConnections() {
+  private void validateAndCreateDefaultConnections() throws IOException {
     List<Connection> defaultConnections = connectionTypeConfig.getConnections();
     for (Connection defaultConnection : defaultConnections) {
       if (defaultConnection.getName() == null) {
@@ -101,9 +104,15 @@ public class ConnectionHandler extends AbstractWranglerHandler {
         LOG.warn("Skipping the default connection {}, type is missing or un-recognized", defaultConnection.getName());
         continue;
       }
+      String namespace = defaultConnection.getNamespace();
+      if (!getContext().getAdmin().namespaceExists(namespace)) {
+        LOG.warn("Skipping connection '{}' since namespace '{}' does not exist",
+                 defaultConnection.getName(), namespace);
+        continue;
+      }
       try {
-        if (!store.connectionExists(defaultConnection.getName())) {
-          store.create(defaultConnection);
+        if (!store.connectionExists(namespace, defaultConnection.getName())) {
+          store.create(namespace, defaultConnection);
         }
       } catch (Exception e) {
         // we don't want to disrupt data-prep if we are not able to create a default connection,
@@ -150,9 +159,9 @@ public class ConnectionHandler extends AbstractWranglerHandler {
 
       // Create an instance of the connection, if the connection id already exists,
       // it will throw an exception.
-      String id = store.create(connection);
+      NamespacedId id = store.create(namespace, connection);
       // Return the id in the response.
-      return new ServiceResponse<>(Collections.singletonList(id));
+      return new ServiceResponse<>(Collections.singletonList(id.getId()));
     });
   }
 
@@ -197,7 +206,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
 
       // Create an instance of the connection, if the connection id doesn't exist
       // it will throw an exception.
-      store.update(id, connection);
+      store.update(NamespacedId.of(namespace, id), connection);
       return new ServiceResponse<>(Collections.emptyList());
     });
   }
@@ -220,7 +229,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
     respond(request, responder, namespace, () -> {
-      List<Connection> connections = store.list(input -> {
+      List<Connection> connections = store.list(namespace, input -> {
         if (input == null) {
           return false;
         }
@@ -230,19 +239,23 @@ public class ConnectionHandler extends AbstractWranglerHandler {
         return type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type);
       });
       return new ConnectionResponse<>(connections,
-                                      getDefaultConnection(connections, connectionTypeConfig));
+                                      getDefaultConnection(namespace, connections, connectionTypeConfig));
     });
   }
 
   @Nullable
-  private String getDefaultConnection(List<Connection> connections, ConnectionTypeConfig connectionTypeConfig) {
-    String defaultConnection = connectionTypeConfig.getDefaultConnection();
+  private String getDefaultConnection(String namespace, List<Connection> connections,
+                                      ConnectionTypeConfig connectionTypeConfig) {
+    NamespacedId defaultConnection = connectionTypeConfig.getDefaultConnection();
     if (defaultConnection == null) {
+      return null;
+    }
+    if (!namespace.equals(defaultConnection.getNamespace())) {
       return null;
     }
     Optional<Connection> connection =
       connections.stream().filter(e -> defaultConnection.equals(e.getId())).findFirst();
-    return connection.map(Connection::getId).orElse(null);
+    return connection.map(Connection::getId).map(NamespacedId::getId).orElse(null);
   }
 
   @DELETE
@@ -268,10 +281,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
       // pre-configured connections provided as part of config only contains name and type of connection
       // since connection id is derived from connection name, we get the connection-id for the
       // pre-configured connection name and check with the input connection id.
-      if (preConfiguredConnections.stream().anyMatch(c -> id.equals(store.getConnectionId(c.getName())))) {
+      if (preConfiguredConnections.stream().anyMatch(c -> id.equals(ConnectionStore.getConnectionId(c.getName())))) {
         throw new UnauthorizedException(String.format("Cannot delete admin controlled connection %s", id));
       }
-      store.delete(id);
+      store.delete(NamespacedId.of(namespace, id));
       return new ServiceResponse<Connection>(new ArrayList<>());
     });
   }
@@ -294,7 +307,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(id)));
+    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(NamespacedId.of(namespace, id))));
   }
 
 
@@ -316,7 +329,8 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/{id}/properties")
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(id).getProperties()));
+    respond(request, responder, namespace,
+            () -> new ServiceResponse<>(store.get(NamespacedId.of(namespace, id)).getProperties()));
   }
 
   @PUT
@@ -341,12 +355,13 @@ public class ConnectionHandler extends AbstractWranglerHandler {
                          @QueryParam("key") String key, @QueryParam("value") String value) {
     respond(request, responder, namespace, () -> {
 
-      Connection connection = store.get(id);
+      NamespacedId namespacedId = NamespacedId.of(namespace, id);
+      Connection connection = store.get(namespacedId);
 
       ConnectionMeta updatedMeta = ConnectionMeta.builder(connection)
         .putProperty(key, value)
         .build();
-      store.update(id, updatedMeta);
+      store.update(namespacedId, updatedMeta);
       return new ServiceResponse<>(updatedMeta.getProperties());
     });
   }
@@ -370,7 +385,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(id);
+      Connection connection = store.get(NamespacedId.of(namespace, id));
       ConnectionMeta clone = ConnectionMeta.builder(connection)
         .setName(connection.getName() + "_Clone")
         .build();

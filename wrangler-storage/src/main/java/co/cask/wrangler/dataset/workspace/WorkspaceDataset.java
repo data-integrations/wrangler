@@ -24,6 +24,8 @@ import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.wrangler.api.DirectiveConfig;
+import co.cask.wrangler.dataset.NamespacedKeys;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.proto.WorkspaceIdentifier;
 import com.google.gson.Gson;
@@ -81,9 +83,9 @@ public class WorkspaceDataset {
    * @param meta the workspace metadata
    */
   public void writeWorkspaceMeta(WorkspaceMeta meta) {
-    Workspace existing = readWorkspace(meta.getId());
+    Workspace existing = readWorkspace(meta);
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
-    Workspace.Builder updated = Workspace.builder(meta.getId(), meta.getName());
+    Workspace.Builder updated = Workspace.builder(meta, meta.getName());
     if (existing != null) {
       updated.setCreated(existing.getCreated())
         .setData(existing.getData())
@@ -105,7 +107,7 @@ public class WorkspaceDataset {
    * @return information about the workspace
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public Workspace getWorkspace(String id) throws WorkspaceNotFoundException {
+  public Workspace getWorkspace(NamespacedId id) throws WorkspaceNotFoundException {
     Workspace workspace = readWorkspace(id);
     if (workspace == null) {
       throw new WorkspaceNotFoundException(String.format("Workspace '%s' does not exist.", id));
@@ -119,8 +121,8 @@ public class WorkspaceDataset {
    * @param id of the workspace to be checked for.
    * @return true if workspace exists, false otherwise.
    */
-  public boolean hasWorkspace(String id) {
-    co.cask.cdap.api.dataset.table.Row row = table.get(Bytes.toBytes(id));
+  public boolean hasWorkspace(NamespacedId id) {
+    co.cask.cdap.api.dataset.table.Row row = table.get(NamespacedKeys.getRowKey(id));
     return !row.isEmpty();
   }
 
@@ -129,13 +131,12 @@ public class WorkspaceDataset {
    *
    * @return List of workspaces.
    */
-  public List<WorkspaceIdentifier> listWorkspaces(String scope) {
+  public List<WorkspaceIdentifier> listWorkspaces(String namespace, String scope) {
     List<WorkspaceIdentifier> values = new ArrayList<>();
     co.cask.cdap.api.dataset.table.Row row;
-    try (Scanner scanner = table.scan(null, null)) {
+    try (Scanner scanner = table.scan(NamespacedKeys.getScan(namespace))) {
       while ((row = scanner.next()) != null) {
-        byte[] key = row.getRow();
-        String id = Bytes.toString(key);
+        NamespacedId id = NamespacedKeys.fromRowKey(row.getRow());
         if (excludedKey(id)) {
           continue;
         }
@@ -145,7 +146,7 @@ public class WorkspaceDataset {
           continue;
         }
         byte[] name = row.get(NAME_COL);
-        values.add(new WorkspaceIdentifier(id, Bytes.toString(name)));
+        values.add(new WorkspaceIdentifier(id.getId(), Bytes.toString(name)));
       }
     }
     return values;
@@ -158,7 +159,8 @@ public class WorkspaceDataset {
    * @param properties the properties to update
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public void updateWorkspaceProperties(String id, Map<String, String> properties) throws WorkspaceNotFoundException {
+  public void updateWorkspaceProperties(NamespacedId id,
+                                        Map<String, String> properties) throws WorkspaceNotFoundException {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setProperties(properties)
@@ -174,7 +176,7 @@ public class WorkspaceDataset {
    * @param request the directive execution request
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public void updateWorkspaceRequest(String id, Request request) throws WorkspaceNotFoundException {
+  public void updateWorkspaceRequest(NamespacedId id, Request request) throws WorkspaceNotFoundException {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setRequest(request)
@@ -190,7 +192,7 @@ public class WorkspaceDataset {
    * @param data the sample data
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public void updateWorkspaceData(String id, DataType dataType, byte[] data) throws WorkspaceNotFoundException {
+  public void updateWorkspaceData(NamespacedId id, DataType dataType, byte[] data) throws WorkspaceNotFoundException {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setType(dataType)
@@ -205,8 +207,8 @@ public class WorkspaceDataset {
    *
    * @param id to be deleted.
    */
-  public void deleteWorkspace(String id) {
-    table.delete(Bytes.toBytes(id));
+  public void deleteWorkspace(NamespacedId id) {
+    table.delete(NamespacedKeys.getRowKey(id));
   }
 
   /**
@@ -217,13 +219,12 @@ public class WorkspaceDataset {
    * @param scope to be deleted
    * @return number of workspaces deleted
    */
-  public int deleteScope(String scope) {
+  public int deleteScope(String namespace, String scope) {
     int count = 0;
     co.cask.cdap.api.dataset.table.Row row;
-    try (Scanner scanner = table.scan(null, null)) {
+    try (Scanner scanner = table.scan(NamespacedKeys.getScan(namespace))) {
       while ((row = scanner.next()) != null) {
-        byte[] key = row.getRow();
-        String id = Bytes.toString(key);
+        NamespacedId id = NamespacedKeys.fromRowKey(row.getRow());
         if (excludedKey(id)) {
           continue;
         }
@@ -262,12 +263,12 @@ public class WorkspaceDataset {
     return Bytes.toString(bytes);
   }
 
-  private boolean excludedKey(String id) {
-    return id.equalsIgnoreCase(Bytes.toString(CONFIG_KEY));
+  private boolean excludedKey(NamespacedId id) {
+    return id.getId().equalsIgnoreCase(Bytes.toString(CONFIG_KEY));
   }
 
   private Put toPut(Workspace workspace) {
-    Put put = new Put(workspace.getId());
+    Put put = new Put(NamespacedKeys.getRowKey(workspace));
     put.add(NAME_COL, workspace.getName());
     put.add(SCOPE_COL, workspace.getScope());
     put.add(TYPE_COL, workspace.getType().name());
@@ -284,8 +285,8 @@ public class WorkspaceDataset {
   }
 
   @Nullable
-  private Workspace readWorkspace(String id) {
-    Row row = table.get(Bytes.toBytes(id));
+  private Workspace readWorkspace(NamespacedId id) {
+    Row row = table.get(NamespacedKeys.getRowKey(id));
     if (row.isEmpty()) {
       return null;
     }
