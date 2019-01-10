@@ -16,15 +16,16 @@
 
 package co.cask.wrangler.proto.schema;
 
+import co.cask.wrangler.proto.NamespacedId;
+
 /**
  * A schema ID and entry version.
  */
-public class SchemaEntryVersion {
-  private final String id;
+public class SchemaEntryVersion extends NamespacedId {
   private final long version;
 
-  public SchemaEntryVersion(String id, long version) {
-    this.id = id;
+  public SchemaEntryVersion(NamespacedId id, long version) {
+    super(id);
     this.version = version;
   }
 }

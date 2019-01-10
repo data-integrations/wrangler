@@ -31,6 +31,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.connection.Connection;
@@ -428,7 +429,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         List<Name> values = new ArrayList<>();
-        cleanup = loadAndExecute(store.get(id), connection -> {
+        cleanup = loadAndExecute(store.get(NamespacedId.of(namespace, id)), connection -> {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
           ResultSet resultSet;
           if (product.equalsIgnoreCase("oracle")) {
@@ -495,7 +496,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
-        cleanup = loadAndExecute(store.get(id), connection -> {
+        cleanup = loadAndExecute(store.get(NamespacedId.of(namespace, id)), connection -> {
           try (Statement statement = connection.createStatement();
             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
@@ -507,7 +508,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
             properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
             properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
             properties.put(PropertyIds.CONNECTION_ID, id);
-            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, table)
+            NamespacedId namespacedId = NamespacedId.of(namespace, identifier);
+            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, table)
               .setScope(scope)
               .setProperties(properties)
               .build();
@@ -515,9 +517,10 @@ public class DatabaseHandler extends AbstractWranglerHandler {
 
             ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
             byte[] data = serDe.toByteArray(rows);
-            ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
+            ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
 
-            ConnectionSample sample = new ConnectionSample(identifier, table, ConnectionType.DATABASE.getType(),
+            ConnectionSample sample = new ConnectionSample(namespacedId.getId(), table,
+                                                           ConnectionType.DATABASE.getType(),
                                                            SamplingMethod.NONE.getMethod(), id);
             sampleRef.set(sample);
           }
@@ -581,7 +584,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("id") String id,
                             @PathParam("table") String table) {
     respond(request, responder, namespace, () -> {
-      Connection conn = store.get(id);
+      Connection conn = store.get(NamespacedId.of(namespace, id));
 
       Map<String, String> properties = new HashMap<>();
       properties.put("connectionString", conn.getProperties().get("url"));

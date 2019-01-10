@@ -19,6 +19,7 @@ package co.cask.wrangler.clients;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.internal.guava.reflect.TypeToken;
 import co.cask.wrangler.api.ExecutorContext;
+import co.cask.wrangler.proto.NamespacedId;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
@@ -98,16 +99,18 @@ public final class SchemaRegistryClient {
   /**
    * Retrieves schema provided a schema id and version of the schema.
    *
-   * @param id of the schema.
-   * @param version of the schema.
+   * @param id the schema id
+   * @param version the schema version
    * @return {@link Response} of the schema.
    * @throws URISyntaxException thrown if there are issue with construction of url.
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public byte[] getSchema(String id, long version)
+  public byte[] getSchema(NamespacedId id, long version)
     throws URISyntaxException, IOException, RestClientException {
-    URL url = concat(new URI(baseUrl), String.format("schemas/%s/versions/%d", id, version)).toURL();
+    URL url = concat(new URI(baseUrl),
+                     String.format("contexts/%s/schemas/%s/versions/%d",
+                                   id.getNamespace(), id.getId(), version)).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>() { }.getType());
     if (response.getCount() == 1) {
       return Bytes.fromHexString(response.getValues().get(0).getSpecification());
@@ -118,15 +121,15 @@ public final class SchemaRegistryClient {
   /**
    * Retrieves schema provided a schema id. It provides the latest, current version of schema.
    *
-   * @param id of the schema.
+   * @param id the schema id
    * @return {@link SchemaInfo} of the schema if ok, else null.
    * @throws URISyntaxException thrown if there are issue with construction of url.
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public byte[] getSchema(String id)
+  public byte[] getSchema(NamespacedId id)
     throws URISyntaxException, IOException, RestClientException {
-    URL url = concat(new URI(baseUrl), String.format("schemas/%s", id)).toURL();
+    URL url = concat(new URI(baseUrl), String.format("contexts/%s/schemas/%s", id.getNamespace(), id.getId())).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>() { }.getType());
     if (response.getCount() == 1) {
       return Bytes.fromHexString(response.getValues().get(0).getSpecification());
@@ -137,15 +140,16 @@ public final class SchemaRegistryClient {
   /**
    * Gets all the versions of schemas given a schema id.
    *
-   * @param id of the schema.
+   * @param id the schema id
    * @return a list of schema versions.
    * @throws URISyntaxException thrown if there are issue with construction of url.
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public List<Long> getVersions(String id)
+  public List<Long> getVersions(NamespacedId id)
     throws URISyntaxException, IOException, RestClientException {
-    URL url = concat(new URI(baseUrl), String.format("schemas/%s/versions", id)).toURL();
+    URL url = concat(new URI(baseUrl),
+                     String.format("contexts/%s/schemas/%s/versions", id.getNamespace(), id.getId())).toURL();
     Response<Long> response = request(url, "GET", new TypeToken<Response<Long>>() { }.getType());
     return response.getValues();
   }

@@ -27,6 +27,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.connection.Connection;
@@ -144,12 +145,13 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(id);
+      Connection connection = store.get(NamespacedId.of(namespace, id));
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
       String uuid = ServiceUtils.generateMD5(String.format("%s:%s.%s", scope, id, topic));
+      NamespacedId namespacedId = NamespacedId.of(namespace, uuid);
 
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, uuid);
@@ -161,7 +163,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.KEY_DESERIALIZER, config.getKeyDeserializer());
       properties.put(PropertyIds.VALUE_DESERIALIZER, config.getValueDeserializer());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.FIRST.getMethod());
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(uuid, topic)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, topic)
         .setScope(scope)
         .setProperties(properties)
         .build();
@@ -187,7 +189,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
 
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(recs);
-        ws.updateWorkspaceData(uuid, DataType.RECORDS, data);
+        ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
 
         ConnectionSample sample = new ConnectionSample(uuid, topic, ConnectionType.KAFKA.getType(),
                                                        SamplingMethod.FIRST.getMethod(), id);
@@ -219,7 +221,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @PathParam("id") String id, @PathParam("topic") String topic) {
     respond(request, responder, namespace, () -> {
-      Connection conn = store.get(id);
+      Connection conn = store.get(NamespacedId.of(namespace, id));
       Map<String, String> connProperties = conn.getProperties();
 
       Map<String, String> properties = new HashMap<>();

@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +58,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * @see CompositeDirectiveRegistry
  */
 public final class UserDirectiveRegistry implements DirectiveRegistry {
-  private final Map<String, DirectiveInfo> registry = new ConcurrentSkipListMap<>();
+  private final Map<String, Map<String, DirectiveInfo>> registry = new ConcurrentSkipListMap<>();
   private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
   private StageContext context = null;
   private ArtifactManager manager = null;
@@ -78,7 +78,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    */
   public UserDirectiveRegistry(ArtifactManager manager) throws DirectiveLoadException {
     this.manager = manager;
-    reload();
+    reload("system");
   }
 
   /**
@@ -110,9 +110,13 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Override
-  public DirectiveInfo get(String name) throws DirectiveLoadException {
+  public DirectiveInfo get(String namespace, String name) throws DirectiveLoadException {
+    if (!registry.containsKey(namespace)) {
+      return null;
+    }
+    Map<String, DirectiveInfo> namespaceRegistry = registry.get(namespace);
     try {
-      if (!registry.containsKey(name)) {
+      if (!namespaceRegistry.containsKey(name)) {
         if (context != null) {
           Class<? extends Directive> directive = context.loadPluginClass(name);
           if (directive == null) {
@@ -123,11 +127,11 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
             );
           }
           DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
-          registry.put(classz.name(), classz);
+          namespaceRegistry.put(classz.name(), classz);
           return classz;
         }
       } else {
-        return registry.get(name);
+        return namespaceRegistry.get(name);
       }
     } catch (IllegalAccessException | InstantiationException e) {
       throw new DirectiveLoadException(e.getMessage(), e);
@@ -144,12 +148,13 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   }
 
   @Override
-  public void reload() throws DirectiveLoadException {
+  public void reload(String namespace) throws DirectiveLoadException {
     Map<String, DirectiveInfo> newRegistry = new TreeMap<>();
+    Map<String, DirectiveInfo> currentRegistry = registry.computeIfAbsent(namespace, k -> new TreeMap<>());
 
     if (manager != null) {
       try {
-        List<ArtifactInfo> artifacts = manager.listArtifacts();
+        List<ArtifactInfo> artifacts = manager.listArtifacts(namespace);
         for (ArtifactInfo artifact : artifacts) {
           Set<PluginClass> plugins = artifact.getClasses().getPlugins();
           for (PluginClass plugin : plugins) {
@@ -165,21 +170,21 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
           }
         }
 
-        MapDifference<String, DirectiveInfo> difference = Maps.difference(registry, newRegistry);
+        MapDifference<String, DirectiveInfo> difference = Maps.difference(currentRegistry, newRegistry);
 
         // Remove elements from the registry that are not present in newly loaded registry
         for (String directive : difference.entriesOnlyOnLeft().keySet()) {
-          registry.remove(directive);
+          currentRegistry.remove(directive);
         }
 
         // Update common directives
         for (String directive : difference.entriesInCommon().keySet()) {
-          registry.put(directive, difference.entriesInCommon().get(directive));
+          currentRegistry.put(directive, difference.entriesInCommon().get(directive));
         }
 
         // Update new directives
         for (String directive : difference.entriesOnlyOnRight().keySet()) {
-          registry.put(directive, difference.entriesOnlyOnRight().get(directive));
+          currentRegistry.put(directive, difference.entriesOnlyOnRight().get(directive));
         }
       } catch (IllegalAccessException | InstantiationException | IOException | ClassNotFoundException e) {
         throw new DirectiveLoadException(e.getMessage(), e);
@@ -192,8 +197,9 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * maintained within the registry.
    */
   @Override
-  public Iterator<DirectiveInfo> iterator() {
-    return registry.values().iterator();
+  public Iterable<DirectiveInfo> list(String namespace) {
+    Map<String, DirectiveInfo> namespaceDirectives = registry.getOrDefault(namespace, Collections.emptyMap());
+    return namespaceDirectives.values();
   }
 
   /**

@@ -69,9 +69,9 @@ public final class JSON {
       return context.read(path);
     } else {
       JsonArray array = new JsonArray();
-      array.add(context.read(path));
+      array.add((JsonElement) context.read(path));
       for (String p : paths) {
-        array.add(context.read(p));
+        array.add((JsonElement) context.read(p));
       }
       return array;
     }

@@ -19,6 +19,7 @@ package co.cask.wrangler.registry;
 import co.cask.wrangler.api.DirectiveLoadException;
 
 import java.io.Closeable;
+import java.util.Iterator;
 import javax.annotation.Nullable;
 
 /**
@@ -30,24 +31,35 @@ import javax.annotation.Nullable;
  *
  * @see DirectiveInfo
  */
-public interface DirectiveRegistry extends Iterable<DirectiveInfo>, Closeable {
+public interface DirectiveRegistry extends Closeable {
+
+  /**
+   * List the directives in the specified context
+   *
+   * @param namespace the namespace to list from
+   * @return directives in the specified namespace
+   */
+  Iterable<DirectiveInfo> list(String namespace);
+
   /**
    * Given the name of the directive, returns the information related to the directive.
    *
-   * @param name of the directive to be retrived from the registry.
+   * @param namespace the namespace of the directive
+   * @param name of the directive to be retrieved from the registry.
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Nullable
-  DirectiveInfo get(String name) throws DirectiveLoadException;
+  DirectiveInfo get(String namespace, String name) throws DirectiveLoadException;
 
   /**
    * This method reloads the directives from the artifacts into the registry.
    * Any implementation of this method should provide support for deletes, updates
    * and additions.
    *
+   * @param namespace the namespace to reload directives in
    * @throws DirectiveLoadException thrown when there are any issues with loading
    * directives into the registry.
    */
-  void reload() throws DirectiveLoadException;
+  void reload(String namespace) throws DirectiveLoadException;
 
 }

@@ -22,6 +22,7 @@ import co.cask.directives.aggregates.DefaultTransientStore;
 import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.TransientStore;
+import co.cask.wrangler.proto.Contexts;
 import org.apache.commons.collections.map.HashedMap;
 
 import java.net.URL;
@@ -48,6 +49,11 @@ class TestingPipelineContext implements ExecutorContext {
   @Override
   public Environment getEnvironment() {
     return Environment.TESTING;
+  }
+
+  @Override
+  public String getNamespace() {
+    return Contexts.SYSTEM;
   }
 
   /**
