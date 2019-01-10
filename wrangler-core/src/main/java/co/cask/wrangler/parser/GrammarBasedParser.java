@@ -47,21 +47,19 @@ import javax.annotation.Nullable;
  */
 public class GrammarBasedParser implements RecipeParser {
   private static final char EOL = '\n';
-  private Compiler compiler = new RecipeCompiler();
-  private DirectiveRegistry  registry;
-  private String recipe;
-  private List<Executor> directives;
+  private final String namespace;
+  private final Compiler compiler = new RecipeCompiler();
+  private final DirectiveRegistry registry;
+  private final String recipe;
+  private final List<Executor> directives;
   private DirectiveContext context;
 
-  public GrammarBasedParser(String[] directives, DirectiveRegistry registry) {
-    this(Joiner.on(EOL).join(directives), registry);
+  public GrammarBasedParser(String namespace, String[] directives, DirectiveRegistry registry) {
+    this(namespace, Joiner.on(EOL).join(directives), registry);
   }
 
-  public GrammarBasedParser(List<String> directives, DirectiveRegistry registry) {
-    this(Joiner.on(EOL).join(directives), registry);
-  }
-
-  public GrammarBasedParser(String recipe, DirectiveRegistry registry) {
+  public GrammarBasedParser(String namespace, String recipe, DirectiveRegistry registry) {
+    this.namespace = namespace;
     this.recipe = recipe;
     this.registry = registry;
     this.directives = new ArrayList<>();
@@ -110,7 +108,7 @@ public class GrammarBasedParser implements RecipeParser {
           );
         }
 
-        DirectiveInfo info = registry.get(root);
+        DirectiveInfo info = registry.get(namespace, root);
         if (info == null) {
           throw new DirectiveNotFoundException(
             String.format("Directive '%s' not found in system and user scope. Check the name of directive.", command)

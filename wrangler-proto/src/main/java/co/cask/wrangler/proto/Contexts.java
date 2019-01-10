@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,12 @@
  * the License.
  */
 
-package co.cask.wrangler.proto.schema;
-
-import co.cask.wrangler.proto.NamespacedId;
+package co.cask.wrangler.proto;
 
 /**
- * A schema ID and entry version.
+ * Constants related to an endpoint context.
  */
-public class SchemaEntryVersion extends NamespacedId {
-  private final long version;
-
-  public SchemaEntryVersion(NamespacedId id, long version) {
-    super(id);
-    this.version = version;
-  }
+public class Contexts {
+  public static final String SYSTEM = "system";
+  public static final String DEFAULT = "default";
 }

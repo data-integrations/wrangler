@@ -26,6 +26,7 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.parser.ColumnName;
 import co.cask.wrangler.api.parser.TokenType;
 import co.cask.wrangler.api.parser.UsageDefinition;
+import co.cask.wrangler.proto.Contexts;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -76,20 +77,20 @@ public class CompositeDirectiveRegistryTest {
       registry.put("my-test", new DirectiveInfo(DirectiveInfo.Scope.USER, MyTest.class));
     }
 
+    @Override
+    public Iterable<DirectiveInfo> list(String namespace) {
+      return registry.values();
+    }
+
     @Nullable
     @Override
-    public DirectiveInfo get(String name) {
+    public DirectiveInfo get(String namespace, String name) {
       return registry.get(name);
     }
 
     @Override
-    public void reload() {
+    public void reload(String namespace) {
       // no-op
-    }
-
-    @Override
-    public Iterator<DirectiveInfo> iterator() {
-      return registry.values().iterator();
     }
 
     @Override
@@ -104,7 +105,7 @@ public class CompositeDirectiveRegistryTest {
       new TestDirectiveRegistry()
     );
 
-    Iterator<DirectiveInfo> iterator = registry.iterator();
+    Iterator<DirectiveInfo> iterator = registry.list(Contexts.SYSTEM).iterator();
     int count = 0;
     while (iterator.hasNext()) {
       iterator.next();
@@ -112,9 +113,9 @@ public class CompositeDirectiveRegistryTest {
     }
     Assert.assertEquals(76, count);
 
-    registry.reload();
+    registry.reload("");
 
-    iterator = registry.iterator();
+    iterator = registry.list(Contexts.SYSTEM).iterator();
     count = 0;
     while (iterator.hasNext()) {
       iterator.next();

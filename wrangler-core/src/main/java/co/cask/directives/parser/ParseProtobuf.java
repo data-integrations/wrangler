@@ -39,6 +39,7 @@ import co.cask.wrangler.clients.SchemaRegistryClient;
 import co.cask.wrangler.codec.Decoder;
 import co.cask.wrangler.codec.DecoderException;
 import co.cask.wrangler.codec.ProtobufDecoderUsingDescriptor;
+import co.cask.wrangler.proto.NamespacedId;
 import com.github.rholder.retry.RetryException;
 import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
@@ -113,9 +114,9 @@ public class ParseProtobuf implements Directive {
           client = SchemaRegistryClient.getInstance(context);
           byte[] bytes;
           if (version != -1) {
-            bytes = client.getSchema(schemaId, version);
+            bytes = client.getSchema(NamespacedId.of(context.getNamespace(), schemaId), version);
           } else {
-            bytes = client.getSchema(schemaId);
+            bytes = client.getSchema(NamespacedId.of(context.getNamespace(), schemaId));
           }
 
           return new ProtobufDecoderUsingDescriptor(bytes, recordName);

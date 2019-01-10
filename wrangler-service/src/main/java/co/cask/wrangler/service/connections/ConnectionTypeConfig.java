@@ -17,6 +17,7 @@
 package co.cask.wrangler.service.connections;
 
 import co.cask.cdap.api.Config;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionType;
 
@@ -32,14 +33,14 @@ import javax.annotation.Nullable;
 public class ConnectionTypeConfig extends Config {
   private final Set<ConnectionType> disabledTypes;
   private final List<Connection> connections;
-  private final String defaultConnection;
+  private final NamespacedId defaultConnection;
 
   public ConnectionTypeConfig() {
-    this(Collections.EMPTY_SET, Collections.EMPTY_LIST, null);
+    this(Collections.emptySet(), Collections.emptyList(), null);
   }
 
   public ConnectionTypeConfig(Set<ConnectionType> disabledTypes, List<Connection> connections,
-                              @Nullable String defaultConnection) {
+                              @Nullable NamespacedId defaultConnection) {
     this.disabledTypes = disabledTypes;
     this.connections = connections;
     this.defaultConnection = defaultConnection;
@@ -63,7 +64,7 @@ public class ConnectionTypeConfig extends Config {
    * Return the connection configured to be shown as default in dataprep - null if not provided
    */
   @Nullable
-  public String getDefaultConnection() {
+  public NamespacedId getDefaultConnection() {
     return defaultConnection;
   }
 

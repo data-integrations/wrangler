@@ -56,6 +56,7 @@ import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
 import co.cask.wrangler.parser.RecipeCompiler;
 import co.cask.wrangler.proto.BadRequestException;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.WorkspaceIdentifier;
@@ -193,7 +194,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, id);
       properties.put(PropertyIds.NAME, workspaceName);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, workspaceName)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(NamespacedId.of(namespace, id), workspaceName)
         .setScope(scope)
         .setProperties(properties)
         .build();
@@ -234,7 +235,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
     respond(request, responder, namespace, () -> {
-      List<WorkspaceIdentifier> workspaces = ws.listWorkspaces(scope);
+      List<WorkspaceIdentifier> workspaces = ws.listWorkspaces(namespace, scope);
       return new ServiceResponse<>(workspaces);
     });
   }
@@ -265,7 +266,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      ws.deleteWorkspace(id);
+      ws.deleteWorkspace(NamespacedId.of(namespace, id));
       return new ServiceResponse<Void>(String.format("Successfully deleted workspace '%s'", id));
     });
   }
@@ -296,7 +297,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace, @QueryParam("group") String group) {
     respond(request, responder, namespace, () -> {
-      int count = ws.deleteScope(group);
+      int count = ws.deleteScope(namespace, group);
       return new ServiceResponse<Void>(String.format("Successfully deleted %s workspace(s) within group '%s'",
                                                      count, group));
     });
@@ -343,7 +344,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      Workspace workspace = ws.getWorkspace(id);
+      Workspace workspace = ws.getWorkspace(NamespacedId.of(namespace, id));
       String name = workspace.getName();
       Request workspaceReq = workspace.getRequest();
       JsonObject req = new JsonObject();
@@ -404,7 +405,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       if (name == null) {
         throw new BadRequestException("Name must be provided in the 'file' header");
       }
-      String id = ServiceUtils.generateMD5(name);
+      NamespacedId id = NamespacedId.of(namespace, ServiceUtils.generateMD5(name));
 
       // if workspace doesn't exist, then we create the workspace before
       // adding data to the workspace.
@@ -463,7 +464,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
 
       // Write properties for workspace.
       Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, id);
+      properties.put(PropertyIds.ID, id.getId());
       properties.put(PropertyIds.NAME, name);
       properties.put(PropertyIds.DELIMITER, delimiter);
       properties.put(PropertyIds.CHARSET, charset);
@@ -471,7 +472,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
       ws.updateWorkspaceProperties(id, properties);
 
-      WorkspaceInfo workspaceInfo = new WorkspaceInfo(id, name, delimiter, charset, contentType,
+      WorkspaceInfo workspaceInfo = new WorkspaceInfo(id.getId(), name, delimiter, charset, contentType,
                                                       ConnectionType.UPLOAD.getType(), SamplingMethod.NONE.getMethod());
       return new ServiceResponse<>(workspaceInfo);
     });
@@ -522,11 +523,12 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
                                         "or 'application/data-prep'");
       }
+      NamespacedId namespaceId = NamespacedId.of(namespace, id);
       switch (type) {
         case TEXT:
           // Convert the type into unicode.
           String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          ws.updateWorkspaceData(id, DataType.TEXT, Bytes.toBytes(body));
+          ws.updateWorkspaceData(namespaceId, DataType.TEXT, Bytes.toBytes(body));
           break;
 
         case RECORDS:
@@ -538,11 +540,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           }
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] bytes = serDe.toByteArray(rows);
-          ws.updateWorkspaceData(id, DataType.RECORDS, bytes);
+          ws.updateWorkspaceData(namespaceId, DataType.RECORDS, bytes);
           break;
 
         case BINARY:
-          ws.updateWorkspaceData(id, DataType.BINARY, content);
+          ws.updateWorkspaceData(namespaceId, DataType.BINARY, content);
           break;
       }
 
@@ -552,7 +554,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.CHARSET, charset);
       properties.put(PropertyIds.CONTENT_TYPE, contentType);
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
-      ws.updateWorkspaceProperties(id, properties);
+      ws.updateWorkspaceProperties(namespaceId, properties);
 
       return new ServiceResponse<Void>(String.format("Successfully uploaded data to workspace '%s'", id));
     });
@@ -594,10 +596,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         if (directiveRequest == null) {
           throw new BadRequestException("Request body is empty.");
         }
-        directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(directiveRequest));
+        directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(namespace, directiveRequest));
 
         int limit = directiveRequest.getSampling().getLimit();
-        List<Row> rows = executeDirectives(id, directiveRequest, records -> {
+        NamespacedId namespacedId = NamespacedId.of(namespace, id);
+        List<Row> rows = executeDirectives(namespacedId, directiveRequest, records -> {
           if (records == null) {
             return Collections.emptyList();
           }
@@ -639,7 +642,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         }
 
         // Save the recipes being executed.
-        ws.updateWorkspaceRequest(id, directiveRequest);
+        ws.updateWorkspaceRequest(namespacedId, directiveRequest);
 
         return new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
       } catch (JsonParseException | DirectiveParseException e) {
@@ -651,7 +654,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   /**
    * Automatically adds a load-directives pragma to the list of directives.
    */
-  private String addLoadablePragmaDirectives(Request request) {
+  private String addLoadablePragmaDirectives(String namespace, Request request) {
     StringBuilder sb = new StringBuilder();
     // Validate the DSL by compiling the DSL. In case of macros being
     // specified, the compilation will them at this phase.
@@ -672,7 +675,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         if (token.type() == TokenType.DIRECTIVE_NAME) {
           String directive = (String) token.value();
           try {
-            DirectiveInfo.Scope scope = composite.get(directive).scope();
+            DirectiveInfo.Scope scope = composite.get(namespace, directive).scope();
             if (scope == DirectiveInfo.Scope.USER) {
               userDirectives.add(directive);
             }
@@ -721,7 +724,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           throw new BadRequestException("Request body is empty.");
         }
         int limit = directiveRequest.getSampling().getLimit();
-        List<Row> rows = executeDirectives(id, directiveRequest, records -> {
+        List<Row> rows = executeDirectives(NamespacedId.of(namespace, id), directiveRequest, records -> {
           if (records == null) {
             return Collections.emptyList();
           }
@@ -808,7 +811,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Request body is empty.");
       }
       int limit = user.getSampling().getLimit();
-      List<Row> rows = executeDirectives(id, user, records -> {
+      List<Row> rows = executeDirectives(NamespacedId.of(namespace, id), user, records -> {
         if (records == null) {
           return Collections.emptyList();
         }
@@ -896,7 +899,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       Map<String, List<String>> aliases = config.getReverseAlias();
       List<DirectiveUsage> values = new ArrayList<>();
 
-      for (DirectiveInfo directive : composite) {
+      for (DirectiveInfo directive : composite.list(namespace)) {
         DirectiveUsage directiveUsage = new DirectiveUsage(directive.name(), directive.usage(), directive.description(),
                                                            config.isExcluded(directive.name()), false,
                                                            directive.scope().name(), directive.definition(),
@@ -938,7 +941,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
                         @PathParam("context") String namespace) {
     respond(request, responder, namespace, () -> {
       List<DirectiveArtifact> values = new ArrayList<>();
-      List<ArtifactInfo> artifacts = getContext().listArtifacts();
+      List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         for (PluginClass plugin : plugins) {
@@ -971,7 +974,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
                          @PathParam("context") String namespace) {
     respond(request, responder, namespace, () -> {
       List<DirectiveDescriptor> values = new ArrayList<>();
-      List<ArtifactInfo> artifacts = getContext().listArtifacts();
+      List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         DirectiveArtifact directiveArtifact =
@@ -1002,7 +1005,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder,
                                @PathParam("context") String namespace) {
     respond(request, responder, namespace, () -> {
-      composite.reload();
+      composite.reload(namespace);
       return new ServiceResponse<Void>("Successfully reloaded all user defined directives.");
     });
   }
@@ -1121,7 +1124,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param sample sampling function.
    * @return records generated from the directives.
    */
-  private List<Row> executeDirectives(String id, @Nullable Request user,
+  private List<Row> executeDirectives(NamespacedId id, @Nullable Request user,
                                       Function<List<Row>, List<Row>> sample) throws Exception {
     if (user == null) {
       throw new BadRequestException("Request is empty. Please check if the request is sent as HTTP POST body.");
@@ -1132,14 +1135,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     // Extract rows from the workspace.
     List<Row> rows = fromWorkspace(workspace);
     // Execute the pipeline.
-    ExecutorContext context = new ServicePipelineContext(ExecutorContext.Environment.SERVICE,
+    ExecutorContext context = new ServicePipelineContext(id.getNamespace(), ExecutorContext.Environment.SERVICE,
                                                          getContext(),
                                                          store);
     RecipePipelineExecutor executor = new RecipePipelineExecutor();
     if (user.getRecipe().getDirectives().size() > 0) {
       GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
       String migrate = migrator.migrate();
-      RecipeParser recipe = new GrammarBasedParser(migrate, composite);
+      RecipeParser recipe = new GrammarBasedParser(id.getNamespace(), migrate, composite);
       recipe.initialize(new ConfigDirectiveContext(ws.getConfigString()));
       executor.initialize(recipe, context);
       rows = executor.execute(sample.apply(rows));

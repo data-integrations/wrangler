@@ -17,9 +17,11 @@
 package co.cask.wrangler.registry;
 
 import co.cask.wrangler.api.DirectiveLoadException;
+import com.google.common.collect.Iterables;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -49,9 +51,9 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
    */
   @Nullable
   @Override
-  public DirectiveInfo get(String directive) throws DirectiveLoadException {
+  public DirectiveInfo get(String namespace, String directive) throws DirectiveLoadException {
     for (int i = 0; i < registries.length; ++i) {
-      DirectiveInfo info = registries[i].get(directive);
+      DirectiveInfo info = registries[i].get(namespace, directive);
       if (info != null) {
         return info;
       }
@@ -60,9 +62,9 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
   }
 
   @Override
-  public void reload() throws DirectiveLoadException {
+  public void reload(String namespace) throws DirectiveLoadException {
     for (int idx = 0; idx < registries.length; ++idx) {
-      registries[idx].reload();
+      registries[idx].reload(namespace);
     }
   }
 
@@ -71,8 +73,12 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
    * maintained within the registry.
    */
   @Override
-  public Iterator<DirectiveInfo> iterator() {
-    return new CompositeRegistryIterator();
+  public Iterable<DirectiveInfo> list(String namespace) {
+    List<Iterable<DirectiveInfo>> lists = new ArrayList<>();
+    for (DirectiveRegistry registry : registries) {
+      lists.add(registry.list(namespace));
+    }
+    return Iterables.concat(lists);
   }
 
   /**
@@ -85,49 +91,4 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
     }
   }
 
-  /**
-   * This class <code>CompositeRegistryIterator</code> iterators each of the
-   * registeries in entirity before moving on to the next registry managed
-   * by the <code>CompositeRegistryIterator</code> class.
-   */
-  final class CompositeRegistryIterator implements Iterator<DirectiveInfo> {
-    private final int count;
-    private int idx;
-    private Iterator<DirectiveInfo> iterator;
-
-    CompositeRegistryIterator() {
-      this.count = registries.length;
-      this.idx = 0;
-      this.iterator = registries[idx].iterator();
-    }
-
-    /**
-     * @return Returns true if there exists registry that's not been iterated in entiry, else false.
-     */
-    @Override
-    public boolean hasNext() {
-      boolean status = iterator.hasNext();
-      if (status == false && idx < count - 1) {
-        idx = idx + 1;
-        iterator = registries[idx].iterator();
-        if (iterator.hasNext()) {
-          status = true;
-        }
-      }
-      return status;
-    }
-
-    /**
-     * @return The next <code>DirectiveInfo</code> from the registry.
-     */
-    @Override
-    public DirectiveInfo next() {
-      return iterator.next();
-    }
-
-    @Override
-    public void remove() {
-      // no-op
-    }
-  }
 }

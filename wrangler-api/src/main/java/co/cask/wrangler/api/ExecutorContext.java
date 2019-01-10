@@ -45,6 +45,11 @@ public interface ExecutorContext extends LookupProvider, Serializable {
   Environment getEnvironment();
 
   /**
+   * @return namespace that the program is being executed in
+   */
+  String getNamespace();
+
+  /**
    * @return Measurements handler.
    */
   StageMetrics getMetrics();

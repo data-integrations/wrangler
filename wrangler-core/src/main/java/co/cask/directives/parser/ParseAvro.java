@@ -40,6 +40,7 @@ import co.cask.wrangler.codec.BinaryAvroDecoder;
 import co.cask.wrangler.codec.Decoder;
 import co.cask.wrangler.codec.DecoderException;
 import co.cask.wrangler.codec.JsonAvroDecoder;
+import co.cask.wrangler.proto.NamespacedId;
 import com.github.rholder.retry.RetryException;
 import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
@@ -103,7 +104,7 @@ public class ParseAvro implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, final ExecutorContext context)
+  public List<Row> execute(List<Row> rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException {
     List<Row> results = new ArrayList<>();
 
@@ -114,9 +115,9 @@ public class ParseAvro implements Directive {
         client = SchemaRegistryClient.getInstance(context);
         byte[] bytes;
         if (version != -1) {
-          bytes = client.getSchema(schemaId, version);
+          bytes = client.getSchema(NamespacedId.of(context.getNamespace(), schemaId), version);
         } else {
-          bytes = client.getSchema(schemaId);
+          bytes = client.getSchema(NamespacedId.of(context.getNamespace(), schemaId));
         }
         Schema.Parser parser = new Schema.Parser();
         Schema schema = parser.parse(Bytes.toString(bytes));
