@@ -110,7 +110,7 @@ public class WorkspaceDataset {
   public Workspace getWorkspace(NamespacedId id) throws WorkspaceNotFoundException {
     Workspace workspace = readWorkspace(id);
     if (workspace == null) {
-      throw new WorkspaceNotFoundException(String.format("Workspace '%s' does not exist.", id));
+      throw new WorkspaceNotFoundException(String.format("Workspace '%s' does not exist.", id.getId()));
     }
     return workspace;
   }

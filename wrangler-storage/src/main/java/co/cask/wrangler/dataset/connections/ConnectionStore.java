@@ -87,7 +87,7 @@ public class ConnectionStore {
     Connection existing = read(id);
     if (existing != null) {
       throw new ConnectionAlreadyExistsException(
-        String.format("Connection named '%s' with id '%s' already exists.", meta.getName(), id));
+        String.format("Connection named '%s' with id '%s' already exists.", meta.getName(), id.getId()));
     }
 
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
@@ -109,7 +109,7 @@ public class ConnectionStore {
   public Connection get(NamespacedId id) throws ConnectionNotFoundException {
     Connection existing = read(id);
     if (existing == null) {
-      throw new ConnectionNotFoundException(String.format("Connection '%s' does not exist", id));
+      throw new ConnectionNotFoundException(String.format("Connection '%s' does not exist", id.getId()));
     }
     return existing;
   }

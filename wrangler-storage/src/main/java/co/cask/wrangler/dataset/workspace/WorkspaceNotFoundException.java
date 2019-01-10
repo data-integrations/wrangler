@@ -16,7 +16,8 @@
 
 package co.cask.wrangler.dataset.workspace;
 
-import javax.ws.rs.NotFoundException;
+
+import co.cask.wrangler.proto.NotFoundException;
 
 /**
  * Thrown when a workspace is not found when it is expected to exist.
