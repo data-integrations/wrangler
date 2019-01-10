@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,27 +16,22 @@
 
 package co.cask.wrangler.service.kafka;
 
-import co.cask.cdap.api.annotation.UseDataSet;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
-import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
-import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.kafka.KafkaSpec;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.collect.Lists;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -49,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -56,33 +52,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.service.directive.DirectivesService.WORKSPACE_DATASET;
 
 /**
  * Service for handling Kafka connections.
  */
-public final class KafkaService extends AbstractHttpServiceHandler {
-
-  @UseDataSet(WORKSPACE_DATASET)
-  private WorkspaceDataset ws;
-
-  // Data Prep store which stores all the information associated with dataprep.
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
-  private Table table;
-
-  // Abstraction over the table defined above for managing connections.
-  private ConnectionStore store;
-
-  /**
-   * Stores the context so that it can be used later.
-   *
-   * @param context the HTTP service runtime context
-   */
-  @Override
-  public void initialize(HttpServiceContext context) throws Exception {
-    super.initialize(context);
-    store = new ConnectionStore(table);
-  }
+public final class KafkaHandler extends AbstractWranglerHandler {
 
   /**
    * Tests the connection to kafka..
@@ -168,7 +142,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("id") String id, @PathParam("topic") String topic,
                    @QueryParam("lines") int lines,
-                   @QueryParam("scope") String scope) {
+                   @QueryParam("scope") @DefaultValue("default") String scope) {
     try {
       Connection connection = store.get(id);
       if (connection == null) {
@@ -176,15 +150,26 @@ public final class KafkaService extends AbstractHttpServiceHandler {
         return;
       }
 
-      if (scope == null || scope.isEmpty()) {
-        scope = WorkspaceDataset.DEFAULT_SCOPE;
-      }
-
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
       String uuid = ServiceUtils.generateMD5(String.format("%s:%s.%s", scope, id, topic));
-      ws.createWorkspaceMeta(uuid, scope, topic);
+
+      Map<String, String> properties = new HashMap<>();
+      properties.put(PropertyIds.ID, uuid);
+      properties.put(PropertyIds.NAME, topic);
+      properties.put(PropertyIds.CONNECTION_ID, id);
+      properties.put(PropertyIds.TOPIC, topic);
+      properties.put(PropertyIds.BROKER, config.getConnection());
+      properties.put(PropertyIds.CONNECTION_TYPE, connection.getType().getType());
+      properties.put(PropertyIds.KEY_DESERIALIZER, config.getKeyDeserializer());
+      properties.put(PropertyIds.VALUE_DESERIALIZER, config.getValueDeserializer());
+      properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.FIRST.getMethod());
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(uuid, topic)
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
 
       try {
         boolean running = true;
@@ -206,20 +191,7 @@ public final class KafkaService extends AbstractHttpServiceHandler {
 
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(recs);
-        ws.writeToWorkspace(uuid, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
-
-        // Set all properties and write to workspace.
-        Map<String, String> properties = new HashMap<>();
-        properties.put(PropertyIds.ID, uuid);
-        properties.put(PropertyIds.NAME, topic);
-        properties.put(PropertyIds.CONNECTION_ID, id);
-        properties.put(PropertyIds.TOPIC, topic);
-        properties.put(PropertyIds.BROKER, config.getConnection());
-        properties.put(PropertyIds.CONNECTION_TYPE, connection.getType().getType());
-        properties.put(PropertyIds.KEY_DESERIALIZER, config.getKeyDeserializer());
-        properties.put(PropertyIds.VALUE_DESERIALIZER, config.getValueDeserializer());
-        properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.FIRST.getMethod());
-        ws.writeProperties(uuid, properties);
+        ws.updateWorkspaceData(uuid, DataType.RECORDS, data);
 
         ConnectionSample sample = new ConnectionSample(uuid, topic, ConnectionType.KAFKA.getType(),
                                                        SamplingMethod.FIRST.getMethod(), id);

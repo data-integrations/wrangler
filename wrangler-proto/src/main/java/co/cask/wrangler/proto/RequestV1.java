@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,28 +18,29 @@ package co.cask.wrangler.proto;
 
 import com.google.gson.JsonObject;
 
+import java.util.Objects;
+
 /**
  * Specifies the V1 version of the {@link Request} object.
  */
 public final class RequestV1 implements Request {
   // Version of request.
-  private int version;
+  private final int version;
 
   // Workspace information associated with request.
-  private Workspace workspace;
+  private final Workspace workspace;
 
   // TestRecipe information associated with request.
-  private Recipe recipe;
+  private final Recipe recipe;
 
   // Sampling information associated with request.
-  private Sampling sampling;
+  private final Sampling sampling;
 
   // Additional properties that is of type json.
-  private JsonObject properties;
+  private final JsonObject properties;
 
-  public RequestV1(int version, Workspace workspace, Recipe recipe, Sampling sampling,
-                   JsonObject properties) {
-    this.version = version;
+  public RequestV1(Workspace workspace, Recipe recipe, Sampling sampling, JsonObject properties) {
+    this.version = 1;
     this.workspace = workspace;
     this.recipe = recipe;
     this.sampling = sampling;
@@ -84,5 +85,26 @@ public final class RequestV1 implements Request {
   @Override
   public JsonObject getProperties() {
     return properties;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RequestV1 requestV1 = (RequestV1) o;
+    return version == requestV1.version &&
+      Objects.equals(workspace, requestV1.workspace) &&
+      Objects.equals(recipe, requestV1.recipe) &&
+      Objects.equals(sampling, requestV1.sampling) &&
+      Objects.equals(properties, requestV1.properties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(version, workspace, recipe, sampling, properties);
   }
 }

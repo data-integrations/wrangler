@@ -20,7 +20,7 @@ import co.cask.cdap.test.TestBase;
 import co.cask.common.http.HttpRequest;
 import co.cask.common.http.HttpRequests;
 import co.cask.common.http.HttpResponse;
-import co.cask.wrangler.service.directive.DirectivesService;
+import co.cask.wrangler.service.directive.DirectivesHandler;
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base class which exposes utility functions for interacting with {@link DirectivesService}.
+ * Base class which exposes utility functions for interacting with {@link DirectivesHandler}.
  */
 @Ignore
 public class WranglerServiceTestBase extends TestBase {

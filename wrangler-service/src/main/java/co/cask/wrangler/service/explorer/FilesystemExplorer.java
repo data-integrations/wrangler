@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,6 +31,7 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.file.FileConnectionSample;
@@ -38,7 +39,7 @@ import co.cask.wrangler.proto.file.FileSpec;
 import co.cask.wrangler.sampling.Bernoulli;
 import co.cask.wrangler.sampling.Poisson;
 import co.cask.wrangler.sampling.Reservoir;
-import co.cask.wrangler.service.common.AbstractWranglerService;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.base.Charsets;
@@ -48,7 +49,6 @@ import org.apache.twill.filesystem.Location;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.security.Security;
 import java.util.ArrayList;
@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
@@ -67,7 +68,7 @@ import static co.cask.wrangler.ServiceUtils.sendJson;
  * A {@link FilesystemExplorer} is a HTTP Service handler for exploring the filesystem.
  * It provides capabilities for listing file(s) and directories. It also provides metadata.
  */
-public class FilesystemExplorer extends AbstractWranglerService {
+public class FilesystemExplorer extends AbstractWranglerHandler {
   private static final Gson gson =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private Explorer explorer;
@@ -111,7 +112,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
                    @QueryParam("sampler") String sampler,
                    @QueryParam("fraction") double fraction,
-                   @QueryParam("scope") String scope) {
+                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     String header = request.getHeader(PropertyIds.CONTENT_TYPE);
 
     if (header == null) {
@@ -119,12 +120,8 @@ public class FilesystemExplorer extends AbstractWranglerService {
       return;
     }
 
-    if (scope == null || scope.isEmpty()) {
-      scope = WorkspaceDataset.DEFAULT_SCOPE;
-    }
-
     if (header.equalsIgnoreCase("text/plain") || header.contains("text/")) {
-      loadSamplableFile(responder, scope, path, lines, fraction, sampler);
+      loadSampleableFile(responder, scope, path, lines, fraction, sampler);
     } else if (header.equalsIgnoreCase("application/xml")) {
       loadFile(responder, scope, path, DataType.RECORDS);
     } else if (header.equalsIgnoreCase("application/json")) {
@@ -153,7 +150,7 @@ public class FilesystemExplorer extends AbstractWranglerService {
     try {
       Format format = Format.TEXT;
       if (workspaceId != null) {
-        Map<String, String> config = ws.getProperties(workspaceId);
+        Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         format = Format.valueOf(formatStr);
       }
@@ -177,7 +174,6 @@ public class FilesystemExplorer extends AbstractWranglerService {
   }
 
   private void loadFile(HttpServiceResponder responder, String scope, String path, DataType type) {
-    BufferedInputStream stream = null;
     try {
       Location location = explorer.getLocation(path);
       if (!location.exists()) {
@@ -195,13 +191,6 @@ public class FilesystemExplorer extends AbstractWranglerService {
       String id = String.format("%s:%s:%s:%d", scope, location.getName(),
                                 location.toURI().getPath(), System.nanoTime());
       id = ServiceUtils.generateMD5(id);
-      ws.createWorkspaceMeta(id, scope, name);
-
-      stream = new BufferedInputStream(location.getInputStream());
-      byte[] bytes = new byte[(int) location.length() + 1];
-      stream.read(bytes);
-
-      // Set all properties and write to workspace.
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.FILE_NAME, location.getName());
       properties.put(PropertyIds.URI, location.toURI().toString());
@@ -210,7 +199,16 @@ public class FilesystemExplorer extends AbstractWranglerService {
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       Format format = type == DataType.BINARY ? Format.BLOB : Format.TEXT;
       properties.put(PropertyIds.FORMAT, format.name());
-      ws.writeProperties(id, properties);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, name)
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
+
+      byte[] bytes = new byte[(int) location.length() + 1];
+      try (BufferedInputStream stream = new BufferedInputStream(location.getInputStream())) {
+        stream.read(bytes);
+      }
 
       // Write records to workspace.
       if (type == DataType.RECORDS) {
@@ -218,9 +216,9 @@ public class FilesystemExplorer extends AbstractWranglerService {
         rows.add(new Row(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(rows);
-        ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
+        ws.updateWorkspaceData(id, DataType.RECORDS, data);
       } else if (type == DataType.BINARY || type == DataType.TEXT) {
-        ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, type, bytes);
+        ws.updateWorkspaceData(id, type, bytes);
       }
 
       FileConnectionSample sample = new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
@@ -231,24 +229,15 @@ public class FilesystemExplorer extends AbstractWranglerService {
       responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
-    } finally {
-      if (stream != null) {
-        try {
-          stream.close();
-        } catch (IOException e) {
-          // Nothing much we can do here.
-        }
-      }
     }
   }
 
-  private void loadSamplableFile(HttpServiceResponder responder,
-                                 String scope, String path, int lines, double fraction, String sampler) {
+  private void loadSampleableFile(HttpServiceResponder responder,
+                                  String scope, String path, int lines, double fraction, String sampler) {
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
     }
-    BoundedLineInputStream stream = null;
     try {
       Location location = explorer.getLocation(path);
       if (!location.exists()) {
@@ -256,9 +245,21 @@ public class FilesystemExplorer extends AbstractWranglerService {
         return;
       }
       String name = location.getName();
-      String id = String.format("%s:%s:%d", location.getName(), location.toURI().getPath(), System.nanoTime());
+      String id = String.format("%s:%s:%s:%d", scope, location.getName(),
+                                location.toURI().getPath(), System.nanoTime());
       id = ServiceUtils.generateMD5(id);
-      ws.createWorkspaceMeta(id, scope, name);
+      // Set all properties and write to workspace.
+      Map<String, String> properties = new HashMap<>();
+      properties.put(PropertyIds.FILE_NAME, location.getName());
+      properties.put(PropertyIds.URI, location.toURI().toString());
+      properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
+      properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, name)
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
 
       // Iterate through lines to extract only 'limit' random lines.
       // Depending on the type, the sampling of the input is performed.
@@ -276,19 +277,10 @@ public class FilesystemExplorer extends AbstractWranglerService {
         rows.add(new Row(COLUMN_NAME, it.next()));
       }
 
-      // Set all properties and write to workspace.
-      Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.FILE_NAME, location.getName());
-      properties.put(PropertyIds.URI, location.toURI().toString());
-      properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
-      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
-      properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
-      ws.writeProperties(id, properties);
-
       // Write rows to workspace.
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] data = serDe.toByteArray(rows);
-      ws.writeToWorkspace(id, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
+      ws.updateWorkspaceData(id, DataType.RECORDS, data);
 
       FileConnectionSample sample = new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
                                                              samplingMethod.getMethod(), null,
@@ -298,10 +290,6 @@ public class FilesystemExplorer extends AbstractWranglerService {
       responder.sendJson(response);
     } catch (Exception e) {
       error(responder, e.getMessage());
-    } finally {
-      if (stream != null) {
-        stream.close();
-      }
     }
   }
 

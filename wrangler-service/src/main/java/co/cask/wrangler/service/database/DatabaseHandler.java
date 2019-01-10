@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2018 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,38 +16,31 @@
 
 package co.cask.wrangler.service.database;
 
-import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.artifact.CloseableClassLoader;
-import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.api.plugin.PluginClass;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.DataPrep;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.connections.ConnectionType;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
+import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.db.AllowedDriverInfo;
 import co.cask.wrangler.proto.db.DBSpec;
 import co.cask.wrangler.proto.db.JDBCDriverInfo;
-import co.cask.wrangler.service.directive.DirectivesService;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -56,8 +49,6 @@ import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
@@ -88,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -98,22 +90,9 @@ import javax.ws.rs.QueryParam;
 /**
  * Class description here.
  */
-public class DatabaseService extends AbstractHttpServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(DatabaseService.class);
+public class DatabaseHandler extends AbstractWranglerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseHandler.class);
   private static final String JDBC = "jdbc";
-
-  @UseDataSet(DirectivesService.WORKSPACE_DATASET)
-  private WorkspaceDataset ws;
-
-  // Data Prep store which stores all the information associated with dataprep.
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
-  private Table table;
-
-  // Abstraction over the table defined above for managing connections.
-  private ConnectionStore store;
-
-  private static final Gson gson =
-    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
 
   // Driver class loaders cached.
   private final LoadingCache<String, CloseableClassLoader> cache = CacheBuilder.newBuilder()
@@ -199,9 +178,8 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   @Override
   public void initialize(HttpServiceContext context) throws Exception {
     super.initialize(context);
-    store = new ConnectionStore(table);
     drivers.clear();
-    InputStream is = DatabaseService.class.getClassLoader().getResourceAsStream("drivers.mapping");
+    InputStream is = DatabaseHandler.class.getClassLoader().getResourceAsStream("drivers.mapping");
     if (is == null) {
       // shouldn't happen unless packaging changes
       LOG.error("Unable to get JDBC driver mapping.");
@@ -493,33 +471,32 @@ public class DatabaseService extends AbstractHttpServiceHandler {
   @Path("connections/{id}/tables/{table}/read")
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("id") String id, @PathParam("table") String table,
-                   @QueryParam("lines") int lines, @QueryParam("scope") String scope) {
+                   @QueryParam("lines") int lines,
+                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     DriverCleanup cleanup = null;
     try {
 
       cleanup = loadAndExecute(id, connection -> {
-        String grp = scope;
-        if (Strings.isNullOrEmpty(scope)) {
-          grp = WorkspaceDataset.DEFAULT_SCOPE;
-        }
         try (Statement statement = connection.createStatement();
              ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
           List<Row> rows = getRows(lines, result);
 
           String identifier = ServiceUtils.generateMD5(table);
-          ws.createWorkspaceMeta(identifier, grp, table);
-          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-          byte[] data = serDe.toByteArray(rows);
-          ws.writeToWorkspace(identifier, WorkspaceDataset.DATA_COL, DataType.RECORDS, data);
-
           Map<String, String> properties = new HashMap<>();
           properties.put(PropertyIds.ID, identifier);
           properties.put(PropertyIds.NAME, table);
           properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
           properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
           properties.put(PropertyIds.CONNECTION_ID, id);
-          ws.writeProperties(identifier, properties);
+          WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, table)
+            .setScope(scope)
+            .setProperties(properties)
+            .build();
+          ws.writeWorkspaceMeta(workspaceMeta);
 
+          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+          byte[] data = serDe.toByteArray(rows);
+          ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
 
           ConnectionSample sample = new ConnectionSample(identifier, table, ConnectionType.DATABASE.getType(),
                                                          SamplingMethod.NONE.getMethod(), id);
@@ -680,7 +657,7 @@ public class DatabaseService extends AbstractHttpServiceHandler {
     field.setAccessible(true);
     List<?> list = (List<?>) field.get(null);
     for (Object driverInfo : list) {
-      Class<?> driverInfoClass = DatabaseService.class.getClassLoader().loadClass("java.sql.DriverInfo");
+      Class<?> driverInfoClass = DatabaseHandler.class.getClassLoader().loadClass("java.sql.DriverInfo");
       Field driverField = driverInfoClass.getDeclaredField("driver");
       driverField.setAccessible(true);
       Driver d = (Driver) driverField.get(driverInfo);

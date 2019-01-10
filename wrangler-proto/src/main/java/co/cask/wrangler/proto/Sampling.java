@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,18 +16,26 @@
 
 package co.cask.wrangler.proto;
 
+import java.util.Objects;
+
 /**
  * Defines the sampling specification of the {@link Request}
  */
 public final class Sampling {
   // Sampling method.
-  private String method;
+  private final String method;
 
   // Seeding capability for sampling.
-  private Integer seed;
+  private final Integer seed;
 
   // Number of records to be read.
-  private Integer limit;
+  private final Integer limit;
+
+  public Sampling(String method, Integer seed, Integer limit) {
+    this.method = method;
+    this.seed = seed;
+    this.limit = limit;
+  }
 
   /**
    * @return Method for sampling data.
@@ -56,5 +64,24 @@ public final class Sampling {
     } else {
       return 100;
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Sampling sampling = (Sampling) o;
+    return Objects.equals(method, sampling.method) &&
+      Objects.equals(seed, sampling.seed) &&
+      Objects.equals(limit, sampling.limit);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(method, seed, limit);
   }
 }

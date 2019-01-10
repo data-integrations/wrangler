@@ -17,7 +17,7 @@
 package co.cask.wrangler.service.explorer;
 
 import co.cask.wrangler.service.gcp.GCPUtils;
-import co.cask.wrangler.service.gcs.GCSService;
+import co.cask.wrangler.service.gcs.GCSHandler;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.storage.Blob;
@@ -34,7 +34,7 @@ import java.net.HttpURLConnection;
 import java.util.Iterator;
 
 /**
- * Tests {@link GCSService}
+ * Tests {@link GCSHandler}
  */
 @Ignore
 public class GCSServiceTest {

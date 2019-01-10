@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.wrangler.service.directive;
+package co.cask.wrangler.dataset.workspace;
 
 import co.cask.wrangler.proto.Recipe;
 import co.cask.wrangler.proto.Request;
@@ -53,7 +53,7 @@ public class RequestDeserializer implements JsonDeserializer<Request> {
       Recipe recipe = context.deserialize(object.get("recipe"), Recipe.class);
       Sampling sampling = context.deserialize(object.get("sampling"), Sampling.class);
       JsonObject properties = context.deserialize(object.get("properties"), JsonObject.class);
-      return new RequestV1(version, workspace, recipe, sampling, properties);
+      return new RequestV1(workspace, recipe, sampling, properties);
     } else {
       throw new JsonParseException (
         String.format("Unsupported request version %d.", version)
