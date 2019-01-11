@@ -20,21 +20,16 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.RequestExtractor;
-import co.cask.wrangler.ServiceUtils;
-import co.cask.wrangler.dataset.connections.ConnectionAlreadyExistsException;
-import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
-import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.UnauthorizedException;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
 import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.service.common.AbstractWranglerHandler;
-import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,7 +46,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-
 
 /**
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
@@ -119,6 +113,12 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     }
   }
 
+  @POST
+  @Path("connections/create")
+  public void create(HttpServiceRequest request, HttpServiceResponder responder) {
+    create(request, responder, getContext().getNamespace());
+  }
+
   /**
    * Creates a connection object in the connections store.
    *
@@ -140,29 +140,27 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param responder Responder for data going out.
    */
   @POST
-  @Path("connections/create")
-  public void create(HttpServiceRequest request, HttpServiceResponder responder) {
-    // Extract the body of the request and transform it to the Connection object.
-    RequestExtractor extractor = new RequestExtractor(request);
-    ConnectionMeta connection;
-    try {
-      connection = extractor.getConnectionMeta();
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-      return;
-    }
+  @Path("contexts/{context}/connections/create")
+  public void create(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
+      // Extract the body of the request and transform it to the Connection object.
+      RequestExtractor extractor = new RequestExtractor(request);
+      ConnectionMeta connection = extractor.getConnectionMeta();
 
-    try {
       // Create an instance of the connection, if the connection id already exists,
       // it will throw an exception.
       String id = store.create(connection);
       // Return the id in the response.
-      responder.sendJson(new ServiceResponse<>(ImmutableList.of(id)));
-    } catch (ConnectionAlreadyExistsException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_CONFLICT, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(Collections.singletonList(id));
+    });
+  }
+
+  @POST
+  @Path("connections/{id}/update")
+  public void update(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("id") String id) {
+    update(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -189,10 +187,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param responder Responder for data going out.
    */
   @POST
-  @Path("connections/{id}/update")
+  @Path("contexts/{context}/connections/{id}/update")
   public void update(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    try {
+                     @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta();
@@ -200,14 +198,15 @@ public class ConnectionHandler extends AbstractWranglerHandler {
       // Create an instance of the connection, if the connection id doesn't exist
       // it will throw an exception.
       store.update(id, connection);
-      responder.sendJson(new ServiceResponse<>(Collections.emptyList()));
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(Collections.emptyList());
+    });
+  }
+
+  @GET
+  @Path("connections")
+  public void list(HttpServiceRequest request, HttpServiceResponder responder,
+                   @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
+    list(request, responder, getContext().getNamespace(), type);
   }
 
   /**
@@ -217,10 +216,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param responder Responder for data going out.
    */
   @GET
-  @Path("connections")
+  @Path("contexts/{context}/connections")
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @DefaultValue (ALL_TYPES) @QueryParam("type") String type) {
-    try {
+                   @PathParam("context") String namespace, @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
+    respond(request, responder, namespace, () -> {
       List<Connection> connections = store.list(input -> {
         if (input == null) {
           return false;
@@ -230,11 +229,9 @@ public class ConnectionHandler extends AbstractWranglerHandler {
         }
         return type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type);
       });
-      responder.sendJson(new ConnectionResponse<>(connections,
-                                                  getDefaultConnection(connections, connectionTypeConfig)));
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ConnectionResponse<>(connections,
+                                      getDefaultConnection(connections, connectionTypeConfig));
+    });
   }
 
   @Nullable
@@ -248,6 +245,13 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     return connection.map(Connection::getId).orElse(null);
   }
 
+  @DELETE
+  @Path("connections/{id}")
+  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("id") String id) {
+    delete(request, responder, getContext().getNamespace(), id);
+  }
+
   /**
    * Deletes a connection from the connection store.
    *
@@ -256,25 +260,27 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param id of the connection to be deleted.
    */
   @DELETE
-  @Path("connections/{id}")
+  @Path("contexts/{context}/connections/{id}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    try {
+                     @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
       List<Connection> preConfiguredConnections = connectionTypeConfig.getConnections();
       // pre-configured connections provided as part of config only contains name and type of connection
       // since connection id is derived from connection name, we get the connection-id for the
       // pre-configured connection name and check with the input connection id.
-      if (preConfiguredConnections.stream()
-        .anyMatch(c -> id.equals(ConnectionStore.getConnectionId(c.getName())))) {
-        responder.sendError(HttpURLConnection.HTTP_UNAUTHORIZED,
-                            String.format("Cannot delete admin controlled connection %s", id));
-        return;
+      if (preConfiguredConnections.stream().anyMatch(c -> id.equals(store.getConnectionId(c.getName())))) {
+        throw new UnauthorizedException(String.format("Cannot delete admin controlled connection %s", id));
       }
       store.delete(id);
-      responder.sendJson(new ServiceResponse<Connection>(new ArrayList<>()));
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Connection>(new ArrayList<>());
+    });
+  }
+
+  @GET
+  @Path("connections/{id}")
+  public void get(HttpServiceRequest request, HttpServiceResponder responder,
+                  @PathParam("id") String id) {
+    get(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -285,17 +291,18 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param id for which all the information is returned from the connection store.
    */
   @GET
-  @Path("connections/{id}")
+  @Path("contexts/{context}/connections/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") String id) {
-    try {
-      Connection connection = store.get(id);
-      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection)));
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+                  @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(id)));
+  }
+
+
+  @GET
+  @Path("connections/{id}/properties")
+  public void properties(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("id") String id) {
+    properties(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -306,17 +313,18 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param id of the connection for which all properties need to be returned.
    */
   @GET
-  @Path("connections/{id}/properties")
+  @Path("contexts/{context}/connections/{id}/properties")
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("id") final String id) {
-    try {
-      Connection connection = store.get(id);
-      responder.sendJson(new ServiceResponse<>(connection.getProperties()));
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+                         @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(id).getProperties()));
+  }
+
+  @PUT
+  @Path("connections/{id}/properties")
+  public void updateProp(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("id") String id,
+                         @QueryParam("key") String key, @QueryParam("value") String value) {
+    updateProp(request, responder, getContext().getNamespace(), id, key, value);
   }
 
   /**
@@ -327,23 +335,27 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param id of the connection to be who's property needs to be updated.
    */
   @PUT
-  @Path("connections/{id}/properties")
+  @Path("contexts/{context}/connections/{id}/properties")
   public void updateProp(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("id") String id, @QueryParam("key") String key,
-                         @QueryParam("value") String value) {
-    try {
+                         @PathParam("context") String namespace, @PathParam("id") String id,
+                         @QueryParam("key") String key, @QueryParam("value") String value) {
+    respond(request, responder, namespace, () -> {
+
       Connection connection = store.get(id);
 
       ConnectionMeta updatedMeta = ConnectionMeta.builder(connection)
         .putProperty(key, value)
         .build();
       store.update(id, updatedMeta);
-      responder.sendJson(new ServiceResponse<>(updatedMeta.getProperties()));
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(updatedMeta.getProperties());
+    });
+  }
+
+  @GET
+  @Path("connections/{id}/clone")
+  public void clone(HttpServiceRequest request, HttpServiceResponder responder,
+                    @PathParam("id") final String id) {
+    clone(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -354,20 +366,16 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param id of the connection that should be cloned.
    */
   @GET
-  @Path("connections/{id}/clone")
+  @Path("contexts/{context}/connections/{id}/clone")
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
-                    @PathParam("id") final String id) {
-    try {
+                    @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
       Connection connection = store.get(id);
       ConnectionMeta clone = ConnectionMeta.builder(connection)
         .setName(connection.getName() + "_Clone")
         .build();
-      responder.sendJson(new ServiceResponse<>(clone));
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(clone);
+    });
   }
 
   /**

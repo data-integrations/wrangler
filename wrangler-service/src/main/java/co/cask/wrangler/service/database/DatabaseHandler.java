@@ -27,7 +27,6 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
@@ -47,7 +46,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
@@ -61,7 +59,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.net.HttpURLConnection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.Driver;
@@ -82,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -100,16 +98,13 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   // Driver class loaders cached.
   private final LoadingCache<String, CloseableClassLoader> cache = CacheBuilder.newBuilder()
     .expireAfterAccess(60, TimeUnit.MINUTES)
-    .removalListener(new RemovalListener<String, CloseableClassLoader>() {
-      @Override
-      public void onRemoval(RemovalNotification<String, CloseableClassLoader> removalNotification) {
-        CloseableClassLoader value = removalNotification.getValue();
-        if (value != null) {
-          try {
-            Closeables.close(value, true);
-          } catch (IOException e) {
-            // never happens.
-          }
+    .removalListener((RemovalListener<String, CloseableClassLoader>) removalNotification -> {
+      CloseableClassLoader value = removalNotification.getValue();
+      if (value != null) {
+        try {
+          Closeables.close(value, true);
+        } catch (IOException e) {
+          // never happens.
         }
       }
     }).build(new CacheLoader<String, CloseableClassLoader>() {
@@ -200,6 +195,12 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     }
   }
 
+  @GET
+  @Path("jdbc/drivers")
+  public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
+    listDrivers(request, responder, getContext().getNamespace());
+  }
+
   /**
    * Lists all the JDBC drivers installed.
    * <p>
@@ -235,9 +236,10 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param responder HTTP response handler.
    */
   @GET
-  @Path("jdbc/drivers")
-  public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+  @Path("contexts/{context}/jdbc/drivers")
+  public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder,
+                          @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
       List<JDBCDriverInfo> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts();
       for (ArtifactInfo artifact : artifacts) {
@@ -267,11 +269,14 @@ public class DatabaseHandler extends AbstractWranglerHandler {
           }
         }
       }
-      ServiceResponse<JDBCDriverInfo> response = new ServiceResponse<>(values);
-      responder.sendJson(response);
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(values);
+    });
+  }
+
+  @GET
+  @Path("jdbc/allowed")
+  public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
+    listAvailableDrivers(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -297,17 +302,19 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param responder HTTP response handler.
    */
   @GET
-  @Path("jdbc/allowed")
-  public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
-    List<AllowedDriverInfo> values = new ArrayList<>();
-    Collection<Map.Entry<String, DriverInfo>> entries = drivers.entries();
-    for (Map.Entry<String, DriverInfo> driver : entries) {
-      String shortTag = driver.getValue().getTag();
-      values.add(new AllowedDriverInfo(driver.getKey(), driver.getValue().getName(), shortTag, shortTag,
-                                       driver.getValue().getPort()));
-    }
-    ServiceResponse<AllowedDriverInfo> response = new ServiceResponse<>(values);
-    responder.sendJson(response);
+  @Path("contexts/{context}/jdbc/allowed")
+  public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder,
+                                   @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
+      List<AllowedDriverInfo> values = new ArrayList<>();
+      Collection<Map.Entry<String, DriverInfo>> entries = drivers.entries();
+      for (Map.Entry<String, DriverInfo> driver : entries) {
+        String shortTag = driver.getValue().getTag();
+        values.add(new AllowedDriverInfo(driver.getKey(), driver.getValue().getName(), shortTag, shortTag,
+                                         driver.getValue().getPort()));
+      }
+      return new ServiceResponse<>(values);
+    });
   }
 
   /**
@@ -326,26 +333,27 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @POST
   @Path("connections/jdbc/test")
   public void testConnection(HttpServiceRequest request, HttpServiceResponder responder) {
-    DriverCleanup cleanup = null;
-    try {
-      // Extract the body of the request and transform it to the Connection object.
-      RequestExtractor extractor = new RequestExtractor(request);
-      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
+    respond(request, responder, () -> {
+      DriverCleanup cleanup = null;
+      try {
+        // Extract the body of the request and transform it to the Connection object.
+        RequestExtractor extractor = new RequestExtractor(request);
+        ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
-      cleanup = loadAndExecute(connection, sqlConnection -> {
-        sqlConnection.getMetaData();
-        ServiceResponse<Void> response = new ServiceResponse<>("Successfully connected to database.");
-        responder.sendJson(response);
-      });
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    } finally {
-      if (cleanup != null) {
-        cleanup.destroy();
+        cleanup = loadAndExecute(connection, java.sql.Connection::getMetaData);
+        return new ServiceResponse<>("Successfully connected to database.");
+      } finally {
+        if (cleanup != null) {
+          cleanup.destroy();
+        }
       }
-    }
+    });
+  }
+
+  @POST
+  @Path("connections/databases")
+  public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder) {
+    listDatabases(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -355,24 +363,18 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param responder HTTP response handler.
    */
   @POST
-  @Path("connections/databases")
-  public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder) {
-    DriverCleanup cleanup = null;
+  @Path("contexts/{context}/connections/databases")
+  public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
+      DriverCleanup cleanup = null;
+      try {
+        // Extract the body of the request and transform it to the Connection object.
+        RequestExtractor extractor = new RequestExtractor(request);
+        ConnectionMeta conn = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
-    // Extract the body of the request and transform it to the Connection object.
-    RequestExtractor extractor = new RequestExtractor(request);
-    ConnectionMeta connection;
-    try {
-      connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-      return;
-    }
-
-    try {
-      cleanup = loadAndExecute(connection, new Executor() {
-        @Override
-        public void execute(java.sql.Connection connection) throws Exception {
+        List<String> values = new ArrayList<>();
+        cleanup = loadAndExecute(conn, connection -> {
           DatabaseMetaData metaData = connection.getMetaData();
           ResultSet resultSet;
           PreparedStatement ps = null;
@@ -384,7 +386,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
           } else {
             resultSet = metaData.getCatalogs();
           }
-          List<String> values = new ArrayList<>();
           try {
             while (resultSet.next()) {
               values.add(resultSet.getString("TABLE_CAT"));
@@ -395,17 +396,21 @@ public class DatabaseHandler extends AbstractWranglerHandler {
               ps.close();
             }
           }
-          ServiceResponse<String> response = new ServiceResponse<>(values);
-          responder.sendJson(response);
+        });
+        return new ServiceResponse<>(values);
+      } finally {
+        if (cleanup != null) {
+          cleanup.destroy();
         }
-      });
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    } finally {
-      if (cleanup != null) {
-        cleanup.destroy();
       }
-    }
+    });
+  }
+
+  @GET
+  @Path("connections/{id}/tables")
+  public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("id") String id) {
+    listTables(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -416,14 +421,14 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param id Connection id for which the tables need to be listed from database.
    */
   @GET
-  @Path("connections/{id}/tables")
-  public void listTables(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
-    DriverCleanup cleanup = null;
-
-    try {
-      cleanup = loadAndExecute(store.get(id), new Executor() {
-        @Override
-        public void execute(java.sql.Connection connection) throws Exception {
+  @Path("contexts/{context}/connections/{id}/tables")
+  public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
+      DriverCleanup cleanup = null;
+      try {
+        List<Name> values = new ArrayList<>();
+        cleanup = loadAndExecute(store.get(id), connection -> {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
           ResultSet resultSet;
           if (product.equalsIgnoreCase("oracle")) {
@@ -434,7 +439,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
             resultSet = metaData.getTables(null, null, "%", null);
           }
           try {
-            List<Name> values = new ArrayList<>();
             while (resultSet.next()) {
               String name;
               if (product.equalsIgnoreCase("oracle")) {
@@ -447,24 +451,28 @@ public class DatabaseHandler extends AbstractWranglerHandler {
               }
               values.add(new Name(name));
             }
-            ServiceResponse<Name> response = new ServiceResponse<>(values);
-            responder.sendJson(response);
           } finally {
             if (resultSet != null) {
               resultSet.close();
             }
           }
+        });
+        return new ServiceResponse<>(values);
+      } finally {
+        if (cleanup != null) {
+          cleanup.destroy();
         }
-      });
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    } finally {
-      if (cleanup != null) {
-        cleanup.destroy();
       }
-    }
+    });
+  }
+
+  @GET
+  @Path("connections/{id}/tables/{table}/read")
+  public void read(HttpServiceRequest request, HttpServiceResponder responder,
+                   @PathParam("id") String id, @PathParam("table") String table,
+                   @QueryParam("lines") int lines,
+                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+    read(request, responder, getContext().getNamespace(), id, table, lines, scope);
   }
 
   /**
@@ -478,51 +486,49 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param scope Group the workspace should be created in.
    */
   @GET
-  @Path("connections/{id}/tables/{table}/read")
+  @Path("contexts/{context}/connections/{id}/tables/{table}/read")
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
-                   @PathParam("id") String id, @PathParam("table") String table,
+                   @PathParam("context") String namespace, @PathParam("id") String id, @PathParam("table") String table,
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    DriverCleanup cleanup = null;
-    try {
+    respond(request, responder, namespace, () -> {
+      DriverCleanup cleanup = null;
+      try {
+        AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
+        cleanup = loadAndExecute(store.get(id), connection -> {
+          try (Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
+            List<Row> rows = getRows(lines, result);
 
-      cleanup = loadAndExecute(store.get(id), connection -> {
-        try (Statement statement = connection.createStatement();
-             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
-          List<Row> rows = getRows(lines, result);
+            String identifier = ServiceUtils.generateMD5(table);
+            Map<String, String> properties = new HashMap<>();
+            properties.put(PropertyIds.ID, identifier);
+            properties.put(PropertyIds.NAME, table);
+            properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
+            properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+            properties.put(PropertyIds.CONNECTION_ID, id);
+            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, table)
+              .setScope(scope)
+              .setProperties(properties)
+              .build();
+            ws.writeWorkspaceMeta(workspaceMeta);
 
-          String identifier = ServiceUtils.generateMD5(table);
-          Map<String, String> properties = new HashMap<>();
-          properties.put(PropertyIds.ID, identifier);
-          properties.put(PropertyIds.NAME, table);
-          properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
-          properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-          properties.put(PropertyIds.CONNECTION_ID, id);
-          WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, table)
-            .setScope(scope)
-            .setProperties(properties)
-            .build();
-          ws.writeWorkspaceMeta(workspaceMeta);
+            ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+            byte[] data = serDe.toByteArray(rows);
+            ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
 
-          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-          byte[] data = serDe.toByteArray(rows);
-          ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
-
-          ConnectionSample sample = new ConnectionSample(identifier, table, ConnectionType.DATABASE.getType(),
-                                                         SamplingMethod.NONE.getMethod(), id);
-          ServiceResponse<ConnectionSample> response = new ServiceResponse<>(sample);
-          responder.sendJson(response);
+            ConnectionSample sample = new ConnectionSample(identifier, table, ConnectionType.DATABASE.getType(),
+                                                           SamplingMethod.NONE.getMethod(), id);
+            sampleRef.set(sample);
+          }
+        });
+        return new ServiceResponse<>(sampleRef.get());
+      } finally {
+        if (cleanup != null) {
+          cleanup.destroy();
         }
-      });
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    } finally {
-      if (cleanup != null) {
-        cleanup.destroy();
       }
-    }
+    });
   }
 
   @VisibleForTesting
@@ -554,6 +560,13 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     return rows;
   }
 
+  @Path("connections/{id}/tables/{table}/specification")
+  @GET
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("id") String id, @PathParam("table") String table) {
+    specification(request, responder, getContext().getNamespace(), id, table);
+  }
+
   /**
    * Specification for the source.
    *
@@ -562,11 +575,12 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param id of the connection.
    * @param table in the database.
    */
-  @Path("connections/{id}/tables/{table}/specification")
+  @Path("contexts/{context}/connections/{id}/tables/{table}/specification")
   @GET
-  public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
-                            @PathParam("id") String id, @PathParam("table") final String table) {
-    try {
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("context") String namespace, @PathParam("id") String id,
+                            @PathParam("table") String table) {
+    respond(request, responder, namespace, () -> {
       Connection conn = store.get(id);
 
       Map<String, String> properties = new HashMap<>();
@@ -582,13 +596,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       PluginSpec pluginSpec = new PluginSpec(String.format("Database - %s", table), "source", properties);
       DBSpec spec = new DBSpec(pluginSpec);
 
-      ServiceResponse<DBSpec> response = new ServiceResponse<>(spec);
-      responder.sendJson(response);
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(spec);
+    });
   }
 
   /**

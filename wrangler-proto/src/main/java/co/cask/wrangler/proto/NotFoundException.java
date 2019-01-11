@@ -14,16 +14,20 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset.connections;
+package co.cask.wrangler.proto;
 
-import co.cask.wrangler.proto.ConflictException;
+import java.net.HttpURLConnection;
 
 /**
- * Thrown when a connection already exists when none is expected.
+ * Thrown when some entity could not be found.
  */
-public class ConnectionAlreadyExistsException extends ConflictException {
+public class NotFoundException extends StatusCodeException {
 
-  public ConnectionAlreadyExistsException(String message) {
-    super(message);
+  public NotFoundException(String message) {
+    super(message, HttpURLConnection.HTTP_NOT_FOUND);
+  }
+
+  public NotFoundException(String message, Throwable cause) {
+    super(message, cause, HttpURLConnection.HTTP_NOT_FOUND);
   }
 }
