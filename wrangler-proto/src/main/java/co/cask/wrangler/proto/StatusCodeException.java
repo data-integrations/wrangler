@@ -14,16 +14,25 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset.connections;
-
-import co.cask.wrangler.proto.ConflictException;
+package co.cask.wrangler.proto;
 
 /**
- * Thrown when a connection already exists when none is expected.
+ * An exception that has an associated status code.
  */
-public class ConnectionAlreadyExistsException extends ConflictException {
+public class StatusCodeException extends RuntimeException {
+  private final int code;
 
-  public ConnectionAlreadyExistsException(String message) {
-    super(message);
+  public StatusCodeException(String s, int code) {
+    super(s);
+    this.code = code;
+  }
+
+  public StatusCodeException(String s, Throwable throwable, int code) {
+    super(s, throwable);
+    this.code = code;
+  }
+
+  public int getCode() {
+    return code;
   }
 }

@@ -25,10 +25,10 @@ import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Pair;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
+import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
@@ -64,7 +64,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -89,8 +88,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.ServiceUtils.error;
-
 /**
  * Service for testing, browsing, and reading using a BigQuery connection.
  */
@@ -111,7 +108,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @POST
   @Path("/connections/bigquery/test")
   public void testBiqQueryConnection(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+    respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.BIGQUERY);
@@ -119,12 +116,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
       bigQuery.listDatasets(BigQuery.DatasetListOption.pageSize(1));
-      ServiceUtils.success(responder, "Success");
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>("Success");
+    });
   }
 
   /**
@@ -136,36 +129,34 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @GET
   @Path("connections/{connection-id}/bigquery")
   public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("connection-id") String connectionId) throws IOException {
-    Connection connection;
+                           @PathParam("connection-id") String connectionId) {
+    listDatasets(request, responder, getContext().getNamespace(), connectionId);
+  }
 
-    try {
-      connection = store.get(connectionId);
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-      return;
-    }
+  @GET
+  @Path("/contexts/{context}/connections/{connection-id}/bigquery")
+  public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
+                           @PathParam("context") String namespace, @PathParam("connection-id") String connectionId) {
+    respond(request, responder, namespace, () -> {
+      Connection connection = store.get(connectionId);
+      validateConnection(connectionId, connection);
 
-    if (!validateConnection(connectionId, connection, responder)) {
-      return;
-    }
-
-    BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
-    String connectionProject = GCPUtils.getProjectId(connection);
-    Set<DatasetId> datasetWhitelist = getDatasetWhitelist(connection);
-    List<DatasetInfo> values = new ArrayList<>();
-    for (Dataset dataset : getDatasets(bigQuery, datasetWhitelist)) {
-      String name = dataset.getDatasetId().getDataset();
-      String datasetProject = dataset.getDatasetId().getProject();
-      // if the dataset is not in the connection's project, add the <project>: to the front of the name
-      if (!connectionProject.equals(datasetProject)) {
-        name = new StringJoiner(":").add(datasetProject).add(name).toString();
+      BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
+      String connectionProject = GCPUtils.getProjectId(connection);
+      Set<DatasetId> datasetWhitelist = getDatasetWhitelist(connection);
+      List<DatasetInfo> values = new ArrayList<>();
+      for (Dataset dataset : getDatasets(bigQuery, datasetWhitelist)) {
+        String name = dataset.getDatasetId().getDataset();
+        String datasetProject = dataset.getDatasetId().getProject();
+        // if the dataset is not in the connection's project, add the <project>: to the front of the name
+        if (!connectionProject.equals(datasetProject)) {
+          name = new StringJoiner(":").add(datasetProject).add(name).toString();
+        }
+        values.add(new DatasetInfo(name, dataset.getDescription(), dataset.getLocation(), dataset.getCreationTime(),
+                                   dataset.getLastModified()));
       }
-      values.add(new DatasetInfo(name, dataset.getDescription(), dataset.getLocation(), dataset.getCreationTime(),
-                                 dataset.getLastModified()));
-    }
-    ServiceResponse<DatasetInfo> response = new ServiceResponse<>(values);
-    responder.sendJson(response);
+      return new ServiceResponse<>(values);
+    });
   }
 
   /**
@@ -180,41 +171,59 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @Path("connections/{connection-id}/bigquery/{dataset-id}/tables")
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("connection-id") String connectionId,
-                         @PathParam("dataset-id") String datasetStr) throws IOException {
-    Connection connection;
-    try {
-      connection = store.get(connectionId);
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-      return;
-    }
+                         @PathParam("dataset-id") String datasetStr) {
+    listTables(request, responder, getContext().getNamespace(), connectionId, datasetStr);
+  }
 
-    if (!validateConnection(connectionId, connection, responder)) {
-      return;
-    }
-    BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
+  /**
+   * List all tables in a dataset.
+   *
+   * @param request HTTP requets handler.
+   * @param responder HTTP response handler.
+   * @param datasetStr the dataset id as a string. It will be of the form [project:]name.
+   *   The project prefix is optional. When not given, the connection project should be used.
+   */
+  @GET
+  @Path("contexts/{context}/connections/{connection-id}/bigquery/{dataset-id}/tables")
+  public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("context") String namespace,
+                         @PathParam("connection-id") String connectionId,
+                         @PathParam("dataset-id") String datasetStr) {
+    respond(request, responder, namespace, () -> {
+      Connection connection = store.get(connectionId);
+      validateConnection(connectionId, connection);
+      BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
 
-    DatasetId datasetId = getDatasetId(datasetStr, GCPUtils.getProjectId(connection));
+      DatasetId datasetId = getDatasetId(datasetStr, GCPUtils.getProjectId(connection));
 
-    try {
-      Page<Table> tablePage = bigQuery.listTables(datasetId);
-      List<TableInfo> values = new ArrayList<>();
-      for (Table table : tablePage.iterateAll()) {
-        values.add(new TableInfo(table.getTableId().getTable(), table.getFriendlyName(), table.getDescription(),
-                                 table.getEtag(), table.getCreationTime(), table.getLastModifiedTime(),
-                                 table.getExpirationTime()));
+      try {
+        Page<Table> tablePage = bigQuery.listTables(datasetId);
+        List<TableInfo> values = new ArrayList<>();
+        for (Table table : tablePage.iterateAll()) {
+          values.add(new TableInfo(table.getTableId().getTable(), table.getFriendlyName(), table.getDescription(),
+                                   table.getEtag(), table.getCreationTime(), table.getLastModifiedTime(),
+                                   table.getExpirationTime()));
+        }
+
+        return new ServiceResponse<>(values);
+      } catch (BigQueryException e) {
+        if (e.getReason() != null) {
+          // CDAP-14155 - BigQueryException message is too large. Instead just throw reason of the exception
+          throw new RuntimeException(e.getReason());
+        }
+        throw e;
       }
+    });
+  }
 
-      ServiceResponse<TableInfo> response = new ServiceResponse<>(values);
-      responder.sendJson(response);
-    } catch (BigQueryException e) {
-      if (e.getReason() != null) {
-        // CDAP-14155 - BigQueryException message is too large. Instead just throw reason of the exception
-        throw new RuntimeException(e.getReason());
-      }
-      // Its possible that reason of the BigQueryException is null, in that case use exception message
-      throw new RuntimeException(e.getMessage());
-    }
+  @GET
+  @Path("connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
+  public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("connection-id") String connectionId,
+                        @PathParam("dataset-id") String datasetStr,
+                        @PathParam("table-id") String tableId,
+                        @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+    readTable(request, responder, getContext().getNamespace(), connectionId, datasetStr, tableId, scope);
   }
 
   /**
@@ -228,62 +237,61 @@ public class BigQueryHandler extends AbstractWranglerHandler {
    * @param scope Group the workspace is created in.
    */
   @GET
-  @Path("connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
+  @Path("contexts/{context}/connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
   public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("context") String namespace,
                         @PathParam("connection-id") String connectionId,
                         @PathParam("dataset-id") String datasetStr,
                         @PathParam("table-id") String tableId,
-                        @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope)
-    throws Exception {
-    Connection connection;
+                        @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+    respond(request, responder, namespace, () -> {
+      Connection connection = store.get(connectionId);
+      validateConnection(connectionId, connection);
 
-    try {
-      connection = store.get(connectionId);
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-      return;
-    }
+      Map<String, String> connectionProperties = connection.getProperties();
+      String connectionProject = GCPUtils.getProjectId(connection);
+      DatasetId datasetId = getDatasetId(datasetStr, connectionProject);
+      String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
+      String bucket = connectionProperties.get(BUCKET);
+      TableId tableIdObject = TableId.of(datasetId.getProject(), datasetId.getDataset(), tableId);
+      Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
 
-    if (!validateConnection(connectionId, connection, responder)) {
-      return;
-    }
+      Map<String, String> properties = new HashMap<>();
+      properties.put(PropertyIds.NAME, tableId);
+      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.BIGQUERY.getType());
+      properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+      properties.put(PropertyIds.CONNECTION_ID, connectionId);
+      properties.put(TABLE_ID, tableId);
+      properties.put(DATASET_ID, datasetId.getDataset());
+      properties.put(DATASET_PROJECT, datasetId.getProject());
+      properties.put(GCPUtils.PROJECT_ID, connectionProject);
+      properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
+      properties.put(SCHEMA, tableData.getSecond().toString());
+      properties.put(BUCKET, bucket);
 
-    Map<String, String> connectionProperties = connection.getProperties();
-    String connectionProject = GCPUtils.getProjectId(connection);
-    DatasetId datasetId = getDatasetId(datasetStr, connectionProject);
-    String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
-    String bucket = connectionProperties.get(BUCKET);
-    TableId tableIdObject = TableId.of(datasetId.getProject(), datasetId.getDataset(), tableId);
-    Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
+      String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, tableId)
+        .setScope(scope)
+        .setProperties(properties)
+        .build();
+      ws.writeWorkspaceMeta(workspaceMeta);
 
-    Map<String, String> properties = new HashMap<>();
-    properties.put(PropertyIds.NAME, tableId);
-    properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.BIGQUERY.getType());
-    properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-    properties.put(PropertyIds.CONNECTION_ID, connectionId);
-    properties.put(TABLE_ID, tableId);
-    properties.put(DATASET_ID, datasetId.getDataset());
-    properties.put(DATASET_PROJECT, datasetId.getProject());
-    properties.put(GCPUtils.PROJECT_ID, connectionProject);
-    properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
-    properties.put(SCHEMA, tableData.getSecond().toString());
-    properties.put(BUCKET, bucket);
+      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+      byte[] data = serDe.toByteArray(tableData.getFirst());
+      ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
 
-    String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, tableId)
-      .setScope(scope)
-      .setProperties(properties)
-      .build();
-    ws.writeWorkspaceMeta(workspaceMeta);
+      ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
+                                                     SamplingMethod.NONE.getMethod(), connectionId);
+      return new ServiceResponse<>(sample);
+    });
+  }
 
-    ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-    byte[] data = serDe.toByteArray(tableData.getFirst());
-    ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
-
-    ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
-                                                   SamplingMethod.NONE.getMethod(), connectionId);
-    ServiceResponse<ConnectionSample> response = new ServiceResponse<>(sample);
-    responder.sendJson(response);
+  @Path("connections/{connection-id}/bigquery/specification")
+  @GET
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("connection-id") String connectionId,
+                            @QueryParam("wid") String workspaceId) {
+    specification(request, responder, getContext().getNamespace(), connectionId, workspaceId);
   }
 
   /**
@@ -292,12 +300,13 @@ public class BigQueryHandler extends AbstractWranglerHandler {
    * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
-  @Path("/connections/{connection-id}/bigquery/specification")
+  @Path("contexts/{context}/connections/{connection-id}/bigquery/specification")
   @GET
-  public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("context") String namespace,
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
-    try {
+    respond(request, responder, namespace, () -> {
       Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
 
       Map<String, String> properties = new HashMap<>();
@@ -315,11 +324,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       PluginSpec pluginSpec = new PluginSpec("BigQueryTable", "source", properties);
       BigQuerySpec spec = new BigQuerySpec(pluginSpec);
 
-      ServiceResponse<BigQuerySpec> response = new ServiceResponse<>(spec);
-      responder.sendJson(response);
-    } catch (Exception e) {
-      error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(spec);
+    });
   }
 
   private Pair<List<Row>, Schema> getData(Connection connection, TableId tableId)
@@ -459,17 +465,13 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     return ZonedDateTime.ofInstant(instant, ZoneId.ofOffset("UTC", ZoneOffset.UTC));
   }
 
-  private boolean validateConnection(String connectionId, Connection connection,
-                                     HttpServiceResponder responder) {
+  private void validateConnection(String connectionId, Connection connection) {
     if (connection == null) {
-      error(responder, "Unable to find connection in store for the connection id - " + connectionId);
-      return false;
+      throw new BadRequestException("Unable to find connection in store for the connection id - " + connectionId);
     }
     if (ConnectionType.BIGQUERY != connection.getType()) {
-      error(responder, "Invalid connection type set, this endpoint only accepts BIGQUERY connection type");
-      return false;
+      throw new BadRequestException("Invalid connection type set, this endpoint only accepts BIGQUERY connection type");
     }
-    return true;
   }
 
   /**

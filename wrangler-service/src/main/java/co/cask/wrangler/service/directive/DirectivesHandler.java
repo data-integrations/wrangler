@@ -50,12 +50,12 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.Workspace;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
-import co.cask.wrangler.dataset.workspace.WorkspaceNotFoundException;
 import co.cask.wrangler.executor.RecipePipelineExecutor;
 import co.cask.wrangler.parser.ConfigDirectiveContext;
 import co.cask.wrangler.parser.GrammarBasedParser;
 import co.cask.wrangler.parser.MigrateToV2;
 import co.cask.wrangler.parser.RecipeCompiler;
+import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.WorkspaceIdentifier;
@@ -79,7 +79,6 @@ import co.cask.wrangler.statistics.BasicStatistics;
 import co.cask.wrangler.statistics.Statistics;
 import co.cask.wrangler.utils.Json2Schema;
 import co.cask.wrangler.utils.ObjectSerDe;
-import co.cask.wrangler.utils.RecordConvertorException;
 import co.cask.wrangler.validator.ColumnNameValidator;
 import co.cask.wrangler.validator.Validator;
 import co.cask.wrangler.validator.ValidatorException;
@@ -91,7 +90,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +97,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -162,6 +159,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     }
   }
 
+  @PUT
+  @Path("workspaces/{id}")
+  public void create(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("id") String id, @QueryParam("name") String name,
+                     @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+    create(request, responder, getContext().getNamespace(), id, name, scope);
+  }
+
   /**
    * Creates a workspace.
    *
@@ -178,27 +183,30 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param name of workspace to be created.
    */
   @PUT
-  @Path("workspaces/{id}")
-  public void create(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("contexts/{context}/workspaces/{id}")
+  public void create(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id, @QueryParam("name") String name,
                      @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    try {
-      if (name == null || name.isEmpty()) {
-        name = id;
-      }
+    respond(request, responder, namespace, () -> {
+      String workspaceName = name == null || name.isEmpty() ? id : name;
 
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, id);
-      properties.put(PropertyIds.NAME, name);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, name)
+      properties.put(PropertyIds.NAME, workspaceName);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, workspaceName)
         .setScope(scope)
         .setProperties(properties)
         .build();
       ws.writeWorkspaceMeta(workspaceMeta);
-      ServiceUtils.success(responder, String.format("Successfully created workspace '%s'", id));
-    } catch (RuntimeException e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>(String.format("Successfully created workspace '%s'", id));
+    });
+  }
+
+  @GET
+  @Path("workspaces")
+  public void list(HttpServiceRequest request, HttpServiceResponder responder,
+                   @QueryParam("scope") @DefaultValue("default") String scope) {
+    list(request, responder, getContext().getNamespace(), scope);
   }
 
   /**
@@ -222,16 +230,20 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param responder Responder for data going out.
    */
   @GET
-  @Path("workspaces")
+  @Path("contexts/{context}/workspaces")
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("scope") @DefaultValue("default") String scope) {
-    try {
+                   @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
+    respond(request, responder, namespace, () -> {
       List<WorkspaceIdentifier> workspaces = ws.listWorkspaces(scope);
-      ServiceResponse<WorkspaceIdentifier> response = new ServiceResponse<>(workspaces);
-      responder.sendJson(response);
-    } catch (RuntimeException e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(workspaces);
+    });
+  }
+
+  @DELETE
+  @Path("workspaces/{id}")
+  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("id") String id) {
+    delete(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -249,15 +261,20 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param id Workspace to deleted.
    */
   @DELETE
-  @Path("workspaces/{id}")
+  @Path("contexts/{context}/workspaces/{id}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    try {
+                     @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
       ws.deleteWorkspace(id);
-      ServiceUtils.success(responder, String.format("Successfully deleted workspace '%s'", id));
-    } catch (Throwable t) {
-      ServiceUtils.error(responder, t.getMessage());
-    }
+      return new ServiceResponse<Void>(String.format("Successfully deleted workspace '%s'", id));
+    });
+  }
+
+  @DELETE
+  @Path("workspaces/")
+  public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
+                          @QueryParam("group") String group) {
+    deleteGroup(request, responder, getContext().getNamespace(), group);
   }
 
   /**
@@ -275,16 +292,21 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param group Group of workspaces.
    */
   @DELETE
-  @Path("workspaces/")
+  @Path("contexts/{context}/workspaces/")
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
-                     @QueryParam("group") String group) {
-    try {
+                          @PathParam("context") String namespace, @QueryParam("group") String group) {
+    respond(request, responder, namespace, () -> {
       int count = ws.deleteScope(group);
-      ServiceUtils.success(responder, String.format("Successfully deleted %s workspace(s) within group '%s'",
-                                                    count, group));
-    } catch (RuntimeException e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>(String.format("Successfully deleted %s workspace(s) within group '%s'",
+                                                     count, group));
+    });
+  }
+
+  @GET
+  @Path("workspaces/{id}")
+  public void get(HttpServiceRequest request, HttpServiceResponder responder,
+                  @PathParam("id") String id) {
+    get(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -317,10 +339,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param id Workspace to deleted.
    */
   @GET
-  @Path("workspaces/{id}")
+  @Path("contexts/{context}/workspaces/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") String id) {
-    try {
+                  @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
       Workspace workspace = ws.getWorkspace(id);
       String name = workspace.getName();
       Request workspaceReq = workspace.getRequest();
@@ -334,13 +356,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       prop.addProperty("name", name);
       prop.addProperty("id", name);
       req.add("properties", merge(req.getAsJsonObject("properties"), prop));
-      ServiceResponse<JsonObject> response = new ServiceResponse<>(req);
-      responder.sendJson(response);
-    } catch (WorkspaceNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (JSONException e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(req);
+    });
   }
 
   /**
@@ -366,6 +383,12 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     return merged;
   }
 
+  @POST
+  @Path("workspaces")
+  public void upload(HttpServiceRequest request, HttpServiceResponder responder) {
+    upload(request, responder, getContext().getNamespace());
+  }
+
   /**
    * Upload data to the workspace, the workspace is created automatically on fly.
    *
@@ -373,14 +396,13 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param responder Responder for data going out.
    */
   @POST
-  @Path("workspaces")
-  public void upload(HttpServiceRequest request, HttpServiceResponder responder) {
-
-    try {
+  @Path("contexts/{context}/workspaces")
+  public void upload(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
       String name = request.getHeader(PropertyIds.FILE_NAME);
       if (name == null) {
-        ServiceUtils.error(responder, 400, "Name must be provided in the 'file' header");
-        return;
+        throw new BadRequestException("Name must be provided in the 'file' header");
       }
       String id = ServiceUtils.generateMD5(name);
 
@@ -406,16 +428,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       // Extract content.
       byte[] content = handler.getContent();
       if (content == null) {
-        ServiceUtils.error(responder, "Body not present, please post the file containing the records to be wrangled.");
-        return;
+        throw new BadRequestException("Body not present, please post the file containing the records to be wrangled.");
       }
 
       // Depending on content type, load data.
       DataType type = DataType.fromString(contentType);
       if (type == null) {
-        ServiceUtils.error(responder, "Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
-          "or 'application/data-prep'");
-        return;
+        throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
+                                        "or 'application/data-prep'");
       }
       switch (type) {
         case TEXT:
@@ -453,13 +473,16 @@ public class DirectivesHandler extends AbstractWranglerHandler {
 
       WorkspaceInfo workspaceInfo = new WorkspaceInfo(id, name, delimiter, charset, contentType,
                                                       ConnectionType.UPLOAD.getType(), SamplingMethod.NONE.getMethod());
-      ServiceResponse<WorkspaceInfo> response = new ServiceResponse<>(workspaceInfo);
-      responder.sendJson(response);
-    } catch (WorkspaceNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (IOException e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(workspaceInfo);
+    });
+  }
+
+
+  @POST
+  @Path("workspaces/{id}/upload")
+  public void uploadData(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("id") String id) {
+    uploadData(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -470,10 +493,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param id Upload data to the workspace.
    */
   @POST
-  @Path("workspaces/{id}/upload")
-  public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    try {
+  @Path("contexts/{context}/workspaces/{id}/upload")
+  public void uploadData(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
       RequestExtractor handler = new RequestExtractor(request);
 
       // For back-ward compatibility, we check if there is delimiter specified
@@ -490,16 +513,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       // Extract content.
       byte[] content = handler.getContent();
       if (content == null) {
-        ServiceUtils.error(responder, "Body not present, please post the file containing the records to be wrangled.");
-        return;
+        throw new BadRequestException("Body not present, please post the file containing the records to be wrangled.");
       }
 
       // Depending on content type, load data.
       DataType type = DataType.fromString(contentType);
       if (type == null) {
-        ServiceUtils.error(responder, "Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
-          "or 'application/data-prep'");
-        return;
+        throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
+                                        "or 'application/data-prep'");
       }
       switch (type) {
         case TEXT:
@@ -533,12 +554,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
       ws.updateWorkspaceProperties(id, properties);
 
-      ServiceUtils.success(responder, String.format("Successfully uploaded data to workspace '%s'", id));
-    } catch (WorkspaceNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (IOException e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>(String.format("Successfully uploaded data to workspace '%s'", id));
+    });
+  }
+
+  @POST
+  @Path("workspaces/{id}/execute")
+  public void execute(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
+    execute(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -561,73 +584,68 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param id workspace in which the directives are executed.
    */
   @POST
-  @Path("workspaces/{id}/execute")
-  public void execute(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
-    try {
-      RequestExtractor handler = new RequestExtractor(request);
-      Request directiveRequest = handler.getContent("UTF-8", Request.class);
-      if (directiveRequest == null) {
-        ServiceUtils.error(responder, 400, "Request body is empty.");
-        return;
-      }
-      directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(directiveRequest));
-
-      int limit = directiveRequest.getSampling().getLimit();
-      List<Row> rows = executeDirectives(id, directiveRequest, records -> {
-        if (records == null) {
-          return Collections.emptyList();
+  @Path("contexts/{context}/workspaces/{id}/execute")
+  public void execute(HttpServiceRequest request, HttpServiceResponder responder,
+                      @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
+      try {
+        RequestExtractor handler = new RequestExtractor(request);
+        Request directiveRequest = handler.getContent("UTF-8", Request.class);
+        if (directiveRequest == null) {
+          throw new BadRequestException("Request body is empty.");
         }
-        int min = Math.min(records.size(), limit);
-        return records.subList(0, min);
-      });
+        directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(directiveRequest));
 
-      List<Map<String, Object>> values = new ArrayList<>(rows.size());
-      Map<String, String> types = new HashMap<>();
-      Set<String> headers = new LinkedHashSet<>();
-
-      // Iterate through all the new rows.
-      for (Row row : rows) {
-        // If output array has more than return result values, we terminate.
-        if (values.size() >= directiveRequest.getWorkspace().getResults()) {
-          break;
-        }
-
-        Map<String, Object> value = new HashMap<>(row.length());
-
-        // Iterate through all the fields of the row.
-        for (Pair<String, Object> field : row.getFields()) {
-          String fieldName = field.getFirst();
-          headers.add(fieldName);
-          Object object = field.getSecond();
-
-          if (object != null) {
-            types.put(fieldName, object.getClass().getSimpleName());
-            if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
-              value.put(fieldName, object.toString());
-            } else {
-              value.put(fieldName, "Non-displayable object");
-            }
-          } else {
-            value.put(fieldName, null);
+        int limit = directiveRequest.getSampling().getLimit();
+        List<Row> rows = executeDirectives(id, directiveRequest, records -> {
+          if (records == null) {
+            return Collections.emptyList();
           }
+          int min = Math.min(records.size(), limit);
+          return records.subList(0, min);
+        });
+
+        List<Map<String, Object>> values = new ArrayList<>(rows.size());
+        Map<String, String> types = new HashMap<>();
+        Set<String> headers = new LinkedHashSet<>();
+
+        // Iterate through all the new rows.
+        for (Row row : rows) {
+          // If output array has more than return result values, we terminate.
+          if (values.size() >= directiveRequest.getWorkspace().getResults()) {
+            break;
+          }
+
+          Map<String, Object> value = new HashMap<>(row.length());
+
+          // Iterate through all the fields of the row.
+          for (Pair<String, Object> field : row.getFields()) {
+            String fieldName = field.getFirst();
+            headers.add(fieldName);
+            Object object = field.getSecond();
+
+            if (object != null) {
+              types.put(fieldName, object.getClass().getSimpleName());
+              if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
+                value.put(fieldName, object.toString());
+              } else {
+                value.put(fieldName, "Non-displayable object");
+              }
+            } else {
+              value.put(fieldName, null);
+            }
+          }
+          values.add(value);
         }
-        values.add(value);
+
+        // Save the recipes being executed.
+        ws.updateWorkspaceRequest(id, directiveRequest);
+
+        return new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
+      } catch (JsonParseException | DirectiveParseException e) {
+        throw new BadRequestException(e.getMessage(), e);
       }
-
-      // Save the recipes being executed.
-      ws.updateWorkspaceRequest(id, directiveRequest);
-
-      DirectiveExecutionResponse response =
-        new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
-      responder.sendJson(response);
-    } catch (JsonParseException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, "Issue parsing request. " + e.getMessage());
-    } catch (DirectiveParseException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
-      ServiceUtils.error(responder, e.getMessage());
-    }
+    });
   }
 
   /**
@@ -677,6 +695,13 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     return null;
   }
 
+  @POST
+  @Path("workspaces/{id}/summary")
+  public void summary(HttpServiceRequest request, HttpServiceResponder responder,
+                      @PathParam("id") String id) {
+    summary(request, responder, getContext().getNamespace(), id);
+  }
+
   /**
    * Summarizes the workspace by running directives.
    *
@@ -685,100 +710,102 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param id Workspace data to be summarized.
    */
   @POST
-  @Path("workspaces/{id}/summary")
+  @Path("contexts/{context}/workspaces/{id}/summary")
   public void summary(HttpServiceRequest request, HttpServiceResponder responder,
-                       @PathParam("id") String id) {
-    try {
-      RequestExtractor handler = new RequestExtractor(request);
-      Request directiveRequest = handler.getContent("UTF-8", Request.class);
-      if (directiveRequest == null) {
-        ServiceUtils.error(responder, 400, "Request body is empty.");
-        return;
-      }
-      int limit = directiveRequest.getSampling().getLimit();
-      List<Row> rows = executeDirectives(id, directiveRequest, records -> {
-        if (records == null) {
-          return Collections.emptyList();
+                      @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
+      try {
+        RequestExtractor handler = new RequestExtractor(request);
+        Request directiveRequest = handler.getContent("UTF-8", Request.class);
+        if (directiveRequest == null) {
+          throw new BadRequestException("Request body is empty.");
         }
-        int min = Math.min(records.size(), limit);
-        return records.subList(0, min);
-      });
+        int limit = directiveRequest.getSampling().getLimit();
+        List<Row> rows = executeDirectives(id, directiveRequest, records -> {
+          if (records == null) {
+            return Collections.emptyList();
+          }
+          int min = Math.min(records.size(), limit);
+          return records.subList(0, min);
+        });
 
-      // Validate Column names.
-      Validator<String> validator = new ColumnNameValidator();
-      validator.initialize();
+        // Validate Column names.
+        Validator<String> validator = new ColumnNameValidator();
+        validator.initialize();
 
-      // Iterate through columns to value a set
-      Set<String> uniqueColumns = new HashSet<>();
-      for (Row row : rows) {
-        for (int i = 0; i < row.length(); ++i) {
-          uniqueColumns.add(row.getColumn(i));
+        // Iterate through columns to value a set
+        Set<String> uniqueColumns = new HashSet<>();
+        for (Row row : rows) {
+          for (int i = 0; i < row.length(); ++i) {
+            uniqueColumns.add(row.getColumn(i));
+          }
         }
-      }
 
-      Map<String, ColumnValidationResult> columnValidationResults = new HashMap<>();
-      for (String name : uniqueColumns) {
-        try {
-          validator.validate(name);
-          columnValidationResults.put(name, new ColumnValidationResult(null));
-        } catch (ValidatorException e) {
-          columnValidationResults.put(name, new ColumnValidationResult(e.getMessage()));
+        Map<String, ColumnValidationResult> columnValidationResults = new HashMap<>();
+        for (String name : uniqueColumns) {
+          try {
+            validator.validate(name);
+            columnValidationResults.put(name, new ColumnValidationResult(null));
+          } catch (ValidatorException e) {
+            columnValidationResults.put(name, new ColumnValidationResult(e.getMessage()));
+          }
         }
-      }
 
-      // Generate General and Type related Statistics for each column.
-      Statistics statsGenerator = new BasicStatistics();
-      Row summary = statsGenerator.aggregate(rows);
+        // Generate General and Type related Statistics for each column.
+        Statistics statsGenerator = new BasicStatistics();
+        Row summary = statsGenerator.aggregate(rows);
 
-      Row stats = (Row) summary.getValue("stats");
-      Row types = (Row) summary.getValue("types");
+        Row stats = (Row) summary.getValue("stats");
+        Row types = (Row) summary.getValue("types");
 
-      List<Pair<String, Object>> fields = stats.getFields();
-      Map<String, ColumnStatistics> statistics = new HashMap<>();
-      for (Pair<String, Object> field : fields) {
-        List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-        Map<String, Float> generalStats = new HashMap<>();
-        for (Pair<String, Double> value : values) {
-          generalStats.put(value.getFirst(), value.getSecond().floatValue() * 100);
+        List<Pair<String, Object>> fields = stats.getFields();
+        Map<String, ColumnStatistics> statistics = new HashMap<>();
+        for (Pair<String, Object> field : fields) {
+          List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+          Map<String, Float> generalStats = new HashMap<>();
+          for (Pair<String, Double> value : values) {
+            generalStats.put(value.getFirst(), value.getSecond().floatValue() * 100);
+          }
+          ColumnStatistics columnStatistics = new ColumnStatistics(generalStats, null);
+          statistics.put(field.getFirst(), columnStatistics);
         }
-        ColumnStatistics columnStatistics = new ColumnStatistics(generalStats, null);
-        statistics.put(field.getFirst(), columnStatistics);
-      }
 
-      fields = types.getFields();
-      for (Pair<String, Object> field : fields) {
-        List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-        Map<String, Float> typeStats = new HashMap<>();
-        for (Pair<String, Double> value : values) {
-          typeStats.put(value.getFirst(), value.getSecond().floatValue() * 100);
+        fields = types.getFields();
+        for (Pair<String, Object> field : fields) {
+          List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
+          Map<String, Float> typeStats = new HashMap<>();
+          for (Pair<String, Double> value : values) {
+            typeStats.put(value.getFirst(), value.getSecond().floatValue() * 100);
+          }
+          ColumnStatistics existingStats = statistics.get(field.getFirst());
+          Map<String, Float> generalStats = existingStats == null ? null : existingStats.getGeneral();
+          statistics.put(field.getFirst(), new ColumnStatistics(generalStats, typeStats));
         }
-        ColumnStatistics existingStats = statistics.get(field.getFirst());
-        Map<String, Float> generalStats = existingStats == null ? null : existingStats.getGeneral();
-        statistics.put(field.getFirst(), new ColumnStatistics(generalStats, typeStats));
-      }
 
-      WorkspaceValidationResult validationResult = new WorkspaceValidationResult(columnValidationResults, statistics);
-      WorkspaceSummaryResponse response = new WorkspaceSummaryResponse(validationResult);
-      responder.sendJson(response);
-    } catch (JsonParseException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, "Issue parsing request. " + e.getMessage());
-    } catch (DirectiveParseException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    }  catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+        WorkspaceValidationResult validationResult = new WorkspaceValidationResult(columnValidationResults, statistics);
+        return new WorkspaceSummaryResponse(validationResult);
+      } catch (JsonParseException | DirectiveParseException e) {
+        throw new BadRequestException(e.getMessage(), e);
+      }
+    });
   }
 
   @POST
   @Path("workspaces/{id}/schema")
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("id") String id) {
-    try {
+                     @PathParam("id") String id) {
+    schema(request, responder, getContext().getNamespace(), id);
+  }
+
+  @POST
+  @Path("contexts/{context}/workspaces/{id}/schema")
+  public void schema(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> {
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       if (user == null) {
-        ServiceUtils.error(responder, 400, "Request body is empty.");
-        return;
+        throw new BadRequestException("Request body is empty.");
       }
       int limit = user.getSampling().getLimit();
       List<Row> rows = executeDirectives(id, user, records -> {
@@ -791,25 +818,18 @@ public class DirectivesHandler extends AbstractWranglerHandler {
 
       // generate a schema based upon the first record
       Json2Schema json2Schema = new Json2Schema();
-      try {
-        Schema schema = json2Schema.toSchema("record", createUberRecord(rows));
-        if (schema.getType() != Schema.Type.RECORD) {
-          schema = Schema.recordOf("array", Schema.Field.of("value", schema));
-        }
-
-        String schemaJson = GSON.toJson(schema);
-        // the current contract with the UI is not to pass the
-        // entire schema string, but just the fields.
-        String fieldsJson = new JsonParser().parse(schemaJson)
-                                    .getAsJsonObject()
-                                    .get("fields").toString();
-        ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, fieldsJson);
-      } catch (RecordConvertorException e) {
-        ServiceUtils.error(responder, "There was a problem in generating schema for the record. " + e.getMessage());
+      Schema schema = json2Schema.toSchema("record", createUberRecord(rows));
+      if (schema.getType() != Schema.Type.RECORD) {
+        schema = Schema.recordOf("array", Schema.Field.of("value", schema));
       }
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+
+      String schemaJson = GSON.toJson(schema);
+      // the current contract with the UI is not to pass the
+      // entire schema string, but just the fields.
+      return new JsonParser().parse(schemaJson)
+        .getAsJsonObject()
+        .get("fields").getAsJsonArray();
+    });
   }
 
   /**
@@ -821,23 +841,30 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @GET
   @Path("info")
   public void capabilities(HttpServiceRequest request, HttpServiceResponder responder) {
-    ClassLoader loader = Thread.currentThread().getContextClassLoader();
-    Properties props = new Properties();
-    try (InputStream resourceStream = loader.getResourceAsStream(resourceName)) {
-      props.load(resourceStream);
-    } catch (IOException e) {
-      ServiceUtils.error(responder, "There was problem reading the capability matrix. " +
-        "Please check the environment to ensure you have right verions of jar." + e.getMessage());
-      return;
-    }
+    respond(request, responder, () -> {
+      ClassLoader loader = Thread.currentThread().getContextClassLoader();
+      Properties props = new Properties();
+      try (InputStream resourceStream = loader.getResourceAsStream(resourceName)) {
+        props.load(resourceStream);
+      } catch (IOException e) {
+        throw new IOException("There was problem reading the capability matrix. " +
+          "Please check the environment to ensure you have right verions of jar." + e.getMessage(), e);
+      }
 
-    // this is a weird API, it should be object with 'key' and 'value' fields instead of the key being the key value.
-    List<Map<String, String>> values = new ArrayList<>();
-    for (String key : props.stringPropertyNames()) {
-      values.add(Collections.singletonMap(key, props.getProperty(key)));
-    }
-    ServiceResponse<Map<String, String>> response = new ServiceResponse<>(values);
-    responder.sendJson(response);
+      // this is a weird API, it should be object with 'key' and 'value' fields instead of the key being the key value.
+      List<Map<String, String>> values = new ArrayList<>();
+      for (String key : props.stringPropertyNames()) {
+        values.add(Collections.singletonMap(key, props.getProperty(key)));
+      }
+      return new ServiceResponse<>(values);
+    });
+  }
+
+
+  @GET
+  @Path("usage")
+  public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
+    usage(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -861,9 +888,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @param responder to respond to the service request.
    */
   @GET
-  @Path("usage")
-  public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+  @Path("contexts/{context}/usage")
+  public void usage(HttpServiceRequest request, HttpServiceResponder responder,
+                    @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
       DirectiveConfig config = ws.getConfig();
       Map<String, List<String>> aliases = config.getReverseAlias();
       List<DirectiveUsage> values = new ArrayList<>();
@@ -889,12 +917,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         }
       }
 
-      ServiceResponse<DirectiveUsage> response = new ServiceResponse<>(values);
-      responder.sendJson(response);
-    } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(values);
+    });
+  }
+
+  @GET
+  @Path("artifacts")
+  public void artifacts(HttpServiceRequest request, HttpServiceResponder responder) {
+    artifacts(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -903,10 +933,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * if it atleast has one plugin that is of type "directive".
    */
   @GET
-  @Path("artifacts")
-  public void artifacts(HttpServiceRequest request, HttpServiceResponder responder) {
-    List<DirectiveArtifact> values = new ArrayList<>();
-    try {
+  @Path("contexts/{context}/artifacts")
+  public void artifacts(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
+      List<DirectiveArtifact> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts();
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
@@ -917,11 +948,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           }
         }
       }
-      ServiceResponse<DirectiveArtifact> response = new ServiceResponse<>(values);
-      responder.sendJson(response);
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(values);
+    });
+  }
+
+  @GET
+  @Path("directives")
+  public void directives(HttpServiceRequest request, HttpServiceResponder responder) {
+    directives(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -932,10 +966,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * TODO: (CDAP-14694) Doesn't look like this should exist. Why wasn't the CDAP endpoint used?
    */
   @GET
-  @Path("directives")
-  public void directives(HttpServiceRequest request, HttpServiceResponder responder) {
-    List<DirectiveDescriptor> values = new ArrayList<>();
-    try {
+  @Path("contexts/{context}/directives")
+  public void directives(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
+      List<DirectiveDescriptor> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts();
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
@@ -947,11 +982,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           }
         }
       }
-      ServiceResponse<DirectiveDescriptor> response = new ServiceResponse<>(values);
-      responder.sendJson(response);
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(values);
+    });
+  }
+
+  @GET
+  @Path("directives/reload")
+  public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder) {
+    directivesReload(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -960,14 +998,13 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * if it atleast has one plugin that is of type "directive".
    */
   @GET
-  @Path("directives/reload")
-  public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+  @Path("contexts/{context}/directives/reload")
+  public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder,
+                               @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
       composite.reload();
-      ServiceUtils.success(responder, "Successfully reloaded all user defined directives.");
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>("Successfully reloaded all user defined directives.");
+    });
   }
 
   /**
@@ -979,8 +1016,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @GET
   @Path("charsets")
   public void charsets(HttpServiceRequest request, HttpServiceResponder responder) {
-    ServiceResponse<String> response = new ServiceResponse<>(Charset.availableCharsets().keySet());
-    responder.sendJson(response);
+    respond(request, responder, () -> new ServiceResponse<>(Charset.availableCharsets().keySet()));
   }
 
   /**
@@ -992,19 +1028,16 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @POST
   @Path("config")
   public void uploadConfig(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+    respond(request, responder, () -> {
       // Read the request body
       RequestExtractor handler = new RequestExtractor(request);
       DirectiveConfig config = handler.getContent("UTF-8", DirectiveConfig.class);
       if (config == null) {
-        ServiceUtils.error(responder, "Config is empty. Please check if the request is sent as HTTP POST body.");
-        return;
+        throw new BadRequestException("Config is empty. Please check if the request is sent as HTTP POST body.");
       }
       ws.updateConfig(config);
-      ServiceUtils.success(responder, "Successfully updated configuration.");
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>("Successfully updated configuration.");
+    });
   }
 
   /**
@@ -1016,12 +1049,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @GET
   @Path("config")
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
-      String response = ws.getConfigString();
-      ServiceUtils.sendJson(responder, HttpURLConnection.HTTP_OK, response);
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+    respond(request, responder, () -> new ServiceResponse<Void>(ws.getConfigString()));
   }
 
   /**
@@ -1094,10 +1122,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @return records generated from the directives.
    */
   private List<Row> executeDirectives(String id, @Nullable Request user,
-                                      Function<List<Row>, List<Row>> sample)
-    throws Exception {
+                                      Function<List<Row>, List<Row>> sample) throws Exception {
     if (user == null) {
-      throw new Exception("Request is empty. Please check if the request is sent as HTTP POST body.");
+      throw new BadRequestException("Request is empty. Please check if the request is sent as HTTP POST body.");
     }
 
     TransientStore store = new DefaultTransientStore();

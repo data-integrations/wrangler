@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,21 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset;
+package co.cask.wrangler.proto;
+
+import java.net.HttpURLConnection;
 
 /**
- * This class {@link KeyNotFoundException} is thrown when a key in the dataset cannot be found.
- *
- * If any of the methods are attempting to retrieve a key from the dataset and the key is either
- * empty or null, then this exception is thrown. As this is a checked exception, the methods
- * need to declare it in the definition of the function.
- *
+ * Thrown if user provided input is invalid.
  */
-public class KeyNotFoundException extends Exception {
-  public KeyNotFoundException(String message) {
-    super(message);
+public class BadRequestException extends StatusCodeException {
+
+  public BadRequestException(String message) {
+    super(message, HttpURLConnection.HTTP_BAD_REQUEST);
   }
+
+  public BadRequestException(String message, Throwable cause) {
+    super(message, cause, HttpURLConnection.HTTP_BAD_REQUEST);
+  }
+
 }

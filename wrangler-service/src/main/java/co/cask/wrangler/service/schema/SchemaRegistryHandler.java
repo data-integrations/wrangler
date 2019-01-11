@@ -18,22 +18,20 @@ package co.cask.wrangler.service.schema;
 
 import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.dataset.schema.SchemaDescriptor;
-import co.cask.wrangler.dataset.schema.SchemaNotFoundException;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
-import co.cask.wrangler.dataset.schema.SchemaRegistryException;
+import co.cask.wrangler.proto.BadRequestException;
+import co.cask.wrangler.proto.NotFoundException;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
-import co.cask.wrangler.proto.schema.SchemaEntry;
 import co.cask.wrangler.proto.schema.SchemaEntryVersion;
+import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import com.google.gson.Gson;
 
 import java.nio.ByteBuffer;
-import java.util.Set;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -42,14 +40,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.notFound;
-import static co.cask.wrangler.ServiceUtils.success;
-
 /**
  * This class {@link SchemaRegistryHandler} provides schema management service.
  */
-public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
+public class SchemaRegistryHandler extends AbstractWranglerHandler {
   private static final Gson GSON = new Gson();
 
   @UseDataSet(SchemaRegistry.DATASET_NAME)
@@ -70,6 +64,14 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
     registry = new SchemaRegistry(table);
   }
 
+  @PUT
+  @Path("schemas")
+  public void create(HttpServiceRequest request, HttpServiceResponder responder,
+                     @QueryParam("id") String id, @QueryParam("name") String name,
+                     @QueryParam("description") String description, @QueryParam("type") String type) {
+    create(request, responder, getContext().getNamespace(), id, name, description, type);
+  }
+
   /**
    * Creates an entry for Schema with id, name, description and type of schema.
    * if the 'id' already exists, then it overwrites the data with new information.
@@ -83,35 +85,36 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
    * @param type of schema.
    */
   @PUT
-  @Path("schemas")
-  public void create(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("contexts/{context}/schemas")
+  public void create(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @QueryParam("id") String id, @QueryParam("name") String name,
                      @QueryParam("description") String description, @QueryParam("type") String type) {
-    try {
+    respond(request, responder, namespace, () -> {
       if (id == null || id.isEmpty()) {
-        error(responder, "Schema id must be specified.");
-        return;
+        throw new BadRequestException("Schema id must be specified.");
       }
       if (name == null || name.isEmpty()) {
-        error(responder, "Schema name must be specified.");
-        return;
+        throw new BadRequestException("Schema name must be specified.");
       }
       SchemaDescriptorType descriptorType = GSON.fromJson(type, SchemaDescriptorType.class);
       if (descriptorType == null) {
-        error(responder, String.format("Schema type '%s' is invalid.", type));
-        return;
+        throw new BadRequestException(String.format("Schema type '%s' is invalid.", type));
       }
       if (description == null || description.isEmpty()) {
-        error(responder, "Schema description must be specified.");
-        return;
+        throw new BadRequestException("Schema description must be specified.");
       }
       SchemaDescriptor descriptor = new SchemaDescriptor(id, name, description, descriptorType);
       registry.write(descriptor);
-      success(responder, String.format("Successfully created schema entry with id '%s', name '%s'",
-                                       id, name));
-    } catch (SchemaRegistryException e) {
-      error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>(String.format("Successfully created schema entry with id '%s', name '%s'",
+                                                     id, name));
+    });
+  }
+
+  @POST
+  @Path("schemas/{id}")
+  public void upload(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("id") String id) {
+    upload(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -139,30 +142,31 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
    * @param id of the schema being uploaded.
    */
   @POST
-  @Path("schemas/{id}")
-  public void upload(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("contexts/{context}/schemas/{id}")
+  public void upload(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id) {
-    byte[] bytes = null;
-    ByteBuffer content = request.getContent();
-    if (content != null && content.hasRemaining()) {
-      bytes = new byte[content.remaining()];
-      content.get(bytes);
-    }
+    respond(request, responder, namespace, () -> {
+      byte[] bytes = null;
+      ByteBuffer content = request.getContent();
+      if (content != null && content.hasRemaining()) {
+        bytes = new byte[content.remaining()];
+        content.get(bytes);
+      }
 
-    if (bytes == null) {
-      error(responder, "Schema does not exist.");
-      return;
-    }
+      if (bytes == null) {
+        throw new BadRequestException("No schema was provided in the request body");
+      }
 
-    try {
       long version = registry.add(id, bytes);
-      ServiceResponse<SchemaEntryVersion> response = new ServiceResponse<>(new SchemaEntryVersion(id, version));
-      responder.sendJson(response);
-    } catch (SchemaNotFoundException e) {
-      notFound(responder, e.getMessage());
-    } catch (SchemaRegistryException e) {
-      error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(new SchemaEntryVersion(id, version));
+    });
+  }
+
+  @DELETE
+  @Path("schemas/{id}")
+  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("id") String id) {
+    delete(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -176,19 +180,23 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
    * @param id of the schema to be deleted.
    */
   @DELETE
-  @Path("schemas/{id}")
-  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("contexts/{context}/schemas/{id}")
+  public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id) {
-    try {
+    respond(request, responder, namespace, () -> {
       if (registry.hasSchema(id)) {
-        notFound(responder, "Id " + id + " not found.");
-        return;
+        throw new NotFoundException("Id " + id + " not found.");
       }
       registry.delete(id);
-      success(responder, "Successfully deleted schema " + id);
-    } catch (SchemaRegistryException e) {
-      error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>("Successfully deleted schema " + id);
+    });
+  }
+
+  @DELETE
+  @Path("schemas/{id}/versions/{version}")
+  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
+                     @PathParam("id") String id, @PathParam("version") long version) {
+    delete(request, responder, getContext().getNamespace(), id, version);
   }
 
   /**
@@ -200,17 +208,20 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
    * @param version version of the schema.
    */
   @DELETE
-  @Path("schemas/{id}/versions/{version}")
-  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("contexts/{context}/schemas/{id}/versions/{version}")
+  public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id, @PathParam("version") long version) {
-    try {
+    respond(request, responder, namespace, () -> {
       registry.remove(id, version);
-      success(responder, "Successfully deleted version '" + version + "' of schema " + id);
-    } catch (SchemaNotFoundException e) {
-      notFound(responder, e.getMessage());
-    } catch (SchemaRegistryException e) {
-      error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>("Successfully deleted version '" + version + "' of schema " + id);
+    });
+  }
+
+  @GET
+  @Path("schemas/{id}/versions/{version}")
+  public void get(HttpServiceRequest request, HttpServiceResponder responder,
+                  @PathParam("id") String id, @PathParam("version") long version) {
+    get(request, responder, getContext().getNamespace(), id, version);
   }
 
   /**
@@ -222,18 +233,18 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
    * @param version of the schema.
    */
   @GET
-  @Path("schemas/{id}/versions/{version}")
-  public void get(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("contexts/{context}/schemas/{id}/versions/{version}")
+  public void get(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                   @PathParam("id") String id, @PathParam("version") long version) {
-    try {
-      SchemaEntry entry = registry.getEntry(id, version);
-      ServiceResponse<SchemaEntry> response = new ServiceResponse<>(entry);
-      responder.sendJson(response);
-    } catch (SchemaNotFoundException e) {
-      notFound(responder, e.getMessage());
-    } catch (SchemaRegistryException e) {
-      error(responder, e.getMessage());
-    }
+    respond(request, responder, namespace, () -> new ServiceResponse<>(registry.getEntry(id, version)));
+  }
+
+
+  @GET
+  @Path("schemas/{id}")
+  public void get(HttpServiceRequest request, HttpServiceResponder responder,
+                  @PathParam("id") String id) {
+    get(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -245,18 +256,16 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
    * @param id of the schema.
    */
   @GET
-  @Path("schemas/{id}")
+  @Path("contexts/{context}/schemas/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") String id) {
-    try {
-      SchemaEntry entry = registry.getEntry(id);
-      ServiceResponse<SchemaEntry> response = new ServiceResponse<>(entry);
-      responder.sendJson(response);
-    } catch (SchemaNotFoundException e) {
-      notFound(responder, e.getMessage());
-    } catch (SchemaRegistryException e) {
-      error(responder, e.getMessage());
-    }
+                  @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> new ServiceResponse<>(registry.getEntry(id)));
+  }
+
+  @GET
+  @Path("schemas/{id}/versions")
+  public void versions(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
+    versions(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -267,16 +276,9 @@ public class SchemaRegistryHandler extends AbstractHttpServiceHandler {
    * @param id of the schema.
    */
   @GET
-  @Path("schemas/{id}/versions")
-  public void versions(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
-    try {
-      Set<Long> versions = registry.getVersions(id);
-      ServiceResponse<Long> response = new ServiceResponse<>(versions);
-      responder.sendJson(response);
-    } catch (SchemaNotFoundException e) {
-      notFound(responder, e.getMessage());
-    } catch (SchemaRegistryException e) {
-      error(responder, e.getMessage());
-    }
+  @Path("contexts/{context}/schemas/{id}/versions")
+  public void versions(HttpServiceRequest request, HttpServiceResponder responder,
+                       @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, () -> new ServiceResponse<>(registry.getVersions(id)));
   }
 }

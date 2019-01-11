@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.service.gcp;
 
+import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -88,8 +89,8 @@ public final class GCPUtils {
     String projectId = connProperties.containsKey(PROJECT_ID) ?
       connProperties.get(PROJECT_ID) : ServiceOptions.getDefaultProjectId();
     if (projectId == null) {
-      throw new IllegalArgumentException("Could not detect Google Cloud project id from the environment. " +
-                                           "Please specify a project id for the connection.");
+      throw new BadRequestException("Could not detect Google Cloud project id from the environment. " +
+                                      "Please specify a project id for the connection.");
     }
     optionsBuilder.setProjectId(projectId);
     Spanner spanner = optionsBuilder.build().getService();
@@ -128,16 +129,16 @@ public final class GCPUtils {
    */
   public static void validateProjectCredentials(ConnectionMeta connection) {
     Map<String, String> connProperties = connection.getProperties();
-    if (connProperties.get(PROJECT_ID) == null && ServiceOptions.getDefaultProjectId() == null) {
-      throw new IllegalArgumentException("Project ID could not be found from the environment. " +
-                                           "Please provide the Project ID.");
+    if (connection.getProperties().get(PROJECT_ID) == null && ServiceOptions.getDefaultProjectId() == null) {
+      throw new BadRequestException("Project ID could not be found from the environment. " +
+                                      "Please provide the Project ID.");
     }
     if (connProperties.get(SERVICE_ACCOUNT_KEYFILE) == null) {
       try {
         GoogleCredential.getApplicationDefault();
       } catch (IOException e) {
-        throw new IllegalArgumentException("Google credentials could not be found from the environment. " +
-                                             "Please provide a service account key.");
+        throw new BadRequestException("Google credentials could not be found from the environment. " +
+                                        "Please provide a service account key.");
       }
     }
   }
