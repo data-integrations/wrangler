@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.service.gcp;
 
-import co.cask.wrangler.dataset.connections.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.ServiceOptions;
@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Class description here.
@@ -39,7 +40,7 @@ public final class GCPUtils {
   public static final String PROJECT_ID = "projectId";
   public static final String SERVICE_ACCOUNT_KEYFILE = "service-account-keyfile";
 
-  public static ServiceAccountCredentials loadLocalFile(String path) throws Exception {
+  public static ServiceAccountCredentials loadLocalFile(String path) throws IOException {
     File credentialsPath = new File(path);
     if (!credentialsPath.exists()) {
       throw new FileNotFoundException("Service account file " + credentialsPath.getName() + " does not exist.");
@@ -47,22 +48,18 @@ public final class GCPUtils {
     try (FileInputStream serviceAccountStream = new FileInputStream(credentialsPath)) {
       return ServiceAccountCredentials.fromStream(serviceAccountStream);
     } catch (FileNotFoundException e) {
-      throw new Exception(
-        String.format("Unable to find service account file '%s'.", path)
-      );
+      throw new IOException(
+        String.format("Unable to find service account file '%s'.", path), e);
     } catch (IOException e) {
-      throw new Exception(
-        String.format(
-          "Issue reading service account file '%s', please check permission of the file", path
-        )
-      );
+      throw new IOException(
+        String.format("Issue reading service account file '%s', please check permission of the file", path), e);
     }
   }
 
   /**
    * Create and return {@link Storage} based on the credentials and project information provided in the connection
    */
-  public static Storage getStorageService(Connection connection) throws Exception {
+  public static Storage getStorageService(ConnectionMeta connection) throws IOException {
     StorageOptions.Builder storageOptionsBuilder = StorageOptions.newBuilder();
     setProperties(connection, storageOptionsBuilder);
     return storageOptionsBuilder.build().getService();
@@ -71,7 +68,7 @@ public final class GCPUtils {
   /**
    * Create and return {@link BigQuery} based on the credentials and project information provided in the connection
    */
-  public static BigQuery getBigQueryService(Connection connection) throws Exception {
+  public static BigQuery getBigQueryService(ConnectionMeta connection) throws IOException {
     BigQueryOptions.Builder bigQueryOptionsBuilder = BigQueryOptions.newBuilder();
     setProperties(connection, bigQueryOptionsBuilder);
     return bigQueryOptionsBuilder.build().getService();
@@ -80,15 +77,16 @@ public final class GCPUtils {
   /**
    * Create and return {@link Spanner} based on the credentials and project information provided in the connection
    */
-  public static Spanner getSpannerService(Connection connection) throws Exception {
+  public static Spanner getSpannerService(ConnectionMeta connection) throws IOException {
     SpannerOptions.Builder optionsBuilder = SpannerOptions.newBuilder();
-    if (connection.hasProperty(SERVICE_ACCOUNT_KEYFILE)) {
-      String path = connection.getAllProps().get(SERVICE_ACCOUNT_KEYFILE);
+    Map<String, String> connProperties = connection.getProperties();
+    if (connProperties.containsKey(SERVICE_ACCOUNT_KEYFILE)) {
+      String path = connProperties.get(SERVICE_ACCOUNT_KEYFILE);
       optionsBuilder.setCredentials(loadLocalFile(path));
     }
 
-    String projectId = connection.hasProperty(PROJECT_ID) ?
-      connection.getProp(PROJECT_ID) : ServiceOptions.getDefaultProjectId();
+    String projectId = connProperties.containsKey(PROJECT_ID) ?
+      connProperties.get(PROJECT_ID) : ServiceOptions.getDefaultProjectId();
     if (projectId == null) {
       throw new IllegalArgumentException("Could not detect Google Cloud project id from the environment. " +
                                            "Please specify a project id for the connection.");
@@ -101,13 +99,14 @@ public final class GCPUtils {
   /**
    * set credentials and project_id if those are provided in the input connection
    */
-  private static void setProperties(Connection connection, ServiceOptions.Builder serviceOptions) throws Exception {
-    if (connection.hasProperty(SERVICE_ACCOUNT_KEYFILE)) {
-      String path = connection.getAllProps().get(SERVICE_ACCOUNT_KEYFILE);
+  private static void setProperties(ConnectionMeta connection,
+                                    ServiceOptions.Builder serviceOptions) throws IOException {
+    if (connection.getProperties().containsKey(SERVICE_ACCOUNT_KEYFILE)) {
+      String path = connection.getProperties().get(SERVICE_ACCOUNT_KEYFILE);
       serviceOptions.setCredentials(loadLocalFile(path));
     }
-    if (connection.hasProperty(PROJECT_ID)) {
-      String projectId = connection.getAllProps().get(PROJECT_ID);
+    if (connection.getProperties().containsKey(PROJECT_ID)) {
+      String projectId = connection.getProperties().get(PROJECT_ID);
       serviceOptions.setProjectId(projectId);
     }
   }
@@ -115,8 +114,8 @@ public final class GCPUtils {
   /**
    * Get the project id for the connection
    */
-  public static String getProjectId(Connection connection) {
-    String projectId = connection.getAllProps().get(GCPUtils.PROJECT_ID);
+  public static String getProjectId(ConnectionMeta connection) {
+    String projectId = connection.getProperties().get(GCPUtils.PROJECT_ID);
     return projectId == null ? ServiceOptions.getDefaultProjectId() : projectId;
   }
 
@@ -127,12 +126,13 @@ public final class GCPUtils {
    * @param connection the connection to validate
    * @throws IllegalArgumentException if the project or credentials are not available
    */
-  public static void validateProjectCredentials(Connection connection) {
-    if (connection.getProp(PROJECT_ID) == null && ServiceOptions.getDefaultProjectId() == null) {
+  public static void validateProjectCredentials(ConnectionMeta connection) {
+    Map<String, String> connProperties = connection.getProperties();
+    if (connProperties.get(PROJECT_ID) == null && ServiceOptions.getDefaultProjectId() == null) {
       throw new IllegalArgumentException("Project ID could not be found from the environment. " +
                                            "Please provide the Project ID.");
     }
-    if (connection.getProp(SERVICE_ACCOUNT_KEYFILE) == null) {
+    if (connProperties.get(SERVICE_ACCOUNT_KEYFILE) == null) {
       try {
         GoogleCredential.getApplicationDefault();
       } catch (IOException e) {

@@ -16,8 +16,8 @@
 
 package co.cask.wrangler.service.bigquery;
 
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.service.gcp.GCPUtils;
 import com.google.cloud.bigquery.DatasetId;
 import org.junit.Assert;
@@ -33,13 +33,13 @@ public class BigQueryServiceTest {
 
   @Test
   public void testDatasetWhitelistParsing() {
-    Connection connection = new Connection();
-    connection.setType(ConnectionType.BIGQUERY);
-    connection.setName("test");
-    connection.setId("test");
-    connection.putProp(GCPUtils.PROJECT_ID, "pX");
-    // [p0,d0], [p1,d1], 'p2:' is invalid and should be ignored, [pX,d2], [pX,d3]
-    connection.putProp("datasetWhitelist", "p0:d0 , p1:d1 , p2: , d2 , :d3");
+    ConnectionMeta connection = ConnectionMeta.builder()
+      .setName("test")
+      .setType(ConnectionType.BIGQUERY)
+      .putProperty(GCPUtils.PROJECT_ID, "pX")
+      // [p0,d0], [p1,d1], 'p2:' is invalid and should be ignored, [pX,d2], [pX,d3]
+      .putProperty("datasetWhitelist", "p0:d0 , p1:d1 , p2: , d2 , :d3")
+      .build();
 
     Set<DatasetId> expected = new HashSet<>();
     expected.add(DatasetId.of("p0", "d0"));

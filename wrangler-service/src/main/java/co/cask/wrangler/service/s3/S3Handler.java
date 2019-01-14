@@ -27,13 +27,15 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.proto.s3.S3ConnectionSample;
 import co.cask.wrangler.proto.s3.S3ObjectInfo;
 import co.cask.wrangler.proto.s3.S3Spec;
@@ -98,21 +100,12 @@ public class S3Handler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent(Charsets.UTF_8.name(), Connection.class);
-      if (connection == null) {
-        responder.sendError(400, "Connection information is missing from the request body.");
-        return;
-      }
-      ConnectionType connectionType = ConnectionType.fromString(connection.getType().getType());
-      if (connectionType == ConnectionType.UNDEFINED || connectionType != ConnectionType.S3) {
-        error(responder,
-              String.format("Invalid connection type %s set, expected 'S3' connection type.",
-                            connectionType.getType()));
-        return;
-      }
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.S3);
       // creating a client doesn't test the connection, we will do list buckets so the connection is tested.
       intializeAndGetS3Client(connection).listBuckets();
       ServiceUtils.success(responder, "Success");
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -131,7 +124,7 @@ public class S3Handler extends AbstractWranglerHandler {
   }
 
   // creates s3 client and sets region and returns the initialized client
-  private AmazonS3 intializeAndGetS3Client(Connection connection) {
+  private AmazonS3 intializeAndGetS3Client(ConnectionMeta connection) {
     S3Configuration s3Configuration = new S3Configuration(connection);
     AmazonS3 s3 = new AmazonS3Client(s3Configuration);
     Region region = Region.getRegion(Regions.fromName(s3Configuration.getRegion()));
@@ -152,13 +145,12 @@ public class S3Handler extends AbstractWranglerHandler {
                               @PathParam("connection-id") final String connectionId,
                               @QueryParam("path") String path,
                               @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
-    try {
-      Connection[] connection = new Connection[1];
-      getContext().execute(datasetContext -> connection[0] = store.get(connectionId));
-      if (!validateConnection(connectionId, connection[0], responder)) {
-        return;
-      }
+    Connection connection = getValidatedConnection(connectionId, ConnectionType.S3, responder);
+    if (connection == null) {
+      return;
+    }
 
+    try {
       String bucketName = "";
       String prefix = null;
       int bucketStart = path.indexOf("/");
@@ -174,7 +166,7 @@ public class S3Handler extends AbstractWranglerHandler {
         }
       }
 
-      AmazonS3 s3 = intializeAndGetS3Client(connection[0]);
+      AmazonS3 s3 = intializeAndGetS3Client(connection);
       if (bucketName.isEmpty() && prefix == null) {
         List<Bucket> buckets = s3.listBuckets();
         List<S3ObjectInfo> bucketInfo = new ArrayList<>(buckets.size());
@@ -237,12 +229,12 @@ public class S3Handler extends AbstractWranglerHandler {
                          @QueryParam("key") final String key, @QueryParam("lines") int lines,
                          @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
                          @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    try {
-      if (Strings.isNullOrEmpty(key)) {
-        responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Required query param 'key' is missing in the input");
-        return;
-      }
+    if (Strings.isNullOrEmpty(key)) {
+      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Required query param 'key' is missing in the input");
+      return;
+    }
 
+    try {
       String header = request.getHeader(PropertyIds.CONTENT_TYPE);
       Connection connection = store.get(connectionId);
       if (!validateConnection(connectionId, connection, responder)) {
@@ -264,6 +256,8 @@ public class S3Handler extends AbstractWranglerHandler {
       }
     } catch (AmazonS3Exception e) {
       ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       ServiceUtils.error(responder, e.getMessage());
     }
@@ -304,6 +298,8 @@ public class S3Handler extends AbstractWranglerHandler {
       S3Spec spec = new S3Spec(pluginSpec);
       ServiceResponse<S3Spec> response = new ServiceResponse<>(spec);
       responder.sendJson(response);
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
       error(responder, e.getMessage());
     }
