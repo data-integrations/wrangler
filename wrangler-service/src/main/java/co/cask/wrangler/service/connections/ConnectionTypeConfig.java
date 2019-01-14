@@ -17,8 +17,8 @@
 package co.cask.wrangler.service.connections;
 
 import co.cask.cdap.api.Config;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionType;
 
 import java.util.Collections;
 import java.util.List;

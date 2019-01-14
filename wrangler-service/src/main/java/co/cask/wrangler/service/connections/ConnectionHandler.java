@@ -20,9 +20,14 @@ import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.RequestExtractor;
-import co.cask.wrangler.dataset.connections.Connection;
-import co.cask.wrangler.dataset.connections.ConnectionType;
+import co.cask.wrangler.ServiceUtils;
+import co.cask.wrangler.dataset.connections.ConnectionAlreadyExistsException;
+import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
+import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.connection.Connection;
+import co.cask.wrangler.proto.connection.ConnectionMeta;
+import co.cask.wrangler.proto.connection.ConnectionType;
 import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
@@ -31,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +52,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import static co.cask.wrangler.ServiceUtils.error;
-import static co.cask.wrangler.ServiceUtils.notFound;
 
 /**
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
@@ -85,7 +89,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     connectionTypeConfig = GSON.fromJson(connectionTypeConfigString, ConnectionTypeConfig.class);
     Set<ConnectionType> disabled = connectionTypeConfig.getDisabledTypes();
     for (ConnectionType connectionType : ConnectionType.values()) {
-      if (!disabled.contains(connectionType) && !connectionType.equals(ConnectionType.UNDEFINED)) {
+      if (!disabled.contains(connectionType)) {
         enabledConnectionTypes.add(new ConnectionTypeInfo(connectionType));
       }
     }
@@ -99,7 +103,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
         LOG.warn("Skipping the default connection without name field");
         continue;
       }
-      if (defaultConnection.getType() == null || defaultConnection.getType() == ConnectionType.UNDEFINED) {
+      if (defaultConnection.getType() == null) {
         LOG.warn("Skipping the default connection {}, type is missing or un-recognized", defaultConnection.getName());
         continue;
       }
@@ -138,24 +142,26 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @POST
   @Path("connections/create")
   public void create(HttpServiceRequest request, HttpServiceResponder responder) {
+    // Extract the body of the request and transform it to the Connection object.
+    RequestExtractor extractor = new RequestExtractor(request);
+    ConnectionMeta connection;
     try {
-      // Extract the body of the request and transform it to the Connection object.
-      RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent("utf-8", Connection.class);
+      connection = extractor.getConnectionMeta();
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+      return;
+    }
 
-      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
-        error(responder, "Invalid connection type set.");
-        return;
-      }
-
+    try {
       // Create an instance of the connection, if the connection id already exists,
       // it will throw an exception.
       String id = store.create(connection);
-
       // Return the id in the response.
       responder.sendJson(new ServiceResponse<>(ImmutableList.of(id)));
+    } catch (ConnectionAlreadyExistsException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_CONFLICT, e.getMessage());
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -189,19 +195,18 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     try {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
-      Connection connection = extractor.getContent("utf-8", Connection.class);
-
-      if (ConnectionType.fromString(connection.getType().getType()) == ConnectionType.UNDEFINED) {
-        error(responder, "Invalid connection type set.");
-        return;
-      }
+      ConnectionMeta connection = extractor.getConnectionMeta();
 
       // Create an instance of the connection, if the connection id doesn't exist
       // it will throw an exception.
       store.update(id, connection);
-      responder.sendJson(new ServiceResponse<>(ImmutableList.of()));
+      responder.sendJson(new ServiceResponse<>(Collections.emptyList()));
+    } catch (IllegalArgumentException e) {
+      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -214,24 +219,21 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @GET
   @Path("connections")
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @DefaultValue (ALL_TYPES) @QueryParam("type") final String type) {
+                   @DefaultValue (ALL_TYPES) @QueryParam("type") String type) {
     try {
-      List<Connection> connections = store.scan(input -> {
+      List<Connection> connections = store.list(input -> {
         if (input == null) {
           return false;
         }
         if (connectionTypeConfig.getDisabledTypes().contains(input.getType())) {
           return false;
         }
-        if (type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type)) {
-          return true;
-        }
-        return false;
+        return type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type);
       });
       responder.sendJson(new ConnectionResponse<>(connections,
                                                   getDefaultConnection(connections, connectionTypeConfig)));
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -256,14 +258,14 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @DELETE
   @Path("connections/{id}")
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") final String id) {
+                     @PathParam("id") String id) {
     try {
       List<Connection> preConfiguredConnections = connectionTypeConfig.getConnections();
       // pre-configured connections provided as part of config only contains name and type of connection
       // since connection id is derived from connection name, we get the connection-id for the
       // pre-configured connection name and check with the input connection id.
       if (preConfiguredConnections.stream()
-        .filter(c -> id.equals(store.getConnectionId(c.getName()))).findFirst().isPresent()) {
+        .anyMatch(c -> id.equals(ConnectionStore.getConnectionId(c.getName())))) {
         responder.sendError(HttpURLConnection.HTTP_UNAUTHORIZED,
                             String.format("Cannot delete admin controlled connection %s", id));
         return;
@@ -271,7 +273,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
       store.delete(id);
       responder.sendJson(new ServiceResponse<Connection>(new ArrayList<>()));
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -285,18 +287,14 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @GET
   @Path("connections/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") final String id) {
+                  @PathParam("id") String id) {
     try {
       Connection connection = store.get(id);
-      if (connection == null) {
-        notFound(responder, String.format(
-          "Connection with id '%s' not found in the store", id
-        ));
-        return;
-      }
       responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection)));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -313,15 +311,11 @@ public class ConnectionHandler extends AbstractWranglerHandler {
                          @PathParam("id") final String id) {
     try {
       Connection connection = store.get(id);
-      if (connection == null) {
-        notFound(responder, String.format(
-          "Connection with id '%s' not found in the store", id
-        ));
-        return;
-      }
-      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection.getAllProps())));
+      responder.sendJson(new ServiceResponse<>(connection.getProperties()));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -335,22 +329,20 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @PUT
   @Path("connections/{id}/properties")
   public void updateProp(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("id") final String id, @QueryParam("key") String key,
+                         @PathParam("id") String id, @QueryParam("key") String key,
                          @QueryParam("value") String value) {
     try {
       Connection connection = store.get(id);
-      if (connection == null) {
-        notFound(responder, String.format(
-          "Connection with id '%s' not found in the store", id
-        ));
-        return;
-      }
 
-      connection.putProp(key, value);
-      store.update(id, connection);
-      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection.getAllProps())));
+      ConnectionMeta updatedMeta = ConnectionMeta.builder(connection)
+        .putProperty(key, value)
+        .build();
+      store.update(id, updatedMeta);
+      responder.sendJson(new ServiceResponse<>(updatedMeta.getProperties()));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 
@@ -366,16 +358,15 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("id") final String id) {
     try {
-      Connection connection = store.clone(id);
-      if (connection == null) {
-        notFound(responder, String.format(
-          "Connection with id '%s' not found in the store", id
-        ));
-        return;
-      }
-      responder.sendJson(new ServiceResponse<>(ImmutableList.of(connection)));
+      Connection connection = store.get(id);
+      ConnectionMeta clone = ConnectionMeta.builder(connection)
+        .setName(connection.getName() + "_Clone")
+        .build();
+      responder.sendJson(new ServiceResponse<>(clone));
+    } catch (ConnectionNotFoundException e) {
+      ServiceUtils.notFound(responder, e.getMessage());
     } catch (Exception e) {
-      error(responder, e.getMessage());
+      ServiceUtils.error(responder, e.getMessage());
     }
   }
 

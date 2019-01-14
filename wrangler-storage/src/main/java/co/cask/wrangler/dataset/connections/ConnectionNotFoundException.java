@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,17 +14,14 @@
  * the License.
  */
 
-package co.cask.wrangler.service.connections;
-
-import co.cask.wrangler.proto.connection.ConnectionType;
+package co.cask.wrangler.dataset.connections;
 
 /**
- * ConnectionTypeInfo - sent as response in listing connection types
+ * Thrown when a connection does not exist when one is expected to exist.
  */
-public class ConnectionTypeInfo {
-  private final ConnectionType type;
+public class ConnectionNotFoundException extends Exception {
 
-  public ConnectionTypeInfo(ConnectionType connectionType) {
-    this.type = connectionType;
+  public ConnectionNotFoundException(String message) {
+    super(message);
   }
 }
