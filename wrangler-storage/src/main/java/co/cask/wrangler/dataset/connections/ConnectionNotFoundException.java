@@ -16,10 +16,12 @@
 
 package co.cask.wrangler.dataset.connections;
 
+import co.cask.wrangler.proto.NotFoundException;
+
 /**
  * Thrown when a connection does not exist when one is expected to exist.
  */
-public class ConnectionNotFoundException extends Exception {
+public class ConnectionNotFoundException extends NotFoundException {
 
   public ConnectionNotFoundException(String message) {
     super(message);

@@ -27,12 +27,13 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
+import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
+import co.cask.wrangler.proto.StatusCodeException;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
 import co.cask.wrangler.proto.connection.ConnectionType;
@@ -64,7 +65,6 @@ import com.google.common.base.Strings;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,8 +76,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-
-import static co.cask.wrangler.ServiceUtils.error;
 
 /**
  * Service to explore S3 filesystem
@@ -97,30 +95,25 @@ public class S3Handler extends AbstractWranglerHandler {
   @POST
   @Path("/connections/s3/test")
   public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+    respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.S3);
       // creating a client doesn't test the connection, we will do list buckets so the connection is tested.
       intializeAndGetS3Client(connection).listBuckets();
-      ServiceUtils.success(responder, "Success");
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      // creating a client doesn't test the connection, we will do list buckets so the connection is tested.
+      intializeAndGetS3Client(connection).listBuckets();
+      return new ServiceResponse<Void>("Success");
+    });
   }
 
-  private boolean validateConnection(String connectionId, Connection connection, HttpServiceResponder responder) {
+  private void validateConnection(String connectionId, Connection connection) {
     if (connection == null) {
-      error(responder, "Unable to find connection in store for the connection id - " + connectionId);
-      return false;
+      throw new BadRequestException("Unable to find connection in store for the connection id - " + connectionId);
     }
     if (ConnectionType.S3 != connection.getType()) {
-      error(responder, "Invalid connection type set, this endpoint only accepts S3 connection type");
-      return false;
+      throw new BadRequestException("Invalid connection type set, this endpoint only accepts S3 connection type");
     }
-    return true;
   }
 
   // creates s3 client and sets region and returns the initialized client
@@ -132,6 +125,17 @@ public class S3Handler extends AbstractWranglerHandler {
     return s3;
   }
 
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @ReadOnly
+  @GET
+  @Path("/connections/{connection-id}/s3/explore")
+  public void getS3BucketInfo(HttpServiceRequest request, HttpServiceResponder responder,
+                              @PathParam("connection-id") String connectionId,
+                              @QueryParam("path") String path,
+                              @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
+    getS3BucketInfo(request, responder, getContext().getNamespace(), connectionId, path, bucketLimit);
+  }
+
   /**
    * Lists S3 bucket's contents for the given prefix path.
    * @param request HTTP Request handler.
@@ -140,79 +144,85 @@ public class S3Handler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @ReadOnly
   @GET
-  @Path("/connections/{connection-id}/s3/explore")
+  @Path("contexts/{context}/connections/{connection-id}/s3/explore")
   public void getS3BucketInfo(HttpServiceRequest request, HttpServiceResponder responder,
-                              @PathParam("connection-id") final String connectionId,
+                              @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                               @QueryParam("path") String path,
                               @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
-    Connection connection = getValidatedConnection(connectionId, ConnectionType.S3, responder);
-    if (connection == null) {
-      return;
-    }
-
-    try {
-      String bucketName = "";
-      String prefix = null;
-      int bucketStart = path.indexOf("/");
-      if (bucketStart != -1) {
-        int bucketEnd = path.indexOf("/", bucketStart + 1);
-        if (bucketEnd != -1) {
-          bucketName = path.substring(bucketStart + 1, bucketEnd);
-          if ((bucketEnd + 1) != path.length()) {
-            prefix = path.substring(bucketEnd + 1);
+    respond(request, responder, namespace, () -> {
+      try {
+        Connection connection = getValidatedConnection(connectionId, ConnectionType.S3, responder);
+        String bucketName = "";
+        String prefix = null;
+        int bucketStart = path.indexOf("/");
+        if (bucketStart != -1) {
+          int bucketEnd = path.indexOf("/", bucketStart + 1);
+          if (bucketEnd != -1) {
+            bucketName = path.substring(bucketStart + 1, bucketEnd);
+            if ((bucketEnd + 1) != path.length()) {
+              prefix = path.substring(bucketEnd + 1);
+            }
+          } else {
+            bucketName = path.substring(bucketStart + 1);
           }
-        } else {
-          bucketName = path.substring(bucketStart + 1);
         }
-      }
 
-      AmazonS3 s3 = intializeAndGetS3Client(connection);
-      if (bucketName.isEmpty() && prefix == null) {
-        List<Bucket> buckets = s3.listBuckets();
-        List<S3ObjectInfo> bucketInfo = new ArrayList<>(buckets.size());
-        for (Bucket bucket : buckets) {
-          bucketInfo.add(fromBucket(bucket));
-        }
-        ServiceResponse<S3ObjectInfo> response = new ServiceResponse<>(bucketInfo);
-        responder.sendJson(response);
-        return;
-      }
-
-      ListObjectsRequest listObjectsRequest = new ListObjectsRequest();
-      listObjectsRequest.setBucketName(bucketName);
-      if (prefix != null) {
-        listObjectsRequest.setPrefix(prefix);
-      }
-      listObjectsRequest.setDelimiter("/");
-      ObjectListing result;
-      List<S3ObjectInfo> objects = new ArrayList<>();
-      // TODO: Remove this once CDAP-14446 is fixed.
-      boolean limitExceeded = false;
-      do {
-        if (objects.size() >= bucketLimit) {
-          limitExceeded = true;
-          break;
-        }
-        result = s3.listObjects(listObjectsRequest);
-        for (String dir : result.getCommonPrefixes()) {
-          if (dir.equalsIgnoreCase("/")) {
-            continue;
+        AmazonS3 s3 = intializeAndGetS3Client(connection);
+        if (bucketName.isEmpty() && prefix == null) {
+          List<Bucket> buckets = s3.listBuckets();
+          List<S3ObjectInfo> bucketInfo = new ArrayList<>(buckets.size());
+          for (Bucket bucket : buckets) {
+            bucketInfo.add(fromBucket(bucket));
           }
-          objects.add(fromDir(dir));
+          return new ServiceResponse<>(bucketInfo);
         }
-        for (S3ObjectSummary summary : result.getObjectSummaries()) {
-          objects.add(fromObject(summary, detector));
-        }
-        listObjectsRequest.setMarker(result.getMarker());
-      } while (result.isTruncated());
 
-      ServiceResponse<S3ObjectInfo> response = new ServiceResponse<>(objects, limitExceeded);
-      responder.sendJson(response);
-    } catch (AmazonS3Exception e) {
-      ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest();
+        listObjectsRequest.setBucketName(bucketName);
+        if (prefix != null) {
+          listObjectsRequest.setPrefix(prefix);
+        }
+        listObjectsRequest.setDelimiter("/");
+        ObjectListing result;
+        List<S3ObjectInfo> objects = new ArrayList<>();
+        // TODO: Remove this once CDAP-14446 is fixed.
+        boolean limitExceeded = false;
+        do {
+          if (objects.size() >= bucketLimit) {
+            limitExceeded = true;
+            break;
+          }
+          result = s3.listObjects(listObjectsRequest);
+          for (String dir : result.getCommonPrefixes()) {
+            if (dir.equalsIgnoreCase("/")) {
+              continue;
+            }
+            objects.add(fromDir(dir));
+          }
+          for (S3ObjectSummary summary : result.getObjectSummaries()) {
+            objects.add(fromObject(summary, detector));
+          }
+          listObjectsRequest.setMarker(result.getMarker());
+        } while (result.isTruncated());
+
+        return new ServiceResponse<>(objects, limitExceeded);
+      } catch (AmazonS3Exception e) {
+        throw new StatusCodeException(e.getMessage(), e, e.getStatusCode());
+      }
+    });
+  }
+
+  @POST
+  @ReadWrite
+  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/read")
+  public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
+                         @PathParam("connection-id") String connectionId,
+                         @PathParam("bucket-name") String bucketName,
+                         @QueryParam("key") String key, @QueryParam("lines") int lines,
+                         @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
+                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+    loadObject(request, responder, getContext().getNamespace(), connectionId, bucketName, key, lines, sampler,
+               fraction, scope);
   }
 
   /**
@@ -222,45 +232,51 @@ public class S3Handler extends AbstractWranglerHandler {
    */
   @POST
   @ReadWrite
-  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/read")
+  @Path("contexts/{context}/connections/{connection-id}/s3/buckets/{bucket-name}/read")
   public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("connection-id") String connectionId,
+                         @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                          @PathParam("bucket-name") String bucketName,
-                         @QueryParam("key") final String key, @QueryParam("lines") int lines,
+                         @QueryParam("key") String key, @QueryParam("lines") int lines,
                          @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
                          @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    if (Strings.isNullOrEmpty(key)) {
-      responder.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Required query param 'key' is missing in the input");
-      return;
-    }
-
-    try {
-      String header = request.getHeader(PropertyIds.CONTENT_TYPE);
-      Connection connection = store.get(connectionId);
-      if (!validateConnection(connectionId, connection, responder)) {
-        return;
-      }
-      AmazonS3 s3 = intializeAndGetS3Client(connection);
-      S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
-      if (object != null) {
-        try (InputStream inputStream = object.getObjectContent()) {
-          if (header != null && header.equalsIgnoreCase("text/plain")) {
-            loadSamplableFile(connection.getId(), responder, scope, inputStream, object, lines, fraction, sampler);
-            return;
-          }
-          loadFile(connection.getId(), scope, responder, inputStream, object);
+    respond(request, responder, namespace, () -> {
+      try {
+        if (Strings.isNullOrEmpty(key)) {
+          throw new BadRequestException("Required query param 'key' is missing in the input");
         }
-      } else {
-        ServiceUtils.error(responder,
-                           String.format("S3 Object with key %s and bucket-name %s is not found", key, bucketName));
+
+        String header = request.getHeader(PropertyIds.CONTENT_TYPE);
+        Connection connection = store.get(connectionId);
+        validateConnection(connectionId, connection);
+        AmazonS3 s3 = intializeAndGetS3Client(connection);
+        S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
+        if (object == null) {
+          throw new BadRequestException(
+            String.format("S3 Object with key %s and bucket-name %s is not found", key, bucketName));
+        }
+
+        try (InputStream inputStream = object.getObjectContent()) {
+          S3ConnectionSample sample;
+          if (header != null && header.equalsIgnoreCase("text/plain")) {
+            sample = loadSamplableFile(connection.getId(), scope, inputStream, object, lines, fraction, sampler);
+          } else {
+            sample = loadFile(connection.getId(), scope, inputStream, object);
+          }
+          return new ServiceResponse<>(sample);
+        }
+      } catch (AmazonS3Exception e) {
+        throw new StatusCodeException(e.getMessage(), e, e.getStatusCode());
       }
-    } catch (AmazonS3Exception e) {
-      ServiceUtils.error(responder, e.getStatusCode(), e.getMessage());
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+    });
+  }
+
+  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/specification")
+  @GET
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("connection-id") String connectionId,
+                            @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,
+                            @QueryParam("wid") String workspaceId) {
+    specification(request, responder, getContext().getNamespace(), connectionId, bucketName, key, workspaceId);
   }
 
   /**
@@ -271,13 +287,13 @@ public class S3Handler extends AbstractWranglerHandler {
    * @param bucketName S3 object's bucket name
    * @param key S3 object's key
    */
-  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/specification")
+  @Path("contexts/{context}/connections/{connection-id}/s3/buckets/{bucket-name}/specification")
   @GET
-  public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
-                            @PathParam("connection-id") String connectionId,
-                            @PathParam("bucket-name") String bucketName, @QueryParam("key") final String key,
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
+                            @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,
                             @QueryParam("wid") String workspaceId) {
-    try {
+    respond(request, responder, namespace, () -> {
       Format format = Format.TEXT;
       if (workspaceId != null) {
         Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
@@ -296,18 +312,13 @@ public class S3Handler extends AbstractWranglerHandler {
 
       PluginSpec pluginSpec = new PluginSpec("S3", "source", properties);
       S3Spec spec = new S3Spec(pluginSpec);
-      ServiceResponse<S3Spec> response = new ServiceResponse<>(spec);
-      responder.sendJson(response);
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(spec);
+    });
   }
 
-  private void loadSamplableFile(String connectionId, HttpServiceResponder responder,
-                                 String scope, InputStream inputStream, S3Object s3Object,
-                                 int lines, double fraction, String sampler) {
+  private S3ConnectionSample loadSamplableFile(String connectionId, String scope, InputStream inputStream,
+                                               S3Object s3Object, int lines, double fraction,
+                                               String sampler) throws IOException {
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
@@ -354,74 +365,54 @@ public class S3Handler extends AbstractWranglerHandler {
       ws.updateWorkspaceData(identifier, DataType.RECORDS, data);
 
       // Preparing return response to include mandatory fields : id and name.
-      S3ConnectionSample sampleInfo = new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),
-                                                             samplingMethod.getMethod(), connectionId,
-                                                             s3Object.getBucketName(), s3Object.getKey());
-      ServiceResponse<S3ConnectionSample> response = new ServiceResponse<>(sampleInfo);
-      responder.sendJson(response);
-    } catch (Exception e) {
-      error(responder, e.getMessage());
+      return new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),
+                                    samplingMethod.getMethod(), connectionId,
+                                    s3Object.getBucketName(), s3Object.getKey());
     }
   }
 
-  private void loadFile(String connectionId, String scope, HttpServiceResponder responder, InputStream inputStream,
-                        S3Object s3Object) {
-    BufferedInputStream stream = null;
-    try {
-
-      if (s3Object.getObjectMetadata().getContentLength() > FILE_SIZE) {
-        error(responder, "Files greater than 10MB are not supported.");
-        return;
-      }
-
-      // Creates workspace.
-      String name = s3Object.getKey();
-
-      String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
-      String identifier = ServiceUtils.generateMD5(file);
-      String fileName = name.substring(name.lastIndexOf("/") + 1);
-
-      stream = new BufferedInputStream(inputStream);
-      byte[] bytes = new byte[(int) s3Object.getObjectMetadata().getContentLength() + 1];
-      stream.read(bytes);
-
-      Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, identifier);
-      properties.put(PropertyIds.NAME, fileName);
-      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
-      properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-      properties.put(PropertyIds.CONNECTION_ID, connectionId);
-      DataType dataType = getDataType(name);
-      Format format = dataType == DataType.BINARY ? Format.BLOB : Format.TEXT;
-      properties.put(PropertyIds.FORMAT, format.name());
-
-      // S3 specific properties.
-      properties.put("bucket-name", s3Object.getBucketName());
-      properties.put("key", s3Object.getKey());
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, fileName)
-        .setScope(scope)
-        .setProperties(properties)
-        .build();
-      ws.writeWorkspaceMeta(workspaceMeta);
-      ws.updateWorkspaceData(identifier, getDataType(name), bytes);
-
-      // Preparing return response to include mandatory fields : id and name.
-      S3ConnectionSample sampleInfo = new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),
-                                                             SamplingMethod.NONE.getMethod(), connectionId,
-                                                             s3Object.getBucketName(), s3Object.getKey());
-      ServiceResponse<S3ConnectionSample> response = new ServiceResponse<>(sampleInfo);
-      responder.sendJson(response);
-    } catch (Exception e) {
-      error(responder, e.getMessage());
-    } finally {
-      if (stream != null) {
-        try {
-          stream.close();
-        } catch (IOException e) {
-          // Nothing much we can do here.
-        }
-      }
+  private S3ConnectionSample loadFile(String connectionId, String scope,
+                                      InputStream inputStream, S3Object s3Object) throws IOException {
+    if (s3Object.getObjectMetadata().getContentLength() > FILE_SIZE) {
+      throw new BadRequestException("Files greater than 10MB are not supported.");
     }
+
+    // Creates workspace.
+    String name = s3Object.getKey();
+
+    String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
+    String identifier = ServiceUtils.generateMD5(file);
+    String fileName = name.substring(name.lastIndexOf("/") + 1);
+
+    byte[] bytes = new byte[(int) s3Object.getObjectMetadata().getContentLength() + 1];
+    try (BufferedInputStream stream = new BufferedInputStream(inputStream)) {
+      stream.read(bytes);
+    }
+
+    Map<String, String> properties = new HashMap<>();
+    properties.put(PropertyIds.ID, identifier);
+    properties.put(PropertyIds.NAME, fileName);
+    properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
+    properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+    properties.put(PropertyIds.CONNECTION_ID, connectionId);
+    DataType dataType = getDataType(name);
+    Format format = dataType == DataType.BINARY ? Format.BLOB : Format.TEXT;
+    properties.put(PropertyIds.FORMAT, format.name());
+
+    // S3 specific properties.
+    properties.put("bucket-name", s3Object.getBucketName());
+    properties.put("key", s3Object.getKey());
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, fileName)
+      .setScope(scope)
+      .setProperties(properties)
+      .build();
+    ws.writeWorkspaceMeta(workspaceMeta);
+    ws.updateWorkspaceData(identifier, getDataType(name), bytes);
+
+    // Preparing return response to include mandatory fields : id and name.
+    return new S3ConnectionSample(identifier, name, ConnectionType.S3.getType(),
+                                  SamplingMethod.NONE.getMethod(), connectionId,
+                                  s3Object.getBucketName(), s3Object.getKey());
   }
 
   /**

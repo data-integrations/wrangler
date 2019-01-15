@@ -16,16 +16,9 @@
 
 package co.cask.wrangler;
 
-import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.wrangler.proto.ServiceResponse;
 import com.google.common.base.Charsets;
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.util.encoders.Hex;
-
-import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 
 /**
  * This class provides utility services to the service in this package.
@@ -51,59 +44,5 @@ public final class ServiceUtils {
     byte[] output = new byte[md5Digest.getDigestSize()];
     md5Digest.doFinal(output, 0);
     return new String(Hex.encode(output));
-  }
-
-  /**
-   * Sends the error response back to client.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static void error(HttpServiceResponder responder, String message) {
-    error(responder, HttpURLConnection.HTTP_INTERNAL_ERROR, message);
-  }
-
-  /**
-   * Sends the error response back to client for not Found.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static void notFound(HttpServiceResponder responder, String message) {
-    error(responder, HttpURLConnection.HTTP_NOT_FOUND, message);
-  }
-
-  /**
-   * Sends the error response back to client with error status.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static void error(HttpServiceResponder responder, int status, String message) {
-    ServiceResponse<Void> response = new ServiceResponse<>(message);
-    responder.sendJson(status, response);
-  }
-
-  /**
-   * Returns a Json response back to client.
-   *
-   * @param responder to respond to the service request.
-   * @param status code to be returned to client.
-   * @param body to be sent back to client.
-   */
-  public static void sendJson(HttpServiceResponder responder, int status, String body) {
-    responder.send(status, ByteBuffer.wrap(body.getBytes(StandardCharsets.UTF_8)),
-                   "application/json", new HashMap<>());
-  }
-
-  /**
-   * Sends the success response back to client.
-   *
-   * @param responder to respond to the service request.
-   * @param message to be included as part of the error
-   */
-  public static void success(HttpServiceResponder responder, String message) {
-    ServiceResponse<Void> response = new ServiceResponse<>(message);
-    responder.sendJson(response);
   }
 }
