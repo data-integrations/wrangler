@@ -18,6 +18,7 @@ package co.cask.wrangler;
 
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.wrangler.dataset.workspace.RequestDeserializer;
+import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
 import co.cask.wrangler.proto.connection.ConnectionType;
@@ -102,13 +103,13 @@ public final class RequestExtractor {
   public ConnectionMeta getConnectionMeta() {
     String bodyStr = getContent(StandardCharsets.UTF_8);
     if (bodyStr == null) {
-      throw new IllegalArgumentException("No connection was found in the request body.");
+      throw new BadRequestException("No connection was found in the request body.");
     }
     ConnectionMeta connectionMeta;
     try {
       connectionMeta = GSON.fromJson(bodyStr, ConnectionMeta.class);
     } catch (JsonParseException e) {
-      throw new IllegalArgumentException(e.getMessage(), e);
+      throw new BadRequestException(e.getMessage(), e);
     }
     connectionMeta.validate();
     return connectionMeta;
@@ -123,8 +124,8 @@ public final class RequestExtractor {
   public ConnectionMeta getConnectionMeta(ConnectionType expectedType) {
     ConnectionMeta meta = getConnectionMeta();
     if (expectedType != meta.getType()) {
-      throw new IllegalArgumentException(String.format("Expected connection of type '%s' but found '%s'.",
-                                                       expectedType, meta.getType()));
+      throw new BadRequestException(String.format("Expected connection of type '%s' but found '%s'.",
+                                                  expectedType, meta.getType()));
     }
     return meta;
   }

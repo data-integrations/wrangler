@@ -23,8 +23,8 @@ import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
-import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.workspace.DataType;
+import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.PluginSpec;
@@ -41,7 +41,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
 
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,8 +52,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-
-import static co.cask.wrangler.ServiceUtils.error;
 
 /**
  * Service for handling Kafka connections.
@@ -77,7 +74,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   @POST
   @Path("connections/kafka/test")
   public void test(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+    respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
@@ -89,12 +86,14 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
         consumer.listTopics();
       }
-      ServiceUtils.success(responder, String.format("Successfully connected to Kafka at %s", config.getConnection()));
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+      return new ServiceResponse<Void>(String.format("Successfully connected to Kafka at %s", config.getConnection()));
+    });
+  }
+
+  @POST
+  @Path("connections/kafka")
+  public void list(HttpServiceRequest request, HttpServiceResponder responder) {
+    list(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -104,9 +103,9 @@ public final class KafkaHandler extends AbstractWranglerHandler {
    * @param responder HTTP response handler.
    */
   @POST
-  @Path("connections/kafka")
-  public void list(HttpServiceRequest request, HttpServiceResponder responder) {
-    try {
+  @Path("contexts/{context}/connections/kafka")
+  public void list(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace) {
+    respond(request, responder, namespace, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
@@ -117,14 +116,18 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       // Extract topics from Kafka.
       try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
         Map<String, List<PartitionInfo>> topics = consumer.listTopics();
-        ServiceResponse<String> response = new ServiceResponse<>(topics.keySet());
-        responder.sendJson(response);
+        return new ServiceResponse<>(topics.keySet());
       }
-    } catch (IllegalArgumentException e) {
-      ServiceUtils.error(responder, HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage());
-    } catch (Exception e) {
-      ServiceUtils.error(responder, e.getMessage());
-    }
+    });
+  }
+
+  @GET
+  @Path("connections/{id}/kafka/{topic}/read")
+  public void read(HttpServiceRequest request, HttpServiceResponder responder,
+                   @PathParam("id") String id, @PathParam("topic") String topic,
+                   @QueryParam("lines") int lines,
+                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+    read(request, responder, getContext().getNamespace(), id, topic, lines, scope);
   }
 
   /**
@@ -135,12 +138,12 @@ public final class KafkaHandler extends AbstractWranglerHandler {
    * @param id Connection id for which the tables need to be listed from database.
    */
   @GET
-  @Path("connections/{id}/kafka/{topic}/read")
-  public void read(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("contexts/{context}/connections/{id}/kafka/{topic}/read")
+  public void read(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                    @PathParam("id") String id, @PathParam("topic") String topic,
                    @QueryParam("lines") int lines,
-                   @QueryParam("scope") @DefaultValue("default") String scope) {
-    try {
+                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+    respond(request, responder, namespace, () -> {
       Connection connection = store.get(id);
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
@@ -188,16 +191,18 @@ public final class KafkaHandler extends AbstractWranglerHandler {
 
         ConnectionSample sample = new ConnectionSample(uuid, topic, ConnectionType.KAFKA.getType(),
                                                        SamplingMethod.FIRST.getMethod(), id);
-        ServiceResponse<ConnectionSample> response = new ServiceResponse<>(sample);
-        responder.sendJson(response);
+        return new ServiceResponse<>(sample);
       } finally {
         consumer.close();
       }
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      error(responder, e.getMessage());
-    }
+    });
+  }
+
+  @Path("connections/{id}/kafka/{topic}/specification")
+  @GET
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("id") String id, @PathParam("topic") String topic) {
+    specification(request, responder, getContext().getNamespace(), id, topic);
   }
 
   /**
@@ -208,11 +213,12 @@ public final class KafkaHandler extends AbstractWranglerHandler {
    * @param id of the connection.
    * @param topic for which the specification need to be generated.
    */
-  @Path("connections/{id}/kafka/{topic}/specification")
+  @Path("contexts/{context}/connections/{id}/kafka/{topic}/specification")
   @GET
-  public void specification(HttpServiceRequest request, final HttpServiceResponder responder,
-                            @PathParam("id") String id, @PathParam("topic") final String topic) {
-    try {
+  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
+                            @PathParam("context") String namespace,
+                            @PathParam("id") String id, @PathParam("topic") String topic) {
+    respond(request, responder, namespace, () -> {
       Connection conn = store.get(id);
       Map<String, String> connProperties = conn.getProperties();
 
@@ -226,12 +232,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
 
       PluginSpec pluginSpec = new PluginSpec("Kafka", "source", properties);
       KafkaSpec kafkaSpec = new KafkaSpec(pluginSpec);
-      ServiceResponse<KafkaSpec> response = new ServiceResponse<>(kafkaSpec);
-      responder.sendJson(response);
-    } catch (ConnectionNotFoundException e) {
-      ServiceUtils.notFound(responder, e.getMessage());
-    } catch (Exception e) {
-      error(responder, e.getMessage());
-    }
+      return new ServiceResponse<>(kafkaSpec);
+    });
   }
 }

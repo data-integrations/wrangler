@@ -16,10 +16,12 @@
 
 package co.cask.wrangler.dataset.schema;
 
+import co.cask.wrangler.proto.NotFoundException;
+
 /**
  * Thrown when a schema could not be found.
  */
-public class SchemaNotFoundException extends SchemaRegistryException {
+public class SchemaNotFoundException extends NotFoundException {
   public SchemaNotFoundException(String message) {
     super(message);
   }

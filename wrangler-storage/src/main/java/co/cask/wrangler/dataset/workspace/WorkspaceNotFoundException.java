@@ -16,10 +16,12 @@
 
 package co.cask.wrangler.dataset.workspace;
 
+import javax.ws.rs.NotFoundException;
+
 /**
  * Thrown when a workspace is not found when it is expected to exist.
  */
-public class WorkspaceNotFoundException extends Exception {
+public class WorkspaceNotFoundException extends NotFoundException {
 
   public WorkspaceNotFoundException(String message) {
     super(message);
