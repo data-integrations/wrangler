@@ -57,21 +57,21 @@ public class WorkspaceDatasetTest extends TestBase {
     WorkspaceDataset workspaceDataset = new WorkspaceDataset(table);
 
     try {
-      workspaceDataset.updateWorkspaceData(NamespacedId.of("c0", "id"), DataType.TEXT, new byte[] { 0 });
+      workspaceDataset.updateWorkspaceData(new NamespacedId("c0", "id"), DataType.TEXT, new byte[] { 0 });
       Assert.fail("Updating a non-existing workspace should fail.");
     } catch (WorkspaceNotFoundException e) {
       // expected
     }
 
     try {
-      workspaceDataset.updateWorkspaceProperties(NamespacedId.of("c0", "id"), Collections.emptyMap());
+      workspaceDataset.updateWorkspaceProperties(new NamespacedId("c0", "id"), Collections.emptyMap());
       Assert.fail("Updating a non-existing workspace should fail.");
     } catch (WorkspaceNotFoundException e) {
       // expected
     }
 
     try {
-      workspaceDataset.updateWorkspaceRequest(NamespacedId.of("c0", "id"), null);
+      workspaceDataset.updateWorkspaceRequest(new NamespacedId("c0", "id"), null);
       Assert.fail("Updating a non-existing workspace should fail.");
     } catch (WorkspaceNotFoundException e) {
       // expected
@@ -92,10 +92,10 @@ public class WorkspaceDatasetTest extends TestBase {
 
     String scope1 = "scope1";
     String scope2 = "scope2";
-    WorkspaceMeta meta1 = WorkspaceMeta.builder(NamespacedId.of(context, id1.getId()), id1.getName())
+    WorkspaceMeta meta1 = WorkspaceMeta.builder(new NamespacedId(context, id1.getId()), id1.getName())
       .setScope(scope1)
       .build();
-    WorkspaceMeta meta2 = WorkspaceMeta.builder(NamespacedId.of(context, id2.getId()), id2.getName())
+    WorkspaceMeta meta2 = WorkspaceMeta.builder(new NamespacedId(context, id2.getId()), id2.getName())
       .setScope(scope2)
       .build();
 
@@ -112,7 +112,7 @@ public class WorkspaceDatasetTest extends TestBase {
     Assert.assertTrue(workspaceDataset.listWorkspaces(context, scope1).isEmpty());
     Assert.assertEquals(Collections.singletonList(id2), workspaceDataset.listWorkspaces(context, scope2));
 
-    workspaceDataset.deleteWorkspace(NamespacedId.of(context, id2.getId()));
+    workspaceDataset.deleteWorkspace(new NamespacedId(context, id2.getId()));
     tableManager.flush();
     Assert.assertTrue(workspaceDataset.listWorkspaces(context, scope1).isEmpty());
     Assert.assertTrue(workspaceDataset.listWorkspaces(context, scope2).isEmpty());
@@ -125,8 +125,8 @@ public class WorkspaceDatasetTest extends TestBase {
     Table table = tableManager.get();
     WorkspaceDataset workspaceDataset = new WorkspaceDataset(table);
 
-    NamespacedId id1 = NamespacedId.of("n1", "id1");
-    NamespacedId id2 = NamespacedId.of("n2", "id2");
+    NamespacedId id1 = new NamespacedId("n1", "id1");
+    NamespacedId id2 = new NamespacedId("n2", "id2");
 
     // test writes in different namespaces don't conflict with each other
     WorkspaceMeta meta1 = WorkspaceMeta.builder(id1, "name1")
@@ -184,7 +184,7 @@ public class WorkspaceDatasetTest extends TestBase {
     Table table = tableManager.get();
     WorkspaceDataset workspaceDataset = new WorkspaceDataset(table);
 
-    NamespacedId id = NamespacedId.of("c0", "id0");
+    NamespacedId id = new NamespacedId("c0", "id0");
     Assert.assertTrue(workspaceDataset.listWorkspaces(id.getNamespace(), "default").isEmpty());
     Assert.assertFalse(workspaceDataset.hasWorkspace(id));
     WorkspaceIdentifier workspaceId = new WorkspaceIdentifier(id.getId(), "name");

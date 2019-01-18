@@ -139,7 +139,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace, @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
@@ -191,7 +191,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                          @PathParam("connection-id") String connectionId,
                          @PathParam("dataset-id") String datasetStr) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
 
@@ -246,7 +246,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                         @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, () -> {
-      NamespacedId namespacedId = NamespacedId.of(namespace, connectionId);
+      NamespacedId namespacedId = new NamespacedId(namespace, connectionId);
       Connection connection = store.get(namespacedId);
       validateConnection(connection);
 
@@ -309,7 +309,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, () -> {
-      Map<String, String> config = ws.getWorkspace(NamespacedId.of(namespace, connectionId)).getProperties();
+      Map<String, String> config = ws.getWorkspace(new NamespacedId(namespace, connectionId)).getProperties();
 
       Map<String, String> properties = new HashMap<>();
       String externalDatasetName =

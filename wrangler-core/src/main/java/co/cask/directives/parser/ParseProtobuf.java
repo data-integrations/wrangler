@@ -114,9 +114,9 @@ public class ParseProtobuf implements Directive {
           client = SchemaRegistryClient.getInstance(context);
           byte[] bytes;
           if (version != -1) {
-            bytes = client.getSchema(NamespacedId.of(context.getNamespace(), schemaId), version);
+            bytes = client.getSchema(new NamespacedId(context.getNamespace(), schemaId), version);
           } else {
-            bytes = client.getSchema(NamespacedId.of(context.getNamespace(), schemaId));
+            bytes = client.getSchema(new NamespacedId(context.getNamespace(), schemaId));
           }
 
           return new ProtobufDecoderUsingDescriptor(bytes, recordName);

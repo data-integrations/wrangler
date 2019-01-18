@@ -83,7 +83,7 @@ public class ConnectionStore {
    * @throws ConnectionAlreadyExistsException if the connection already exists
    */
   public NamespacedId create(String namespace, ConnectionMeta meta) throws ConnectionAlreadyExistsException {
-    NamespacedId id = NamespacedId.of(namespace, getConnectionId(meta.getName()));
+    NamespacedId id = new NamespacedId(namespace, getConnectionId(meta.getName()));
     Connection existing = read(id);
     if (existing != null) {
       throw new ConnectionAlreadyExistsException(
@@ -144,7 +144,7 @@ public class ConnectionStore {
    * Returns true if connection identified by connectionName already exists.
    */
   public boolean connectionExists(String namespace, String connectionName) {
-    return read(NamespacedId.of(namespace, getConnectionId(connectionName))) != null;
+    return read(new NamespacedId(namespace, getConnectionId(connectionName))) != null;
   }
 
   /**

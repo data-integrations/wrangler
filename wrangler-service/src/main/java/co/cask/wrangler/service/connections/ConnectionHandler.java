@@ -206,7 +206,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
 
       // Create an instance of the connection, if the connection id doesn't exist
       // it will throw an exception.
-      store.update(NamespacedId.of(namespace, id), connection);
+      store.update(new NamespacedId(namespace, id), connection);
       return new ServiceResponse<>(Collections.emptyList());
     });
   }
@@ -284,7 +284,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
       if (preConfiguredConnections.stream().anyMatch(c -> id.equals(ConnectionStore.getConnectionId(c.getName())))) {
         throw new UnauthorizedException(String.format("Cannot delete admin controlled connection %s", id));
       }
-      store.delete(NamespacedId.of(namespace, id));
+      store.delete(new NamespacedId(namespace, id));
       return new ServiceResponse<Connection>(new ArrayList<>());
     });
   }
@@ -307,7 +307,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(NamespacedId.of(namespace, id))));
+    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(new NamespacedId(namespace, id))));
   }
 
 
@@ -330,7 +330,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace,
-            () -> new ServiceResponse<>(store.get(NamespacedId.of(namespace, id)).getProperties()));
+            () -> new ServiceResponse<>(store.get(new NamespacedId(namespace, id)).getProperties()));
   }
 
   @PUT
@@ -355,7 +355,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
                          @QueryParam("key") String key, @QueryParam("value") String value) {
     respond(request, responder, namespace, () -> {
 
-      NamespacedId namespacedId = NamespacedId.of(namespace, id);
+      NamespacedId namespacedId = new NamespacedId(namespace, id);
       Connection connection = store.get(namespacedId);
 
       ConnectionMeta updatedMeta = ConnectionMeta.builder(connection)
@@ -385,7 +385,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(NamespacedId.of(namespace, id));
+      Connection connection = store.get(new NamespacedId(namespace, id));
       ConnectionMeta clone = ConnectionMeta.builder(connection)
         .setName(connection.getName() + "_Clone")
         .build();

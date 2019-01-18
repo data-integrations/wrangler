@@ -194,7 +194,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, id);
       properties.put(PropertyIds.NAME, workspaceName);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(NamespacedId.of(namespace, id), workspaceName)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(new NamespacedId(namespace, id), workspaceName)
         .setScope(scope)
         .setProperties(properties)
         .build();
@@ -266,7 +266,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      ws.deleteWorkspace(NamespacedId.of(namespace, id));
+      ws.deleteWorkspace(new NamespacedId(namespace, id));
       return new ServiceResponse<Void>(String.format("Successfully deleted workspace '%s'", id));
     });
   }
@@ -344,7 +344,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      Workspace workspace = ws.getWorkspace(NamespacedId.of(namespace, id));
+      Workspace workspace = ws.getWorkspace(new NamespacedId(namespace, id));
       String name = workspace.getName();
       Request workspaceReq = workspace.getRequest();
       JsonObject req = new JsonObject();
@@ -405,7 +405,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       if (name == null) {
         throw new BadRequestException("Name must be provided in the 'file' header");
       }
-      NamespacedId id = NamespacedId.of(namespace, ServiceUtils.generateMD5(name));
+      NamespacedId id = new NamespacedId(namespace, ServiceUtils.generateMD5(name));
 
       // if workspace doesn't exist, then we create the workspace before
       // adding data to the workspace.
@@ -523,7 +523,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
                                         "or 'application/data-prep'");
       }
-      NamespacedId namespaceId = NamespacedId.of(namespace, id);
+      NamespacedId namespaceId = new NamespacedId(namespace, id);
       switch (type) {
         case TEXT:
           // Convert the type into unicode.
@@ -599,7 +599,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(namespace, directiveRequest));
 
         int limit = directiveRequest.getSampling().getLimit();
-        NamespacedId namespacedId = NamespacedId.of(namespace, id);
+        NamespacedId namespacedId = new NamespacedId(namespace, id);
         List<Row> rows = executeDirectives(namespacedId, directiveRequest, records -> {
           if (records == null) {
             return Collections.emptyList();
@@ -724,7 +724,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           throw new BadRequestException("Request body is empty.");
         }
         int limit = directiveRequest.getSampling().getLimit();
-        List<Row> rows = executeDirectives(NamespacedId.of(namespace, id), directiveRequest, records -> {
+        List<Row> rows = executeDirectives(new NamespacedId(namespace, id), directiveRequest, records -> {
           if (records == null) {
             return Collections.emptyList();
           }
@@ -811,7 +811,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Request body is empty.");
       }
       int limit = user.getSampling().getLimit();
-      List<Row> rows = executeDirectives(NamespacedId.of(namespace, id), user, records -> {
+      List<Row> rows = executeDirectives(new NamespacedId(namespace, id), user, records -> {
         if (records == null) {
           return Collections.emptyList();
         }

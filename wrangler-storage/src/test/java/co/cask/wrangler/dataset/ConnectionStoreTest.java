@@ -49,7 +49,7 @@ public class ConnectionStoreTest extends TestBase {
     Table table = tableManager.get();
     ConnectionStore connectionStore = new ConnectionStore(table);
 
-    NamespacedId id = NamespacedId.of("c0", "id");
+    NamespacedId id = new NamespacedId("c0", "id");
     try {
       connectionStore.get(id);
       Assert.fail("Getting a non-existent connection did not throw an exception.");
