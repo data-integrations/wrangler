@@ -157,7 +157,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       String bucketName = "";
       String prefix = null;
 
-      Connection connection = getValidatedConnection(NamespacedId.of(namespace, connectionId), ConnectionType.GCS);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.GCS);
 
       int bucketStart = path.indexOf("/");
       if (bucketStart != -1) {
@@ -291,7 +291,7 @@ public class GCSHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Required query param 'path' is missing in the input");
       }
 
-      Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connectionId, connection);
 
       Map<String, String> properties = new HashMap<>();
@@ -313,7 +313,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId);
       properties.put("bucket", bucket);
-      NamespacedId namespacedId = NamespacedId.of(namespace, id);
+      NamespacedId namespacedId = new NamespacedId(namespace, id);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, file.getName())
         .setScope(scope)
         .setProperties(properties)
@@ -396,10 +396,10 @@ public class GCSHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Workspace ID must be passed as query parameter 'wid'.");
       }
 
-      Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connectionId, connection);
 
-      NamespacedId namespacedIdWorkspaceId = NamespacedId.of(namespace, workspaceId);
+      NamespacedId namespacedIdWorkspaceId = new NamespacedId(namespace, workspaceId);
       Map<String, String> config = ws.getWorkspace(namespacedIdWorkspaceId).getProperties();
       String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
       Format format = Format.valueOf(formatStr);

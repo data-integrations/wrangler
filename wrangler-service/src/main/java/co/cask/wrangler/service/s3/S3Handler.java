@@ -152,7 +152,7 @@ public class S3Handler extends AbstractWranglerHandler {
                               @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
     respond(request, responder, namespace, () -> {
       try {
-        Connection connection = getValidatedConnection(NamespacedId.of(namespace, connectionId), ConnectionType.S3);
+        Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.S3);
         String bucketName = "";
         String prefix = null;
         int bucketStart = path.indexOf("/");
@@ -247,7 +247,7 @@ public class S3Handler extends AbstractWranglerHandler {
         }
 
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
-        Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+        Connection connection = store.get(new NamespacedId(namespace, connectionId));
         validateConnection(connectionId, connection);
         AmazonS3 s3 = intializeAndGetS3Client(connection);
         S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
@@ -296,13 +296,13 @@ public class S3Handler extends AbstractWranglerHandler {
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, () -> {
       Format format = Format.TEXT;
-      NamespacedId namespacedWorkspaceId = NamespacedId.of(namespace, workspaceId);
+      NamespacedId namespacedWorkspaceId = new NamespacedId(namespace, workspaceId);
       if (workspaceId != null) {
         Map<String, String> config = ws.getWorkspace(namespacedWorkspaceId).getProperties();
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         format = Format.valueOf(formatStr);
       }
-      Connection conn = store.get(NamespacedId.of(namespace, connectionId));
+      Connection conn = store.get(new NamespacedId(namespace, connectionId));
       S3Configuration s3Configuration = new S3Configuration(conn);
       Map<String, String> properties = new HashMap<>();
       properties.put("format", format.name().toLowerCase());
@@ -340,7 +340,7 @@ public class S3Handler extends AbstractWranglerHandler {
       properties.put(PropertyIds.CONNECTION_ID, connectionId.getId());
       properties.put("bucket-name", s3Object.getBucketName());
       properties.put("key", s3Object.getKey());
-      NamespacedId namespacedWorkspaceId = NamespacedId.of(connectionId.getNamespace(), identifier);
+      NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedWorkspaceId, fileName)
         .setScope(scope)
         .setProperties(properties)
@@ -405,7 +405,7 @@ public class S3Handler extends AbstractWranglerHandler {
     // S3 specific properties.
     properties.put("bucket-name", s3Object.getBucketName());
     properties.put("key", s3Object.getKey());
-    NamespacedId namespacedWorkspaceId = NamespacedId.of(connectionId.getNamespace(), identifier);
+    NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
     WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedWorkspaceId, fileName)
       .setScope(scope)
       .setProperties(properties)

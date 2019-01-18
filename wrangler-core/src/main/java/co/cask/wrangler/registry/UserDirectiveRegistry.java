@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import javax.annotation.Nullable;
 
 /**
  * A User Executor Registry in a collection of user defined directives. The
@@ -78,7 +79,6 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    */
   public UserDirectiveRegistry(ArtifactManager manager) throws DirectiveLoadException {
     this.manager = manager;
-    reload("system");
   }
 
   /**
@@ -109,6 +109,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @param name of the directive to be retrived from the registry.
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
+  @Nullable
   @Override
   public DirectiveInfo get(String namespace, String name) throws DirectiveLoadException {
     if (!registry.containsKey(namespace)) {

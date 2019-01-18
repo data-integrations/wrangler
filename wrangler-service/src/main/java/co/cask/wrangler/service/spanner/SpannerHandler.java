@@ -122,7 +122,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       List<SpannerInstance> instances = getInstances(connection);
       return new ServiceResponse<>(instances);
@@ -147,7 +147,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("connection-id") String connectionId,
                                   @PathParam("instance-id") String instanceId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       List<SpannerDatabase> databases = getDatabases(connection, instanceId);
       return new ServiceResponse<>(databases);
@@ -177,7 +177,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                @PathParam("instance-id") String instanceId,
                                @PathParam("database-id") String databaseId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(NamespacedId.of(namespace, connectionId));
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       List<SpannerTable> tables = getTables(connection, instanceId, databaseId);
       return new ServiceResponse<>(tables);
@@ -212,7 +212,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
                         @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
     respond(request, responder, namespace, () -> {
-      NamespacedId namespacedId = NamespacedId.of(namespace, connectionId);
+      NamespacedId namespacedId = new NamespacedId(namespace, connectionId);
       Connection connection = store.get(namespacedId);
       validateConnection(connection);
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
@@ -269,7 +269,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("workspace-id") String workspaceId) {
     respond(request, responder, namespace, () -> {
-      Map<String, String> config = ws.getWorkspace(NamespacedId.of(namespace, workspaceId)).getProperties();
+      Map<String, String> config = ws.getWorkspace(new NamespacedId(namespace, workspaceId)).getProperties();
 
       // deserialize and send spanner source specification
       SpannerSpecification conf =

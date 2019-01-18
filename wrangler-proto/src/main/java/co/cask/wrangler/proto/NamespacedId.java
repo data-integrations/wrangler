@@ -31,13 +31,9 @@ public class NamespacedId {
     this(other.namespace, other.id);
   }
 
-  private NamespacedId(String namespace, String id) {
+  public NamespacedId(String namespace, String id) {
     this.namespace = namespace;
     this.id = id;
-  }
-
-  public static NamespacedId of(String namespace, String id) {
-    return new NamespacedId(namespace, id);
   }
 
   public String getNamespace() {

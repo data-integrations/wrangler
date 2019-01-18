@@ -429,7 +429,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         List<Name> values = new ArrayList<>();
-        cleanup = loadAndExecute(store.get(NamespacedId.of(namespace, id)), connection -> {
+        cleanup = loadAndExecute(store.get(new NamespacedId(namespace, id)), connection -> {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
           ResultSet resultSet;
           if (product.equalsIgnoreCase("oracle")) {
@@ -496,7 +496,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
-        cleanup = loadAndExecute(store.get(NamespacedId.of(namespace, id)), connection -> {
+        cleanup = loadAndExecute(store.get(new NamespacedId(namespace, id)), connection -> {
           try (Statement statement = connection.createStatement();
             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
@@ -508,7 +508,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
             properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
             properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
             properties.put(PropertyIds.CONNECTION_ID, id);
-            NamespacedId namespacedId = NamespacedId.of(namespace, identifier);
+            NamespacedId namespacedId = new NamespacedId(namespace, identifier);
             WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, table)
               .setScope(scope)
               .setProperties(properties)
@@ -584,7 +584,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("id") String id,
                             @PathParam("table") String table) {
     respond(request, responder, namespace, () -> {
-      Connection conn = store.get(NamespacedId.of(namespace, id));
+      Connection conn = store.get(new NamespacedId(namespace, id));
 
       Map<String, String> properties = new HashMap<>();
       properties.put("connectionString", conn.getProperties().get("url"));

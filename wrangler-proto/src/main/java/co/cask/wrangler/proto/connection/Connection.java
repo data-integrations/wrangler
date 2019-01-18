@@ -56,7 +56,7 @@ public final class Connection extends ConnectionMeta {
    */
   public NamespacedId getId() {
     // only null if this object was created through deserialization
-    return namespacedId == null ? NamespacedId.of(context, id) : namespacedId;
+    return namespacedId == null ? new NamespacedId(context, id) : namespacedId;
   }
 
   /**

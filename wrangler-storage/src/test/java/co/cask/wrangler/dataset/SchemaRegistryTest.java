@@ -50,7 +50,7 @@ public class SchemaRegistryTest extends TestBase {
     Table table = tableManager.get();
     SchemaRegistry registry = new SchemaRegistry(table);
 
-    NamespacedId id = NamespacedId.of("c0", "id0");
+    NamespacedId id = new NamespacedId("c0", "id0");
     try {
       registry.remove(id, 0L);
       Assert.fail("removing an entry from a non-existent schema did not throw an exception");
@@ -91,7 +91,7 @@ public class SchemaRegistryTest extends TestBase {
     Table table = tableManager.get();
     SchemaRegistry registry = new SchemaRegistry(table);
 
-    NamespacedId id = NamespacedId.of("c0", "id0");
+    NamespacedId id = new NamespacedId("c0", "id0");
     Assert.assertFalse(registry.hasSchema(id));
 
     // test schema creation
@@ -164,8 +164,8 @@ public class SchemaRegistryTest extends TestBase {
     String context1 = "c1";
     String context2 = "c2";
 
-    NamespacedId id1 = NamespacedId.of(context1, "id0");
-    NamespacedId id2 = NamespacedId.of(context2, id1.getId());
+    NamespacedId id1 = new NamespacedId(context1, "id0");
+    NamespacedId id2 = new NamespacedId(context2, id1.getId());
 
     SchemaDescriptor descriptor1 = new SchemaDescriptor(id1, "name1", "desc1", SchemaDescriptorType.AVRO);
     SchemaEntry expected1 = new SchemaEntry(id1, descriptor1.getName(), descriptor1.getDescription(),
