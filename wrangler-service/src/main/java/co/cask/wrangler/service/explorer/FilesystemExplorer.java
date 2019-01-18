@@ -167,7 +167,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, () -> {
       Format format = Format.TEXT;
-      NamespacedId namespacedId = NamespacedId.of(namespace, workspaceId);
+      NamespacedId namespacedId = new NamespacedId(namespace, workspaceId);
       if (workspaceId != null) {
         Map<String, String> config = ws.getWorkspace(namespacedId).getProperties();
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
@@ -213,7 +213,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
     Format format = type == DataType.BINARY ? Format.BLOB : Format.TEXT;
     properties.put(PropertyIds.FORMAT, format.name());
-    NamespacedId namespacedId = NamespacedId.of(namespace, id);
+    NamespacedId namespacedId = new NamespacedId(namespace, id);
     WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, name)
       .setScope(scope)
       .setProperties(properties)
@@ -267,7 +267,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
     properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
     properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
-    NamespacedId namespacedId = NamespacedId.of(namespace, id);
+    NamespacedId namespacedId = new NamespacedId(namespace, id);
     WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, name)
       .setScope(scope)
       .setProperties(properties)

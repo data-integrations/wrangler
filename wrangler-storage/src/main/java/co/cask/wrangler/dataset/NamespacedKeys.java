@@ -63,6 +63,6 @@ public class NamespacedKeys {
     String namespace = Bytes.toString(rowkey, Bytes.SIZEOF_INT, namespaceLength);
     int idLength = Bytes.toInt(rowkey, Bytes.SIZEOF_INT + namespaceLength);
     String id = Bytes.toString(rowkey, 2 * Bytes.SIZEOF_INT + namespaceLength, idLength);
-    return NamespacedId.of(namespace, id);
+    return new NamespacedId(namespace, id);
   }
 }

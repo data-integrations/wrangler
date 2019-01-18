@@ -145,13 +145,13 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(NamespacedId.of(namespace, id));
+      Connection connection = store.get(new NamespacedId(namespace, id));
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
       String uuid = ServiceUtils.generateMD5(String.format("%s:%s.%s", scope, id, topic));
-      NamespacedId namespacedId = NamespacedId.of(namespace, uuid);
+      NamespacedId namespacedId = new NamespacedId(namespace, uuid);
 
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, uuid);
@@ -221,7 +221,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @PathParam("id") String id, @PathParam("topic") String topic) {
     respond(request, responder, namespace, () -> {
-      Connection conn = store.get(NamespacedId.of(namespace, id));
+      Connection conn = store.get(new NamespacedId(namespace, id));
       Map<String, String> connProperties = conn.getProperties();
 
       Map<String, String> properties = new HashMap<>();

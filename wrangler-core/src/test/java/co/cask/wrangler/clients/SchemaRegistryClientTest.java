@@ -162,7 +162,7 @@ public class SchemaRegistryClientTest {
 
   @Test
   public void testGetSchema() throws Exception {
-    byte[] bytes = client.getSchema(NamespacedId.of("c0", "foo"), 1);
+    byte[] bytes = client.getSchema(new NamespacedId("c0", "foo"), 1);
     Assert.assertNotNull(bytes);
     String str = Bytes.toString(bytes);
     Assert.assertEquals("{\"foo\" : \"test\"}", str);
@@ -170,13 +170,13 @@ public class SchemaRegistryClientTest {
 
   @Test
   public void testGetVersions() throws Exception {
-    List<Long> response = client.getVersions(NamespacedId.of("c0", "foo"));
+    List<Long> response = client.getVersions(new NamespacedId("c0", "foo"));
     Assert.assertEquals(4, response.size());
     Assert.assertNotNull(response);
   }
 
   @Test (expected = RestClientException.class)
   public void testGetWrongSchemaIdVersions() throws Exception {
-    client.getVersions(NamespacedId.of("c0", "foo1"));
+    client.getVersions(new NamespacedId("c0", "foo1"));
   }
 }

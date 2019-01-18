@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
 public interface DirectiveRegistry extends Closeable {
 
   /**
-   * List the directives in the specified context
+   * List the directives in the specified namespace
    *
    * @param namespace the namespace to list from
    * @return directives in the specified namespace
