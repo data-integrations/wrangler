@@ -24,6 +24,7 @@ import co.cask.cdap.test.TestConfiguration;
 import co.cask.wrangler.dataset.schema.SchemaDescriptor;
 import co.cask.wrangler.dataset.schema.SchemaNotFoundException;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
 import co.cask.wrangler.proto.schema.SchemaEntry;
 import org.junit.Assert;
@@ -49,7 +50,7 @@ public class SchemaRegistryTest extends TestBase {
     Table table = tableManager.get();
     SchemaRegistry registry = new SchemaRegistry(table);
 
-    String id = "id0";
+    NamespacedId id = new NamespacedId("c0", "id0");
     try {
       registry.remove(id, 0L);
       Assert.fail("removing an entry from a non-existent schema did not throw an exception");
@@ -76,7 +77,7 @@ public class SchemaRegistryTest extends TestBase {
     tableManager.flush();
 
     try {
-      registry.getEntry("id", 1L);
+      registry.getEntry(id, 1L);
       Assert.fail("getting a non-existent schema entry did not throw an exception");
     } catch (SchemaNotFoundException e) {
       // expected
@@ -90,7 +91,7 @@ public class SchemaRegistryTest extends TestBase {
     Table table = tableManager.get();
     SchemaRegistry registry = new SchemaRegistry(table);
 
-    String id = "id0";
+    NamespacedId id = new NamespacedId("c0", "id0");
     Assert.assertFalse(registry.hasSchema(id));
 
     // test schema creation
@@ -153,4 +154,48 @@ public class SchemaRegistryTest extends TestBase {
     Assert.assertFalse(registry.hasSchema(id));
   }
 
+  @Test
+  public void testNamespaceIsolation() throws Exception {
+    addDatasetInstance("table", "nsTest");
+    DataSetManager<Table> tableManager = getDataset("nsTest");
+    Table table = tableManager.get();
+    SchemaRegistry registry = new SchemaRegistry(table);
+
+    String context1 = "c1";
+    String context2 = "c2";
+
+    NamespacedId id1 = new NamespacedId(context1, "id0");
+    NamespacedId id2 = new NamespacedId(context2, id1.getId());
+
+    SchemaDescriptor descriptor1 = new SchemaDescriptor(id1, "name1", "desc1", SchemaDescriptorType.AVRO);
+    SchemaEntry expected1 = new SchemaEntry(id1, descriptor1.getName(), descriptor1.getDescription(),
+                                            descriptor1.getType(), Collections.emptySet(), null, null);
+    SchemaDescriptor descriptor2 = new SchemaDescriptor(id2, "name2", "desc2", SchemaDescriptorType.AVRO);
+    SchemaEntry expected2 = new SchemaEntry(id2, descriptor2.getName(), descriptor2.getDescription(),
+                                            descriptor2.getType(), Collections.emptySet(), null, null);
+
+    // test writes don't interfere with each other
+    registry.write(descriptor1);
+    registry.write(descriptor2);
+    tableManager.flush();
+    Assert.assertEquals(expected1, registry.getEntry(id1));
+    Assert.assertEquals(expected2, registry.getEntry(id2));
+
+    // test version lists don't overlap
+    long v1 = registry.add(id1, new byte[] { 1 });
+    long v2 = registry.add(id2, new byte[] { 2 });
+    tableManager.flush();
+    Assert.assertEquals(Collections.singleton(v1), registry.getVersions(id1));
+    Assert.assertEquals(Collections.singleton(v2), registry.getVersions(id2));
+
+    // test delete doesn't affect schema in another context
+    registry.delete(id1);
+    tableManager.flush();
+    try {
+      registry.getVersions(id1);
+    } catch (SchemaNotFoundException e) {
+      // expected
+    }
+    Assert.assertEquals(Collections.singleton(v2), registry.getVersions(id2));
+  }
 }

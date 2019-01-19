@@ -32,6 +32,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.BadRequestException;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.connection.Connection;
@@ -156,7 +157,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       String bucketName = "";
       String prefix = null;
 
-      Connection connection = getValidatedConnection(connectionId, ConnectionType.GCS, responder);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.GCS);
 
       int bucketStart = path.indexOf("/");
       if (bucketStart != -1) {
@@ -290,7 +291,7 @@ public class GCSHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Required query param 'path' is missing in the input");
       }
 
-      Connection connection = store.get(connectionId);
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connectionId, connection);
 
       Map<String, String> properties = new HashMap<>();
@@ -312,7 +313,8 @@ public class GCSHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId);
       properties.put("bucket", bucket);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, file.getName())
+      NamespacedId namespacedId = new NamespacedId(namespace, id);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, file.getName())
         .setScope(scope)
         .setProperties(properties)
         .build();
@@ -344,16 +346,16 @@ public class GCSHandler extends AbstractWranglerHandler {
 
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] records = serDe.toByteArray(rows);
-          ws.updateWorkspaceData(id, DataType.RECORDS, records);
+          ws.updateWorkspaceData(namespacedId, DataType.RECORDS, records);
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/json")) {
-          ws.updateWorkspaceData(id, DataType.TEXT, bytes);
+          ws.updateWorkspaceData(namespacedId, DataType.TEXT, bytes);
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/xml")) {
-          ws.updateWorkspaceData(id, DataType.TEXT, bytes);
+          ws.updateWorkspaceData(namespacedId, DataType.TEXT, bytes);
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         } else {
-          ws.updateWorkspaceData(id, DataType.BINARY, bytes);
+          ws.updateWorkspaceData(namespacedId, DataType.BINARY, bytes);
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         }
 
@@ -394,10 +396,11 @@ public class GCSHandler extends AbstractWranglerHandler {
         throw new BadRequestException("Workspace ID must be passed as query parameter 'wid'.");
       }
 
-      Connection connection = store.get(connectionId);
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connectionId, connection);
 
-      Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
+      NamespacedId namespacedIdWorkspaceId = new NamespacedId(namespace, workspaceId);
+      Map<String, String> config = ws.getWorkspace(namespacedIdWorkspaceId).getProperties();
       String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
       Format format = Format.valueOf(formatStr);
       String uri = config.get(PropertyIds.URI);
@@ -413,7 +416,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       properties.put("path", uri);
       properties.put("recursive", "false");
       properties.put("filenameOnly", "false");
-      properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
+      properties.put("copyHeader", String.valueOf(shouldCopyHeader(namespacedIdWorkspaceId)));
       properties.put("schema", format.getSchema().toString());
       PluginSpec pluginSpec = new PluginSpec("GCSFile", "source", properties);
       GCSSpec spec = new GCSSpec(pluginSpec);

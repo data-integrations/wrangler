@@ -16,37 +16,30 @@
 
 package co.cask.wrangler.dataset.schema;
 
-import co.cask.cdap.api.common.Bytes;
-import co.cask.cdap.api.dataset.table.Put;
-import co.cask.cdap.api.dataset.table.Row;
-import co.cask.wrangler.proto.schema.SchemaDescriptorType;
-
 import javax.annotation.Nullable;
 
 /**
  * Contains all the information about a schema that is stored in the same row.
  */
-public class SchemaRow extends SchemaDescriptor {
-  private static final byte[] NAME_COL = Bytes.toBytes("name");
-  private static final byte[] DESC_COL = Bytes.toBytes("description");
-  private static final byte[] CREATED_COL = Bytes.toBytes("created");
-  private static final byte[] UPDATED_COL = Bytes.toBytes("updated");
-  private static final byte[] TYPE_COL = Bytes.toBytes("type");
-  private static final byte[] AUTO_VERSION_COL = Bytes.toBytes("auto");
-  private static final byte[] CURRENT_VERSION_COL = Bytes.toBytes("current");
+public class SchemaRow {
 
+  private final SchemaDescriptor descriptor;
   private final long created;
   private final long updated;
   private final long autoVersion;
   private final Long currentVersion;
 
-  private SchemaRow(String id, String name, String description, SchemaDescriptorType type,
-                    long created, long updated, long autoVersion, @Nullable Long currentVersion) {
-    super(id, name, description, type);
+  private SchemaRow(SchemaDescriptor descriptor, long created, long updated, long autoVersion,
+                    @Nullable Long currentVersion) {
+    this.descriptor = descriptor;
     this.created = created;
     this.updated = updated;
     this.autoVersion = autoVersion;
     this.currentVersion = currentVersion;
+  }
+
+  public SchemaDescriptor getDescriptor() {
+    return descriptor;
   }
 
   public long getCreated() {
@@ -66,80 +59,29 @@ public class SchemaRow extends SchemaDescriptor {
     return currentVersion;
   }
 
-  Put toPut() {
-    Put put = new Put(id);
-    put.add(NAME_COL, name);
-    put.add(DESC_COL, description);
-    put.add(CREATED_COL, created);
-    put.add(UPDATED_COL, updated);
-    put.add(TYPE_COL, type.name());
-    put.add(AUTO_VERSION_COL, autoVersion);
-    if (currentVersion != null) {
-      put.add(CURRENT_VERSION_COL, currentVersion);
-    }
-    return put;
-  }
-
-  static SchemaRow fromRow(Row row) {
-    String id = Bytes.toString(row.getRow());
-    String name = row.getString(NAME_COL);
-    String description = row.getString(DESC_COL);
-    String typeStr = row.getString(TYPE_COL);
-    SchemaDescriptorType type = SchemaDescriptorType.valueOf(typeStr);
-    long created = row.getLong(CREATED_COL);
-    long updated = row.getLong(UPDATED_COL);
-    long auto = row.getLong(AUTO_VERSION_COL);
-    Long current = row.getLong(CURRENT_VERSION_COL);
-    return new SchemaRow(id, name, description, type, created, updated, auto, current);
-  }
-
   static Builder builder(SchemaRow existing) {
-    return new Builder(existing.getId())
-      .setName(existing.getName())
-      .setDescription(existing.getDescription())
-      .setType(existing.getType())
+    return new Builder(existing.getDescriptor())
       .setUpdated(existing.getUpdated())
       .setAutoVersion(existing.getAutoVersion())
       .setCurrentVersion(existing.getCurrentVersion());
   }
 
   static Builder builder(SchemaDescriptor descriptor) {
-    return new Builder(descriptor.getId())
-      .setName(descriptor.getName())
-      .setDescription(descriptor.getDescription())
-      .setType(descriptor.getType());
+    return new Builder(descriptor);
   }
 
   /**
    * Builds a SchemaRow.
    */
   public static class Builder {
-    private final String id;
-    private String name;
-    private String description;
-    private SchemaDescriptorType type;
+    private final SchemaDescriptor descriptor;
     private long created;
     private long updated;
     private long autoVersion;
     private Long currentVersion;
 
-    public Builder(String id) {
-      this.id = id;
-    }
-
-    public Builder setName(String name) {
-      this.name = name;
-      return this;
-    }
-
-    public Builder setDescription(String description) {
-      this.description = description;
-      return this;
-    }
-
-    public Builder setType(SchemaDescriptorType type) {
-      this.type = type;
-      return this;
+    public Builder(SchemaDescriptor descriptor) {
+      this.descriptor = descriptor;
     }
 
     public Builder setCreated(long created) {
@@ -163,7 +105,7 @@ public class SchemaRow extends SchemaDescriptor {
     }
 
     public SchemaRow build() {
-      return new SchemaRow(id, name, description, type, created, updated, autoVersion, currentVersion);
+      return new SchemaRow(descriptor, created, updated, autoVersion, currentVersion);
     }
   }
 }

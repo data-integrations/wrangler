@@ -18,8 +18,6 @@ package co.cask.wrangler.registry;
 
 import co.cask.wrangler.api.Directive;
 import co.cask.wrangler.api.DirectiveLoadException;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.reflections.Reflections;
 
 import java.util.ArrayList;
@@ -47,11 +45,10 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * @see CompositeDirectiveRegistry
  * @see DirectiveInfo
  */
-public final class SystemDirectiveRegistry implements  DirectiveRegistry {
+public final class SystemDirectiveRegistry implements DirectiveRegistry {
   // This is the default package in which the directives are searched for.
   private static final String PACKAGE = "co.cask.directives";
   private final Map<String, DirectiveInfo> registry;
-  private final List<String> namespaces;
 
   public SystemDirectiveRegistry() throws DirectiveLoadException {
     this(new ArrayList<>());
@@ -67,7 +64,6 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
   public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
     this.registry = new ConcurrentSkipListMap<>();
     namespaces.add(PACKAGE);
-    this.namespaces = namespaces;
     for (String namespace : namespaces) {
       try {
         Reflections reflections = new Reflections(namespace);
@@ -89,12 +85,12 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
   @Override
-  public DirectiveInfo get(String name) {
+  public DirectiveInfo get(String namespace, String name) {
     return registry.get(name);
   }
 
   @Override
-  public void reload() {
+  public void reload(String namespace) {
     // No-op.
   }
 
@@ -103,8 +99,8 @@ public final class SystemDirectiveRegistry implements  DirectiveRegistry {
    * maintained within the registry.
    */
   @Override
-  public Iterator<DirectiveInfo> iterator() {
-    return registry.values().iterator();
+  public Iterable<DirectiveInfo> list(String namespace) {
+    return registry.values();
   }
 
   /**

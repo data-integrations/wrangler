@@ -21,6 +21,7 @@ import co.cask.wrangler.api.DirectiveNotFoundException;
 import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.Executor;
 import co.cask.wrangler.api.RecipeParser;
+import co.cask.wrangler.proto.Contexts;
 import co.cask.wrangler.registry.CompositeDirectiveRegistry;
 import co.cask.wrangler.registry.SystemDirectiveRegistry;
 import com.google.gson.Gson;
@@ -60,7 +61,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new GrammarBasedParser(text,
+    RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
     );
     directives.initialize(new ConfigDirectiveContext(config));
@@ -76,7 +77,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new GrammarBasedParser(text,
+    RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
     );
     directives.initialize(new ConfigDirectiveContext(config));
@@ -92,7 +93,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
 
-    RecipeParser directives = new GrammarBasedParser(text,
+    RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
     );
     directives.initialize(new ConfigDirectiveContext(config));
@@ -110,7 +111,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    RecipeParser directives = new GrammarBasedParser(text,
+    RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
     );
     directives.initialize(new ConfigDirectiveContext(config));
@@ -128,7 +129,7 @@ public class ConfigDirectiveContextTest {
     Gson gson = new Gson();
     DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
 
-    RecipeParser directives = new GrammarBasedParser(text,
+    RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(new SystemDirectiveRegistry())
     );
     directives.initialize(new ConfigDirectiveContext(config));

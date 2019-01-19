@@ -30,6 +30,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.BadRequestException;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.connection.ConnectionType;
@@ -128,16 +129,16 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
 
       FileConnectionSample sample;
       if (header.equalsIgnoreCase("text/plain") || header.contains("text/")) {
-        sample = loadSampleableFile(scope, path, lines, fraction, sampler);
+        sample = loadSampleableFile(namespace, scope, path, lines, fraction, sampler);
       } else if (header.equalsIgnoreCase("application/xml")) {
-        sample = loadFile(scope, path, DataType.RECORDS);
+        sample = loadFile(namespace, scope, path, DataType.RECORDS);
       } else if (header.equalsIgnoreCase("application/json")) {
-        sample = loadFile(scope, path, DataType.TEXT);
+        sample = loadFile(namespace, scope, path, DataType.TEXT);
       } else if (header.equalsIgnoreCase("application/avro")
         || header.equalsIgnoreCase("application/protobuf")
         || header.equalsIgnoreCase("application/excel")
         || header.contains("image/")) {
-        sample = loadFile(scope, path, DataType.BINARY);
+        sample = loadFile(namespace, scope, path, DataType.BINARY);
       } else {
         throw new BadRequestException("Currently doesn't support wrangling of this type of file.");
       }
@@ -166,8 +167,9 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, () -> {
       Format format = Format.TEXT;
+      NamespacedId namespacedId = new NamespacedId(namespace, workspaceId);
       if (workspaceId != null) {
-        Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
+        Map<String, String> config = ws.getWorkspace(namespacedId).getProperties();
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         format = Format.valueOf(formatStr);
       }
@@ -178,7 +180,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       properties.put("referenceName", location.getName());
       properties.put("ignoreNonExistingFolders", "false");
       properties.put("recursive", "false");
-      properties.put("copyHeader", String.valueOf(shouldCopyHeader(workspaceId)));
+      properties.put("copyHeader", String.valueOf(shouldCopyHeader(namespacedId)));
       properties.put("schema", format.getSchema().toString());
 
       PluginSpec pluginSpec = new PluginSpec("File", "source", properties);
@@ -187,7 +189,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     });
   }
 
-  private FileConnectionSample loadFile(String scope, String path,
+  private FileConnectionSample loadFile(String namespace, String scope, String path,
                                         DataType type) throws ExplorerException, IOException {
     Location location = explorer.getLocation(path);
     if (!location.exists()) {
@@ -211,7 +213,8 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
     Format format = type == DataType.BINARY ? Format.BLOB : Format.TEXT;
     properties.put(PropertyIds.FORMAT, format.name());
-    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, name)
+    NamespacedId namespacedId = new NamespacedId(namespace, id);
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, name)
       .setScope(scope)
       .setProperties(properties)
       .build();
@@ -230,9 +233,9 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       rows.add(new Row(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] data = serDe.toByteArray(rows);
-      ws.updateWorkspaceData(id, DataType.RECORDS, data);
+      ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
     } else if (type == DataType.BINARY || type == DataType.TEXT) {
-      ws.updateWorkspaceData(id, type, bytes);
+      ws.updateWorkspaceData(namespacedId, type, bytes);
     }
 
     return new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
@@ -241,8 +244,9 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                                     location.getName());
   }
 
-  private FileConnectionSample loadSampleableFile(String scope, String path, int lines, double fraction,
-                                                  String sampler) throws IOException, ExplorerException {
+  private FileConnectionSample loadSampleableFile(String namespace, String scope, String path, int lines,
+                                                  double fraction, String sampler)
+    throws IOException, ExplorerException {
     SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
@@ -263,7 +267,8 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
     properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
     properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
-    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(id, name)
+    NamespacedId namespacedId = new NamespacedId(namespace, id);
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, name)
       .setScope(scope)
       .setProperties(properties)
       .build();
@@ -288,7 +293,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     // Write rows to workspace.
     ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
     byte[] data = serDe.toByteArray(rows);
-    ws.updateWorkspaceData(id, DataType.RECORDS, data);
+    ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
 
     return new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
                                     samplingMethod.getMethod(), null,

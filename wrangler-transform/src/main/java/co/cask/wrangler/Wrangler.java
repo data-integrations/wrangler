@@ -173,7 +173,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         // it.
         if (!config.containsMacro("directives")) {
           // Create the registry that only interacts with system directives.
-          registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry());
+          registry = new SystemDirectiveRegistry();
 
           if (symbols != null) {
             Iterator<TokenGroup> iterator = symbols.iterator();
@@ -181,7 +181,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
               TokenGroup group = iterator.next();
               if (group != null) {
                 String directive = (String) group.get(0).value();
-                DirectiveInfo directiveInfo = registry.get(directive);
+                DirectiveInfo directiveInfo = registry.get("", directive);
                 if (directiveInfo == null && !dynamicDirectives.contains(directive)) {
                   throw new IllegalArgumentException(
                     String.format("Wrangler plugin has a directive '%s' that does not exist in system or " +
@@ -311,7 +311,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
     }
 
-    RecipeParser recipe = new GrammarBasedParser(new MigrateToV2(directives).migrate(), registry);
+    RecipeParser recipe = new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
+                                                 registry);
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.

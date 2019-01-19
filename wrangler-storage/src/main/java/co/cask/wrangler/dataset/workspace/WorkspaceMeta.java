@@ -16,7 +16,7 @@
 
 package co.cask.wrangler.dataset.workspace;
 
-import co.cask.wrangler.proto.WorkspaceIdentifier;
+import co.cask.wrangler.proto.NamespacedId;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,16 +26,22 @@ import java.util.Objects;
 /**
  * Metadata about a workspace.
  */
-public class WorkspaceMeta extends WorkspaceIdentifier {
+public class WorkspaceMeta extends NamespacedId {
+  private final String name;
   private final String scope;
   private final DataType type;
   private final Map<String, String> properties;
 
-  protected WorkspaceMeta(String id, String name, String scope, DataType type, Map<String, String> properties) {
-    super(id, name);
+  protected WorkspaceMeta(NamespacedId id, String name, String scope, DataType type, Map<String, String> properties) {
+    super(id);
+    this.name = name;
     this.scope = scope;
     this.type = type;
     this.properties = Collections.unmodifiableMap(new HashMap<>(properties));
+  }
+
+  public String getName() {
+    return name;
   }
 
   public String getScope() {
@@ -72,7 +78,7 @@ public class WorkspaceMeta extends WorkspaceIdentifier {
     return Objects.hash(super.hashCode(), scope, type, properties);
   }
 
-  public static Builder builder(String id, String name) {
+  public static Builder builder(NamespacedId id, String name) {
     return new Builder(id, name);
   }
 
@@ -83,13 +89,13 @@ public class WorkspaceMeta extends WorkspaceIdentifier {
    */
   @SuppressWarnings("unchecked")
   public static class Builder<T extends Builder> {
-    protected final String id;
+    protected final NamespacedId id;
     protected final String name;
     protected String scope;
     protected DataType type;
     protected Map<String, String> properties;
 
-    Builder(String id, String name) {
+    Builder(NamespacedId id, String name) {
       this.id = id;
       this.name = name;
       this.properties = new HashMap<>();

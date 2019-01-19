@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.dataset.workspace;
 
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Request;
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class Workspace extends WorkspaceMeta {
   private final byte[] data;
   private final Request request;
 
-  private Workspace(String id, String name, String scope, DataType type, Map<String, String> properties,
+  private Workspace(NamespacedId id, String name, String scope, DataType type, Map<String, String> properties,
                     long created, long updated, @Nullable byte[] data, @Nullable Request request) {
     super(id, name, scope, type, properties);
     this.created = created;
@@ -84,12 +85,12 @@ public class Workspace extends WorkspaceMeta {
     return result;
   }
 
-  public static Builder builder(String id, String name) {
+  public static Builder builder(NamespacedId id, String name) {
     return new Builder(id, name);
   }
 
   public static Builder builder(Workspace existing) {
-    return new Builder(existing.getId(), existing.getName())
+    return new Builder(existing, existing.getName())
       .setType(existing.getType())
       .setScope(existing.getScope())
       .setCreated(existing.getCreated())
@@ -108,7 +109,7 @@ public class Workspace extends WorkspaceMeta {
     private byte[] data;
     private Request request;
 
-    Builder(String id, String name) {
+    Builder(NamespacedId id, String name) {
       super(id, name);
     }
 
