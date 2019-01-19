@@ -29,6 +29,8 @@ import co.cask.wrangler.dataset.workspace.Workspace;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceNotFoundException;
 import co.cask.wrangler.proto.BadRequestException;
+import co.cask.wrangler.proto.Contexts;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Recipe;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.proto.ServiceResponse;
@@ -73,7 +75,7 @@ public class AbstractWranglerHandler extends AbstractHttpServiceHandler {
    * Return whether the header needs to be copied when creating the pipeline source for the specified workspace.
    * This just amounts to checking whether parse-as-csv with the first line as a header is used as a directive.
    */
-  protected boolean shouldCopyHeader(@Nullable String workspaceId) {
+  protected boolean shouldCopyHeader(@Nullable NamespacedId workspaceId) {
     if (workspaceId == null) {
       return false;
     }
@@ -102,12 +104,10 @@ public class AbstractWranglerHandler extends AbstractHttpServiceHandler {
    *
    * @param connectionId the id of the connection
    * @param expectedType the expected type of the connection
-   * @param responder http responder
    * @return the validated connection, or null if it does not exist or is invalid
    */
   @Nullable
-  protected Connection getValidatedConnection(String connectionId, ConnectionType expectedType,
-                                              HttpServiceResponder responder) throws Exception {
+  protected Connection getValidatedConnection(NamespacedId connectionId, ConnectionType expectedType) throws Exception {
     AtomicReference<Connection> connectionRef = new AtomicReference<>();
     try {
       getContext().execute(datasetContext -> connectionRef.set(store.get(connectionId)));
@@ -146,7 +146,8 @@ public class AbstractWranglerHandler extends AbstractHttpServiceHandler {
    */
   protected <T> void respond(HttpServiceRequest request, HttpServiceResponder responder, @Nullable String namespace,
                              Callable<T> callable) {
-    if (namespace != null) {
+    // system namespace does not officially exist, so don't check existence for system namespace.
+    if (namespace != null && !Contexts.SYSTEM.equals(namespace)) {
       try {
         if (!getContext().getAdmin().namespaceExists(namespace)) {
           responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,

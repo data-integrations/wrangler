@@ -23,6 +23,7 @@ import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.Row;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.api.TransientVariableScope;
+import co.cask.wrangler.proto.Contexts;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -53,6 +54,11 @@ public class SetTransientVariableTest {
       @Override
       public Environment getEnvironment() {
         return Environment.TESTING;
+      }
+
+      @Override
+      public String getNamespace() {
+        return Contexts.SYSTEM;
       }
 
       @Override

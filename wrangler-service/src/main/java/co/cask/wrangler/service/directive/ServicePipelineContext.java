@@ -32,16 +32,25 @@ import java.util.Map;
  * Implementation of {@PipelineContext}, for use in Service.
  */
 class ServicePipelineContext implements ExecutorContext {
-  private ExecutorContext.Environment environment;
+  // this is different than serviceContext.getNamespace(), as it's
+  private final String namespace;
+  private final ExecutorContext.Environment environment;
   private final HttpServiceContext serviceContext;
   private final DatasetContextLookupProvider lookupProvider;
   private final TransientStore store;
 
-  ServicePipelineContext(Environment environment, HttpServiceContext serviceContext, TransientStore store) {
+  ServicePipelineContext(String namespace, Environment environment,
+                         HttpServiceContext serviceContext, TransientStore store) {
+    this.namespace = namespace;
     this.environment = environment;
     this.serviceContext = serviceContext;
     this.lookupProvider = new DatasetContextLookupProvider(serviceContext);
     this.store = store;
+  }
+
+  @Override
+  public String getNamespace() {
+    return namespace;
   }
 
   /**

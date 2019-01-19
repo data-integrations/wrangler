@@ -14,17 +14,12 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset.workspace;
-
-
-import co.cask.wrangler.proto.NotFoundException;
+package co.cask.wrangler.proto;
 
 /**
- * Thrown when a workspace is not found when it is expected to exist.
+ * Constants related to an endpoint context.
  */
-public class WorkspaceNotFoundException extends NotFoundException {
-
-  public WorkspaceNotFoundException(String message) {
-    super(message);
-  }
+public class Contexts {
+  public static final String SYSTEM = "system";
+  public static final String DEFAULT = "default";
 }

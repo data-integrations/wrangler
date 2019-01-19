@@ -54,6 +54,11 @@ class WranglerPipelineContext implements ExecutorContext {
     this.store = store;
   }
 
+  @Override
+  public String getNamespace() {
+    return context.getNamespace();
+  }
+
   /**
    * @return Environment this context is prepared for.
    */

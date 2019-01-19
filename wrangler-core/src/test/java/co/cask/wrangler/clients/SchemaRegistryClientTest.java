@@ -21,6 +21,7 @@ import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;
 import co.cask.http.NettyHttpService;
+import co.cask.wrangler.proto.NamespacedId;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -41,6 +42,7 @@ import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 /**
  * Tests {@link SchemaRegistryClient}
@@ -102,15 +104,15 @@ public class SchemaRegistryClientTest {
     }
 
     @PUT
-    @Path("schemas")
-    public void append(HttpRequest request, HttpResponder responder) {
+    @Path("contexts/{context}/schemas")
+    public void append(HttpRequest request, HttpResponder responder, @PathParam("context") String context) {
       OKResponse response = new OKResponse(200, "Successfully created schema entry with id '%s', name '%s'");
       responder.sendJson(HttpResponseStatus.OK, GSON.toJson(response));
     }
 
     @GET
-    @Path("schemas/foo/versions/1")
-    public void get(HttpRequest request, HttpResponder responder) {
+    @Path("contexts/{context}/schemas/foo/versions/1")
+    public void get(HttpRequest request, HttpResponder responder, @PathParam("context") String context) {
       JsonObject response = new JsonObject();
       JsonArray array = new JsonArray();
       JsonObject object = new JsonObject();
@@ -138,8 +140,8 @@ public class SchemaRegistryClientTest {
     }
 
     @GET
-    @Path("schemas/foo/versions")
-    public void getVersions(HttpRequest request, HttpResponder responder) {
+    @Path("contexts/{context}/schemas/foo/versions")
+    public void getVersions(HttpRequest request, HttpResponder responder, @PathParam("context") String context) {
       Set<Long> versions = new HashSet<>();
       versions.add(1L);
       versions.add(2L);
@@ -160,7 +162,7 @@ public class SchemaRegistryClientTest {
 
   @Test
   public void testGetSchema() throws Exception {
-    byte[] bytes = client.getSchema("foo", 1);
+    byte[] bytes = client.getSchema(new NamespacedId("c0", "foo"), 1);
     Assert.assertNotNull(bytes);
     String str = Bytes.toString(bytes);
     Assert.assertEquals("{\"foo\" : \"test\"}", str);
@@ -168,13 +170,13 @@ public class SchemaRegistryClientTest {
 
   @Test
   public void testGetVersions() throws Exception {
-    List<Long> response = client.getVersions("foo");
+    List<Long> response = client.getVersions(new NamespacedId("c0", "foo"));
     Assert.assertEquals(4, response.size());
     Assert.assertNotNull(response);
   }
 
   @Test (expected = RestClientException.class)
   public void testGetWrongSchemaIdVersions() throws Exception {
-    client.getVersions("foo1");
+    client.getVersions(new NamespacedId("c0", "foo1"));
   }
 }

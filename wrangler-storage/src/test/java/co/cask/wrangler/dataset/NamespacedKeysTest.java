@@ -14,17 +14,26 @@
  * the License.
  */
 
-package co.cask.wrangler.dataset.workspace;
+package co.cask.wrangler.dataset;
 
-
-import co.cask.wrangler.proto.NotFoundException;
+import co.cask.wrangler.proto.NamespacedId;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * Thrown when a workspace is not found when it is expected to exist.
+ * Tests for NamespacedKeys utility.
  */
-public class WorkspaceNotFoundException extends NotFoundException {
+public class NamespacedKeysTest {
 
-  public WorkspaceNotFoundException(String message) {
-    super(message);
+  @Test
+  public void testEncodeDecode() {
+    NamespacedId id = new NamespacedId("ns0", "id0");
+    Assert.assertEquals(id, NamespacedKeys.fromRowKey(NamespacedKeys.getRowKey(id)));
+  }
+
+  @Test
+  public void testSpecialCharactersOK() {
+    NamespacedId id = new NamespacedId("0 : / ' [ |] {}\n \\ !@#$%^&*)", "+_-=./~`");
+    Assert.assertEquals(id, NamespacedKeys.fromRowKey(NamespacedKeys.getRowKey(id)));
   }
 }

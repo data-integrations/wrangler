@@ -17,13 +17,14 @@
 package co.cask.wrangler.dataset.connections;
 
 import co.cask.cdap.api.Predicate;
-import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.table.Put;
 import co.cask.cdap.api.dataset.table.Row;
 import co.cask.cdap.api.dataset.table.Scanner;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.wrangler.dataset.NamespacedKeys;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
 import co.cask.wrangler.proto.connection.ConnectionType;
@@ -81,12 +82,12 @@ public class ConnectionStore {
    * @return id of the connection stored
    * @throws ConnectionAlreadyExistsException if the connection already exists
    */
-  public String create(ConnectionMeta meta) throws ConnectionAlreadyExistsException {
-    String id = getConnectionId(meta.getName());
+  public NamespacedId create(String namespace, ConnectionMeta meta) throws ConnectionAlreadyExistsException {
+    NamespacedId id = new NamespacedId(namespace, getConnectionId(meta.getName()));
     Connection existing = read(id);
     if (existing != null) {
       throw new ConnectionAlreadyExistsException(
-        String.format("Connection named '%s' with id '%s' already exists.", meta.getName(), id));
+        String.format("Connection named '%s' with id '%s' already exists.", meta.getName(), id.getId()));
     }
 
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
@@ -105,10 +106,10 @@ public class ConnectionStore {
    * @return the connection information
    * @throws ConnectionNotFoundException if the connection does not exist
    */
-  public Connection get(String id) throws ConnectionNotFoundException {
+  public Connection get(NamespacedId id) throws ConnectionNotFoundException {
     Connection existing = read(id);
     if (existing == null) {
-      throw new ConnectionNotFoundException(String.format("Connection '%s' does not exist", id));
+      throw new ConnectionNotFoundException(String.format("Connection '%s' does not exist", id.getId()));
     }
     return existing;
   }
@@ -120,7 +121,7 @@ public class ConnectionStore {
    * @param meta metadata to update
    * @throws ConnectionNotFoundException if the specified connection does not exist
    */
-  public void update(String id, ConnectionMeta meta) throws ConnectionNotFoundException {
+  public void update(NamespacedId id, ConnectionMeta meta) throws ConnectionNotFoundException {
     Connection existing = get(id);
 
     Connection updated = Connection.builder(id, meta)
@@ -135,15 +136,15 @@ public class ConnectionStore {
    *
    * @param id the connection to delete
    */
-  public void delete(String id) {
-    table.delete(Bytes.toBytes(id));
+  public void delete(NamespacedId id) {
+    table.delete(NamespacedKeys.getRowKey(id));
   }
 
   /**
    * Returns true if connection identified by connectionName already exists.
    */
-  public boolean connectionExists(String connectionName) {
-    return read(getConnectionId(connectionName)) != null;
+  public boolean connectionExists(String namespace, String connectionName) {
+    return read(new NamespacedId(namespace, getConnectionId(connectionName))) != null;
   }
 
   /**
@@ -152,9 +153,9 @@ public class ConnectionStore {
    * @param filter to be applied on the data being returned.
    * @return List of connections
    */
-  public List<Connection> list(Predicate<Connection> filter) {
+  public List<Connection> list(String namespace, Predicate<Connection> filter) {
     List<Connection> result = new ArrayList<>();
-    try (Scanner scan = table.scan(null, null)) {
+    try (Scanner scan = table.scan(NamespacedKeys.getScan(namespace))) {
       Row row;
       while ((row = scan.next()) != null) {
         Connection connection = fromRow(row);
@@ -182,8 +183,8 @@ public class ConnectionStore {
   }
 
   @Nullable
-  private Connection read(String id) {
-    Row row = table.get(Bytes.toBytes(id));
+  private Connection read(NamespacedId id) {
+    Row row = table.get(NamespacedKeys.getRowKey(id));
     if (row.isEmpty()) {
       return null;
     }
@@ -191,7 +192,7 @@ public class ConnectionStore {
   }
 
   private Put toPut(Connection connection) {
-    Put put = new Put(connection.getId());
+    Put put = new Put(NamespacedKeys.getRowKey(connection.getId()));
     put.add(TYPE_COL, connection.getType().name());
     put.add(NAME_COL, connection.getName());
     put.add(DESC_COL, connection.getDescription());
@@ -202,7 +203,7 @@ public class ConnectionStore {
   }
 
   private Connection fromRow(Row row) {
-    return Connection.builder(Bytes.toString(row.getRow()))
+    return Connection.builder(NamespacedKeys.fromRowKey(row.getRow()))
       .setType(ConnectionType.valueOf(row.getString(TYPE_COL)))
       .setName(row.getString(NAME_COL))
       .setDescription(row.getString(DESC_COL))

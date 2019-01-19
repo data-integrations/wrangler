@@ -24,6 +24,7 @@ import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.wrangler.dataset.schema.SchemaDescriptor;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
 import co.cask.wrangler.proto.BadRequestException;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.NotFoundException;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
@@ -103,7 +104,8 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
       if (description == null || description.isEmpty()) {
         throw new BadRequestException("Schema description must be specified.");
       }
-      SchemaDescriptor descriptor = new SchemaDescriptor(id, name, description, descriptorType);
+      SchemaDescriptor descriptor = new SchemaDescriptor(new NamespacedId(namespace, id),
+                                                         name, description, descriptorType);
       registry.write(descriptor);
       return new ServiceResponse<Void>(String.format("Successfully created schema entry with id '%s', name '%s'",
                                                      id, name));
@@ -157,8 +159,9 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
         throw new BadRequestException("No schema was provided in the request body");
       }
 
-      long version = registry.add(id, bytes);
-      return new ServiceResponse<>(new SchemaEntryVersion(id, version));
+      NamespacedId namespacedId = new NamespacedId(namespace, id);
+      long version = registry.add(namespacedId, bytes);
+      return new ServiceResponse<>(new SchemaEntryVersion(namespacedId, version));
     });
   }
 
@@ -184,10 +187,11 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      if (registry.hasSchema(id)) {
+      NamespacedId namespacedId = new NamespacedId(getContext().getNamespace(), id);
+      if (registry.hasSchema(namespacedId)) {
         throw new NotFoundException("Id " + id + " not found.");
       }
-      registry.delete(id);
+      registry.delete(namespacedId);
       return new ServiceResponse<Void>("Successfully deleted schema " + id);
     });
   }
@@ -212,7 +216,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id, @PathParam("version") long version) {
     respond(request, responder, namespace, () -> {
-      registry.remove(id, version);
+      registry.remove(new NamespacedId(namespace, id), version);
       return new ServiceResponse<Void>("Successfully deleted version '" + version + "' of schema " + id);
     });
   }
@@ -236,7 +240,8 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/schemas/{id}/versions/{version}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                   @PathParam("id") String id, @PathParam("version") long version) {
-    respond(request, responder, namespace, () -> new ServiceResponse<>(registry.getEntry(id, version)));
+    respond(request, responder, namespace,
+            () -> new ServiceResponse<>(registry.getEntry(new NamespacedId(namespace, id), version)));
   }
 
 
@@ -259,7 +264,8 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/schemas/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, () -> new ServiceResponse<>(registry.getEntry(id)));
+    respond(request, responder, namespace,
+            () -> new ServiceResponse<>(registry.getEntry(new NamespacedId(namespace, id))));
   }
 
   @GET
@@ -279,6 +285,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/schemas/{id}/versions")
   public void versions(HttpServiceRequest request, HttpServiceResponder responder,
                        @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, () -> new ServiceResponse<>(registry.getVersions(id)));
+    respond(request, responder, namespace,
+            () -> new ServiceResponse<>(registry.getVersions(new NamespacedId(namespace, id))));
   }
 }

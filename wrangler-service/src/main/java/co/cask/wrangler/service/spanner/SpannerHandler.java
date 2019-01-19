@@ -30,6 +30,7 @@ import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
 import co.cask.wrangler.proto.connection.Connection;
@@ -121,7 +122,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(connectionId);
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       List<SpannerInstance> instances = getInstances(connection);
       return new ServiceResponse<>(instances);
@@ -146,7 +147,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("connection-id") String connectionId,
                                   @PathParam("instance-id") String instanceId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(connectionId);
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       List<SpannerDatabase> databases = getDatabases(connection, instanceId);
       return new ServiceResponse<>(databases);
@@ -176,7 +177,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                @PathParam("instance-id") String instanceId,
                                @PathParam("database-id") String databaseId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(connectionId);
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       List<SpannerTable> tables = getTables(connection, instanceId, databaseId);
       return new ServiceResponse<>(tables);
@@ -211,7 +212,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
                         @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(connectionId);
+      NamespacedId namespacedId = new NamespacedId(namespace, connectionId);
+      Connection connection = store.get(namespacedId);
       validateConnection(connection);
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
       List<Row> data = getTableData(connection, instanceId, databaseId, tableId, schema, Long.parseLong(limit));
@@ -234,7 +236,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
       workspaceProperties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.SPANNER.getType());
       workspaceProperties.put(PropertyIds.CONNECTION_ID, connectionId);
       workspaceProperties.put(PropertyIds.PLUGIN_SPECIFICATION, GSON.toJson(specification));
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(identifier, tableId)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, tableId)
         .setScope(scope)
         .setProperties(workspaceProperties)
         .build();
@@ -243,7 +245,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
       // write data to workspace
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] dataBytes = serDe.toByteArray(data);
-      ws.updateWorkspaceData(identifier, DataType.RECORDS, dataBytes);
+      ws.updateWorkspaceData(namespacedId, DataType.RECORDS, dataBytes);
 
       ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.SPANNER.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
@@ -267,7 +269,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("workspace-id") String workspaceId) {
     respond(request, responder, namespace, () -> {
-      Map<String, String> config = ws.getWorkspace(workspaceId).getProperties();
+      Map<String, String> config = ws.getWorkspace(new NamespacedId(namespace, workspaceId)).getProperties();
 
       // deserialize and send spanner source specification
       SpannerSpecification conf =
