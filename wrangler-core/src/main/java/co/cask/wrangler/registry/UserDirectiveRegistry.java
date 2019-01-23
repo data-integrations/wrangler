@@ -161,7 +161,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
           for (PluginClass plugin : plugins) {
             if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
               CloseableClassLoader closeableClassLoader
-                    = manager.createClassLoader(artifact, getClass().getClassLoader());
+                    = manager.createClassLoader(namespace, artifact, getClass().getClassLoader());
               Class<? extends Directive> directive =
                 (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
               DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
