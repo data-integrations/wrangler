@@ -895,6 +895,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void usage(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace) {
     respond(request, responder, namespace, () -> {
+      composite.reload(namespace);
       DirectiveConfig config = ws.getConfig();
       Map<String, List<String>> aliases = config.getReverseAlias();
       List<DirectiveUsage> values = new ArrayList<>();
