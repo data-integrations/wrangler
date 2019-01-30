@@ -20,10 +20,11 @@ import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.plugin.PluginClass;
-import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.api.service.http.SystemHttpServiceContext;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.directives.aggregates.DefaultTransientStore;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
@@ -46,6 +47,7 @@ import co.cask.wrangler.api.TokenGroup;
 import co.cask.wrangler.api.TransientStore;
 import co.cask.wrangler.api.parser.Token;
 import co.cask.wrangler.api.parser.TokenType;
+import co.cask.wrangler.dataset.workspace.ConfigStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.Workspace;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
@@ -138,7 +140,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   private DirectiveRegistry composite;
 
   @Override
-  public void initialize(HttpServiceContext context) throws Exception {
+  public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     composite = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry(),
@@ -205,7 +207,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         .setScope(scope)
         .setProperties(properties)
         .build();
-      ws.writeWorkspaceMeta(workspaceMeta);
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.writeWorkspaceMeta(workspaceMeta);
+      });
       return new ServiceResponse<Void>(String.format("Successfully created workspace '%s'", id));
     });
   }
@@ -242,7 +247,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
     respond(request, responder, namespace, () -> {
-      List<WorkspaceIdentifier> workspaces = ws.listWorkspaces(namespace, scope);
+      List<WorkspaceIdentifier> workspaces = TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        return ws.listWorkspaces(namespace, scope);
+      });
       return new ServiceResponse<>(workspaces);
     });
   }
@@ -273,7 +281,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      ws.deleteWorkspace(new NamespacedId(namespace, id));
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.deleteWorkspace(new NamespacedId(namespace, id));
+      });
       return new ServiceResponse<Void>(String.format("Successfully deleted workspace '%s'", id));
     });
   }
@@ -304,9 +315,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace, @QueryParam("group") String group) {
     respond(request, responder, namespace, () -> {
-      int count = ws.deleteScope(namespace, group);
-      return new ServiceResponse<Void>(String.format("Successfully deleted %s workspace(s) within group '%s'",
-                                                     count, group));
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.deleteScope(namespace, group);
+      });
+      return new ServiceResponse<Void>(String.format("Successfully deleted workspaces within group '%s'", group));
     });
   }
 
@@ -351,7 +364,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      Workspace workspace = ws.getWorkspace(new NamespacedId(namespace, id));
+      Workspace workspace = getWorkspace(new NamespacedId(namespace, id));
       String name = workspace.getName();
       Request workspaceReq = workspace.getRequest();
       JsonObject req = new JsonObject();
@@ -414,74 +427,79 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       }
       NamespacedId id = new NamespacedId(namespace, ServiceUtils.generateMD5(name));
 
-      // if workspace doesn't exist, then we create the workspace before
-      // adding data to the workspace.
-      if (!ws.hasWorkspace(id)) {
-        ws.writeWorkspaceMeta(WorkspaceMeta.builder(id, name).build());
-      }
+      return TransactionRunners.run(getContext(), context -> {
+        // if workspace doesn't exist, then we create the workspace before
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        // adding data to the workspace.
+        if (!ws.hasWorkspace(id)) {
+          ws.writeWorkspaceMeta(WorkspaceMeta.builder(id, name).build());
+        }
 
-      RequestExtractor handler = new RequestExtractor(request);
+        RequestExtractor handler = new RequestExtractor(request);
 
-      // For back-ward compatibility, we check if there is delimiter specified
-      // using 'recorddelimiter' or 'delimiter'
-      String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
-      delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
+        // For back-ward compatibility, we check if there is delimiter specified
+        // using 'recorddelimiter' or 'delimiter'
+        String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
+        delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
 
-      // Extract charset, if not specified, default it to UTF-8.
-      String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
+        // Extract charset, if not specified, default it to UTF-8.
+        String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
 
-      // Get content type - application/data-prep, application/octet-stream or text/plain.
-      String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
+        // Get content type - application/data-prep, application/octet-stream or text/plain.
+        String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
 
-      // Extract content.
-      byte[] content = handler.getContent();
-      if (content == null) {
-        throw new BadRequestException("Body not present, please post the file containing the records to be wrangled.");
-      }
+        // Extract content.
+        byte[] content = handler.getContent();
+        if (content == null) {
+          throw new BadRequestException("Body not present, please post the file containing the "
+                                          + "records to be wrangled.");
+        }
 
-      // Depending on content type, load data.
-      DataType type = DataType.fromString(contentType);
-      if (type == null) {
-        throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
-                                        "or 'application/data-prep'");
-      }
-      switch (type) {
-        case TEXT:
-          // Convert the type into unicode.
-          String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          ws.updateWorkspaceData(id, DataType.TEXT, Bytes.toBytes(body));
-          break;
+        // Depending on content type, load data.
+        DataType type = DataType.fromString(contentType);
+        if (type == null) {
+          throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
+                                          "or 'application/data-prep'");
+        }
+        switch (type) {
+          case TEXT:
+            // Convert the type into unicode.
+            String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+            ws.updateWorkspaceData(id, DataType.TEXT, Bytes.toBytes(body));
+            break;
 
-        case RECORDS:
-          delimiter = StringEscapeUtils.unescapeJava(delimiter);
-          body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          List<Row> rows = new ArrayList<>();
-          for (String line : body.split(delimiter)) {
-            rows.add(new Row(COLUMN_NAME, line));
-          }
-          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-          byte[] bytes = serDe.toByteArray(rows);
-          ws.updateWorkspaceData(id, DataType.RECORDS, bytes);
-          break;
+          case RECORDS:
+            delimiter = StringEscapeUtils.unescapeJava(delimiter);
+            body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+            List<Row> rows = new ArrayList<>();
+            for (String line : body.split(delimiter)) {
+              rows.add(new Row(COLUMN_NAME, line));
+            }
+            ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+            byte[] bytes = serDe.toByteArray(rows);
+            ws.updateWorkspaceData(id, DataType.RECORDS, bytes);
+            break;
 
-        case BINARY:
-          ws.updateWorkspaceData(id, DataType.BINARY, content);
-          break;
-      }
+          case BINARY:
+            ws.updateWorkspaceData(id, DataType.BINARY, content);
+            break;
+        }
 
-      // Write properties for workspace.
-      Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, id.getId());
-      properties.put(PropertyIds.NAME, name);
-      properties.put(PropertyIds.DELIMITER, delimiter);
-      properties.put(PropertyIds.CHARSET, charset);
-      properties.put(PropertyIds.CONTENT_TYPE, contentType);
-      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
-      ws.updateWorkspaceProperties(id, properties);
+        // Write properties for workspace.
+        Map<String, String> properties = new HashMap<>();
+        properties.put(PropertyIds.ID, id.getId());
+        properties.put(PropertyIds.NAME, name);
+        properties.put(PropertyIds.DELIMITER, delimiter);
+        properties.put(PropertyIds.CHARSET, charset);
+        properties.put(PropertyIds.CONTENT_TYPE, contentType);
+        properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
+        ws.updateWorkspaceProperties(id, properties);
 
-      WorkspaceInfo workspaceInfo = new WorkspaceInfo(id.getId(), name, delimiter, charset, contentType,
-                                                      ConnectionType.UPLOAD.getType(), SamplingMethod.NONE.getMethod());
-      return new ServiceResponse<>(workspaceInfo);
+        WorkspaceInfo workspaceInfo = new WorkspaceInfo(id.getId(), name, delimiter, charset, contentType,
+                                                        ConnectionType.UPLOAD.getType(),
+                                                        SamplingMethod.NONE.getMethod());
+        return new ServiceResponse<>(workspaceInfo);
+      });
     });
   }
 
@@ -507,11 +525,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     respond(request, responder, namespace, () -> {
       RequestExtractor handler = new RequestExtractor(request);
 
-      // For back-ward compatibility, we check if there is delimiter specified
-      // using 'recorddelimiter' or 'delimiter'
-      String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
-      delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
-
       // Extract charset, if not specified, default it to UTF-8.
       String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
 
@@ -531,39 +544,48 @@ public class DirectivesHandler extends AbstractWranglerHandler {
                                         "or 'application/data-prep'");
       }
       NamespacedId namespaceId = new NamespacedId(namespace, id);
-      switch (type) {
-        case TEXT:
-          // Convert the type into unicode.
-          String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          ws.updateWorkspaceData(namespaceId, DataType.TEXT, Bytes.toBytes(body));
-          break;
 
-        case RECORDS:
-          delimiter = StringEscapeUtils.unescapeJava(delimiter);
-          body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
-          List<Row> rows = new ArrayList<>();
-          for (String line : body.split(delimiter)) {
-            rows.add(new Row(id, line));
-          }
-          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-          byte[] bytes = serDe.toByteArray(rows);
-          ws.updateWorkspaceData(namespaceId, DataType.RECORDS, bytes);
-          break;
+      return TransactionRunners.run(getContext(), context -> {
+        // For back-ward compatibility, we check if there is delimiter specified
+        // using 'recorddelimiter' or 'delimiter'
+        String delimiter = handler.getHeader(RECORD_DELIMITER_HEADER, "\\u001A");
+        delimiter = handler.getHeader(DELIMITER_HEADER, delimiter);
 
-        case BINARY:
-          ws.updateWorkspaceData(namespaceId, DataType.BINARY, content);
-          break;
-      }
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        switch (type) {
+          case TEXT:
+            // Convert the type into unicode.
+            String body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+            ws.updateWorkspaceData(namespaceId, DataType.TEXT, Bytes.toBytes(body));
+            break;
 
-      // Write properties for workspace.
-      Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.DELIMITER, delimiter);
-      properties.put(PropertyIds.CHARSET, charset);
-      properties.put(PropertyIds.CONTENT_TYPE, contentType);
-      properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
-      ws.updateWorkspaceProperties(namespaceId, properties);
+          case RECORDS:
+            delimiter = StringEscapeUtils.unescapeJava(delimiter);
+            body = Charset.forName(charset).decode(ByteBuffer.wrap(content)).toString();
+            List<Row> rows = new ArrayList<>();
+            for (String line : body.split(delimiter)) {
+              rows.add(new Row(id, line));
+            }
+            ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+            byte[] bytes = serDe.toByteArray(rows);
+            ws.updateWorkspaceData(namespaceId, DataType.RECORDS, bytes);
+            break;
 
-      return new ServiceResponse<Void>(String.format("Successfully uploaded data to workspace '%s'", id));
+          case BINARY:
+            ws.updateWorkspaceData(namespaceId, DataType.BINARY, content);
+            break;
+        }
+
+        // Write properties for workspace.
+        Map<String, String> properties = new HashMap<>();
+        properties.put(PropertyIds.DELIMITER, delimiter);
+        properties.put(PropertyIds.CHARSET, charset);
+        properties.put(PropertyIds.CONTENT_TYPE, contentType);
+        properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
+        ws.updateWorkspaceProperties(namespaceId, properties);
+
+        return new ServiceResponse<Void>(String.format("Successfully uploaded data to workspace '%s'", id));
+      });
     });
   }
 
@@ -649,10 +671,13 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         }
 
         // Save the recipes being executed.
-        ws.updateWorkspaceRequest(namespacedId, directiveRequest);
+        TransactionRunners.run(getContext(), context -> {
+          WorkspaceDataset ws = WorkspaceDataset.get(context);
+          ws.updateWorkspaceRequest(namespacedId, directiveRequest);
+        });
 
         return new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
-      } catch (JsonParseException | DirectiveParseException e) {
+      } catch (JsonParseException e) {
         throw new BadRequestException(e.getMessage(), e);
       }
     });
@@ -902,7 +927,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
                     @PathParam("context") String namespace) {
     respond(request, responder, namespace, () -> {
       composite.reload(namespace);
-      DirectiveConfig config = ws.getConfig();
+      DirectiveConfig config = TransactionRunners.run(getContext(), context -> {
+        ConfigStore store = ConfigStore.get(context);
+        return store.getConfig();
+      });
       Map<String, List<String>> aliases = config.getReverseAlias();
       List<DirectiveUsage> values = new ArrayList<>();
 
@@ -1045,7 +1073,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       if (config == null) {
         throw new BadRequestException("Config is empty. Please check if the request is sent as HTTP POST body.");
       }
-      ws.updateConfig(config);
+      TransactionRunners.run(getContext(), context -> {
+        ConfigStore configStore = ConfigStore.get(context);
+        configStore.updateConfig(config);
+      });
       return new ServiceResponse<Void>("Successfully updated configuration.");
     });
   }
@@ -1059,7 +1090,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @GET
   @Path("config")
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> new ServiceResponse<Void>(ws.getConfigString()));
+    respond(request, responder, () -> TransactionRunners.run(getContext(), context -> {
+      ConfigStore configStore = ConfigStore.get(context);
+      return new ServiceResponse<>(configStore.getConfig());
+    }));
   }
 
   /**
@@ -1132,29 +1166,34 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @return records generated from the directives.
    */
   private List<Row> executeDirectives(NamespacedId id, @Nullable Request user,
-                                      Function<List<Row>, List<Row>> sample) throws Exception {
+                                      Function<List<Row>, List<Row>> sample) {
     if (user == null) {
       throw new BadRequestException("Request is empty. Please check if the request is sent as HTTP POST body.");
     }
 
     TransientStore store = new DefaultTransientStore();
-    Workspace workspace = ws.getWorkspace(id);
-    // Extract rows from the workspace.
-    List<Row> rows = fromWorkspace(workspace);
-    // Execute the pipeline.
-    ExecutorContext context = new ServicePipelineContext(id.getNamespace(), ExecutorContext.Environment.SERVICE,
-                                                         getContext(),
-                                                         store);
-    RecipePipelineExecutor executor = new RecipePipelineExecutor();
-    if (user.getRecipe().getDirectives().size() > 0) {
-      GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
-      String migrate = migrator.migrate();
-      RecipeParser recipe = new GrammarBasedParser(id.getNamespace(), migrate, composite);
-      recipe.initialize(new ConfigDirectiveContext(ws.getConfigString()));
-      executor.initialize(recipe, context);
-      rows = executor.execute(sample.apply(rows));
-      executor.destroy();
-    }
-    return rows;
+    return TransactionRunners.run(getContext(), ctx -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(ctx);
+
+      Workspace workspace = ws.getWorkspace(id);
+      // Extract rows from the workspace.
+      List<Row> rows = fromWorkspace(workspace);
+      // Execute the pipeline.
+      ExecutorContext context = new ServicePipelineContext(id.getNamespace(), ExecutorContext.Environment.SERVICE,
+                                                           getContext(),
+                                                           store);
+      RecipePipelineExecutor executor = new RecipePipelineExecutor();
+      if (user.getRecipe().getDirectives().size() > 0) {
+        ConfigStore configStore = ConfigStore.get(ctx);
+        GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
+        String migrate = migrator.migrate();
+        RecipeParser recipe = new GrammarBasedParser(id.getNamespace(), migrate, composite);
+        recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
+        executor.initialize(recipe, context);
+        rows = executor.execute(sample.apply(rows));
+        executor.destroy();
+      }
+      return rows;
+    });
   }
 }
