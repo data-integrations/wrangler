@@ -20,6 +20,7 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
@@ -28,7 +29,6 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
-import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
@@ -130,8 +130,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, connectionId));
-      validateConnection(connection);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
       List<SpannerInstance> instances = getInstances(connection);
       return new ServiceResponse<>(instances);
     });
@@ -155,8 +154,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("connection-id") String connectionId,
                                   @PathParam("instance-id") String instanceId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, connectionId));
-      validateConnection(connection);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
       List<SpannerDatabase> databases = getDatabases(connection, instanceId);
       return new ServiceResponse<>(databases);
     });
@@ -185,8 +183,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                @PathParam("instance-id") String instanceId,
                                @PathParam("database-id") String databaseId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, connectionId));
-      validateConnection(connection);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
       List<SpannerTable> tables = getTables(connection, instanceId, databaseId);
       return new ServiceResponse<>(tables);
     });
@@ -220,8 +217,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
                         @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, connectionId));
-      validateConnection(connection);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
       List<Row> data = getTableData(connection, instanceId, databaseId, tableId, schema, Long.parseLong(limit));
 
@@ -248,12 +244,15 @@ public class SpannerHandler extends AbstractWranglerHandler {
         .setScope(scope)
         .setProperties(workspaceProperties)
         .build();
-      ws.writeWorkspaceMeta(workspaceMeta);
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.writeWorkspaceMeta(workspaceMeta);
 
-      // write data to workspace
-      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-      byte[] dataBytes = serDe.toByteArray(data);
-      ws.updateWorkspaceData(workspaceId, DataType.RECORDS, dataBytes);
+        // write data to workspace
+        ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+        byte[] dataBytes = serDe.toByteArray(data);
+        ws.updateWorkspaceData(workspaceId, DataType.RECORDS, dataBytes);
+      });
 
       ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.SPANNER.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
@@ -277,7 +276,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("workspace-id") String workspaceId) {
     respond(request, responder, namespace, () -> {
-      Map<String, String> config = ws.getWorkspace(new NamespacedId(namespace, workspaceId)).getProperties();
+      Map<String, String> config = getWorkspace(new NamespacedId(namespace, workspaceId)).getProperties();
 
       // deserialize and send spanner source specification
       SpannerSpecification conf =
@@ -411,14 +410,6 @@ public class SpannerHandler extends AbstractWranglerHandler {
       }
     }
     return row;
-  }
-
-  private void validateConnection(Connection connection) throws BadRequestException {
-    if (ConnectionType.SPANNER != connection.getType()) {
-      throw new BadRequestException(
-        String.format("Invalid connection type %s set, this endpoint only accepts %s",
-                      connection.getType(), ConnectionType.SPANNER));
-    }
   }
 
   private List<SpannerInstance> getInstances(ConnectionMeta connection) throws Exception {

@@ -22,6 +22,8 @@ import co.cask.cdap.api.dataset.Dataset;
 import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.api.service.http.SystemHttpServiceContext;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
@@ -166,24 +168,28 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, () -> {
-      Format format = Format.TEXT;
       NamespacedId namespacedId = new NamespacedId(namespace, workspaceId);
-      if (workspaceId != null) {
-        Map<String, String> config = ws.getWorkspace(namespacedId).getProperties();
-        String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
-        format = Format.valueOf(formatStr);
-      }
-      Map<String, String> properties = new HashMap<>();
-      properties.put("format", format.name().toLowerCase());
-      Location location = explorer.getLocation(path);
-      properties.put("path", location.toURI().toString());
-      properties.put("referenceName", location.getName());
-      properties.put("ignoreNonExistingFolders", "false");
-      properties.put("recursive", "false");
-      properties.put("copyHeader", String.valueOf(shouldCopyHeader(namespacedId)));
-      properties.put("schema", format.getSchema().toString());
 
-      PluginSpec pluginSpec = new PluginSpec("File", "source", properties);
+      PluginSpec pluginSpec = TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        Format format = Format.TEXT;
+        if (workspaceId != null) {
+          Map<String, String> config = ws.getWorkspace(namespacedId).getProperties();
+          String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
+          format = Format.valueOf(formatStr);
+        }
+        Map<String, String> properties = new HashMap<>();
+        properties.put("format", format.name().toLowerCase());
+        Location location = explorer.getLocation(path);
+        properties.put("path", location.toURI().toString());
+        properties.put("referenceName", location.getName());
+        properties.put("ignoreNonExistingFolders", "false");
+        properties.put("recursive", "false");
+        properties.put("copyHeader", String.valueOf(shouldCopyHeader(ws, namespacedId)));
+        properties.put("schema", format.getSchema().toString());
+
+        return new PluginSpec("File", "source", properties);
+      });
       FileSpec fileSpec = new FileSpec(pluginSpec);
       return new ServiceResponse<>(fileSpec);
     });
@@ -218,25 +224,29 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       .setScope(scope)
       .setProperties(properties)
       .build();
-    ws.writeWorkspaceMeta(workspaceMeta);
 
-    byte[] bytes = new byte[(int) location.length() + 1];
-    try (BufferedInputStream stream = new BufferedInputStream(location.getInputStream())) {
-      stream.read(bytes);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    TransactionRunners.run(getContext(), context -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      ws.writeWorkspaceMeta(workspaceMeta);
 
-    // Write records to workspace.
-    if (type == DataType.RECORDS) {
-      List<Row> rows = new ArrayList<>();
-      rows.add(new Row(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
-      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-      byte[] data = serDe.toByteArray(rows);
-      ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
-    } else if (type == DataType.BINARY || type == DataType.TEXT) {
-      ws.updateWorkspaceData(namespacedId, type, bytes);
-    }
+      byte[] bytes = new byte[(int) location.length() + 1];
+      try (BufferedInputStream stream = new BufferedInputStream(location.getInputStream())) {
+        stream.read(bytes);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      // Write records to workspace.
+      if (type == DataType.RECORDS) {
+        List<Row> rows = new ArrayList<>();
+        rows.add(new Row(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
+        ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+        byte[] data = serDe.toByteArray(rows);
+        ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+      } else if (type == DataType.BINARY || type == DataType.TEXT) {
+        ws.updateWorkspaceData(namespacedId, type, bytes);
+      }
+    });
 
     return new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
                                     SamplingMethod.NONE.getMethod(), null,
@@ -247,9 +257,11 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
   private FileConnectionSample loadSampleableFile(String namespace, String scope, String path, int lines,
                                                   double fraction, String sampler)
     throws IOException, ExplorerException {
-    SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
+    SamplingMethod samplingMethod;
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
+    } else {
+      samplingMethod = SamplingMethod.fromString(sampler);
     }
 
     Location location = explorer.getLocation(path);
@@ -272,28 +284,32 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       .setScope(scope)
       .setProperties(properties)
       .build();
-    ws.writeWorkspaceMeta(workspaceMeta);
 
-    // Iterate through lines to extract only 'limit' random lines.
-    // Depending on the type, the sampling of the input is performed.
-    List<Row> rows = new ArrayList<>();
-    BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), Charsets.UTF_8, lines);
-    Iterator<String> it = blis;
-    if (samplingMethod == SamplingMethod.POISSON) {
-      it = new Poisson<String>(fraction).sample(blis);
-    } else if (samplingMethod == SamplingMethod.BERNOULLI) {
-      it = new Bernoulli<String>(fraction).sample(blis);
-    } else if (samplingMethod == SamplingMethod.RESERVOIR) {
-      it = new Reservoir<String>(lines).sample(blis);
-    }
-    while (it.hasNext()) {
-      rows.add(new Row(COLUMN_NAME, it.next()));
-    }
+    TransactionRunners.run(getContext(), context -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      ws.writeWorkspaceMeta(workspaceMeta);
 
-    // Write rows to workspace.
-    ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-    byte[] data = serDe.toByteArray(rows);
-    ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+      // Iterate through lines to extract only 'limit' random lines.
+      // Depending on the type, the sampling of the input is performed.
+      List<Row> rows = new ArrayList<>();
+      BoundedLineInputStream blis = BoundedLineInputStream.iterator(location.getInputStream(), Charsets.UTF_8, lines);
+      Iterator<String> it = blis;
+      if (samplingMethod == SamplingMethod.POISSON) {
+        it = new Poisson<String>(fraction).sample(blis);
+      } else if (samplingMethod == SamplingMethod.BERNOULLI) {
+        it = new Bernoulli<String>(fraction).sample(blis);
+      } else if (samplingMethod == SamplingMethod.RESERVOIR) {
+        it = new Reservoir<String>(lines).sample(blis);
+      }
+      while (it.hasNext()) {
+        rows.add(new Row(COLUMN_NAME, it.next()));
+      }
+
+      // Write rows to workspace.
+      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+      byte[] data = serDe.toByteArray(rows);
+      ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+    });
 
     return new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
                                     samplingMethod.getMethod(), null,
@@ -302,7 +318,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
   }
 
   @Override
-  public void initialize(HttpServiceContext context) throws Exception {
+  public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     final HttpServiceContext ctx = context;
     Security.addProvider(new BouncyCastleProvider());

@@ -19,6 +19,7 @@ package co.cask.wrangler.service.bigquery;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
@@ -28,7 +29,6 @@ import co.cask.wrangler.api.Row;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
-import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.ConnectionSample;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
@@ -146,8 +146,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace, @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, connectionId));
-      validateConnection(connection);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId),
+                                                     ConnectionType.BIGQUERY);
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
       String connectionProject = GCPUtils.getProjectId(connection);
@@ -198,8 +198,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                          @PathParam("connection-id") String connectionId,
                          @PathParam("dataset-id") String datasetStr) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, connectionId));
-      validateConnection(connection);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId),
+                                                     ConnectionType.BIGQUERY);
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
 
       DatasetId datasetId = getDatasetId(datasetStr, GCPUtils.getProjectId(connection));
@@ -253,8 +253,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                         @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, connectionId));
-      validateConnection(connection);
+      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId),
+                                                     ConnectionType.BIGQUERY);
 
       Map<String, String> connectionProperties = connection.getProperties();
       String connectionProject = GCPUtils.getProjectId(connection);
@@ -283,11 +283,14 @@ public class BigQueryHandler extends AbstractWranglerHandler {
         .setScope(scope)
         .setProperties(properties)
         .build();
-      ws.writeWorkspaceMeta(workspaceMeta);
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.writeWorkspaceMeta(workspaceMeta);
 
-      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-      byte[] data = serDe.toByteArray(tableData.getFirst());
-      ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+        ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+        byte[] data = serDe.toByteArray(tableData.getFirst());
+        ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+      });
 
       ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
@@ -316,7 +319,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, () -> {
-      Map<String, String> config = ws.getWorkspace(new NamespacedId(namespace, connectionId)).getProperties();
+      Map<String, String> config = getWorkspace(new NamespacedId(namespace, connectionId)).getProperties();
 
       Map<String, String> properties = new HashMap<>();
       String externalDatasetName =
@@ -472,12 +475,6 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     int fraction = (int) (microTs % mod);
     Instant instant = Instant.ofEpochSecond(tsInSeconds, TimeUnit.MICROSECONDS.toNanos(fraction));
     return ZonedDateTime.ofInstant(instant, ZoneId.ofOffset("UTC", ZoneOffset.UTC));
-  }
-
-  private void validateConnection(Connection connection) {
-    if (ConnectionType.BIGQUERY != connection.getType()) {
-      throw new BadRequestException("Invalid connection type set, this endpoint only accepts BIGQUERY connection type");
-    }
   }
 
   /**

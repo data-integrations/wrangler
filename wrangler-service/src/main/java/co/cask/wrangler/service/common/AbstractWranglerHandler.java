@@ -16,13 +16,10 @@
 
 package co.cask.wrangler.service.common;
 
-import co.cask.cdap.api.annotation.UseDataSet;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.api.service.http.AbstractHttpServiceHandler;
-import co.cask.cdap.api.service.http.HttpServiceContext;
+import co.cask.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
-import co.cask.wrangler.DataPrep;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.Workspace;
@@ -38,7 +35,6 @@ import co.cask.wrangler.proto.StatusCodeException;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionType;
 import com.google.gson.JsonSyntaxException;
-import org.apache.tephra.TransactionFailureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,36 +42,26 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 /**
  * Common functionality for wrangler services.
  */
-public class AbstractWranglerHandler extends AbstractHttpServiceHandler {
+public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWranglerHandler.class);
-  protected ConnectionStore store;
 
-  @UseDataSet(DataPrep.CONNECTIONS_DATASET)
-  private Table connectionTable;
-
-  @UseDataSet(WorkspaceDataset.DATASET_NAME)
-  private Table workspaceTable;
-
-  protected WorkspaceDataset ws;
-
-  @Override
-  public void initialize(HttpServiceContext context) throws Exception {
-    super.initialize(context);
-    store = new ConnectionStore(connectionTable);
-    ws = new WorkspaceDataset(workspaceTable);
+  protected Workspace getWorkspace(NamespacedId workspaceId) {
+    return TransactionRunners.run(getContext(), context -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      return ws.getWorkspace(workspaceId);
+    });
   }
 
   /**
    * Return whether the header needs to be copied when creating the pipeline source for the specified workspace.
    * This just amounts to checking whether parse-as-csv with the first line as a header is used as a directive.
    */
-  protected boolean shouldCopyHeader(@Nullable NamespacedId workspaceId) {
+  protected boolean shouldCopyHeader(WorkspaceDataset ws, @Nullable NamespacedId workspaceId) throws IOException {
     if (workspaceId == null) {
       return false;
     }
@@ -96,28 +82,37 @@ public class AbstractWranglerHandler extends AbstractHttpServiceHandler {
     }
   }
 
+  protected Connection getConnection(NamespacedId connectionId) {
+    return TransactionRunners.run(getContext(), context -> {
+      ConnectionStore store = ConnectionStore.get(context);
+      return store.get(connectionId);
+    });
+  }
+
+  protected Connection getValidatedConnection(NamespacedId connectionId, ConnectionType expectedType) {
+    return TransactionRunners.run(getContext(), context -> {
+      ConnectionStore store = ConnectionStore.get(context);
+      return getValidatedConnection(store, connectionId, expectedType);
+    });
+  }
+
   /**
    * Validates that the specified connection exists and is of the expected type.
    * Returns null if the connection does not exist or is invalid. Callers should return immediately if
    * a null is returned, as a response has already been sent. This method should only be called from endpoints
    * that use explicit transaction control.
    *
+   * @param store the connection store to read from
    * @param connectionId the id of the connection
    * @param expectedType the expected type of the connection
-   * @return the validated connection, or null if it does not exist or is invalid
+   * @return the validated connection
+   * @throws ConnectionNotFoundException if the connection does not exist
+   * @throws IOException if there was an error reading from the store
    */
   @Nullable
-  protected Connection getValidatedConnection(NamespacedId connectionId, ConnectionType expectedType) throws Exception {
-    AtomicReference<Connection> connectionRef = new AtomicReference<>();
-    try {
-      getContext().execute(datasetContext -> connectionRef.set(store.get(connectionId)));
-    } catch (TransactionFailureException e) {
-      if (e.getCause() instanceof ConnectionNotFoundException) {
-        throw (ConnectionNotFoundException) e.getCause();
-      }
-      throw e;
-    }
-    Connection connection = connectionRef.get();
+  protected Connection getValidatedConnection(ConnectionStore store, NamespacedId connectionId,
+                                              ConnectionType expectedType) throws IOException {
+    Connection connection = store.get(connectionId);
     if (connection.getType() == null) {
       throw new BadRequestException("Connection type must be specified.");
     }

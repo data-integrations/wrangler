@@ -16,9 +16,10 @@
 
 package co.cask.wrangler.service.connections;
 
-import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.api.service.http.SystemHttpServiceContext;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.proto.NamespacedId;
@@ -78,7 +79,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    * @param context the HTTP service runtime context
    */
   @Override
-  public void initialize(HttpServiceContext context) throws Exception {
+  public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     // initialize available connections
     this.enabledConnectionTypes = new ArrayList<>();
@@ -111,9 +112,12 @@ public class ConnectionHandler extends AbstractWranglerHandler {
         continue;
       }
       try {
-        if (!store.connectionExists(namespace, defaultConnection.getName())) {
-          store.create(namespace, defaultConnection);
-        }
+        TransactionRunners.run(getContext(), context -> {
+          ConnectionStore store = ConnectionStore.get(context);
+          if (!store.connectionExists(namespace, defaultConnection.getName())) {
+            store.create(namespace, defaultConnection);
+          }
+        });
       } catch (Exception e) {
         // we don't want to disrupt data-prep if we are not able to create a default connection,
         // log the error and continue
@@ -159,7 +163,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
 
       // Create an instance of the connection, if the connection id already exists,
       // it will throw an exception.
-      NamespacedId id = store.create(namespace, connection);
+      NamespacedId id = TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        return store.create(namespace, connection);
+      });
       // Return the id in the response.
       return new ServiceResponse<>(Collections.singletonList(id.getId()));
     });
@@ -206,7 +213,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
 
       // Create an instance of the connection, if the connection id doesn't exist
       // it will throw an exception.
-      store.update(new NamespacedId(namespace, id), connection);
+      TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        store.update(new NamespacedId(namespace, id), connection);
+      });
       return new ServiceResponse<>(Collections.emptyList());
     });
   }
@@ -229,14 +239,17 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
     respond(request, responder, namespace, () -> {
-      List<Connection> connections = store.list(namespace, input -> {
-        if (input == null) {
-          return false;
-        }
-        if (connectionTypeConfig.getDisabledTypes().contains(input.getType())) {
-          return false;
-        }
-        return type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type);
+      List<Connection> connections = TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        return store.list(namespace, input -> {
+          if (input == null) {
+            return false;
+          }
+          if (connectionTypeConfig.getDisabledTypes().contains(input.getType())) {
+            return false;
+          }
+          return type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type);
+        });
       });
       return new ConnectionResponse<>(connections,
                                       getDefaultConnection(namespace, connections, connectionTypeConfig));
@@ -284,7 +297,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
       if (preConfiguredConnections.stream().anyMatch(c -> id.equals(ConnectionStore.getConnectionId(c.getName())))) {
         throw new UnauthorizedException(String.format("Cannot delete admin controlled connection %s", id));
       }
-      store.delete(new NamespacedId(namespace, id));
+      TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        store.delete(new NamespacedId(namespace, id));
+      });
       return new ServiceResponse<Connection>(new ArrayList<>());
     });
   }
@@ -307,7 +323,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/{id}")
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, () -> new ServiceResponse<>(store.get(new NamespacedId(namespace, id))));
+    respond(request, responder, namespace, () -> getConnection(new NamespacedId(namespace, id)));
   }
 
 
@@ -329,8 +345,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/{id}/properties")
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace,
-            () -> new ServiceResponse<>(store.get(new NamespacedId(namespace, id)).getProperties()));
+    respond(request, responder, namespace, () -> getConnection(new NamespacedId(namespace, id)).getProperties());
   }
 
   @PUT
@@ -356,13 +371,16 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     respond(request, responder, namespace, () -> {
 
       NamespacedId namespacedId = new NamespacedId(namespace, id);
-      Connection connection = store.get(namespacedId);
+      return TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        Connection connection = store.get(namespacedId);
 
-      ConnectionMeta updatedMeta = ConnectionMeta.builder(connection)
-        .putProperty(key, value)
-        .build();
-      store.update(namespacedId, updatedMeta);
-      return new ServiceResponse<>(updatedMeta.getProperties());
+        ConnectionMeta updatedMeta = ConnectionMeta.builder(connection)
+          .putProperty(key, value)
+          .build();
+        store.update(namespacedId, updatedMeta);
+        return new ServiceResponse<>(updatedMeta.getProperties());
+      });
     });
   }
 
@@ -385,7 +403,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, id));
+      Connection connection = getConnection(new NamespacedId(namespace, id));
       ConnectionMeta clone = ConnectionMeta.builder(connection)
         .setName(connection.getName() + "_Clone")
         .build();

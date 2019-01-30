@@ -16,10 +16,9 @@
 
 package co.cask.wrangler.dataset;
 
-import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.common.conf.Constants;
-import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.TestBase;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
+import co.cask.cdap.test.SystemAppTestBase;
 import co.cask.cdap.test.TestConfiguration;
 import co.cask.wrangler.dataset.connections.ConnectionAlreadyExistsException;
 import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
@@ -28,7 +27,9 @@ import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
 import co.cask.wrangler.proto.connection.ConnectionType;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -37,60 +38,63 @@ import java.util.List;
 /**
  * Tests for the {@link ConnectionStore}.
  */
-public class ConnectionStoreTest extends TestBase {
+public class ConnectionStoreTest extends SystemAppTestBase {
 
   @ClassRule
   public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
 
+  @Before
+  public void setupTest() throws Exception {
+    getStructuredTableAdmin().create(ConnectionStore.TABLE_SPEC);
+  }
+
+  @After
+  public void cleanupTest() throws Exception {
+    getStructuredTableAdmin().drop(ConnectionStore.TABLE_SPEC.getTableId());
+  }
+
   @Test
   public void testNotFoundException() throws Exception {
-    addDatasetInstance("table", "notfoundtest");
-    DataSetManager<Table> tableManager = getDataset("notfoundtest");
-    Table table = tableManager.get();
-    ConnectionStore connectionStore = new ConnectionStore(table);
+    getTransactionRunner().run(context -> {
+      ConnectionStore connectionStore = ConnectionStore.get(context);
 
-    NamespacedId id = new NamespacedId("c0", "id");
-    try {
-      connectionStore.get(id);
-      Assert.fail("Getting a non-existent connection did not throw an exception.");
-    } catch (ConnectionNotFoundException e) {
-      // expected
-    }
+      NamespacedId id = new NamespacedId("c0", "id");
+      try {
+        connectionStore.get(id);
+        Assert.fail("Getting a non-existent connection did not throw an exception.");
+      } catch (ConnectionNotFoundException e) {
+        // expected
+      }
 
-    try {
-      connectionStore.update(id, ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build());
-      Assert.fail("Getting a non-existent connection did not throw an exception.");
-    } catch (ConnectionNotFoundException e) {
-      // expected
-    }
+      try {
+        connectionStore.update(id, ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build());
+        Assert.fail("Getting a non-existent connection did not throw an exception.");
+      } catch (ConnectionNotFoundException e) {
+        // expected
+      }
+    });
   }
 
   @Test
   public void testAlreadyExistsException() throws Exception {
-    addDatasetInstance("table", "alreadyExistsTest");
-    DataSetManager<Table> tableManager = getDataset("alreadyExistsTest");
-    Table table = tableManager.get();
-    ConnectionStore connectionStore = new ConnectionStore(table);
+    getTransactionRunner().run(context -> {
+      ConnectionStore connectionStore = ConnectionStore.get(context);
 
-    ConnectionMeta meta = ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build();
-    connectionStore.create("c0", meta);
-    try {
+      ConnectionMeta meta = ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build();
       connectionStore.create("c0", meta);
-      Assert.fail("Creating a duplicate connection did not throw an exception.");
-    } catch (ConnectionAlreadyExistsException e) {
-      // expected
-    }
+      try {
+        connectionStore.create("c0", meta);
+        Assert.fail("Creating a duplicate connection did not throw an exception.");
+      } catch (ConnectionAlreadyExistsException e) {
+        // expected
+      }
+    });
   }
 
   @Test
-  public void testCRUD() throws Exception {
-    addDatasetInstance("table", "crudtest");
-    DataSetManager<Table> tableManager = getDataset("crudtest");
-    Table table = tableManager.get();
-    ConnectionStore connectionStore = new ConnectionStore(table);
-
+  public void testCRUD() {
     String ns = "n0";
-    Assert.assertTrue(connectionStore.list(ns, x -> true).isEmpty());
+    Assert.assertTrue(run(connectionStore -> connectionStore.list(ns, x -> true)).isEmpty());
 
     // test creation
     ConnectionMeta expected = ConnectionMeta.builder()
@@ -98,10 +102,9 @@ public class ConnectionStoreTest extends TestBase {
       .setType(ConnectionType.FILE)
       .putProperty("k1", "v1")
       .build();
-    NamespacedId id = connectionStore.create(ns, expected);
-    tableManager.flush();
+    NamespacedId id = run(connectionStore -> connectionStore.create(ns, expected));
 
-    Connection actual = connectionStore.get(id);
+    Connection actual = run(connectionStore -> connectionStore.get(id));
     assertConnectionMetaEquality(expected, actual);
 
     // test update
@@ -110,37 +113,37 @@ public class ConnectionStoreTest extends TestBase {
       .setType(expected.getType())
       .putProperty("k1", "v2")
       .build();
-    connectionStore.update(id, updated);
-    tableManager.flush();
-    actual = connectionStore.get(id);
+    actual = run(connectionStore -> {
+      connectionStore.update(id, updated);
+      return connectionStore.get(id);
+    });
     assertConnectionMetaEquality(updated, actual);
 
     // test scan with non-matching filter
-    Assert.assertTrue(connectionStore.list(ns, c -> c.getType() == ConnectionType.DATABASE).isEmpty());
+    List<Connection> filterList = run(connectionStore ->
+                                        connectionStore.list(ns, c -> c.getType() == ConnectionType.DATABASE));
+    Assert.assertTrue(filterList.isEmpty());
     // text scan
-    List<Connection> list = connectionStore.list(ns, x -> true);
+    List<Connection> list = run(connectionStore -> connectionStore.list(ns, x -> true));
     Assert.assertEquals(1, list.size());
     assertConnectionMetaEquality(updated, actual);
 
     // test delete
-    connectionStore.delete(id);
-    tableManager.flush();
-    try {
-      connectionStore.get(id);
-      Assert.fail("Connection was not properly deleted.");
-    } catch (ConnectionNotFoundException e) {
-      // expected
-    }
-    Assert.assertTrue(connectionStore.list(ns, x -> true).isEmpty());
+    run(connectionStore -> {
+      connectionStore.delete(id);
+      try {
+        connectionStore.get(id);
+        Assert.fail("Connection was not properly deleted.");
+      } catch (ConnectionNotFoundException e) {
+        // expected
+      }
+      return null;
+    });
+    Assert.assertTrue(run(connectionStore -> connectionStore.list(ns, x -> true)).isEmpty());
   }
 
   @Test
-  public void testNamespaceIsolation() throws Exception {
-    addDatasetInstance("table", "nstest");
-    DataSetManager<Table> tableManager = getDataset("nstest");
-    Table table = tableManager.get();
-    ConnectionStore connectionStore = new ConnectionStore(table);
-
+  public void testNamespaceIsolation() {
     String ns1 = "ns1";
     String ns2 = "ns2";
 
@@ -150,40 +153,41 @@ public class ConnectionStoreTest extends TestBase {
       .setType(ConnectionType.FILE)
       .putProperty("k1", "v1")
       .build();
-    NamespacedId id1 = connectionStore.create(ns1, expected1);
+    NamespacedId id1 = run(connectionStore -> connectionStore.create(ns1, expected1));
     ConnectionMeta expected2 = ConnectionMeta.builder()
       .setName("My Connection")
       .setType(ConnectionType.GCS)
       .putProperty("k2", "v2")
       .build();
-    NamespacedId id2 = connectionStore.create(ns2, expected2);
-    tableManager.flush();
+    NamespacedId id2 = run(connectionStore -> connectionStore.create(ns2, expected2));
 
-    Connection actual1 = connectionStore.get(id1);
+    Connection actual1 = run(connectionStore -> connectionStore.get(id1));
     assertConnectionMetaEquality(expected1, actual1);
-    Connection actual2 = connectionStore.get(id2);
+    Connection actual2 = run(connectionStore -> connectionStore.get(id2));
     assertConnectionMetaEquality(expected2, actual2);
 
-    List<Connection> list1 = connectionStore.list(ns1, x -> true);
+    List<Connection> list1 = run(connectionStore -> connectionStore.list(ns1, x -> true));
     Assert.assertEquals(1, list1.size());
     assertConnectionMetaEquality(expected1, list1.iterator().next());
-    List<Connection> list2 = connectionStore.list(ns2, x -> true);
+    List<Connection> list2 = run(connectionStore -> connectionStore.list(ns2, x -> true));
     Assert.assertEquals(1, list2.size());
     assertConnectionMetaEquality(expected2, list2.iterator().next());
 
     // test deletion from one namespace
-    connectionStore.delete(id1);
-    tableManager.flush();
-    Assert.assertTrue(connectionStore.list(ns1, x -> true).isEmpty());
+    run(connectionStore -> {
+      connectionStore.delete(id1);
+      return null;
+    });
+    Assert.assertTrue(run(connectionStore -> connectionStore.list(ns1, x -> true)).isEmpty());
     try {
-      connectionStore.get(id1);
+      run(connectionStore -> connectionStore.get(id1));
       Assert.fail("Connection store did not properly delete connection 1");
     } catch (ConnectionNotFoundException e) {
       // expected
     }
-    actual2 = connectionStore.get(id2);
+    actual2 = run(connectionStore -> connectionStore.get(id2));
     assertConnectionMetaEquality(expected2, actual2);
-    list2 = connectionStore.list(ns2, x -> true);
+    list2 = run(connectionStore -> connectionStore.list(ns2, x -> true));
     Assert.assertEquals(1, list2.size());
     assertConnectionMetaEquality(expected2, list2.iterator().next());
   }
@@ -193,5 +197,16 @@ public class ConnectionStoreTest extends TestBase {
     Assert.assertEquals(expected.getName(), actual.getName());
     Assert.assertEquals(expected.getType(), actual.getType());
     Assert.assertEquals(expected.getProperties(), actual.getProperties());
+  }
+
+  private <T> T run(ConnectionStoreCallable<T> callable) {
+    return TransactionRunners.run(getTransactionRunner(), context -> {
+      ConnectionStore connectionStore = ConnectionStore.get(context);
+      return callable.run(connectionStore);
+    }, ConnectionNotFoundException.class, ConnectionAlreadyExistsException.class);
+  }
+
+  private interface ConnectionStoreCallable<T> {
+    T run(ConnectionStore connectionStore) throws Exception;
   }
 }
