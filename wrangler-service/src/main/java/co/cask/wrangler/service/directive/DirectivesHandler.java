@@ -854,12 +854,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           "Please check the environment to ensure you have right verions of jar." + e.getMessage(), e);
       }
 
-      // this is a weird API, it should be object with 'key' and 'value' fields instead of the key being the key value.
-      List<Map<String, String>> values = new ArrayList<>();
+      Map<String, String> value = new HashMap<>();
       for (String key : props.stringPropertyNames()) {
-        values.add(Collections.singletonMap(key, props.getProperty(key)));
+        value.put(key, props.getProperty(key));
       }
-      return new ServiceResponse<>(values);
+      return new ServiceResponse<>(value);
     });
   }
 
