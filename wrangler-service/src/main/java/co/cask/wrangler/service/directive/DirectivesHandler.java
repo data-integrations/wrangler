@@ -98,6 +98,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -158,6 +159,12 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.",
                e.getMessage());
     }
+  }
+
+  @GET
+  @Path("health")
+  public void healthCheck(HttpServiceRequest request, HttpServiceResponder responder) {
+    responder.sendStatus(HttpURLConnection.HTTP_OK);
   }
 
   @PUT
