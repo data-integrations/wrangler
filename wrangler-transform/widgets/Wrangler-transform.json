@@ -29,7 +29,7 @@
       ]
     },
     {
-      "label": "Directives",
+      "label": "Transformation steps",
       "properties": [
         {
           "widget-type": "wrangler-directives",
