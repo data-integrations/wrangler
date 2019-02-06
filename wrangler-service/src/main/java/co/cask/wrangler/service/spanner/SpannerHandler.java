@@ -96,6 +96,13 @@ public class SpannerHandler extends AbstractWranglerHandler {
   @POST
   @Path("/connections/spanner/test")
   public void testSpannerConnection(HttpServiceRequest request, HttpServiceResponder responder) {
+    testSpannerConnection(request, responder, getContext().getNamespace());
+  }
+
+  @POST
+  @Path("/contexts/{context}/connections/spanner/test")
+  public void testSpannerConnection(HttpServiceRequest request, HttpServiceResponder responder,
+                                    @PathParam("context") String namespace) {
     respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
@@ -105,6 +112,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
       return new ServiceResponse<Void>("Success");
     });
   }
+
 
   @GET
   @Path("/connections/{connection-id}/spanner/instances")

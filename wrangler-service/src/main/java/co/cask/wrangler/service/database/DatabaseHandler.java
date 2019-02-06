@@ -97,9 +97,9 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   private static final String JDBC = "jdbc";
 
   // Driver class loaders cached.
-  private final LoadingCache<String, CloseableClassLoader> cache = CacheBuilder.newBuilder()
+  private final LoadingCache<NamespacedId, CloseableClassLoader> cache = CacheBuilder.newBuilder()
     .expireAfterAccess(60, TimeUnit.MINUTES)
-    .removalListener((RemovalListener<String, CloseableClassLoader>) removalNotification -> {
+    .removalListener((RemovalListener<NamespacedId, CloseableClassLoader>) removalNotification -> {
       CloseableClassLoader value = removalNotification.getValue();
       if (value != null) {
         try {
@@ -108,15 +108,15 @@ public class DatabaseHandler extends AbstractWranglerHandler {
           // never happens.
         }
       }
-    }).build(new CacheLoader<String, CloseableClassLoader>() {
+    }).build(new CacheLoader<NamespacedId, CloseableClassLoader>() {
       @Override
-      public CloseableClassLoader load(String name) throws Exception {
-        List<ArtifactInfo> artifacts = getContext().listArtifacts();
+      public CloseableClassLoader load(NamespacedId id) throws Exception {
+        List<ArtifactInfo> artifacts = getContext().listArtifacts(id.getNamespace());
         ArtifactInfo info = null;
         for (ArtifactInfo artifact : artifacts) {
           Set<PluginClass> pluginClassSet = artifact.getClasses().getPlugins();
           for (PluginClass plugin : pluginClassSet) {
-            if (JDBC.equalsIgnoreCase(plugin.getType()) && plugin.getName().equals(name)) {
+            if (JDBC.equalsIgnoreCase(plugin.getType()) && plugin.getName().equals(id.getId())) {
               info = artifact;
               break;
             }
@@ -127,10 +127,10 @@ public class DatabaseHandler extends AbstractWranglerHandler {
         }
         if (info == null) {
           throw new IllegalArgumentException(
-            String.format("Database driver '%s' not found.", name)
+            String.format("Database driver '%s' not found.", id.getId())
           );
         }
-        CloseableClassLoader closeableClassLoader = getContext().createClassLoader(info, null);
+        CloseableClassLoader closeableClassLoader = getContext().createClassLoader(id.getNamespace(), info, null);
         return closeableClassLoader;
       }
     });
@@ -242,7 +242,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                           @PathParam("context") String namespace) {
     respond(request, responder, namespace, () -> {
       List<JDBCDriverInfo> values = new ArrayList<>();
-      List<ArtifactInfo> artifacts = getContext().listArtifacts();
+      List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         for (PluginClass plugin : plugins) {
@@ -334,6 +334,13 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @POST
   @Path("connections/jdbc/test")
   public void testConnection(HttpServiceRequest request, HttpServiceResponder responder) {
+    testConnection(request, responder, getContext().getNamespace());
+  }
+
+  @POST
+  @Path("contexts/{context}/connections/jdbc/test")
+  public void testConnection(HttpServiceRequest request, HttpServiceResponder responder,
+                             @PathParam("context") String namespace) {
     respond(request, responder, () -> {
       DriverCleanup cleanup = null;
       try {
@@ -341,7 +348,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
         RequestExtractor extractor = new RequestExtractor(request);
         ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
-        cleanup = loadAndExecute(connection, java.sql.Connection::getMetaData);
+        cleanup = loadAndExecute(namespace, connection, java.sql.Connection::getMetaData);
         return new ServiceResponse<>("Successfully connected to database.");
       } finally {
         if (cleanup != null) {
@@ -375,7 +382,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
         ConnectionMeta conn = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
         List<String> values = new ArrayList<>();
-        cleanup = loadAndExecute(conn, connection -> {
+        cleanup = loadAndExecute(namespace, conn, connection -> {
           DatabaseMetaData metaData = connection.getMetaData();
           ResultSet resultSet;
           PreparedStatement ps = null;
@@ -429,7 +436,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         List<Name> values = new ArrayList<>();
-        cleanup = loadAndExecute(store.get(new NamespacedId(namespace, id)), connection -> {
+        cleanup = loadAndExecute(namespace, store.get(new NamespacedId(namespace, id)), connection -> {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
           ResultSet resultSet;
           if (product.equalsIgnoreCase("oracle")) {
@@ -496,7 +503,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
-        cleanup = loadAndExecute(store.get(new NamespacedId(namespace, id)), connection -> {
+        cleanup = loadAndExecute(namespace, store.get(new NamespacedId(namespace, id)), connection -> {
           try (Statement statement = connection.createStatement();
             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
@@ -628,7 +635,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param connection the connection to be connected to.
    * @return pair of connection and the driver cleanup.
    */
-  private DriverCleanup loadAndExecute(ConnectionMeta connection, Executor executor) throws Exception {
+  private DriverCleanup loadAndExecute(String namespace, ConnectionMeta connection,
+                                       Executor executor) throws Exception {
     DriverCleanup cleanup = null;
     String name = connection.getProperties().get("name");
     String classz = connection.getProperties().get("class");
@@ -636,7 +644,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     String username = connection.getProperties().get("username");
     String password = connection.getProperties().get("password");
 
-    CloseableClassLoader closeableClassLoader = cache.get(name);
+    CloseableClassLoader closeableClassLoader = cache.get(new NamespacedId(namespace, name));
     Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
     cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
     java.sql.Connection conn = DriverManager.getConnection(url, username, password);

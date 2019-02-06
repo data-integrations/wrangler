@@ -96,6 +96,13 @@ public class S3Handler extends AbstractWranglerHandler {
   @POST
   @Path("/connections/s3/test")
   public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder) {
+    testS3Connection(request, responder, getContext().getNamespace());
+  }
+
+  @POST
+  @Path("/contexts/{context}/connections/s3/test")
+  public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder,
+                               @PathParam("context") String namespace) {
     respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
