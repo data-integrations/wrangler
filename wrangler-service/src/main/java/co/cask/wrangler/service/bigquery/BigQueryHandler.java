@@ -253,8 +253,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                         @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, () -> {
-      NamespacedId namespacedId = new NamespacedId(namespace, connectionId);
-      Connection connection = store.get(namespacedId);
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
 
       Map<String, String> connectionProperties = connection.getProperties();
@@ -279,7 +278,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       properties.put(BUCKET, bucket);
 
       String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, tableId)
+      NamespacedId workspaceId = new NamespacedId(namespace, identifier);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceId, tableId)
         .setScope(scope)
         .setProperties(properties)
         .build();
@@ -287,7 +287,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
 
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] data = serDe.toByteArray(tableData.getFirst());
-      ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+      ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
 
       ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
