@@ -220,8 +220,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
                         @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
     respond(request, responder, namespace, () -> {
-      NamespacedId namespacedId = new NamespacedId(namespace, connectionId);
-      Connection connection = store.get(namespacedId);
+      Connection connection = store.get(new NamespacedId(namespace, connectionId));
       validateConnection(connection);
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
       List<Row> data = getTableData(connection, instanceId, databaseId, tableId, schema, Long.parseLong(limit));
@@ -244,7 +243,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
       workspaceProperties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.SPANNER.getType());
       workspaceProperties.put(PropertyIds.CONNECTION_ID, connectionId);
       workspaceProperties.put(PropertyIds.PLUGIN_SPECIFICATION, GSON.toJson(specification));
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, tableId)
+      NamespacedId workspaceId = new NamespacedId(namespace, identifier);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceId, tableId)
         .setScope(scope)
         .setProperties(workspaceProperties)
         .build();
@@ -253,7 +253,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
       // write data to workspace
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] dataBytes = serDe.toByteArray(data);
-      ws.updateWorkspaceData(namespacedId, DataType.RECORDS, dataBytes);
+      ws.updateWorkspaceData(workspaceId, DataType.RECORDS, dataBytes);
 
       ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.SPANNER.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
