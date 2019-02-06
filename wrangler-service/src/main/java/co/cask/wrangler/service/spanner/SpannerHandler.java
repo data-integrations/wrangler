@@ -291,7 +291,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
       properties.put("table", conf.getTable());
       properties.put("schema", conf.getSchema());
       PluginSpec pluginSpec = new PluginSpec("Spanner", "source", properties);
-      return new SpannerSpec(pluginSpec);
+      return new ServiceResponse<>(new SpannerSpec(pluginSpec));
     });
   }
 
