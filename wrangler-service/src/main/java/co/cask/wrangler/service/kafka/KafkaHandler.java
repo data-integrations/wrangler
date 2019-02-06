@@ -75,6 +75,13 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   @POST
   @Path("connections/kafka/test")
   public void test(HttpServiceRequest request, HttpServiceResponder responder) {
+    test(request, responder, getContext().getNamespace());
+  }
+
+  @POST
+  @Path("contexts/{context}/connections/kafka/test")
+  public void test(HttpServiceRequest request, HttpServiceResponder responder,
+                   @PathParam("context") String namespace) {
     respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);

@@ -109,6 +109,13 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @POST
   @Path("/connections/bigquery/test")
   public void testBiqQueryConnection(HttpServiceRequest request, HttpServiceResponder responder) {
+    testBiqQueryConnection(request, responder, getContext().getNamespace());
+  }
+
+  @POST
+  @Path("/contexts/{context}/connections/bigquery/test")
+  public void testBiqQueryConnection(HttpServiceRequest request, HttpServiceResponder responder,
+                                     @PathParam("context") String namespace) {
     respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);

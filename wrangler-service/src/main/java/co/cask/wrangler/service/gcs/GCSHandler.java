@@ -107,6 +107,13 @@ public class GCSHandler extends AbstractWranglerHandler {
   @POST
   @Path("/connections/gcs/test")
   public void testGCSConnection(HttpServiceRequest request, HttpServiceResponder responder) {
+    testGCSConnection(request, responder, getContext().getNamespace());
+  }
+
+  @POST
+  @Path("/contexts/{context}/connections/gcs/test")
+  public void testGCSConnection(HttpServiceRequest request, HttpServiceResponder responder,
+                                @PathParam("context") String namespace) {
     respond(request, responder, () -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
