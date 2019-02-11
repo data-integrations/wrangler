@@ -18,12 +18,18 @@ package co.cask.wrangler.dataset.connections;
 
 import co.cask.cdap.api.Predicate;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.dataset.table.Put;
-import co.cask.cdap.api.dataset.table.Row;
-import co.cask.cdap.api.dataset.table.Scanner;
-import co.cask.cdap.api.dataset.table.Table;
+import co.cask.cdap.api.dataset.lib.CloseableIterator;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.dataset.NamespacedKeys;
+import co.cask.cdap.spi.data.StructuredRow;
+import co.cask.cdap.spi.data.StructuredTable;
+import co.cask.cdap.spi.data.StructuredTableContext;
+import co.cask.cdap.spi.data.TableNotFoundException;
+import co.cask.cdap.spi.data.table.StructuredTableId;
+import co.cask.cdap.spi.data.table.StructuredTableSpecification;
+import co.cask.cdap.spi.data.table.field.Field;
+import co.cask.cdap.spi.data.table.field.FieldType;
+import co.cask.cdap.spi.data.table.field.Fields;
+import co.cask.cdap.spi.data.table.field.Range;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
@@ -32,10 +38,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -43,34 +52,49 @@ import javax.annotation.Nullable;
  * This class {@link ConnectionStore} manages all the connections defined.
  * It manages the lifecycle of the {@link Connection} including all CRUD operations.
  *
- * Following is the example for usage.
- *
- * <code>
- *  ConnectionStore store = new ConnectionStore(table);
- *  String id = store.create(connection);
- *  if(!store.hasKey(id)) {
- *    Connection connection = store.value(id);
- *    connection.setUpdated(System.currentTimeMillis());
- *    store.update(id, connection);
- *  }
- *  Connection newConnection = store.clone(id);
- *  List<Connection> s = store.list();
- * </code>
+ * The store is backed by a table with namespace, id, type, name, description, properties, created, and updated columns.
+ * The primary key is the namespace and id.
  */
 public class ConnectionStore {
   private static final Gson GSON = new GsonBuilder()
     .registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
+  private static final String NAMESPACE_COL = "namespace";
+  private static final String ID_COL = "id";
   private static final String TYPE_COL = "type";
   private static final String NAME_COL = "name";
   private static final String DESC_COL = "description";
   private static final String PROPERTIES_COL = "properties";
   private static final String CREATED_COL = "created";
   private static final String UPDATED_COL = "updated";
-  private final Table table;
+  private static final StructuredTableId TABLE_ID = new StructuredTableId("connections");
+  public static final StructuredTableSpecification TABLE_SPEC = new StructuredTableSpecification.Builder()
+    .withId(TABLE_ID)
+    .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(ID_COL, FieldType.Type.STRING),
+                new FieldType(TYPE_COL, FieldType.Type.STRING),
+                new FieldType(NAME_COL, FieldType.Type.STRING),
+                new FieldType(DESC_COL, FieldType.Type.STRING),
+                new FieldType(PROPERTIES_COL, FieldType.Type.STRING),
+                new FieldType(CREATED_COL, FieldType.Type.LONG),
+                new FieldType(UPDATED_COL, FieldType.Type.LONG))
+    .withPrimaryKeys(NAMESPACE_COL, ID_COL)
+    .build();
 
-  public ConnectionStore(Table table) {
+  private final StructuredTable table;
+
+  public ConnectionStore(StructuredTable table) {
     this.table = table;
+  }
+
+  public static ConnectionStore get(StructuredTableContext context) {
+    try {
+      StructuredTable table = context.getTable(TABLE_ID);
+      return new ConnectionStore(table);
+    } catch (TableNotFoundException e) {
+      throw new IllegalStateException(String.format(
+        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+    }
   }
 
   /**
@@ -82,7 +106,8 @@ public class ConnectionStore {
    * @return id of the connection stored
    * @throws ConnectionAlreadyExistsException if the connection already exists
    */
-  public NamespacedId create(String namespace, ConnectionMeta meta) throws ConnectionAlreadyExistsException {
+  public NamespacedId create(String namespace,
+                             ConnectionMeta meta) throws ConnectionAlreadyExistsException, IOException {
     NamespacedId id = new NamespacedId(namespace, getConnectionId(meta.getName()));
     Connection existing = read(id);
     if (existing != null) {
@@ -95,7 +120,7 @@ public class ConnectionStore {
       .setCreated(now)
       .setUpdated(now)
       .build();
-    table.put(toPut(connection));
+    table.upsert(toFields(connection));
     return connection.getId();
   }
 
@@ -106,7 +131,7 @@ public class ConnectionStore {
    * @return the connection information
    * @throws ConnectionNotFoundException if the connection does not exist
    */
-  public Connection get(NamespacedId id) throws ConnectionNotFoundException {
+  public Connection get(NamespacedId id) throws ConnectionNotFoundException, IOException {
     Connection existing = read(id);
     if (existing == null) {
       throw new ConnectionNotFoundException(String.format("Connection '%s' does not exist", id.getId()));
@@ -121,14 +146,14 @@ public class ConnectionStore {
    * @param meta metadata to update
    * @throws ConnectionNotFoundException if the specified connection does not exist
    */
-  public void update(NamespacedId id, ConnectionMeta meta) throws ConnectionNotFoundException {
+  public void update(NamespacedId id, ConnectionMeta meta) throws ConnectionNotFoundException, IOException {
     Connection existing = get(id);
 
     Connection updated = Connection.builder(id, meta)
       .setCreated(existing.getCreated())
       .setUpdated(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build();
-    table.put(toPut(updated));
+    table.upsert(toFields(updated));
   }
 
   /**
@@ -136,14 +161,14 @@ public class ConnectionStore {
    *
    * @param id the connection to delete
    */
-  public void delete(NamespacedId id) {
-    table.delete(NamespacedKeys.getRowKey(id));
+  public void delete(NamespacedId id) throws IOException {
+    table.delete(getKey(id));
   }
 
   /**
    * Returns true if connection identified by connectionName already exists.
    */
-  public boolean connectionExists(String namespace, String connectionName) {
+  public boolean connectionExists(String namespace, String connectionName) throws IOException {
     return read(new NamespacedId(namespace, getConnectionId(connectionName))) != null;
   }
 
@@ -153,18 +178,19 @@ public class ConnectionStore {
    * @param filter to be applied on the data being returned.
    * @return List of connections
    */
-  public List<Connection> list(String namespace, Predicate<Connection> filter) {
-    List<Connection> result = new ArrayList<>();
-    try (Scanner scan = table.scan(NamespacedKeys.getScan(namespace))) {
-      Row row;
-      while ((row = scan.next()) != null) {
+  public List<Connection> list(String namespace, Predicate<Connection> filter) throws IOException {
+    Range range = Range.singleton(Collections.singletonList(Fields.stringField(NAMESPACE_COL, namespace)));
+    try (CloseableIterator<StructuredRow> rowIter = table.scan(range, Integer.MAX_VALUE)) {
+      List<Connection> result = new ArrayList<>();
+      while (rowIter.hasNext()) {
+        StructuredRow row = rowIter.next();
         Connection connection = fromRow(row);
         if (filter.apply(connection)) {
           result.add(connection);
         }
       }
+      return result;
     }
-    return result;
   }
 
   /**
@@ -183,27 +209,33 @@ public class ConnectionStore {
   }
 
   @Nullable
-  private Connection read(NamespacedId id) {
-    Row row = table.get(NamespacedKeys.getRowKey(id));
-    if (row.isEmpty()) {
-      return null;
-    }
-    return fromRow(row);
+  private Connection read(NamespacedId id) throws IOException {
+    Optional<StructuredRow> row = table.read(getKey(id));
+    return row.map(this::fromRow).orElse(null);
   }
 
-  private Put toPut(Connection connection) {
-    Put put = new Put(NamespacedKeys.getRowKey(connection.getId()));
-    put.add(TYPE_COL, connection.getType().name());
-    put.add(NAME_COL, connection.getName());
-    put.add(DESC_COL, connection.getDescription());
-    put.add(PROPERTIES_COL, GSON.toJson(connection.getProperties()));
-    put.add(CREATED_COL, connection.getCreated());
-    put.add(UPDATED_COL, connection.getUpdated());
-    return put;
+  private List<Field<?>> getKey(NamespacedId id) {
+    List<Field<?>> keyFields = new ArrayList<>(2);
+    keyFields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace()));
+    keyFields.add(Fields.stringField(ID_COL, id.getId()));
+    return keyFields;
   }
 
-  private Connection fromRow(Row row) {
-    return Connection.builder(NamespacedKeys.fromRowKey(row.getRow()))
+  private List<Field<?>> toFields(Connection connection) {
+    List<Field<?>> fields = new ArrayList<>(8);
+    fields.add(Fields.stringField(NAMESPACE_COL, connection.getNamespace()));
+    fields.add(Fields.stringField(ID_COL, connection.getId().getId()));
+    fields.add(Fields.stringField(TYPE_COL, connection.getType().name()));
+    fields.add(Fields.stringField(NAME_COL, connection.getName()));
+    fields.add(Fields.stringField(DESC_COL, connection.getDescription()));
+    fields.add(Fields.stringField(PROPERTIES_COL, GSON.toJson(connection.getProperties())));
+    fields.add(Fields.longField(CREATED_COL, connection.getCreated()));
+    fields.add(Fields.longField(UPDATED_COL, connection.getUpdated()));
+    return fields;
+  }
+
+  private Connection fromRow(StructuredRow row) {
+    return Connection.builder(new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL)))
       .setType(ConnectionType.valueOf(row.getString(TYPE_COL)))
       .setName(row.getString(NAME_COL))
       .setDescription(row.getString(DESC_COL))

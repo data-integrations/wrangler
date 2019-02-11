@@ -16,15 +16,19 @@
 
 package co.cask.wrangler.dataset.workspace;
 
-import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.api.dataset.table.Put;
-import co.cask.cdap.api.dataset.table.Row;
-import co.cask.cdap.api.dataset.table.Scanner;
-import co.cask.cdap.api.dataset.table.Table;
+import co.cask.cdap.api.dataset.lib.CloseableIterator;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
-import co.cask.wrangler.api.DirectiveConfig;
-import co.cask.wrangler.dataset.NamespacedKeys;
+import co.cask.cdap.spi.data.StructuredRow;
+import co.cask.cdap.spi.data.StructuredTable;
+import co.cask.cdap.spi.data.StructuredTableContext;
+import co.cask.cdap.spi.data.TableNotFoundException;
+import co.cask.cdap.spi.data.table.StructuredTableId;
+import co.cask.cdap.spi.data.table.StructuredTableSpecification;
+import co.cask.cdap.spi.data.table.field.Field;
+import co.cask.cdap.spi.data.table.field.FieldType;
+import co.cask.cdap.spi.data.table.field.Fields;
+import co.cask.cdap.spi.data.table.field.Range;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.proto.WorkspaceIdentifier;
@@ -32,49 +36,75 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /**
  * Workspace store for workspaces and a special row for the DirectiveConfig, which allows admins to configure a
  * directive blacklist and to alias directives to other names.
- * TODO: (CDAP-14619) check if the DirectiveConfig is used by anything/anyone. If so, see if it can be moved to app
- *   configuration instead of stored in a one row table.
  *
  * A workspace contains a data sample, metadata about the workspace, and a set of directives that can be used to
  * process the data sample. A workspace is tagged with a scope, which can be used to group workspaces together.
  * It also stores a map of properties, which are connection specific properties that are used to generate the
  * pipeline source configuration when a pipeline is created from a workspace.
+ *
+ * The dataset is stored in a single table with columns:
+ *
+ * namespace, id, name, type, scope, created, updated, properties, data, and request
  */
 public class WorkspaceDataset {
-  public static final String DATASET_NAME = "workspaces";
   private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
   private static final Gson GSON = new GsonBuilder()
     .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
     .registerTypeAdapter(Request.class, new RequestDeserializer())
     .create();
-  private final Table table;
-
-  public static final String DEFAULT_SCOPE = "default";
-  private static final byte[] CONFIG_KEY = Bytes.toBytes("__config__");
-  private static final byte[] CONFIG_COL = Bytes.toBytes("__ws__");
-
-  private static final String DATA_COL = "data";
-  private static final String SCOPE_COL = "scope";
+  private static final String NAMESPACE_COL = "namespace";
+  private static final String ID_COL = "id";
   private static final String NAME_COL = "name";
   private static final String TYPE_COL = "type";
+  private static final String SCOPE_COL = "scope";
   private static final String CREATED_COL = "created";
   private static final String UPDATED_COL = "updated";
   private static final String PROPERTIES_COL = "properties";
+  private static final String DATA_COL = "data";
   private static final String REQUEST_COL = "request";
+  private static final StructuredTableId TABLE_ID = new StructuredTableId("workspaces");
+  public static final StructuredTableSpecification TABLE_SPEC = new StructuredTableSpecification.Builder()
+    .withId(TABLE_ID)
+    .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(ID_COL, FieldType.Type.STRING),
+                new FieldType(NAME_COL, FieldType.Type.STRING),
+                new FieldType(TYPE_COL, FieldType.Type.STRING),
+                new FieldType(SCOPE_COL, FieldType.Type.STRING),
+                new FieldType(CREATED_COL, FieldType.Type.LONG),
+                new FieldType(UPDATED_COL, FieldType.Type.LONG),
+                new FieldType(PROPERTIES_COL, FieldType.Type.STRING),
+                new FieldType(DATA_COL, FieldType.Type.BYTES),
+                new FieldType(REQUEST_COL, FieldType.Type.STRING))
+    .withPrimaryKeys(NAMESPACE_COL, ID_COL)
+    .build();
+  public static final String DEFAULT_SCOPE = "default";
+  private final StructuredTable table;
 
-  public WorkspaceDataset(Table table) {
+  public WorkspaceDataset(StructuredTable table) {
     this.table = table;
+  }
+
+  public static WorkspaceDataset get(StructuredTableContext context) {
+    try {
+      StructuredTable table = context.getTable(TABLE_ID);
+      return new WorkspaceDataset(table);
+    } catch (TableNotFoundException e) {
+      throw new IllegalStateException(String.format(
+        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+    }
   }
 
   /**
@@ -82,7 +112,7 @@ public class WorkspaceDataset {
    *
    * @param meta the workspace metadata
    */
-  public void writeWorkspaceMeta(WorkspaceMeta meta) {
+  public void writeWorkspaceMeta(WorkspaceMeta meta) throws IOException {
     Workspace existing = readWorkspace(meta);
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
     Workspace.Builder updated = Workspace.builder(meta, meta.getName());
@@ -97,7 +127,7 @@ public class WorkspaceDataset {
       .setScope(meta.getScope())
       .setProperties(meta.getProperties())
       .setType(meta.getType());
-    table.put(toPut(updated.build()));
+    table.upsert(toFields(updated.build()));
   }
 
   /**
@@ -107,7 +137,7 @@ public class WorkspaceDataset {
    * @return information about the workspace
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public Workspace getWorkspace(NamespacedId id) throws WorkspaceNotFoundException {
+  public Workspace getWorkspace(NamespacedId id) throws WorkspaceNotFoundException, IOException {
     Workspace workspace = readWorkspace(id);
     if (workspace == null) {
       throw new WorkspaceNotFoundException(String.format("Workspace '%s' does not exist.", id.getId()));
@@ -121,9 +151,9 @@ public class WorkspaceDataset {
    * @param id of the workspace to be checked for.
    * @return true if workspace exists, false otherwise.
    */
-  public boolean hasWorkspace(NamespacedId id) {
-    co.cask.cdap.api.dataset.table.Row row = table.get(NamespacedKeys.getRowKey(id));
-    return !row.isEmpty();
+  public boolean hasWorkspace(NamespacedId id) throws IOException {
+    Optional<StructuredRow> row = table.read(getKey(id));
+    return row.isPresent();
   }
 
   /**
@@ -131,22 +161,16 @@ public class WorkspaceDataset {
    *
    * @return List of workspaces.
    */
-  public List<WorkspaceIdentifier> listWorkspaces(String namespace, String scope) {
+  public List<WorkspaceIdentifier> listWorkspaces(String namespace, String scope) throws IOException {
     List<WorkspaceIdentifier> values = new ArrayList<>();
-    co.cask.cdap.api.dataset.table.Row row;
-    try (Scanner scanner = table.scan(NamespacedKeys.getScan(namespace))) {
-      while ((row = scanner.next()) != null) {
-        NamespacedId id = NamespacedKeys.fromRowKey(row.getRow());
-        if (excludedKey(id)) {
-          continue;
+    Range range = Range.singleton(Collections.singletonList(Fields.stringField(NAMESPACE_COL, namespace)));
+    try (CloseableIterator<StructuredRow> rowIter = table.scan(range, Integer.MAX_VALUE)) {
+      while (rowIter.hasNext()) {
+        StructuredRow row = rowIter.next();
+        Workspace workspace = readWorkspace(row);
+        if (scope.equals(workspace.getScope())) {
+          values.add(new WorkspaceIdentifier(workspace.getId(), workspace.getName()));
         }
-        byte[] scopeBytes = row.get(SCOPE_COL);
-        String scopeStr = Bytes.toString(scopeBytes);
-        if (!scope.equals(scopeStr)) {
-          continue;
-        }
-        byte[] name = row.get(NAME_COL);
-        values.add(new WorkspaceIdentifier(id.getId(), Bytes.toString(name)));
       }
     }
     return values;
@@ -160,13 +184,13 @@ public class WorkspaceDataset {
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
   public void updateWorkspaceProperties(NamespacedId id,
-                                        Map<String, String> properties) throws WorkspaceNotFoundException {
+                                        Map<String, String> properties) throws WorkspaceNotFoundException, IOException {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setProperties(properties)
       .setUpdated(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build();
-    table.put(toPut(updated));
+    table.upsert(toFields(updated));
   }
 
   /**
@@ -176,13 +200,13 @@ public class WorkspaceDataset {
    * @param request the directive execution request
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public void updateWorkspaceRequest(NamespacedId id, Request request) throws WorkspaceNotFoundException {
+  public void updateWorkspaceRequest(NamespacedId id, Request request) throws WorkspaceNotFoundException, IOException {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setRequest(request)
       .setUpdated(System.currentTimeMillis() / 1000)
       .build();
-    table.put(toPut(updated));
+    table.upsert(toFields(updated));
   }
 
   /**
@@ -192,14 +216,15 @@ public class WorkspaceDataset {
    * @param data the sample data
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public void updateWorkspaceData(NamespacedId id, DataType dataType, byte[] data) throws WorkspaceNotFoundException {
+  public void updateWorkspaceData(NamespacedId id, DataType dataType,
+                                  byte[] data) throws WorkspaceNotFoundException, IOException {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setType(dataType)
       .setData(data)
       .setUpdated(System.currentTimeMillis() / 1000)
       .build();
-    table.put(toPut(updated));
+    table.upsert(toFields(updated));
   }
 
   /**
@@ -207,8 +232,8 @@ public class WorkspaceDataset {
    *
    * @param id to be deleted.
    */
-  public void deleteWorkspace(NamespacedId id) {
-    table.delete(NamespacedKeys.getRowKey(id));
+  public void deleteWorkspace(NamespacedId id) throws IOException {
+    table.delete(getKey(id));
   }
 
   /**
@@ -219,77 +244,51 @@ public class WorkspaceDataset {
    * @param scope to be deleted
    * @return number of workspaces deleted
    */
-  public int deleteScope(String namespace, String scope) {
-    int count = 0;
-    co.cask.cdap.api.dataset.table.Row row;
-    try (Scanner scanner = table.scan(NamespacedKeys.getScan(namespace))) {
-      while ((row = scanner.next()) != null) {
-        NamespacedId id = NamespacedKeys.fromRowKey(row.getRow());
-        if (excludedKey(id)) {
-          continue;
-        }
-        byte[] groupBytes = row.get(SCOPE_COL);
-        String groupStr = Bytes.toString(groupBytes);
-        if (scope.equals(groupStr)) {
-          deleteWorkspace(id);
-          count = count + 1;
+  public int deleteScope(String namespace, String scope) throws IOException {
+    Range range = Range.singleton(Collections.singletonList(Fields.stringField(NAMESPACE_COL, namespace)));
+    try (CloseableIterator<StructuredRow> rowIter = table.scan(range, Integer.MAX_VALUE)) {
+      int count = 0;
+      while (rowIter.hasNext()) {
+        StructuredRow row = rowIter.next();
+        Workspace workspace = readWorkspace(row);
+        if (scope.equals(workspace.getScope())) {
+          deleteWorkspace(workspace);
+          count++;
         }
       }
+      return count;
     }
-    return count;
   }
 
-  public void updateConfig(DirectiveConfig config) {
-    byte[] bytes = Bytes.toBytes(GSON.toJson(config));
-    table.put(CONFIG_KEY, CONFIG_COL, bytes);
-  }
-
-  public DirectiveConfig getConfig() {
-    byte[] bytes = table.get(CONFIG_KEY, CONFIG_COL);
-    String json;
-    if (bytes == null) {
-      json = "{}";
-    } else {
-      json = Bytes.toString(bytes);
+  private List<Field<?>> toFields(Workspace workspace) {
+    List<Field<?>> fields = new ArrayList<>(10);
+    fields.add(Fields.stringField(NAMESPACE_COL, workspace.getNamespace()));
+    fields.add(Fields.stringField(ID_COL, workspace.getId()));
+    fields.add(Fields.stringField(NAME_COL, workspace.getName()));
+    fields.add(Fields.stringField(SCOPE_COL, workspace.getScope()));
+    fields.add(Fields.stringField(TYPE_COL, workspace.getType().name()));
+    fields.add(Fields.stringField(PROPERTIES_COL, GSON.toJson(workspace.getProperties())));
+    fields.add(Fields.longField(CREATED_COL, workspace.getCreated()));
+    fields.add(Fields.longField(UPDATED_COL, workspace.getUpdated()));
+    Request request = workspace.getRequest();
+    if (request != null) {
+      fields.add(Fields.stringField(REQUEST_COL, GSON.toJson(request)));
     }
-    return GSON.fromJson(json, DirectiveConfig.class);
-  }
-
-  public String getConfigString() {
-    byte[] bytes = table.get(CONFIG_KEY, CONFIG_COL);
-    if (bytes == null) {
-      return "{}";
+    byte[] data = workspace.getData();
+    if (data != null) {
+      fields.add(Fields.bytesField(DATA_COL, data));
     }
-    return Bytes.toString(bytes);
-  }
-
-  private boolean excludedKey(NamespacedId id) {
-    return id.getId().equalsIgnoreCase(Bytes.toString(CONFIG_KEY));
-  }
-
-  private Put toPut(Workspace workspace) {
-    Put put = new Put(NamespacedKeys.getRowKey(workspace));
-    put.add(NAME_COL, workspace.getName());
-    put.add(SCOPE_COL, workspace.getScope());
-    put.add(TYPE_COL, workspace.getType().name());
-    put.add(PROPERTIES_COL, GSON.toJson(workspace.getProperties()));
-    put.add(CREATED_COL, workspace.getCreated());
-    put.add(UPDATED_COL, workspace.getUpdated());
-    if (workspace.getRequest() != null) {
-      put.add(REQUEST_COL, GSON.toJson(workspace.getRequest()));
-    }
-    if (workspace.getData() != null) {
-      put.add(DATA_COL, workspace.getData());
-    }
-    return put;
+    return fields;
   }
 
   @Nullable
-  private Workspace readWorkspace(NamespacedId id) {
-    Row row = table.get(NamespacedKeys.getRowKey(id));
-    if (row.isEmpty()) {
-      return null;
-    }
+  private Workspace readWorkspace(NamespacedId id) throws IOException {
+    Optional<StructuredRow> row = table.read(getKey(id));
+    return row.map(this::readWorkspace).orElse(null);
+  }
+
+  private Workspace readWorkspace(StructuredRow row) {
+    NamespacedId id = new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL));
 
     String propertiesStr = row.getString(PROPERTIES_COL);
     Map<String, String> properties = propertiesStr == null || propertiesStr.isEmpty() ?
@@ -301,12 +300,19 @@ public class WorkspaceDataset {
     return Workspace.builder(id, row.getString(NAME_COL))
       .setCreated(row.getLong(CREATED_COL))
       .setUpdated(row.getLong(UPDATED_COL))
-      .setData(row.get(DATA_COL))
+      .setData(row.getBytes(DATA_COL))
       .setRequest(request)
       .setScope(row.getString(SCOPE_COL))
       .setType(DataType.valueOf(row.getString(TYPE_COL)))
       .setProperties(properties)
       .build();
+  }
+
+  private List<Field<?>> getKey(NamespacedId id) {
+    List<Field<?>> keyFields = new ArrayList<>();
+    keyFields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace()));
+    keyFields.add(Fields.stringField(ID_COL, id.getId()));
+    return keyFields;
   }
 
 }

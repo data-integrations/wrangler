@@ -62,11 +62,6 @@ public class ConfigDirectiveContext implements DirectiveContext {
     }
   }
 
-  public ConfigDirectiveContext(String json) {
-    Gson gson = new Gson();
-    this.config = gson.fromJson(json, DirectiveConfig.class);
-  }
-
   /**
    * Checks if the directive is aliased.
    *

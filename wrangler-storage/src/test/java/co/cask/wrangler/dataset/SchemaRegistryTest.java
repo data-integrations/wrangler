@@ -16,10 +16,9 @@
 
 package co.cask.wrangler.dataset;
 
-import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.common.conf.Constants;
-import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.TestBase;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
+import co.cask.cdap.test.SystemAppTestBase;
 import co.cask.cdap.test.TestConfiguration;
 import co.cask.wrangler.dataset.schema.SchemaDescriptor;
 import co.cask.wrangler.dataset.schema.SchemaNotFoundException;
@@ -27,7 +26,9 @@ import co.cask.wrangler.dataset.schema.SchemaRegistry;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
 import co.cask.wrangler.proto.schema.SchemaEntry;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -38,129 +39,121 @@ import java.util.Set;
 /**
  * Tests for {@link SchemaRegistry}.
  */
-public class SchemaRegistryTest extends TestBase {
+public class SchemaRegistryTest extends SystemAppTestBase {
 
   @ClassRule
   public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
 
-  @Test
-  public void testNotFoundExceptions() throws Exception {
-    addDatasetInstance("table", "notfoundtest");
-    DataSetManager<Table> tableManager = getDataset("notfoundtest");
-    Table table = tableManager.get();
-    SchemaRegistry registry = new SchemaRegistry(table);
+  @Before
+  public void setupTest() throws Exception {
+    getStructuredTableAdmin().create(SchemaRegistry.META_TABLE_SPEC);
+    getStructuredTableAdmin().create(SchemaRegistry.ENTRY_TABLE_SPEC);
+  }
 
-    NamespacedId id = new NamespacedId("c0", "id0");
-    try {
-      registry.remove(id, 0L);
-      Assert.fail("removing an entry from a non-existent schema did not throw an exception");
-    } catch (SchemaNotFoundException e) {
-      // expected
-    }
-
-    try {
-      registry.getEntry(id);
-      Assert.fail("getting a non-existent schema did not throw an exception");
-    } catch (SchemaNotFoundException e) {
-      // expected
-    }
-
-    try {
-      registry.getVersions(id);
-      Assert.fail("getting versions of a non-existent schema did not throw an exception");
-    } catch (SchemaNotFoundException e) {
-      // expected
-    }
-
-    SchemaDescriptor descriptor = new SchemaDescriptor(id, "some name", "desc", SchemaDescriptorType.AVRO);
-    registry.write(descriptor);
-    tableManager.flush();
-
-    try {
-      registry.getEntry(id, 1L);
-      Assert.fail("getting a non-existent schema entry did not throw an exception");
-    } catch (SchemaNotFoundException e) {
-      // expected
-    }
+  @After
+  public void cleanupTest() throws Exception {
+    getStructuredTableAdmin().drop(SchemaRegistry.META_TABLE_SPEC.getTableId());
+    getStructuredTableAdmin().drop(SchemaRegistry.ENTRY_TABLE_SPEC.getTableId());
   }
 
   @Test
-  public void testCRUD() throws Exception {
-    addDatasetInstance("table", "crudtest");
-    DataSetManager<Table> tableManager = getDataset("crudtest");
-    Table table = tableManager.get();
-    SchemaRegistry registry = new SchemaRegistry(table);
+  public void testNotFoundExceptions() throws Exception {
+    getTransactionRunner().run(context -> {
+      SchemaRegistry registry = SchemaRegistry.get(context);
+      NamespacedId id = new NamespacedId("c0", "id0");
+      try {
+        registry.remove(id, 0L);
+        Assert.fail("removing an entry from a non-existent schema did not throw an exception");
+      } catch (SchemaNotFoundException e) {
+        // expected
+      }
 
+      try {
+        registry.getEntry(id);
+        Assert.fail("getting a non-existent schema did not throw an exception");
+      } catch (SchemaNotFoundException e) {
+        // expected
+      }
+
+      try {
+        registry.getVersions(id);
+        Assert.fail("getting versions of a non-existent schema did not throw an exception");
+      } catch (SchemaNotFoundException e) {
+        // expected
+      }
+
+      SchemaDescriptor descriptor = new SchemaDescriptor(id, "some name", "desc", SchemaDescriptorType.AVRO);
+      registry.write(descriptor);
+
+      try {
+        registry.getEntry(id, 1L);
+        Assert.fail("getting a non-existent schema entry did not throw an exception");
+      } catch (SchemaNotFoundException e) {
+        // expected
+      }
+    });
+  }
+
+  @Test
+  public void testCRUD() {
     NamespacedId id = new NamespacedId("c0", "id0");
-    Assert.assertFalse(registry.hasSchema(id));
+    Assert.assertFalse(call(registry -> registry.hasSchema(id)));
 
     // test schema creation
     SchemaDescriptor descriptor = new SchemaDescriptor(id, "some name", "desc", SchemaDescriptorType.AVRO);
     SchemaEntry expected = new SchemaEntry(id, descriptor.getName(), descriptor.getDescription(),
                                            descriptor.getType(), Collections.emptySet(), null, null);
-    registry.write(descriptor);
-    tableManager.flush();
-    Assert.assertTrue(registry.hasSchema(id));
-    Assert.assertFalse(registry.hasSchema(id, 5L));
-    SchemaEntry actual = registry.getEntry(id);
+    run(registry -> registry.write(descriptor));
+    Assert.assertTrue(call(registry -> registry.hasSchema(id)));
+    Assert.assertFalse(call(registry -> registry.hasSchema(id, 5L)));
+    SchemaEntry actual = call(registry -> registry.getEntry(id));
     Assert.assertEquals(expected, actual);
-    
+
     // test adding a schema entry
-    byte[] spec = new byte[] { 0, 1, 2 };
-    long version1 = registry.add(id, spec);
-    tableManager.flush();
+    byte[] spec1 = new byte[]{0, 1, 2};
+    long version1 = call(registry -> registry.add(id, spec1));
     Set<Long> expectedVersions = new HashSet<>();
     expectedVersions.add(version1);
     expected = new SchemaEntry(id, expected.getName(), expected.getDescription(), expected.getType(),
-                               expectedVersions, spec, version1);
-    SchemaEntry v1Actual = registry.getEntry(id);
-    Assert.assertTrue(registry.hasSchema(id, version1));
+                               expectedVersions, spec1, version1);
+    SchemaEntry v1Actual = call(registry -> registry.getEntry(id));
+    Assert.assertTrue(call(registry -> registry.hasSchema(id, version1)));
     Assert.assertEquals(expected, v1Actual);
-    v1Actual = registry.getEntry(id, version1);
+    v1Actual = call(registry -> registry.getEntry(id, version1));
     Assert.assertEquals(expected, v1Actual);
-    Assert.assertEquals(expectedVersions, registry.getVersions(id));
+    Assert.assertEquals(expectedVersions, call(registry -> registry.getVersions(id)));
 
     // test get versions
-    spec = new byte[] { 3, 4, 5 };
-    long version2 = registry.add(id, spec);
-    tableManager.flush();
+    byte[] spec2 = new byte[]{3, 4, 5};
+    long version2 = call(registry -> registry.add(id, spec2));
     expectedVersions.clear();
     expectedVersions.add(version1);
     expectedVersions.add(version2);
     expected = new SchemaEntry(id, expected.getName(), expected.getDescription(), expected.getType(),
-                               expectedVersions, spec, version2);
-    Assert.assertEquals(expectedVersions, registry.getVersions(id));
-    Assert.assertEquals(expected, registry.getEntry(id, version2));
-    Assert.assertEquals(expected, registry.getEntry(id));
+                               expectedVersions, spec2, version2);
+    Assert.assertEquals(expectedVersions, call(registry -> registry.getVersions(id)));
+    Assert.assertEquals(expected, call(registry -> registry.getEntry(id, version2)));
+    Assert.assertEquals(expected, call(registry -> registry.getEntry(id)));
 
     // test version specific deletion
-    registry.remove(id, version1);
-    tableManager.flush();
-    Assert.assertFalse(registry.hasSchema(id, version1));
-    Assert.assertTrue(registry.hasSchema(id, version2));
-    Assert.assertEquals(Collections.singleton(version2), registry.getVersions(id));
-    
+    run(registry -> registry.remove(id, version1));
+    Assert.assertFalse(call(registry -> registry.hasSchema(id, version1)));
+    Assert.assertTrue(call(registry -> registry.hasSchema(id, version2)));
+    Assert.assertEquals(Collections.singleton(version2), call(registry -> registry.getVersions(id)));
+
     // test deleting all entries still keeps the schema around
-    registry.remove(id, version2);
-    tableManager.flush();
-    Assert.assertFalse(registry.hasSchema(id, version2));
-    Assert.assertTrue(registry.hasSchema(id));
+    run(registry -> registry.remove(id, version2));
+    Assert.assertFalse(call(registry -> registry.hasSchema(id, version2)));
+    Assert.assertTrue(call(registry -> registry.hasSchema(id)));
 
     // test deleting the schema
-    registry.add(id, spec);
-    tableManager.flush();
-    registry.delete(id);
-    tableManager.flush();
-    Assert.assertFalse(registry.hasSchema(id));
+    run(registry -> registry.add(id, spec2));
+    run(registry -> registry.delete(id));
+    Assert.assertFalse(call(registry -> registry.hasSchema(id)));
   }
 
   @Test
-  public void testNamespaceIsolation() throws Exception {
-    addDatasetInstance("table", "nsTest");
-    DataSetManager<Table> tableManager = getDataset("nsTest");
-    Table table = tableManager.get();
-    SchemaRegistry registry = new SchemaRegistry(table);
-
+  public void testNamespaceIsolation() {
     String context1 = "c1";
     String context2 = "c2";
 
@@ -175,27 +168,46 @@ public class SchemaRegistryTest extends TestBase {
                                             descriptor2.getType(), Collections.emptySet(), null, null);
 
     // test writes don't interfere with each other
-    registry.write(descriptor1);
-    registry.write(descriptor2);
-    tableManager.flush();
-    Assert.assertEquals(expected1, registry.getEntry(id1));
-    Assert.assertEquals(expected2, registry.getEntry(id2));
+    run(registry -> registry.write(descriptor1));
+    run(registry -> registry.write(descriptor2));
+    Assert.assertEquals(expected1, call(registry -> registry.getEntry(id1)));
+    Assert.assertEquals(expected2, call(registry -> registry.getEntry(id2)));
 
     // test version lists don't overlap
-    long v1 = registry.add(id1, new byte[] { 1 });
-    long v2 = registry.add(id2, new byte[] { 2 });
-    tableManager.flush();
-    Assert.assertEquals(Collections.singleton(v1), registry.getVersions(id1));
-    Assert.assertEquals(Collections.singleton(v2), registry.getVersions(id2));
+    long v1 = call(registry -> registry.add(id1, new byte[]{1}));
+    long v2 = call(registry -> registry.add(id2, new byte[]{2}));
+    Assert.assertEquals(Collections.singleton(v1), call(registry -> registry.getVersions(id1)));
+    Assert.assertEquals(Collections.singleton(v2), call(registry -> registry.getVersions(id2)));
 
     // test delete doesn't affect schema in another context
-    registry.delete(id1);
-    tableManager.flush();
+    run(registry -> registry.delete(id1));
     try {
-      registry.getVersions(id1);
+      run(registry -> registry.getVersions(id1));
     } catch (SchemaNotFoundException e) {
       // expected
     }
-    Assert.assertEquals(Collections.singleton(v2), registry.getVersions(id2));
+    Assert.assertEquals(Collections.singleton(v2), call(registry -> registry.getVersions(id2)));
+  }
+
+  private <T> T call(SchemaRegistryCallable<T> callable) {
+    return TransactionRunners.run(getTransactionRunner(), context -> {
+      SchemaRegistry registry = SchemaRegistry.get(context);
+      return callable.run(registry);
+    }, SchemaNotFoundException.class);
+  }
+
+  private void run(SchemaRegistryRunnable runnable) {
+    TransactionRunners.run(getTransactionRunner(), context -> {
+      SchemaRegistry registry = SchemaRegistry.get(context);
+      runnable.run(registry);
+    }, SchemaNotFoundException.class);
+  }
+
+  private interface SchemaRegistryRunnable {
+    void run(SchemaRegistry registry) throws Exception;
+  }
+
+  private interface SchemaRegistryCallable<T> {
+    T run(SchemaRegistry registry) throws Exception;
   }
 }

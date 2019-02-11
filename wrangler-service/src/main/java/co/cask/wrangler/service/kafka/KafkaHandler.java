@@ -18,11 +18,13 @@ package co.cask.wrangler.service.kafka;
 
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
@@ -151,8 +153,10 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                    @PathParam("id") String id, @PathParam("topic") String topic,
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = store.get(new NamespacedId(namespace, id));
+    respond(request, responder, namespace, () -> TransactionRunners.run(getContext(), context -> {
+      ConnectionStore store = ConnectionStore.get(context);
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      Connection connection = getValidatedConnection(store, new NamespacedId(namespace, id), ConnectionType.KAFKA);
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
@@ -204,7 +208,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       } finally {
         consumer.close();
       }
-    });
+    }));
   }
 
   @Path("connections/{id}/kafka/{topic}/specification")
@@ -228,7 +232,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @PathParam("id") String id, @PathParam("topic") String topic) {
     respond(request, responder, namespace, () -> {
-      Connection conn = store.get(new NamespacedId(namespace, id));
+      Connection conn = getValidatedConnection(new NamespacedId(namespace, id), ConnectionType.KAFKA);
       Map<String, String> connProperties = conn.getProperties();
 
       Map<String, String> properties = new HashMap<>();

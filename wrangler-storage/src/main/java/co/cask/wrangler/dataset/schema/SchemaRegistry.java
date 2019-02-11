@@ -16,19 +16,27 @@
 
 package co.cask.wrangler.dataset.schema;
 
-import co.cask.cdap.api.common.Bytes;
-import co.cask.cdap.api.dataset.DataSetException;
-import co.cask.cdap.api.dataset.table.Put;
-import co.cask.cdap.api.dataset.table.Row;
-import co.cask.cdap.api.dataset.table.Table;
-import co.cask.wrangler.dataset.NamespacedKeys;
+import co.cask.cdap.api.dataset.lib.CloseableIterator;
+import co.cask.cdap.spi.data.StructuredRow;
+import co.cask.cdap.spi.data.StructuredTable;
+import co.cask.cdap.spi.data.StructuredTableContext;
+import co.cask.cdap.spi.data.TableNotFoundException;
+import co.cask.cdap.spi.data.table.StructuredTableId;
+import co.cask.cdap.spi.data.table.StructuredTableSpecification;
+import co.cask.cdap.spi.data.table.field.Field;
+import co.cask.cdap.spi.data.table.field.FieldType;
+import co.cask.cdap.spi.data.table.field.Fields;
+import co.cask.cdap.spi.data.table.field.Range;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
 import co.cask.wrangler.proto.schema.SchemaEntry;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -41,30 +49,97 @@ import javax.annotation.Nullable;
  * A schema entry contains the actual schema bytes and is uniquely identified by the schema it belongs to and a
  * version number. A schema entry is added to a schema and can also be removed. In addition, each schema keeps track
  * of the latest schema entry.
+ *
+ * Schema information is stored in two tables, one for the schema metadata and one for the schema entries.
+ *
+ * The schema metadata table contains nine columns:
+ *
+ * namespace, id, name, description, created, updated, type, auto, current
+ *
+ * The namespace and id columns form the primary key for the metadata table. The current column points to the latest
+ * schema entry version, and the auto column is used for generating version numbers for any new schema entries.
+ *
+ * The schema entry table contains four columns:
+ *
+ * namespace, id, version, schema
+ *
+ * The namespace, id, and version columns form the primary key, while the schema column contains the actual schema.
  */
 public final class SchemaRegistry  {
-  public static final String DATASET_NAME = "schemaRegistry";
-  private static final byte[] NAME_COL = Bytes.toBytes("name");
-  private static final byte[] DESC_COL = Bytes.toBytes("description");
-  private static final byte[] CREATED_COL = Bytes.toBytes("created");
-  private static final byte[] UPDATED_COL = Bytes.toBytes("updated");
-  private static final byte[] TYPE_COL = Bytes.toBytes("type");
-  private static final byte[] AUTO_VERSION_COL = Bytes.toBytes("auto");
-  private static final byte[] CURRENT_VERSION_COL = Bytes.toBytes("current");
-  // Table in which all the information of the schema is stored.
-  private final Table table;
+  private static final String NAMESPACE_COL = "namespace";
+  private static final String ID_COL = "id";
+  private final StructuredTable metaTable;
+  private final StructuredTable entryTable;
 
-  public SchemaRegistry(Table table) {
-    this.table = table;
+  /**
+   * Columns specific to the meta table
+   */
+  private static class MetaColumn {
+    private static final String NAME = "name";
+    private static final String DESC = "description";
+    private static final String CREATED = "created";
+    private static final String UPDATED = "updated";
+    private static final String TYPE = "type";
+    private static final String AUTO_VERSION = "auto";
+    private static final String CURRENT_VERSION = "current";
   }
+
+  /**
+   * Columns specific to the entry table
+   */
+  private static class EntryColumn {
+    private static final String VERSION = "version";
+    private static final String SCHEMA = "schema";
+  }
+
+  private static final StructuredTableId META_TABLE_ID = new StructuredTableId("schema_registry_meta");
+  private static final StructuredTableId ENTRY_TABLE_ID = new StructuredTableId("schema_registry_entries");
+  public static final StructuredTableSpecification META_TABLE_SPEC = new StructuredTableSpecification.Builder()
+    .withId(META_TABLE_ID)
+    .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(ID_COL, FieldType.Type.STRING),
+                new FieldType(MetaColumn.NAME, FieldType.Type.STRING),
+                new FieldType(MetaColumn.DESC, FieldType.Type.STRING),
+                new FieldType(MetaColumn.CREATED, FieldType.Type.LONG),
+                new FieldType(MetaColumn.UPDATED, FieldType.Type.LONG),
+                new FieldType(MetaColumn.TYPE, FieldType.Type.STRING),
+                new FieldType(MetaColumn.AUTO_VERSION, FieldType.Type.LONG),
+                new FieldType(MetaColumn.CURRENT_VERSION, FieldType.Type.LONG))
+    .withPrimaryKeys(NAMESPACE_COL, ID_COL)
+    .build();
+  public static final StructuredTableSpecification ENTRY_TABLE_SPEC = new StructuredTableSpecification.Builder()
+    .withId(ENTRY_TABLE_ID)
+    .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(ID_COL, FieldType.Type.STRING),
+                new FieldType(EntryColumn.VERSION, FieldType.Type.LONG),
+                new FieldType(EntryColumn.SCHEMA, FieldType.Type.BYTES))
+    .withPrimaryKeys(NAMESPACE_COL, ID_COL, EntryColumn.VERSION)
+    .build();
+
+  public SchemaRegistry(StructuredTable metaTable, StructuredTable entryTable) {
+    this.metaTable = metaTable;
+    this.entryTable = entryTable;
+  }
+
+  public static SchemaRegistry get(StructuredTableContext context) {
+    try {
+      StructuredTable metaTable = context.getTable(META_TABLE_ID);
+      StructuredTable entryTable = context.getTable(ENTRY_TABLE_ID);
+      return new SchemaRegistry(metaTable, entryTable);
+    } catch (TableNotFoundException e) {
+      throw new IllegalStateException(String.format(
+        "System table '%s' does not exist. Please check your system environment.", e.getId().getName()), e);
+    }
+  }
+
 
   /**
    * Writes an entry in the schema registry. If the schema already exists, it is overwritten.
    *
    * @param schemaDescriptor information about the schema to write
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public void write(SchemaDescriptor schemaDescriptor) throws SchemaRegistryException {
+  public void write(SchemaDescriptor schemaDescriptor) throws IOException {
     SchemaRow.Builder builder = SchemaRow.builder(schemaDescriptor);
 
     long now = System.currentTimeMillis() / 1000;
@@ -80,25 +155,25 @@ public final class SchemaRegistry  {
         .setCurrentVersion(existing.getCurrentVersion());
     }
 
-    try {
-      table.put(toPut(builder.build()));
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to create schema descriptor '%s'. %s", schemaDescriptor.getId(), e.getMessage()));
-    }
+    metaTable.upsert(toFields(builder.build()));
   }
 
   /**
    * Deletes the schema and all associated entries.
    *
    * @param id of the schema to delete
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public void delete(NamespacedId id) throws SchemaRegistryException {
-    try {
-      table.delete(NamespacedKeys.getRowKey(id));
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(String.format("Unable to delete schema. %s", e.getMessage()));
+  public void delete(NamespacedId id) throws IOException {
+    metaTable.delete(getMetaKey(id));
+    Range range = Range.singleton(getMetaKey(id));
+    try (CloseableIterator<StructuredRow> rowIter = entryTable.scan(range, Integer.MAX_VALUE)) {
+      while (rowIter.hasNext()) {
+        StructuredRow row = rowIter.next();
+        NamespacedId entryId = new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL));
+        long entryVersion = row.getLong(EntryColumn.VERSION);
+        entryTable.delete(getEntryKey(entryId, entryVersion));
+      }
     }
   }
 
@@ -108,9 +183,9 @@ public final class SchemaRegistry  {
    * @param id the id of the schema to add
    * @param specification the schema to be added
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public long add(NamespacedId id, byte[] specification) throws SchemaRegistryException {
+  public long add(NamespacedId id, byte[] specification) throws IOException {
     SchemaRow existing = getSchemaRow(id);
     if (existing == null) {
       throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
@@ -123,16 +198,11 @@ public final class SchemaRegistry  {
       .setCurrentVersion(version)
       .build();
 
-    try {
-      // update schema information
-      table.put(toPut(updated));
-      // add schema entry
-      Put entry = new Put(NamespacedKeys.getRowKey(id));
-      entry.add(toVersionColumn(version), specification);
-      table.put(entry);
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(String.format("Unable to add entry to schema '%s'. %s", id, e.getMessage()));
-    }
+    // update schema information
+    metaTable.upsert(toFields(updated));
+    List<Field<?>> fields = getEntryKey(id, version);
+    fields.add(Fields.bytesField(EntryColumn.SCHEMA, specification));
+    entryTable.upsert(fields);
     return version;
   }
 
@@ -144,18 +214,14 @@ public final class SchemaRegistry  {
    * @param id of the schema to be deleted.
    * @param version of the schema to be deleted.
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public void remove(NamespacedId id, long version) throws SchemaRegistryException {
-    try {
-      SchemaRow row = getSchemaRow(id);
-      if (row == null) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
-      }
-      table.delete(NamespacedKeys.getRowKey(id), toVersionColumn(version));
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(String.format("Unable to delete schema '%s'. %s", id, e.getMessage()));
+  public void remove(NamespacedId id, long version) throws IOException {
+    SchemaRow row = getSchemaRow(id);
+    if (row == null) {
+      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
     }
+    entryTable.delete(getEntryKey(id, version));
   }
 
   /**
@@ -165,19 +231,15 @@ public final class SchemaRegistry  {
    * @param version version of the schema to be checked.
    * @return true if id and version matches, else false.
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public boolean hasSchema(NamespacedId id, long version) throws SchemaRegistryException {
-    try {
-      Row row = table.get(NamespacedKeys.getRowKey(id));
-      if (row.isEmpty()) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist", id.getId()));
-      }
-      return row.getColumns().keySet().contains(toVersionColumn(version));
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to check if schema '%s' version '%d'. %s", id, version, e.getMessage()));
+  public boolean hasSchema(NamespacedId id, long version) throws IOException {
+    SchemaRow schemaRow = getSchemaRow(id);
+    if (schemaRow == null) {
+      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist", id.getId()));
     }
+    Optional<StructuredRow> row = entryTable.read(getEntryKey(id, version));
+    return row.isPresent();
   }
 
   /**
@@ -185,16 +247,11 @@ public final class SchemaRegistry  {
    *
    * @param id the id of the schema to check
    * @return true if it exists, false otherwise
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public boolean hasSchema(NamespacedId id) throws SchemaRegistryException {
-    try {
-      Row row = table.get(NamespacedKeys.getRowKey(id));
-      return !row.isEmpty();
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to check if schema '%s' exists. %s", id, e.getMessage()));
-    }
+  public boolean hasSchema(NamespacedId id) throws IOException {
+    Optional<StructuredRow> row = metaTable.read(getMetaKey(id));
+    return row.isPresent();
   }
 
   /**
@@ -203,28 +260,20 @@ public final class SchemaRegistry  {
    * @param id the schema id
    * @return list of schema versions
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public Set<Long> getVersions(NamespacedId id) throws SchemaRegistryException {
-    try {
-      Row row = table.get(NamespacedKeys.getRowKey(id));
-      if (row.isEmpty()) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
-      }
-      Set<byte[]> versions = row.getColumns().keySet();
+  public Set<Long> getVersions(NamespacedId id) throws IOException {
+    if (getSchemaRow(id) == null) {
+      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
+    }
+    Range range = Range.singleton(getMetaKey(id));
+    try (CloseableIterator<StructuredRow> rowIter = entryTable.scan(range, Integer.MAX_VALUE)) {
       Set<Long> versionSet = new LinkedHashSet<>();
-      for (byte[] version : versions) {
-        String v = new String(version, StandardCharsets.UTF_8);
-        int idx = v.indexOf("ver:");
-        if (idx != -1) {
-          String number = v.substring(idx + 4);
-          versionSet.add(Long.parseLong(number));
-        }
+      while (rowIter.hasNext()) {
+        StructuredRow row = rowIter.next();
+        versionSet.add(row.getLong(EntryColumn.VERSION));
       }
       return versionSet;
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to check what versions of schema '%s' exist. %s", id, e.getMessage()));
     }
   }
 
@@ -235,19 +284,14 @@ public final class SchemaRegistry  {
    * @param version the entry version to get
    * @return the schema entry
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public SchemaEntry getEntry(NamespacedId id, long version) throws SchemaRegistryException {
-    try {
-      SchemaRow schemaRow = getSchemaRow(id);
-      if (schemaRow == null) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
-      }
-      return getEntry(schemaRow, version);
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to check if schema '%s' version '%d' exists. '%s'", id, version, e.getMessage()));
+  public SchemaEntry getEntry(NamespacedId id, long version) throws IOException {
+    SchemaRow schemaRow = getSchemaRow(id);
+    if (schemaRow == null) {
+      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
     }
+    return getEntry(schemaRow, version);
   }
 
   /**
@@ -256,72 +300,81 @@ public final class SchemaRegistry  {
    * @param id the schema id
    * @return the latest entry of the specified schema
    * @throws SchemaNotFoundException if the schema or its latest entry could not be found
-   * @throws SchemaRegistryException if there was an error reading from or writing to the storage system
+   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public SchemaEntry getEntry(NamespacedId id) throws SchemaRegistryException {
-    try {
-      SchemaRow schemaRow = getSchemaRow(id);
-      if (schemaRow == null) {
-        throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
-      }
-      Long version = schemaRow.getCurrentVersion();
-      if (version == null) {
-        return new SchemaEntry(id, schemaRow.getDescriptor().getName(), schemaRow.getDescriptor().getDescription(),
-                               schemaRow.getDescriptor().getType(), Collections.emptySet(), null, null);
-      }
-      return getEntry(schemaRow, version);
-    } catch (DataSetException e) {
-      throw new SchemaRegistryException(
-        String.format("Unable to check if the latest version of schema '%s' exists. '%s'", id, e.getMessage()));
+  public SchemaEntry getEntry(NamespacedId id) throws IOException {
+    SchemaRow schemaRow = getSchemaRow(id);
+    if (schemaRow == null) {
+      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
     }
+    Long version = schemaRow.getCurrentVersion();
+    if (version == null) {
+      return new SchemaEntry(id, schemaRow.getDescriptor().getName(), schemaRow.getDescriptor().getDescription(),
+                             schemaRow.getDescriptor().getType(), Collections.emptySet(), null, null);
+    }
+    return getEntry(schemaRow, version);
   }
 
-  private SchemaEntry getEntry(SchemaRow schemaRow, long version) throws SchemaRegistryException {
+  private SchemaEntry getEntry(SchemaRow schemaRow, long version) throws IOException {
     NamespacedId id = schemaRow.getDescriptor().getId();
-    byte[] specification = table.get(NamespacedKeys.getRowKey(id), toVersionColumn(version));
-    if (specification == null) {
+    Optional<StructuredRow> row = entryTable.read(getEntryKey(id, version));
+    if (!row.isPresent()) {
       throw new SchemaNotFoundException(String.format("Schema '%s' version '%d' does not exist.", id.getId(), version));
     }
+    byte[] specification = row.get().getBytes(EntryColumn.SCHEMA);
     Set<Long> versions = getVersions(id);
     return new SchemaEntry(id, schemaRow.getDescriptor().getName(), schemaRow.getDescriptor().getDescription(),
                            schemaRow.getDescriptor().getType(), versions, specification,
                            schemaRow.getCurrentVersion());
   }
-  
-  private byte[] toVersionColumn(long version) {
-    String ver = String.format("ver:%d", version);
-    return ver.getBytes(StandardCharsets.UTF_8);
-  }
 
   @Nullable
-  private SchemaRow getSchemaRow(NamespacedId id) {
-    Row row = table.get(NamespacedKeys.getRowKey(id));
-    return row.isEmpty() ? null : fromRow(row);
+  private SchemaRow getSchemaRow(NamespacedId id) throws IOException {
+    Optional<StructuredRow> row = metaTable.read(getMetaKey(id));
+    return row.map(this::fromRow).orElse(null);
   }
 
-  private Put toPut(SchemaRow schemaRow) {
-    Put put = new Put(NamespacedKeys.getRowKey(schemaRow.getDescriptor().getId()));
-    put.add(NAME_COL, schemaRow.getDescriptor().getName());
-    put.add(DESC_COL, schemaRow.getDescriptor().getDescription());
-    put.add(TYPE_COL, schemaRow.getDescriptor().getType().name());
-    put.add(CREATED_COL, schemaRow.getCreated());
-    put.add(UPDATED_COL, schemaRow.getUpdated());
-    put.add(AUTO_VERSION_COL, schemaRow.getAutoVersion());
+  private List<Field<?>> getMetaKey(NamespacedId id) {
+    List<Field<?>> fields = new ArrayList<>(2);
+    fields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace()));
+    fields.add(Fields.stringField(ID_COL, id.getId()));
+    return fields;
+  }
+
+  private List<Field<?>> getEntryKey(NamespacedId schemaId, long version) {
+    List<Field<?>> fields = new ArrayList<>(3);
+    fields.add(Fields.stringField(NAMESPACE_COL, schemaId.getNamespace()));
+    fields.add(Fields.stringField(ID_COL, schemaId.getId()));
+    fields.add(Fields.longField(EntryColumn.VERSION, version));
+    return fields;
+  }
+
+  private List<Field<?>> toFields(SchemaRow schemaRow) {
+    List<Field<?>> fields = new ArrayList<>(9);
+    fields.add(Fields.stringField(NAMESPACE_COL, schemaRow.getDescriptor().getId().getNamespace()));
+    fields.add(Fields.stringField(ID_COL, schemaRow.getDescriptor().getId().getId()));
+    fields.add(Fields.stringField(MetaColumn.NAME, schemaRow.getDescriptor().getName()));
+    fields.add(Fields.stringField(MetaColumn.DESC, schemaRow.getDescriptor().getDescription()));
+    fields.add(Fields.stringField(MetaColumn.TYPE, schemaRow.getDescriptor().getType().name()));
+    fields.add(Fields.longField(MetaColumn.CREATED, schemaRow.getCreated()));
+    fields.add(Fields.longField(MetaColumn.UPDATED, schemaRow.getUpdated()));
+    fields.add(Fields.longField(MetaColumn.AUTO_VERSION, schemaRow.getAutoVersion()));
     if (schemaRow.getCurrentVersion() != null) {
-      put.add(CURRENT_VERSION_COL, schemaRow.getCurrentVersion());
+      fields.add(Fields.longField(MetaColumn.CURRENT_VERSION, schemaRow.getCurrentVersion()));
     }
-    return put;
+    return fields;
   }
 
-  private SchemaRow fromRow(Row row) {
-    SchemaDescriptor descriptor = new SchemaDescriptor(
-      NamespacedKeys.fromRowKey(row.getRow()),
-      row.getString(NAME_COL), row.getString(DESC_COL), SchemaDescriptorType.valueOf(row.getString(TYPE_COL)));
+  private SchemaRow fromRow(StructuredRow row) {
+    NamespacedId id = new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL));
+    SchemaDescriptor descriptor = new SchemaDescriptor(id, row.getString(MetaColumn.NAME),
+                                                       row.getString(MetaColumn.DESC),
+                                                       SchemaDescriptorType.valueOf(row.getString(MetaColumn.TYPE)));
     return SchemaRow.builder(descriptor)
-      .setCreated(row.getLong(CREATED_COL))
-      .setUpdated(row.getLong(UPDATED_COL))
-      .setAutoVersion(row.getLong(AUTO_VERSION_COL))
-      .setCurrentVersion(row.getLong(CURRENT_VERSION_COL))
+      .setCreated(row.getLong(MetaColumn.CREATED))
+      .setUpdated(row.getLong(MetaColumn.UPDATED))
+      .setAutoVersion(row.getLong(MetaColumn.AUTO_VERSION))
+      .setCurrentVersion(row.getLong(MetaColumn.CURRENT_VERSION))
       .build();
   }
 

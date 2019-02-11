@@ -22,11 +22,13 @@ import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
 import co.cask.wrangler.ServiceUtils;
 import co.cask.wrangler.api.Row;
+import co.cask.wrangler.dataset.connections.ConnectionStore;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
@@ -113,15 +115,6 @@ public class S3Handler extends AbstractWranglerHandler {
       intializeAndGetS3Client(connection).listBuckets();
       return new ServiceResponse<Void>("Success");
     });
-  }
-
-  private void validateConnection(String connectionId, Connection connection) {
-    if (connection == null) {
-      throw new BadRequestException("Unable to find connection in store for the connection id - " + connectionId);
-    }
-    if (ConnectionType.S3 != connection.getType()) {
-      throw new BadRequestException("Invalid connection type set, this endpoint only accepts S3 connection type");
-    }
   }
 
   // creates s3 client and sets region and returns the initialized client
@@ -254,8 +247,7 @@ public class S3Handler extends AbstractWranglerHandler {
         }
 
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
-        Connection connection = store.get(new NamespacedId(namespace, connectionId));
-        validateConnection(connectionId, connection);
+        Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.S3);
         AmazonS3 s3 = intializeAndGetS3Client(connection);
         S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
         if (object == null) {
@@ -301,7 +293,9 @@ public class S3Handler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                             @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,
                             @QueryParam("wid") String workspaceId) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, () -> TransactionRunners.run(getContext(), context -> {
+      ConnectionStore store = ConnectionStore.get(context);
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
       Format format = Format.TEXT;
       NamespacedId namespacedWorkspaceId = new NamespacedId(namespace, workspaceId);
       if (workspaceId != null) {
@@ -309,28 +303,30 @@ public class S3Handler extends AbstractWranglerHandler {
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         format = Format.valueOf(formatStr);
       }
-      Connection conn = store.get(new NamespacedId(namespace, connectionId));
+      Connection conn = getValidatedConnection(store, new NamespacedId(namespace, connectionId), ConnectionType.S3);
       S3Configuration s3Configuration = new S3Configuration(conn);
       Map<String, String> properties = new HashMap<>();
       properties.put("format", format.name().toLowerCase());
       properties.put("accessID", s3Configuration.getAWSAccessKeyId());
       properties.put("accessKey", s3Configuration.getAWSSecretKey());
       properties.put("path", String.format("s3n://%s/%s", bucketName, key));
-      properties.put("copyHeader", String.valueOf(shouldCopyHeader(namespacedWorkspaceId)));
+      properties.put("copyHeader", String.valueOf(shouldCopyHeader(ws, namespacedWorkspaceId)));
       properties.put("schema", format.getSchema().toString());
 
       PluginSpec pluginSpec = new PluginSpec("S3", "source", properties);
       S3Spec spec = new S3Spec(pluginSpec);
       return new ServiceResponse<>(spec);
-    });
+    }));
   }
 
   private S3ConnectionSample loadSamplableFile(NamespacedId connectionId, String scope, InputStream inputStream,
                                                S3Object s3Object, int lines, double fraction,
                                                String sampler) throws IOException {
-    SamplingMethod samplingMethod = SamplingMethod.fromString(sampler);
+    SamplingMethod samplingMethod;
     if (sampler == null || sampler.isEmpty() || SamplingMethod.fromString(sampler) == null) {
       samplingMethod = SamplingMethod.FIRST;
+    } else {
+      samplingMethod = SamplingMethod.fromString(sampler);
     }
 
     try (BoundedLineInputStream blis = BoundedLineInputStream.iterator(inputStream, Charsets.UTF_8, lines)) {
@@ -352,27 +348,30 @@ public class S3Handler extends AbstractWranglerHandler {
         .setScope(scope)
         .setProperties(properties)
         .build();
-      ws.writeWorkspaceMeta(workspaceMeta);
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.writeWorkspaceMeta(workspaceMeta);
 
-      // Iterate through lines to extract only 'limit' random lines.
-      // Depending on the type, the sampling of the input is performed.
-      List<Row> rows = new ArrayList<>();
-      Iterator<String> it = blis;
-      if (samplingMethod == SamplingMethod.POISSON) {
-        it = new Poisson<String>(fraction).sample(blis);
-      } else if (samplingMethod == SamplingMethod.BERNOULLI) {
-        it = new Bernoulli<String>(fraction).sample(blis);
-      } else if (samplingMethod == SamplingMethod.RESERVOIR) {
-        it = new Reservoir<String>(lines).sample(blis);
-      }
-      while (it.hasNext()) {
-        rows.add(new Row(COLUMN_NAME, it.next()));
-      }
+        // Iterate through lines to extract only 'limit' random lines.
+        // Depending on the type, the sampling of the input is performed.
+        List<Row> rows = new ArrayList<>();
+        Iterator<String> it = blis;
+        if (samplingMethod == SamplingMethod.POISSON) {
+          it = new Poisson<String>(fraction).sample(blis);
+        } else if (samplingMethod == SamplingMethod.BERNOULLI) {
+          it = new Bernoulli<String>(fraction).sample(blis);
+        } else if (samplingMethod == SamplingMethod.RESERVOIR) {
+          it = new Reservoir<String>(lines).sample(blis);
+        }
+        while (it.hasNext()) {
+          rows.add(new Row(COLUMN_NAME, it.next()));
+        }
 
-      // Write rows to workspace.
-      ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-      byte[] data = serDe.toByteArray(rows);
-      ws.updateWorkspaceData(namespacedWorkspaceId, DataType.RECORDS, data);
+        // Write rows to workspace.
+        ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+        byte[] data = serDe.toByteArray(rows);
+        ws.updateWorkspaceData(namespacedWorkspaceId, DataType.RECORDS, data);
+      });
 
       // Preparing return response to include mandatory fields : id and name.
       return new S3ConnectionSample(namespacedWorkspaceId.getId(), name, ConnectionType.S3.getType(),
@@ -417,8 +416,11 @@ public class S3Handler extends AbstractWranglerHandler {
       .setScope(scope)
       .setProperties(properties)
       .build();
-    ws.writeWorkspaceMeta(workspaceMeta);
-    ws.updateWorkspaceData(namespacedWorkspaceId, getDataType(name), bytes);
+    TransactionRunners.run(getContext(), context -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      ws.writeWorkspaceMeta(workspaceMeta);
+      ws.updateWorkspaceData(namespacedWorkspaceId, getDataType(name), bytes);
+    });
 
     // Preparing return response to include mandatory fields : id and name.
     return new S3ConnectionSample(namespacedWorkspaceId.getId(), name, ConnectionType.S3.getType(),
