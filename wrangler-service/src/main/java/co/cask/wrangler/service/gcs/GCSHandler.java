@@ -153,11 +153,11 @@ public class GCSHandler extends AbstractWranglerHandler {
                          @PathParam("connection-id") String connectionId,
                          @QueryParam("path") String path,
                          @QueryParam("limit") @DefaultValue("1000") int objectLimit) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       String bucketName = "";
       String prefix = null;
 
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.GCS);
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.GCS);
 
       int bucketStart = path.indexOf("/");
       if (bucketStart != -1) {
@@ -284,14 +284,14 @@ public class GCSHandler extends AbstractWranglerHandler {
                          @PathParam("bucket") String bucket,
                          @QueryParam("blob") String blobPath,
                          @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       String contentType = request.getHeader(PropertyIds.CONTENT_TYPE);
 
       if (blobPath == null || blobPath.isEmpty()) {
         throw new BadRequestException("Required query param 'path' is missing in the input");
       }
 
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.GCS);
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.GCS);
 
       Map<String, String> properties = new HashMap<>();
       Storage storage = GCPUtils.getStorageService(connection);
@@ -312,7 +312,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId);
       properties.put("bucket", bucket);
-      NamespacedId namespacedId = new NamespacedId(namespace, id);
+      NamespacedId namespacedId = new NamespacedId(ns, id);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, file.getName())
         .setScope(scope)
         .setProperties(properties)
@@ -393,7 +393,7 @@ public class GCSHandler extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       if (workspaceId == null) {
         throw new BadRequestException("Workspace ID must be passed as query parameter 'wid'.");
       }
@@ -401,10 +401,10 @@ public class GCSHandler extends AbstractWranglerHandler {
       return TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        Connection connection = getValidatedConnection(store, new NamespacedId(namespace, connectionId),
+        Connection connection = getValidatedConnection(store, new NamespacedId(ns, connectionId),
                                                        ConnectionType.GCS);
 
-        NamespacedId namespacedIdWorkspaceId = new NamespacedId(namespace, workspaceId);
+        NamespacedId namespacedIdWorkspaceId = new NamespacedId(ns, workspaceId);
         Map<String, String> config = ws.getWorkspace(namespacedIdWorkspaceId).getProperties();
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         Format format = Format.valueOf(formatStr);

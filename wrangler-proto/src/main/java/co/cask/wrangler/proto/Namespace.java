@@ -16,32 +16,36 @@
 
 package co.cask.wrangler.proto;
 
+import co.cask.cdap.api.NamespaceSummary;
+
 import java.util.Objects;
 
 /**
- * A unique identifier for an entity within a namespace.
- * The 'id' field is not globally unique, but is unique within the context.
- * It is named 'id' for backward compatibility reasons.
+ * Uniquely identifies a namespace generation.
  */
-public class NamespacedId {
-  protected final Namespace namespace;
-  protected final String id;
+public class Namespace {
+  protected final String name;
+  protected final long generation;
 
-  protected NamespacedId(NamespacedId other) {
-    this(other.namespace, other.id);
+  protected Namespace(Namespace other) {
+    this(other.name, other.generation);
   }
 
-  public NamespacedId(Namespace namespace, String id) {
-    this.namespace = namespace;
-    this.id = id;
+  public Namespace(String name, long generation) {
+    this.name = name;
+    this.generation = generation;
   }
 
-  public Namespace getNamespace() {
-    return namespace;
+  public Namespace(NamespaceSummary summary) {
+    this(summary.getName(), summary.getGeneration());
   }
 
-  public String getId() {
-    return id;
+  public String getName() {
+    return name;
+  }
+
+  public long getGeneration() {
+    return generation;
   }
 
   @Override
@@ -52,13 +56,13 @@ public class NamespacedId {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    NamespacedId that = (NamespacedId) o;
-    return Objects.equals(namespace, that.namespace) &&
-      Objects.equals(id, that.id);
+    Namespace that = (Namespace) o;
+    return generation == that.generation &&
+      Objects.equals(name, that.name);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(namespace, id);
+    return Objects.hash(name, generation);
   }
 }

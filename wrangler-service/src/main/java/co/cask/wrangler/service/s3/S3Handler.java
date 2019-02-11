@@ -150,9 +150,9 @@ public class S3Handler extends AbstractWranglerHandler {
                               @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                               @QueryParam("path") String path,
                               @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       try {
-        Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.S3);
+        Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.S3);
         String bucketName = "";
         String prefix = null;
         int bucketStart = path.indexOf("/");
@@ -240,14 +240,15 @@ public class S3Handler extends AbstractWranglerHandler {
                          @QueryParam("key") String key, @QueryParam("lines") int lines,
                          @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
                          @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       try {
         if (Strings.isNullOrEmpty(key)) {
           throw new BadRequestException("Required query param 'key' is missing in the input");
         }
 
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
-        Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.S3);
+        NamespacedId namespacedConnId = new NamespacedId(ns, connectionId);
+        Connection connection = getValidatedConnection(namespacedConnId, ConnectionType.S3);
         AmazonS3 s3 = intializeAndGetS3Client(connection);
         S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
         if (object == null) {
@@ -258,9 +259,9 @@ public class S3Handler extends AbstractWranglerHandler {
         try (InputStream inputStream = object.getObjectContent()) {
           S3ConnectionSample sample;
           if (header != null && header.equalsIgnoreCase("text/plain")) {
-            sample = loadSamplableFile(connection.getId(), scope, inputStream, object, lines, fraction, sampler);
+            sample = loadSamplableFile(namespacedConnId, scope, inputStream, object, lines, fraction, sampler);
           } else {
-            sample = loadFile(connection.getId(), scope, inputStream, object);
+            sample = loadFile(namespacedConnId, scope, inputStream, object);
           }
           return new ServiceResponse<>(sample);
         }
@@ -293,17 +294,17 @@ public class S3Handler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                             @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,
                             @QueryParam("wid") String workspaceId) {
-    respond(request, responder, namespace, () -> TransactionRunners.run(getContext(), context -> {
+    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
       ConnectionStore store = ConnectionStore.get(context);
       WorkspaceDataset ws = WorkspaceDataset.get(context);
       Format format = Format.TEXT;
-      NamespacedId namespacedWorkspaceId = new NamespacedId(namespace, workspaceId);
+      NamespacedId namespacedWorkspaceId = new NamespacedId(ns, workspaceId);
       if (workspaceId != null) {
         Map<String, String> config = ws.getWorkspace(namespacedWorkspaceId).getProperties();
         String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
         format = Format.valueOf(formatStr);
       }
-      Connection conn = getValidatedConnection(store, new NamespacedId(namespace, connectionId), ConnectionType.S3);
+      Connection conn = getValidatedConnection(store, new NamespacedId(ns, connectionId), ConnectionType.S3);
       S3Configuration s3Configuration = new S3Configuration(conn);
       Map<String, String> properties = new HashMap<>();
       properties.put("format", format.name().toLowerCase());

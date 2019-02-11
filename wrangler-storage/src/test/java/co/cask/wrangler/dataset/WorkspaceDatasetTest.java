@@ -25,6 +25,7 @@ import co.cask.wrangler.dataset.workspace.Workspace;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.dataset.workspace.WorkspaceNotFoundException;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Recipe;
 import co.cask.wrangler.proto.Request;
@@ -63,22 +64,23 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
   public void testNotFoundExceptions() throws Exception {
     getTransactionRunner().run(context -> {
       WorkspaceDataset ws = WorkspaceDataset.get(context);
+      Namespace namespace = new Namespace("c0", 10L);
       try {
-        ws.updateWorkspaceData(new NamespacedId("c0", "id"), DataType.TEXT, new byte[]{0});
+        ws.updateWorkspaceData(new NamespacedId(namespace, "id"), DataType.TEXT, new byte[]{0});
         Assert.fail("Updating a non-existing workspace should fail.");
       } catch (WorkspaceNotFoundException e) {
         // expected
       }
 
       try {
-        ws.updateWorkspaceProperties(new NamespacedId("c0", "id"), Collections.emptyMap());
+        ws.updateWorkspaceProperties(new NamespacedId(namespace, "id"), Collections.emptyMap());
         Assert.fail("Updating a non-existing workspace should fail.");
       } catch (WorkspaceNotFoundException e) {
         // expected
       }
 
       try {
-        ws.updateWorkspaceRequest(new NamespacedId("c0", "id"), null);
+        ws.updateWorkspaceRequest(new NamespacedId(namespace, "id"), null);
         Assert.fail("Updating a non-existing workspace should fail.");
       } catch (WorkspaceNotFoundException e) {
         // expected
@@ -91,7 +93,7 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
     WorkspaceIdentifier id1 = new WorkspaceIdentifier("id1", "name1");
     WorkspaceIdentifier id2 = new WorkspaceIdentifier("id2", "name2");
 
-    String namespace = "c0";
+    Namespace namespace = new Namespace("c0", 10L);
 
     String scope1 = "scope1";
     String scope2 = "scope2";
@@ -120,8 +122,8 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
 
   @Test
   public void testNamespaceIsolation() {
-    NamespacedId id1 = new NamespacedId("n1", "id1");
-    NamespacedId id2 = new NamespacedId("n2", "id2");
+    NamespacedId id1 = new NamespacedId(new Namespace("n1", 10L), "id1");
+    NamespacedId id2 = new NamespacedId(new Namespace("n2", 10L), "id2");
 
     // test writes in different namespaces don't conflict with each other
     WorkspaceMeta meta1 = WorkspaceMeta.builder(id1, "name1")
@@ -171,8 +173,33 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
   }
 
   @Test
+  public void testNamespaceGenerations() {
+    Namespace nsGen1 = new Namespace("ns1", 1L);
+    Namespace nsGen2 = new Namespace("ns1", 2L);
+
+    NamespacedId id1 = new NamespacedId(nsGen1, "id0");
+    // test creation in different namespaces
+    WorkspaceMeta meta1 = WorkspaceMeta.builder(id1, "name1")
+      .setType(DataType.BINARY)
+      .setProperties(Collections.singletonMap("k1", "v1"))
+      .build();
+    run(ws -> ws.writeWorkspaceMeta(meta1));
+
+    // test that fetching with a different generation doesn't include the connection
+    try {
+      run(ws -> ws.getWorkspace(new NamespacedId(nsGen2, id1.getId())));
+      Assert.fail("workspace with a different generation should not be visible.");
+    } catch (WorkspaceNotFoundException e) {
+      // expected
+    }
+
+    // test that listing with a different generation doesn't include the connection
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(nsGen2, WorkspaceDataset.DEFAULT_SCOPE)).isEmpty());
+  }
+
+  @Test
   public void testCRUD() {
-    NamespacedId id = new NamespacedId("c0", "id0");
+    NamespacedId id = new NamespacedId(new Namespace("c0", 10L), "id0");
     Assert.assertTrue(call(ws -> ws.listWorkspaces(id.getNamespace(), "default").isEmpty()));
     Assert.assertFalse(call(ws -> ws.hasWorkspace(id)));
     WorkspaceIdentifier workspaceId = new WorkspaceIdentifier(id.getId(), "name");

@@ -21,7 +21,6 @@ import co.cask.http.HandlerContext;
 import co.cask.http.HttpHandler;
 import co.cask.http.HttpResponder;
 import co.cask.http.NettyHttpService;
-import co.cask.wrangler.proto.NamespacedId;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -162,7 +161,7 @@ public class SchemaRegistryClientTest {
 
   @Test
   public void testGetSchema() throws Exception {
-    byte[] bytes = client.getSchema(new NamespacedId("c0", "foo"), 1);
+    byte[] bytes = client.getSchema("c0", "foo", 1);
     Assert.assertNotNull(bytes);
     String str = Bytes.toString(bytes);
     Assert.assertEquals("{\"foo\" : \"test\"}", str);
@@ -170,13 +169,13 @@ public class SchemaRegistryClientTest {
 
   @Test
   public void testGetVersions() throws Exception {
-    List<Long> response = client.getVersions(new NamespacedId("c0", "foo"));
+    List<Long> response = client.getVersions("c0", "foo");
     Assert.assertEquals(4, response.size());
     Assert.assertNotNull(response);
   }
 
   @Test (expected = RestClientException.class)
   public void testGetWrongSchemaIdVersions() throws Exception {
-    client.getVersions(new NamespacedId("c0", "foo1"));
+    client.getVersions("c0", "foo1");
   }
 }

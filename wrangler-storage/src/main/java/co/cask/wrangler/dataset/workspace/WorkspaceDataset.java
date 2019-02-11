@@ -29,6 +29,7 @@ import co.cask.cdap.spi.data.table.field.Field;
 import co.cask.cdap.spi.data.table.field.FieldType;
 import co.cask.cdap.spi.data.table.field.Fields;
 import co.cask.cdap.spi.data.table.field.Range;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Request;
 import co.cask.wrangler.proto.WorkspaceIdentifier;
@@ -66,6 +67,7 @@ public class WorkspaceDataset {
     .registerTypeAdapter(Request.class, new RequestDeserializer())
     .create();
   private static final String NAMESPACE_COL = "namespace";
+  private static final String GENERATION_COL = "generation";
   private static final String ID_COL = "id";
   private static final String NAME_COL = "name";
   private static final String TYPE_COL = "type";
@@ -79,6 +81,7 @@ public class WorkspaceDataset {
   public static final StructuredTableSpecification TABLE_SPEC = new StructuredTableSpecification.Builder()
     .withId(TABLE_ID)
     .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(GENERATION_COL, FieldType.Type.LONG),
                 new FieldType(ID_COL, FieldType.Type.STRING),
                 new FieldType(NAME_COL, FieldType.Type.STRING),
                 new FieldType(TYPE_COL, FieldType.Type.STRING),
@@ -88,7 +91,7 @@ public class WorkspaceDataset {
                 new FieldType(PROPERTIES_COL, FieldType.Type.STRING),
                 new FieldType(DATA_COL, FieldType.Type.BYTES),
                 new FieldType(REQUEST_COL, FieldType.Type.STRING))
-    .withPrimaryKeys(NAMESPACE_COL, ID_COL)
+    .withPrimaryKeys(NAMESPACE_COL, GENERATION_COL, ID_COL)
     .build();
   public static final String DEFAULT_SCOPE = "default";
   private final StructuredTable table;
@@ -161,9 +164,12 @@ public class WorkspaceDataset {
    *
    * @return List of workspaces.
    */
-  public List<WorkspaceIdentifier> listWorkspaces(String namespace, String scope) throws IOException {
+  public List<WorkspaceIdentifier> listWorkspaces(Namespace namespace, String scope) throws IOException {
     List<WorkspaceIdentifier> values = new ArrayList<>();
-    Range range = Range.singleton(Collections.singletonList(Fields.stringField(NAMESPACE_COL, namespace)));
+    List<Field<?>> namespaceKey = new ArrayList<>(2);
+    namespaceKey.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
+    namespaceKey.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
+    Range range = Range.singleton(namespaceKey);
     try (CloseableIterator<StructuredRow> rowIter = table.scan(range, Integer.MAX_VALUE)) {
       while (rowIter.hasNext()) {
         StructuredRow row = rowIter.next();
@@ -244,8 +250,11 @@ public class WorkspaceDataset {
    * @param scope to be deleted
    * @return number of workspaces deleted
    */
-  public int deleteScope(String namespace, String scope) throws IOException {
-    Range range = Range.singleton(Collections.singletonList(Fields.stringField(NAMESPACE_COL, namespace)));
+  public int deleteScope(Namespace namespace, String scope) throws IOException {
+    List<Field<?>> key = new ArrayList<>(2);
+    key.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
+    key.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
+    Range range = Range.singleton(key);
     try (CloseableIterator<StructuredRow> rowIter = table.scan(range, Integer.MAX_VALUE)) {
       int count = 0;
       while (rowIter.hasNext()) {
@@ -262,7 +271,8 @@ public class WorkspaceDataset {
 
   private List<Field<?>> toFields(Workspace workspace) {
     List<Field<?>> fields = new ArrayList<>(10);
-    fields.add(Fields.stringField(NAMESPACE_COL, workspace.getNamespace()));
+    fields.add(Fields.stringField(NAMESPACE_COL, workspace.getNamespace().getName()));
+    fields.add(Fields.longField(GENERATION_COL, workspace.getNamespace().getGeneration()));
     fields.add(Fields.stringField(ID_COL, workspace.getId()));
     fields.add(Fields.stringField(NAME_COL, workspace.getName()));
     fields.add(Fields.stringField(SCOPE_COL, workspace.getScope()));
@@ -288,7 +298,8 @@ public class WorkspaceDataset {
   }
 
   private Workspace readWorkspace(StructuredRow row) {
-    NamespacedId id = new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL));
+    Namespace namespace = new Namespace(row.getString(NAMESPACE_COL), row.getLong(GENERATION_COL));
+    NamespacedId id = new NamespacedId(namespace, row.getString(ID_COL));
 
     String propertiesStr = row.getString(PROPERTIES_COL);
     Map<String, String> properties = propertiesStr == null || propertiesStr.isEmpty() ?
@@ -310,7 +321,8 @@ public class WorkspaceDataset {
 
   private List<Field<?>> getKey(NamespacedId id) {
     List<Field<?>> keyFields = new ArrayList<>();
-    keyFields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace()));
+    keyFields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace().getName()));
+    keyFields.add(Fields.longField(GENERATION_COL, id.getNamespace().getGeneration()));
     keyFields.add(Fields.stringField(ID_COL, id.getId()));
     return keyFields;
   }
