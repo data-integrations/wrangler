@@ -23,6 +23,7 @@ import co.cask.cdap.test.TestConfiguration;
 import co.cask.wrangler.dataset.schema.SchemaDescriptor;
 import co.cask.wrangler.dataset.schema.SchemaNotFoundException;
 import co.cask.wrangler.dataset.schema.SchemaRegistry;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
 import co.cask.wrangler.proto.schema.SchemaEntry;
@@ -60,7 +61,7 @@ public class SchemaRegistryTest extends SystemAppTestBase {
   public void testNotFoundExceptions() throws Exception {
     getTransactionRunner().run(context -> {
       SchemaRegistry registry = SchemaRegistry.get(context);
-      NamespacedId id = new NamespacedId("c0", "id0");
+      NamespacedId id = new NamespacedId(new Namespace("c0", 10L), "id0");
       try {
         registry.remove(id, 0L);
         Assert.fail("removing an entry from a non-existent schema did not throw an exception");
@@ -96,7 +97,7 @@ public class SchemaRegistryTest extends SystemAppTestBase {
 
   @Test
   public void testCRUD() {
-    NamespacedId id = new NamespacedId("c0", "id0");
+    NamespacedId id = new NamespacedId(new Namespace("c0", 10L), "id0");
     Assert.assertFalse(call(registry -> registry.hasSchema(id)));
 
     // test schema creation
@@ -154,11 +155,11 @@ public class SchemaRegistryTest extends SystemAppTestBase {
 
   @Test
   public void testNamespaceIsolation() {
-    String context1 = "c1";
-    String context2 = "c2";
+    Namespace ns1 = new Namespace("c1", 10L);
+    Namespace ns2 = new Namespace("c2", 10L);
 
-    NamespacedId id1 = new NamespacedId(context1, "id0");
-    NamespacedId id2 = new NamespacedId(context2, id1.getId());
+    NamespacedId id1 = new NamespacedId(ns1, "id0");
+    NamespacedId id2 = new NamespacedId(ns2, id1.getId());
 
     SchemaDescriptor descriptor1 = new SchemaDescriptor(id1, "name1", "desc1", SchemaDescriptorType.AVRO);
     SchemaEntry expected1 = new SchemaEntry(id1, descriptor1.getName(), descriptor1.getDescription(),
@@ -187,6 +188,32 @@ public class SchemaRegistryTest extends SystemAppTestBase {
       // expected
     }
     Assert.assertEquals(Collections.singleton(v2), call(registry -> registry.getVersions(id2)));
+  }
+
+  @Test
+  public void testNamespaceGenerations() {
+    Namespace nsGen1 = new Namespace("ns1", 1L);
+    Namespace nsGen2 = new Namespace("ns1", 2L);
+
+    NamespacedId id = new NamespacedId(nsGen1, "id0");
+    SchemaDescriptor descriptor = new SchemaDescriptor(id, "name", "desc", SchemaDescriptorType.AVRO);
+    run(registry -> registry.write(descriptor));
+    long v1 = call(registry -> registry.add(id, new byte[]{1}));
+
+    // test that fetching with a different generation doesn't include the connection
+    try {
+      run(registry -> registry.getEntry(new NamespacedId(nsGen2, id.getId())));
+      Assert.fail("schema with a different generation should not be visible.");
+    } catch (SchemaNotFoundException e) {
+      // expected
+    }
+
+    try {
+      run(registry -> registry.getVersions(new NamespacedId(nsGen2, id.getId())));
+      Assert.fail("schema entry with a different generation should not be visible.");
+    } catch (SchemaNotFoundException e) {
+      // expected
+    }
   }
 
   private <T> T call(SchemaRegistryCallable<T> callable) {

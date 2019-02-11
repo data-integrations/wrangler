@@ -27,6 +27,7 @@ import co.cask.cdap.spi.data.table.field.Field;
 import co.cask.cdap.spi.data.table.field.FieldType;
 import co.cask.cdap.spi.data.table.field.Fields;
 import co.cask.cdap.spi.data.table.field.Range;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.schema.SchemaDescriptorType;
 import co.cask.wrangler.proto.schema.SchemaEntry;
@@ -67,6 +68,7 @@ import javax.annotation.Nullable;
  */
 public final class SchemaRegistry  {
   private static final String NAMESPACE_COL = "namespace";
+  private static final String GENERATION_COL = "generation";
   private static final String ID_COL = "id";
   private final StructuredTable metaTable;
   private final StructuredTable entryTable;
@@ -97,6 +99,7 @@ public final class SchemaRegistry  {
   public static final StructuredTableSpecification META_TABLE_SPEC = new StructuredTableSpecification.Builder()
     .withId(META_TABLE_ID)
     .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(GENERATION_COL, FieldType.Type.LONG),
                 new FieldType(ID_COL, FieldType.Type.STRING),
                 new FieldType(MetaColumn.NAME, FieldType.Type.STRING),
                 new FieldType(MetaColumn.DESC, FieldType.Type.STRING),
@@ -105,15 +108,16 @@ public final class SchemaRegistry  {
                 new FieldType(MetaColumn.TYPE, FieldType.Type.STRING),
                 new FieldType(MetaColumn.AUTO_VERSION, FieldType.Type.LONG),
                 new FieldType(MetaColumn.CURRENT_VERSION, FieldType.Type.LONG))
-    .withPrimaryKeys(NAMESPACE_COL, ID_COL)
+    .withPrimaryKeys(NAMESPACE_COL, GENERATION_COL, ID_COL)
     .build();
   public static final StructuredTableSpecification ENTRY_TABLE_SPEC = new StructuredTableSpecification.Builder()
     .withId(ENTRY_TABLE_ID)
     .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(GENERATION_COL, FieldType.Type.LONG),
                 new FieldType(ID_COL, FieldType.Type.STRING),
                 new FieldType(EntryColumn.VERSION, FieldType.Type.LONG),
                 new FieldType(EntryColumn.SCHEMA, FieldType.Type.BYTES))
-    .withPrimaryKeys(NAMESPACE_COL, ID_COL, EntryColumn.VERSION)
+    .withPrimaryKeys(NAMESPACE_COL, GENERATION_COL, ID_COL, EntryColumn.VERSION)
     .build();
 
   public SchemaRegistry(StructuredTable metaTable, StructuredTable entryTable) {
@@ -170,7 +174,8 @@ public final class SchemaRegistry  {
     try (CloseableIterator<StructuredRow> rowIter = entryTable.scan(range, Integer.MAX_VALUE)) {
       while (rowIter.hasNext()) {
         StructuredRow row = rowIter.next();
-        NamespacedId entryId = new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL));
+        Namespace namespace = new Namespace(row.getString(NAMESPACE_COL), row.getLong(GENERATION_COL));
+        NamespacedId entryId = new NamespacedId(namespace, row.getString(ID_COL));
         long entryVersion = row.getLong(EntryColumn.VERSION);
         entryTable.delete(getEntryKey(entryId, entryVersion));
       }
@@ -336,14 +341,16 @@ public final class SchemaRegistry  {
 
   private List<Field<?>> getMetaKey(NamespacedId id) {
     List<Field<?>> fields = new ArrayList<>(2);
-    fields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace()));
+    fields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace().getName()));
+    fields.add(Fields.longField(GENERATION_COL, id.getNamespace().getGeneration()));
     fields.add(Fields.stringField(ID_COL, id.getId()));
     return fields;
   }
 
   private List<Field<?>> getEntryKey(NamespacedId schemaId, long version) {
     List<Field<?>> fields = new ArrayList<>(3);
-    fields.add(Fields.stringField(NAMESPACE_COL, schemaId.getNamespace()));
+    fields.add(Fields.stringField(NAMESPACE_COL, schemaId.getNamespace().getName()));
+    fields.add(Fields.longField(GENERATION_COL, schemaId.getNamespace().getGeneration()));
     fields.add(Fields.stringField(ID_COL, schemaId.getId()));
     fields.add(Fields.longField(EntryColumn.VERSION, version));
     return fields;
@@ -351,7 +358,8 @@ public final class SchemaRegistry  {
 
   private List<Field<?>> toFields(SchemaRow schemaRow) {
     List<Field<?>> fields = new ArrayList<>(9);
-    fields.add(Fields.stringField(NAMESPACE_COL, schemaRow.getDescriptor().getId().getNamespace()));
+    fields.add(Fields.stringField(NAMESPACE_COL, schemaRow.getDescriptor().getId().getNamespace().getName()));
+    fields.add(Fields.longField(GENERATION_COL, schemaRow.getDescriptor().getId().getNamespace().getGeneration()));
     fields.add(Fields.stringField(ID_COL, schemaRow.getDescriptor().getId().getId()));
     fields.add(Fields.stringField(MetaColumn.NAME, schemaRow.getDescriptor().getName()));
     fields.add(Fields.stringField(MetaColumn.DESC, schemaRow.getDescriptor().getDescription()));
@@ -366,7 +374,8 @@ public final class SchemaRegistry  {
   }
 
   private SchemaRow fromRow(StructuredRow row) {
-    NamespacedId id = new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL));
+    Namespace namespace = new Namespace(row.getString(NAMESPACE_COL), row.getLong(GENERATION_COL));
+    NamespacedId id = new NamespacedId(namespace, row.getString(ID_COL));
     SchemaDescriptor descriptor = new SchemaDescriptor(id, row.getString(MetaColumn.NAME),
                                                        row.getString(MetaColumn.DESC),
                                                        SchemaDescriptorType.valueOf(row.getString(MetaColumn.TYPE)));

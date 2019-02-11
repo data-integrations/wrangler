@@ -32,9 +32,10 @@ import java.util.Map;
  * Implementation of {@PipelineContext}, for use in Service.
  */
 class ServicePipelineContext implements ExecutorContext {
-  // this is different than serviceContext.getNamespace(), as it's
+  // this is different than serviceContext.getNamespace(), as it's the namespace of the workspace, not the namespace
+  // that we're executing in
   private final String namespace;
-  private final ExecutorContext.Environment environment;
+  private final Environment environment;
   private final HttpServiceContext serviceContext;
   private final DatasetContextLookupProvider lookupProvider;
   private final TransientStore store;
