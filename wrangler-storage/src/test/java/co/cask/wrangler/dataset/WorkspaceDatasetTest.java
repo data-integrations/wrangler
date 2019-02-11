@@ -16,11 +16,9 @@
 
 package co.cask.wrangler.dataset;
 
-import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.common.conf.Constants;
-import co.cask.cdap.proto.id.NamespaceId;
-import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.TestBase;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
+import co.cask.cdap.test.SystemAppTestBase;
 import co.cask.cdap.test.TestConfiguration;
 import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.Workspace;
@@ -34,7 +32,9 @@ import co.cask.wrangler.proto.RequestV1;
 import co.cask.wrangler.proto.Sampling;
 import co.cask.wrangler.proto.WorkspaceIdentifier;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -44,87 +44,82 @@ import java.util.Map;
 /**
  * Tests for the workspace dataset.
  */
-public class WorkspaceDatasetTest extends TestBase {
+public class WorkspaceDatasetTest extends SystemAppTestBase {
 
   @ClassRule
   public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
+  
+  @Before
+  public void setupTest() throws Exception {
+    getStructuredTableAdmin().create(WorkspaceDataset.TABLE_SPEC);
+  }
 
+  @After
+  public void cleanupTest() throws Exception {
+    getStructuredTableAdmin().drop(WorkspaceDataset.TABLE_SPEC.getTableId());
+  }
+  
   @Test
   public void testNotFoundExceptions() throws Exception {
-    addDatasetInstance("table", "notfoundTest");
-    DataSetManager<Table> tableManager = getDataset("notfoundTest");
-    Table table = tableManager.get();
-    WorkspaceDataset workspaceDataset = new WorkspaceDataset(table);
+    getTransactionRunner().run(context -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      try {
+        ws.updateWorkspaceData(new NamespacedId("c0", "id"), DataType.TEXT, new byte[]{0});
+        Assert.fail("Updating a non-existing workspace should fail.");
+      } catch (WorkspaceNotFoundException e) {
+        // expected
+      }
 
-    try {
-      workspaceDataset.updateWorkspaceData(new NamespacedId("c0", "id"), DataType.TEXT, new byte[] { 0 });
-      Assert.fail("Updating a non-existing workspace should fail.");
-    } catch (WorkspaceNotFoundException e) {
-      // expected
-    }
+      try {
+        ws.updateWorkspaceProperties(new NamespacedId("c0", "id"), Collections.emptyMap());
+        Assert.fail("Updating a non-existing workspace should fail.");
+      } catch (WorkspaceNotFoundException e) {
+        // expected
+      }
 
-    try {
-      workspaceDataset.updateWorkspaceProperties(new NamespacedId("c0", "id"), Collections.emptyMap());
-      Assert.fail("Updating a non-existing workspace should fail.");
-    } catch (WorkspaceNotFoundException e) {
-      // expected
-    }
-
-    try {
-      workspaceDataset.updateWorkspaceRequest(new NamespacedId("c0", "id"), null);
-      Assert.fail("Updating a non-existing workspace should fail.");
-    } catch (WorkspaceNotFoundException e) {
-      // expected
-    }
+      try {
+        ws.updateWorkspaceRequest(new NamespacedId("c0", "id"), null);
+        Assert.fail("Updating a non-existing workspace should fail.");
+      } catch (WorkspaceNotFoundException e) {
+        // expected
+      }
+    });
   }
 
   @Test
-  public void testScopes() throws Exception {
-    addDatasetInstance("table", "scopeTest");
-    DataSetManager<Table> tableManager = getDataset("scopeTest");
-    Table table = tableManager.get();
-    WorkspaceDataset workspaceDataset = new WorkspaceDataset(table);
-
+  public void testScopes() {
     WorkspaceIdentifier id1 = new WorkspaceIdentifier("id1", "name1");
     WorkspaceIdentifier id2 = new WorkspaceIdentifier("id2", "name2");
 
-    String context = "c0";
+    String namespace = "c0";
 
     String scope1 = "scope1";
     String scope2 = "scope2";
-    WorkspaceMeta meta1 = WorkspaceMeta.builder(new NamespacedId(context, id1.getId()), id1.getName())
+    WorkspaceMeta meta1 = WorkspaceMeta.builder(new NamespacedId(namespace, id1.getId()), id1.getName())
       .setScope(scope1)
       .build();
-    WorkspaceMeta meta2 = WorkspaceMeta.builder(new NamespacedId(context, id2.getId()), id2.getName())
+    WorkspaceMeta meta2 = WorkspaceMeta.builder(new NamespacedId(namespace, id2.getId()), id2.getName())
       .setScope(scope2)
       .build();
 
-    workspaceDataset.writeWorkspaceMeta(meta1);
-    workspaceDataset.writeWorkspaceMeta(meta2);
-    tableManager.flush();
+    run(ws -> ws.writeWorkspaceMeta(meta1));
+    run(ws -> ws.writeWorkspaceMeta(meta2));
 
-    Assert.assertEquals(Collections.singletonList(id1), workspaceDataset.listWorkspaces(context, scope1));
-    Assert.assertEquals(Collections.singletonList(id2), workspaceDataset.listWorkspaces(context, scope2));
+    Assert.assertEquals(Collections.singletonList(id1), call(ws -> ws.listWorkspaces(namespace, scope1)));
+    Assert.assertEquals(Collections.singletonList(id2), call(ws -> ws.listWorkspaces(namespace, scope2)));
 
-    workspaceDataset.deleteScope(context, scope1);
-    tableManager.flush();
+    run(ws -> ws.deleteScope(namespace, scope1));
 
-    Assert.assertTrue(workspaceDataset.listWorkspaces(context, scope1).isEmpty());
-    Assert.assertEquals(Collections.singletonList(id2), workspaceDataset.listWorkspaces(context, scope2));
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(namespace, scope1).isEmpty()));
+    Assert.assertEquals(Collections.singletonList(id2), call(ws -> ws.listWorkspaces(namespace, scope2)));
 
-    workspaceDataset.deleteWorkspace(new NamespacedId(context, id2.getId()));
-    tableManager.flush();
-    Assert.assertTrue(workspaceDataset.listWorkspaces(context, scope1).isEmpty());
-    Assert.assertTrue(workspaceDataset.listWorkspaces(context, scope2).isEmpty());
+    run(ws -> ws.deleteWorkspace(new NamespacedId(namespace, id2.getId())));
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(namespace, scope1).isEmpty()));
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(namespace, scope2).isEmpty()));
   }
 
   @Test
-  public void testNamespaceIsolation() throws Exception {
-    addDatasetInstance("table", "nsTest");
-    DataSetManager<Table> tableManager = getDataset("nsTest");
-    Table table = tableManager.get();
-    WorkspaceDataset workspaceDataset = new WorkspaceDataset(table);
-
+  public void testNamespaceIsolation() {
     NamespacedId id1 = new NamespacedId("n1", "id1");
     NamespacedId id2 = new NamespacedId("n2", "id2");
 
@@ -133,15 +128,14 @@ public class WorkspaceDatasetTest extends TestBase {
       .setType(DataType.BINARY)
       .setProperties(Collections.singletonMap("k1", "v1"))
       .build();
-    workspaceDataset.writeWorkspaceMeta(meta1);
+    run(ws -> ws.writeWorkspaceMeta(meta1));
     WorkspaceMeta meta2 = WorkspaceMeta.builder(id2, "name2")
       .setType(DataType.BINARY)
       .setProperties(Collections.singletonMap("k2", "v2"))
       .build();
-    workspaceDataset.writeWorkspaceMeta(meta2);
-    tableManager.flush();
+    run(ws -> ws.writeWorkspaceMeta(meta2));
 
-    Workspace actual1 = workspaceDataset.getWorkspace(id1);
+    Workspace actual1 = call(ws -> ws.getWorkspace(id1));
     Workspace expected1 = Workspace.builder(id1, meta1.getName())
       .setCreated(actual1.getCreated())
       .setUpdated(actual1.getUpdated())
@@ -151,7 +145,7 @@ public class WorkspaceDatasetTest extends TestBase {
       .build();
     Assert.assertEquals(expected1, actual1);
 
-    Workspace actual2 = workspaceDataset.getWorkspace(id2);
+    Workspace actual2 = call(ws -> ws.getWorkspace(id2));
     Workspace expected2 = Workspace.builder(id2, meta2.getName())
       .setCreated(actual2.getCreated())
       .setUpdated(actual2.getUpdated())
@@ -163,58 +157,50 @@ public class WorkspaceDatasetTest extends TestBase {
 
     // test lists don't include from other namespaces
     Assert.assertEquals(Collections.singletonList(new WorkspaceIdentifier(id1.getId(), meta1.getName())),
-                        workspaceDataset.listWorkspaces(id1.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE));
+                        call(ws -> ws.listWorkspaces(id1.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE)));
     Assert.assertEquals(Collections.singletonList(new WorkspaceIdentifier(id2.getId(), meta2.getName())),
-                        workspaceDataset.listWorkspaces(id2.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE));
+                        call(ws -> ws.listWorkspaces(id2.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE)));
 
     // test delete is within the correct namespace
-    workspaceDataset.deleteWorkspace(id2);
-    tableManager.flush();
+    run(ws -> ws.deleteWorkspace(id2));
 
     Assert.assertEquals(Collections.singletonList(new WorkspaceIdentifier(id1.getId(), meta1.getName())),
-                        workspaceDataset.listWorkspaces(id1.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE));
-    Assert.assertTrue(workspaceDataset.listWorkspaces(id2.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE).isEmpty());
-    Assert.assertEquals(expected1, workspaceDataset.getWorkspace(id1));
+                        call(ws -> ws.listWorkspaces(id1.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE)));
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(id2.getNamespace(), WorkspaceDataset.DEFAULT_SCOPE).isEmpty()));
+    Assert.assertEquals(expected1, call(ws -> ws.getWorkspace(id1)));
   }
 
   @Test
-  public void testCRUD() throws Exception {
-    addDatasetInstance("table", "crudtest");
-    DataSetManager<Table> tableManager = getDataset("crudtest");
-    Table table = tableManager.get();
-    WorkspaceDataset workspaceDataset = new WorkspaceDataset(table);
-
+  public void testCRUD() {
     NamespacedId id = new NamespacedId("c0", "id0");
-    Assert.assertTrue(workspaceDataset.listWorkspaces(id.getNamespace(), "default").isEmpty());
-    Assert.assertFalse(workspaceDataset.hasWorkspace(id));
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(id.getNamespace(), "default").isEmpty()));
+    Assert.assertFalse(call(ws -> ws.hasWorkspace(id)));
     WorkspaceIdentifier workspaceId = new WorkspaceIdentifier(id.getId(), "name");
 
     // test write and get
-    WorkspaceMeta meta = WorkspaceMeta.builder(id, workspaceId.getName())
+    WorkspaceMeta meta1 = WorkspaceMeta.builder(id, workspaceId.getName())
       .setScope("default")
       .setType(DataType.BINARY)
       .setProperties(Collections.singletonMap("k1", "v1"))
       .build();
-    workspaceDataset.writeWorkspaceMeta(meta);
-    tableManager.flush();
+    run(ws -> ws.writeWorkspaceMeta(meta1));
 
-    Workspace actual = workspaceDataset.getWorkspace(id);
-    Workspace expected = Workspace.builder(id, meta.getName())
+    Workspace actual = call(ws -> ws.getWorkspace(id));
+    Workspace expected = Workspace.builder(id, meta1.getName())
       .setCreated(actual.getCreated())
       .setUpdated(actual.getUpdated())
-      .setType(meta.getType())
-      .setScope(meta.getScope())
-      .setProperties(meta.getProperties())
+      .setType(meta1.getType())
+      .setScope(meta1.getScope())
+      .setProperties(meta1.getProperties())
       .build();
     Assert.assertEquals(expected, actual);
     Assert.assertEquals(Collections.singletonList(workspaceId),
-                        workspaceDataset.listWorkspaces(id.getNamespace(), "default"));
+                        call(ws -> ws.listWorkspaces(id.getNamespace(), "default")));
 
     // test updating properties
     Map<String, String> properties = Collections.singletonMap("k2", "v2");
-    workspaceDataset.updateWorkspaceProperties(id, properties);
-    tableManager.flush();
-    actual = workspaceDataset.getWorkspace(id);
+    run(ws -> ws.updateWorkspaceProperties(id, properties));
+    actual = call(ws -> ws.getWorkspace(id));
     expected = Workspace.builder(expected)
       .setUpdated(actual.getUpdated())
       .setProperties(properties)
@@ -222,13 +208,12 @@ public class WorkspaceDatasetTest extends TestBase {
     Assert.assertEquals(expected, actual);
 
     // test updating request
-    co.cask.wrangler.proto.Workspace requestWorkspace = new co.cask.wrangler.proto.Workspace(meta.getName(), 10);
+    co.cask.wrangler.proto.Workspace requestWorkspace = new co.cask.wrangler.proto.Workspace(meta1.getName(), 10);
     Recipe recipe = new Recipe(Collections.singletonList("parse-as-csv body"), true, "recipeName");
     Sampling sampling = new Sampling("random", 0, 10);
     Request request = new RequestV1(requestWorkspace, recipe, sampling, new JsonObject());
-    workspaceDataset.updateWorkspaceRequest(id, request);
-    tableManager.flush();
-    actual = workspaceDataset.getWorkspace(id);
+    run(ws -> ws.updateWorkspaceRequest(id, request));
+    actual = call(ws -> ws.getWorkspace(id));
     expected = Workspace.builder(expected)
       .setUpdated(actual.getUpdated())
       .setRequest(request)
@@ -236,10 +221,9 @@ public class WorkspaceDatasetTest extends TestBase {
     Assert.assertEquals(expected, actual);
 
     // test updating data
-    byte[] data = new byte[] { 0, 1, 2 };
-    workspaceDataset.updateWorkspaceData(id, DataType.RECORDS, data);
-    tableManager.flush();
-    actual = workspaceDataset.getWorkspace(id);
+    byte[] data = new byte[]{0, 1, 2};
+    run(ws -> ws.updateWorkspaceData(id, DataType.RECORDS, data));
+    actual = call(ws -> ws.getWorkspace(id));
     expected = Workspace.builder(expected)
       .setType(DataType.RECORDS)
       .setUpdated(actual.getUpdated())
@@ -248,32 +232,51 @@ public class WorkspaceDatasetTest extends TestBase {
     Assert.assertEquals(expected, actual);
 
     // test updating meta
-    meta = WorkspaceMeta.builder(id, meta.getName())
+    WorkspaceMeta meta2 = WorkspaceMeta.builder(id, meta1.getName())
       .setType(DataType.TEXT)
       .setProperties(Collections.singletonMap("k3", "v3"))
       .build();
-    workspaceDataset.writeWorkspaceMeta(meta);
-    tableManager.flush();
-    actual = workspaceDataset.getWorkspace(id);
+    run(ws -> ws.writeWorkspaceMeta(meta2));
+    actual = call(ws -> ws.getWorkspace(id));
     expected = Workspace.builder(expected)
       .setUpdated(actual.getUpdated())
-      .setProperties(meta.getProperties())
-      .setType(meta.getType())
+      .setProperties(meta2.getProperties())
+      .setType(meta2.getType())
       .build();
     Assert.assertEquals(expected, actual);
     Assert.assertEquals(Collections.singletonList(workspaceId),
-                        workspaceDataset.listWorkspaces(id.getNamespace(), "default"));
+                        call(ws -> ws.listWorkspaces(id.getNamespace(), "default")));
 
     // delete workspace
-    workspaceDataset.deleteWorkspace(id);
-    tableManager.flush();
-    Assert.assertTrue(workspaceDataset.listWorkspaces(id.getNamespace(), "default").isEmpty());
+    run(ws -> ws.deleteWorkspace(id));
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(id.getNamespace(), "default").isEmpty()));
     try {
-      workspaceDataset.getWorkspace(id);
+      call(ws -> ws.getWorkspace(id));
       Assert.fail("Workspace was not deleted.");
     } catch (WorkspaceNotFoundException e) {
       // expected
     }
   }
+  
+  private <T> T call(WorkspaceCallable<T> callable) {
+    return TransactionRunners.run(getTransactionRunner(), context -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      return callable.run(ws);
+    }, WorkspaceNotFoundException.class);
+  }
 
+  private void run(WorkspaceRunnable runnable) {
+    TransactionRunners.run(getTransactionRunner(), context -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(context);
+      runnable.run(ws);
+    }, WorkspaceNotFoundException.class);
+  }
+
+  private interface WorkspaceRunnable {
+    void run(WorkspaceDataset ws) throws Exception;
+  }
+
+  private interface WorkspaceCallable<T> {
+    T run(WorkspaceDataset ws) throws Exception;
+  }
 }

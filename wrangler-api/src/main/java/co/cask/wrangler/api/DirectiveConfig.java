@@ -46,6 +46,7 @@ import java.util.Set;
  *  }
  */
 public final class DirectiveConfig {
+  public static final DirectiveConfig EMPTY = new DirectiveConfig();
   // RecipeParser to be excluded or made non-accessible.
   private Set<String> exclusions = new HashSet<>();
 

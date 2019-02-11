@@ -19,9 +19,10 @@ package co.cask.wrangler.service.database;
 import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.artifact.CloseableClassLoader;
 import co.cask.cdap.api.plugin.PluginClass;
-import co.cask.cdap.api.service.http.HttpServiceContext;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.api.service.http.SystemHttpServiceContext;
+import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
 import co.cask.wrangler.SamplingMethod;
@@ -175,7 +176,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   private final Multimap<String, DriverInfo> drivers = ArrayListMultimap.create();
 
   @Override
-  public void initialize(HttpServiceContext context) throws Exception {
+  public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     drivers.clear();
     InputStream is = DatabaseHandler.class.getClassLoader().getResourceAsStream("drivers.mapping");
@@ -436,7 +437,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         List<Name> values = new ArrayList<>();
-        cleanup = loadAndExecute(namespace, store.get(new NamespacedId(namespace, id)), connection -> {
+        Connection conn = getConnection(new NamespacedId(namespace, id));
+        cleanup = loadAndExecute(namespace, conn, connection -> {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
           ResultSet resultSet;
           if (product.equalsIgnoreCase("oracle")) {
@@ -503,7 +505,9 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       DriverCleanup cleanup = null;
       try {
         AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
-        cleanup = loadAndExecute(namespace, store.get(new NamespacedId(namespace, id)), connection -> {
+        Connection conn = getConnection(new NamespacedId(namespace, id));
+
+        cleanup = loadAndExecute(namespace, conn, connection -> {
           try (Statement statement = connection.createStatement();
             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
@@ -520,11 +524,14 @@ public class DatabaseHandler extends AbstractWranglerHandler {
               .setScope(scope)
               .setProperties(properties)
               .build();
-            ws.writeWorkspaceMeta(workspaceMeta);
+            TransactionRunners.run(getContext(), context -> {
+              WorkspaceDataset ws = WorkspaceDataset.get(context);
+              ws.writeWorkspaceMeta(workspaceMeta);
 
-            ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-            byte[] data = serDe.toByteArray(rows);
-            ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+              ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+              byte[] data = serDe.toByteArray(rows);
+              ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+            });
 
             ConnectionSample sample = new ConnectionSample(namespacedId.getId(), table,
                                                            ConnectionType.DATABASE.getType(),
@@ -591,7 +598,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("id") String id,
                             @PathParam("table") String table) {
     respond(request, responder, namespace, () -> {
-      Connection conn = store.get(new NamespacedId(namespace, id));
+      Connection conn = getConnection(new NamespacedId(namespace, id));
 
       Map<String, String> properties = new HashMap<>();
       properties.put("connectionString", conn.getProperties().get("url"));
