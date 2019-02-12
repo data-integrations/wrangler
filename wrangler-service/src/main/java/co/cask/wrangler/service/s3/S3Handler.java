@@ -16,8 +16,6 @@
 
 package co.cask.wrangler.service.s3;
 
-import co.cask.cdap.api.annotation.ReadOnly;
-import co.cask.cdap.api.annotation.ReadWrite;
 import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
@@ -89,20 +87,9 @@ public class S3Handler extends AbstractWranglerHandler {
 
   private static final FileTypeDetector detector = new FileTypeDetector();
 
-  /**
-   * Tests S3 Connection.
-   *
-   * @param request HTTP Request handler.
-   * @param responder HTTP Response handler.
-   */
-  @POST
-  @Path("/connections/s3/test")
-  public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder) {
-    testS3Connection(request, responder, getContext().getNamespace());
-  }
-
   @POST
   @Path("/contexts/{context}/connections/s3/test")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder,
                                @PathParam("context") String namespace) {
     respond(request, responder, () -> {
@@ -126,26 +113,14 @@ public class S3Handler extends AbstractWranglerHandler {
     return s3;
   }
 
-  @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @ReadOnly
-  @GET
-  @Path("/connections/{connection-id}/s3/explore")
-  public void getS3BucketInfo(HttpServiceRequest request, HttpServiceResponder responder,
-                              @PathParam("connection-id") String connectionId,
-                              @QueryParam("path") String path,
-                              @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
-    getS3BucketInfo(request, responder, getContext().getNamespace(), connectionId, path, bucketLimit);
-  }
-
   /**
    * Lists S3 bucket's contents for the given prefix path.
    * @param request HTTP Request handler.
    * @param responder HTTP Response handler.
    */
-  @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @ReadOnly
   @GET
   @Path("contexts/{context}/connections/{connection-id}/s3/explore")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getS3BucketInfo(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                               @QueryParam("path") String path,
@@ -213,27 +188,14 @@ public class S3Handler extends AbstractWranglerHandler {
     });
   }
 
-  @POST
-  @ReadWrite
-  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/read")
-  public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("connection-id") String connectionId,
-                         @PathParam("bucket-name") String bucketName,
-                         @QueryParam("key") String key, @QueryParam("lines") int lines,
-                         @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
-                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    loadObject(request, responder, getContext().getNamespace(), connectionId, bucketName, key, lines, sampler,
-               fraction, scope);
-  }
-
   /**
    * Reads s3 object into workspace
    * @param request HTTP Request handler.
    * @param responder HTTP Response handler.
    */
   @POST
-  @ReadWrite
   @Path("contexts/{context}/connections/{connection-id}/s3/buckets/{bucket-name}/read")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                          @PathParam("bucket-name") String bucketName,
@@ -271,15 +233,6 @@ public class S3Handler extends AbstractWranglerHandler {
     });
   }
 
-  @Path("/connections/{connection-id}/s3/buckets/{bucket-name}/specification")
-  @GET
-  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @PathParam("connection-id") String connectionId,
-                            @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,
-                            @QueryParam("wid") String workspaceId) {
-    specification(request, responder, getContext().getNamespace(), connectionId, bucketName, key, workspaceId);
-  }
-
   /**
    * Specification for the source.
    *
@@ -288,8 +241,9 @@ public class S3Handler extends AbstractWranglerHandler {
    * @param bucketName S3 object's bucket name
    * @param key S3 object's key
    */
-  @Path("contexts/{context}/connections/{connection-id}/s3/buckets/{bucket-name}/specification")
   @GET
+  @Path("contexts/{context}/connections/{connection-id}/s3/buckets/{bucket-name}/specification")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                             @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,

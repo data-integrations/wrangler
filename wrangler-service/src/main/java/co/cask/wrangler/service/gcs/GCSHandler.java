@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.service.gcs;
 
-import co.cask.cdap.api.annotation.ReadOnly;
 import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
@@ -100,20 +99,9 @@ public class GCSHandler extends AbstractWranglerHandler {
     this.detector = new FileTypeDetector();
   }
 
-  /**
-   * Tests GCS Connection.
-   *
-   * @param request HTTP Request handler.
-   * @param responder HTTP Response handler.
-   */
-  @POST
-  @Path("/connections/gcs/test")
-  public void testGCSConnection(HttpServiceRequest request, HttpServiceResponder responder) {
-    testGCSConnection(request, responder, getContext().getNamespace());
-  }
-
   @POST
   @Path("/contexts/{context}/connections/gcs/test")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testGCSConnection(HttpServiceRequest request, HttpServiceResponder responder,
                                 @PathParam("context") String namespace) {
     respond(request, responder, () -> {
@@ -128,26 +116,14 @@ public class GCSHandler extends AbstractWranglerHandler {
     });
   }
 
-  @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @ReadOnly
-  @GET
-  @Path("/connections/{connection-id}/gcs/explore")
-  public void exploreGCS(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("connection-id") String connectionId,
-                         @QueryParam("path") String path,
-                         @QueryParam("limit") @DefaultValue("1000") int objectLimit) {
-    exploreGCS(request, responder, getContext().getNamespace(), connectionId, path, objectLimit);
-  }
-
   /**
    * Lists GCS bucket's contents for the given prefix path.
    * @param request HTTP Request handler.
    * @param responder HTTP Response handler.
    */
-  @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @ReadOnly
   @GET
   @Path("contexts/{context}/connections/{connection-id}/gcs/explore")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void exploreGCS(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace,
                          @PathParam("connection-id") String connectionId,
@@ -260,16 +236,6 @@ public class GCSHandler extends AbstractWranglerHandler {
     }
   }
 
-  @GET
-  @Path("/connections/{connection-id}/gcs/buckets/{bucket}/read")
-  public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("connection-id") String connectionId,
-                         @PathParam("bucket") String bucket,
-                         @QueryParam("blob") String blobPath,
-                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    loadObject(request, responder, getContext().getNamespace(), connectionId, bucket, blobPath, scope);
-  }
-
   /**
    * Reads GCS object into workspace.
    *
@@ -278,6 +244,7 @@ public class GCSHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{connection-id}/gcs/buckets/{bucket}/read")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void loadObject(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace,
                          @PathParam("connection-id") String connectionId,
@@ -374,22 +341,15 @@ public class GCSHandler extends AbstractWranglerHandler {
     });
   }
 
-  @Path("/connections/{connection-id}/gcs/specification")
-  @GET
-  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @PathParam("connection-id") String connectionId,
-                            @QueryParam("wid") String workspaceId) {
-    specification(request, responder, getContext().getNamespace(), connectionId, workspaceId);
-  }
-
   /**
    * Specification for the source.
    *
    * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
-  @Path("contexts/{context}/connections/{connection-id}/gcs/specification")
   @GET
+  @Path("contexts/{context}/connections/{connection-id}/gcs/specification")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {

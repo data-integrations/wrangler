@@ -17,6 +17,8 @@
 package co.cask.wrangler.service.connections;
 
 import co.cask.cdap.api.NamespaceSummary;
+import co.cask.cdap.api.annotation.TransactionControl;
+import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.api.service.http.SystemHttpServiceContext;
@@ -138,12 +140,6 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     }
   }
 
-  @POST
-  @Path("connections/create")
-  public void create(HttpServiceRequest request, HttpServiceResponder responder) {
-    create(request, responder, getContext().getNamespace());
-  }
-
   /**
    * Creates a connection object in the connections store.
    *
@@ -166,6 +162,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/connections/create")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -182,13 +179,6 @@ public class ConnectionHandler extends AbstractWranglerHandler {
       // Return the id in the response.
       return new ServiceResponse<>(Collections.singletonList(id.getId()));
     });
-  }
-
-  @POST
-  @Path("connections/{id}/update")
-  public void update(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    update(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -216,6 +206,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/connections/{id}/update")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void update(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -233,13 +224,6 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("connections")
-  public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
-    list(request, responder, getContext().getNamespace(), type);
-  }
-
   /**
    * Lists all the connections available in the connection store.
    *
@@ -248,6 +232,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
     respond(request, responder, namespace, ns -> {
@@ -278,13 +263,6 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     return connection.map(Connection::getId).orElse(null);
   }
 
-  @DELETE
-  @Path("connections/{id}")
-  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    delete(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Deletes a connection from the connection store.
    *
@@ -294,6 +272,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @DELETE
   @Path("contexts/{context}/connections/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -312,13 +291,6 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("connections/{id}")
-  public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") String id) {
-    get(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Given a connection id, returns the complete information about the connection.
    *
@@ -328,17 +300,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> getConnection(new NamespacedId(ns, id)));
-  }
-
-
-  @GET
-  @Path("connections/{id}/properties")
-  public void properties(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("id") String id) {
-    properties(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -350,17 +315,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{id}/properties")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> getConnection(new NamespacedId(ns, id)).getProperties());
-  }
-
-  @PUT
-  @Path("connections/{id}/properties")
-  public void updateProp(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("id") String id,
-                         @QueryParam("key") String key, @QueryParam("value") String value) {
-    updateProp(request, responder, getContext().getNamespace(), id, key, value);
   }
 
   /**
@@ -372,6 +330,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @PUT
   @Path("contexts/{context}/connections/{id}/properties")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void updateProp(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id,
                          @QueryParam("key") String key, @QueryParam("value") String value) {
@@ -391,13 +350,6 @@ public class ConnectionHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("connections/{id}/clone")
-  public void clone(HttpServiceRequest request, HttpServiceResponder responder,
-                    @PathParam("id") final String id) {
-    clone(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Given a connection id, Clones and returns a new connection.
    *
@@ -407,6 +359,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{id}/clone")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -423,6 +376,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("connectionTypes")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getConnectionTypes(HttpServiceRequest request, HttpServiceResponder responder) {
     responder.sendJson(enabledConnectionTypes);
   }

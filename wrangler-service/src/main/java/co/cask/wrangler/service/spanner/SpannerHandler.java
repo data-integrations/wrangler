@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.service.spanner;
 
+import co.cask.cdap.api.annotation.TransactionControl;
+import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
@@ -90,17 +92,9 @@ public class SpannerHandler extends AbstractWranglerHandler {
   private static final String DEFAULT_ROW_LIMIT = "1000";
   private static final Gson GSON = new Gson();
 
-  /**
-   * Tests Spanner Connection.
-   */
-  @POST
-  @Path("/connections/spanner/test")
-  public void testSpannerConnection(HttpServiceRequest request, HttpServiceResponder responder) {
-    testSpannerConnection(request, responder, getContext().getNamespace());
-  }
-
   @POST
   @Path("/contexts/{context}/connections/spanner/test")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testSpannerConnection(HttpServiceRequest request, HttpServiceResponder responder,
                                     @PathParam("context") String namespace) {
     respond(request, responder, () -> {
@@ -113,19 +107,12 @@ public class SpannerHandler extends AbstractWranglerHandler {
     });
   }
 
-
-  @GET
-  @Path("/connections/{connection-id}/spanner/instances")
-  public void getSpannerInstances(HttpServiceRequest request, HttpServiceResponder responder,
-                                  @PathParam("connection-id") String connectionId) {
-    getSpannerInstances(request, responder, getContext().getNamespace(), connectionId);
-  }
-
   /**
    * Lists spanner instances in the project
    */
   @GET
   @Path("contexts/{context}/connections/{connection-id}/spanner/instances")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getSpannerInstances(HttpServiceRequest request, HttpServiceResponder responder,
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId) {
@@ -136,19 +123,12 @@ public class SpannerHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("/connections/{connection-id}/spanner/instances/{instance-id}/databases")
-  public void getSpannerDatabases(HttpServiceRequest request, HttpServiceResponder responder,
-                                  @PathParam("connection-id") String connectionId,
-                                  @PathParam("instance-id") String instanceId) {
-    getSpannerDatabases(request, responder, getContext().getNamespace(), connectionId, instanceId);
-  }
-
   /**
    * Lists spanner databases for a spanner instance
    */
   @GET
   @Path("contexts/{context}/connections/{connection-id}/spanner/instances/{instance-id}/databases")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getSpannerDatabases(HttpServiceRequest request, HttpServiceResponder responder,
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId,
@@ -160,15 +140,6 @@ public class SpannerHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("/connections/{connection-id}/spanner/instances/{instance-id}/databases/{database-id}/tables")
-  public void getSpannerTables(HttpServiceRequest request, HttpServiceResponder responder,
-                               @PathParam("connection-id") String connectionId,
-                               @PathParam("instance-id") String instanceId,
-                               @PathParam("database-id") String databaseId) {
-    getSpannerTables(request, responder, getContext().getNamespace(), connectionId, instanceId, databaseId);
-  }
-
   /**
    * Lists spanner tables for a spanner database
    *
@@ -177,6 +148,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{connection-id}/spanner/instances/{instance-id}/databases/{database-id}/tables")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getSpannerTables(HttpServiceRequest request, HttpServiceResponder responder,
                                @PathParam("context") String namespace,
                                @PathParam("connection-id") String connectionId,
@@ -189,25 +161,13 @@ public class SpannerHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("/connections/{connection-id}/spanner/instances/{instance-id}/databases/{database-id}/tables/{table-id}/read")
-  public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("connection-id") String connectionId,
-                        @PathParam("instance-id") String instanceId,
-                        @PathParam("database-id") String databaseId,
-                        @PathParam("table-id") String tableId,
-                        @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
-                        @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
-    readTable(request, responder, getContext().getNamespace(), connectionId, instanceId, databaseId,
-              tableId, scope, limit);
-  }
-
   /**
    * Read spanner table into a workspace and return the workspace identifier
    */
   @GET
   @Path("contexts/{context}/connections/{connection-id}/spanner/instances/{instance-id}/"
     + "databases/{database-id}/tables/{table-id}/read")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("context") String namespace,
                         @PathParam("connection-id") String connectionId,
@@ -260,19 +220,13 @@ public class SpannerHandler extends AbstractWranglerHandler {
     });
   }
 
-  @Path("/spanner/workspaces/{workspace-id}/specification")
-  @GET
-  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @PathParam("workspace-id") String workspaceId) {
-    specification(request, responder, getContext().getNamespace(), workspaceId);
-  }
-
   /**
    * Get the specification for the spanner source plugin.
    *
    */
-  @Path("contexts/{context}/spanner/workspaces/{workspace-id}/specification")
   @GET
+  @Path("contexts/{context}/spanner/workspaces/{workspace-id}/specification")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("workspace-id") String workspaceId) {
     respond(request, responder, namespace, ns -> {
