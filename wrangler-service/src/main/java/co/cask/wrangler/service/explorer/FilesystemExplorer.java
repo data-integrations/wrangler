@@ -32,6 +32,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.BadRequestException;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
@@ -93,7 +94,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @QueryParam("path") String path,
                    @QueryParam("hidden") boolean hidden) {
-    respond(request, responder, namespace, () -> explorer.browse(path, hidden));
+    respond(request, responder, namespace, ns -> explorer.browse(path, hidden));
   }
 
   @Path("explorer/fs/read")
@@ -122,7 +123,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                    @QueryParam("sampler") String sampler,
                    @QueryParam("fraction") double fraction,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       String header = request.getHeader(PropertyIds.CONTENT_TYPE);
 
       if (header == null) {
@@ -131,16 +132,16 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
 
       FileConnectionSample sample;
       if (header.equalsIgnoreCase("text/plain") || header.contains("text/")) {
-        sample = loadSampleableFile(namespace, scope, path, lines, fraction, sampler);
+        sample = loadSampleableFile(ns, scope, path, lines, fraction, sampler);
       } else if (header.equalsIgnoreCase("application/xml")) {
-        sample = loadFile(namespace, scope, path, DataType.RECORDS);
+        sample = loadFile(ns, scope, path, DataType.RECORDS);
       } else if (header.equalsIgnoreCase("application/json")) {
-        sample = loadFile(namespace, scope, path, DataType.TEXT);
+        sample = loadFile(ns, scope, path, DataType.TEXT);
       } else if (header.equalsIgnoreCase("application/avro")
         || header.equalsIgnoreCase("application/protobuf")
         || header.equalsIgnoreCase("application/excel")
         || header.contains("image/")) {
-        sample = loadFile(namespace, scope, path, DataType.BINARY);
+        sample = loadFile(ns, scope, path, DataType.BINARY);
       } else {
         throw new BadRequestException("Currently doesn't support wrangling of this type of file.");
       }
@@ -167,8 +168,8 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace,
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
-    respond(request, responder, namespace, () -> {
-      NamespacedId namespacedId = new NamespacedId(namespace, workspaceId);
+    respond(request, responder, namespace, ns -> {
+      NamespacedId namespacedId = new NamespacedId(ns, workspaceId);
 
       PluginSpec pluginSpec = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
@@ -195,7 +196,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     });
   }
 
-  private FileConnectionSample loadFile(String namespace, String scope, String path,
+  private FileConnectionSample loadFile(Namespace namespace, String scope, String path,
                                         DataType type) throws ExplorerException, IOException {
     Location location = explorer.getLocation(path);
     if (!location.exists()) {
@@ -254,7 +255,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                                     location.getName());
   }
 
-  private FileConnectionSample loadSampleableFile(String namespace, String scope, String path, int lines,
+  private FileConnectionSample loadSampleableFile(Namespace namespace, String scope, String path, int lines,
                                                   double fraction, String sampler)
     throws IOException, ExplorerException {
     SamplingMethod samplingMethod;

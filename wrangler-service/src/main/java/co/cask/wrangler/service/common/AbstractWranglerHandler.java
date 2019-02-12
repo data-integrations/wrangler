@@ -16,6 +16,7 @@
 
 package co.cask.wrangler.service.common;
 
+import co.cask.cdap.api.NamespaceSummary;
 import co.cask.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
@@ -27,6 +28,7 @@ import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceNotFoundException;
 import co.cask.wrangler.proto.BadRequestException;
 import co.cask.wrangler.proto.Contexts;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.Recipe;
 import co.cask.wrangler.proto.Request;
@@ -124,7 +126,7 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   }
 
   /**
-   * Utility method for executing an endpoint with common error handling and namespace checks built in.
+   * Utility method for executing an endpoint with common error handling built in.
    * A response will always be sent after this method is called so the http responder should not be used after this.
    * The endpoint logic should also not use the responder in any way.
    *
@@ -136,24 +138,9 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    *
    * @param request the http request
    * @param responder the http responder
-   * @param namespace the namespace to check for, or null if no check needs to be performed
    * @param callable the endpoint logic to run
    */
-  protected <T> void respond(HttpServiceRequest request, HttpServiceResponder responder, @Nullable String namespace,
-                             Callable<T> callable) {
-    // system namespace does not officially exist, so don't check existence for system namespace.
-    if (namespace != null && !Contexts.SYSTEM.equals(namespace)) {
-      try {
-        if (!getContext().getAdmin().namespaceExists(namespace)) {
-          responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
-                             new ServiceResponse<Void>(String.format("Namespace '%s' does not exist", namespace)));
-          return;
-        }
-      } catch (IOException e) {
-        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(e.getMessage()));
-        return;
-      }
-    }
+  protected <T> void respond(HttpServiceRequest request, HttpServiceResponder responder, Callable<T> callable) {
 
     try {
       T results = callable.call();
@@ -169,10 +156,60 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   }
 
   /**
-   * The same as calling {@link #respond(HttpServiceRequest, HttpServiceResponder, String, Callable)}
-   * with a null namespace.
+   * Utility method for executing an endpoint with common error handling and namespace checks built in.
+   * A response will always be sent after this method is called so the http responder should not be used after this.
+   * The endpoint logic should also not use the responder in any way.
+   *
+   * If the callable throws a {@link StatusCodeException}, the exception's status code and message will be used
+   * to create the response.
+   * If a {@link JsonSyntaxException} is thrown, a 400 response will be sent.
+   * If anything else if thrown, a 500 response will be sent.
+   * If nothing is thrown, the result of the callable will be sent as json.
+   *
+   * @param request the http request
+   * @param responder the http responder
+   * @param namespace the namespace to check for
+   * @param callable the endpoint logic to run
    */
-  protected <T> void respond(HttpServiceRequest request, HttpServiceResponder responder, Callable<T> callable) {
-    respond(request, responder, null, callable);
+  protected <T> void respond(HttpServiceRequest request, HttpServiceResponder responder, String namespace,
+                             NamespacedResponder<T> callable) {
+    // system namespace does not officially exist, so don't check existence for system namespace.
+    NamespaceSummary namespaceSummary;
+    if (Contexts.SYSTEM.equals(namespace)) {
+      namespaceSummary = new NamespaceSummary(Contexts.SYSTEM, "", 0L);
+    } else {
+      try {
+        namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
+        if (namespaceSummary == null) {
+          responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
+                             new ServiceResponse<Void>(String.format("Namespace '%s' does not exist", namespace)));
+          return;
+        }
+      } catch (IOException e) {
+        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(e.getMessage()));
+        return;
+      }
+    }
+
+    try {
+      T results = callable.respond(new Namespace(namespaceSummary.getName(), namespaceSummary.getGeneration()));
+      responder.sendJson(results);
+    } catch (StatusCodeException e) {
+      responder.sendJson(e.getCode(), new ServiceResponse<>(e.getMessage()));
+    } catch (JsonSyntaxException e) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (Throwable t) {
+      LOG.warn("Error processing {} {}, resulting in a 500 response.", request.getMethod(), request.getRequestURI(), t);
+      responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getMessage()));
+    }
+  }
+
+  /**
+   * Responds to a request within a namespace.
+   *
+   * @param <T> type of response object
+   */
+  protected interface NamespacedResponder<T> {
+    T respond(Namespace namespace) throws Exception;
   }
 }

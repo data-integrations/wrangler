@@ -129,8 +129,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
   public void getSpannerInstances(HttpServiceRequest request, HttpServiceResponder responder,
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
+    respond(request, responder, namespace, ns -> {
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       List<SpannerInstance> instances = getInstances(connection);
       return new ServiceResponse<>(instances);
     });
@@ -153,8 +153,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId,
                                   @PathParam("instance-id") String instanceId) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
+    respond(request, responder, namespace, ns -> {
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       List<SpannerDatabase> databases = getDatabases(connection, instanceId);
       return new ServiceResponse<>(databases);
     });
@@ -182,8 +182,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                @PathParam("connection-id") String connectionId,
                                @PathParam("instance-id") String instanceId,
                                @PathParam("database-id") String databaseId) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
+    respond(request, responder, namespace, ns -> {
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       List<SpannerTable> tables = getTables(connection, instanceId, databaseId);
       return new ServiceResponse<>(tables);
     });
@@ -216,8 +216,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
                         @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
                         @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId), ConnectionType.SPANNER);
+    respond(request, responder, namespace, ns -> {
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
       List<Row> data = getTableData(connection, instanceId, databaseId, tableId, schema, Long.parseLong(limit));
 
@@ -239,7 +239,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
       workspaceProperties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.SPANNER.getType());
       workspaceProperties.put(PropertyIds.CONNECTION_ID, connectionId);
       workspaceProperties.put(PropertyIds.PLUGIN_SPECIFICATION, GSON.toJson(specification));
-      NamespacedId workspaceId = new NamespacedId(namespace, identifier);
+      NamespacedId workspaceId = new NamespacedId(ns, identifier);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceId, tableId)
         .setScope(scope)
         .setProperties(workspaceProperties)
@@ -275,8 +275,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
   @GET
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("workspace-id") String workspaceId) {
-    respond(request, responder, namespace, () -> {
-      Map<String, String> config = getWorkspace(new NamespacedId(namespace, workspaceId)).getProperties();
+    respond(request, responder, namespace, ns -> {
+      Map<String, String> config = getWorkspace(new NamespacedId(ns, workspaceId)).getProperties();
 
       // deserialize and send spanner source specification
       SpannerSpecification conf =

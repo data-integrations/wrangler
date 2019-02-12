@@ -99,6 +99,7 @@ public final class SchemaRegistryClient {
   /**
    * Retrieves schema provided a schema id and version of the schema.
    *
+   * @param namespace the schema namespace
    * @param id the schema id
    * @param version the schema version
    * @return {@link Response} of the schema.
@@ -106,11 +107,10 @@ public final class SchemaRegistryClient {
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public byte[] getSchema(NamespacedId id, long version)
+  public byte[] getSchema(String namespace, String id, long version)
     throws URISyntaxException, IOException, RestClientException {
     URL url = concat(new URI(baseUrl),
-                     String.format("contexts/%s/schemas/%s/versions/%d",
-                                   id.getNamespace(), id.getId(), version)).toURL();
+                     String.format("contexts/%s/schemas/%s/versions/%d", namespace, id, version)).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>() { }.getType());
     if (response.getCount() == 1) {
       return Bytes.fromHexString(response.getValues().get(0).getSpecification());
@@ -121,15 +121,16 @@ public final class SchemaRegistryClient {
   /**
    * Retrieves schema provided a schema id. It provides the latest, current version of schema.
    *
+   * @param namespace the schema namespace
    * @param id the schema id
    * @return {@link SchemaInfo} of the schema if ok, else null.
    * @throws URISyntaxException thrown if there are issue with construction of url.
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public byte[] getSchema(NamespacedId id)
+  public byte[] getSchema(String namespace, String id)
     throws URISyntaxException, IOException, RestClientException {
-    URL url = concat(new URI(baseUrl), String.format("contexts/%s/schemas/%s", id.getNamespace(), id.getId())).toURL();
+    URL url = concat(new URI(baseUrl), String.format("contexts/%s/schemas/%s", namespace, id)).toURL();
     Response<SchemaInfo> response = request(url, "GET", new TypeToken<Response<SchemaInfo>>() { }.getType());
     if (response.getCount() == 1) {
       return Bytes.fromHexString(response.getValues().get(0).getSpecification());
@@ -140,16 +141,17 @@ public final class SchemaRegistryClient {
   /**
    * Gets all the versions of schemas given a schema id.
    *
+   * @param namespace the schema namespace
    * @param id the schema id
    * @return a list of schema versions.
    * @throws URISyntaxException thrown if there are issue with construction of url.
    * @throws IOException throw when there are issues connecting to the service.
    * @throws RestClientException thrown when there are issues with request or response returned.
    */
-  public List<Long> getVersions(NamespacedId id)
+  public List<Long> getVersions(String namespace, String id)
     throws URISyntaxException, IOException, RestClientException {
     URL url = concat(new URI(baseUrl),
-                     String.format("contexts/%s/schemas/%s/versions", id.getNamespace(), id.getId())).toURL();
+                     String.format("contexts/%s/schemas/%s/versions", namespace, id)).toURL();
     Response<Long> response = request(url, "GET", new TypeToken<Response<Long>>() { }.getType());
     return response.getValues();
   }

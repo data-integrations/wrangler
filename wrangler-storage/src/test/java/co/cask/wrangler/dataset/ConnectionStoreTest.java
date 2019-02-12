@@ -23,6 +23,7 @@ import co.cask.cdap.test.TestConfiguration;
 import co.cask.wrangler.dataset.connections.ConnectionAlreadyExistsException;
 import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
@@ -58,7 +59,7 @@ public class ConnectionStoreTest extends SystemAppTestBase {
     getTransactionRunner().run(context -> {
       ConnectionStore connectionStore = ConnectionStore.get(context);
 
-      NamespacedId id = new NamespacedId("c0", "id");
+      NamespacedId id = new NamespacedId(new Namespace("c0", 10L), "id");
       try {
         connectionStore.get(id);
         Assert.fail("Getting a non-existent connection did not throw an exception.");
@@ -80,10 +81,11 @@ public class ConnectionStoreTest extends SystemAppTestBase {
     getTransactionRunner().run(context -> {
       ConnectionStore connectionStore = ConnectionStore.get(context);
 
+      Namespace namespace = new Namespace("c0", 10L);
       ConnectionMeta meta = ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build();
-      connectionStore.create("c0", meta);
+      connectionStore.create(namespace, meta);
       try {
-        connectionStore.create("c0", meta);
+        connectionStore.create(namespace, meta);
         Assert.fail("Creating a duplicate connection did not throw an exception.");
       } catch (ConnectionAlreadyExistsException e) {
         // expected
@@ -93,7 +95,7 @@ public class ConnectionStoreTest extends SystemAppTestBase {
 
   @Test
   public void testCRUD() {
-    String ns = "n0";
+    Namespace ns = new Namespace("n0", 10L);
     Assert.assertTrue(run(connectionStore -> connectionStore.list(ns, x -> true)).isEmpty());
 
     // test creation
@@ -144,8 +146,8 @@ public class ConnectionStoreTest extends SystemAppTestBase {
 
   @Test
   public void testNamespaceIsolation() {
-    String ns1 = "ns1";
-    String ns2 = "ns2";
+    Namespace ns1 = new Namespace("ns1", 10L);
+    Namespace ns2 = new Namespace("ns2", 10L);
 
     // test creation in different namespaces
     ConnectionMeta expected1 = ConnectionMeta.builder()
@@ -190,6 +192,32 @@ public class ConnectionStoreTest extends SystemAppTestBase {
     list2 = run(connectionStore -> connectionStore.list(ns2, x -> true));
     Assert.assertEquals(1, list2.size());
     assertConnectionMetaEquality(expected2, list2.iterator().next());
+  }
+
+  @Test
+  public void testNamespaceGenerations() {
+    Namespace nsGen1 = new Namespace("ns1", 1L);
+    Namespace nsGen2 = new Namespace("ns1", 2L);
+
+
+    // test creation in different namespaces
+    ConnectionMeta expected1 = ConnectionMeta.builder()
+      .setName("My Connection")
+      .setType(ConnectionType.FILE)
+      .putProperty("k1", "v1")
+      .build();
+    NamespacedId id1 = run(connectionStore -> connectionStore.create(nsGen1, expected1));
+
+    // test that fetching with a different generation doesn't include the connection
+    try {
+      run(connectionStore -> connectionStore.get(new NamespacedId(nsGen2, id1.getId())));
+      Assert.fail("connection with a different generation should not be visible.");
+    } catch (ConnectionNotFoundException e) {
+      // expected
+    }
+
+    // test that listing with a different generation doesn't include the connection
+    Assert.assertTrue(run(connectionStore -> connectionStore.list(nsGen2, x -> true)).isEmpty());
   }
 
   private void assertConnectionMetaEquality(ConnectionMeta expected, Connection actual) {

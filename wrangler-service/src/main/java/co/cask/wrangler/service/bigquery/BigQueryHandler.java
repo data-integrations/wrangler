@@ -145,9 +145,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @Path("/contexts/{context}/connections/{connection-id}/bigquery")
   public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace, @PathParam("connection-id") String connectionId) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId),
-                                                     ConnectionType.BIGQUERY);
+    respond(request, responder, namespace, ns -> {
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.BIGQUERY);
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
       String connectionProject = GCPUtils.getProjectId(connection);
@@ -197,8 +196,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                          @PathParam("context") String namespace,
                          @PathParam("connection-id") String connectionId,
                          @PathParam("dataset-id") String datasetStr) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId),
+    respond(request, responder, namespace, ns -> {
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId),
                                                      ConnectionType.BIGQUERY);
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
 
@@ -252,8 +251,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                         @PathParam("dataset-id") String datasetStr,
                         @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, () -> {
-      Connection connection = getValidatedConnection(new NamespacedId(namespace, connectionId),
+    respond(request, responder, namespace, ns -> {
+      Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId),
                                                      ConnectionType.BIGQUERY);
 
       Map<String, String> connectionProperties = connection.getProperties();
@@ -278,7 +277,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       properties.put(BUCKET, bucket);
 
       String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-      NamespacedId workspaceId = new NamespacedId(namespace, identifier);
+      NamespacedId workspaceId = new NamespacedId(ns, identifier);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceId, tableId)
         .setScope(scope)
         .setProperties(properties)
@@ -318,8 +317,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
-    respond(request, responder, namespace, () -> {
-      Map<String, String> config = getWorkspace(new NamespacedId(namespace, connectionId)).getProperties();
+    respond(request, responder, namespace, ns -> {
+      Map<String, String> config = getWorkspace(new NamespacedId(ns, connectionId)).getProperties();
 
       Map<String, String> properties = new HashMap<>();
       String externalDatasetName =
