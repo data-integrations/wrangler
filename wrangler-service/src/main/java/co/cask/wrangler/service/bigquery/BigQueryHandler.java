@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.service.bigquery;
 
+import co.cask.cdap.api.annotation.TransactionControl;
+import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
@@ -100,20 +102,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   private static final String SCHEMA = "schema";
   private static final String BUCKET = "bucket";
 
-  /**
-   * Tests BigQuery Connection.
-   *
-   * @param request HTTP Request handler.
-   * @param responder HTTP Response handler.
-   */
-  @POST
-  @Path("/connections/bigquery/test")
-  public void testBiqQueryConnection(HttpServiceRequest request, HttpServiceResponder responder) {
-    testBiqQueryConnection(request, responder, getContext().getNamespace());
-  }
-
   @POST
   @Path("/contexts/{context}/connections/bigquery/test")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testBiqQueryConnection(HttpServiceRequest request, HttpServiceResponder responder,
                                      @PathParam("context") String namespace) {
     respond(request, responder, () -> {
@@ -128,21 +119,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     });
   }
 
-  /**
-   * List all datasets.
-   *
-   * @param request HTTP requets handler.
-   * @param responder HTTP response handler.
-   */
-  @GET
-  @Path("connections/{connection-id}/bigquery")
-  public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("connection-id") String connectionId) {
-    listDatasets(request, responder, getContext().getNamespace(), connectionId);
-  }
-
   @GET
   @Path("/contexts/{context}/connections/{connection-id}/bigquery")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace, @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, ns -> {
@@ -175,23 +154,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
    *   The project prefix is optional. When not given, the connection project should be used.
    */
   @GET
-  @Path("connections/{connection-id}/bigquery/{dataset-id}/tables")
-  public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("connection-id") String connectionId,
-                         @PathParam("dataset-id") String datasetStr) {
-    listTables(request, responder, getContext().getNamespace(), connectionId, datasetStr);
-  }
-
-  /**
-   * List all tables in a dataset.
-   *
-   * @param request HTTP requets handler.
-   * @param responder HTTP response handler.
-   * @param datasetStr the dataset id as a string. It will be of the form [project:]name.
-   *   The project prefix is optional. When not given, the connection project should be used.
-   */
-  @GET
   @Path("contexts/{context}/connections/{connection-id}/bigquery/{dataset-id}/tables")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace,
                          @PathParam("connection-id") String connectionId,
@@ -223,16 +187,6 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
-  public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("connection-id") String connectionId,
-                        @PathParam("dataset-id") String datasetStr,
-                        @PathParam("table-id") String tableId,
-                        @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    readTable(request, responder, getContext().getNamespace(), connectionId, datasetStr, tableId, scope);
-  }
-
   /**
    * Read a table.
    *
@@ -245,6 +199,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{connection-id}/bigquery/{dataset-id}/tables/{table-id}/read")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void readTable(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("context") String namespace,
                         @PathParam("connection-id") String connectionId,
@@ -297,22 +252,15 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     });
   }
 
-  @Path("connections/{connection-id}/bigquery/specification")
-  @GET
-  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @PathParam("connection-id") String connectionId,
-                            @QueryParam("wid") String workspaceId) {
-    specification(request, responder, getContext().getNamespace(), connectionId, workspaceId);
-  }
-
   /**
    * Specification for the source.
    *
    * @param request HTTP request handler.
    * @param responder HTTP response handler.
    */
-  @Path("contexts/{context}/connections/{connection-id}/bigquery/specification")
   @GET
+  @Path("contexts/{context}/connections/{connection-id}/bigquery/specification")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace,
                             @PathParam("connection-id") String connectionId,
