@@ -33,14 +33,14 @@ import javax.annotation.Nullable;
 public class ConnectionTypeConfig extends Config {
   private final Set<ConnectionType> disabledTypes;
   private final List<Connection> connections;
-  private final NamespacedId defaultConnection;
+  private final String defaultConnection;
 
   public ConnectionTypeConfig() {
     this(Collections.emptySet(), Collections.emptyList(), null);
   }
 
   public ConnectionTypeConfig(Set<ConnectionType> disabledTypes, List<Connection> connections,
-                              @Nullable NamespacedId defaultConnection) {
+                              @Nullable String defaultConnection) {
     this.disabledTypes = disabledTypes;
     this.connections = connections;
     this.defaultConnection = defaultConnection;
@@ -64,7 +64,7 @@ public class ConnectionTypeConfig extends Config {
    * Return the connection configured to be shown as default in dataprep - null if not provided
    */
   @Nullable
-  public NamespacedId getDefaultConnection() {
+  public String getDefaultConnection() {
     return defaultConnection;
   }
 

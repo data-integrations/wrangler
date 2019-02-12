@@ -115,7 +115,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   @POST
   @Path("contexts/{context}/connections/kafka")
   public void list(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
@@ -153,16 +153,16 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                    @PathParam("id") String id, @PathParam("topic") String topic,
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, () -> TransactionRunners.run(getContext(), context -> {
+    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
       ConnectionStore store = ConnectionStore.get(context);
       WorkspaceDataset ws = WorkspaceDataset.get(context);
-      Connection connection = getValidatedConnection(store, new NamespacedId(namespace, id), ConnectionType.KAFKA);
+      Connection connection = getValidatedConnection(store, new NamespacedId(ns, id), ConnectionType.KAFKA);
 
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
       String uuid = ServiceUtils.generateMD5(String.format("%s:%s.%s", scope, id, topic));
-      NamespacedId namespacedId = new NamespacedId(namespace, uuid);
+      NamespacedId namespacedId = new NamespacedId(ns, uuid);
 
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.ID, uuid);
@@ -231,8 +231,8 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace,
                             @PathParam("id") String id, @PathParam("topic") String topic) {
-    respond(request, responder, namespace, () -> {
-      Connection conn = getValidatedConnection(new NamespacedId(namespace, id), ConnectionType.KAFKA);
+    respond(request, responder, namespace, ns -> {
+      Connection conn = getValidatedConnection(new NamespacedId(ns, id), ConnectionType.KAFKA);
       Map<String, String> connProperties = conn.getProperties();
 
       Map<String, String> properties = new HashMap<>();

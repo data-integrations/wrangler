@@ -30,6 +30,7 @@ import co.cask.cdap.spi.data.table.field.Field;
 import co.cask.cdap.spi.data.table.field.FieldType;
 import co.cask.cdap.spi.data.table.field.Fields;
 import co.cask.cdap.spi.data.table.field.Range;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionMeta;
@@ -41,7 +42,6 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,6 +60,7 @@ public class ConnectionStore {
     .registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
   private static final String NAMESPACE_COL = "namespace";
+  private static final String GENERATION_COL = "generation";
   private static final String ID_COL = "id";
   private static final String TYPE_COL = "type";
   private static final String NAME_COL = "name";
@@ -71,6 +72,7 @@ public class ConnectionStore {
   public static final StructuredTableSpecification TABLE_SPEC = new StructuredTableSpecification.Builder()
     .withId(TABLE_ID)
     .withFields(new FieldType(NAMESPACE_COL, FieldType.Type.STRING),
+                new FieldType(GENERATION_COL, FieldType.Type.LONG),
                 new FieldType(ID_COL, FieldType.Type.STRING),
                 new FieldType(TYPE_COL, FieldType.Type.STRING),
                 new FieldType(NAME_COL, FieldType.Type.STRING),
@@ -78,7 +80,7 @@ public class ConnectionStore {
                 new FieldType(PROPERTIES_COL, FieldType.Type.STRING),
                 new FieldType(CREATED_COL, FieldType.Type.LONG),
                 new FieldType(UPDATED_COL, FieldType.Type.LONG))
-    .withPrimaryKeys(NAMESPACE_COL, ID_COL)
+    .withPrimaryKeys(NAMESPACE_COL, GENERATION_COL, ID_COL)
     .build();
 
   private final StructuredTable table;
@@ -106,7 +108,7 @@ public class ConnectionStore {
    * @return id of the connection stored
    * @throws ConnectionAlreadyExistsException if the connection already exists
    */
-  public NamespacedId create(String namespace,
+  public NamespacedId create(Namespace namespace,
                              ConnectionMeta meta) throws ConnectionAlreadyExistsException, IOException {
     NamespacedId id = new NamespacedId(namespace, getConnectionId(meta.getName()));
     Connection existing = read(id);
@@ -120,8 +122,8 @@ public class ConnectionStore {
       .setCreated(now)
       .setUpdated(now)
       .build();
-    table.upsert(toFields(connection));
-    return connection.getId();
+    table.upsert(toFields(connection, namespace.getGeneration()));
+    return id;
   }
 
   /**
@@ -153,7 +155,7 @@ public class ConnectionStore {
       .setCreated(existing.getCreated())
       .setUpdated(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build();
-    table.upsert(toFields(updated));
+    table.upsert(toFields(updated, id.getNamespace().getGeneration()));
   }
 
   /**
@@ -168,7 +170,7 @@ public class ConnectionStore {
   /**
    * Returns true if connection identified by connectionName already exists.
    */
-  public boolean connectionExists(String namespace, String connectionName) throws IOException {
+  public boolean connectionExists(Namespace namespace, String connectionName) throws IOException {
     return read(new NamespacedId(namespace, getConnectionId(connectionName))) != null;
   }
 
@@ -178,8 +180,11 @@ public class ConnectionStore {
    * @param filter to be applied on the data being returned.
    * @return List of connections
    */
-  public List<Connection> list(String namespace, Predicate<Connection> filter) throws IOException {
-    Range range = Range.singleton(Collections.singletonList(Fields.stringField(NAMESPACE_COL, namespace)));
+  public List<Connection> list(Namespace namespace, Predicate<Connection> filter) throws IOException {
+    List<Field<?>> key = new ArrayList<>(2);
+    key.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
+    key.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
+    Range range = Range.singleton(key);
     try (CloseableIterator<StructuredRow> rowIter = table.scan(range, Integer.MAX_VALUE)) {
       List<Connection> result = new ArrayList<>();
       while (rowIter.hasNext()) {
@@ -216,15 +221,17 @@ public class ConnectionStore {
 
   private List<Field<?>> getKey(NamespacedId id) {
     List<Field<?>> keyFields = new ArrayList<>(2);
-    keyFields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace()));
+    keyFields.add(Fields.stringField(NAMESPACE_COL, id.getNamespace().getName()));
+    keyFields.add(Fields.longField(GENERATION_COL, id.getNamespace().getGeneration()));
     keyFields.add(Fields.stringField(ID_COL, id.getId()));
     return keyFields;
   }
 
-  private List<Field<?>> toFields(Connection connection) {
+  private List<Field<?>> toFields(Connection connection, long generation) {
     List<Field<?>> fields = new ArrayList<>(8);
     fields.add(Fields.stringField(NAMESPACE_COL, connection.getNamespace()));
-    fields.add(Fields.stringField(ID_COL, connection.getId().getId()));
+    fields.add(Fields.longField(GENERATION_COL, generation));
+    fields.add(Fields.stringField(ID_COL, connection.getId()));
     fields.add(Fields.stringField(TYPE_COL, connection.getType().name()));
     fields.add(Fields.stringField(NAME_COL, connection.getName()));
     fields.add(Fields.stringField(DESC_COL, connection.getDescription()));
@@ -235,7 +242,8 @@ public class ConnectionStore {
   }
 
   private Connection fromRow(StructuredRow row) {
-    return Connection.builder(new NamespacedId(row.getString(NAMESPACE_COL), row.getString(ID_COL)))
+    Namespace namespace = new Namespace(row.getString(NAMESPACE_COL), row.getLong(GENERATION_COL));
+    return Connection.builder(new NamespacedId(namespace, row.getString(ID_COL)))
       .setType(ConnectionType.valueOf(row.getString(TYPE_COL)))
       .setName(row.getString(NAME_COL))
       .setDescription(row.getString(DESC_COL))

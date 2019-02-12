@@ -32,6 +32,7 @@ import co.cask.wrangler.dataset.workspace.DataType;
 import co.cask.wrangler.dataset.workspace.WorkspaceDataset;
 import co.cask.wrangler.dataset.workspace.WorkspaceMeta;
 import co.cask.wrangler.proto.ConnectionSample;
+import co.cask.wrangler.proto.Namespace;
 import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.PluginSpec;
 import co.cask.wrangler.proto.ServiceResponse;
@@ -112,7 +113,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     }).build(new CacheLoader<NamespacedId, CloseableClassLoader>() {
       @Override
       public CloseableClassLoader load(NamespacedId id) throws Exception {
-        List<ArtifactInfo> artifacts = getContext().listArtifacts(id.getNamespace());
+        List<ArtifactInfo> artifacts = getContext().listArtifacts(id.getNamespace().getName());
         ArtifactInfo info = null;
         for (ArtifactInfo artifact : artifacts) {
           Set<PluginClass> pluginClassSet = artifact.getClasses().getPlugins();
@@ -131,8 +132,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
             String.format("Database driver '%s' not found.", id.getId())
           );
         }
-        CloseableClassLoader closeableClassLoader = getContext().createClassLoader(id.getNamespace(), info, null);
-        return closeableClassLoader;
+        return getContext().createClassLoader(id.getNamespace().getName(), info, null);
       }
     });
 
@@ -241,7 +241,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/jdbc/drivers")
   public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       List<JDBCDriverInfo> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
@@ -307,7 +307,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/jdbc/allowed")
   public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder,
                                    @PathParam("context") String namespace) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       List<AllowedDriverInfo> values = new ArrayList<>();
       Collection<Map.Entry<String, DriverInfo>> entries = drivers.entries();
       for (Map.Entry<String, DriverInfo> driver : entries) {
@@ -342,14 +342,14 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/jdbc/test")
   public void testConnection(HttpServiceRequest request, HttpServiceResponder responder,
                              @PathParam("context") String namespace) {
-    respond(request, responder, () -> {
+    respond(request, responder, namespace, ns -> {
       DriverCleanup cleanup = null;
       try {
         // Extract the body of the request and transform it to the Connection object.
         RequestExtractor extractor = new RequestExtractor(request);
         ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
-        cleanup = loadAndExecute(namespace, connection, java.sql.Connection::getMetaData);
+        cleanup = loadAndExecute(ns, connection, java.sql.Connection::getMetaData);
         return new ServiceResponse<>("Successfully connected to database.");
       } finally {
         if (cleanup != null) {
@@ -375,7 +375,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/databases")
   public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       DriverCleanup cleanup = null;
       try {
         // Extract the body of the request and transform it to the Connection object.
@@ -383,7 +383,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
         ConnectionMeta conn = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
         List<String> values = new ArrayList<>();
-        cleanup = loadAndExecute(namespace, conn, connection -> {
+        cleanup = loadAndExecute(ns, conn, connection -> {
           DatabaseMetaData metaData = connection.getMetaData();
           ResultSet resultSet;
           PreparedStatement ps = null;
@@ -433,12 +433,12 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/connections/{id}/tables")
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       DriverCleanup cleanup = null;
       try {
         List<Name> values = new ArrayList<>();
-        Connection conn = getConnection(new NamespacedId(namespace, id));
-        cleanup = loadAndExecute(namespace, conn, connection -> {
+        Connection conn = getConnection(new NamespacedId(ns, id));
+        cleanup = loadAndExecute(ns, conn, connection -> {
           String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
           ResultSet resultSet;
           if (product.equalsIgnoreCase("oracle")) {
@@ -501,13 +501,13 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                    @PathParam("context") String namespace, @PathParam("id") String id, @PathParam("table") String table,
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, () -> {
+    respond(request, responder, namespace, ns -> {
       DriverCleanup cleanup = null;
       try {
         AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
-        Connection conn = getConnection(new NamespacedId(namespace, id));
+        Connection conn = getConnection(new NamespacedId(ns, id));
 
-        cleanup = loadAndExecute(namespace, conn, connection -> {
+        cleanup = loadAndExecute(ns, conn, connection -> {
           try (Statement statement = connection.createStatement();
             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
@@ -519,7 +519,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
             properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
             properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
             properties.put(PropertyIds.CONNECTION_ID, id);
-            NamespacedId namespacedId = new NamespacedId(namespace, identifier);
+            NamespacedId namespacedId = new NamespacedId(ns, identifier);
             WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, table)
               .setScope(scope)
               .setProperties(properties)
@@ -597,8 +597,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("id") String id,
                             @PathParam("table") String table) {
-    respond(request, responder, namespace, () -> {
-      Connection conn = getConnection(new NamespacedId(namespace, id));
+    respond(request, responder, namespace, ns -> {
+      Connection conn = getConnection(new NamespacedId(ns, id));
 
       Map<String, String> properties = new HashMap<>();
       properties.put("connectionString", conn.getProperties().get("url"));
@@ -642,7 +642,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param connection the connection to be connected to.
    * @return pair of connection and the driver cleanup.
    */
-  private DriverCleanup loadAndExecute(String namespace, ConnectionMeta connection,
+  private DriverCleanup loadAndExecute(Namespace namespace, ConnectionMeta connection,
                                        Executor executor) throws Exception {
     DriverCleanup cleanup = null;
     String name = connection.getProperties().get("name");

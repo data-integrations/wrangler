@@ -41,7 +41,7 @@ public final class Connection extends ConnectionMeta {
                     Map<String, String> properties) {
     super(type, name, description, properties);
     this.namespacedId = id;
-    this.context = id.getNamespace();
+    this.context = id.getNamespace().getName();
     this.id = id.getId();
     this.created = created;
     this.updated = updated;
@@ -54,9 +54,8 @@ public final class Connection extends ConnectionMeta {
   /**
    * @return id of the connection.
    */
-  public NamespacedId getId() {
-    // only null if this object was created through deserialization
-    return namespacedId == null ? new NamespacedId(context, id) : namespacedId;
+  public String getId() {
+    return id;
   }
 
   /**
