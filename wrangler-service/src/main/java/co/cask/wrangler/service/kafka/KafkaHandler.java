@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.service.kafka;
 
+import co.cask.cdap.api.annotation.TransactionControl;
+import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.spi.data.transaction.TransactionRunners;
@@ -61,27 +63,9 @@ import javax.ws.rs.QueryParam;
  */
 public final class KafkaHandler extends AbstractWranglerHandler {
 
-  /**
-   * Tests the connection to kafka..
-   *
-   * Following is the response when the connection is successful.
-   *
-   * {
-   *   "status" : 200,
-   *   "message" : "Successfully connected to kafka."
-   * }
-   *
-   * @param request  HTTP request handler.
-   * @param responder HTTP response handler.
-   */
-  @POST
-  @Path("connections/kafka/test")
-  public void test(HttpServiceRequest request, HttpServiceResponder responder) {
-    test(request, responder, getContext().getNamespace());
-  }
-
   @POST
   @Path("contexts/{context}/connections/kafka/test")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void test(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace) {
     respond(request, responder, () -> {
@@ -100,12 +84,6 @@ public final class KafkaHandler extends AbstractWranglerHandler {
     });
   }
 
-  @POST
-  @Path("connections/kafka")
-  public void list(HttpServiceRequest request, HttpServiceResponder responder) {
-    list(request, responder, getContext().getNamespace());
-  }
-
   /**
    * List all kafka topics.
    *
@@ -114,6 +92,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/connections/kafka")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       // Extract the body of the request and transform it to the Connection object.
@@ -131,15 +110,6 @@ public final class KafkaHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("connections/{id}/kafka/{topic}/read")
-  public void read(HttpServiceRequest request, HttpServiceResponder responder,
-                   @PathParam("id") String id, @PathParam("topic") String topic,
-                   @QueryParam("lines") int lines,
-                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    read(request, responder, getContext().getNamespace(), id, topic, lines, scope);
-  }
-
   /**
    * Reads a kafka topic into workspace.
    *
@@ -149,6 +119,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{id}/kafka/{topic}/read")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void read(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                    @PathParam("id") String id, @PathParam("topic") String topic,
                    @QueryParam("lines") int lines,
@@ -211,13 +182,6 @@ public final class KafkaHandler extends AbstractWranglerHandler {
     }));
   }
 
-  @Path("connections/{id}/kafka/{topic}/specification")
-  @GET
-  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @PathParam("id") String id, @PathParam("topic") String topic) {
-    specification(request, responder, getContext().getNamespace(), id, topic);
-  }
-
   /**
    * Specification for the source.
    *
@@ -226,8 +190,9 @@ public final class KafkaHandler extends AbstractWranglerHandler {
    * @param id of the connection.
    * @param topic for which the specification need to be generated.
    */
-  @Path("contexts/{context}/connections/{id}/kafka/{topic}/specification")
   @GET
+  @Path("contexts/{context}/connections/{id}/kafka/{topic}/specification")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace,
                             @PathParam("id") String id, @PathParam("topic") String topic) {

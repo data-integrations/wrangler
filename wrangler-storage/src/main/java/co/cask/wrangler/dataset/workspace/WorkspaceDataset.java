@@ -270,7 +270,7 @@ public class WorkspaceDataset {
   }
 
   private List<Field<?>> toFields(Workspace workspace) {
-    List<Field<?>> fields = new ArrayList<>(10);
+    List<Field<?>> fields = new ArrayList<>(11);
     fields.add(Fields.stringField(NAMESPACE_COL, workspace.getNamespace().getName()));
     fields.add(Fields.longField(GENERATION_COL, workspace.getNamespace().getGeneration()));
     fields.add(Fields.stringField(ID_COL, workspace.getId()));

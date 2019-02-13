@@ -20,6 +20,7 @@ import co.cask.cdap.api.NamespaceSummary;
 import co.cask.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.spi.data.transaction.TransactionException;
 import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.dataset.connections.ConnectionNotFoundException;
 import co.cask.wrangler.dataset.connections.ConnectionStore;
