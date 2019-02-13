@@ -72,15 +72,6 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
 
-  @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("explorer/fs")
-  @GET
-  public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("path") String path,
-                   @QueryParam("hidden") boolean hidden) {
-    list(request, responder, getContext().getNamespace(), path, hidden);
-  }
-
   /**
    * Lists the content of the path specified using the {@link Location}.
    *
@@ -88,23 +79,13 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
    * @param responder HTTP Response Handler
    * @param path to the location in the filesystem
    */
-  @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("contexts/{context}/explorer/fs")
   @GET
+  @Path("contexts/{context}/explorer/fs")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @QueryParam("path") String path,
                    @QueryParam("hidden") boolean hidden) {
     respond(request, responder, namespace, ns -> explorer.browse(path, hidden));
-  }
-
-  @Path("explorer/fs/read")
-  @GET
-  public void read(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("path") String path, @QueryParam("lines") int lines,
-                   @QueryParam("sampler") String sampler,
-                   @QueryParam("fraction") double fraction,
-                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    read(request, responder, getContext().getNamespace(), path, lines, sampler, fraction, scope);
   }
 
   /**
@@ -116,8 +97,9 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
    * @param lines number of lines to extracted from file if it's a text/plain.
    * @param sampler sampling method to be used.
    */
-  @Path("contexts/{context}/explorer/fs/read")
   @GET
+  @Path("contexts/{context}/explorer/fs/read")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void read(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                    @QueryParam("path") String path, @QueryParam("lines") int lines,
                    @QueryParam("sampler") String sampler,
@@ -149,13 +131,6 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     });
   }
 
-  @Path("explorer/fs/specification")
-  @GET
-  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
-    specification(request, responder, getContext().getNamespace(), path, workspaceId);
-  }
-
   /**
    * Specification for the source.
    *
@@ -163,8 +138,9 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
    * @param responder HTTP response handler.
    * @param path to the location in the filesystem.
    */
-  @Path("contexts/{context}/explorer/fs/specification")
   @GET
+  @Path("contexts/{context}/explorer/fs/specification")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace,
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {

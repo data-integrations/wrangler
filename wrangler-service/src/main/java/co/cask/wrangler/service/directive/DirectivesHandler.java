@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.service.directive;
 
+import co.cask.cdap.api.annotation.TransactionControl;
+import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.data.schema.Schema;
@@ -40,6 +42,7 @@ import co.cask.wrangler.api.DirectiveParseException;
 import co.cask.wrangler.api.ExecutorContext;
 import co.cask.wrangler.api.GrammarMigrator;
 import co.cask.wrangler.api.Pair;
+import co.cask.wrangler.api.RecipeException;
 import co.cask.wrangler.api.RecipeParser;
 import co.cask.wrangler.api.RecipeSymbol;
 import co.cask.wrangler.api.Row;
@@ -165,16 +168,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
 
   @GET
   @Path("health")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void healthCheck(HttpServiceRequest request, HttpServiceResponder responder) {
     responder.sendStatus(HttpURLConnection.HTTP_OK);
-  }
-
-  @PUT
-  @Path("workspaces/{id}")
-  public void create(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id, @QueryParam("name") String name,
-                     @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    create(request, responder, getContext().getNamespace(), id, name, scope);
   }
 
   /**
@@ -194,6 +190,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @PUT
   @Path("contexts/{context}/workspaces/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void create(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id, @QueryParam("name") String name,
                      @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
@@ -213,13 +210,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       });
       return new ServiceResponse<Void>(String.format("Successfully created workspace '%s'", id));
     });
-  }
-
-  @GET
-  @Path("workspaces")
-  public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @QueryParam("scope") @DefaultValue("default") String scope) {
-    list(request, responder, getContext().getNamespace(), scope);
   }
 
   /**
@@ -244,6 +234,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/workspaces")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
     respond(request, responder, namespace, ns -> {
@@ -253,13 +244,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       });
       return new ServiceResponse<>(workspaces);
     });
-  }
-
-  @DELETE
-  @Path("workspaces/{id}")
-  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    delete(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -278,6 +262,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @DELETE
   @Path("contexts/{context}/workspaces/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -287,13 +272,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       });
       return new ServiceResponse<Void>(String.format("Successfully deleted workspace '%s'", id));
     });
-  }
-
-  @DELETE
-  @Path("workspaces/")
-  public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
-                          @QueryParam("group") String group) {
-    deleteGroup(request, responder, getContext().getNamespace(), group);
   }
 
   /**
@@ -312,6 +290,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @DELETE
   @Path("contexts/{context}/workspaces/")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace, @QueryParam("group") String group) {
     respond(request, responder, namespace, ns -> {
@@ -321,13 +300,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       });
       return new ServiceResponse<Void>(String.format("Successfully deleted workspaces within group '%s'", group));
     });
-  }
-
-  @GET
-  @Path("workspaces/{id}")
-  public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") String id) {
-    get(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -361,6 +333,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/workspaces/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -404,12 +377,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     return merged;
   }
 
-  @POST
-  @Path("workspaces")
-  public void upload(HttpServiceRequest request, HttpServiceResponder responder) {
-    upload(request, responder, getContext().getNamespace());
-  }
-
   /**
    * Upload data to the workspace, the workspace is created automatically on fly.
    *
@@ -418,6 +385,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/workspaces")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -503,14 +471,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     });
   }
 
-
-  @POST
-  @Path("workspaces/{id}/upload")
-  public void uploadData(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("id") String id) {
-    uploadData(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Upload data to the workspace.
    *
@@ -520,6 +480,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/workspaces/{id}/upload")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void uploadData(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -589,12 +550,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     });
   }
 
-  @POST
-  @Path("workspaces/{id}/execute")
-  public void execute(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
-    execute(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Executes the directives on the record stored in the workspace.
    *
@@ -616,6 +571,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/workspaces/{id}/execute")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -730,13 +686,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     return null;
   }
 
-  @POST
-  @Path("workspaces/{id}/summary")
-  public void summary(HttpServiceRequest request, HttpServiceResponder responder,
-                      @PathParam("id") String id) {
-    summary(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Summarizes the workspace by running directives.
    *
@@ -746,6 +695,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/workspaces/{id}/summary")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void summary(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -826,14 +776,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   }
 
   @POST
-  @Path("workspaces/{id}/schema")
-  public void schema(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    schema(request, responder, getContext().getNamespace(), id);
-  }
-
-  @POST
   @Path("contexts/{context}/workspaces/{id}/schema")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -875,6 +819,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("info")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void capabilities(HttpServiceRequest request, HttpServiceResponder responder) {
     respond(request, responder, () -> {
       ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -892,13 +837,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       }
       return new ServiceResponse<>(value);
     });
-  }
-
-
-  @GET
-  @Path("usage")
-  public void usage(HttpServiceRequest request, HttpServiceResponder responder) {
-    usage(request, responder, getContext().getNamespace());
   }
 
   /**
@@ -923,6 +861,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/usage")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void usage(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -959,12 +898,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("artifacts")
-  public void artifacts(HttpServiceRequest request, HttpServiceResponder responder) {
-    artifacts(request, responder, getContext().getNamespace());
-  }
-
   /**
    * This HTTP endpoint is used to retrieve artifacts that include plugins
    * of type <code>Directive.Type</code> (directive). Artifact will be reported
@@ -972,6 +905,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/artifacts")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void artifacts(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -989,13 +923,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       return new ServiceResponse<>(values);
     });
   }
-
-  @GET
-  @Path("directives")
-  public void directives(HttpServiceRequest request, HttpServiceResponder responder) {
-    directives(request, responder, getContext().getNamespace());
-  }
-
   /**
    * This HTTP endpoint is used to retrieve plugins that are
    * of type <code>Directive.Type</code> (directive). Artifact will be reported
@@ -1005,6 +932,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/directives")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void directives(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -1024,12 +952,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("directives/reload")
-  public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder) {
-    directivesReload(request, responder, getContext().getNamespace());
-  }
-
   /**
    * This HTTP endpoint is used to reload the plugins that are
    * of type <code>Directive.Type</code> (directive). Artifact will be reported
@@ -1037,6 +959,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/directives/reload")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder,
                                @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -1053,6 +976,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("charsets")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void charsets(HttpServiceRequest request, HttpServiceResponder responder) {
     respond(request, responder, () -> new ServiceResponse<>(Charset.availableCharsets().keySet()));
   }
@@ -1065,6 +989,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("config")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void uploadConfig(HttpServiceRequest request, HttpServiceResponder responder) {
     respond(request, responder, () -> {
       // Read the request body
@@ -1089,6 +1014,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("config")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
     respond(request, responder, () -> TransactionRunners.run(getContext(), context -> {
       ConfigStore configStore = ConfigStore.get(context);
@@ -1189,7 +1115,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
         recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
         executor.initialize(recipe, context);
-        rows = executor.execute(sample.apply(rows));
+        try {
+          rows = executor.execute(sample.apply(rows));
+        } catch (RecipeException e) {
+          throw new BadRequestException(e.getMessage(), e);
+        }
         executor.destroy();
       }
       return rows;

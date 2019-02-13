@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.service.schema;
 
+import co.cask.cdap.api.annotation.TransactionControl;
+import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
 import co.cask.cdap.spi.data.transaction.TransactionRunners;
@@ -45,14 +47,6 @@ import javax.ws.rs.QueryParam;
 public class SchemaRegistryHandler extends AbstractWranglerHandler {
   private static final Gson GSON = new Gson();
 
-  @PUT
-  @Path("schemas")
-  public void create(HttpServiceRequest request, HttpServiceResponder responder,
-                     @QueryParam("id") String id, @QueryParam("name") String name,
-                     @QueryParam("description") String description, @QueryParam("type") String type) {
-    create(request, responder, getContext().getNamespace(), id, name, description, type);
-  }
-
   /**
    * Creates an entry for Schema with id, name, description and type of schema.
    * if the 'id' already exists, then it overwrites the data with new information.
@@ -67,6 +61,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
    */
   @PUT
   @Path("contexts/{context}/schemas")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void create(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @QueryParam("id") String id, @QueryParam("name") String name,
                      @QueryParam("description") String description, @QueryParam("type") String type) {
@@ -95,13 +90,6 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
     });
   }
 
-  @POST
-  @Path("schemas/{id}")
-  public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    upload(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Uploads a schema to be associated with the schema id.
    * This API will automatically increment the schema version. Upon adding the schema to associated id in
@@ -128,6 +116,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/schemas/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void upload(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -153,13 +142,6 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
     });
   }
 
-  @DELETE
-  @Path("schemas/{id}")
-  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id) {
-    delete(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Deletes the entire entry from the registry.
    *
@@ -172,6 +154,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
    */
   @DELETE
   @Path("contexts/{context}/schemas/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -187,13 +170,6 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
     });
   }
 
-  @DELETE
-  @Path("schemas/{id}/versions/{version}")
-  public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("id") String id, @PathParam("version") long version) {
-    delete(request, responder, getContext().getNamespace(), id, version);
-  }
-
   /**
    * Deletes a version of schema from the registry for a given schema id.
    *
@@ -204,6 +180,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
    */
   @DELETE
   @Path("contexts/{context}/schemas/{id}/versions/{version}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id, @PathParam("version") long version) {
     respond(request, responder, namespace, ns -> {
@@ -213,13 +190,6 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
       });
       return new ServiceResponse<Void>("Successfully deleted version '" + version + "' of schema " + id);
     });
-  }
-
-  @GET
-  @Path("schemas/{id}/versions/{version}")
-  public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") String id, @PathParam("version") long version) {
-    get(request, responder, getContext().getNamespace(), id, version);
   }
 
   /**
@@ -232,20 +202,13 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/schemas/{id}/versions/{version}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                   @PathParam("id") String id, @PathParam("version") long version) {
     respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
       SchemaRegistry registry = SchemaRegistry.get(context);
       return new ServiceResponse<>(registry.getEntry(new NamespacedId(ns, id), version));
     }));
-  }
-
-
-  @GET
-  @Path("schemas/{id}")
-  public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("id") String id) {
-    get(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -258,18 +221,13 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/schemas/{id}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
       SchemaRegistry registry = SchemaRegistry.get(context);
       return new ServiceResponse<>(registry.getEntry(new NamespacedId(ns, id)));
     }));
-  }
-
-  @GET
-  @Path("schemas/{id}/versions")
-  public void versions(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("id") String id) {
-    versions(request, responder, getContext().getNamespace(), id);
   }
 
   /**
@@ -281,6 +239,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/schemas/{id}/versions")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void versions(HttpServiceRequest request, HttpServiceResponder responder,
                        @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {

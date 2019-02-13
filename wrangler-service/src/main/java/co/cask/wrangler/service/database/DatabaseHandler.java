@@ -16,6 +16,8 @@
 
 package co.cask.wrangler.service.database;
 
+import co.cask.cdap.api.annotation.TransactionControl;
+import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.artifact.ArtifactInfo;
 import co.cask.cdap.api.artifact.CloseableClassLoader;
 import co.cask.cdap.api.plugin.PluginClass;
@@ -197,12 +199,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     }
   }
 
-  @GET
-  @Path("jdbc/drivers")
-  public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
-    listDrivers(request, responder, getContext().getNamespace());
-  }
-
   /**
    * Lists all the JDBC drivers installed.
    * <p>
@@ -239,6 +235,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/jdbc/drivers")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -275,12 +272,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("jdbc/allowed")
-  public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder) {
-    listAvailableDrivers(request, responder, getContext().getNamespace());
-  }
-
   /**
    * List all the possible drivers supported.
    *
@@ -305,6 +296,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/jdbc/allowed")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder,
                                    @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -319,27 +311,9 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     });
   }
 
-  /**
-   * Tests the connection.
-   *
-   * Following is the response when the connection is successfull.
-   *
-   * {
-   *   "status" : 200,
-   *   "message" : "Successfully connected to database."
-   * }
-   *
-   * @param request HTTP request handler.
-   * @param responder HTTP response handler.
-   */
-  @POST
-  @Path("connections/jdbc/test")
-  public void testConnection(HttpServiceRequest request, HttpServiceResponder responder) {
-    testConnection(request, responder, getContext().getNamespace());
-  }
-
   @POST
   @Path("contexts/{context}/connections/jdbc/test")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testConnection(HttpServiceRequest request, HttpServiceResponder responder,
                              @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -359,12 +333,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     });
   }
 
-  @POST
-  @Path("connections/databases")
-  public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder) {
-    listDatabases(request, responder, getContext().getNamespace());
-  }
-
   /**
    * Lists all databases.
    *
@@ -373,6 +341,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    */
   @POST
   @Path("contexts/{context}/connections/databases")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
@@ -415,13 +384,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("connections/{id}/tables")
-  public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("id") String id) {
-    listTables(request, responder, getContext().getNamespace(), id);
-  }
-
   /**
    * Lists all the tables within a database.
    *
@@ -431,6 +393,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{id}/tables")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
@@ -476,15 +439,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     });
   }
 
-  @GET
-  @Path("connections/{id}/tables/{table}/read")
-  public void read(HttpServiceRequest request, HttpServiceResponder responder,
-                   @PathParam("id") String id, @PathParam("table") String table,
-                   @QueryParam("lines") int lines,
-                   @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    read(request, responder, getContext().getNamespace(), id, table, lines, scope);
-  }
-
   /**
    * Reads a table into workspace.
    *
@@ -497,6 +451,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    */
   @GET
   @Path("contexts/{context}/connections/{id}/tables/{table}/read")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void read(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @PathParam("id") String id, @PathParam("table") String table,
                    @QueryParam("lines") int lines,
@@ -577,13 +532,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     return rows;
   }
 
-  @Path("connections/{id}/tables/{table}/specification")
-  @GET
-  public void specification(HttpServiceRequest request, HttpServiceResponder responder,
-                            @PathParam("id") String id, @PathParam("table") String table) {
-    specification(request, responder, getContext().getNamespace(), id, table);
-  }
-
   /**
    * Specification for the source.
    *
@@ -592,8 +540,9 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param id of the connection.
    * @param table in the database.
    */
-  @Path("contexts/{context}/connections/{id}/tables/{table}/specification")
   @GET
+  @Path("contexts/{context}/connections/{id}/tables/{table}/specification")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("id") String id,
                             @PathParam("table") String table) {
