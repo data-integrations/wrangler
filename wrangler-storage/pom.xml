@@ -33,14 +33,14 @@
     </dependency>
     <dependency>
       <groupId>co.cask.cdap</groupId>
-      <artifactId>cdap-data-fabric</artifactId>
-      <version>${cdap.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>co.cask.cdap</groupId>
       <artifactId>cdap-system-app-unit-test</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>cdap-system-app-api</artifactId>
+      <version>${cdap.version}</version>
     </dependency>
     <dependency>
       <groupId>co.cask.wrangler</groupId>
