@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017 Cask Data, Inc.
+ *  Copyright © 2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -16,16 +16,16 @@
 
 package co.cask.directives.external;
 
-import co.cask.http.HandlerContext;
-import co.cask.http.HttpHandler;
-import co.cask.http.HttpResponder;
-import co.cask.http.NettyHttpService;
 import co.cask.wrangler.TestingRig;
 import co.cask.wrangler.api.RecipePipeline;
 import co.cask.wrangler.api.Row;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
+import io.cdap.http.HandlerContext;
+import io.cdap.http.HttpHandler;
+import io.cdap.http.HttpResponder;
+import io.cdap.http.NettyHttpService;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.After;
