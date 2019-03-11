@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2018 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,14 +17,14 @@
 package co.cask.wrangler.clients;
 
 import co.cask.cdap.api.common.Bytes;
-import co.cask.http.HandlerContext;
-import co.cask.http.HttpHandler;
-import co.cask.http.HttpResponder;
-import co.cask.http.NettyHttpService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import io.cdap.http.HandlerContext;
+import io.cdap.http.HttpHandler;
+import io.cdap.http.HttpResponder;
+import io.cdap.http.NettyHttpService;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.After;
