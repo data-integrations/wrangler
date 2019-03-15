@@ -345,7 +345,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         req = (JsonObject) GSON.toJsonTree(workspaceReq);
       }
       Map<String, String> properties = workspace.getProperties();
-      JsonObject prop = workspaceReq == null ? new JsonObject() : (JsonObject) GSON.toJsonTree(properties);
+      JsonObject prop = (JsonObject) GSON.toJsonTree(properties);
 
       prop.addProperty("name", name);
       prop.addProperty("id", name);
