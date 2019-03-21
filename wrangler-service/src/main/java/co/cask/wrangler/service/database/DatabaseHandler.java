@@ -139,16 +139,18 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     });
 
   private final class DriverInfo {
-    private String jdbcUrlPattern;
-    private String name;
-    private String tag;
-    private String port;
+    private final String jdbcUrlPattern;
+    private final String name;
+    private final String tag;
+    private final String port;
+    private final boolean basicAllowed;
 
-    DriverInfo(String name, String jdbcUrlPattern, String tag, String port) {
+    DriverInfo(String name, String jdbcUrlPattern, String tag, String port, boolean basicAllowed) {
       this.name = name;
       this.jdbcUrlPattern = jdbcUrlPattern;
       this.tag = tag;
       this.port = port;
+      this.basicAllowed = basicAllowed;
     }
 
     public String getJdbcUrlPattern() {
@@ -166,6 +168,11 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     public String getPort() {
       return port;
     }
+
+    public boolean isBasicAllowed() {
+      return basicAllowed;
+    }
+
   }
 
   /**
@@ -191,8 +198,9 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       String line;
       while ((line = br.readLine()) != null) {
         String[] columns = line.split(",");
-        if (columns.length == 5) {
-          DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3], columns[4]);
+        if (columns.length == 6) {
+          DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3], columns[4],
+                                           Boolean.parseBoolean(columns[5]));
           drivers.put(columns[1].trim(), info);
         }
       }
@@ -305,7 +313,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       for (Map.Entry<String, DriverInfo> driver : entries) {
         String shortTag = driver.getValue().getTag();
         values.add(new AllowedDriverInfo(driver.getKey(), driver.getValue().getName(), shortTag, shortTag,
-                                         driver.getValue().getPort()));
+                                         driver.getValue().getPort(), driver.getValue().isBasicAllowed()));
       }
       return new ServiceResponse<>(values);
     });
