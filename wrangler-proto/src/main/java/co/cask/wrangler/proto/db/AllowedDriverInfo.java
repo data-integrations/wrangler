@@ -29,12 +29,15 @@ public class AllowedDriverInfo {
   private final String name;
   @SerializedName("default.port")
   private final String port;
+  private final boolean basicAllowed;
 
-  public AllowedDriverInfo(String clazz, String label, String tag, String name, String port) {
+  // TODO: CDAP-15132 Check if this class can be reconciled with DriverInfo class
+  public AllowedDriverInfo(String clazz, String label, String tag, String name, String port, boolean basicAllowed) {
     this.clazz = clazz;
     this.label = label;
     this.tag = tag;
     this.name = name;
     this.port = port;
+    this.basicAllowed = basicAllowed;
   }
 }
