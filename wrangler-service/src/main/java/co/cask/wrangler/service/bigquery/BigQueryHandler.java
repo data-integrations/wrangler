@@ -266,7 +266,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, ns -> {
-      Map<String, String> config = getWorkspace(new NamespacedId(ns, connectionId)).getProperties();
+      Map<String, String> config = getWorkspace(new NamespacedId(ns, workspaceId)).getProperties();
 
       Map<String, String> properties = new HashMap<>();
       String externalDatasetName =
