@@ -37,14 +37,23 @@ public final class Connection extends ConnectionMeta {
   // Time in second - when it was last updated.
   private final long updated;
 
+  // Determines if the connection is configured automatically
+  private final boolean preconfigured;
+
   public Connection(NamespacedId id, ConnectionType type, String name, String description, long created, long updated,
                     Map<String, String> properties) {
+    this(id, type, name, description, created, updated, properties, false);
+  }
+
+  public Connection(NamespacedId id, ConnectionType type, String name, String description, long created, long updated,
+                    Map<String, String> properties, boolean preconfigured) {
     super(type, name, description, properties);
     this.namespacedId = id;
     this.context = id.getNamespace().getName();
     this.id = id.getId();
     this.created = created;
     this.updated = updated;
+    this.preconfigured = preconfigured;
   }
 
   public String getNamespace() {
@@ -72,6 +81,10 @@ public final class Connection extends ConnectionMeta {
     return updated;
   }
 
+  public boolean isPreconfigured() {
+    return preconfigured;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -86,12 +99,13 @@ public final class Connection extends ConnectionMeta {
     Connection that = (Connection) o;
     return created == that.created &&
       updated == that.updated &&
+      preconfigured == that.preconfigured &&
       Objects.equals(id, that.id);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), id, created, updated);
+    return Objects.hash(super.hashCode(), id, created, updated, preconfigured);
   }
 
   /**
@@ -107,6 +121,7 @@ public final class Connection extends ConnectionMeta {
       ", created=" + created +
       ", updated=" + updated +
       ", properties=" + properties +
+      ", preconfigured=" + preconfigured +
       '}';
   }
 
@@ -129,6 +144,7 @@ public final class Connection extends ConnectionMeta {
     private final NamespacedId id;
     private long created = -1L;
     private long updated = -1L;
+    private boolean preconfigured = false;
 
     public Builder(NamespacedId id) {
       this.id = id;
@@ -144,6 +160,11 @@ public final class Connection extends ConnectionMeta {
       return this;
     }
 
+    public Builder setPreconfigured(boolean preconfigured) {
+      this.preconfigured = preconfigured;
+      return this;
+    }
+
     public Connection build() {
       if (created < 0) {
         throw new IllegalStateException("Created time must be above 0.");
@@ -151,7 +172,7 @@ public final class Connection extends ConnectionMeta {
       if (updated < 0) {
         throw new IllegalStateException("Updated time must be above 0.");
       }
-      return new Connection(id, type, name, description, created, updated, properties);
+      return new Connection(id, type, name, description, created, updated, properties, preconfigured);
     }
   }
 }
