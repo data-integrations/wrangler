@@ -428,19 +428,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
-        if (config.onError.equalsIgnoreCase("send-to-error-port")) {
-          getContext().getMetrics().count("errors", errors.size());
-          for (ErrorRecord error : errors) {
-            emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
-          }
-        } else if (config.onError.equalsIgnoreCase("fail-pipeline")) {
-          throw new Exception("Failing pipeline on error. " + errors.get(0).getMessage());
+        getContext().getMetrics().count("errors", errors.size());
+        for (ErrorRecord error : errors) {
+          emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
         }
-        // If it's 'skip-on-error' we continue processing and don't emit any error records.
-        return;
       }
     } catch (Exception e) {
-      getContext().getMetrics().count("errors", 1);
+      getContext().getMetrics().count("failure", 1);
       if (config.onError.equalsIgnoreCase("send-to-error-port")) {
         // Emit error record, if the Error flattener or error handlers are not connected, then
         // the record is automatically omitted.
