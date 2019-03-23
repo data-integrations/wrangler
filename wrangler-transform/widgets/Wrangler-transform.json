@@ -47,17 +47,27 @@
       ]
     },
     {
-      "label" : "Failure Conditions and Handling",
-      "properties" : [
-        {
-          "widget-type": "textbox",
-          "label" : "Failure Threshold",
-          "name": "threshold",
-          "widget-attributes": {
-            "default": "1"
+      "name": "on-error",
+      "label": "Error handling",
+      "widget-type": "radio-group",
+      "widget-attributes": {
+        "layout": "inline",
+        "default": "skip-on-error",
+        "options": [
+          {
+            "id": "skip-on-error",
+            "label": "Skip on error"
+          },
+          {
+            "id": "send-to-error",
+            "label": "Send to error"
+          },
+          {
+            "id": "stop-on-error",
+            "label": "Stop on error"
           }
-        }
-      ]
+        ]
+      }
     }
   ],
   "emit-alerts": true,
@@ -76,6 +86,7 @@
           "double",
           "bytes",
           "string",
+          "timestamp",
           "array",
           "enum",
           "record",

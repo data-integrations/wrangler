@@ -394,7 +394,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
     long start = 0;
+    boolean skipRecord = false;
     List<StructuredRecord> records;
+
     try {
       // Creates a row as starting point for input to the pipeline.
       Row row = new Row();
@@ -426,38 +428,42 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
-        getContext().getMetrics().count("errors", errors.size());
-        for (ErrorRecord error : errors) {
-          emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
+        if (config.onError.equalsIgnoreCase("send-to-error")) {
+          getContext().getMetrics().count("errors", errors.size());
+          for (ErrorRecord error : errors) {
+            emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
+          }
+        } else if (config.onError.equalsIgnoreCase("stop-on-error")) {
+          throw new Exception("Stopping on error " + errors.get(0).getMessage());
         }
+        // If it's 'skip-on-error' we continue processing and don't emit any error records.
+        return;
       }
-
     } catch (Exception e) {
-      getContext().getMetrics().count("failures", 1);
-      errorCounter++;
-      // If error threshold is reached, then terminate processing
-      // If threshold is set to -1, it tolerant unlimited errors
-      if (config.threshold != -1 && errorCounter > config.threshold) {
+      getContext().getMetrics().count("errors", 1);
+      if (config.onError.equalsIgnoreCase("send-to-error")) {
+        // Emit error record, if the Error flattener or error handlers are not connected, then
+        // the record is automatically omitted.
+        emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
+        return;
+      } else if (config.onError.equalsIgnoreCase("stop-on-error")) {
         emitter.emitAlert(ImmutableMap.of(
           "stage", getContext().getStageName(),
           "code", String.valueOf(1),
-          "message", "Error threshold reached.",
+          "message", String.format("Stopping pipeline stage %s on error %s",
+                                   getContext().getStageName(), e.getMessage()),
           "value", String.valueOf(errorCounter)
         ));
         if (e instanceof DirectiveExecutionException) {
-          throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing " +
-                                              "due to error : %s", getContext().getStageName(), config.threshold,
-                                            e.getMessage()));
+          throw new Exception(String.format("Stage:%s - Stopping on error, terminating pipeline " +
+                                              "due to error : %s", getContext().getStageName(), e.getMessage()));
 
         } else {
-          throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing " +
-                                              "due to error : %s", getContext().getStageName(), config.threshold,
-                                            e.getMessage()), e);
+          throw new Exception(String.format("Stage:%s - Stopping on error, terminating pipeline " +
+                                              "due to error : %s", getContext().getStageName(), e.getMessage()), e);
         }
       }
-      // Emit error record, if the Error flattener or error handlers are not connected, then
-      // the record is automatically omitted.
-      emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
+      // If it's 'skip-on-error' we continue processing and don't emit any error records.
       return;
     } finally {
       getContext().getMetrics().gauge("process.time", System.nanoTime() - start);
@@ -563,14 +569,20 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Macro
     private final String schema;
 
+    @Name("on-error")
+    @Description("Handling of error record")
+    @Macro
+    private final String onError;
+
     public Config(String precondition, String directives, String udds,
-                  String field, int threshold, String schema) {
+                  String field, int threshold, String schema, String onError) {
       this.precondition = precondition;
       this.directives = directives;
       this.udds = udds;
       this.field = field;
       this.threshold = threshold;
       this.schema = schema;
+      this.onError = onError;
     }
   }
 }
