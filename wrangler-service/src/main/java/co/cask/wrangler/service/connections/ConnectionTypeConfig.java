@@ -17,7 +17,6 @@
 package co.cask.wrangler.service.connections;
 
 import co.cask.cdap.api.Config;
-import co.cask.wrangler.proto.NamespacedId;
 import co.cask.wrangler.proto.connection.Connection;
 import co.cask.wrangler.proto.connection.ConnectionType;
 
