@@ -428,25 +428,25 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
-        if (config.onError.equalsIgnoreCase("send-to-error")) {
+        if (config.onError.equalsIgnoreCase("send-to-error-port")) {
           getContext().getMetrics().count("errors", errors.size());
           for (ErrorRecord error : errors) {
             emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
           }
-        } else if (config.onError.equalsIgnoreCase("stop-on-error")) {
-          throw new Exception("Stopping on error " + errors.get(0).getMessage());
+        } else if (config.onError.equalsIgnoreCase("fail-pipeline")) {
+          throw new Exception("Failing pipeline on error. " + errors.get(0).getMessage());
         }
         // If it's 'skip-on-error' we continue processing and don't emit any error records.
         return;
       }
     } catch (Exception e) {
       getContext().getMetrics().count("errors", 1);
-      if (config.onError.equalsIgnoreCase("send-to-error")) {
+      if (config.onError.equalsIgnoreCase("send-to-error-port")) {
         // Emit error record, if the Error flattener or error handlers are not connected, then
         // the record is automatically omitted.
         emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
         return;
-      } else if (config.onError.equalsIgnoreCase("stop-on-error")) {
+      } else if (config.onError.equalsIgnoreCase("fail-pipeline")) {
         emitter.emitAlert(ImmutableMap.of(
           "stage", getContext().getStageName(),
           "code", String.valueOf(1),
@@ -455,12 +455,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           "value", String.valueOf(errorCounter)
         ));
         if (e instanceof DirectiveExecutionException) {
-          throw new Exception(String.format("Stage:%s - Stopping on error, terminating pipeline " +
-                                              "due to error : %s", getContext().getStageName(), e.getMessage()));
+          throw new Exception(String.format("Stage:%s - Failing pipeline due to error : %s",
+                                            getContext().getStageName(), e.getMessage()));
 
         } else {
-          throw new Exception(String.format("Stage:%s - Stopping on error, terminating pipeline " +
-                                              "due to error : %s", getContext().getStageName(), e.getMessage()), e);
+          throw new Exception(String.format("Stage:%s - Failing pipeline due to error : %s",
+                                            getContext().getStageName(), e.getMessage()), e);
         }
       }
       // If it's 'skip-on-error' we continue processing and don't emit any error records.
@@ -548,39 +548,31 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     private String directives;
 
     @Name("udd")
-    @Description("List of User Defined Directives (UDD) that have to be loaded.")
+    @Description("List of User Defined Directives (UDD) that have to be loaded")
     @Nullable
     private String udds;
 
     @Name("field")
-    @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
+    @Description("Name of the input field to be wrangled or '*' to wrangle all the fields")
     @Macro
     private final String field;
 
-    @Name("threshold")
-    @Description("Max number of event failures in wrangling after which to stop the pipeline of processing. " +
-      "Threshold is not aggregate across all instance, but is applied for each running instances. " +
-      "Set to -1 to specify unlimited number of acceptable errors.")
-    @Macro
-    private final int threshold;
-
     @Name("schema")
-    @Description("Specifies the schema that has to be output.")
+    @Description("Specifies the schema that has to be output")
     @Macro
     private final String schema;
 
     @Name("on-error")
-    @Description("Handling of error record")
+    @Description("How to handle error in record processing")
     @Macro
     private final String onError;
 
     public Config(String precondition, String directives, String udds,
-                  String field, int threshold, String schema, String onError) {
+                  String field, String schema, String onError) {
       this.precondition = precondition;
       this.directives = directives;
       this.udds = udds;
       this.field = field;
-      this.threshold = threshold;
       this.schema = schema;
       this.onError = onError;
     }

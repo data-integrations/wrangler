@@ -47,27 +47,32 @@
       ]
     },
     {
-      "name": "on-error",
-      "label": "Error handling",
-      "widget-type": "radio-group",
-      "widget-attributes": {
-        "layout": "inline",
-        "default": "skip-on-error",
-        "options": [
-          {
-            "id": "skip-on-error",
-            "label": "Skip on error"
-          },
-          {
-            "id": "send-to-error",
-            "label": "Send to error"
-          },
-          {
-            "id": "stop-on-error",
-            "label": "Stop on error"
+      "label" : "Error Handling",
+      "properties" : [
+        {
+          "name": "on-error",
+          "label": "On Record Error",
+          "widget-type": "radio-group",
+          "widget-attributes": {
+            "layout": "block",
+            "default": "skip-error",
+            "options": [
+              {
+                "id": "skip-error",
+                "label": "Skip error"
+              },
+              {
+                "id": "send-to-error-port",
+                "label": "Send to error port"
+              },
+              {
+                "id": "fail-pipeline",
+                "label": "Fail pipeline"
+              }
+            ]
           }
-        ]
-      }
+        }
+      ]
     }
   ],
   "emit-alerts": true,
