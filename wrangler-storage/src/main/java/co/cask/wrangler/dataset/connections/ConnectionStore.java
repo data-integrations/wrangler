@@ -68,6 +68,7 @@ public class ConnectionStore {
   private static final String PROPERTIES_COL = "properties";
   private static final String CREATED_COL = "created";
   private static final String UPDATED_COL = "updated";
+  private static final String PRECONFIGURED_COL = "preconfigured";
   private static final StructuredTableId TABLE_ID = new StructuredTableId("connections");
   public static final StructuredTableSpecification TABLE_SPEC = new StructuredTableSpecification.Builder()
     .withId(TABLE_ID)
@@ -79,13 +80,14 @@ public class ConnectionStore {
                 new FieldType(DESC_COL, FieldType.Type.STRING),
                 new FieldType(PROPERTIES_COL, FieldType.Type.STRING),
                 new FieldType(CREATED_COL, FieldType.Type.LONG),
-                new FieldType(UPDATED_COL, FieldType.Type.LONG))
+                new FieldType(UPDATED_COL, FieldType.Type.LONG),
+                new FieldType(PRECONFIGURED_COL, FieldType.Type.STRING))
     .withPrimaryKeys(NAMESPACE_COL, GENERATION_COL, ID_COL)
     .build();
 
   private final StructuredTable table;
 
-  public ConnectionStore(StructuredTable table) {
+  private ConnectionStore(StructuredTable table) {
     this.table = table;
   }
 
@@ -110,6 +112,11 @@ public class ConnectionStore {
    */
   public NamespacedId create(Namespace namespace,
                              ConnectionMeta meta) throws ConnectionAlreadyExistsException, IOException {
+    return create(namespace, meta, false);
+  }
+
+  public NamespacedId create(Namespace namespace, ConnectionMeta meta,
+                             boolean preconfigured) throws ConnectionAlreadyExistsException, IOException {
     NamespacedId id = new NamespacedId(namespace, getConnectionId(meta.getName()));
     Connection existing = read(id);
     if (existing != null) {
@@ -121,6 +128,7 @@ public class ConnectionStore {
     Connection connection = Connection.builder(id, meta)
       .setCreated(now)
       .setUpdated(now)
+      .setPreconfigured(preconfigured)
       .build();
     table.upsert(toFields(connection, namespace.getGeneration()));
     return id;
@@ -238,6 +246,8 @@ public class ConnectionStore {
     fields.add(Fields.stringField(PROPERTIES_COL, GSON.toJson(connection.getProperties())));
     fields.add(Fields.longField(CREATED_COL, connection.getCreated()));
     fields.add(Fields.longField(UPDATED_COL, connection.getUpdated()));
+    fields.add(Fields.stringField(PRECONFIGURED_COL, String.valueOf(connection.isPreconfigured())));
+
     return fields;
   }
 
@@ -250,6 +260,7 @@ public class ConnectionStore {
       .setProperties(GSON.fromJson(row.getString(PROPERTIES_COL), MAP_TYPE))
       .setCreated(row.getLong(CREATED_COL))
       .setUpdated(row.getLong(UPDATED_COL))
+      .setPreconfigured(Boolean.valueOf(row.getString(PRECONFIGURED_COL)))
       .build();
   }
 }
