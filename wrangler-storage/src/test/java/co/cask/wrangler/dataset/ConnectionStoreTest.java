@@ -220,6 +220,36 @@ public class ConnectionStoreTest extends SystemAppTestBase {
     Assert.assertTrue(run(connectionStore -> connectionStore.list(nsGen2, x -> true)).isEmpty());
   }
 
+  @Test
+  public void testPreconfiguredConnections() {
+    Namespace nsGen1 = new Namespace("ns1", 1L);
+
+    ConnectionMeta preconfiguredMeta = ConnectionMeta.builder()
+      .setName("Built-in connection")
+      .setType(ConnectionType.FILE)
+      .putProperty("k1", "v1")
+      .build();
+    ConnectionMeta manuallyCreatedMeta = ConnectionMeta.builder()
+      .setName("Manually created connection")
+      .setType(ConnectionType.FILE)
+      .putProperty("k1", "v1")
+      .build();
+
+    NamespacedId preconfigured = run(connectionStore -> connectionStore.create(nsGen1, preconfiguredMeta, true));
+    NamespacedId manuallyCreated = run(connectionStore -> connectionStore.create(nsGen1, manuallyCreatedMeta));
+
+    Connection preconfiguredConnection =
+      run(connectionStore -> connectionStore.get(new NamespacedId(nsGen1, preconfigured.getId())));
+    Connection manuallyCreatedConnection =
+      run(connectionStore -> connectionStore.get(new NamespacedId(nsGen1, manuallyCreated.getId())));
+
+    // test that built-in connection returns that it is built-in
+    Assert.assertTrue(preconfiguredConnection.isPreconfigured());
+
+    // test that a manually created connection returns that it is not built-in
+    Assert.assertFalse(manuallyCreatedConnection.isPreconfigured());
+  }
+
   private void assertConnectionMetaEquality(ConnectionMeta expected, Connection actual) {
     // can't just compare objects since the store sets created, id, and updated fields
     Assert.assertEquals(expected.getName(), actual.getName());

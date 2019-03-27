@@ -129,7 +129,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
         TransactionRunners.run(getContext(), context -> {
           ConnectionStore store = ConnectionStore.get(context);
           if (!store.connectionExists(namespace, defaultConnection.getName())) {
-            store.create(namespace, defaultConnection);
+            store.create(namespace, defaultConnection, true);
           }
         });
       } catch (Exception e) {
