@@ -3,7 +3,7 @@ Oracle Database 12c,oracle.jdbc.OracleDriver,jdbc:oracle:thin:${username}/${pass
 MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database},mysql,3306,true
 PostgreSQL (v6.5 and earlier),postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql65,5432,true
 PostgreSQL (v7.0 and later),org.postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql,5432,true
-Hiveserver 2 (Unsecured Binary),org.apache.hive.jdbc.HiveDriver,jdbc:hive2://${hostname}:${port}/${database},hive2binary,10010.true
+Hiveserver 2 (Unsecured Binary),org.apache.hive.jdbc.HiveDriver,jdbc:hive2://${hostname}:${port}/${database},hive2binary,10010,true
 Hiveserver 2 (Unsecured HTTP),org.apache.hive.jdbc.HiveDriver,jdbc:hive2://${hostname}:${port}/${database};transportMode=http;httpPath=cliservice,hive2http,10010,true
 Microsoft SQL Server (v6.2 and later),com.microsoft.sqlserver.jdbc.SQLServerDriver,jdbc:sqlserver://${hostname}:${port};databaseName=${database};user=${username};password=${password};,sqlserver42,1433,true
 Amazon Redshift,com.amazon.redshift.jdbc.Driver,jdbc:redshift://${hostname}:${port}/${database},redshift,5439,true
