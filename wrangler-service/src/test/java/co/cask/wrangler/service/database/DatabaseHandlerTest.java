@@ -120,7 +120,7 @@ public class DatabaseHandlerTest {
       String line;
       while ((line = br.readLine()) != null) {
         String[] columns = line.split(",");
-        if (columns.length == 5) {
+        if (columns.length == 6) {
           DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3], columns[4]);
           drivers.put(columns[1].trim(), info);
         }
@@ -138,13 +138,13 @@ public class DatabaseHandlerTest {
         object.addProperty("default.port", driver.getValue().getPort());
         values.add(object);
       }
-      Assert.assertEquals(9, values.size());
+      Assert.assertEquals(12, values.size());
     } finally {
       if (is != null) {
         is.close();
       }
     }
-    Assert.assertEquals(9, drivers.size());
+    Assert.assertEquals(12, drivers.size());
   }
 
   @Test
