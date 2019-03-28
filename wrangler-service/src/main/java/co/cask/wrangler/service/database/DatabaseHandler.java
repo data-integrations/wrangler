@@ -138,7 +138,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       }
     });
 
-  private final class DriverInfo {
+  static final class DriverInfo {
     private final String jdbcUrlPattern;
     private final String name;
     private final String tag;
@@ -194,6 +194,11 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       LOG.error("Unable to get JDBC driver mapping.");
       return;
     }
+    loadDrivers(is, drivers);
+  }
+
+  @VisibleForTesting
+  static void loadDrivers(InputStream is, Multimap<String, DriverInfo> drivers) throws IOException {
     try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
       String line;
       while ((line = br.readLine()) != null) {
