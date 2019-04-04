@@ -45,6 +45,7 @@ import co.cask.wrangler.proto.db.AllowedDriverInfo;
 import co.cask.wrangler.proto.db.DBSpec;
 import co.cask.wrangler.proto.db.JDBCDriverInfo;
 import co.cask.wrangler.service.common.AbstractWranglerHandler;
+import co.cask.wrangler.service.macro.ServiceMacroEvaluator;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -52,6 +53,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
 import org.apache.commons.lang3.text.StrLookup;
@@ -98,7 +100,9 @@ import javax.ws.rs.QueryParam;
  */
 public class DatabaseHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseHandler.class);
+  private static final List<String> MACRO_FIELDS = ImmutableList.of("username", "password");
   private static final String JDBC = "jdbc";
+  private final Map<String, ServiceMacroEvaluator> macroEvaluators = new HashMap<>();
 
   // Driver class loaders cached.
   private final LoadingCache<NamespacedId, CloseableClassLoader> cache = CacheBuilder.newBuilder()
@@ -336,7 +340,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
         RequestExtractor extractor = new RequestExtractor(request);
         ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
-        cleanup = loadAndExecute(ns, connection, java.sql.Connection::getMetaData);
+        cleanup = loadAndExecute(ns, connection, java.sql.Connection::getMetaData, getContext());
         return new ServiceResponse<>("Successfully connected to database.");
       } finally {
         if (cleanup != null) {
@@ -349,7 +353,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   /**
    * Lists all databases.
    *
-   * @param request HTTP requets handler.
+   * @param request HTTP requests handler.
    * @param responder HTTP response handler.
    */
   @POST
@@ -387,7 +391,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
               ps.close();
             }
           }
-        });
+        }, getContext());
         return new ServiceResponse<>(values);
       } finally {
         if (cleanup != null) {
@@ -400,7 +404,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   /**
    * Lists all the tables within a database.
    *
-   * @param request HTTP requets handler.
+   * @param request HTTP requests handler.
    * @param responder HTTP response handler.
    * @param id Connection id for which the tables need to be listed from database.
    */
@@ -442,7 +446,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
               resultSet.close();
             }
           }
-        });
+        }, getContext());
         return new ServiceResponse<>(values);
       } finally {
         if (cleanup != null) {
@@ -455,7 +459,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   /**
    * Reads a table into workspace.
    *
-   * @param request HTTP requets handler.
+   * @param request HTTP requests handler.
    * @param responder HTTP response handler.
    * @param id Connection id for which the tables need to be listed from database.
    * @param table Name of the database table.
@@ -506,7 +510,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                                                            SamplingMethod.NONE.getMethod(), id);
             sampleRef.set(sample);
           }
-        });
+        }, getContext());
         return new ServiceResponse<>(sampleRef.get());
       } finally {
         if (cleanup != null) {
@@ -605,20 +609,38 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @return pair of connection and the driver cleanup.
    */
   private DriverCleanup loadAndExecute(Namespace namespace, ConnectionMeta connection,
-                                       Executor executor) throws Exception {
-    DriverCleanup cleanup = null;
+                                       Executor executor, SystemHttpServiceContext context) throws Exception {
+    DriverCleanup cleanup;
     String name = connection.getProperties().get("name");
     String classz = connection.getProperties().get("class");
     String url = connection.getProperties().get("url");
-    String username = connection.getProperties().get("username");
-    String password = connection.getProperties().get("password");
 
     CloseableClassLoader closeableClassLoader = cache.get(new NamespacedId(namespace, name));
     Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
     cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
+    String namespaceName = namespace.getName();
+
+    Map<String, String> evaluated = evaluateMacros(connection, context, namespaceName);
+    String username = evaluated.get("username");
+    String password = evaluated.get("password");
+
     java.sql.Connection conn = DriverManager.getConnection(url, username, password);
     executor.execute(conn);
     return cleanup;
+  }
+
+  /**
+   * Evaluates all the MACRO_FIELDS.
+   */
+  private Map<String, String> evaluateMacros(ConnectionMeta connection, SystemHttpServiceContext context,
+                                             String namespaceName) {
+    Map<String, String> toEvaluate = new HashMap<>();
+    for (String field : MACRO_FIELDS) {
+      toEvaluate.put(field, connection.getProperties().get(field));
+    }
+
+    macroEvaluators.putIfAbsent(namespaceName, new ServiceMacroEvaluator(namespaceName, context));
+    return context.evaluateMacros(namespaceName, toEvaluate, macroEvaluators.get(namespaceName));
   }
 
   public static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
