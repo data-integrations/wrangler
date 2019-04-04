@@ -87,7 +87,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   /**
    * List all kafka topics.
    *
-   * @param request HTTP requets handler.
+   * @param request HTTP requests handler.
    * @param responder HTTP response handler.
    */
   @POST
@@ -113,7 +113,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   /**
    * Reads a kafka topic into workspace.
    *
-   * @param request HTTP requets handler.
+   * @param request HTTP requests handler.
    * @param responder HTTP response handler.
    * @param id Connection id for which the tables need to be listed from database.
    */

@@ -20,6 +20,7 @@ import co.cask.cdap.api.annotation.TransactionControl;
 import co.cask.cdap.api.annotation.TransactionPolicy;
 import co.cask.cdap.api.service.http.HttpServiceRequest;
 import co.cask.cdap.api.service.http.HttpServiceResponder;
+import co.cask.cdap.api.service.http.SystemHttpServiceContext;
 import co.cask.cdap.spi.data.transaction.TransactionRunners;
 import co.cask.wrangler.PropertyIds;
 import co.cask.wrangler.RequestExtractor;
@@ -48,6 +49,7 @@ import co.cask.wrangler.service.FileTypeDetector;
 import co.cask.wrangler.service.common.AbstractWranglerHandler;
 import co.cask.wrangler.service.common.Format;
 import co.cask.wrangler.service.explorer.BoundedLineInputStream;
+import co.cask.wrangler.service.macro.ServiceMacroEvaluator;
 import co.cask.wrangler.utils.ObjectSerDe;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -62,6 +64,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -79,13 +82,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 /**
- * Service to explore S3 filesystem
+ * Service to explore S3 filesystem.
  */
 public class S3Handler extends AbstractWranglerHandler {
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
-
+  private static final List<String> MACRO_FIELDS = ImmutableList.of("accessKeyId", "accessSecretKey");
   private static final FileTypeDetector detector = new FileTypeDetector();
+  private final Map<String, ServiceMacroEvaluator> macroEvaluators = new HashMap<>();
 
   @POST
   @Path("/contexts/{context}/connections/s3/test")
@@ -97,16 +101,17 @@ public class S3Handler extends AbstractWranglerHandler {
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.S3);
       // creating a client doesn't test the connection, we will do list buckets so the connection is tested.
-      intializeAndGetS3Client(connection).listBuckets();
-      // creating a client doesn't test the connection, we will do list buckets so the connection is tested.
-      intializeAndGetS3Client(connection).listBuckets();
+      intializeAndGetS3Client(connection, namespace, getContext()).listBuckets();
       return new ServiceResponse<Void>("Success");
     });
   }
 
   // creates s3 client and sets region and returns the initialized client
-  private AmazonS3 intializeAndGetS3Client(ConnectionMeta connection) {
-    S3Configuration s3Configuration = new S3Configuration(connection);
+  private AmazonS3 intializeAndGetS3Client(ConnectionMeta connection, String namespace,
+                                           SystemHttpServiceContext context) {
+    Map<String, String> evaluateMacros = evaluateMacros(connection, context, namespace);
+    evaluateMacros.put("region", connection.getProperties().get("region"));
+    S3Configuration s3Configuration = new S3Configuration(evaluateMacros);
     AmazonS3 s3 = new AmazonS3Client(s3Configuration);
     Region region = Region.getRegion(Regions.fromName(s3Configuration.getRegion()));
     s3.setRegion(region);
@@ -143,7 +148,7 @@ public class S3Handler extends AbstractWranglerHandler {
           }
         }
 
-        AmazonS3 s3 = intializeAndGetS3Client(connection);
+        AmazonS3 s3 = intializeAndGetS3Client(connection, namespace, getContext());
         if (bucketName.isEmpty() && prefix == null) {
           List<Bucket> buckets = s3.listBuckets();
           List<S3ObjectInfo> bucketInfo = new ArrayList<>(buckets.size());
@@ -211,7 +216,7 @@ public class S3Handler extends AbstractWranglerHandler {
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
         NamespacedId namespacedConnId = new NamespacedId(ns, connectionId);
         Connection connection = getValidatedConnection(namespacedConnId, ConnectionType.S3);
-        AmazonS3 s3 = intializeAndGetS3Client(connection);
+        AmazonS3 s3 = intializeAndGetS3Client(connection, namespace, getContext());
         S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
         if (object == null) {
           throw new BadRequestException(
@@ -259,7 +264,7 @@ public class S3Handler extends AbstractWranglerHandler {
         format = Format.valueOf(formatStr);
       }
       Connection conn = getValidatedConnection(store, new NamespacedId(ns, connectionId), ConnectionType.S3);
-      S3Configuration s3Configuration = new S3Configuration(conn);
+      S3Configuration s3Configuration = new S3Configuration(conn.getProperties());
       Map<String, String> properties = new HashMap<>();
       properties.put("format", format.name().toLowerCase());
       properties.put("accessID", s3Configuration.getAWSAccessKeyId());
@@ -430,5 +435,19 @@ public class S3Handler extends AbstractWranglerHandler {
       .setIsDirectory(false)
       .setCanWrangle(canWrangle)
       .build();
+  }
+
+  /**
+   * Evaluates all the MACRO_FIELDS.
+   */
+  private Map<String, String> evaluateMacros(ConnectionMeta connection, SystemHttpServiceContext context,
+                                             String namespaceName) {
+    Map<String, String> toEvaluate = new HashMap<>();
+    for (String field : MACRO_FIELDS) {
+      toEvaluate.put(field, connection.getProperties().get(field));
+    }
+
+    macroEvaluators.putIfAbsent(namespaceName, new ServiceMacroEvaluator(namespaceName, context));
+    return context.evaluateMacros(namespaceName, toEvaluate, macroEvaluators.get(namespaceName));
   }
 }
