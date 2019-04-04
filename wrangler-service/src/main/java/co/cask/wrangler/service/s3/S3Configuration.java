@@ -16,7 +16,6 @@
 
 package co.cask.wrangler.service.s3;
 
-import co.cask.wrangler.proto.connection.ConnectionMeta;
 import com.amazonaws.auth.AWSCredentials;
 import com.google.common.collect.ImmutableList;
 
@@ -32,9 +31,7 @@ public class S3Configuration implements AWSCredentials {
   private final String accessSecretKey;
   private final String region;
 
-  S3Configuration(ConnectionMeta connection) {
-    Map<String, String> properties = connection.getProperties();
-
+  S3Configuration(Map<String, String> properties) {
     if (properties == null || properties.size() == 0) {
       throw new IllegalArgumentException("S3 properties are not defined. Check connection setting.");
     }

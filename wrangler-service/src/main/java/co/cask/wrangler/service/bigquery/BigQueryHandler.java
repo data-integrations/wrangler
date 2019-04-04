@@ -148,7 +148,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   /**
    * List all tables in a dataset.
    *
-   * @param request HTTP requets handler.
+   * @param request HTTP requests handler.
    * @param responder HTTP response handler.
    * @param datasetStr the dataset id as a string. It will be of the form [project:]name.
    *   The project prefix is optional. When not given, the connection project should be used.
@@ -190,7 +190,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   /**
    * Read a table.
    *
-   * @param request HTTP requets handler.
+   * @param request HTTP requests handler.
    * @param responder HTTP response handler.
    * @param connectionId Connection Id for BigQuery Service.
    * @param datasetStr id of the dataset on BigQuery.
