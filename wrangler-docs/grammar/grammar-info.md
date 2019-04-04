@@ -20,7 +20,7 @@ Intellij
   * Install Plugin - Antlr v4 grammar plugin - version  1.8.4 or higher.
 Configure Antlr Plugin
   * Output Directory : `${base}/wrangler/wrangler-core/target/generated-sources/antlr4`
-  * Package : `co.cask.wrangler.parser`
+  * Package : `io.cdap.wrangler.parser`
   * Auto generate upon save - ON
   * Generate Parse Tree Visitor - ON
   * Generate Parse Tree Listener - OFF

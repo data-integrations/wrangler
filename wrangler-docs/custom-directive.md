@@ -46,7 +46,7 @@ More description of the above lines.
 
 ## Developing UDD
 
-There is one simple interface for developing your customized directive. The simple interface `co.cask.wrangler.api.Directive` can be used for developing user defined directive.
+There is one simple interface for developing your customized directive. The simple interface `io.cdap.wrangler.api.Directive` can be used for developing user defined directive.
 
 ### Simple API
 
@@ -314,5 +314,5 @@ Every column involved in a directive must have one and only one associated label
   * Information about Grammar [here](grammar/grammar-info.md)
   * Custom Directive Implementation Internals [here](udd-internal.md)
   * Migrating directives from version 1.0 to version 2.0 [here](directive-migration.md)
-  * Various `TokenType` supported by system [here](../api/src/main/java/co/cask/wrangler/api/parser/TokenType.java)
+  * Various `TokenType` supported by system [here](../api/src/main/java/io/cdap/wrangler/api/parser/TokenType.java)
 
