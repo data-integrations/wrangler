@@ -17,7 +17,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>wrangler</artifactId>
-    <groupId>co.cask.wrangler</groupId>
+    <groupId>io.cdap.wrangler</groupId>
     <version>4.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -32,12 +32,12 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
+      <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
+      <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-proto</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -50,7 +50,7 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>RELEASE</version>
+      <version>20180813</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -134,13 +134,13 @@
       <version>${protobuf.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
@@ -239,7 +239,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-unit-test</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
@@ -260,7 +260,6 @@
         <version>${antlr4-maven-plugin.version}</version>
         <configuration>
           <visitor>true</visitor>
-          <!-- libDirectory>${basedir}/src/main/co/cask/wrangler/parser</libDirectory -->
         </configuration>
         <executions>
           <execution>
