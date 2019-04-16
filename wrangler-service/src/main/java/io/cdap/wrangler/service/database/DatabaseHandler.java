@@ -157,23 +157,23 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       this.basicAllowed = basicAllowed;
     }
 
-    public String getJdbcUrlPattern() {
+    String getJdbcUrlPattern() {
       return jdbcUrlPattern;
     }
 
-    public String getName() {
+    String getName() {
       return name;
     }
 
-    public String getTag() {
+    String getTag() {
       return tag;
     }
 
-    public String getPort() {
+    String getPort() {
       return port;
     }
 
-    public boolean isBasicAllowed() {
+    boolean isBasicAllowed() {
       return basicAllowed;
     }
 
@@ -481,7 +481,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
 
         cleanup = loadAndExecute(ns, conn, connection -> {
           try (Statement statement = connection.createStatement();
-            ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
+               ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
 
             String identifier = ServiceUtils.generateMD5(table);
@@ -521,7 +521,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   }
 
   @VisibleForTesting
-  public static List<Row> getRows(int lines, ResultSet result) throws SQLException {
+  static List<Row> getRows(int lines, ResultSet result) throws SQLException {
     List<Row> rows = new ArrayList<>();
     ResultSetMetaData meta = result.getMetaData();
     int count = lines;
@@ -615,18 +615,25 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     String classz = connection.getProperties().get("class");
     String url = connection.getProperties().get("url");
 
-    CloseableClassLoader closeableClassLoader = cache.get(new NamespacedId(namespace, name));
-    Class<? extends Driver> driverClass = (Class<? extends Driver>) closeableClassLoader.loadClass(classz);
-    cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
-    String namespaceName = namespace.getName();
+    NamespacedId key = new NamespacedId(namespace, name);
+    ClassLoader classLoader = cache.get(key);
+    try {
+      @SuppressWarnings("unchecked")
+      Class<? extends Driver> driverClass = (Class<? extends Driver>) classLoader.loadClass(classz);
+      cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
+      String namespaceName = namespace.getName();
 
-    Map<String, String> evaluated = evaluateMacros(connection, context, namespaceName);
-    String username = evaluated.get("username");
-    String password = evaluated.get("password");
+      Map<String, String> evaluated = evaluateMacros(connection, context, namespaceName);
+      String username = evaluated.get("username");
+      String password = evaluated.get("password");
 
-    java.sql.Connection conn = DriverManager.getConnection(url, username, password);
-    executor.execute(conn);
-    return cleanup;
+      java.sql.Connection conn = DriverManager.getConnection(url, username, password);
+      executor.execute(conn);
+      return cleanup;
+    } catch (Exception e) {
+      cache.invalidate(key);
+      throw e;
+    }
   }
 
   /**
@@ -643,7 +650,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     return context.evaluateMacros(namespaceName, toEvaluate, macroEvaluators.get(namespaceName));
   }
 
-  public static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
+  private static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
     throws IllegalAccessException, InstantiationException, SQLException {
     try {
       DriverManager.getDriver(url);
@@ -665,7 +672,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   /**
    * De-register all SQL drivers that are associated with the class
    */
-  public static void deregisterAllDrivers(Class<? extends Driver> classz)
+  private static void deregisterAllDrivers(Class<? extends Driver> classz)
     throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
     Field field = DriverManager.class.getDeclaredField("registeredDrivers");
     field.setAccessible(true);
@@ -693,11 +700,11 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   /**
    * Table name object.
    */
-  public static class Name {
+  private static class Name {
     private final String name;
     private final int count;
 
-    public Name(String name) {
+    Name(String name) {
       this.name = name;
       // TODO: check whether this can be removed
       this.count = 0;
