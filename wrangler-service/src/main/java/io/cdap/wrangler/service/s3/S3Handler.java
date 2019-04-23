@@ -101,13 +101,13 @@ public class S3Handler extends AbstractWranglerHandler {
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.S3);
       // creating a client doesn't test the connection, we will do list buckets so the connection is tested.
-      intializeAndGetS3Client(connection, namespace, getContext()).listBuckets();
+      intializeandgets3Client(connection, namespace, getContext()).listBuckets();
       return new ServiceResponse<Void>("Success");
     });
   }
 
   // creates s3 client and sets region and returns the initialized client
-  private AmazonS3 intializeAndGetS3Client(ConnectionMeta connection, String namespace,
+  private AmazonS3 intializeandgets3Client(ConnectionMeta connection, String namespace,
                                            SystemHttpServiceContext context) {
     Map<String, String> evaluateMacros = evaluateMacros(connection, context, namespace);
     evaluateMacros.put("region", connection.getProperties().get("region"));
@@ -148,7 +148,7 @@ public class S3Handler extends AbstractWranglerHandler {
           }
         }
 
-        AmazonS3 s3 = intializeAndGetS3Client(connection, namespace, getContext());
+        AmazonS3 s3 = intializeandgets3Client(connection, namespace, getContext());
         if (bucketName.isEmpty() && prefix == null) {
           List<Bucket> buckets = s3.listBuckets();
           List<S3ObjectInfo> bucketInfo = new ArrayList<>(buckets.size());
@@ -216,7 +216,7 @@ public class S3Handler extends AbstractWranglerHandler {
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
         NamespacedId namespacedConnId = new NamespacedId(ns, connectionId);
         Connection connection = getValidatedConnection(namespacedConnId, ConnectionType.S3);
-        AmazonS3 s3 = intializeAndGetS3Client(connection, namespace, getContext());
+        AmazonS3 s3 = intializeandgets3Client(connection, namespace, getContext());
         S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
         if (object == null) {
           throw new BadRequestException(

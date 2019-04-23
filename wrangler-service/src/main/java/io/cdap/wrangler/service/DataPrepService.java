@@ -21,6 +21,7 @@ import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.schema.SchemaRegistry;
 import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
+import io.cdap.wrangler.service.adls.ADLSHandler;
 import io.cdap.wrangler.service.bigquery.BigQueryHandler;
 import io.cdap.wrangler.service.connections.ConnectionHandler;
 import io.cdap.wrangler.service.connections.ConnectionTypeConfig;
@@ -61,6 +62,7 @@ public class DataPrepService extends AbstractSystemService {
     addHandler(new DatabaseHandler());
     addHandler(new S3Handler());
     addHandler(new GCSHandler());
+    addHandler(new ADLSHandler());
     addHandler(new BigQueryHandler());
     addHandler(new SpannerHandler());
   }
