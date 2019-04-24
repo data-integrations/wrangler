@@ -1,4 +1,5 @@
-/* Copyright © 2018 Cask Data, Inc.
+/*
+ * Copyright © 2018-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,15 +15,16 @@
  */
 package io.cdap.wrangler.proto.adls;
 
-import com.google.gson.annotations.SerializedName;
 import io.cdap.wrangler.proto.ConnectionSample;
 
+/**
+ * ADLS connection sample information.
+ */
 public class ADLSConnectionSample extends ConnectionSample {
-    @SerializedName("fileName")
-    private final String fileName;
+  private final String fileName;
 
-    public ADLSConnectionSample(String id, String name, String connection, String sampler, String connectionid) {
-        super(id, name, connection, sampler, connectionid);
-        this.fileName = name;
-    }
+  public ADLSConnectionSample(String id, String name, String connection, String sampler, String connectionid) {
+    super(id, name, connection, sampler, connectionid);
+    this.fileName = name;
+  }
 }
