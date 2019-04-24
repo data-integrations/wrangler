@@ -221,10 +221,6 @@ public class ADLSHandler extends AbstractWranglerHandler {
                            @QueryParam("path") String filePath, @QueryParam("lines") int lines,
                            @QueryParam("sampler") String sampler, @QueryParam("fraction") double fraction,
                            @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    if (Strings.isNullOrEmpty(scope)) {
-      scope = WorkspaceDataset.DEFAULT_SCOPE;
-    }
-    String scopeS = scope;
     respond(request, responder, namespace, ns -> {
       try {
         if (Strings.isNullOrEmpty(connectionId)) {
@@ -237,7 +233,7 @@ public class ADLSHandler extends AbstractWranglerHandler {
         NamespacedId namespacedConnId = new NamespacedId(ns, connectionId);
         Connection connection = getValidatedConnection(namespacedConnId, ConnectionType.ADLS);
         FileQueryDetails fileQueryDetails = new FileQueryDetails(header, filePath, lines, sampler,
-                fraction, scopeS);
+                fraction, scope);
         ADLSConnectionSample sample = fetchFileFromClient(connection, fileQueryDetails, namespacedConnId);
         return new ServiceResponse<>(sample);
       } catch (ADLException e) {
