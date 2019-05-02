@@ -37,7 +37,6 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -181,9 +180,6 @@ public class SpannerHandler extends AbstractWranglerHandler {
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
       List<Row> data = getTableData(connection, instanceId, databaseId, tableId, schema, Long.parseLong(limit));
 
-      // create workspace id
-      String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-
       Map<String, String> connectionProperties = connection.getProperties();
       String projectId = connectionProperties.get(GCPUtils.PROJECT_ID);
       String path = connectionProperties.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE);
@@ -194,27 +190,26 @@ public class SpannerHandler extends AbstractWranglerHandler {
         new SpannerSpecification(externalDsName, path, projectId, instanceId, databaseId, tableId, schema);
 
       Map<String, String> workspaceProperties = new HashMap<>();
-      workspaceProperties.put(PropertyIds.ID, identifier);
       workspaceProperties.put(PropertyIds.NAME, tableId);
       workspaceProperties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.SPANNER.getType());
       workspaceProperties.put(PropertyIds.CONNECTION_ID, connectionId);
       workspaceProperties.put(PropertyIds.PLUGIN_SPECIFICATION, GSON.toJson(specification));
-      NamespacedId workspaceId = new NamespacedId(ns, identifier);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceId, tableId)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(tableId)
         .setScope(scope)
         .setProperties(workspaceProperties)
         .build();
-      TransactionRunners.run(getContext(), context -> {
+      String sampleId = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
         // write data to workspace
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] dataBytes = serDe.toByteArray(data);
         ws.updateWorkspaceData(workspaceId, DataType.RECORDS, dataBytes);
+        return workspaceId.getId();
       });
 
-      ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.SPANNER.getType(),
+      ConnectionSample sample = new ConnectionSample(sampleId, tableId, ConnectionType.SPANNER.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
       return new ServiceResponse<>(sample);
     });

@@ -25,7 +25,6 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
@@ -132,11 +131,8 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       KafkaConfiguration config = new KafkaConfiguration(connection);
       KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
       consumer.subscribe(Lists.newArrayList(topic));
-      String uuid = ServiceUtils.generateMD5(String.format("%s:%s.%s", scope, id, topic));
-      NamespacedId namespacedId = new NamespacedId(ns, uuid);
 
       Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, uuid);
       properties.put(PropertyIds.NAME, topic);
       properties.put(PropertyIds.CONNECTION_ID, id);
       properties.put(PropertyIds.TOPIC, topic);
@@ -145,11 +141,11 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.KEY_DESERIALIZER, config.getKeyDeserializer());
       properties.put(PropertyIds.VALUE_DESERIALIZER, config.getValueDeserializer());
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.FIRST.getMethod());
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, topic)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(topic)
         .setScope(scope)
         .setProperties(properties)
         .build();
-      ws.writeWorkspaceMeta(workspaceMeta);
+      NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
       try {
         boolean running = true;
@@ -171,9 +167,9 @@ public final class KafkaHandler extends AbstractWranglerHandler {
 
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(recs);
-        ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+        ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
 
-        ConnectionSample sample = new ConnectionSample(uuid, topic, ConnectionType.KAFKA.getType(),
+        ConnectionSample sample = new ConnectionSample(workspaceId.getId(), topic, ConnectionType.KAFKA.getType(),
                                                        SamplingMethod.FIRST.getMethod(), id);
         return new ServiceResponse<>(sample);
       } finally {
