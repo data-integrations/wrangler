@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -111,14 +112,37 @@ public class WorkspaceDataset {
   }
 
   /**
+   * Creates a new workspace
+   *
+   * @param namespace the namespace to create the workspace in
+   * @param meta the workspace metadata
+   * @return the id of the newly created workspace
+   */
+  public NamespacedId createWorkspace(Namespace namespace, WorkspaceMeta meta) throws IOException  {
+    NamespacedId id = new NamespacedId(namespace, UUID.randomUUID().toString());
+
+    long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+    Workspace workspace = Workspace.builder(id, meta.getName())
+      .setCreated(now)
+      .setUpdated(now)
+      .setScope(meta.getScope())
+      .setProperties(meta.getProperties())
+      .setType(meta.getType())
+      .build();
+    table.upsert(toFields(workspace));
+    return id;
+  }
+
+  /**
    * Creates a workspace if it does not already exist, or update an existing workspace if it does.
    *
+   * @param id the id of the workspace to write
    * @param meta the workspace metadata
    */
-  public void writeWorkspaceMeta(WorkspaceMeta meta) throws IOException {
-    Workspace existing = readWorkspace(meta);
+  public void writeWorkspaceMeta(NamespacedId id, WorkspaceMeta meta) throws IOException {
+    Workspace existing = readWorkspace(id);
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
-    Workspace.Builder updated = Workspace.builder(meta, meta.getName());
+    Workspace.Builder updated = Workspace.builder(id, meta.getName());
     if (existing != null) {
       updated.setCreated(existing.getCreated())
         .setData(existing.getData())
@@ -175,7 +199,7 @@ public class WorkspaceDataset {
         StructuredRow row = rowIter.next();
         Workspace workspace = readWorkspace(row);
         if (scope.equals(workspace.getScope())) {
-          values.add(new WorkspaceIdentifier(workspace.getId(), workspace.getName()));
+          values.add(new WorkspaceIdentifier(workspace.getNamespacedId().getId(), workspace.getName()));
         }
       }
     }
@@ -261,7 +285,7 @@ public class WorkspaceDataset {
         StructuredRow row = rowIter.next();
         Workspace workspace = readWorkspace(row);
         if (scope.equals(workspace.getScope())) {
-          deleteWorkspace(workspace);
+          deleteWorkspace(workspace.getNamespacedId());
           count++;
         }
       }
@@ -271,9 +295,9 @@ public class WorkspaceDataset {
 
   private List<Field<?>> toFields(Workspace workspace) {
     List<Field<?>> fields = new ArrayList<>(11);
-    fields.add(Fields.stringField(NAMESPACE_COL, workspace.getNamespace().getName()));
-    fields.add(Fields.longField(GENERATION_COL, workspace.getNamespace().getGeneration()));
-    fields.add(Fields.stringField(ID_COL, workspace.getId()));
+    fields.add(Fields.stringField(NAMESPACE_COL, workspace.getNamespacedId().getNamespace().getName()));
+    fields.add(Fields.longField(GENERATION_COL, workspace.getNamespacedId().getNamespace().getGeneration()));
+    fields.add(Fields.stringField(ID_COL, workspace.getNamespacedId().getId()));
     fields.add(Fields.stringField(NAME_COL, workspace.getName()));
     fields.add(Fields.stringField(SCOPE_COL, workspace.getScope()));
     fields.add(Fields.stringField(TYPE_COL, workspace.getType().name()));

@@ -39,7 +39,6 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
@@ -292,25 +291,21 @@ public class S3Handler extends AbstractWranglerHandler {
     try (BoundedLineInputStream blis = BoundedLineInputStream.iterator(inputStream, Charsets.UTF_8, lines)) {
       String name = s3Object.getKey();
 
-      String file = String.format("%s:%s:%s", scope, s3Object.getBucketName(), s3Object.getKey());
-      String identifier = ServiceUtils.generateMD5(file);
       String fileName = name.substring(name.lastIndexOf("/") + 1);
       Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, identifier);
       properties.put(PropertyIds.NAME, fileName);
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId.getId());
       properties.put("bucket-name", s3Object.getBucketName());
       properties.put("key", s3Object.getKey());
-      NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedWorkspaceId, fileName)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
         .setScope(scope)
         .setProperties(properties)
         .build();
-      TransactionRunners.run(getContext(), context -> {
+      String sampleId = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        NamespacedId workspaceId = ws.createWorkspace(connectionId.getNamespace(), workspaceMeta);
 
         // Iterate through lines to extract only 'limit' random lines.
         // Depending on the type, the sampling of the input is performed.
@@ -330,11 +325,12 @@ public class S3Handler extends AbstractWranglerHandler {
         // Write rows to workspace.
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(rows);
-        ws.updateWorkspaceData(namespacedWorkspaceId, DataType.RECORDS, data);
+        ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+        return workspaceId.getId();
       });
 
       // Preparing return response to include mandatory fields : id and name.
-      return new S3ConnectionSample(namespacedWorkspaceId.getId(), name, ConnectionType.S3.getType(),
+      return new S3ConnectionSample(sampleId, name, ConnectionType.S3.getType(),
                                     samplingMethod.getMethod(), connectionId.getId(),
                                     s3Object.getBucketName(), s3Object.getKey());
     }
@@ -348,9 +344,6 @@ public class S3Handler extends AbstractWranglerHandler {
 
     // Creates workspace.
     String name = s3Object.getKey();
-
-    String file = String.format("%s:%s", s3Object.getBucketName(), s3Object.getKey());
-    String identifier = ServiceUtils.generateMD5(file);
     String fileName = name.substring(name.lastIndexOf("/") + 1);
 
     byte[] bytes = new byte[(int) s3Object.getObjectMetadata().getContentLength() + 1];
@@ -359,7 +352,6 @@ public class S3Handler extends AbstractWranglerHandler {
     }
 
     Map<String, String> properties = new HashMap<>();
-    properties.put(PropertyIds.ID, identifier);
     properties.put(PropertyIds.NAME, fileName);
     properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
     properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
@@ -371,19 +363,19 @@ public class S3Handler extends AbstractWranglerHandler {
     // S3 specific properties.
     properties.put("bucket-name", s3Object.getBucketName());
     properties.put("key", s3Object.getKey());
-    NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
-    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedWorkspaceId, fileName)
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
       .setScope(scope)
       .setProperties(properties)
       .build();
-    TransactionRunners.run(getContext(), context -> {
+    String sampleId = TransactionRunners.run(getContext(), context -> {
       WorkspaceDataset ws = WorkspaceDataset.get(context);
-      ws.writeWorkspaceMeta(workspaceMeta);
-      ws.updateWorkspaceData(namespacedWorkspaceId, getDataType(name), bytes);
+      NamespacedId workspaceId = ws.createWorkspace(connectionId.getNamespace(), workspaceMeta);
+      ws.updateWorkspaceData(workspaceId, getDataType(name), bytes);
+      return workspaceId.getId();
     });
 
     // Preparing return response to include mandatory fields : id and name.
-    return new S3ConnectionSample(namespacedWorkspaceId.getId(), name, ConnectionType.S3.getType(),
+    return new S3ConnectionSample(sampleId, name, ConnectionType.S3.getType(),
                                   SamplingMethod.NONE.getMethod(), connectionId.getId(),
                                   s3Object.getBucketName(), s3Object.getKey());
   }

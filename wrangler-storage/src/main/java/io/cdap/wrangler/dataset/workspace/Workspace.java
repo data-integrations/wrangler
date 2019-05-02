@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
  * Contains all information about a workspace.
  */
 public class Workspace extends WorkspaceMeta {
+  private final NamespacedId id;
   private final long created;
   private final long updated;
   private final byte[] data;
@@ -35,11 +36,16 @@ public class Workspace extends WorkspaceMeta {
 
   private Workspace(NamespacedId id, String name, String scope, DataType type, Map<String, String> properties,
                     long created, long updated, @Nullable byte[] data, @Nullable Request request) {
-    super(id, name, scope, type, properties);
+    super(name, scope, type, properties);
+    this.id = id;
     this.created = created;
     this.updated = updated;
     this.data = data == null ? null : Arrays.copyOf(data, data.length);
     this.request = request;
+  }
+
+  public NamespacedId getNamespacedId() {
+    return id;
   }
 
   public long getCreated() {
@@ -74,13 +80,14 @@ public class Workspace extends WorkspaceMeta {
     Workspace workspace = (Workspace) o;
     return created == workspace.created &&
       updated == workspace.updated &&
+      Objects.equals(id, workspace.id) &&
       Arrays.equals(data, workspace.data) &&
       Objects.equals(request, workspace.request);
   }
 
   @Override
   public int hashCode() {
-    int result = Objects.hash(super.hashCode(), created, updated, request);
+    int result = Objects.hash(super.hashCode(), id, created, updated, request);
     result = 31 * result + Arrays.hashCode(data);
     return result;
   }
@@ -90,7 +97,7 @@ public class Workspace extends WorkspaceMeta {
   }
 
   public static Builder builder(Workspace existing) {
-    return new Builder(existing, existing.getName())
+    return new Builder(existing.getNamespacedId(), existing.getName())
       .setType(existing.getType())
       .setScope(existing.getScope())
       .setCreated(existing.getCreated())
@@ -104,13 +111,15 @@ public class Workspace extends WorkspaceMeta {
    * Creates Workspace objects.
    */
   public static class Builder extends WorkspaceMeta.Builder<Builder> {
+    private final NamespacedId id;
     private long created;
     private long updated;
     private byte[] data;
     private Request request;
 
     Builder(NamespacedId id, String name) {
-      super(id, name);
+      super(name);
+      this.id = id;
     }
 
     public Builder setCreated(long created) {

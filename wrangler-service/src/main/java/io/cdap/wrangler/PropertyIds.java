@@ -20,8 +20,6 @@ package io.cdap.wrangler;
  * This class {@link PropertyIds} is a collection of static strings.
  */
 public final class PropertyIds {
-  // Id of the workspace
-  public static final String ID = "id";
 
   // Name of the workspace
   public static final String NAME = "name";
