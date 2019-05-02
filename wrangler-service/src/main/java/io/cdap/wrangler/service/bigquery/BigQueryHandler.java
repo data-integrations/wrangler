@@ -44,7 +44,6 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
@@ -231,22 +230,21 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       properties.put(SCHEMA, tableData.getSecond().toString());
       properties.put(BUCKET, bucket);
 
-      String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-      NamespacedId workspaceId = new NamespacedId(ns, identifier);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceId, tableId)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(tableId)
         .setScope(scope)
         .setProperties(properties)
         .build();
-      TransactionRunners.run(getContext(), context -> {
+      String sampleId = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(tableData.getFirst());
         ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+        return workspaceId.getId();
       });
 
-      ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
+      ConnectionSample sample = new ConnectionSample(sampleId, tableId, ConnectionType.BIGQUERY.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
       return new ServiceResponse<>(sample);
     });

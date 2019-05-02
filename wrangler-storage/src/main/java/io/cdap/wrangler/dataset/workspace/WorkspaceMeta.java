@@ -16,8 +16,6 @@
 
 package io.cdap.wrangler.dataset.workspace;
 
-import io.cdap.wrangler.proto.NamespacedId;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,14 +24,13 @@ import java.util.Objects;
 /**
  * Metadata about a workspace.
  */
-public class WorkspaceMeta extends NamespacedId {
+public class WorkspaceMeta {
   private final String name;
   private final String scope;
   private final DataType type;
   private final Map<String, String> properties;
 
-  protected WorkspaceMeta(NamespacedId id, String name, String scope, DataType type, Map<String, String> properties) {
-    super(id);
+  protected WorkspaceMeta(String name, String scope, DataType type, Map<String, String> properties) {
     this.name = name;
     this.scope = scope;
     this.type = type;
@@ -64,22 +61,20 @@ public class WorkspaceMeta extends NamespacedId {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    if (!super.equals(o)) {
-      return false;
-    }
     WorkspaceMeta that = (WorkspaceMeta) o;
-    return Objects.equals(scope, that.scope) &&
+    return Objects.equals(name, that.name) &&
+      Objects.equals(scope, that.scope) &&
       type == that.type &&
       Objects.equals(properties, that.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), scope, type, properties);
+    return Objects.hash(name, scope, type, properties);
   }
 
-  public static Builder builder(NamespacedId id, String name) {
-    return new Builder(id, name);
+  public static Builder builder(String name) {
+    return new Builder(name);
   }
 
   /**
@@ -89,14 +84,12 @@ public class WorkspaceMeta extends NamespacedId {
    */
   @SuppressWarnings("unchecked")
   public static class Builder<T extends Builder> {
-    protected final NamespacedId id;
     protected final String name;
     protected String scope;
     protected DataType type;
     protected Map<String, String> properties;
 
-    Builder(NamespacedId id, String name) {
-      this.id = id;
+    Builder(String name) {
       this.name = name;
       this.properties = new HashMap<>();
       this.scope = WorkspaceDataset.DEFAULT_SCOPE;
@@ -120,7 +113,7 @@ public class WorkspaceMeta extends NamespacedId {
     }
 
     public WorkspaceMeta build() {
-      return new WorkspaceMeta(id, name, scope, type, properties);
+      return new WorkspaceMeta(name, scope, type, properties);
     }
   }
 }

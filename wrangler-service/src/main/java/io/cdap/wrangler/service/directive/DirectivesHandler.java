@@ -198,15 +198,15 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       String workspaceName = name == null || name.isEmpty() ? id : name;
 
       Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, id);
       properties.put(PropertyIds.NAME, workspaceName);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(new NamespacedId(ns, id), workspaceName)
+      NamespacedId workspaceId = new NamespacedId(ns, id);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceName)
         .setScope(scope)
         .setProperties(properties)
         .build();
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        ws.writeWorkspaceMeta(workspaceId, workspaceMeta);
       });
       return new ServiceResponse<Void>(String.format("Successfully created workspace '%s'", id));
     });
@@ -400,7 +400,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         // adding data to the workspace.
         if (!ws.hasWorkspace(id)) {
-          ws.writeWorkspaceMeta(WorkspaceMeta.builder(id, name).build());
+          ws.writeWorkspaceMeta(id, WorkspaceMeta.builder(name).build());
         }
 
         RequestExtractor handler = new RequestExtractor(request);
@@ -455,7 +455,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
 
         // Write properties for workspace.
         Map<String, String> properties = new HashMap<>();
-        properties.put(PropertyIds.ID, id.getId());
         properties.put(PropertyIds.NAME, name);
         properties.put(PropertyIds.DELIMITER, delimiter);
         properties.put(PropertyIds.CHARSET, charset);
