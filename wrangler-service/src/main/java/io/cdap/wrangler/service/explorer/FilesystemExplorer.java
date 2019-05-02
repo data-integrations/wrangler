@@ -27,7 +27,6 @@ import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -185,9 +184,6 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
 
     // Creates workspace.
     String name = location.getName();
-    String id = String.format("%s:%s:%s:%d", scope, location.getName(),
-                              location.toURI().getPath(), System.nanoTime());
-    id = ServiceUtils.generateMD5(id);
     Map<String, String> properties = new HashMap<>();
     properties.put(PropertyIds.FILE_NAME, location.getName());
     properties.put(PropertyIds.URI, location.toURI().toString());
@@ -196,15 +192,14 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
     Format format = type == DataType.BINARY ? Format.BLOB : Format.TEXT;
     properties.put(PropertyIds.FORMAT, format.name());
-    NamespacedId namespacedId = new NamespacedId(namespace, id);
-    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, name)
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(name)
       .setScope(scope)
       .setProperties(properties)
       .build();
 
-    TransactionRunners.run(getContext(), context -> {
+    String sampleId = TransactionRunners.run(getContext(), context -> {
       WorkspaceDataset ws = WorkspaceDataset.get(context);
-      ws.writeWorkspaceMeta(workspaceMeta);
+      NamespacedId workspaceId = ws.createWorkspace(namespace, workspaceMeta);
 
       byte[] bytes = new byte[(int) location.length() + 1];
       try (BufferedInputStream stream = new BufferedInputStream(location.getInputStream())) {
@@ -219,13 +214,14 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
         rows.add(new Row(COLUMN_NAME, new String(bytes, Charsets.UTF_8)));
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(rows);
-        ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+        ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
       } else if (type == DataType.BINARY || type == DataType.TEXT) {
-        ws.updateWorkspaceData(namespacedId, type, bytes);
+        ws.updateWorkspaceData(workspaceId, type, bytes);
       }
+      return workspaceId.getId();
     });
 
-    return new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
+    return new FileConnectionSample(sampleId, name, ConnectionType.FILE.getType(),
                                     SamplingMethod.NONE.getMethod(), null,
                                     location.toURI().toString(), location.toURI().getPath(),
                                     location.getName());
@@ -246,9 +242,6 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       throw new BadRequestException(String.format("%s (No such file)", path));
     }
     String name = location.getName();
-    String id = String.format("%s:%s:%s:%d", scope, location.getName(),
-                              location.toURI().getPath(), System.nanoTime());
-    id = ServiceUtils.generateMD5(id);
     // Set all properties and write to workspace.
     Map<String, String> properties = new HashMap<>();
     properties.put(PropertyIds.FILE_NAME, location.getName());
@@ -256,15 +249,14 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
     properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
     properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
-    NamespacedId namespacedId = new NamespacedId(namespace, id);
-    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, name)
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(name)
       .setScope(scope)
       .setProperties(properties)
       .build();
 
-    TransactionRunners.run(getContext(), context -> {
+    String sampleId = TransactionRunners.run(getContext(), context -> {
       WorkspaceDataset ws = WorkspaceDataset.get(context);
-      ws.writeWorkspaceMeta(workspaceMeta);
+      NamespacedId workspaceId = ws.createWorkspace(namespace, workspaceMeta);
 
       // Iterate through lines to extract only 'limit' random lines.
       // Depending on the type, the sampling of the input is performed.
@@ -285,10 +277,11 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       // Write rows to workspace.
       ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
       byte[] data = serDe.toByteArray(rows);
-      ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+      ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+      return workspaceId.getId();
     });
 
-    return new FileConnectionSample(id, name, ConnectionType.FILE.getType(),
+    return new FileConnectionSample(sampleId, name, ConnectionType.FILE.getType(),
                                     samplingMethod.getMethod(), null,
                                     location.toURI().toString(), location.toURI().getPath(),
                                     location.getName());

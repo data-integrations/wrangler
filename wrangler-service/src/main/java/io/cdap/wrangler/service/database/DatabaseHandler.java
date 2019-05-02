@@ -37,7 +37,6 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -484,28 +483,26 @@ public class DatabaseHandler extends AbstractWranglerHandler {
             ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
 
-            String identifier = ServiceUtils.generateMD5(table);
             Map<String, String> properties = new HashMap<>();
-            properties.put(PropertyIds.ID, identifier);
             properties.put(PropertyIds.NAME, table);
             properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
             properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
             properties.put(PropertyIds.CONNECTION_ID, id);
-            NamespacedId namespacedId = new NamespacedId(ns, identifier);
-            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, table)
+            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(table)
               .setScope(scope)
               .setProperties(properties)
               .build();
-            TransactionRunners.run(getContext(), context -> {
+            String sampleId = TransactionRunners.run(getContext(), context -> {
               WorkspaceDataset ws = WorkspaceDataset.get(context);
-              ws.writeWorkspaceMeta(workspaceMeta);
+              NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
               ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
               byte[] data = serDe.toByteArray(rows);
-              ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+              ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+              return workspaceId.getId();
             });
 
-            ConnectionSample sample = new ConnectionSample(namespacedId.getId(), table,
+            ConnectionSample sample = new ConnectionSample(sampleId, table,
                                                            ConnectionType.DATABASE.getType(),
                                                            SamplingMethod.NONE.getMethod(), id);
             sampleRef.set(sample);
