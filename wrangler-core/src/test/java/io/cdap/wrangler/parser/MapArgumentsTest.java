@@ -124,8 +124,8 @@ public class MapArgumentsTest {
     Iterator<TokenGroup> iterator = status.getSymbols().iterator();
     Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
-    Assert.assertEquals(true, arguments.contains("column"));
-    Assert.assertEquals(true, arguments.contains("infoTypes"));
+    Assert.assertTrue(arguments.contains("column"));
+    Assert.assertTrue(arguments.contains("infoTypes"));
     List<String> infoTypes = ((TextList) arguments.value("infoTypes")).value();
     Assert.assertEquals(2, infoTypes.size());
     Assert.assertEquals("ALL_BASIC", infoTypes.get(0));
