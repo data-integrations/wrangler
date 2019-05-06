@@ -21,12 +21,14 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.TokenGroup;
+import io.cdap.wrangler.api.parser.TextList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Tests {@link MapArguments}.
@@ -108,6 +110,26 @@ public class MapArgumentsTest {
     Assert.assertEquals(false, arguments.contains("col2"));
     Assert.assertEquals(false, arguments.contains("col3"));
     Assert.assertEquals(true, arguments.contains("col4"));
+  }
+
+  @Test
+  public void testTextLists() throws Exception {
+    Compiler compiler = new RecipeCompiler();
+    CompileStatus status = compiler.compile("remove-sensitive-data :column \"ALL_BASIC\", \"AGE\";");
+
+    UsageDefinition.Builder builder = UsageDefinition.builder("rename");
+    builder.define("column", TokenType.COLUMN_NAME);
+    builder.define("infoTypes", TokenType.TEXT_LIST);
+
+    Iterator<TokenGroup> iterator = status.getSymbols().iterator();
+    Arguments arguments = new MapArguments(builder.build(), iterator.next());
+    Assert.assertEquals(2, arguments.size());
+    Assert.assertEquals(true, arguments.contains("column"));
+    Assert.assertEquals(true, arguments.contains("infoTypes"));
+    List<String> infoTypes = ((TextList) arguments.value("infoTypes")).value();
+    Assert.assertEquals(2, infoTypes.size());
+    Assert.assertEquals("ALL_BASIC", infoTypes.get(0));
+    Assert.assertEquals("AGE", infoTypes.get(1));
   }
 
 }
