@@ -87,7 +87,8 @@ public final class Json2Schema {
       }
 
       if (value instanceof BigDecimal) {
-        Schema schema = Schema.nullableOf(Schema.of(Schema.Type.DOUBLE));
+        BigDecimal decimal = (BigDecimal) value;
+        Schema schema = Schema.nullableOf(Schema.decimalOf(decimal.precision(), decimal.scale()));
         fields.add(Schema.Field.of(name, schema));
       }
 

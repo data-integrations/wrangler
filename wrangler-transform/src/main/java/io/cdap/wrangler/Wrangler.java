@@ -500,6 +500,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         case TIMESTAMP_MILLIS:
         case TIMESTAMP_MICROS:
           return input.getTimestamp(fieldName);
+        case DECIMAL:
+          return input.getDecimal(fieldName);
         default:
           throw new UnexpectedFormatException("Field type " + logicalType + " is not supported.");
       }
