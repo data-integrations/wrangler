@@ -30,10 +30,10 @@ import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
-import com.google.cloud.bigquery.QueryResult;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.TableResult;
 import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
@@ -66,6 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -308,7 +309,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     }
 
     // Get the results
-    QueryResult result = queryJob.getQueryResults().getResult();
+    TableResult result = queryJob.getQueryResults();
     com.google.cloud.bigquery.Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
     for (FieldValueList fieldValues : result.iterateAll()) {
@@ -335,6 +336,11 @@ public class BigQueryHandler extends AbstractWranglerHandler {
           case TIMESTAMP:
             long tsMicroValue = fieldValue.getTimestampValue();
             row.add(fieldName, getZonedDateTime(tsMicroValue));
+            break;
+
+          case NUMERIC:
+            BigDecimal decimal = fieldValue.getNumericValue();
+            row.add(fieldName, decimal);
             break;
 
           case DATETIME:
@@ -380,6 +386,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
           break;
         case TIMESTAMP:
           schemaType = Schema.of(Schema.LogicalType.TIMESTAMP_MICROS);
+          break;
+        case NUMERIC:
+          schemaType = Schema.decimalOf(38, 9);
           break;
         case BYTES:
           schemaType = Schema.of(Schema.Type.BYTES);

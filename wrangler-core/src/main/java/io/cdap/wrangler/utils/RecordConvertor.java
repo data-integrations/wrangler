@@ -89,6 +89,8 @@ public final class RecordConvertor implements Serializable {
           builder.setTime(name, (LocalTime) decodedObj);
         } else if (decodedObj instanceof ZonedDateTime) {
           builder.setTimestamp(name, (ZonedDateTime) decodedObj);
+        } else if (decodedObj instanceof BigDecimal) {
+          builder.setDecimal(name, (BigDecimal) decodedObj);
         } else {
           builder.set(name, decodedObj);
         }
@@ -119,6 +121,7 @@ public final class RecordConvertor implements Serializable {
         case TIME_MICROS:
         case TIMESTAMP_MILLIS:
         case TIMESTAMP_MICROS:
+        case DECIMAL:
           return object;
         default:
           throw new UnexpectedFormatException("field type " + logicalType + " is not supported.");
