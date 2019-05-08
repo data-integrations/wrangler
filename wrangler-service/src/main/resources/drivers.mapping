@@ -1,4 +1,4 @@
-Oracle Thin,oracle.jdbc.driver.OracleDriver,jdbc:oracle:thin:@${hostname}:${port}:${database},oracle,1521,true
+Oracle Thin,oracle.jdbc.driver.OracleDriver,jdbc:oracle:thin:@${hostname}:${port}:${database},oracle-thin,1521,true
 Oracle Database 12c,oracle.jdbc.OracleDriver,jdbc:oracle:thin:${username}/${password}@//${hostname}:${port}/${database},oracle,1521,true
 MySQL,com.mysql.jdbc.Driver,jdbc:mysql://${hostname}:${port}/${database},mysql,3306,true
 PostgreSQL (v6.5 and earlier),postgresql.Driver,jdbc:postgresql://${hostname}:${port}/${database},postgresql65,5432,true
