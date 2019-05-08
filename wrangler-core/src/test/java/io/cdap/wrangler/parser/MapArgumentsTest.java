@@ -21,6 +21,7 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.TokenGroup;
+import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TextList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -115,17 +116,19 @@ public class MapArgumentsTest {
   @Test
   public void testTextLists() throws Exception {
     Compiler compiler = new RecipeCompiler();
-    CompileStatus status = compiler.compile("remove-sensitive-data :column \"ALL_BASIC\", \"AGE\";");
+    CompileStatus status = compiler.compile("remove-sensitive-data :body \"ALL_BASIC\", \"AGE\";");
 
     UsageDefinition.Builder builder = UsageDefinition.builder("rename");
-    builder.define("column", TokenType.COLUMN_NAME);
+    builder.define("body", TokenType.COLUMN_NAME);
     builder.define("infoTypes", TokenType.TEXT_LIST);
 
     Iterator<TokenGroup> iterator = status.getSymbols().iterator();
     Arguments arguments = new MapArguments(builder.build(), iterator.next());
     Assert.assertEquals(2, arguments.size());
-    Assert.assertTrue(arguments.contains("column"));
+    Assert.assertTrue(arguments.contains("body"));
     Assert.assertTrue(arguments.contains("infoTypes"));
+    ColumnName columnName = arguments.value("body");
+    Assert.assertEquals("body", columnName.value());
     List<String> infoTypes = ((TextList) arguments.value("infoTypes")).value();
     Assert.assertEquals(2, infoTypes.size());
     Assert.assertEquals("ALL_BASIC", infoTypes.get(0));
