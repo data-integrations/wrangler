@@ -31,7 +31,7 @@ import java.util.List;
 public class TextList implements Token {
   private List<String> values;
 
-  public TextList(List<String> value) {
+  public TextList(List<String> values) {
     this.values = values;
   }
 
