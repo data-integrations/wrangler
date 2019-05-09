@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -94,6 +96,7 @@ public class Json2SchemaTest {
     testRow.add("date", LocalDate.of(2018, 11, 11));
     testRow.add("time", LocalTime.of(11, 11, 11));
     testRow.add("timestamp", ZonedDateTime.of(2018, 11 , 11 , 11, 11, 11, 0, ZoneId.of("UTC")));
+    testRow.add("d", new BigDecimal(new BigInteger("123456"), 5));
 
     Json2Schema json2Schema = new Json2Schema();
     Schema actual = json2Schema.toSchema("testRecord", testRow);
@@ -105,7 +108,8 @@ public class Json2SchemaTest {
                                       Schema.Field.of("time", Schema.nullableOf(
                                         Schema.of(Schema.LogicalType.TIME_MICROS))),
                                       Schema.Field.of("timestamp", Schema.nullableOf(
-                                        Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))));
+                                        Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))),
+                                      Schema.Field.of("d", Schema.nullableOf(Schema.decimalOf(6, 5))));
 
     Assert.assertEquals(expected, actual);
   }
