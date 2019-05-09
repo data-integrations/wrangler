@@ -87,8 +87,8 @@ public final class Json2Schema {
       }
 
       if (value instanceof BigDecimal) {
-        BigDecimal decimal = (BigDecimal) value;
-        Schema schema = Schema.nullableOf(Schema.decimalOf(decimal.precision(), decimal.scale()));
+        // TODO CDAP-15361 precision should be derived from the schema of the row.
+        Schema schema = Schema.nullableOf(Schema.decimalOf(38, ((BigDecimal) value).scale()));
         fields.add(Schema.Field.of(name, schema));
       }
 
