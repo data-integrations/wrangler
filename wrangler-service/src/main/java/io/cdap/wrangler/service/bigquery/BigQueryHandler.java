@@ -340,6 +340,12 @@ public class BigQueryHandler extends AbstractWranglerHandler {
 
           case NUMERIC:
             BigDecimal decimal = fieldValue.getNumericValue();
+            if (decimal.scale() < 9) {
+              // scale up the big decimal. this is because structured record expects scale to be exactly same as schema
+              // Big Query supports maximum unscaled value up to 38 digits. so scaling up should still be <= max
+              // precision
+              decimal = decimal.setScale(9);
+            }
             row.add(fieldName, decimal);
             break;
 
