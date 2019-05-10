@@ -109,7 +109,7 @@ public class Json2SchemaTest {
                                         Schema.of(Schema.LogicalType.TIME_MICROS))),
                                       Schema.Field.of("timestamp", Schema.nullableOf(
                                         Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))),
-                                      Schema.Field.of("d", Schema.nullableOf(Schema.decimalOf(6, 5))));
+                                      Schema.Field.of("d", Schema.nullableOf(Schema.decimalOf(38, 5))));
 
     Assert.assertEquals(expected, actual);
   }
