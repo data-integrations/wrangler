@@ -31,12 +31,14 @@ import io.cdap.wrangler.api.Row;
 import org.json.JSONException;
 
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -73,62 +75,80 @@ public final class Json2Schema {
       String name = column.getFirst();
       Object value = column.getSecond();
 
-      // First, we check if object is of simple type.
-      if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Short ||
-          value instanceof Double || value instanceof Float || value instanceof Boolean || value instanceof byte[]) {
-        try {
-          Schema schema = Schema.nullableOf(new SimpleSchemaGenerator().generate(value.getClass()));
-          fields.add(Schema.Field.of(name, schema));
-        } catch (UnsupportedTypeException e) {
-          throw new RecordConvertorException(
-            String.format("Unable to convert field '%s' to basic type.", name)
-          );
-        }
-      }
-
-      if (value instanceof BigDecimal) {
-        // TODO CDAP-15361 precision should be derived from the schema of the row.
-        Schema schema = Schema.nullableOf(Schema.decimalOf(38, ((BigDecimal) value).scale()));
-        fields.add(Schema.Field.of(name, schema));
-      }
-
-      if (value instanceof LocalDate) {
-        Schema schema = Schema.nullableOf(Schema.of(Schema.LogicalType.DATE));
-        fields.add(Schema.Field.of(name, schema));
-      }
-
-      if (value instanceof LocalTime) {
-        Schema schema = Schema.nullableOf(Schema.of(Schema.LogicalType.TIME_MICROS));
-        fields.add(Schema.Field.of(name, schema));
-      }
-
-      if (value instanceof ZonedDateTime) {
-        Schema schema = Schema.nullableOf(Schema.of(Schema.LogicalType.TIMESTAMP_MICROS));
-        fields.add(Schema.Field.of(name, schema));
-      }
-
-      // TODO - remove all the instaces of java.util.Date once all the directives support LogicalType.
-      if (value instanceof Date || value instanceof java.sql.Date || value instanceof Time
-        || value instanceof Timestamp) {
-        Schema schema = Schema.nullableOf(Schema.of(Schema.Type.LONG));
-        fields.add(Schema.Field.of(name, schema));
-      }
-
-      if (value instanceof Map) {
-        Schema schema = Schema.nullableOf (Schema.mapOf(Schema.of(Schema.Type.STRING), Schema.of(Schema.Type.STRING)));
-        fields.add(Schema.Field.of(name, schema));
-      }
-
-      if (value instanceof JsonElement) {
-        Schema schema = toSchema(name, (JsonElement) value);
-        fields.add(Schema.Field.of(name, schema));
-      }
-
       if (value instanceof Schema) {
         fields.addAll(((Schema) value).getFields());
+      } else {
+        Schema schema = getSchema(value, name);
+        if (schema != null) {
+          fields.add(Schema.Field.of(name, schema));
+        }
       }
     }
     return Schema.recordOf(id, fields);
+  }
+
+  @Nullable
+  private Schema getSchema(Object value, String name) throws RecordConvertorException {
+    // First, we check if object is of simple type.
+    if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Short ||
+      value instanceof Double || value instanceof Float || value instanceof Boolean || value instanceof byte[] ||
+      value instanceof ByteBuffer) {
+      try {
+        return Schema.nullableOf(new SimpleSchemaGenerator().generate(value.getClass()));
+      } catch (UnsupportedTypeException e) {
+        throw new RecordConvertorException(
+          String.format("Unable to convert field '%s' to basic type.", name), e);
+      }
+    }
+
+    if (value instanceof BigDecimal) {
+      // TODO CDAP-15361 precision should be derived from the schema of the row.
+      return Schema.nullableOf(Schema.decimalOf(38, ((BigDecimal) value).scale()));
+    }
+
+    if (value instanceof LocalDate) {
+      return Schema.nullableOf(Schema.of(Schema.LogicalType.DATE));
+    }
+
+    if (value instanceof LocalTime) {
+      return Schema.nullableOf(Schema.of(Schema.LogicalType.TIME_MICROS));
+    }
+
+    if (value instanceof ZonedDateTime) {
+      return Schema.nullableOf(Schema.of(Schema.LogicalType.TIMESTAMP_MICROS));
+    }
+
+    // TODO - remove all the instaces of java.util.Date once all the directives support LogicalType.
+    if (value instanceof Date || value instanceof java.sql.Date || value instanceof Time
+      || value instanceof Timestamp) {
+      return Schema.nullableOf(Schema.of(Schema.Type.LONG));
+    }
+
+    if (value instanceof Map) {
+      return Schema.nullableOf(Schema.mapOf(Schema.of(Schema.Type.STRING), Schema.of(Schema.Type.STRING)));
+    }
+
+    if (value instanceof JsonElement) {
+      return toSchema(name, (JsonElement) value);
+    }
+
+    if (value instanceof Collection) {
+      Collection<?> collection = (Collection) value;
+      for (Object listObject : collection) {
+        if (listObject == null) {
+          continue;
+        }
+
+        Schema schema = getSchema(listObject, name);
+        // this means schema is unknown and is not supported.
+        if (schema == null) {
+          return null;
+        }
+        return Schema.nullableOf(Schema.arrayOf(schema));
+      }
+    }
+
+    return null;
   }
 
   @Nullable
@@ -179,8 +199,7 @@ public final class Json2Schema {
       return Schema.nullableOf(new SimpleSchemaGenerator().generate(value.getClass()));
     } catch (UnsupportedTypeException e) {
       throw new RecordConvertorException(
-        String.format("Unable to convert field '%s' to basic type.", name)
-      );
+        String.format("Unable to convert field '%s' to basic type.", name), e);
     }
   }
 

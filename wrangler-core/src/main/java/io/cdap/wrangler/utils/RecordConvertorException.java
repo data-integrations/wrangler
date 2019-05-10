@@ -26,4 +26,8 @@ public class RecordConvertorException extends Exception {
   public RecordConvertorException(String message) {
     super(message);
   }
+
+  public RecordConvertorException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }
