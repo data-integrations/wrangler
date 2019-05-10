@@ -135,10 +135,16 @@ public final class Json2Schema {
     if (value instanceof Collection) {
       Collection<?> collection = (Collection) value;
       for (Object listObject : collection) {
-        Schema schema = getSchema(listObject, name);
-        if (schema != null) {
-          return Schema.nullableOf(Schema.arrayOf(schema));
+        if (listObject == null) {
+          continue;
         }
+
+        Schema schema = getSchema(listObject, name);
+        // this means schema is unknown and is not supported.
+        if (schema == null) {
+          return null;
+        }
+        return Schema.nullableOf(Schema.arrayOf(schema));
       }
     }
 

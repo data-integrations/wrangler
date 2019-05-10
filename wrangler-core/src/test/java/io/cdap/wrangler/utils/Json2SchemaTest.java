@@ -16,7 +16,6 @@
 
 package io.cdap.wrangler.utils;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -35,6 +34,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -117,13 +117,19 @@ public class Json2SchemaTest {
 
   @Test
   public void testArrayType() throws Exception {
+    List<Integer> list = new ArrayList<>();
+    list.add(null);
+    list.add(null);
+    list.add(1);
+    list.add(2);
+
     Row testRow = new Row();
     testRow.add("id", 1);
     testRow.add("name", "abc");
     testRow.add("date", LocalDate.of(2018, 11, 11));
     testRow.add("time", LocalTime.of(11, 11, 11));
     testRow.add("timestamp", ZonedDateTime.of(2018, 11, 11, 11, 11, 11, 0, ZoneId.of("UTC")));
-    testRow.add("array", ImmutableList.of(1, 2, 3));
+    testRow.add("array", list);
 
     Json2Schema json2Schema = new Json2Schema();
     Schema actual = json2Schema.toSchema("testRecord", testRow);
