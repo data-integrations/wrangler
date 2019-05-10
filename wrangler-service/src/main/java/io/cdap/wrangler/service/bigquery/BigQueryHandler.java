@@ -418,7 +418,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
 
       case DATETIME:
       case STRING:
-        return  fieldValue.getStringValue();
+        return fieldValue.getStringValue();
       case BOOL:
         return fieldValue.getBooleanValue();
       case FLOAT64:

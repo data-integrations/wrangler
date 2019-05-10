@@ -31,12 +31,14 @@ import io.cdap.wrangler.api.Row;
 import org.json.JSONException;
 
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -89,14 +91,13 @@ public final class Json2Schema {
   private Schema getSchema(Object value, String name) throws RecordConvertorException {
     // First, we check if object is of simple type.
     if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Short ||
-      value instanceof Double || value instanceof Float || value instanceof Boolean || value instanceof byte[]) {
+      value instanceof Double || value instanceof Float || value instanceof Boolean || value instanceof byte[] ||
+      value instanceof ByteBuffer) {
       try {
         return Schema.nullableOf(new SimpleSchemaGenerator().generate(value.getClass()));
-
       } catch (UnsupportedTypeException e) {
         throw new RecordConvertorException(
-          String.format("Unable to convert field '%s' to basic type.", name)
-        );
+          String.format("Unable to convert field '%s' to basic type.", name), e);
       }
     }
 
@@ -114,7 +115,7 @@ public final class Json2Schema {
     }
 
     if (value instanceof ZonedDateTime) {
-      return  Schema.nullableOf(Schema.of(Schema.LogicalType.TIMESTAMP_MICROS));
+      return Schema.nullableOf(Schema.of(Schema.LogicalType.TIMESTAMP_MICROS));
     }
 
     // TODO - remove all the instaces of java.util.Date once all the directives support LogicalType.
@@ -124,16 +125,16 @@ public final class Json2Schema {
     }
 
     if (value instanceof Map) {
-      return Schema.nullableOf (Schema.mapOf(Schema.of(Schema.Type.STRING), Schema.of(Schema.Type.STRING)));
+      return Schema.nullableOf(Schema.mapOf(Schema.of(Schema.Type.STRING), Schema.of(Schema.Type.STRING)));
     }
 
     if (value instanceof JsonElement) {
       return toSchema(name, (JsonElement) value);
     }
 
-    if (value instanceof List) {
-      List<?> list = (List) value;
-      for (Object listObject : list) {
+    if (value instanceof Collection) {
+      Collection<?> collection = (Collection) value;
+      for (Object listObject : collection) {
         Schema schema = getSchema(listObject, name);
         if (schema != null) {
           return Schema.nullableOf(Schema.arrayOf(schema));
@@ -192,8 +193,7 @@ public final class Json2Schema {
       return Schema.nullableOf(new SimpleSchemaGenerator().generate(value.getClass()));
     } catch (UnsupportedTypeException e) {
       throw new RecordConvertorException(
-        String.format("Unable to convert field '%s' to basic type.", name)
-      );
+        String.format("Unable to convert field '%s' to basic type.", name), e);
     }
   }
 
