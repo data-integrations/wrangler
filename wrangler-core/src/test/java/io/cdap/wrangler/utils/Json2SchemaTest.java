@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -111,6 +112,38 @@ public class Json2SchemaTest {
                                         Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))),
                                       Schema.Field.of("d", Schema.nullableOf(Schema.decimalOf(38, 5))));
 
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testArrayType() throws Exception {
+    List<Integer> list = new ArrayList<>();
+    list.add(null);
+    list.add(null);
+    list.add(1);
+    list.add(2);
+
+    Row testRow = new Row();
+    testRow.add("id", 1);
+    testRow.add("name", "abc");
+    testRow.add("date", LocalDate.of(2018, 11, 11));
+    testRow.add("time", LocalTime.of(11, 11, 11));
+    testRow.add("timestamp", ZonedDateTime.of(2018, 11, 11, 11, 11, 11, 0, ZoneId.of("UTC")));
+    testRow.add("array", list);
+
+    Json2Schema json2Schema = new Json2Schema();
+    Schema actual = json2Schema.toSchema("testRecord", testRow);
+
+    Schema expected = Schema.recordOf("expectedRecord",
+                                      Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+                                      Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+                                      Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.LogicalType.DATE))),
+                                      Schema.Field.of("time", Schema.nullableOf(
+                                        Schema.of(Schema.LogicalType.TIME_MICROS))),
+                                      Schema.Field.of("timestamp", Schema.nullableOf(
+                                        Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))),
+                                      Schema.Field.of("array", Schema.nullableOf(
+                                        Schema.arrayOf(Schema.nullableOf(Schema.of(Schema.Type.INT))))));
     Assert.assertEquals(expected, actual);
   }
 }
