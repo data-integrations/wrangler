@@ -574,6 +574,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      composite.reload(namespace);
       try {
         RequestExtractor handler = new RequestExtractor(request);
         Request directiveRequest = handler.getContent("UTF-8", Request.class);
@@ -699,6 +700,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       try {
+        composite.reload(namespace);
         RequestExtractor handler = new RequestExtractor(request);
         Request directiveRequest = handler.getContent("UTF-8", Request.class);
         if (directiveRequest == null) {
@@ -780,6 +782,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      composite.reload(namespace);
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       if (user == null) {
@@ -864,6 +867,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void usage(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
       DirectiveConfig config = TransactionRunners.run(getContext(), context -> {
         ConfigStore store = ConfigStore.get(context);

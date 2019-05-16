@@ -196,7 +196,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       } catch (CompileException e) {
         throw new IllegalArgumentException(e.getMessage(), e);
       } catch (DirectiveParseException e) {
-        throw new IllegalArgumentException(e.getMessage());
+        throw new IllegalArgumentException(e.getMessage(), e);
       }
 
       // Based on the configuration create output schema.
@@ -205,7 +205,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           oSchema = Schema.parseJson(config.schema);
         }
       } catch (IOException e) {
-        throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.");
+        throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.", e);
       }
 
       // Check if configured field is present in the input schema.
@@ -224,7 +224,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           try {
             new Precondition(config.precondition);
           } catch (PreconditionException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException(e.getMessage(), e);
           }
         }
       }
@@ -236,7 +236,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     } catch (Exception e) {
       LOG.error(e.getMessage());
-      throw new IllegalArgumentException(e.getMessage());
+      throw new IllegalArgumentException(e.getMessage(), e);
     }
   }
 
@@ -305,6 +305,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       new SystemDirectiveRegistry(),
       new UserDirectiveRegistry(context)
     );
+    registry.reload(context.getNamespace());
 
     String directives = config.directives;
     if (config.udds != null && !config.udds.trim().isEmpty()) {
@@ -321,7 +322,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     } catch (IOException e) {
       throw new IllegalArgumentException(
         String.format("Stage:%s - Format of output schema specified is invalid. Please check the format.",
-                      context.getStageName())
+                      context.getStageName()), e
       );
     }
 
@@ -330,7 +331,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       try {
         condition = new Precondition(config.precondition);
       } catch (PreconditionException e) {
-        throw new IllegalArgumentException(e.getMessage());
+        throw new IllegalArgumentException(e.getMessage(), e);
       }
     }
 
@@ -353,7 +354,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // If there is a issue, we need to fail the pipeline that has the plugin.
       throw new IllegalArgumentException(
         String.format("Stage:%s - Issue in retrieving the configuration from the service. %s",
-                      getContext().getStageName(), e.getMessage())
+                      getContext().getStageName(), e.getMessage()), e
       );
     }
 
@@ -363,7 +364,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       pipeline.initialize(recipe, ctx);
     } catch (Exception e) {
       throw new Exception(
-        String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage())
+        String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage()), e
       );
     }
 
@@ -447,7 +448,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         if (e instanceof DirectiveExecutionException) {
           throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing " +
                                               "due to error : %s", getContext().getStageName(), config.threshold,
-                                            e.getMessage()));
+                                            e.getMessage()), e);
 
         } else {
           throw new Exception(String.format("Stage:%s - Reached error threshold %d, terminating processing " +
