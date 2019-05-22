@@ -30,10 +30,10 @@ import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
-import com.google.cloud.bigquery.QueryResult;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.TableResult;
 import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
@@ -44,7 +44,6 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
@@ -67,6 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -231,22 +231,21 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       properties.put(SCHEMA, tableData.getSecond().toString());
       properties.put(BUCKET, bucket);
 
-      String identifier = ServiceUtils.generateMD5(String.format("%s:%s", scope, tableId));
-      NamespacedId workspaceId = new NamespacedId(ns, identifier);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceId, tableId)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(tableId)
         .setScope(scope)
         .setProperties(properties)
         .build();
-      TransactionRunners.run(getContext(), context -> {
+      String sampleId = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
         ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
         byte[] data = serDe.toByteArray(tableData.getFirst());
         ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+        return workspaceId.getId();
       });
 
-      ConnectionSample sample = new ConnectionSample(identifier, tableId, ConnectionType.BIGQUERY.getType(),
+      ConnectionSample sample = new ConnectionSample(sampleId, tableId, ConnectionType.BIGQUERY.getType(),
                                                      SamplingMethod.NONE.getMethod(), connectionId);
       return new ServiceResponse<>(sample);
     });
@@ -310,7 +309,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     }
 
     // Get the results
-    QueryResult result = queryJob.getQueryResults().getResult();
+    TableResult result = queryJob.getQueryResults();
     com.google.cloud.bigquery.Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
     for (FieldValueList fieldValues : result.iterateAll()) {
@@ -318,47 +317,23 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       for (Field field : fields) {
         String fieldName = field.getName();
         FieldValue fieldValue = fieldValues.get(fieldName);
-
+        FieldValue.Attribute attribute = fieldValue.getAttribute();
         LegacySQLTypeName type = field.getType();
         StandardSQLTypeName standardType = type.getStandardType();
+
         if (fieldValue.isNull()) {
           row.add(fieldName, null);
           continue;
         }
-        switch (standardType) {
-          case TIME:
-            row.add(fieldName, LocalTime.parse(fieldValue.getStringValue()));
-            break;
 
-          case DATE:
-            row.add(fieldName, LocalDate.parse(fieldValue.getStringValue()));
-            break;
-
-          case TIMESTAMP:
-            long tsMicroValue = fieldValue.getTimestampValue();
-            row.add(fieldName, getZonedDateTime(tsMicroValue));
-            break;
-
-          case DATETIME:
-          case STRING:
-            row.add(fieldName, fieldValue.getStringValue());
-            break;
-
-          case BOOL:
-            row.add(fieldName, fieldValue.getBooleanValue());
-            break;
-
-          case FLOAT64:
-            row.add(fieldName, fieldValue.getDoubleValue());
-            break;
-
-          case INT64:
-            row.add(fieldName, fieldValue.getLongValue());
-            break;
-
-          case BYTES:
-            row.add(fieldName, fieldValue.getBytesValue());
-            break;
+        if (attribute == FieldValue.Attribute.REPEATED) {
+          List<Object> list = new ArrayList<>();
+          for (FieldValue value : fieldValue.getRepeatedValue()) {
+            list.add(getRowValue(standardType, value));
+          }
+          row.add(fieldName, list);
+        } else {
+          row.add(fieldName, getRowValue(standardType, fieldValue));
         }
       }
 
@@ -382,6 +357,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
           break;
         case TIMESTAMP:
           schemaType = Schema.of(Schema.LogicalType.TIMESTAMP_MICROS);
+          break;
+        case NUMERIC:
+          schemaType = Schema.decimalOf(38, 9);
           break;
         case BYTES:
           schemaType = Schema.of(Schema.Type.BYTES);
@@ -407,6 +385,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       if (field.getMode() == null || field.getMode() == Field.Mode.NULLABLE) {
         Schema fieldSchema = Schema.nullableOf(schemaType);
         schemaField = Schema.Field.of(name, fieldSchema);
+      } else if (field.getMode() == Field.Mode.REPEATED) {
+        // allow array field types
+        schemaField = Schema.Field.of(field.getName(), Schema.arrayOf(schemaType));
       } else {
         schemaField = Schema.Field.of(name, schemaType);
       }
@@ -414,6 +395,41 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     }
     Schema schemaToReturn = Schema.recordOf("bigquerySchema", schemaFields);
     return new Pair<>(rows, schemaToReturn);
+  }
+
+  private Object getRowValue(StandardSQLTypeName standardType, FieldValue fieldValue) {
+    switch (standardType) {
+      case TIME:
+        return LocalTime.parse(fieldValue.getStringValue());
+      case DATE:
+        return LocalDate.parse(fieldValue.getStringValue());
+      case TIMESTAMP:
+        long tsMicroValue = fieldValue.getTimestampValue();
+        return getZonedDateTime(tsMicroValue);
+      case NUMERIC:
+        BigDecimal decimal = fieldValue.getNumericValue();
+        if (decimal.scale() < 9) {
+          // scale up the big decimal. this is because structured record expects scale to be exactly same as schema
+          // Big Query supports maximum unscaled value up to 38 digits. so scaling up should still be <= max
+          // precision
+          decimal = decimal.setScale(9);
+        }
+        return decimal;
+
+      case DATETIME:
+      case STRING:
+        return fieldValue.getStringValue();
+      case BOOL:
+        return fieldValue.getBooleanValue();
+      case FLOAT64:
+        return fieldValue.getDoubleValue();
+      case INT64:
+        return fieldValue.getLongValue();
+      case BYTES:
+        return fieldValue.getBytesValue();
+      default:
+        throw new RuntimeException(String.format("BigQuery type %s is not supported.", standardType));
+    }
   }
 
   private ZonedDateTime getZonedDateTime(long microTs) {

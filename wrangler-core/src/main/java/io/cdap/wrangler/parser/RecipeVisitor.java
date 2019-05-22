@@ -310,7 +310,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     List<TerminalNode> strings = ctx.String();
     List<String> strs = new ArrayList<>();
     for (TerminalNode string : strings) {
-      strs.add(string.getText());
+      String text = string.getText();
+      strs.add(text.substring(1, text.length() - 1));
     }
     builder.addToken(new TextList(strs));
     return builder;
