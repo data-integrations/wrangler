@@ -89,6 +89,8 @@ public final class RecordConvertor implements Serializable {
           builder.setTime(name, (LocalTime) decodedObj);
         } else if (decodedObj instanceof ZonedDateTime) {
           builder.setTimestamp(name, (ZonedDateTime) decodedObj);
+        } else if (decodedObj instanceof BigDecimal) {
+          builder.setDecimal(name, (BigDecimal) decodedObj);
         } else {
           builder.set(name, decodedObj);
         }
@@ -100,8 +102,7 @@ public final class RecordConvertor implements Serializable {
                         isNullable ? fSchema.getNonNullable().getType().name() : fSchema.getType().name(),
                         isNullable ? "YES" : "NO",
                         value == null ? "NULL" : value,
-                        name)
-        );
+                        name), e);
       }
     }
     return builder.build();
@@ -119,6 +120,7 @@ public final class RecordConvertor implements Serializable {
         case TIME_MICROS:
         case TIMESTAMP_MILLIS:
         case TIMESTAMP_MICROS:
+        case DECIMAL:
           return object;
         default:
           throw new UnexpectedFormatException("field type " + logicalType + " is not supported.");
@@ -223,8 +225,7 @@ public final class RecordConvertor implements Serializable {
             return Integer.parseInt(value);
           } catch (NumberFormatException e) {
             throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to integer for field name '%s'", value, name)
-            );
+              String.format("Unable to convert '%s' to integer for field name '%s'", value, name), e);
           }
         } else {
           throw new RecordConvertorException(
@@ -245,8 +246,7 @@ public final class RecordConvertor implements Serializable {
             return Long.parseLong(value);
           } catch (NumberFormatException e) {
             throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to long for field name '%s'", value, name)
-            );
+              String.format("Unable to convert '%s' to long for field name '%s'", value, name), e);
           }
         } else {
           throw new RecordConvertorException(
@@ -269,8 +269,7 @@ public final class RecordConvertor implements Serializable {
             return Float.parseFloat(value);
           } catch (NumberFormatException e) {
             throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to float for field name '%s'", value, name)
-            );
+              String.format("Unable to convert '%s' to float for field name '%s'", value, name), e);
           }
         } else {
           throw new RecordConvertorException(
@@ -297,8 +296,7 @@ public final class RecordConvertor implements Serializable {
             return Double.parseDouble(value);
           } catch (NumberFormatException e) {
             throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to double for field name '%s'", value, name)
-            );
+              String.format("Unable to convert '%s' to double for field name '%s'", value, name), e);
           }
         } else {
           throw new RecordConvertorException(
@@ -315,8 +313,7 @@ public final class RecordConvertor implements Serializable {
             return Boolean.parseBoolean(value);
           } catch (NumberFormatException e) {
             throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to boolean for field name '%s'", value, name)
-            );
+              String.format("Unable to convert '%s' to boolean for field name '%s'", value, name), e);
           }
         } else {
           throw new RecordConvertorException(
@@ -398,7 +395,7 @@ public final class RecordConvertor implements Serializable {
 
   private List<Object> decodeArray(String name, List list, Schema schema) throws RecordConvertorException {
     List<Object> array = Lists.newArrayListWithCapacity(list.size());
-    for (Object object : array) {
+    for (Object object : list) {
       array.add(decode(name, object, schema));
     }
     return array;

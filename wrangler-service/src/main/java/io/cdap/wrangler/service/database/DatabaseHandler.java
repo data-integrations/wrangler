@@ -21,9 +21,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
@@ -37,7 +35,6 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -80,7 +77,6 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,13 +140,15 @@ public class DatabaseHandler extends AbstractWranglerHandler {
 
   static final class DriverInfo {
     private final String jdbcUrlPattern;
+    private final String className;
     private final String name;
     private final String tag;
     private final String port;
     private final boolean basicAllowed;
 
-    DriverInfo(String name, String jdbcUrlPattern, String tag, String port, boolean basicAllowed) {
+    DriverInfo(String name, String className, String jdbcUrlPattern, String tag, String port, boolean basicAllowed) {
       this.name = name;
+      this.className = className;
       this.jdbcUrlPattern = jdbcUrlPattern;
       this.tag = tag;
       this.port = port;
@@ -186,7 +184,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     void execute(java.sql.Connection connection) throws Exception;
   }
 
-  private final Multimap<String, DriverInfo> drivers = ArrayListMultimap.create();
+  private final Map<String, DriverInfo> drivers = new HashMap<>();
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
@@ -202,15 +200,22 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   }
 
   @VisibleForTesting
-  static void loadDrivers(InputStream is, Multimap<String, DriverInfo> drivers) throws IOException {
+  static void loadDrivers(InputStream is, Map<String, DriverInfo> drivers) throws IOException {
     try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
       String line;
       while ((line = br.readLine()) != null) {
         String[] columns = line.split(",");
         if (columns.length == 6) {
-          DriverInfo info = new DriverInfo(columns[0], columns[2], columns[3], columns[4],
+          DriverInfo info = new DriverInfo(columns[0], columns[1], columns[2], columns[3], columns[4],
                                            Boolean.parseBoolean(columns[5]));
-          drivers.put(columns[1].trim(), info);
+          if (drivers.containsKey(info.tag)) {
+            // this only happens if the drivers.mapping file is invalid
+            // TODO: (CDAP-15353) wrangler should not assume names are unique
+            throw new IllegalStateException(
+              "Wrangler's allowed JDBC plugins has been misconfigured. "
+                + "Please make sure the driver plugin names in the drivers.mapping file are unique.");
+          }
+          drivers.put(info.tag, info);
         }
       }
     }
@@ -265,24 +270,24 @@ public class DatabaseHandler extends AbstractWranglerHandler {
           if (!JDBC.equalsIgnoreCase(type)) {
             continue;
           }
-          String className = plugin.getClassName();
-          if (!drivers.containsKey(className)) {
+          // TODO: (CDAP-15353) Wrangler should not assume plugin names are unique
+          // if info is null, it means it's not an 'allowed' driver from the drivers.mapping file that is returned by
+          // the jdbc/allowed endpoint.
+          if (!drivers.containsKey(plugin.getName())) {
             continue;
           }
-          Collection<DriverInfo> infos = drivers.get(className);
-          for (DriverInfo info : infos) {
-            Map<String, String> properties = new HashMap<>();
-            properties.put("class", plugin.getClassName());
-            properties.put("type", plugin.getType());
-            properties.put("name", plugin.getName());
-            List<String> fields = getMacros(info.getJdbcUrlPattern());
-            fields.add("url");
+          DriverInfo info = drivers.get(plugin.getName());
+          Map<String, String> properties = new HashMap<>();
+          properties.put("class", plugin.getClassName());
+          properties.put("type", plugin.getType());
+          properties.put("name", plugin.getName());
+          List<String> fields = getMacros(info.getJdbcUrlPattern());
+          fields.add("url");
 
-            JDBCDriverInfo jdbcDriverInfo =
-              new JDBCDriverInfo(info.getName(), artifact.getVersion(), info.getJdbcUrlPattern(), info.getPort(),
-                                 fields, properties);
-            values.add(jdbcDriverInfo);
-          }
+          JDBCDriverInfo jdbcDriverInfo =
+            new JDBCDriverInfo(info.getName(), artifact.getVersion(), info.getJdbcUrlPattern(), info.getPort(),
+                               fields, properties);
+          values.add(jdbcDriverInfo);
         }
       }
       return new ServiceResponse<>(values);
@@ -318,11 +323,9 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                                    @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       List<AllowedDriverInfo> values = new ArrayList<>();
-      Collection<Map.Entry<String, DriverInfo>> entries = drivers.entries();
-      for (Map.Entry<String, DriverInfo> driver : entries) {
-        String shortTag = driver.getValue().getTag();
-        values.add(new AllowedDriverInfo(driver.getKey(), driver.getValue().getName(), shortTag, shortTag,
-                                         driver.getValue().getPort(), driver.getValue().isBasicAllowed()));
+      for (DriverInfo driver : drivers.values()) {
+        values.add(new AllowedDriverInfo(driver.className, driver.name, driver.tag, driver.tag,
+                                         driver.port, driver.basicAllowed));
       }
       return new ServiceResponse<>(values);
     });
@@ -484,28 +487,26 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
             List<Row> rows = getRows(lines, result);
 
-            String identifier = ServiceUtils.generateMD5(table);
             Map<String, String> properties = new HashMap<>();
-            properties.put(PropertyIds.ID, identifier);
             properties.put(PropertyIds.NAME, table);
             properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
             properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
             properties.put(PropertyIds.CONNECTION_ID, id);
-            NamespacedId namespacedId = new NamespacedId(ns, identifier);
-            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, table)
+            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(table)
               .setScope(scope)
               .setProperties(properties)
               .build();
-            TransactionRunners.run(getContext(), context -> {
+            String sampleId = TransactionRunners.run(getContext(), context -> {
               WorkspaceDataset ws = WorkspaceDataset.get(context);
-              ws.writeWorkspaceMeta(workspaceMeta);
+              NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
               ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
               byte[] data = serDe.toByteArray(rows);
-              ws.updateWorkspaceData(namespacedId, DataType.RECORDS, data);
+              ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+              return workspaceId.getId();
             });
 
-            ConnectionSample sample = new ConnectionSample(namespacedId.getId(), table,
+            ConnectionSample sample = new ConnectionSample(sampleId, table,
                                                            ConnectionType.DATABASE.getType(),
                                                            SamplingMethod.NONE.getMethod(), id);
             sampleRef.set(sample);
