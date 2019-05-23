@@ -56,7 +56,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A step to parse AVRO json or binary format.
+ * A step to parse json or binary encoded AVRO.
  */
 @Plugin(type = Directive.TYPE)
 @Name("parse-as-avro")
@@ -77,7 +77,7 @@ public class ParseAvro implements Directive {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("schema-id", TokenType.IDENTIFIER);
-    builder.define("encode-type", TokenType.IDENTIFIER);
+    builder.define("encoding-type", TokenType.IDENTIFIER);
     builder.define("version", TokenType.NUMERIC, Optional.TRUE);
     return builder.build();
   }
@@ -86,7 +86,7 @@ public class ParseAvro implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     this.schemaId = ((Identifier) args.value("schema-id")).value();
-    this.type = ((Identifier) args.value("encode-type")).value();
+    this.type = ((Identifier) args.value("encoding-type")).value();
     if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
       throw new DirectiveParseException("Parsing AVRO can be either of type 'json' or 'binary'");
     }
