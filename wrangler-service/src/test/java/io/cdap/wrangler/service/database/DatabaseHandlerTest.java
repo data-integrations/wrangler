@@ -17,8 +17,6 @@
 package io.cdap.wrangler.service.database;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.cdap.wrangler.api.Row;
@@ -43,6 +41,7 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -82,12 +81,12 @@ public class DatabaseHandlerTest {
 
   @Test
   public void testReadingDriverConfiguration() throws Exception {
-    Multimap<String, DatabaseHandler.DriverInfo> drivers = ArrayListMultimap.create();
+    Map<String, DatabaseHandler.DriverInfo> drivers = new HashMap<>();
     int expectedDrivers = 12;
     try (InputStream is = DatabaseHandler.class.getClassLoader().getResourceAsStream("drivers.mapping")) {
       DatabaseHandler.loadDrivers(is, drivers);
       JsonArray values = new JsonArray();
-      Collection<Map.Entry<String, DatabaseHandler.DriverInfo>> entries = drivers.entries();
+      Collection<Map.Entry<String, DatabaseHandler.DriverInfo>> entries = drivers.entrySet();
       for (Map.Entry<String, DatabaseHandler.DriverInfo> driver : entries) {
         JsonObject object = new JsonObject();
         object.addProperty("class", driver.getKey());

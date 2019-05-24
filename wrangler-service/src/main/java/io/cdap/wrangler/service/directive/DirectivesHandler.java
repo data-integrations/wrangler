@@ -198,15 +198,15 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       String workspaceName = name == null || name.isEmpty() ? id : name;
 
       Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, id);
       properties.put(PropertyIds.NAME, workspaceName);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(new NamespacedId(ns, id), workspaceName)
+      NamespacedId workspaceId = new NamespacedId(ns, id);
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceName)
         .setScope(scope)
         .setProperties(properties)
         .build();
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        ws.writeWorkspaceMeta(workspaceId, workspaceMeta);
       });
       return new ServiceResponse<Void>(String.format("Successfully created workspace '%s'", id));
     });
@@ -400,7 +400,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         // adding data to the workspace.
         if (!ws.hasWorkspace(id)) {
-          ws.writeWorkspaceMeta(WorkspaceMeta.builder(id, name).build());
+          ws.writeWorkspaceMeta(id, WorkspaceMeta.builder(name).build());
         }
 
         RequestExtractor handler = new RequestExtractor(request);
@@ -455,7 +455,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
 
         // Write properties for workspace.
         Map<String, String> properties = new HashMap<>();
-        properties.put(PropertyIds.ID, id.getId());
         properties.put(PropertyIds.NAME, name);
         properties.put(PropertyIds.DELIMITER, delimiter);
         properties.put(PropertyIds.CHARSET, charset);
@@ -575,6 +574,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      composite.reload(namespace);
       try {
         RequestExtractor handler = new RequestExtractor(request);
         Request directiveRequest = handler.getContent("UTF-8", Request.class);
@@ -700,6 +700,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       try {
+        composite.reload(namespace);
         RequestExtractor handler = new RequestExtractor(request);
         Request directiveRequest = handler.getContent("UTF-8", Request.class);
         if (directiveRequest == null) {
@@ -781,6 +782,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      composite.reload(namespace);
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
       if (user == null) {
@@ -865,6 +867,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void usage(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
       DirectiveConfig config = TransactionRunners.run(getContext(), context -> {
         ConfigStore store = ConfigStore.get(context);

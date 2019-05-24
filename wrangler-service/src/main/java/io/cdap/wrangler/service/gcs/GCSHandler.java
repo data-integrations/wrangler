@@ -34,7 +34,6 @@ import io.cdap.wrangler.BytesDecoder;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
-import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
@@ -268,7 +267,6 @@ public class GCSHandler extends AbstractWranglerHandler {
       }
 
       String blobName = blob.getName();
-      String id = ServiceUtils.generateMD5(String.format("%s:%s", scope, blobName));
       File file = new File(blobName);
 
       // Set all properties and write to workspace.
@@ -279,8 +277,7 @@ public class GCSHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId);
       properties.put("bucket", bucket);
-      NamespacedId namespacedId = new NamespacedId(ns, id);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedId, file.getName())
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(file.getName())
         .setScope(scope)
         .setProperties(properties)
         .build();
@@ -288,9 +285,9 @@ public class GCSHandler extends AbstractWranglerHandler {
         throw new BadRequestException(String.format("Path '%s' is not a file.", blob.getName()));
       }
 
-      TransactionRunners.run(getContext(), context -> {
+      String sampleId = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
         boolean shouldTruncate = blob.getSize() > FILE_SIZE;
         byte[] bytes = readGCSFile(blob, (int) (shouldTruncate ? FILE_SIZE : blob.getSize()));
@@ -317,23 +314,24 @@ public class GCSHandler extends AbstractWranglerHandler {
 
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
           byte[] records = serDe.toByteArray(rows);
-          ws.updateWorkspaceData(namespacedId, DataType.RECORDS, records);
+          ws.updateWorkspaceData(workspaceId, DataType.RECORDS, records);
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/json")) {
-          ws.updateWorkspaceData(namespacedId, DataType.TEXT, bytes);
+          ws.updateWorkspaceData(workspaceId, DataType.TEXT, bytes);
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/xml")) {
-          ws.updateWorkspaceData(namespacedId, DataType.TEXT, bytes);
+          ws.updateWorkspaceData(workspaceId, DataType.TEXT, bytes);
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         } else {
-          ws.updateWorkspaceData(namespacedId, DataType.BINARY, bytes);
+          ws.updateWorkspaceData(workspaceId, DataType.BINARY, bytes);
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         }
+        return workspaceId.getId();
       });
 
       // Preparing return response to include mandatory fields : id and name.
       GCSConnectionSample connectionSample =
-        new GCSConnectionSample(id, file.getName(), ConnectionType.GCS.getType(), SamplingMethod.NONE.getMethod(),
+        new GCSConnectionSample(sampleId, file.getName(), ConnectionType.GCS.getType(), SamplingMethod.NONE.getMethod(),
                                 connectionId, String.format("gs://%s/%s", bucket, blobPath), blobPath, blobName,
                                 bucket);
 
