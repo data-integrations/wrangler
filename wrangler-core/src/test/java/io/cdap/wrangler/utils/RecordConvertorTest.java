@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.utils;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
@@ -266,6 +267,41 @@ public class RecordConvertorTest {
       .setDate("date", LocalDate.of(2018, 11, 11))
       .setTime("time", null)
       .setTimestamp("timestamp", ZonedDateTime.of(2018, 11 , 11 , 11, 11, 11, 0, ZoneId.of("UTC"))).build();
+
+    RecordConvertor rc = new RecordConvertor();
+    StructuredRecord actual = rc.decodeRecord(testRow, schema);
+
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testArray() throws Exception {
+    Row testRow = new Row();
+    testRow.add("id", 1);
+    testRow.add("name", "abc");
+    testRow.add("date", LocalDate.of(2018, 11, 11));
+    testRow.add("time", null);
+    testRow.add("timestamp", ZonedDateTime.of(2018, 11, 11, 11, 11, 11, 0, ZoneId.of("UTC")));
+    testRow.add("array", ImmutableList.of(1, 2, 3));
+
+    Schema schema = Schema.recordOf("expectedRecord",
+                                    Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+                                    Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+                                    Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.LogicalType.DATE))),
+                                    Schema.Field.of("time", Schema.nullableOf(
+                                      Schema.of(Schema.LogicalType.TIME_MICROS))),
+                                    Schema.Field.of("timestamp", Schema.nullableOf(
+                                      Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))),
+                                    Schema.Field.of("array", Schema.nullableOf(
+                                      Schema.arrayOf(Schema.nullableOf(Schema.of(Schema.Type.INT))))));
+
+    StructuredRecord expected = StructuredRecord.builder(schema)
+      .set("id", 1)
+      .set("name", "abc")
+      .setDate("date", LocalDate.of(2018, 11, 11))
+      .setTime("time", null)
+      .setTimestamp("timestamp", ZonedDateTime.of(2018, 11, 11, 11, 11, 11, 0, ZoneId.of("UTC")))
+      .set("array", ImmutableList.of(1, 2, 3)).build();
 
     RecordConvertor rc = new RecordConvertor();
     StructuredRecord actual = rc.decodeRecord(testRow, schema);

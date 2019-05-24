@@ -97,15 +97,15 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
 
     String scope1 = "scope1";
     String scope2 = "scope2";
-    WorkspaceMeta meta1 = WorkspaceMeta.builder(new NamespacedId(namespace, id1.getId()), id1.getName())
+    WorkspaceMeta meta1 = WorkspaceMeta.builder(id1.getName())
       .setScope(scope1)
       .build();
-    WorkspaceMeta meta2 = WorkspaceMeta.builder(new NamespacedId(namespace, id2.getId()), id2.getName())
+    WorkspaceMeta meta2 = WorkspaceMeta.builder(id2.getName())
       .setScope(scope2)
       .build();
 
-    run(ws -> ws.writeWorkspaceMeta(meta1));
-    run(ws -> ws.writeWorkspaceMeta(meta2));
+    run(ws -> ws.writeWorkspaceMeta(new NamespacedId(namespace, id1.getId()), meta1));
+    run(ws -> ws.writeWorkspaceMeta(new NamespacedId(namespace, id2.getId()), meta2));
 
     Assert.assertEquals(Collections.singletonList(id1), call(ws -> ws.listWorkspaces(namespace, scope1)));
     Assert.assertEquals(Collections.singletonList(id2), call(ws -> ws.listWorkspaces(namespace, scope2)));
@@ -122,20 +122,20 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
 
   @Test
   public void testNamespaceIsolation() {
-    NamespacedId id1 = new NamespacedId(new Namespace("n1", 10L), "id1");
-    NamespacedId id2 = new NamespacedId(new Namespace("n2", 10L), "id2");
+    Namespace ns1 = new Namespace("n1", 10L);
+    Namespace ns2 = new Namespace("n2", 10L);
 
     // test writes in different namespaces don't conflict with each other
-    WorkspaceMeta meta1 = WorkspaceMeta.builder(id1, "name1")
+    WorkspaceMeta meta1 = WorkspaceMeta.builder("name1")
       .setType(DataType.BINARY)
       .setProperties(Collections.singletonMap("k1", "v1"))
       .build();
-    run(ws -> ws.writeWorkspaceMeta(meta1));
-    WorkspaceMeta meta2 = WorkspaceMeta.builder(id2, "name2")
+    NamespacedId id1 = call(ws -> ws.createWorkspace(ns1, meta1));
+    WorkspaceMeta meta2 = WorkspaceMeta.builder("name2")
       .setType(DataType.BINARY)
       .setProperties(Collections.singletonMap("k2", "v2"))
       .build();
-    run(ws -> ws.writeWorkspaceMeta(meta2));
+    NamespacedId id2 = call(ws -> ws.createWorkspace(ns2, meta2));
 
     Workspace actual1 = call(ws -> ws.getWorkspace(id1));
     Workspace expected1 = Workspace.builder(id1, meta1.getName())
@@ -177,13 +177,12 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
     Namespace nsGen1 = new Namespace("ns1", 1L);
     Namespace nsGen2 = new Namespace("ns1", 2L);
 
-    NamespacedId id1 = new NamespacedId(nsGen1, "id0");
     // test creation in different namespaces
-    WorkspaceMeta meta1 = WorkspaceMeta.builder(id1, "name1")
+    WorkspaceMeta meta1 = WorkspaceMeta.builder("name1")
       .setType(DataType.BINARY)
       .setProperties(Collections.singletonMap("k1", "v1"))
       .build();
-    run(ws -> ws.writeWorkspaceMeta(meta1));
+    NamespacedId id1 = call(ws -> ws.createWorkspace(nsGen1, meta1));
 
     // test that fetching with a different generation doesn't include the connection
     try {
@@ -199,18 +198,17 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
 
   @Test
   public void testCRUD() {
-    NamespacedId id = new NamespacedId(new Namespace("c0", 10L), "id0");
-    Assert.assertTrue(call(ws -> ws.listWorkspaces(id.getNamespace(), "default").isEmpty()));
-    Assert.assertFalse(call(ws -> ws.hasWorkspace(id)));
-    WorkspaceIdentifier workspaceId = new WorkspaceIdentifier(id.getId(), "name");
+    Namespace ns = new Namespace("c0", 10L);
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(ns, "default").isEmpty()));
 
     // test write and get
-    WorkspaceMeta meta1 = WorkspaceMeta.builder(id, workspaceId.getName())
+    WorkspaceMeta meta1 = WorkspaceMeta.builder("name")
       .setScope("default")
       .setType(DataType.BINARY)
       .setProperties(Collections.singletonMap("k1", "v1"))
       .build();
-    run(ws -> ws.writeWorkspaceMeta(meta1));
+    NamespacedId id = call(ws -> ws.createWorkspace(ns, meta1));
+    WorkspaceIdentifier workspaceId = new WorkspaceIdentifier(id.getId(), meta1.getName());
 
     Workspace actual = call(ws -> ws.getWorkspace(id));
     Workspace expected = Workspace.builder(id, meta1.getName())
@@ -221,8 +219,7 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
       .setProperties(meta1.getProperties())
       .build();
     Assert.assertEquals(expected, actual);
-    Assert.assertEquals(Collections.singletonList(workspaceId),
-                        call(ws -> ws.listWorkspaces(id.getNamespace(), "default")));
+    Assert.assertEquals(Collections.singletonList(workspaceId), call(ws -> ws.listWorkspaces(ns, "default")));
 
     // test updating properties
     Map<String, String> properties = Collections.singletonMap("k2", "v2");
@@ -259,11 +256,11 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
     Assert.assertEquals(expected, actual);
 
     // test updating meta
-    WorkspaceMeta meta2 = WorkspaceMeta.builder(id, meta1.getName())
+    WorkspaceMeta meta2 = WorkspaceMeta.builder(meta1.getName())
       .setType(DataType.TEXT)
       .setProperties(Collections.singletonMap("k3", "v3"))
       .build();
-    run(ws -> ws.writeWorkspaceMeta(meta2));
+    run(ws -> ws.writeWorkspaceMeta(id, meta2));
     actual = call(ws -> ws.getWorkspace(id));
     expected = Workspace.builder(expected)
       .setUpdated(actual.getUpdated())
@@ -271,12 +268,11 @@ public class WorkspaceDatasetTest extends SystemAppTestBase {
       .setType(meta2.getType())
       .build();
     Assert.assertEquals(expected, actual);
-    Assert.assertEquals(Collections.singletonList(workspaceId),
-                        call(ws -> ws.listWorkspaces(id.getNamespace(), "default")));
+    Assert.assertEquals(Collections.singletonList(workspaceId), call(ws -> ws.listWorkspaces(ns, "default")));
 
     // delete workspace
     run(ws -> ws.deleteWorkspace(id));
-    Assert.assertTrue(call(ws -> ws.listWorkspaces(id.getNamespace(), "default").isEmpty()));
+    Assert.assertTrue(call(ws -> ws.listWorkspaces(ns, "default").isEmpty()));
     try {
       call(ws -> ws.getWorkspace(id));
       Assert.fail("Workspace was not deleted.");
