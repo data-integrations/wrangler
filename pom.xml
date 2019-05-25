@@ -114,6 +114,7 @@
     <natty.version>0.13</natty.version>
     <netty-http.version>1.2.0</netty-http.version>
     <netty.version>4.1.16.Final</netty.version>
+    <javax.ws.rs-api.version>2.0</javax.ws.rs-api.version>
     <poi.version>3.16</poi.version>
     <protobuf.version>3.4.0</protobuf.version>
     <reflections.version>0.9.9</reflections.version>
