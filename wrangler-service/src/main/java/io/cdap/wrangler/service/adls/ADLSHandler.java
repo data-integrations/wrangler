@@ -294,7 +294,6 @@ public class ADLSHandler extends AbstractWranglerHandler {
       String identifier = ServiceUtils.generateMD5(file);
       // Set all properties and write to workspace.
       Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.ID, identifier);
       properties.put(PropertyIds.FILE_PATH, fileEntry.fullName);
       properties.put(PropertyIds.NAME, name);
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.ADLS.getType());
@@ -302,13 +301,13 @@ public class ADLSHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.CONNECTION_ID, connectionId.getId());
 
       NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedWorkspaceId, fileName)
+      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
               .setScope(scope)
               .setProperties(properties)
               .build();
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        ws.writeWorkspaceMeta(workspaceMeta);
+        ws.writeWorkspaceMeta(namespacedWorkspaceId, workspaceMeta);
 
         // Iterate through lines to extract only 'limit' random lines.
         // Depending on the type, the sampling of the input is performed.
@@ -357,7 +356,6 @@ public class ADLSHandler extends AbstractWranglerHandler {
 
     // Set all properties and write to workspace.
     Map<String, String> properties = new HashMap<>();
-    properties.put(PropertyIds.ID, identifier);
     properties.put(PropertyIds.NAME, name);
     properties.put(PropertyIds.FILE_PATH, fileEntry.fullName);
     properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.ADLS.getType());
@@ -368,13 +366,13 @@ public class ADLSHandler extends AbstractWranglerHandler {
     properties.put(PropertyIds.FORMAT, format.name());
 
     NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
-    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(namespacedWorkspaceId, fileName)
+    WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
             .setScope(scope)
             .setProperties(properties)
             .build();
     TransactionRunners.run(getContext(), context -> {
       WorkspaceDataset ws = WorkspaceDataset.get(context);
-      ws.writeWorkspaceMeta(workspaceMeta);
+      ws.writeWorkspaceMeta(namespacedWorkspaceId, workspaceMeta);
       ws.updateWorkspaceData(namespacedWorkspaceId, getDataType(name), bytes);
     });
 
