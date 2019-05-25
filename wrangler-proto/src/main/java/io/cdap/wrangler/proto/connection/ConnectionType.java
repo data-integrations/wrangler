@@ -30,6 +30,7 @@ public enum ConnectionType {
   TABLE("table"),
   S3("s3"),
   GCS("gcs"),
+  ADLS("adls"),
   BIGQUERY("bigquery"),
   KAFKA("kafka"),
   SPANNER("spanner");
