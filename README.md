@@ -57,9 +57,9 @@ Videos and Screencasts are best way to learn, so we have compiled simple, short 
 
 ### Recipes
 
-  * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
-  * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)
-  * [Parsing HL7 CCDA XML Files](demos/parsing-hl7-ccda-xml-files.md)
+  * [Parsing Apache Log Files](wrangler-demos/parsing-apache-log-files.md)
+  * [Parsing CSV Files and Extracting Column Values](wrangler-demos/parsing-csv-extracting-column-values.md)
+  * [Parsing HL7 CCDA XML Files](wrangler-demos/parsing-hl7-ccda-xml-files.md)
 
 ## Available Directives
 
