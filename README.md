@@ -4,8 +4,8 @@
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
 [![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/11434/badge.svg)](https://scan.coverity.com/projects/hydrator-wrangler-transform)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/co.cask.wrangler/wrangler-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/co.cask.wrangler/wrangler-core)
-[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/co.cask.wrangler/wrangler-core/badge.svg)](http://www.javadoc.io/doc/co.cask.wrangler/wrangler-core)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core)
+[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/io.cdap.wrangler/wrangler-core/badge.svg)](http://www.javadoc.io/doc/io.cdap.wrangler/wrangler-core)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](https://cdap-users.herokuapp.com?t=1)
 
@@ -25,7 +25,7 @@ More [here](wrangler-docs/upcoming-features.md) on upcoming features.
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
     * Migrating directives from version 1.0 to version 2.0 [here](wrangler-docs/directive-migration.md)
     * Information about Grammar [here](wrangler-docs/grammar/grammar-info.md)
-    * Various `TokenType` supported by system [here](../api/src/main/java/co/cask/wrangler/api/parser/TokenType.java)
+    * Various `TokenType` supported by system [here](../api/src/main/java/io/cdap/wrangler/api/parser/TokenType.java)
     * Custom Directive Implementation Internals [here](wrangler-docs/udd-internal.md)
 
   * A new capability that allows CDAP Administrators to **restrict the directives** that are accessible to their users.
@@ -57,9 +57,9 @@ Videos and Screencasts are best way to learn, so we have compiled simple, short 
 
 ### Recipes
 
-  * [Parsing Apache Log Files](demos/parsing-apache-log-files.md)
-  * [Parsing CSV Files and Extracting Column Values](demos/parsing-csv-extracting-column-values.md)
-  * [Parsing HL7 CCDA XML Files](demos/parsing-hl7-ccda-xml-files.md)
+  * [Parsing Apache Log Files](wrangler-demos/parsing-apache-log-files.md)
+  * [Parsing CSV Files and Extracting Column Values](wrangler-demos/parsing-csv-extracting-column-values.md)
+  * [Parsing HL7 CCDA XML Files](wrangler-demos/parsing-hl7-ccda-xml-files.md)
 
 ## Available Directives
 
@@ -194,7 +194,7 @@ CDAP Users on Slack: [cdap-users team](https://cdap-users.herokuapp.com)
 
 ## License and Trademarks
 
-Copyright © 2016-2017 Cask Data, Inc.
+Copyright © 2016-2019 Cask Data, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at

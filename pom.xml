@@ -17,9 +17,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>co.cask.wrangler</groupId>
+  <groupId>io.cdap.wrangler</groupId>
   <artifactId>wrangler</artifactId>
-  <version>4.0.1-SNAPSHOT</version>
+  <version>4.1.0-SNAPSHOT</version>
   <name>Wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
@@ -46,17 +46,17 @@
 
   <developers>
     <developer>
-      <name>Cask Data</name>
-      <email>cask-dev@googlegroups.com</email>
-      <organization>Cask Data, Inc.</organization>
-      <organizationUrl>http://cask.co</organizationUrl>
+      <name>CDAP</name>
+      <email>cdap-dev@googlegroups.com</email>
+      <organization>CDAP</organization>
+      <organizationUrl>http://cdap.io</organizationUrl>
     </developer>
   </developers>
 
   <scm>
-    <connection>scm:git:https://github.com/hydrator/wrangler.git</connection>
-    <developerConnection>scm:git:git@github.com:hydrator/wrangler.git</developerConnection>
-    <url>https://github.com/hydrator/wrangler.git</url>
+    <connection>scm:git:https://github.com/data-integrations/wrangler.git</connection>
+    <developerConnection>scm:git:git@github.com:data-integrations/wrangler.git</developerConnection>
+    <url>https://github.com/data-integrations/wrangler.git</url>
     <tag>HEAD</tag>
   </scm>
 
@@ -69,10 +69,6 @@
       <id>sonatype.snapshots</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
-    <site>
-      <id>cask</id>
-      <url>http://cask.co</url>
-    </site>
   </distributionManagement>
 
   <issueManagement>
@@ -87,7 +83,7 @@
     <aws.sdk.version>1.11.133</aws.sdk.version>
     <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
     <bouncycastle.version>1.56</bouncycastle.version>
-    <cdap.version>6.0.0-SNAPSHOT</cdap.version>
+    <cdap.version>6.1.0-SNAPSHOT</cdap.version>
     <chlorine.version>1.1.5</chlorine.version>
     <commons.validator.version>1.6</commons.validator.version>
     <commons-io.version>2.5</commons-io.version>
@@ -97,11 +93,11 @@
     <commons-lang3.version>3.5</commons-lang3.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <geogson.version>1.1.97</geogson.version>
-    <google.cloud.bigquery.version>0.32.0-beta</google.cloud.bigquery.version>
+    <google.cloud.bigquery.version>1.36.0</google.cloud.bigquery.version>
     <google.cloud.core.version>1.15.0</google.cloud.core.version>
     <google.findbugs.version>2.0.1</google.findbugs.version>
     <google.http.client.version>1.22.0</google.http.client.version>
-    <google.storage.version>1.7.0</google.storage.version>
+    <google.storage.version>1.23.0</google.storage.version>
     <gson.version>2.6.2</gson.version>
     <guava.retrying.version>2.0.0</guava.retrying.version>
     <guava.version>20.0</guava.version>
@@ -170,7 +166,7 @@
               <Embed-Transitive>true</Embed-Transitive>
               <Embed-Directory>lib</Embed-Directory>
               <!--Only @Plugin classes in the export packages will be included as plugin-->
-              <_exportcontents>co.cask.wrangler.*</_exportcontents>
+              <_exportcontents>io.cdap.wrangler.*</_exportcontents>
             </instructions>
           </configuration>
           <executions>
@@ -243,9 +239,9 @@
                   not by some central class that somehow understands all directives.
                  -->
                 <excludes>
-                  **/co/cask/functions/**,
+                  **/io/cdap/functions/**,
                   **/com/example/tutorial/**,
-                  **/co/cask/wrangler/parser/MigrateToV2.java
+                  **/io/cdap/wrangler/parser/MigrateToV2.java
                 </excludes>
               </configuration>
               <goals>
@@ -328,7 +324,7 @@
               </links>
               <doctitle>${project.name} ${project.version}</doctitle>
               <bottom>
-                <![CDATA[Copyright &#169; {currentYear} <a href="http://cask.co" target="_blank">Cask Data, Inc.</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
+                <![CDATA[Copyright &#169; {currentYear} <a href="http://cdap.io" target="_blank">CDAP</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
               </bottom>
             </configuration>
             <executions>
@@ -381,7 +377,6 @@
             <configuration>
               <nexusUrl>https://oss.sonatype.org</nexusUrl>
               <serverId>sonatype.release</serverId>
-              <stagingProfileId>655dc88dc770c3</stagingProfileId>
             </configuration>
           </plugin>
         </plugins>

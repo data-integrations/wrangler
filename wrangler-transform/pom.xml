@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>wrangler</artifactId>
-    <groupId>co.cask.wrangler</groupId>
-    <version>4.0.0-SNAPSHOT</version>
+    <groupId>io.cdap.wrangler</groupId>
+    <version>4.1.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -19,18 +19,18 @@
 
   <dependencies>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
+      <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
@@ -51,13 +51,13 @@
       <version>${slf4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>hydrator-test</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-unit-test</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
@@ -67,7 +67,7 @@
           <artifactId>hive-exec</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>co.cask.cdap</groupId>
+          <groupId>io.cdap.cdap</groupId>
           <artifactId>cdap-explore-jdbc</artifactId>
         </exclusion>
       </exclusions>
@@ -92,7 +92,7 @@
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Directory>lib</Embed-Directory>
             <!--Only @Plugin classes in the export packages will be included as plugin-->
-            <_exportcontents>co.cask.wrangler.*</_exportcontents>
+            <_exportcontents>io.cdap.wrangler.*</_exportcontents>
           </instructions>
         </configuration>
         <executions>
@@ -105,14 +105,14 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>co.cask</groupId>
+        <groupId>io.cdap</groupId>
         <artifactId>cdap-maven-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>1.1.0</version>
         <configuration>
           <cdapArtifacts>
-            <parent>system:cdap-data-pipeline[5.0.0,7.0.0-SNAPSHOT)</parent>
-            <parent>system:cdap-data-streams[5.0.0,7.0.0-SNAPSHOT)</parent>
-            <parent>system:mmds-app[1.0.0-SNAPSHOT,2.0.0-SNAPSHOT)</parent>
+            <parent>system:cdap-data-pipeline[6.0.0,7.0.0-SNAPSHOT)</parent>
+            <parent>system:cdap-data-streams[6.0.0,7.0.0-SNAPSHOT)</parent>
+            <parent>system:mmds-app[1.2.0,2.0.0-SNAPSHOT)</parent>
           </cdapArtifacts>
         </configuration>
         <executions>
@@ -164,7 +164,7 @@
               </links>
               <doctitle>${project.name} ${project.version}</doctitle>
               <bottom>
-                <![CDATA[Copyright &#169; {currentYear} <a href="http://cask.co" target="_blank">Cask Data, Inc.</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
+                <![CDATA[Copyright &#169; {currentYear} <a href="http://cdap.io" target="_blank">CCDAP</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
               </bottom>
             </configuration>
             <executions>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright © 2017-2018 Cask Data, Inc.
+  Copyright © 2017-2019 Cask Data, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not
   use this file except in compliance with the License. You may obtain a copy of
@@ -17,8 +17,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>wrangler</artifactId>
-    <groupId>co.cask.wrangler</groupId>
-    <version>4.0.0-SNAPSHOT</version>
+    <groupId>io.cdap.wrangler</groupId>
+    <version>4.1.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -26,7 +26,7 @@
   <name>Wrangler Service</name>
 
   <properties>
-    <app.main.class>co.cask.wrangler.DataPrep</app.main.class>
+    <app.main.class>io.cdap.wrangler.DataPrep</app.main.class>
     <tika.version>1.14</tika.version>
     <hadoop.version>2.3.0</hadoop.version>
     <google.cloud.spanner.version>0.53.0-beta</google.cloud.spanner.version>
@@ -34,42 +34,47 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>azure-data-lake-store-sdk</artifactId>
+      <version>2.3.3</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
+      <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
+      <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
+      <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-proto</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.wrangler</groupId>
+      <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-storage</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-api</artifactId>
       <version>${cdap.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-core</artifactId>
       <version>${cdap.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-system-app-api</artifactId>
       <version>${cdap.version}</version>
     </dependency>
@@ -86,7 +91,7 @@
     <dependency>
       <groupId>org.eclipse.jetty.orbit</groupId>
       <artifactId>javax.mail.glassfish</artifactId>
-      <version>RELEASE</version>
+      <version>1.4.1.v201005082020</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
@@ -184,13 +189,13 @@
       <version>${commons-lang3.version}</version>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>hydrator-test</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>co.cask.cdap</groupId>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-unit-test</artifactId>
       <version>${cdap.version}</version>
       <scope>test</scope>
@@ -200,7 +205,7 @@
           <artifactId>hive-exec</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>co.cask.cdap</groupId>
+          <groupId>io.cdap.cdap</groupId>
           <artifactId>cdap-explore-jdbc</artifactId>
         </exclusion>
       </exclusions>
@@ -209,6 +214,12 @@
       <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
       <version>${hsql.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.http</groupId>
+      <artifactId>netty-http</artifactId>
+      <version>${netty-http.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -232,7 +243,7 @@
               <Embed-Transitive>true</Embed-Transitive>
               <Embed-Directory>lib</Embed-Directory>
               <!-- So that user plugins can depend on Directive.java and other classes, for user-defined directives -->
-              <_exportcontents>co.cask.wrangler.api.*</_exportcontents>
+              <_exportcontents>io.cdap.wrangler.api.*</_exportcontents>
             </instructions>
           </configuration>
           <executions>
