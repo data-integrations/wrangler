@@ -51,7 +51,7 @@
       "properties" : [
         {
           "name": "on-error",
-          "label": "On Record Error",
+          "label": "On Error",
           "widget-type": "radio-group",
           "widget-attributes": {
             "layout": "block",

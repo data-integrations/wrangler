@@ -440,7 +440,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         // the record is automatically omitted.
         emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
         return;
-      } else if (config.onError.equalsIgnoreCase("fail-pipeline")) {
+      }
+      if (config.onError.equalsIgnoreCase("fail-pipeline")) {
         emitter.emitAlert(ImmutableMap.of(
           "stage", getContext().getStageName(),
           "code", String.valueOf(1),
