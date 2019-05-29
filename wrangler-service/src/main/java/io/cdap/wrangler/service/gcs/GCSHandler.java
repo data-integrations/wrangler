@@ -288,7 +288,6 @@ public class GCSHandler extends AbstractWranglerHandler {
       String sampleId = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
-
         boolean shouldTruncate = blob.getSize() > FILE_SIZE;
         byte[] bytes = readGCSFile(blob, (int) (shouldTruncate ? FILE_SIZE : blob.getSize()));
 
