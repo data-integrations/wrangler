@@ -41,6 +41,7 @@ import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.NamespacedId;
+import io.cdap.wrangler.proto.NotFoundException;
 import io.cdap.wrangler.proto.PluginSpec;
 import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.StatusCodeException;
@@ -70,7 +71,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -170,7 +170,7 @@ public class ADLSHandler extends AbstractWranglerHandler {
   private List<ADLSDirectoryEntryInfo> initClientReturnResponse(ADLStoreClient client, String path)
           throws IOException {
     if (!client.checkExists(path)) {
-      throw new NotFoundException("Given path doesn't exist");
+      throw new NotFoundException(String.format("Given path doesn't exist: %s", path));
     }
     List<DirectoryEntry> list = client.enumerateDirectory(path);
     ADLSDirectoryEntryInfo info;
@@ -269,13 +269,11 @@ public class ADLSHandler extends AbstractWranglerHandler {
   private InputStream clientInputStream(ADLStoreClient client, FileQueryDetails fileQueryDetails)
           throws IOException {
     DirectoryEntry file = client.getDirectoryEntry(fileQueryDetails.getFilePath());
-    InputStream inputStream = client.getReadStream(file.fullName);
-    return inputStream;
+    return client.getReadStream(file.fullName);
   }
 
   private DirectoryEntry getFileFromClient(ADLStoreClient client, String path) throws IOException {
-    DirectoryEntry file = client.getDirectoryEntry(path);
-    return file;
+    return client.getDirectoryEntry(path);
   }
 
   private ADLSConnectionSample loadSamplableFile(NamespacedId connectionId,
@@ -377,7 +375,7 @@ public class ADLSHandler extends AbstractWranglerHandler {
     });
 
     return new ADLSConnectionSample(namespacedWorkspaceId.getId(), name, ConnectionType.ADLS.getType(),
-            SamplingMethod.NONE.getMethod(), connectionId.getId());
+                                    SamplingMethod.NONE.getMethod(), connectionId.getId());
   }
 
   /**
