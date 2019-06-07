@@ -345,9 +345,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
         recipe.initialize(dContext);
       } else {
-        // this is normal in cloud environments
-        LOG.info(String.format("Stage:%s - The Dataprep service is not accessible in this environment. "
-                                 + "No aliasing and restriction will be applied.", getContext().getStageName()));
+        // this is normal in cloud environments and almost nothing uses directive aliasing/restrictions
         recipe.initialize(null);
       }
     } catch (IOException | URISyntaxException e) {
