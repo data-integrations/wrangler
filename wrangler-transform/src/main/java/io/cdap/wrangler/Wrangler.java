@@ -55,6 +55,7 @@ import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.RecipeCompiler;
+import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
@@ -518,9 +519,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    *
    * @param method to be invoked.
    * @return fully formed url to the method.
-     */
+   */
   private URL getDPServiceURL(String method) throws URISyntaxException, MalformedURLException {
-    URL url = getContext().getServiceURL(APPLICATION_NAME, SERVICE_NAME);
+    URL url = getContext().getServiceURL(Contexts.SYSTEM, APPLICATION_NAME, SERVICE_NAME);
     if (url == null) {
       return null;
     }
