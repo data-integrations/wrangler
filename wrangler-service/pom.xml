@@ -29,7 +29,7 @@
     <app.main.class>io.cdap.wrangler.DataPrep</app.main.class>
     <tika.version>1.14</tika.version>
     <hadoop.version>2.3.0</hadoop.version>
-    <google.cloud.spanner.version>0.53.0-beta</google.cloud.spanner.version>
+    <google.cloud.spanner.version>1.20.0</google.cloud.spanner.version>
   </properties>
 
   <dependencies>
@@ -82,6 +82,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
       <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>${javax.ws.rs-api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.orbit</groupId>
