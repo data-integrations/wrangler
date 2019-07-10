@@ -50,7 +50,7 @@ There is one simple interface for developing your customized directive. The simp
 
 ### Simple API
 
-Building a UDD with the simpler UDD API involves nothing more than writing a class with three function (evaluate) and few annotations. Here is an example:
+Building a UDD with the simpler UDD API involves nothing more than writing a class with four function (evaluate) and few annotations. Here is an example:
 
 ```
 @Plugin(type = UDD.Type)
