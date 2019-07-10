@@ -13,7 +13,7 @@ Developing CDAP DataPrep UDDs by no means rocket science, and is an effective wa
 **U**ser **D**efined **D**irective (UDD) or Custom Directives are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives
 within the data preparation tool.
 
-Building a custom directive involves implementing three simple methods :
+Building a custom directive involves implementing four simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
   * **I** -- `initialize()` -- Invoked by the framework to initialize the custom directive with arguments parsed. 
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
