@@ -17,7 +17,7 @@ Building a custom directive involves implementing four simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
   * **I** -- `initialize()` -- Invoked by the framework to initialize the custom directive with arguments parsed. 
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
-  * **D** -- `destory()` -- Invoke by the framework to destroy any resources held by the directive. 
+  * **D** -- `destroy()` -- Invoke by the framework to destroy any resources held by the directive. 
   
 ## Steps to Build a directive
 
