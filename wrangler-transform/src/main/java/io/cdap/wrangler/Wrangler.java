@@ -194,9 +194,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
             }
           }
         }
-      } catch (CompileException e) {
-        throw new IllegalArgumentException(e.getMessage(), e);
-      } catch (DirectiveParseException e) {
+      } catch (CompileException | DirectiveParseException e) {
         throw new IllegalArgumentException(e.getMessage(), e);
       }
 

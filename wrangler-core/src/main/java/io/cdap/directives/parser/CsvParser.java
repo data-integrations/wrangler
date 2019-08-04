@@ -35,10 +35,12 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.dq.DataType;
 import io.cdap.wrangler.dq.TypeInference;
+import io.cdap.wrangler.i18n.Messages;
+import io.cdap.wrangler.i18n.MessagesFactory;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,6 +56,8 @@ import java.util.Set;
 @Categories(categories = { "parser", "csv"})
 @Description("Parses a column as CSV (comma-separated values).")
 public class CsvParser implements Directive {
+  private static final String NAME = "parse-as-csv";
+  private static final Messages MSG = MessagesFactory.getMessages();
   private ColumnName columnArg;
   private Text delimiterArg;
   private Bool headerArg;
@@ -90,7 +94,7 @@ public class CsvParser implements Directive {
       if (delimiterArg.value().startsWith("\\")) {
         String unescapedStr = StringEscapeUtils.unescapeJava(delimiterArg.value());
         if (unescapedStr == null) {
-          throw new DirectiveParseException("Invalid delimiter for CSV Parser: " + delimiterArg.value());
+          throw new DirectiveParseException(MSG.get("invalid.delimiter", NAME, delimiterArg.value()));
         }
         delimiter = unescapedStr.charAt(0);
       }

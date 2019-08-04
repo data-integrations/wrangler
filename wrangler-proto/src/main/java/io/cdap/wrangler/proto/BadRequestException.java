@@ -22,13 +22,24 @@ import java.net.HttpURLConnection;
  * Thrown if user provided input is invalid.
  */
 public class BadRequestException extends StatusCodeException {
+  private final String errorCode;
 
   public BadRequestException(String message) {
     super(message, HttpURLConnection.HTTP_BAD_REQUEST);
+    this.errorCode = null;
   }
 
   public BadRequestException(String message, Throwable cause) {
     super(message, cause, HttpURLConnection.HTTP_BAD_REQUEST);
+    this.errorCode = null;
   }
 
+  public BadRequestException(String message, String errorCode) {
+    super(message, HttpURLConnection.HTTP_BAD_REQUEST);
+    this.errorCode = errorCode;
+  }
+
+  public String getErrorCode() {
+    return errorCode;
+  }
 }

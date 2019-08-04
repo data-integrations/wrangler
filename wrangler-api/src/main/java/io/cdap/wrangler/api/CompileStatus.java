@@ -23,8 +23,8 @@ import java.util.Iterator;
 
 /**
  * This class <code>CompileStatus</code> contains the status of compilation.
- * If there are errors - syntax or semnatic it records the details of the errors
- * as iterator over <code>SyntaxError</code>. If the compilation is successfull,
+ * If there are errors - syntax or semantic it records the details of the errors
+ * as iterator over <code>SyntaxError</code>. If the compilation is successful,
  * it contains the <code>ExecutableObject</code>.
  */
 public final class CompileStatus {

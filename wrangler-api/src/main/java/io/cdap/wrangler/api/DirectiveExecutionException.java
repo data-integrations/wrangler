@@ -19,13 +19,21 @@ package io.cdap.wrangler.api;
 /**
  * A Executor specific exception used for communicating issues with execution of pipeline in that step.
  */
-public class DirectiveExecutionException extends Exception {
+public class DirectiveExecutionException extends Exception implements WranglerErrorCodeProvider {
+  private String errorCode;
+
   public DirectiveExecutionException(Exception e) {
     super(e);
   }
 
   public DirectiveExecutionException(String message) {
     super(message);
+    this.errorCode = ErrorCode.DIRECTIVE_EXECUTION_ERROR.getCode();
+  }
+
+  public DirectiveExecutionException(String message, String errorCode) {
+    super(message);
+    this.errorCode = errorCode;
   }
 
   public DirectiveExecutionException(String s, Throwable e) {
@@ -34,6 +42,11 @@ public class DirectiveExecutionException extends Exception {
 
   public DirectiveExecutionException(Throwable e) {
     super(e);
+  }
+
+  @Override
+  public String getErrorCode() {
+    return errorCode;
   }
 }
 

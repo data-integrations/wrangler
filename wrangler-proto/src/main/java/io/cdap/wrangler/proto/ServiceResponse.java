@@ -28,6 +28,7 @@ public class ServiceResponse<T> {
   private final String message;
   private final Integer count;
   private final Collection<T> values;
+  private final String errorCode;
   // TODO: (CDAP-14652) see if this is used by UI. It should be a boolean and not a string...
   private final String truncated;
 
@@ -36,6 +37,18 @@ public class ServiceResponse<T> {
     this.count = null;
     this.values = Collections.emptyList();
     this.truncated = null;
+    this.errorCode = null;
+  }
+
+  public ServiceResponse(String message, String errorCode) {
+    if (errorCode != null && !errorCode.isEmpty()) {
+      message = errorCode + " - " + message;
+    }
+    this.message = message;
+    this.count = null;
+    this.values = Collections.emptyList();
+    this.truncated = null;
+    this.errorCode = errorCode;
   }
 
   public ServiceResponse(T value) {
@@ -51,5 +64,6 @@ public class ServiceResponse<T> {
     this.count = values.size();
     this.values = values;
     this.truncated = Boolean.toString(truncated);
+    this.errorCode = null;
   }
 }

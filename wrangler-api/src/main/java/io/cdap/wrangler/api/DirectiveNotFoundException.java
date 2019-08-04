@@ -19,8 +19,16 @@ package io.cdap.wrangler.api;
 /**
  * Class description here.
  */
-public class DirectiveNotFoundException extends Exception {
+public class DirectiveNotFoundException extends Exception implements WranglerErrorCodeProvider {
+  private String errorCode;
+
   public DirectiveNotFoundException(String s) {
     super(s);
+    this.errorCode = ErrorCode.DIRECTIVE_LOAD_ERROR.getCode();
+  }
+
+  @Override
+  public String getErrorCode() {
+    return errorCode;
   }
 }

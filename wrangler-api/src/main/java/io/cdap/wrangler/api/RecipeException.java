@@ -21,6 +21,7 @@ package io.cdap.wrangler.api;
  * communicating issues with execution of pipeline.
  */
 public class RecipeException extends Exception {
+  private String errorCode;
   public RecipeException(Exception e) {
     super(e);
   }
@@ -29,8 +30,17 @@ public class RecipeException extends Exception {
     super(message);
   }
 
+  public RecipeException(String message, String errorCode) {
+    super(message);
+    this.errorCode = errorCode;
+  }
+
   public RecipeException(String message, Throwable throwable) {
     super(message, throwable);
+  }
+
+  public String getErrorCode() {
+    return errorCode;
   }
 }
 

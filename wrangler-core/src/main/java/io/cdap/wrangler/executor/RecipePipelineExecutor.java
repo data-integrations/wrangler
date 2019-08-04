@@ -64,7 +64,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     try {
       this.directives = parser.parse();
     } catch (DirectiveParseException e) {
-      throw new RecipeException(e.getMessage());
+      throw new RecipeException(e.getMessage(), e.getErrorCode());
     } catch (DirectiveNotFoundException | DirectiveLoadException e) {
       throw new RecipeException(e.getMessage(), e);
     }

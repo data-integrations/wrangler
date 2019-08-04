@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017-2019 Cask Data, Inc.
+ *  Copyright © 2019 Cask Data, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy of
@@ -17,23 +17,8 @@
 package io.cdap.wrangler.api;
 
 /**
- * Class description here.
+ * Wrangler Error code provider interface.
  */
-public class DirectiveLoadException extends Exception implements WranglerErrorCodeProvider {
-  private String errorCode;
-
-  public DirectiveLoadException(String s) {
-    super(s);
-    this.errorCode = ErrorCode.DIRECTIVE_LOAD_ERROR.getCode();
-  }
-
-  public DirectiveLoadException(String s, Exception e) {
-    super(s, e);
-    this.errorCode = ErrorCode.DIRECTIVE_LOAD_ERROR.getCode();
-  }
-
-  @Override
-  public String getErrorCode() {
-    return errorCode;
-  }
+public interface WranglerErrorCodeProvider {
+  String getErrorCode();
 }

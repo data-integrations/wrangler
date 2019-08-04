@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.dataset.connections;
 
+import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,5 +43,11 @@ public class ConnectionsDatasetTest {
     cipher.init(Cipher.DECRYPT_MODE, aesKey);
     String decrypted = new String(cipher.doFinal(encrypted));
     Assert.assertEquals(text, decrypted);
+  }
+
+  @Test
+  public void test() {
+    LocalDate date = new LocalDate();
+    System.out.println(date.toString("dd/MM/yyyy"));
   }
 }

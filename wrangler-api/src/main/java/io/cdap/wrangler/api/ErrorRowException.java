@@ -25,10 +25,12 @@ public class ErrorRowException extends Exception {
 
   // Code associated with the error message.
   private int code;
+  private String errorCode;
 
   public ErrorRowException(String message, int code) {
     this.message = message;
     this.code = code;
+    this.errorCode = ErrorCode.ERROR_ROW.getCode();
   }
 
   /**
@@ -43,5 +45,13 @@ public class ErrorRowException extends Exception {
    */
   public int getCode() {
     return code;
+  }
+
+  /**
+   *
+   * @return
+   */
+  public String getErrorCode() {
+    return errorCode;
   }
 }

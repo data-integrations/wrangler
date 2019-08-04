@@ -22,6 +22,7 @@ import io.cdap.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.dataset.connections.ConnectionNotFoundException;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.Workspace;
@@ -194,11 +195,19 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
     try {
       T results = callable.respond(new Namespace(namespaceSummary.getName(), namespaceSummary.getGeneration()));
       responder.sendJson(results);
+    } catch (BadRequestException e) {
+      responder.sendJson(e.getCode(), new ServiceResponse<>(e.getMessage(), e.getErrorCode()));
     } catch (StatusCodeException e) {
       responder.sendJson(e.getCode(), new ServiceResponse<>(e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
+      if (t instanceof RuntimeException) {
+        RecipeException e1 = (RecipeException) t.getCause();
+        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getCause().getMessage(),
+                                                                                            e1.getErrorCode()));
+        return;
+      }
       LOG.warn("Error processing {} {}, resulting in a 500 response.", request.getMethod(), request.getRequestURI(), t);
       responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getMessage()));
     }
