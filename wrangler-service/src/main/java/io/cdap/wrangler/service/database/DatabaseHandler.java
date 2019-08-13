@@ -609,6 +609,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * @param connection the connection to be connected to.
    * @return pair of connection and the driver cleanup.
    */
+  @SuppressWarnings("unchecked")
   private DriverCleanup loadAndExecute(Namespace namespace, ConnectionMeta connection,
                                        Executor executor, SystemHttpServiceContext context) throws Exception {
     DriverCleanup cleanup;
@@ -619,8 +620,13 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     NamespacedId key = new NamespacedId(namespace, name);
     ClassLoader classLoader = cache.get(key);
     try {
-      @SuppressWarnings("unchecked")
-      Class<? extends Driver> driverClass = (Class<? extends Driver>) classLoader.loadClass(classz);
+      Class<? extends Driver> driverClass;
+      try {
+        driverClass = (Class<? extends Driver>) classLoader.loadClass(classz);
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException(String.format("Driver class '%s' is not available in the uploaded jar. " +
+                                                   "Make sure the driver class is available in the jar.", classz));
+      }
       cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
       String namespaceName = namespace.getName();
 
