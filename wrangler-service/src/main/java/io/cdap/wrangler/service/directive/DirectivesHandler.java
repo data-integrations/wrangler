@@ -1111,6 +1111,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     });
   }
 
+  /**
+   * Collects every unique type of issue from all the given conformance exceptions.
+   * @param conformanceErrors The conformance exceptions that contain (potentially) duplicated
+   * issues that need to be collected.
+   * @return A conformance exception with a set of unique issues (uniqueness determined by
+   * ValidationIssue's hash), where each issue also contains a count and IDs of the rows that
+   * produced it.
+   */
   private ConformanceException coalesceSimilarConformanceIssues(
       List<ConformanceException> conformanceErrors) {
     ConformanceException joinedError = new ConformanceException(
@@ -1118,13 +1126,17 @@ public class DirectivesHandler extends AbstractWranglerHandler {
             .stream()
             .map(ConformanceException::getIssues)
             .flatMap(Arrays::stream)
+            // Group similar conformance issues by hashing them.
             .collect(Collectors.groupingBy(x -> x))
             .entrySet()
             .stream()
+            // Create one issue to represent all similar issues, with a count of how many rows had
+            // this type of issue.
             .map(e -> new ValidationIssue(
                 e.getKey().getSchemaLocation(),
                 e.getKey().getDataLocation(),
                 e.getKey().getError() + String.format(" (%d rows)", e.getValue().size()),
+                // Collect the row IDs that had this issue.
                 e.getValue()
                     .stream()
                     .map(ValidationIssue::getRowIds)
