@@ -44,4 +44,9 @@ public class ErrorRowException extends Exception {
   public int getCode() {
     return code;
   }
+
+  @Override
+  public String toString() {
+    return String.format("%d:%s", getCode(), getMessage());
+  }
 }

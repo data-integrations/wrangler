@@ -34,6 +34,8 @@ import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.directives.aggregates.DefaultTransientStore;
+import io.cdap.directives.validation.ConformanceException;
+import io.cdap.directives.validation.ValidationIssue;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
@@ -94,11 +96,6 @@ import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.validator.ColumnNameValidator;
 import io.cdap.wrangler.validator.Validator;
 import io.cdap.wrangler.validator.ValidatorException;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,6 +104,7 @@ import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -116,7 +114,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -126,14 +126,19 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing workspaces and also application of directives on to the workspace.
  */
 public class DirectivesHandler extends AbstractWranglerHandler {
+
   private static final Logger LOG = LoggerFactory.getLogger(DirectivesHandler.class);
   private static final Gson GSON =
-    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+      new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final String resourceName = ".properties";
 
   private static final String COLUMN_NAME = "body";
@@ -146,8 +151,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     composite = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(),
-      new UserDirectiveRegistry(context)
+        new SystemDirectiveRegistry(),
+        new UserDirectiveRegistry(context)
     );
   }
 
@@ -161,8 +166,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       composite.close();
     } catch (IOException e) {
       // If something bad happens here, you might see a a lot of open file handles.
-      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.",
-               e.getMessage());
+      LOG.warn(
+          "Unable to close the directive registry. You might see increasing number of open file handle.",
+          e.getMessage());
     }
   }
 
@@ -178,10 +184,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    *
    * Following is the response
    *
-   * {
-   *   "status" : 200,
-   *   "message" : Successfully created workspace 'test'.
-   * }
+   * { "status" : 200, "message" : Successfully created workspace 'test'. }
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
@@ -191,9 +194,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @PUT
   @Path("contexts/{context}/workspaces/{id}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  public void create(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
-                     @PathParam("id") String id, @QueryParam("name") String name,
-                     @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+  public void create(HttpServiceRequest request, HttpServiceResponder responder,
+      @PathParam("context") String namespace,
+      @PathParam("id") String id, @QueryParam("name") String name,
+      @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
       String workspaceName = name == null || name.isEmpty() ? id : name;
 
@@ -201,9 +205,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.NAME, workspaceName);
       NamespacedId workspaceId = new NamespacedId(ns, id);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceName)
-        .setScope(scope)
-        .setProperties(properties)
-        .build();
+          .setScope(scope)
+          .setProperties(properties)
+          .build();
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         ws.writeWorkspaceMeta(workspaceId, workspaceMeta);
@@ -217,17 +221,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    *
    * Following is a response returned
    *
-   * {
-   *   "status" : 200,
-   *   "message" : "Success",
-   *   "count" : 4,
-   *   "values" : [
-   *      { "id" : "ABC", "name" : "body"},
-   *      { "id" : "XYZ", "name" : "ws"},
-   *      { "id" : "123", "name" : "test"},
-   *      { "id" : "UVW", "name" : "foo"}
-   *   ]
-   * }
+   * { "status" : 200, "message" : "Success", "count" : 4, "values" : [ { "id" : "ABC", "name" :
+   * "body"}, { "id" : "XYZ", "name" : "ws"}, { "id" : "123", "name" : "test"}, { "id" : "UVW",
+   * "name" : "foo"} ] }
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
@@ -236,7 +232,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
+      @PathParam("context") String namespace,
+      @QueryParam("scope") @DefaultValue("default") String scope) {
     respond(request, responder, namespace, ns -> {
       List<WorkspaceIdentifier> workspaces = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
@@ -251,10 +248,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    *
    * Following is the response
    *
-   * {
-   *   "status" : 200,
-   *   "message" : Successfully deleted workspace 'test'.
-   * }
+   * { "status" : 200, "message" : Successfully deleted workspace 'test'. }
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
@@ -264,7 +258,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces/{id}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
@@ -279,10 +273,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    *
    * Following is the response
    *
-   * {
-   *   "status" : 200,
-   *   "message" : Successfully deleted workspace 'test'.
-   * }
+   * { "status" : 200, "message" : Successfully deleted workspace 'test'. }
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
@@ -292,13 +283,14 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces/")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
-                          @PathParam("context") String namespace, @QueryParam("group") String group) {
+      @PathParam("context") String namespace, @QueryParam("group") String group) {
     respond(request, responder, namespace, ns -> {
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         ws.deleteScope(ns, group);
       });
-      return new ServiceResponse<Void>(String.format("Successfully deleted workspaces within group '%s'", group));
+      return new ServiceResponse<Void>(
+          String.format("Successfully deleted workspaces within group '%s'", group));
     });
   }
 
@@ -307,25 +299,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    *
    * Following is the response
    *
-   * {
-   *   "status" : 200,
-   *   "message" : "Success",
-   *   "count" : 1,
-   *   "values" : [
-   *     {
-   *       "workspace" : "data",
-   *       "created" : 1430202202,
-   *       "recipe" : [
-   *          "parse-as-csv data ,",
-   *          "drop data"
-   *       ],
-   *       "properties" : {
-   *         { "key" : "value"},
-   *         { "key" : "value"}
-   *       }
-   *     }
-   *   ]
-   * }
+   * { "status" : 200, "message" : "Success", "count" : 1, "values" : [ { "workspace" : "data",
+   * "created" : 1430202202, "recipe" : [ "parse-as-csv data ,", "drop data" ], "properties" : { {
+   * "key" : "value"}, { "key" : "value"} } } ] }
    *
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
@@ -335,7 +311,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces/{id}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       Workspace workspace = getWorkspace(new NamespacedId(ns, id));
       String name = workspace.getName();
@@ -355,22 +331,22 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   }
 
   /**
-   * Merges two {@link JsonObject} into a single object. If the keys are
-   * overlapping, then the second JsonObject keys will overwrite the first.
+   * Merges two {@link JsonObject} into a single object. If the keys are overlapping, then the
+   * second JsonObject keys will overwrite the first.
    *
    * @param first {@link JsonObject}
-   * @param second  {@link JsonObject}
+   * @param second {@link JsonObject}
    * @return merged {@link JsonObject}
    */
   private JsonObject merge(JsonObject first, JsonObject second) {
     JsonObject merged = new JsonObject();
     if (first != null && !first.isJsonNull()) {
-      for (Map.Entry<String, JsonElement> entry: first.entrySet()) {
+      for (Map.Entry<String, JsonElement> entry : first.entrySet()) {
         merged.add(entry.getKey(), entry.getValue());
       }
     }
     if (second != null && !second.isJsonNull()) {
-      for (Map.Entry<String, JsonElement> entry: second.entrySet()) {
+      for (Map.Entry<String, JsonElement> entry : second.entrySet()) {
         merged.add(entry.getKey(), entry.getValue());
       }
     }
@@ -387,7 +363,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       String name = request.getHeader(PropertyIds.FILE_NAME);
       if (name == null) {
@@ -414,20 +390,22 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
 
         // Get content type - application/data-prep, application/octet-stream or text/plain.
-        String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
+        String contentType = handler
+            .getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
 
         // Extract content.
         byte[] content = handler.getContent();
         if (content == null) {
           throw new BadRequestException("Body not present, please post the file containing the "
-                                          + "records to be wrangled.");
+              + "records to be wrangled.");
         }
 
         // Depending on content type, load data.
         DataType type = DataType.fromString(contentType);
         if (type == null) {
-          throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
-                                          "or 'application/data-prep'");
+          throw new BadRequestException(
+              "Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
+                  "or 'application/data-prep'");
         }
         switch (type) {
           case TEXT:
@@ -462,9 +440,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
         ws.updateWorkspaceProperties(id, properties);
 
-        WorkspaceInfo workspaceInfo = new WorkspaceInfo(id.getId(), name, delimiter, charset, contentType,
-                                                        ConnectionType.UPLOAD.getType(),
-                                                        SamplingMethod.NONE.getMethod());
+        WorkspaceInfo workspaceInfo = new WorkspaceInfo(id.getId(), name, delimiter, charset,
+            contentType,
+            ConnectionType.UPLOAD.getType(),
+            SamplingMethod.NONE.getMethod());
         return new ServiceResponse<>(workspaceInfo);
       });
     });
@@ -481,7 +460,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces/{id}/upload")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void uploadData(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       RequestExtractor handler = new RequestExtractor(request);
 
@@ -489,19 +468,22 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       String charset = handler.getHeader(RequestExtractor.CHARSET_HEADER, "UTF-8");
 
       // Get content type - application/data-prep, application/octet-stream or text/plain.
-      String contentType = handler.getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
+      String contentType = handler
+          .getHeader(RequestExtractor.CONTENT_TYPE_HEADER, "application/data-prep");
 
       // Extract content.
       byte[] content = handler.getContent();
       if (content == null) {
-        throw new BadRequestException("Body not present, please post the file containing the records to be wrangled.");
+        throw new BadRequestException(
+            "Body not present, please post the file containing the records to be wrangled.");
       }
 
       // Depending on content type, load data.
       DataType type = DataType.fromString(contentType);
       if (type == null) {
-        throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
-                                        "or 'application/data-prep'");
+        throw new BadRequestException(
+            "Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
+                "or 'application/data-prep'");
       }
       NamespacedId namespaceId = new NamespacedId(ns, id);
 
@@ -544,7 +526,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.UPLOAD.getType());
         ws.updateWorkspaceProperties(namespaceId, properties);
 
-        return new ServiceResponse<Void>(String.format("Successfully uploaded data to workspace '%s'", id));
+        return new ServiceResponse<Void>(
+            String.format("Successfully uploaded data to workspace '%s'", id));
       });
     });
   }
@@ -552,17 +535,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   /**
    * Executes the directives on the record stored in the workspace.
    *
-   * Following is the response from this request
-   * {
-   *   "status" : 200,
-   *   "message" : "Success",
-   *   "count" : 2,
-   *   "header" : [ "a", "b", "c", "d" ],
-   *   "value" : [
-   *     { record 1},
-   *     { record 2}
-   *   ]
-   * }
+   * Following is the response from this request { "status" : 200, "message" : "Success", "count" :
+   * 2, "header" : [ "a", "b", "c", "d" ], "value" : [ { record 1}, { record 2} ] }
    *
    * @param request to gather information of the request.
    * @param responder to respond to the service request.
@@ -572,7 +546,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces/{id}/execute")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
-                      @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       composite.reload(namespace);
       try {
@@ -581,7 +555,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         if (directiveRequest == null) {
           throw new BadRequestException("Request body is empty.");
         }
-        directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(namespace, directiveRequest));
+        directiveRequest.getRecipe()
+            .setPragma(addLoadablePragmaDirectives(namespace, directiveRequest));
 
         int limit = directiveRequest.getSampling().getLimit();
         NamespacedId namespacedId = new NamespacedId(ns, id);
@@ -632,7 +607,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           ws.updateWorkspaceRequest(namespacedId, directiveRequest);
         });
 
-        return new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
+        return new DirectiveExecutionResponse(values, headers, types,
+            directiveRequest.getRecipe().getDirectives());
       } catch (JsonParseException e) {
         throw new BadRequestException(e.getMessage(), e);
       }
@@ -650,7 +626,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     try {
       // Compile the directive extracting the loadable plugins (a.k.a
       // Directives in this context).
-      CompileStatus status = compiler.compile(new MigrateToV2(request.getRecipe().getDirectives()).migrate());
+      CompileStatus status = compiler
+          .compile(new MigrateToV2(request.getRecipe().getDirectives()).migrate());
       RecipeSymbol symbols = status.getSymbols();
       Iterator<TokenGroup> iterator = symbols.iterator();
       List<String> userDirectives = new ArrayList<>();
@@ -697,7 +674,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces/{id}/summary")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void summary(HttpServiceRequest request, HttpServiceResponder responder,
-                      @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       try {
         composite.reload(namespace);
@@ -764,11 +741,13 @@ public class DirectivesHandler extends AbstractWranglerHandler {
             typeStats.put(value.getFirst(), value.getSecond().floatValue() * 100);
           }
           ColumnStatistics existingStats = statistics.get(field.getFirst());
-          Map<String, Float> generalStats = existingStats == null ? null : existingStats.getGeneral();
+          Map<String, Float> generalStats =
+              existingStats == null ? null : existingStats.getGeneral();
           statistics.put(field.getFirst(), new ColumnStatistics(generalStats, typeStats));
         }
 
-        WorkspaceValidationResult validationResult = new WorkspaceValidationResult(columnValidationResults, statistics);
+        WorkspaceValidationResult validationResult = new WorkspaceValidationResult(
+            columnValidationResults, statistics);
         return new WorkspaceSummaryResponse(validationResult);
       } catch (JsonParseException | DirectiveParseException e) {
         throw new BadRequestException(e.getMessage(), e);
@@ -780,7 +759,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/workspaces/{id}/schema")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       composite.reload(namespace);
       RequestExtractor handler = new RequestExtractor(request);
@@ -808,8 +787,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       // the current contract with the UI is not to pass the
       // entire schema string, but just the fields.
       return new JsonParser().parse(schemaJson)
-        .getAsJsonObject()
-        .get("fields").getAsJsonArray();
+          .getAsJsonObject()
+          .get("fields").getAsJsonArray();
     });
   }
 
@@ -830,7 +809,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         props.load(resourceStream);
       } catch (IOException e) {
         throw new IOException("There was problem reading the capability matrix. " +
-          "Please check the environment to ensure you have right verions of jar." + e.getMessage(), e);
+            "Please check the environment to ensure you have right verions of jar." + e
+            .getMessage(), e);
       }
 
       Map<String, String> value = new HashMap<>();
@@ -844,20 +824,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   /**
    * This REST API returns an array of all the directives, their usage and description.
    *
-   * Following is the response of this call.
-   * {
-   *   "status": "OK",
-   *   "message": "Success",
-   *   "count" : 10,
-   *   "values" : [
-   *      {
-   *        "directive" : "parse-as-csv",
-   *        "usage" : "parse-as-csv <column> <delimiter> <skip-empty-row>",
-   *        "description" : "Parses as CSV ..."
-   *      },
-   *      ...
-   *   ]
-   * }
+   * Following is the response of this call. { "status": "OK", "message": "Success", "count" : 10,
+   * "values" : [ { "directive" : "parse-as-csv", "usage" : "parse-as-csv <column> <delimiter>
+   * <skip-empty-row>", "description" : "Parses as CSV ..." }, ... ] }
+   *
    * @param request to gather information of the request.
    * @param responder to respond to the service request.
    */
@@ -865,7 +835,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/usage")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void usage(HttpServiceRequest request, HttpServiceResponder responder,
-                    @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
@@ -877,10 +847,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       List<DirectiveUsage> values = new ArrayList<>();
 
       for (DirectiveInfo directive : composite.list(namespace)) {
-        DirectiveUsage directiveUsage = new DirectiveUsage(directive.name(), directive.usage(), directive.description(),
-                                                           config.isExcluded(directive.name()), false,
-                                                           directive.scope().name(), directive.definition(),
-                                                           directive.categories());
+        DirectiveUsage directiveUsage = new DirectiveUsage(directive.name(), directive.usage(),
+            directive.description(),
+            config.isExcluded(directive.name()), false,
+            directive.scope().name(), directive.definition(),
+            directive.categories());
         values.add(directiveUsage);
 
         // For this directive we find all aliases and add them to the
@@ -889,9 +860,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           List<String> list = aliases.get(directive.name());
           for (String alias : list) {
             directiveUsage = new DirectiveUsage(alias, directive.usage(), directive.description(),
-                                                config.isExcluded(directive.name()), true,
-                                                directive.scope().name(), directive.definition(),
-                                                directive.categories());
+                config.isExcluded(directive.name()), true,
+                directive.scope().name(), directive.definition(),
+                directive.categories());
             values.add(directiveUsage);
           }
         }
@@ -902,15 +873,15 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   }
 
   /**
-   * This HTTP endpoint is used to retrieve artifacts that include plugins
-   * of type <code>Directive.Type</code> (directive). Artifact will be reported
-   * if it atleast has one plugin that is of type "directive".
+   * This HTTP endpoint is used to retrieve artifacts that include plugins of type
+   * <code>Directive.Type</code> (directive). Artifact will be reported if it atleast has one
+   * plugin that is of type "directive".
    */
   @GET
   @Path("contexts/{context}/artifacts")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void artifacts(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       List<DirectiveArtifact> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
@@ -926,10 +897,11 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       return new ServiceResponse<>(values);
     });
   }
+
   /**
-   * This HTTP endpoint is used to retrieve plugins that are
-   * of type <code>Directive.Type</code> (directive). Artifact will be reported
-   * if it atleast has one plugin that is of type "directive".
+   * This HTTP endpoint is used to retrieve plugins that are of type <code>Directive.Type</code>
+   * (directive). Artifact will be reported if it atleast has one plugin that is of type
+   * "directive".
    *
    * TODO: (CDAP-14694) Doesn't look like this should exist. Why wasn't the CDAP endpoint used?
    */
@@ -937,14 +909,15 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @Path("contexts/{context}/directives")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void directives(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       List<DirectiveDescriptor> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
         DirectiveArtifact directiveArtifact =
-          new DirectiveArtifact(artifact.getName(), artifact.getVersion(), artifact.getScope().name());
+            new DirectiveArtifact(artifact.getName(), artifact.getVersion(),
+                artifact.getScope().name());
         for (PluginClass plugin : plugins) {
           if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
             values.add(new DirectiveDescriptor(plugin, directiveArtifact));
@@ -956,15 +929,15 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   }
 
   /**
-   * This HTTP endpoint is used to reload the plugins that are
-   * of type <code>Directive.Type</code> (directive). Artifact will be reported
-   * if it atleast has one plugin that is of type "directive".
+   * This HTTP endpoint is used to reload the plugins that are of type <code>Directive.Type</code>
+   * (directive). Artifact will be reported if it atleast has one plugin that is of type
+   * "directive".
    */
   @GET
   @Path("contexts/{context}/directives/reload")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder,
-                               @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       composite.reload(namespace);
       return new ServiceResponse<Void>("Successfully reloaded all user defined directives.");
@@ -999,7 +972,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       RequestExtractor handler = new RequestExtractor(request);
       DirectiveConfig config = handler.getContent("UTF-8", DirectiveConfig.class);
       if (config == null) {
-        throw new BadRequestException("Config is empty. Please check if the request is sent as HTTP POST body.");
+        throw new BadRequestException(
+            "Config is empty. Please check if the request is sent as HTTP POST body.");
       }
       TransactionRunners.run(getContext(), context -> {
         ConfigStore configStore = ConfigStore.get(context);
@@ -1057,7 +1031,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
     DataType type = workspace.getType();
     List<Row> rows = new ArrayList<>();
 
-    switch(type) {
+    switch (type) {
       case TEXT: {
         String data = Bytes.toString(workspace.getData());
         if (data != null) {
@@ -1076,7 +1050,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
 
       case RECORDS: {
         if (workspace.getData() != null) {
-          try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(workspace.getData()))) {
+          try (ObjectInputStream ois = new ObjectInputStream(
+              new ByteArrayInputStream(workspace.getData()))) {
             rows = (List<Row>) ois.readObject();
           }
         }
@@ -1095,9 +1070,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
    * @return records generated from the directives.
    */
   private List<Row> executeDirectives(NamespacedId id, @Nullable Request user,
-                                      Function<List<Row>, List<Row>> sample) {
+      Function<List<Row>, List<Row>> sample) {
     if (user == null) {
-      throw new BadRequestException("Request is empty. Please check if the request is sent as HTTP POST body.");
+      throw new BadRequestException(
+          "Request is empty. Please check if the request is sent as HTTP POST body.");
     }
 
     TransientStore store = new DefaultTransientStore();
@@ -1109,17 +1085,23 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       List<Row> rows = fromWorkspace(workspace);
       // Execute the pipeline.
       ExecutorContext context = new ServicePipelineContext(id.getNamespace().getName(),
-                                                           ExecutorContext.Environment.SERVICE, getContext(), store);
+          ExecutorContext.Environment.SERVICE, getContext(), store);
       RecipePipelineExecutor executor = new RecipePipelineExecutor();
       if (user.getRecipe().getDirectives().size() > 0) {
         ConfigStore configStore = ConfigStore.get(ctx);
         GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
         String migrate = migrator.migrate();
-        RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
+        RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate,
+            composite);
         recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
         executor.initialize(recipe, context);
         try {
           rows = executor.execute(sample.apply(rows));
+          List<ConformanceException> conformanceErrors = executor.getConformanceErrors();
+          if (conformanceErrors.size() > 0) {
+            ConformanceException joinedError = coalesceSimilarConformanceIssues(conformanceErrors);
+            throw new BadRequestException(joinedError.getMessage(), joinedError);
+          }
         } catch (RecipeException e) {
           throw new BadRequestException(e.getMessage(), e);
         }
@@ -1127,5 +1109,29 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       }
       return rows;
     });
+  }
+
+  private ConformanceException coalesceSimilarConformanceIssues(
+      List<ConformanceException> conformanceErrors) {
+    ConformanceException joinedError = new ConformanceException(
+        conformanceErrors
+            .stream()
+            .map(ConformanceException::getIssues)
+            .flatMap(Arrays::stream)
+            .collect(Collectors.groupingBy(x -> x))
+            .entrySet()
+            .stream()
+            .map(e -> new ValidationIssue(
+                e.getKey().getSchemaLocation(),
+                e.getKey().getDataLocation(),
+                e.getKey().getError() + String.format(" (%d rows)", e.getValue().size()),
+                e.getValue()
+                    .stream()
+                    .map(ValidationIssue::getRowIds)
+                    .flatMap(List::stream)
+                    .toArray(UUID[]::new)))
+            .toArray(ValidationIssue[]::new)
+    );
+    return joinedError;
   }
 }

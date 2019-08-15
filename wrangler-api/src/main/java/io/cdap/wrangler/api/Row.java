@@ -17,6 +17,7 @@
 package io.cdap.wrangler.api;
 
 import io.cdap.wrangler.api.annotations.PublicEvolving;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,9 @@ public final class Row implements Serializable {
   // Values held by the row.
   private List<Object> values = new ArrayList<>();
 
+  // Unique identifier for the row.
+  private UUID id = UUID.randomUUID();
+
   public Row() {
   }
 
@@ -48,6 +52,7 @@ public final class Row implements Serializable {
   public Row(Row row) {
     this.values = new ArrayList<>(row.values);
     this.columns = new ArrayList<>(row.columns);
+    this.id = row.id;
   }
 
   /**
@@ -221,5 +226,9 @@ public final class Row implements Serializable {
         values.add(index, value);
       }
     }
+  }
+
+  public UUID getId() {
+    return id;
   }
 }
