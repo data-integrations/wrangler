@@ -8,7 +8,7 @@ User Defined Directives, also known as UDD, allow you to create custom functions
 
 UDDs, similar to User-defined Functions (UDFs) have a long history of usefulness in SQL-derived languages and other data processing and query systems.  While the framework can be rich in their expressiveness, there's just no way they can anticipate all the things a developer wants to do.  Thus, the custom UDF has become commonplace in our data manipulation toolbox. In order to support customization or extension, CDAP now has the ability to build your own functions for manipulating data through UDDs.
 
-Developing CDAP DataPrep UDDs by no means rocket science, and is an effective way of solving problems that could either be downright impossible, or does not meet your requirements or very akward to solve. 
+Developing CDAP DataPrep UDDs by no means rocket science, and is an effective way of solving problems that could either be downright impossible, or does not meet your requirements or very awkward to solve. 
 
 **U**ser **D**efined **D**irective (UDD) or Custom Directives are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives
 within the data preparation tool.
@@ -34,9 +34,9 @@ Building a custom directive involves implementing four simple methods :
 
 ```
     [1] parse-as-csv :body ',' true
-    [2] #pragma load-directives text-reverse,text-sanatization;
+    [2] #pragma load-directives text-reverse,text-sanitization;
     [3] text-reverse :text
-    [4] text-sanatization :description
+    [4] text-sanitization :description
 ```
 
 More description of the above lines. 
@@ -72,7 +72,7 @@ public SimpleUDD implements Directive {
     ...
   }
   
-  public void destory() {
+  public void destroy() {
     ...
   }
 }
