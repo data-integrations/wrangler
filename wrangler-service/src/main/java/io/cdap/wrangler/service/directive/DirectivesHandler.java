@@ -678,10 +678,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         sb.append(directives).append(";");
         return sb.toString();
       }
-    } catch (CompileException e) {
+    } catch (CompileException | DirectiveParseException e) {
       throw new IllegalArgumentException(e.getMessage(), e);
-    } catch (DirectiveParseException e) {
-      throw new IllegalArgumentException(e.getMessage());
     }
     return null;
   }
@@ -1117,8 +1115,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         String migrate = migrator.migrate();
         RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
         recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
-        executor.initialize(recipe, context);
         try {
+          executor.initialize(recipe, context);
           rows = executor.execute(sample.apply(rows));
         } catch (RecipeException e) {
           throw new BadRequestException(e.getMessage(), e);

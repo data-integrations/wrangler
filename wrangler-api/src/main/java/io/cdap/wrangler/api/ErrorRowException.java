@@ -31,6 +31,10 @@ public class ErrorRowException extends Exception {
     this.code = code;
   }
 
+  public ErrorRowException(String directiveName, String errorMessage, int code) {
+    this(String.format("Error encountered while executing '%s' : %s", directiveName, errorMessage), code);
+  }
+
   /**
    * @return Message as why the record errored.
    */

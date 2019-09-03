@@ -91,19 +91,15 @@ public class SplitURL implements Directive {
             row.add(column + "_query", url.getQuery());
           } catch (MalformedURLException e) {
             throw new DirectiveExecutionException(
-              String.format(
-                "Malformed url '%s' found in column '%s'", (String) object, column
-              )
-            );
+              NAME, String.format("Malformed url '%s' found in column '%s'.", (String) object, column), e);
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()));
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
     }
     return rows;

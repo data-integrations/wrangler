@@ -90,7 +90,7 @@ public class ParseAvroFile implements Directive {
               results.add(newRow);
             }
           } catch (IOException e) {
-            throw new DirectiveExecutionException(toString() + " : Failed to parse Avro data file." + e.getMessage());
+            throw new DirectiveExecutionException(NAME, "Failed to parse Avro data file. " + e.getMessage(), e);
           } finally {
             if (reader != null) {
               try {
@@ -101,8 +101,8 @@ public class ParseAvroFile implements Directive {
             }
           }
         } else {
-          throw new DirectiveExecutionException(toString() + " : column " + column +
-                                                  " should be of type byte array avro file.");
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' is of invalid type. It should be of type 'byte array'.", column));
         }
       }
     }

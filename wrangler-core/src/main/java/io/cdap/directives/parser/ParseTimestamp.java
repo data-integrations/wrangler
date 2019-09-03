@@ -107,34 +107,36 @@ public class ParseTimestamp implements Directive {
     try {
       unit = TimeUnit.valueOf(unitValue.toUpperCase());
     } catch (IllegalArgumentException e) {
-      throw new DirectiveParseException(String.format("'%s' is not a supported time unit. Supported time " +
-                                                        "units are %s", unitValue, SUPPORTED_TIME_UNITS));
+      throw new DirectiveParseException(
+        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
+                            unitValue, SUPPORTED_TIME_UNITS), e);
     }
 
     if (!SUPPORTED_TIME_UNITS.contains(unit)) {
-      throw new DirectiveParseException(String.format("'%s' is not a supported time unit. Supported time " +
-                                                        "units are %s", unitValue, SUPPORTED_TIME_UNITS));
+      throw new DirectiveParseException(
+        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
+                            unitValue, SUPPORTED_TIME_UNITS));
     }
 
     return unit;
   }
 
   private long getLongValue(Object object) throws ErrorRowException {
-    String errorMsg = String.format("%s : Invalid type '%s' of column '%s'. Must be of type Long or String.",
-                                    toString(), object.getClass().getName(), column);
+    String errorMsg = String.format("Invalid type '%s' of column '%s'. Must be of type 'Long' or 'String'.",
+                                    object.getClass().getSimpleName(), column);
     try {
       if (object instanceof Long) {
-        return  (long) object;
+        return (long) object;
       } else if (object instanceof String) {
         return Long.parseLong((String) object);
       }
     } catch (Exception e) {
       // Exception while casting the object, do not handle it here, so that ErrorRowException is thrown.
-      errorMsg = String.format("%s : Invalid value for column '%s'. Must be of type Long or String representing long.",
-                               toString(), column);
+      errorMsg = String.format("Invalid value for column '%s'. Must be of type 'Long' or 'String' " +
+                                 "representing long.", column);
     }
 
-    throw new ErrorRowException(errorMsg, 2);
+    throw new ErrorRowException(NAME, errorMsg, 2);
   }
 
   private ZonedDateTime getZonedDateTime(long ts, TimeUnit unit, ZoneId zoneId) {

@@ -74,11 +74,9 @@ public final class Rename implements Directive {
           row.setColumn(idx, target.value());
         } else {
           throw new DirectiveExecutionException(
-            String.format(
-              "%s : %s column already exists. Apply the directive 'drop %s' before renaming %s to %s.", toString(),
-              target.value(), target.value(), source.value(), source.value()
-            )
-          );
+            NAME, String.format("Column '%s' already exists. Apply the 'drop %s' directive before " +
+                                  "renaming '%s' to '%s'.",
+                                target.value(), target.value(), source.value(), target.value()));
         }
       }
     }

@@ -87,6 +87,13 @@ public class Quantization implements Directive {
       if (idx != -1) {
         try {
           Object object = row.getValue(idx);
+
+          if (object == null) {
+            throw new DirectiveExecutionException(
+              NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
+                                    "'Float' or 'Double'.", col1));
+          }
+
           Double d;
           if (object instanceof String) {
             d = Double.parseDouble((String) object);
@@ -96,9 +103,8 @@ public class Quantization implements Directive {
             d = ((Float) object).doubleValue();
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, Float or Double.",
-                            toString(), object != null ? object.getClass().getName() : "null", col1)
-            );
+              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String', " +
+                                    "'Float' or 'Double'.", col1, object.getClass().getSimpleName()));
           }
           String value = rangeMap.get(d);
           int destIdx = row.find(col2);
@@ -108,12 +114,12 @@ public class Quantization implements Directive {
             row.setValue(destIdx, value);
           }
         } catch (NumberFormatException e) {
-          throw new DirectiveExecutionException(toString(), e);
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has invalid type. It should be of type 'String', " +
+                                  "'Float' or 'Double'.", col1), e);
         }
       } else {
-        throw new DirectiveExecutionException(
-          String.format("%s : %s was not found or is not of type string. Please check the wrangle configuration.",
-                        toString(), col1));
+        throw new DirectiveExecutionException(NAME, "Column '" + col1 + "' does not exist.");
       }
       results.add(row);
     }

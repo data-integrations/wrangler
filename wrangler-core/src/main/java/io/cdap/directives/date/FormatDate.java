@@ -80,9 +80,7 @@ public class FormatDate implements Directive {
       int idx = dt.find(column);
 
       if (idx == -1) {
-        throw new DirectiveExecutionException(toString() + " : '" + column + "' column is not defined in the row. " +
-                                                "Please check the wrangling step."
-        );
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
 
       Object object = row.getValue(idx);
@@ -95,9 +93,8 @@ public class FormatDate implements Directive {
           zonedDateTime = (ZonedDateTime) object;
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Apply 'parse-as-date' directive first.", toString(),
-                          object.getClass().getName(), column)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. Apply 'parse-as-date' directive first.",
+                                column, object.getClass().getSimpleName()));
         }
 
         dt.setValue(idx, destinationFmt.format(zonedDateTime));

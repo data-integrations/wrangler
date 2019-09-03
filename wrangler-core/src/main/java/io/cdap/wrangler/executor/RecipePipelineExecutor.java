@@ -100,7 +100,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       List<StructuredRecord> output = convertor.toStructureRecord(rows, schema);
       return output;
     } catch (RecordConvertorException e) {
-      throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage());
+      throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage(), e);
     }
   }
 
