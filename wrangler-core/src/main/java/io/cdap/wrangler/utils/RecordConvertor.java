@@ -96,13 +96,11 @@ public final class RecordConvertor implements Serializable {
         }
       } catch (UnexpectedFormatException e) {
         throw new RecordConvertorException(
-          String.format("Field '%s' of type '%s' (Nullable : '%s') cannot be set to '%s'. Possibly the value being " +
-                          "set is not in inline with the schema specified. Check schema for field '%s'.",
+          String.format("Field '%s' of type '%s' cannot be set to '%s'. Make sure the value is " +
+                          "being set is inline with the specified schema.",
                         name,
-                        isNullable ? fSchema.getNonNullable().getType().name() : fSchema.getType().name(),
-                        isNullable ? "YES" : "NO",
-                        value == null ? "NULL" : value,
-                        name), e);
+                        isNullable ? fSchema.getNonNullable().getDisplayName() : fSchema.getDisplayName(),
+                        value == null ? "NULL" : value), e);
       }
     }
     return builder.build();
