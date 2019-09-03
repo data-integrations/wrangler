@@ -77,7 +77,7 @@ public class SendToError implements Directive {
       el.compile(condition);
     } catch (ELException e) {
       throw new DirectiveParseException(
-        String.format("Invalid condition '%s'.", condition)
+        NAME, String.format(" Invalid condition '%s'.", condition)
       );
     }
     if (args.contains("metric")) {
@@ -123,10 +123,10 @@ public class SendToError implements Directive {
           if (message == null) {
             message = condition;
           }
-          throw new ErrorRowException(message, 1);
+          throw new ErrorRowException(NAME, message, 1);
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
       results.add(row);
     }

@@ -83,8 +83,9 @@ public class XmlToJson implements Directive {
       int idx = row.find(col);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
         if (object == null) {
-          throw new DirectiveExecutionException(toString() + " : Did not find '" + col + "' in the row.");
+          throw new DirectiveExecutionException(NAME, "' : Column '" + col + "' does not exist.");
         }
 
         try {
@@ -95,16 +96,14 @@ public class XmlToJson implements Directive {
             row.remove(idx);
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                            col, object != null ? object.getClass().getName() : "null")
-            );
+              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                  col, object.getClass().getSimpleName()));
           }
         } catch (JSONException e) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
+          throw new DirectiveExecutionException(NAME, e.getMessage(), e);
         }
       }
     }
     return rows;
   }
-
 }

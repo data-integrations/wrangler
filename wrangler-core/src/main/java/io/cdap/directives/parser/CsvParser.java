@@ -50,10 +50,11 @@ import java.util.Set;
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
 @Plugin(type = Directive.TYPE)
-@Name("parse-as-csv")
+@Name(CsvParser.NAME)
 @Categories(categories = { "parser", "csv"})
 @Description("Parses a column as CSV (comma-separated values).")
 public class CsvParser implements Directive {
+  public static final String NAME = "parse-as-csv";
   private ColumnName columnArg;
   private Text delimiterArg;
   private Bool headerArg;
@@ -90,7 +91,8 @@ public class CsvParser implements Directive {
       if (delimiterArg.value().startsWith("\\")) {
         String unescapedStr = StringEscapeUtils.unescapeJava(delimiterArg.value());
         if (unescapedStr == null) {
-          throw new DirectiveParseException("Invalid delimiter for CSV Parser: " + delimiterArg.value());
+          throw new DirectiveParseException(
+            NAME, String.format("Invalid delimiter for CSV Parser '%s'", delimiterArg.value()));
         }
         delimiter = unescapedStr.charAt(0);
       }
@@ -152,7 +154,7 @@ public class CsvParser implements Directive {
         }
       } catch (IOException e) {
         // When there is error parsing data, the data is written to error.
-        throw new ErrorRowException(e.getMessage(), 1);
+        throw new ErrorRowException(NAME, e.getMessage(), 1);
       }
     }
     return rows;

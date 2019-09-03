@@ -76,20 +76,25 @@ public class SplitToColumns implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
-        if (object instanceof String) {
-          String[] lines = ((String) object).split(regex);
-          int i = 1;
-          for (String line : lines) {
-            row.add(String.format("%s_%d", column, i), line);
-            ++i;
-          }
-          results.add(row);
-        } else {
+
+        if (object == null) {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column));
         }
+
+        if (!(object instanceof String)) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()));
+        }
+
+        String[] lines = ((String) object).split(regex);
+        int i = 1;
+        for (String line : lines) {
+          row.add(String.format("%s_%d", column, i), line);
+          ++i;
+        }
+        results.add(row);
       }
     }
     return results;

@@ -69,7 +69,8 @@ public class RecordRegexFilter implements Directive {
     } else if (matchType.equalsIgnoreCase("if-not-matched")) {
       matched = false;
     } else {
-      throw new DirectiveParseException("Match type specified is not 'if-matched' or 'if-not-matched'");
+      throw new DirectiveParseException(
+        NAME, "Match type specified is not 'if-matched' or 'if-not-matched'");
     }
     column = ((ColumnName) args.value("column")).value();
     String regex = ((Text) args.value("regex")).value();
@@ -95,6 +96,13 @@ public class RecordRegexFilter implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
+                                  "'JSONObject' or 'Number'.", column));
+        }
+
         if (object instanceof JSONObject) {
           if (pattern == null && JSONObject.NULL.equals(object)) {
             continue;
@@ -109,8 +117,8 @@ public class RecordRegexFilter implements Directive {
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
-                          toString(), object != null ? object.getClass().getName() : "null", column)
+            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type " +
+                                  "'String', 'JSONObject' or 'Number'.", column, object.getClass().getSimpleName())
           );
         }
         results.add(row);

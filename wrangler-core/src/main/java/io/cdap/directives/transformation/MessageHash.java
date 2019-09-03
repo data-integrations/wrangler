@@ -119,17 +119,13 @@ public class MessageHash implements Directive {
     Text algorithm = args.value("algorithm");
     if (!MessageHash.isValid(algorithm.value())) {
       throw new DirectiveParseException(
-        String.format("Algorithm '%s' specified in directive '%s' at line %d is not supported", algorithm,
-                      NAME, args.line())
-      );
+        NAME, String.format("Algorithm '%s' specified at line %d is not supported.", algorithm, args.line()));
     }
     try {
       this.digest = MessageDigest.getInstance(algorithm.value());
     } catch (NoSuchAlgorithmException e) {
       throw new DirectiveParseException(
-        String.format("Unable to find algorithm specified '%s' in directive '%s' at line %d.",
-                      algorithm, NAME, args.line())
-      );
+        NAME, String.format("Unable to find algorithm '%s' specified at line %d.", algorithm, args.line()));
     }
 
     this.encode = false;
@@ -153,6 +149,13 @@ public class MessageHash implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String' or 'byte array'.",
+                                column));
+        }
+
         byte[] message;
         if (object instanceof String) {
           message = ((String) object).getBytes(StandardCharsets.UTF_8);
@@ -160,9 +163,8 @@ public class MessageHash implements Directive {
           message = ((byte[]) object);
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String or byte[].", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
+                                column, object.getClass().getSimpleName()));
         }
 
         digest.update(message);
@@ -176,7 +178,7 @@ public class MessageHash implements Directive {
           row.addOrSet(column, hashed);
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
     }
     return rows;

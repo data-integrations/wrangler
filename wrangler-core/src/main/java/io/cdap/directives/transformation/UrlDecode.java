@@ -68,6 +68,12 @@ public class UrlDecode implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column));
+        }
+
         if (object instanceof String) {
           try {
             row.setValue(idx, URLDecoder.decode((String) object, "UTF-8"));
@@ -76,12 +82,11 @@ public class UrlDecode implements Directive {
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()));
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
     }
     return rows;

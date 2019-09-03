@@ -73,9 +73,7 @@ public class ColumnsReplace implements Directive {
           Unix4jCommandBuilder builder = Unix4j.echo(name).sed(sed);
           row.setColumn(i, builder.toStringResult());
         } catch (IllegalArgumentException e) {
-          throw new DirectiveExecutionException(
-            String.format(toString() + " : " + e.getMessage())
-          );
+          throw new DirectiveExecutionException(NAME, e.getMessage(), e);
         }
       }
     }

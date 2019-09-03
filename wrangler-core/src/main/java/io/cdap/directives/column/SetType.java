@@ -79,8 +79,8 @@ public final class SetType implements Directive {
         } catch (DirectiveExecutionException e) {
           throw e;
         } catch (Exception e) {
-          throw new DirectiveExecutionException(String.format("Invalid data: Column '%s' can not be converted to '%s'",
-                                                              col, type));
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' cannot be converted to a '%s'.", col, type), e);
         }
       }
     }
@@ -162,11 +162,11 @@ public final class SetType implements Directive {
         } else if (object instanceof Float) {
           return ((Float) object) > 0 ? true : false;
         } else if (object instanceof Double) {
-          return ((Double) object)  > 0 ? true : false;
+          return ((Double) object) > 0 ? true : false;
         } else if (object instanceof Integer) {
-          return ((Integer) object)  > 0 ? true : false;
+          return ((Integer) object) > 0 ? true : false;
         } else if (object instanceof Long) {
-          return ((Long) object)  > 0 ? true : false;
+          return ((Long) object) > 0 ? true : false;
         } else if (object instanceof byte[]) {
           return Bytes.toBoolean((byte[]) object);
         } else {
@@ -258,9 +258,9 @@ public final class SetType implements Directive {
 
       default:
         throw new DirectiveExecutionException(
-          String.format("Unknown data type '%s' found in the directive. " +
-                  "Accepted types are: int, short, long, double, boolean, string, bytes", toType)
-        );
+          NAME, String.format(
+            "Column '%s' is of unsupported type '%s'. Supported types are: " +
+              "int, short, long, double, boolean, string, bytes", col, toType));
     }
   }
 }

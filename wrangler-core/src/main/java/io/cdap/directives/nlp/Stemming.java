@@ -73,7 +73,14 @@ public class Stemming implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
-        if (object != null && (object instanceof List || object instanceof String[] || object instanceof String)) {
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
+                                  "'Array of String' or 'List of String'.", column));
+        }
+
+        if ((object instanceof List || object instanceof String[] || object instanceof String)) {
           List<String> words = null;
           if (object instanceof String[]) {
             words = Arrays.asList((String[]) object);
@@ -89,15 +96,12 @@ public class Stemming implements Directive {
             row.add(String.format("%s_porter", column), stemmed);
           } catch (IOException e) {
             throw new DirectiveExecutionException(
-              String.format("%s : Unable to apply porter stemmer on column '%s'. %s", toString(), column,
-                            e.getMessage())
-            );
+              NAME, String.format("Unable to apply porter stemmer on column '%s'. %s", column, e.getMessage()), e);
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, String[] or List<String>.",
-                          toString(), object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Invalid type '%s' of column '%s'. It should be of type 'String', " +
+                                  "Array of String' or 'List of String'.", column, object.getClass().getSimpleName()));
         }
       } else {
         row.add(String.format("%s_porter", column), stemmed);

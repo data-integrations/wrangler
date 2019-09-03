@@ -97,13 +97,13 @@ public class ParseSimpleDate implements Directive {
                                                                .atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC)));
             row.setValue(idx, zonedDateTime);
           } catch (ParseException e) {
-            throw new ErrorRowException(String.format("Failed to parse '%s' with pattern '%s'",
-                                                      object, formatter.toPattern()), 1);
+            throw new ErrorRowException(
+              NAME, String.format("Failed to parse '%s' with pattern '%s'", object, formatter.toPattern()), 1);
           }
         } else {
           throw new ErrorRowException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object.getClass().getName(), column), 2);
+            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()), 2);
         }
       }
     }
