@@ -96,8 +96,7 @@ public class DiffDate implements Directive {
     // Else attempt to find the column.
     int idx = row.find(colName);
     if (idx == -1) {
-      throw new DirectiveExecutionException(toString() + " : '" +
-                                              colName + "' column is not defined in the row.");
+      throw new DirectiveExecutionException(NAME, "Column '" + colName + "' does not exist.");
     }
     Object o = row.getValue(idx);
     if (o == null || !(o instanceof ZonedDateTime)) {

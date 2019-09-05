@@ -104,7 +104,7 @@ public class ParseAsCurrency implements Directive {
           BigDecimal number = (BigDecimal) fmt.parse(value);
           row.addOrSet(destination, number.doubleValue());
         } catch (ParseException e) {
-          throw new ErrorRowException(e.getMessage(), 1);
+          throw new ErrorRowException(NAME, e.getMessage(), 1);
         }
       }
     }

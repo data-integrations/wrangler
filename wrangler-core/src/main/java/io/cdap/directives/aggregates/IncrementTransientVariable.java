@@ -71,7 +71,7 @@ public class IncrementTransientVariable implements Directive {
     try {
       el.compile(expression);
     } catch (ELException e) {
-      throw new DirectiveParseException(e.getMessage());
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
   }
 
@@ -100,7 +100,7 @@ public class IncrementTransientVariable implements Directive {
           context.getTransientStore().increment(TransientVariableScope.GLOBAL, variable, incrementBy);
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;

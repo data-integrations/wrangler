@@ -98,8 +98,8 @@ public class JsPath implements Directive {
         value instanceof JsonObject ||
         value instanceof JsonArray)) {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type JsonElement, " +
-                          "String.", toString(), value.getClass().getName(), src)
+          NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String' " +
+                                "or 'JsonObject' or 'JsonArray'.", src, value.getClass().getSimpleName())
         );
       }
 

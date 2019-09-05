@@ -114,10 +114,8 @@ public class JsParser implements Directive {
             element = (JsonElement) value;
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. " +
-                              "Should be of type string or a valid Json object.",
-                            toString(), element != null ? element.getClass().getName() : "null", column)
-            );
+              NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'" +
+                                    " or 'JsonObject' or 'JsonArray'.", column, value.getClass().getSimpleName()));
           }
 
           row.remove(idx);
@@ -143,7 +141,7 @@ public class JsParser implements Directive {
             }
           }
         } catch (JSONException e) {
-          throw new ErrorRowException(toString() + " : " + e.getMessage(), 1);
+          throw new ErrorRowException(NAME, e.getMessage(), 1);
         }
       }
     }

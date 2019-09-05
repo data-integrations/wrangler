@@ -230,7 +230,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is integer, but the value is not a integer or string. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case LONG:
@@ -251,7 +251,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is long, but the value is nor a string or long. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case FLOAT:
@@ -274,7 +274,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is float, but the value is nor a string or float. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case DOUBLE:
@@ -301,7 +301,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is double, but the value is nor a string or double. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case BOOLEAN:
@@ -318,7 +318,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is double, but the value is nor a string or boolean. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
 

@@ -83,9 +83,7 @@ public class MaskShuffle implements Directive {
       if (idx != -1) {
         masked.setValue(idx, maskShuffle((String) row.getValue(idx), 0));
       } else {
-        throw new DirectiveExecutionException(toString() + " : '" +
-                                  column + "' column is not defined. Please check the wrangling step."
-        );
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
       results.add(masked);
     }

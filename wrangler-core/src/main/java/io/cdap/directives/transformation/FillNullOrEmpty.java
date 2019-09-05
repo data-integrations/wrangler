@@ -59,9 +59,7 @@ public class FillNullOrEmpty implements Directive {
     this.column = ((ColumnName) args.value("column")).value();
     this.value = ((Text) args.value("value")).value();
     if (value != null && value.isEmpty()) {
-      throw new DirectiveParseException(
-        "Fixed value cannot be a empty string"
-      );
+      throw new DirectiveParseException(NAME, "Fixed value cannot be an empty string");
     }
   }
 
