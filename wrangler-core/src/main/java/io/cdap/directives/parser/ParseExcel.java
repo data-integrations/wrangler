@@ -110,8 +110,8 @@ public class ParseExcel implements Directive {
             bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
           } else {
-            throw new DirectiveExecutionException(toString() + " : column " + column +
-                                                    " is not byte array or byte buffer.");
+            throw new DirectiveExecutionException(
+              NAME, String.format("Column '%s' should be of type 'byte array' or 'ByteBuffer'.", column));
           }
 
           if (bytes != null) {
@@ -126,8 +126,8 @@ public class ParseExcel implements Directive {
 
             if (excelsheet == null) {
               throw new DirectiveExecutionException(
-                String.format("Failed to extract sheet '%s' from the excel. Sheet '%s' does not exist.", sheet, sheet)
-              );
+                NAME, String.format("Failed to extract sheet '%s' from the excel. " +
+                                      "Sheet '%s' does not exist.", sheet, sheet));
             }
 
             Map<Integer, String> columnNames = new TreeMap<>();
@@ -199,7 +199,7 @@ public class ParseExcel implements Directive {
         }
       }
     } catch (Exception e) {
-      throw new ErrorRowException(e.getMessage(), 1);
+      throw new ErrorRowException(NAME, e.getMessage(), 1);
     } finally {
       if (input != null) {
         Closeables.closeQuietly(input);

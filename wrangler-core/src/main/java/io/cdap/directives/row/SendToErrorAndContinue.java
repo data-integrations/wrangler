@@ -78,8 +78,7 @@ public class SendToErrorAndContinue implements Directive {
       el.compile(condition);
     } catch (ELException e) {
       throw new DirectiveParseException(
-        String.format("Invalid condition '%s'.", condition)
-      );
+        NAME, String.format("Invalid condition '%s'.", condition), e);
     }
     if (args.contains("metric")) {
       metric = ((Identifier) args.value("metric")).value();
@@ -133,7 +132,7 @@ public class SendToErrorAndContinue implements Directive {
           throw new ReportErrorAndProceed(message, 1);
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
       results.add(row);
     }

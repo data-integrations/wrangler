@@ -30,8 +30,6 @@ import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.i18n.Messages;
-import io.cdap.wrangler.i18n.MessagesFactory;
 
 import java.util.List;
 
@@ -43,7 +41,6 @@ import java.util.List;
 @Categories(categories = { "column"})
 @Description("Copies values from a source column into a destination column.")
 public class Copy implements Directive {
-  private static final Messages MSG = MessagesFactory.getMessages();
   public static final String NAME = "copy";
   private ColumnName source;
   private ColumnName destination;
@@ -77,7 +74,7 @@ public class Copy implements Directive {
     for (Row row : rows) {
       int sidx = row.find(source.value());
       if (sidx == -1) {
-        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), source.value()));
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", source.value()));
       }
 
       int didx = row.find(destination.value());
@@ -93,8 +90,9 @@ public class Copy implements Directive {
         // if destination column exists, and force is set to false, then throw exception, else
         // overwrite it.
         if (!force) {
-          throw new DirectiveExecutionException(toString() + " : Destination column '" + destination.value()
-                                    + "' does not exist in the row. Use 'force' option to add new column.");
+          throw new DirectiveExecutionException(
+            NAME, String.format("Destination column '%s' already exists in the row. Use 'force' " +
+                                  "option to overwrite the column.", destination.value()));
         }
         row.setValue(didx, row.getValue(sidx));
       }

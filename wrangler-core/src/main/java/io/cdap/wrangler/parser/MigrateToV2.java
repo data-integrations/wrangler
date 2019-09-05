@@ -250,7 +250,7 @@ public final class MigrateToV2 implements GrammarMigrator {
             transformed.add(String.format("filter-by-regex if-not-matched %s %s;", col(column), quote(pattern)));
           } else {
             throw new DirectiveParseException(
-              String.format("Unknown option '%s' specified for filter-rows-on directive at line no %s", cmd, lineno)
+              "filter-rows-on", String.format("Unknown option '%s' specified at line no %s", cmd, lineno)
             );
           }
         }
@@ -822,9 +822,7 @@ public final class MigrateToV2 implements GrammarMigrator {
     } else {
       if (!optional) {
         throw new DirectiveParseException(
-          String.format("Missing field '%s' at line number %d for directive <%s>.",
-                        field, lineno, directive)
-        );
+          directive, String.format("Missing field '%s' at line number %d.", field, lineno));
       }
     }
     return value;

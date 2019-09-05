@@ -80,7 +80,7 @@ public class ColumnExpression implements Directive {
     try {
       el.compile(expression);
     } catch (ELException e) {
-      throw new DirectiveParseException(e.getMessage());
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
   }
 
@@ -117,7 +117,7 @@ public class ColumnExpression implements Directive {
           row.setValue(idx, result.getObject());
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;

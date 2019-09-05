@@ -87,9 +87,8 @@ public class Encode implements Directive {
     value = value.toUpperCase();
     if (!value.equals("BASE64") && !value.equals("BASE32") && !value.equals("HEX")) {
       throw new DirectiveParseException(
-        String.format("Type of encoding specified '%s' is not supported. Supports base64, base32 & hex.",
-                      value)
-      );
+        NAME, String.format("Type of encoding specified '%s' is not supported. Supported types are " +
+                              "base64, base32 & hex.", value));
     }
     this.method = Method.valueOf(value);
   }
@@ -119,9 +118,8 @@ public class Encode implements Directive {
         value = (byte[]) object;
       } else {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type string or byte array, "
-            , toString(), value.getClass().getName(), column)
-        );
+          NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
+                              column, object.getClass().getSimpleName()));
       }
 
       byte[] out = new byte[0];
@@ -133,8 +131,8 @@ public class Encode implements Directive {
         out = hexEncode.encode(value);
       } else {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid type of encoding '%s' specified", toString(), method.toString())
-        );
+          NAME, String.format("Specified encoding type '%s' is not supported. Supported types are base64, " +
+                                "base32 & hex.", method.toString()));
       }
 
       String obj = new String(out, StandardCharsets.UTF_8);
