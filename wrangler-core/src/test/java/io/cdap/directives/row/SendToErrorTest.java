@@ -156,7 +156,7 @@ public class SendToErrorTest {
     List<ErrorRecord> errors = pipeline.errors();
 
     Assert.assertEquals(1, errors.size());
-    Assert.assertEquals("Test Message", errors.get(0).getMessage());
+    Assert.assertEquals("Error encountered while executing 'send-to-error' : Test Message", errors.get(0).getMessage());
     Assert.assertEquals(2, results.size());
   }
 
@@ -177,7 +177,7 @@ public class SendToErrorTest {
     List<ErrorRecord> errors = pipeline.errors();
 
     Assert.assertEquals(1, errors.size());
-    Assert.assertEquals("Test Message", errors.get(0).getMessage());
+    Assert.assertEquals("Error encountered while executing 'send-to-error' : Test Message", errors.get(0).getMessage());
     Assert.assertEquals(2, results.size());
   }
 

@@ -95,10 +95,8 @@ public class SetCharset implements Directive {
         buffer = (ByteBuffer) object;
       } else {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                        object != null ? object.getClass().getName() : "null", column)
-
-        );
+          NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'byte array' or " +
+                                "'ByteBuffer'.", column, object.getClass().getSimpleName()));
       }
 
       try {
@@ -106,8 +104,7 @@ public class SetCharset implements Directive {
         row.setValue(idx, result.toString());
       } catch (Error e) {
         throw new DirectiveExecutionException(
-          String.format("Problem converting to character set '%s'", charset)
-        );
+          NAME, String.format("Can not convert to character set '%s', %s", charset, e.getMessage()), e);
       }
     }
     return rows;
