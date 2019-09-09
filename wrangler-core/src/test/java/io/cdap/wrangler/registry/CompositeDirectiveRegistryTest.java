@@ -98,6 +98,7 @@ public class CompositeDirectiveRegistryTest {
       // no-op
     }
   }
+
   @Test
   public void testIteratorUsage() throws Exception {
     DirectiveRegistry registry = new CompositeDirectiveRegistry(

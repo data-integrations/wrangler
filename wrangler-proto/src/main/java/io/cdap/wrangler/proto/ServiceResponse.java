@@ -47,7 +47,11 @@ public class ServiceResponse<T> {
   }
 
   public ServiceResponse(Collection<T> values, boolean truncated) {
-    this.message = "Success";
+    this(values, truncated, "Success");
+  }
+
+  public ServiceResponse(Collection<T> values, boolean truncated, String message) {
+    this.message = message;
     this.count = values.size();
     this.values = values;
     this.truncated = Boolean.toString(truncated);
