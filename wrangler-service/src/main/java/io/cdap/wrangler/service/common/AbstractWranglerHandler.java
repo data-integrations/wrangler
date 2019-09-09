@@ -29,6 +29,7 @@ import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceNotFoundException;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.Contexts;
+import io.cdap.wrangler.proto.ErrorRecordsException;
 import io.cdap.wrangler.proto.Namespace;
 import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.Recipe;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
@@ -147,6 +149,9 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
       responder.sendJson(results);
     } catch (StatusCodeException e) {
       responder.sendJson(e.getCode(), new ServiceResponse<>(e.getMessage()));
+    } catch (ErrorRecordsException e) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+        new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
@@ -196,6 +201,9 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
       responder.sendJson(results);
     } catch (StatusCodeException e) {
       responder.sendJson(e.getCode(), new ServiceResponse<>(e.getMessage()));
+    } catch (ErrorRecordsException e) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+          new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
