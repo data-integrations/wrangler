@@ -103,6 +103,13 @@ public class HL7Parser implements Directive {
         int idx = row.find(column);
         if (idx != -1) {
           Object object = row.getValue(idx);
+
+          if (object == null) {
+            throw new DirectiveExecutionException(
+              NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column)
+            );
+          }
+
           // Handling the first parsing on HL7 message
           if (object instanceof String) {
             Message message = parser.parse((String) object);
@@ -111,13 +118,14 @@ public class HL7Parser implements Directive {
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.",
-                            toString(), object != null ? object.getClass().getName() : "null", column)
+              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                  column, object.getClass().getSimpleName())
             );
           }
+
         }
       } catch (HL7Exception e) {
-        throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;

@@ -69,7 +69,7 @@ public class SetTransientVariable implements Directive {
     try {
       el.compile(expression);
     } catch (ELException e) {
-      throw new DirectiveParseException(e.getMessage());
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
   }
 
@@ -103,7 +103,7 @@ public class SetTransientVariable implements Directive {
           context.getTransientStore().set(TransientVariableScope.GLOBAL, variable, result.getObject());
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;

@@ -85,7 +85,7 @@ public class WriteAsCSV implements Directive {
         }
         row.add(column, bOut.toString());
       } catch (IOException e) {
-        throw new DirectiveExecutionException(toString() + " : Failed to write CSV row. " + e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;
