@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,44 +16,34 @@
 
 package io.cdap.wrangler.api;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Exception throw when the record needs to emitted to error collector.
+ * Base class for error record that includes the critical fields.
  */
-public class ErrorRowException extends Exception {
-  // Message as to why the record errored.
-  private String message;
+public class ErrorRecordBase {
 
-  // Code associated with the error message.
-  private int code;
+  // Message as to why the row errored.
+  protected final String message;
+  // Code associated with the message.
+  protected final int code;
+  protected final boolean showInWrangler;
 
-  private boolean showInWrangler;
-
-  public ErrorRowException(String message, int code, boolean showInWrangler) {
+  public ErrorRecordBase(String message, int code, boolean showInWrangler) {
     this.message = message;
     this.code = code;
     this.showInWrangler = showInWrangler;
   }
 
-  public ErrorRowException(String message, int code) {
-    this(message, code, false);
-  }
-
-  public ErrorRowException(String directiveName, String errorMessage, int code) {
-    this(String.format("Error encountered while executing '%s' : %s", directiveName, errorMessage), code);
-  }
-
   /**
-   * @return Message as why the record errored.
+   * @return Message associated with the {@link Row}.
    */
   public String getMessage() {
     return message;
   }
 
   /**
-   * @return code related to the message.
+   * @return Code associated with the error.
    */
   public int getCode() {
     return code;

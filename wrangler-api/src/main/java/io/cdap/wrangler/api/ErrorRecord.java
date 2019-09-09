@@ -17,25 +17,24 @@
 package io.cdap.wrangler.api;
 
 import io.cdap.wrangler.api.annotations.Public;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Specifies the structure for Error records.
  */
 @Public
-public final class ErrorRecord {
+public final class ErrorRecord extends ErrorRecordBase {
   // Actual row that is errored.
   private final Row row;
 
-  // Message as to why the row errored.
-  private final String message;
-
-  // Code associated with the message.
-  private final int code;
+  public ErrorRecord(Row row, String message, int code, boolean showInWrangler) {
+    super(message, code, showInWrangler);
+    this.row = row;
+  }
 
   public ErrorRecord(Row row, String message, int code) {
-    this.row = row;
-    this.message = message;
-    this.code = code;
+    this(row, message, code, false);
   }
 
   /**
@@ -45,17 +44,4 @@ public final class ErrorRecord {
     return row;
   }
 
-  /**
-   * @return Message associated with the {@link Row}.
-   */
-  public String getMessage() {
-    return message;
-  }
-
-  /**
-   * @return Code associated with the error.
-   */
-  public int getCode() {
-    return code;
-  }
 }
