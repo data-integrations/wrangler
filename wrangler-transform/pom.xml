@@ -10,13 +10,6 @@
   <artifactId>wrangler-transform</artifactId>
   <name>Wrangler Transform</name>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/groups/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencies>
     <dependency>
       <groupId>io.cdap.wrangler</groupId>
