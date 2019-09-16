@@ -110,7 +110,7 @@ public class ValidateStandardTest {
           JsonObject.class);
 
     String[] directives = new String[]{
-      "validate-standard :col1 hl7-fhir-r4",
+      "validate-standard :col1 fhir_r4_1-0-0",
     };
 
     List<Row> rows = Arrays.asList(

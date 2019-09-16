@@ -18,6 +18,7 @@ package io.cdap.wrangler.service;
 
 import io.cdap.cdap.api.service.AbstractSystemService;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
+import io.cdap.wrangler.dataset.datamodel.DataModelStore;
 import io.cdap.wrangler.dataset.schema.SchemaRegistry;
 import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -26,6 +27,7 @@ import io.cdap.wrangler.service.bigquery.BigQueryHandler;
 import io.cdap.wrangler.service.connections.ConnectionHandler;
 import io.cdap.wrangler.service.connections.ConnectionTypeConfig;
 import io.cdap.wrangler.service.database.DatabaseHandler;
+import io.cdap.wrangler.service.datamodel.DataModelStoreHandler;
 import io.cdap.wrangler.service.directive.DirectivesHandler;
 import io.cdap.wrangler.service.explorer.FilesystemExplorer;
 import io.cdap.wrangler.service.gcs.GCSHandler;
@@ -53,6 +55,7 @@ public class DataPrepService extends AbstractSystemService {
     createTable(SchemaRegistry.ENTRY_TABLE_SPEC);
     createTable(ConnectionStore.TABLE_SPEC);
     createTable(WorkspaceDataset.TABLE_SPEC);
+    createTable(DataModelStore.TABLE_SPEC);
 
     addHandler(new DirectivesHandler());
     addHandler(new SchemaRegistryHandler());
@@ -65,5 +68,6 @@ public class DataPrepService extends AbstractSystemService {
     addHandler(new ADLSHandler());
     addHandler(new BigQueryHandler());
     addHandler(new SpannerHandler());
+    addHandler(new DataModelStoreHandler());
   }
 }

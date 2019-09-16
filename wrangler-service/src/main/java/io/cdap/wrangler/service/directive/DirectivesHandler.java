@@ -59,6 +59,7 @@ import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.dataset.workspace.ConfigStore;
+import io.cdap.wrangler.dataset.workspace.ConfigType;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -874,7 +875,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       composite.reload(namespace);
       DirectiveConfig config = TransactionRunners.run(getContext(), context -> {
         ConfigStore store = ConfigStore.get(context);
-        return store.getConfig();
+        return store.getConfig(ConfigType.DIRECTIVES, DirectiveConfig.class);
       });
       Map<String, List<String>> aliases = config.getReverseAlias();
       List<DirectiveUsage> values = new ArrayList<>();
@@ -1006,7 +1007,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       }
       TransactionRunners.run(getContext(), context -> {
         ConfigStore configStore = ConfigStore.get(context);
-        configStore.updateConfig(config);
+        configStore.<DirectiveConfig>updateConfig(ConfigType.DIRECTIVES, config);
       });
       return new ServiceResponse<Void>("Successfully updated configuration.");
     });
@@ -1024,7 +1025,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
     respond(request, responder, () -> TransactionRunners.run(getContext(), context -> {
       ConfigStore configStore = ConfigStore.get(context);
-      return new ServiceResponse<>(configStore.getConfig());
+      return new ServiceResponse<>(configStore.getConfig(ConfigType.DIRECTIVES, DirectiveConfig.class));
     }));
   }
 
@@ -1119,7 +1120,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
         String migrate = migrator.migrate();
         RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
-        recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
+        DirectiveConfig directiveConfig = configStore.getConfig(ConfigType.DIRECTIVES, DirectiveConfig.class);
+        recipe.initialize(new ConfigDirectiveContext(directiveConfig));
         try {
           executor.initialize(recipe, context);
           rows = executor.execute(sample.apply(rows));

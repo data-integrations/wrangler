@@ -26,11 +26,11 @@ import io.cdap.cdap.spi.data.table.StructuredTableSpecification;
 import io.cdap.cdap.spi.data.table.field.Field;
 import io.cdap.cdap.spi.data.table.field.FieldType;
 import io.cdap.cdap.spi.data.table.field.Fields;
-import io.cdap.wrangler.api.DirectiveConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +46,11 @@ public class ConfigStore {
   private static final Gson GSON = new Gson();
   private static final String KEY_COL = "key";
   private static final String VAL_COL = "value";
-  private static final Field<String> keyField = Fields.stringField(KEY_COL, "directives");
+  private static final EnumMap<ConfigType, Field<String>> keyFields = new EnumMap<ConfigType, Field<String>>
+      (ConfigType.class) {{
+    put(ConfigType.DIRECTIVES, Fields.stringField(KEY_COL, "directives"));
+    put(ConfigType.DATA_MODELS, Fields.stringField(KEY_COL, "data_models"));
+  }};
   public static final StructuredTableId TABLE_ID = new StructuredTableId("dataprep_config");
   public static final StructuredTableSpecification TABLE_SPEC = new StructuredTableSpecification.Builder()
     .withId(TABLE_ID)
@@ -69,16 +73,17 @@ public class ConfigStore {
     }
   }
 
-  public void updateConfig(DirectiveConfig config) throws IOException {
+  public <T> void updateConfig(ConfigType configType, T config) throws IOException {
     List<Field<?>> fields = new ArrayList<>(2);
-    fields.add(keyField);
+    fields.add(keyFields.get(configType));
     fields.add(Fields.stringField(VAL_COL, GSON.toJson(config)));
     table.upsert(fields);
   }
 
-  public DirectiveConfig getConfig() throws IOException {
-    Optional<StructuredRow> row = table.read(Collections.singletonList(keyField));
+  public <T> T getConfig(ConfigType configType, Class<T> classOfT) throws IOException {
+    Optional<StructuredRow> row = table.read(Collections.singletonList(keyFields.get(configType)));
     String configStr = row.map(r -> r.getString(VAL_COL)).orElse("{}");
-    return GSON.fromJson(configStr, DirectiveConfig.class);
+    return GSON.fromJson(configStr, classOfT);
   }
+
 }
