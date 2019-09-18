@@ -94,16 +94,21 @@ public final class FixedLengthParser implements Directive {
       int idx = row.find(col);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", col));
+        }
+
         if (object instanceof String) {
           String data = (String) object;
           int length = data.length();
           // If the recordLength length doesn't match the string length.
           if (length < recordLength) {
             throw new ErrorRowException(
-              String.format("Fewer bytes than length of row specified - expected atleast %d bytes, found %s bytes.",
-                            recordLength, length),
-              2
-            );
+              NAME, String.format("Column '%s' contains a value with fewer characters than the specified length " +
+                                    "of row. Expected at least %d characters but found %s characters.",
+                                  col, recordLength, length), 2);
           }
 
           int index = 1;
@@ -125,9 +130,8 @@ public final class FixedLengthParser implements Directive {
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", col)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                col, object.getClass().getSimpleName()));
         }
       }
     }

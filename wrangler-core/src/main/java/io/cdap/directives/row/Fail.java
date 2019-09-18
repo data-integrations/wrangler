@@ -59,13 +59,14 @@ public class Fail implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     Expression expression = args.value("condition");
     if (expression.value().isEmpty()) {
-      throw new DirectiveParseException("No condition has been specified.");
+      throw new DirectiveParseException(
+        NAME, "No condition has been specified. Make sure condition is provided");
     }
     condition = expression.value();
     try {
       el.compile(condition);
     } catch (ELException e) {
-      throw new DirectiveParseException(e.getMessage());
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
   }
 
@@ -91,11 +92,10 @@ public class Fail implements Directive {
         ELResult result = el.execute(ctx);
         if (result.getBoolean()) {
           throw new DirectiveExecutionException(
-            String.format("Condition '%s' evaluated to true. Terminating processing.", condition)
-          );
+            NAME, String.format("Condition '%s' evaluated to true. Terminating processing.", condition));
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;

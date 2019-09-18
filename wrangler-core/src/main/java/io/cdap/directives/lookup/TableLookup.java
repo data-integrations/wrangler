@@ -82,11 +82,12 @@ public class TableLookup implements Directive {
       lookup = context.provide(table, Collections.<String, String>emptyMap());
     } catch (DatasetInstantiationException e) {
       throw new DirectiveExecutionException(
-        String.format("%s : Please check that a dataset '%s' of type Table exists.",
-        toString(), table));
+        NAME, String.format("Dataset '%s' could not be instantiated. Make sure that a dataset '%s' of " +
+                              "type Table exists.", table, table), e);
     }
     if (!(lookup instanceof io.cdap.cdap.etl.api.lookup.TableLookup)) {
-      throw new DirectiveExecutionException(toString() + " : Lookup can be performed only on Tables.");
+      throw new DirectiveExecutionException(
+        NAME, "Lookup is not being performed on a table. Lookup can be performed only on tables.");
     }
     tableLookup = (io.cdap.cdap.etl.api.lookup.TableLookup) lookup;
     initialized = true;
@@ -101,10 +102,16 @@ public class TableLookup implements Directive {
         continue;
       }
       Object object = row.getValue(idx);
+      if (object == null) {
+        throw new DirectiveExecutionException(
+          NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column)
+        );
+      }
+
       if (!(object instanceof String)) {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                        object != null ? object.getClass().getName() : "null", column)
+          NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
+                              column, object.getClass().getSimpleName())
         );
       }
       io.cdap.cdap.api.dataset.table.Row lookedUpRow = tableLookup.lookup((String) object);

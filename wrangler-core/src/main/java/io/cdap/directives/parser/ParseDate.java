@@ -101,8 +101,8 @@ public class ParseDate implements Directive {
           }
         } else {
           throw new ErrorRowException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object.getClass().getName(), column), 1);
+            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()), 1);
         }
       }
     }

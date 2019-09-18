@@ -66,14 +66,12 @@ public class CatalogLookup implements Directive {
     String type = ((Text) args.value("catalog")).value();
     if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10-2016") &&
       !type.equalsIgnoreCase("ICD-10-2017")) {
-      throw new DirectiveParseException("Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10-2016 " +
-                                           "or ICD-10-2017).");
+      throw new DirectiveParseException(
+        NAME, "Invalid ICD type - should be 9 (ICD-9) or 10 (ICD-10-2016 or ICD-10-2017).");
     } else {
       catalog = new ICDCatalog(type.toLowerCase());
       if (!catalog.configure()) {
-        throw new DirectiveParseException(
-          String.format("Failed to configure ICD StaticCatalog. Check with your administrator")
-        );
+        throw new DirectiveParseException(NAME, "Failed to configure ICD StaticCatalog. Check with your administrator");
       }
     }
     this.name = catalog.getCatalog().replaceAll("-", "_");

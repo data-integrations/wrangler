@@ -74,18 +74,22 @@ public class CharacterCut implements Directive {
       int idx = row.find(source);
       if (idx != -1) {
         Object value = row.getValue(idx);
+
+        if (value == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", source));
+        }
+
         if (value instanceof String) {
           String result = Unix4j.fromString((String) value).cut("-c", range).toStringResult();
           row.addOrSet(destination, result);
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          value.getClass().getName(), source)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                source, value.getClass().getSimpleName()));
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Scope column '" + source +
-                                                "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, "Scope column '" + source + "' does not exist.");
       }
     }
     return rows;
