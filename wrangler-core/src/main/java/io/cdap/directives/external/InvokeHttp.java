@@ -96,21 +96,18 @@ public class InvokeHttp implements Directive {
         String[] components = header.split("=");
         if (components.length != 2) {
           throw new DirectiveParseException (
-            String.format("Incorrect header '%s' specified. " +
-                            "Header should be specified as 'key=value' pairs separated by a comma (,).", header)
-          );
+            NAME, String.format("Incorrect header '%s' specified. Header should be specified as 'key=value' " +
+                                  "pairs separated by a comma (,).", header));
         }
         String key = components[0].trim();
         String value = components[1].trim();
         if (key.isEmpty()) {
           throw new DirectiveParseException(
-            String.format("Key specified for header '%s' cannot be empty.", header)
-          );
+            NAME, String.format("Key specified for header '%s' cannot be empty.", header));
         }
         if (value.isEmpty()) {
           throw new DirectiveParseException(
-            String.format("Value specified for header '%s' cannot be empty.", header)
-          );
+            NAME, String.format("Value specified for header '%s' cannot be empty.", header));
         }
         headers.put(key, value);
       }
@@ -140,7 +137,7 @@ public class InvokeHttp implements Directive {
         }
       } catch (Exception e) {
         // If there are any issues, they will be pushed on the error port.
-        throw new ErrorRowException(e.getMessage(), 500);
+        throw new ErrorRowException(NAME, e.getMessage(), 500);
       }
     }
     return rows;

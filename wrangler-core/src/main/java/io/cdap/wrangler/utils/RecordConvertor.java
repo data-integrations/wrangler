@@ -96,13 +96,11 @@ public final class RecordConvertor implements Serializable {
         }
       } catch (UnexpectedFormatException e) {
         throw new RecordConvertorException(
-          String.format("Field '%s' of type '%s' (Nullable : '%s') cannot be set to '%s'. Possibly the value being " +
-                          "set is not in inline with the schema specified. Check schema for field '%s'.",
+          String.format("Field '%s' of type '%s' cannot be set to '%s'. Make sure the value is " +
+                          "being set is inline with the specified schema.",
                         name,
-                        isNullable ? fSchema.getNonNullable().getType().name() : fSchema.getType().name(),
-                        isNullable ? "YES" : "NO",
-                        value == null ? "NULL" : value,
-                        name), e);
+                        isNullable ? fSchema.getNonNullable().getDisplayName() : fSchema.getDisplayName(),
+                        value == null ? "NULL" : value), e);
       }
     }
     return builder.build();
@@ -230,7 +228,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is integer, but the value is not a integer or string. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case LONG:
@@ -251,7 +249,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is long, but the value is nor a string or long. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case FLOAT:
@@ -274,7 +272,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is float, but the value is nor a string or float. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case DOUBLE:
@@ -301,7 +299,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is double, but the value is nor a string or double. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
       case BOOLEAN:
@@ -318,7 +316,7 @@ public final class RecordConvertor implements Serializable {
         } else {
           throw new RecordConvertorException(
             String.format("Schema specifies field '%s' is double, but the value is nor a string or boolean. " +
-                            "It is of type '%s'", name, object.getClass().getName())
+                            "It is of type '%s'", name, object.getClass().getSimpleName())
           );
         }
 

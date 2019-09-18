@@ -28,6 +28,7 @@ import io.cdap.functions.JSON;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
+import org.apache.commons.jexl3.JexlInfo;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -67,11 +68,13 @@ public final class EL {
         variables.add(Joiner.on(".").join(vars));
       }
     } catch (JexlException e) {
-      if (e.getCause() != null) {
-        throw new ELException(e.getCause().getMessage());
-      } else {
-        throw new ELException(e.getMessage());
-      }
+      // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
+      // So instead use info object to get information about error message and create custom error message.
+      JexlInfo info = e.getInfo();
+      throw new ELException(
+        String.format("Error encountered while executing '%s' at line '%d' and column '%d'. " +
+                        "Make sure a valid jexl transformation is provided.",
+                      info.getDetail().toString(), info.getLine(), info.getColumn()));
     } catch (Exception e) {
       throw new ELException(e.getMessage());
     }
@@ -94,14 +97,13 @@ public final class EL {
       ELResult variable = new ELResult(value);
       return variable;
     } catch (JexlException e) {
-      // Generally JexlException wraps the original exception, so it's good idea
-      // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
-      // else just print the error message.
-      if (e.getCause() != null) {
-        throw new ELException(e.getCause().getMessage());
-      } else {
-        throw new ELException(e.getMessage());
-      }
+      // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
+      // So instead use info object to get information about error message and create custom error message.
+      JexlInfo info = e.getInfo();
+      throw new ELException(
+        String.format("Error encountered while executing '%s', at line '%d' and column '%d'. " +
+                        "Make sure a valid jexl transformation is provided.",
+                      info.getDetail().toString(), info.getLine(), info.getColumn()));
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
                               "or convert to right data type using conversion functions available. Reason : "

@@ -97,16 +97,15 @@ public class SimpleTextParser implements RecipeParser {
       // Checks if the directive has been excluded from being used.
       if (!root.equals(command) && context.isExcluded(command)) {
         throw new DirectiveParseException(
-          String.format("Aliased directive '%s' has been configured as restricted directive and "
-                          + "is hence unavailable. Please contact your administrator", command)
+          command, String.format("Aliased directive '%s' has been configured as restricted directive and "
+                                   + "is hence unavailable. Please contact your administrator", command)
         );
       }
 
       if (context.isExcluded(root)) {
         throw new DirectiveParseException(
-          String.format("Executor '%s' has been configured as restricted directive and is hence unavailable. " +
-                          "Please contact your administrator", command)
-        );
+          command, String.format("Executor '%s' has been configured as restricted directive and is hence " +
+                                   "unavailable. Please contact your administrator", command));
       }
     }
     return directives;
@@ -137,9 +136,7 @@ public class SimpleTextParser implements RecipeParser {
       if (!optional) {
         String usage = usageRegistry.getUsage(directive);
         throw new DirectiveParseException(
-          String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)",
-                        field, lineno, directive, usage)
-        );
+          directive, String.format("Missing field '%s' at line number %d (usage: %s)", field, lineno, usage));
       }
     }
     return value;

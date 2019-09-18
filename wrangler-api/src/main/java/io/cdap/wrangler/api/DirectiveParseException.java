@@ -43,6 +43,14 @@ public class DirectiveParseException extends Exception {
     super(message);
   }
 
+  public DirectiveParseException(String directiveName, String errorMessage) {
+    this(String.format("Error encountered while parsing '%s' : %s", directiveName, errorMessage));
+  }
+
+  public DirectiveParseException(String directiveName, String errorMessage, Throwable e) {
+    this(String.format("Error encountered while parsing '%s' : %s", directiveName, errorMessage), e);
+  }
+
   public Iterator<SyntaxError> errors() {
     return errors;
   }

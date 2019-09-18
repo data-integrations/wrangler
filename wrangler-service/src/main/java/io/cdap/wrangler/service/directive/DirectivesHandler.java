@@ -45,6 +45,8 @@ import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.ErrorRecord;
+import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.GrammarMigrator;
 import io.cdap.wrangler.api.Pair;
@@ -67,6 +69,7 @@ import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
+import io.cdap.wrangler.proto.ErrorRecordsException;
 import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.Request;
 import io.cdap.wrangler.proto.ServiceResponse;
@@ -94,6 +97,7 @@ import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.validator.ColumnNameValidator;
 import io.cdap.wrangler.validator.Validator;
 import io.cdap.wrangler.validator.ValidatorException;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -117,6 +121,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -678,10 +683,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         sb.append(directives).append(";");
         return sb.toString();
       }
-    } catch (CompileException e) {
+    } catch (CompileException | DirectiveParseException e) {
       throw new IllegalArgumentException(e.getMessage(), e);
-    } catch (DirectiveParseException e) {
-      throw new IllegalArgumentException(e.getMessage());
     }
     return null;
   }
@@ -1117,12 +1120,21 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         String migrate = migrator.migrate();
         RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
         recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
-        executor.initialize(recipe, context);
         try {
+          executor.initialize(recipe, context);
           rows = executor.execute(sample.apply(rows));
         } catch (RecipeException e) {
           throw new BadRequestException(e.getMessage(), e);
         }
+
+        List<ErrorRecordBase> errors = executor.errors()
+          .stream()
+          .filter(ErrorRecordBase::isShownInWrangler)
+          .collect(Collectors.toList());
+        if (errors.size() > 0) {
+          throw new ErrorRecordsException(errors);
+        }
+
         executor.destroy();
       }
       return rows;
