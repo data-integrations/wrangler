@@ -27,6 +27,7 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.etl.api.Emitter;
+import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.InvalidEntry;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.StageSubmitterContext;
@@ -134,13 +135,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    * </p>
    */
   @Override
-  public void configurePipeline(PipelineConfigurer configurer) throws IllegalArgumentException {
+  public void configurePipeline(PipelineConfigurer configurer) {
     super.configurePipeline(configurer);
+    FailureCollector collector = configurer.getStageConfigurer().getFailureCollector();
 
     try {
       Schema iSchema = configurer.getStageConfigurer().getInputSchema();
-      if (!config.containsMacro("field") && !config.field.equalsIgnoreCase("*")) {
-        validateInputSchema(iSchema);
+      if (!config.containsMacro(Config.NAME_FIELD) && !(config.field.equals("*") || config.field.equals("#"))) {
+        validateInputSchema(iSchema, collector);
       }
 
       String directives = config.directives;
@@ -162,17 +164,20 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         RecipeSymbol symbols = status.getSymbols();
         Set<String> dynamicDirectives = symbols.getLoadableDirectives();
         for (String directive : dynamicDirectives) {
-          Object o = configurer.usePlugin(Directive.TYPE, directive, directive, PluginProperties.builder().build());
-          if (o == null) {
-            throw new IllegalArgumentException(
-              String.format("User Defined Directive '%s' is not deployed or is not available.", directive)
-            );
+          Object directivePlugin = configurer.usePlugin(Directive.TYPE, directive, directive,
+                                                        PluginProperties.builder().build());
+          if (directivePlugin == null) {
+            collector.addFailure(
+              String.format("User Defined Directive '%s' is not deployed or is not available.", directive),
+              "Ensure the directive is deployed.")
+              .withPluginNotFound(directive, directive, Directive.TYPE)
+              .withConfigElement(Config.NAME_UDD, directive);
           }
         }
 
         // If the 'directives' contains macro, then we would not attempt to compile
         // it.
-        if (!config.containsMacro("directives")) {
+        if (!config.containsMacro(Config.NAME_DIRECTIVES)) {
           // Create the registry that only interacts with system directives.
           registry = new SystemDirectiveRegistry();
 
@@ -184,48 +189,39 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
                 String directive = (String) group.get(0).value();
                 DirectiveInfo directiveInfo = registry.get("", directive);
                 if (directiveInfo == null && !dynamicDirectives.contains(directive)) {
-                  throw new IllegalArgumentException(
+                  collector.addFailure(
                     String.format("Wrangler plugin has a directive '%s' that does not exist in system or " +
-                                    "user space. Either it is a typographical error or the user directive is " +
-                                    "not loaded.", directive)
-                  );
+                                    "user space.", directive),
+                    "Ensure the directive is loaded or the directive name is correct.")
+                    .withConfigProperty(Config.NAME_DIRECTIVES);
                 }
               }
             }
           }
         }
       } catch (CompileException e) {
-        throw new IllegalArgumentException(e.getMessage(), e);
+        collector.addFailure("Compilation error occurred : " + e.getMessage(), null);
       } catch (DirectiveParseException e) {
-        throw new IllegalArgumentException(e.getMessage(), e);
+        collector.addFailure(e.getMessage(), null);
       }
 
       // Based on the configuration create output schema.
       try {
-        if (!config.containsMacro("schema")) {
+        if (!config.containsMacro(Config.NAME_SCHEMA)) {
           oSchema = Schema.parseJson(config.schema);
         }
       } catch (IOException e) {
-        throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.", e);
-      }
-
-      // Check if configured field is present in the input schema.
-      Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-      if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#")) &&
-        (inputSchema != null && inputSchema.getField(config.field) == null)) {
-        throw new IllegalArgumentException(
-          String.format("Field '%s' configured to wrangler is not present in the input. " +
-                          "Only specify fields present in the input", config.field == null ? "null" : config.field)
-        );
+        collector.addFailure("Invalid output schema.", null)
+          .withConfigProperty(Config.NAME_SCHEMA).withStacktrace(e.getStackTrace());
       }
 
       // Check if pre-condition is not null or empty and if so compile expression.
-      if (!config.containsMacro("precondition")) {
+      if (!config.containsMacro(Config.NAME_PRECONDITION)) {
         if (config.precondition != null && !config.precondition.trim().isEmpty()) {
           try {
             new Precondition(config.precondition);
           } catch (PreconditionException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
+            collector.addFailure(e.getMessage(), null).withConfigProperty(Config.NAME_PRECONDITION);
           }
         }
       }
@@ -237,7 +233,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     } catch (Exception e) {
       LOG.error(e.getMessage());
-      throw new IllegalArgumentException(e.getMessage(), e);
+      collector.addFailure("Error occurred : " + e.getMessage(), null).withStacktrace(e.getStackTrace());
     }
   }
 
@@ -278,15 +274,16 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   /**
    * Validates input schema.
    *
-   * @param inputSchema configured for the plugin.
+   * @param inputSchema configured for the plugin
+   * @param collector failure collector
    */
-  private void validateInputSchema(Schema inputSchema) {
+  private void validateInputSchema(Schema inputSchema, FailureCollector collector) {
     if (inputSchema != null) {
       // Check the existence of field in input schema
       Schema.Field inputSchemaField = inputSchema.getField(config.field);
       if (inputSchemaField == null) {
-        throw new IllegalArgumentException(
-          "Field " + config.field + " is not present in the input schema");
+        collector.addFailure(String.format("Field '%s' must be present in input schema.", config.field), null)
+          .withConfigProperty(Config.NAME_FIELD);
       }
     }
   }
@@ -534,23 +531,29 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    * Config for the plugin.
    */
   public static class Config extends PluginConfig {
-    @Name("precondition")
+    static final String NAME_PRECONDITION = "precondition";
+    static final String NAME_FIELD = "field";
+    static final String NAME_DIRECTIVES = "directives";
+    static final String NAME_UDD = "udd";
+    static final String NAME_SCHEMA = "schema";
+
+    @Name(NAME_PRECONDITION)
     @Description("Precondition expression specifying filtering before applying directives (true to filter)")
     @Macro
     private String precondition;
 
-    @Name("directives")
+    @Name(NAME_DIRECTIVES)
     @Description("Recipe for wrangling the input records")
     @Macro
     @Nullable
     private String directives;
 
-    @Name("udd")
+    @Name(NAME_UDD)
     @Description("List of User Defined Directives (UDD) that have to be loaded.")
     @Nullable
     private String udds;
 
-    @Name("field")
+    @Name(NAME_FIELD)
     @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
     @Macro
     private final String field;
@@ -562,7 +565,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Macro
     private final int threshold;
 
-    @Name("schema")
+    @Name(NAME_SCHEMA)
     @Description("Specifies the schema that has to be output.")
     @Macro
     private final String schema;
