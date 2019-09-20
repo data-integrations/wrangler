@@ -162,26 +162,25 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         // Directives in this context).
         CompileStatus status = compiler.compile(new MigrateToV2(directives).migrate());
         RecipeSymbol symbols = status.getSymbols();
-        Set<String> dynamicDirectives = symbols.getLoadableDirectives();
-        for (String directive : dynamicDirectives) {
-          Object directivePlugin = configurer.usePlugin(Directive.TYPE, directive, directive,
-                                                        PluginProperties.builder().build());
-          if (directivePlugin == null) {
-            collector.addFailure(
-              String.format("User Defined Directive '%s' is not deployed or is not available.", directive),
-              "Ensure the directive is deployed.")
-              .withPluginNotFound(directive, directive, Directive.TYPE)
-              .withConfigElement(Config.NAME_UDD, directive);
+        if (symbols != null) {
+          Set<String> dynamicDirectives = symbols.getLoadableDirectives();
+          for (String directive : dynamicDirectives) {
+            Object directivePlugin = configurer.usePlugin(Directive.TYPE, directive, directive,
+                                                          PluginProperties.builder().build());
+            if (directivePlugin == null) {
+              collector.addFailure(
+                String.format("User Defined Directive '%s' is not deployed or is not available.", directive),
+                "Ensure the directive is deployed.")
+                .withPluginNotFound(directive, directive, Directive.TYPE)
+                .withConfigElement(Config.NAME_UDD, directive);
+            }
           }
-        }
+          // If the 'directives' contains macro, then we would not attempt to compile
+          // it.
+          if (!config.containsMacro(Config.NAME_DIRECTIVES)) {
+            // Create the registry that only interacts with system directives.
+            registry = new SystemDirectiveRegistry();
 
-        // If the 'directives' contains macro, then we would not attempt to compile
-        // it.
-        if (!config.containsMacro(Config.NAME_DIRECTIVES)) {
-          // Create the registry that only interacts with system directives.
-          registry = new SystemDirectiveRegistry();
-
-          if (symbols != null) {
             Iterator<TokenGroup> iterator = symbols.iterator();
             while (iterator != null && iterator.hasNext()) {
               TokenGroup group = iterator.next();
@@ -199,6 +198,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
             }
           }
         }
+
       } catch (CompileException e) {
         collector.addFailure("Compilation error occurred : " + e.getMessage(), null);
       } catch (DirectiveParseException e) {
