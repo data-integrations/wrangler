@@ -18,7 +18,6 @@ package io.cdap.directives.validation.conformers;
 
 import com.google.gson.JsonObject;
 import io.cdap.directives.validation.ConformanceIssue;
-
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.Validator;
@@ -26,29 +25,69 @@ import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/** Validates using JSON Validator. */
+/**
+ * Validates using JSON Validator.
+ */
 public class JsonConformer implements Conformer<JsonObject> {
+
   public static final String SCHEMA_FORMAT = "json";
 
-  private final InputStream schemaStream;
+  private final Supplier<InputStream> schemaStream;
   private Schema schema;
 
-  private JsonConformer(InputStream stream) {
+  private JsonConformer(Supplier<InputStream> stream) {
     this.schemaStream = stream;
   }
 
+  static List<ConformanceIssue> convertValidationException(ValidationException e) {
+    ValidationException[] nonTrivialCauses =
+      e.getCausingExceptions().stream()
+        .filter(c -> !c.getPointerToViolation().equals("#"))
+        .toArray(ValidationException[]::new);
+
+    if (nonTrivialCauses.length > 0) {
+      return Arrays.stream(nonTrivialCauses)
+        .flatMap(ntc -> getLeafExceptions(null, ntc))
+        .distinct()
+        .collect(Collectors.toList());
+    }
+
+    return Collections.singletonList(
+      new ConformanceIssue(
+        e.getSchemaLocation(), e.getPointerToViolation(), e.toJSON().toString()));
+  }
+
+  private static Stream<ConformanceIssue> getLeafExceptions(String schemaPath, ValidationException ve) {
+    String newSchemaPath = (schemaPath != null && !schemaPath.isEmpty() ? schemaPath + " -> " : "")
+      + ve.getSchemaLocation();
+
+    if (ve.getCausingExceptions().size() == 0) {
+      return Stream.of(new ConformanceIssue(newSchemaPath, ve.getPointerToViolation(), ve.getMessage()));
+    }
+
+    return ve.getCausingExceptions().stream().flatMap(c -> getLeafExceptions(newSchemaPath, c));
+  }
+
   @Override
-  public void initialize() {
-    JSONObject schemaJson = new JSONObject(new JSONTokener(new InputStreamReader(schemaStream)));
-    schema = SchemaLoader.builder().schemaJson(schemaJson).build().load().build();
+  public void initialize() throws IOException {
+
+    try (
+      InputStream stream = schemaStream.get();
+      InputStreamReader reader = new InputStreamReader(stream)
+    ) {
+      JSONObject schemaJson = new JSONObject(new JSONTokener(reader));
+      schema = SchemaLoader.builder().schemaJson(schemaJson).build().load().build();
+    }
   }
 
   @Override
@@ -65,43 +104,14 @@ public class JsonConformer implements Conformer<JsonObject> {
     return Collections.emptyList();
   }
 
-  static List<ConformanceIssue> convertValidationException(ValidationException e) {
-    ValidationException[] nonTrivialCauses =
-        e.getCausingExceptions().stream()
-            .filter(c -> !c.getPointerToViolation().equals("#"))
-            .toArray(ValidationException[]::new);
-
-    if (nonTrivialCauses.length > 0) {
-      return Arrays.stream(nonTrivialCauses)
-          .flatMap(ntc -> getLeafExceptions(null, ntc))
-          .distinct()
-          .collect(Collectors.toList());
-    }
-
-    return Collections.singletonList(
-        new ConformanceIssue(
-            e.getSchemaLocation(), e.getPointerToViolation(), e.toJSON().toString()));
-  }
-
-  private static Stream<ConformanceIssue> getLeafExceptions(
-      String schemaPath, ValidationException ve) {
-    final String newSchemaPath =
-        (schemaPath != null && !schemaPath.isEmpty() ? schemaPath + " -> " : "")
-            + ve.getSchemaLocation();
-
-    if (ve.getCausingExceptions().size() == 0) {
-      return Stream.of(
-          new ConformanceIssue(newSchemaPath, ve.getPointerToViolation(), ve.getMessage()));
-    }
-
-    return ve.getCausingExceptions().stream().flatMap(c -> getLeafExceptions(newSchemaPath, c));
-  }
-
-  /** Factory for JsonConformer. Requires only a schema. */
+  /**
+   * Factory for JsonConformer. Requires only a schema.
+   */
   public static class Factory implements Conformer.Factory<JsonObject> {
-    private InputStream stream;
 
-    public Factory setSchemaStream(InputStream schemaStream) {
+    private Supplier<InputStream> stream;
+
+    public Factory setSchemaStreamSupplier(Supplier<InputStream> schemaStream) {
       this.stream = schemaStream;
       return this;
     }

@@ -17,23 +17,31 @@
 package io.cdap.directives.validation;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/** Contains the Schemas Manifest for standard schemas. */
+/**
+ * Contains the Schemas Manifest for standard schemas.
+ */
 public final class Manifest implements Serializable {
+
   private final Map<String, Standard> standards;
 
   public Manifest(Map<String, Standard> standards) {
-    this.standards = standards;
+    this.standards = Collections.unmodifiableMap(new HashMap<>(standards));
   }
 
   public Map<String, Standard> getStandards() {
     return standards;
   }
 
-  /** Contains manifest information for a single standard specification. */
+  /**
+   * Contains manifest information for a single standard specification.
+   */
   public static final class Standard {
+
     private final String hash;
     private final String format;
 
