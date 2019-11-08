@@ -17,6 +17,7 @@
 package io.cdap.wrangler;
 
 import com.google.common.collect.ImmutableMap;
+import io.cdap.cdap.api.ServiceDiscoverer;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
@@ -30,6 +31,7 @@ import io.cdap.cdap.etl.api.Emitter;
 import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.InvalidEntry;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
+import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.StageSubmitterContext;
 import io.cdap.cdap.etl.api.Transform;
 import io.cdap.cdap.etl.api.TransformContext;
@@ -41,6 +43,7 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
+import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -73,9 +76,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -240,52 +245,42 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   @Override
   public void prepareRun(StageSubmitterContext context) throws Exception {
     super.prepareRun(context);
-    List<String> inputFields = new ArrayList<>();
-    List<String> outputFields = new ArrayList<>();
-    Schema inputSchema = context.getInputSchema();
-    if (checkSchema(inputSchema, "input")) {
-      //noinspection ConstantConditions
-      inputFields = inputSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
-    }
-    Schema outputSchema = context.getOutputSchema();
-    if (checkSchema(outputSchema, "output")) {
-      //noinspection ConstantConditions
-      outputFields = outputSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
-    }
-    FieldOperation dataPrepOperation = new FieldTransformOperation("Prepare Data",
-                                                                   new MigrateToV2(config.directives).migrate(),
-                                                                   inputFields,
-                                                                   outputFields);
-    context.record(Collections.singletonList(dataPrepOperation));
-  }
+    RecipeParser parser = initializeAndGetParser(context);
 
-  private boolean checkSchema(Schema schema, String name) {
-    if (schema == null) {
-      LOG.debug(String.format("The %s schema is null. Field level lineage will not be recorded", name));
-      return false;
-    }
-    if (schema.getFields() == null) {
-      LOG.debug(String.format("The %s schema fields are null. Field level lineage will not be recorded", name));
-      return false;
-    }
-    return true;
-  }
+    List<String> inputFields = getFields(context.getInputSchema(), "input");
+    List<String> outputFields = getFields(context.getOutputSchema(), "output");
 
-  /**
-   * Validates input schema.
-   *
-   * @param inputSchema configured for the plugin
-   * @param collector failure collector
-   */
-  private void validateInputSchema(Schema inputSchema, FailureCollector collector) {
-    if (inputSchema != null) {
-      // Check the existence of field in input schema
-      Schema.Field inputSchemaField = inputSchema.getField(config.field);
-      if (inputSchemaField == null) {
-        collector.addFailure(String.format("Field '%s' must be present in input schema.", config.field), null)
-          .withConfigProperty(Config.NAME_FIELD);
+    List<Directive> directives = parser.parse();
+    // this is to track field with explicit operation
+    List<String> usedFields = new ArrayList<>();
+    List<FieldOperation> fieldOperations = new ArrayList<>();
+
+    boolean failure = false;
+    for (Directive directive : directives) {
+      try {
+        List<FieldTransformOperation> operations = directive.getFieldOperation();
+        operations.forEach(operation -> usedFields.addAll(operation.getInputFields()));
+        fieldOperations.addAll(operations);
+      } catch (UnsupportedOperationException e) {
+        failure = true;
+        fieldOperations.clear();
+        fieldOperations.add(new FieldTransformOperation("Prepare Data",
+                                                        new MigrateToV2(config.directives).migrate(),
+                                                        inputFields, outputFields));
+        break;
       }
     }
+
+    if (!failure) {
+      // TODO: CDAP-16101 correctly emit the field lineage for wrangler
+      // This is a very hacky way to emit the FLL for other fields that do not go through directives
+      inputFields.removeAll(usedFields);
+      inputFields.forEach(field -> fieldOperations.add(
+        new FieldTransformOperation(String.format("Identity transform for field %s", field),
+                                    String.format("Identity transform for field %s", field),
+                                    Collections.singletonList(field), field)));
+    }
+    context.record(fieldOperations);
   }
 
   /**
@@ -299,19 +294,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(),
-      new UserDirectiveRegistry(context)
-    );
-    registry.reload(context.getNamespace());
+    RecipeParser recipe = initializeAndGetParser(context);
 
-    String directives = config.directives;
-    if (config.udds != null && !config.udds.trim().isEmpty()) {
-      directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
-    }
-
-    RecipeParser recipe = new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
-                                                 registry);
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
@@ -333,29 +317,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     }
 
-    // Make a call to retrieve the directive config and create a context.
-    // In this plugin, a call is made to the service at runtime.
-    // NOTE: This has to be moved to pre-start-plugin phase so that the information
-    // it's not heavily parallelized to crash the service.
-    try {
-      URL url = getDPServiceURL(CONFIG_METHOD);
-      if (url != null) {
-        ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
-        recipe.initialize(dContext);
-      } else {
-        // this is normal in cloud environments
-        LOG.info(String.format("Stage:%s - The Dataprep service is not accessible in this environment. "
-                                 + "No aliasing and restriction will be applied.", getContext().getStageName()));
-        recipe.initialize(null);
-      }
-    } catch (IOException | URISyntaxException e) {
-      // If there is a issue, we need to fail the pipeline that has the plugin.
-      throw new IllegalArgumentException(
-        String.format("Stage:%s - Issue in retrieving the configuration from the service. %s",
-                      getContext().getStageName(), e.getMessage()), e
-      );
-    }
-
     try {
       // Create the pipeline executor with context being set.
       pipeline = new RecipePipelineExecutor();
@@ -369,7 +330,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Initialize the error counter.
     errorCounter = 0;
   }
-
 
   @Override
   public void destroy() {
@@ -511,14 +471,89 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     return input.get(fieldName);
   }
 
+  private List<String> getFields(Schema schema, String input) {
+    if (checkSchema(schema, input)) {
+      return schema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
+    }
+    return Collections.emptyList();
+  }
+
+  private boolean checkSchema(Schema schema, String name) {
+    if (schema == null) {
+      LOG.debug(String.format("The %s schema is null. Field level lineage will not be recorded", name));
+      return false;
+    }
+    if (schema.getFields() == null) {
+      LOG.debug(String.format("The %s schema fields are null. Field level lineage will not be recorded", name));
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Validates input schema.
+   *
+   * @param inputSchema configured for the plugin
+   * @param collector failure collector
+   */
+  private void validateInputSchema(@Nullable Schema inputSchema, FailureCollector collector) {
+    if (inputSchema != null) {
+      // Check the existence of field in input schema
+      Schema.Field inputSchemaField = inputSchema.getField(config.field);
+      if (inputSchemaField == null) {
+        collector.addFailure(String.format("Field '%s' must be present in input schema.", config.field), null)
+          .withConfigProperty(Config.NAME_FIELD);
+      }
+    }
+  }
+
+  private RecipeParser initializeAndGetParser(
+    StageContext context) throws DirectiveLoadException, DirectiveParseException {
+    registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry(), new UserDirectiveRegistry(context));
+    registry.reload(context.getNamespace());
+
+    String directives = config.directives;
+    if (config.udds != null && !config.udds.trim().isEmpty()) {
+      directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
+    }
+
+    RecipeParser recipe = new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
+                                                 registry);
+
+    // Make a call to retrieve the directive config and create a context.
+    // In this plugin, a call is made to the service at runtime.
+    // NOTE: This has to be moved to pre-start-plugin phase so that the information
+    // it's not heavily parallelized to crash the service.
+    try {
+      URL url = getDPServiceURL(context, CONFIG_METHOD);
+      if (url != null) {
+        ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
+        recipe.initialize(dContext);
+      } else {
+        // this is normal in cloud environments
+        LOG.info(String.format("Stage:%s - The Dataprep service is not accessible in this environment. "
+                                 + "No aliasing and restriction will be applied.", getContext().getStageName()));
+        recipe.initialize(null);
+      }
+    } catch (IOException | URISyntaxException e) {
+      // If there is a issue, we need to fail the pipeline that has the plugin.
+      throw new IllegalArgumentException(
+        String.format("Stage:%s - Issue in retrieving the configuration from the service. %s",
+                      getContext().getStageName(), e.getMessage()), e
+      );
+    }
+    return recipe;
+  }
+
   /**
    * Retrieves the base url from the context and appends method to value to the final url.
    *
    * @param method to be invoked.
    * @return fully formed url to the method.
    */
-  private URL getDPServiceURL(String method) throws URISyntaxException, MalformedURLException {
-    URL url = getContext().getServiceURL(Contexts.SYSTEM, APPLICATION_NAME, SERVICE_NAME);
+  private URL getDPServiceURL(ServiceDiscoverer discoverer,
+                              String method) throws URISyntaxException, MalformedURLException {
+    URL url = discoverer.getServiceURL(Contexts.SYSTEM, APPLICATION_NAME, SERVICE_NAME);
     if (url == null) {
       return null;
     }

@@ -19,6 +19,7 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -35,6 +36,7 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +73,14 @@ public class ColumnExpression implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("expression", TokenType.EXPRESSION);
     return builder.build();
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperation() {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Set column %s", column),
+                                  String.format("Set the column %s with expression %s", column, expression),
+                                  Collections.emptyList(), column));
   }
 
   @Override
