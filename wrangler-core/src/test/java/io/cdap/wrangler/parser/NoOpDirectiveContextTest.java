@@ -17,7 +17,7 @@
 package io.cdap.wrangler.parser;
 
 import io.cdap.wrangler.TestingRig;
-import io.cdap.wrangler.api.Executor;
+import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class NoOpDirectiveContextTest {
     };
 
     RecipeParser parse = TestingRig.parse(recipe);
-    List<Executor> directives = parse.parse();
+    List<Directive> directives = parse.parse();
     Assert.assertEquals(6, directives.size());
   }
 
