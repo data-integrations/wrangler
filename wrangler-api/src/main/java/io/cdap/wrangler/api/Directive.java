@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.api;
 
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
@@ -115,4 +116,13 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
    * @see io.cdap.wrangler.api.parser.TokenType
    */
   UsageDefinition define();
+
+  /**
+   * Get the field operations related to get this directive.
+   *
+   * @return a list of field operations about this directive
+   */
+  default List<FieldTransformOperation> getFieldOperation() {
+    throw new UnsupportedOperationException("This directive does not support field level lineage.");
+  }
 }

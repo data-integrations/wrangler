@@ -20,6 +20,7 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.common.Bytes;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -31,6 +32,7 @@ import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,6 +54,14 @@ public final class SetType implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("type", TokenType.IDENTIFIER);
     return builder.build();
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperation() {
+    return Collections.singletonList(new FieldTransformOperation(String.format("Set type for column %s", col),
+                                                                 String.format("Set type for column %s with" +
+                                                                                 " value %s", col, type),
+                                                                 Collections.singletonList(col), col));
   }
 
   @Override
