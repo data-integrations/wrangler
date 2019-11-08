@@ -19,6 +19,7 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
@@ -64,7 +65,7 @@ public class RecordRegexFilter implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperation() {
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
     return Collections.singletonList(new FieldTransformOperation(String.format("Record regex filter for column %s",
                                                                                column),
                                                                  String.format("Filter column %s if %s regex %s",

@@ -19,6 +19,8 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
@@ -76,11 +78,22 @@ public class ColumnExpression implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperation() {
-    return Collections.singletonList(
-      new FieldTransformOperation(String.format("Set column %s", column),
-                                  String.format("Set the column %s with expression %s", column, expression),
-                                  Collections.emptyList(), column));
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    Schema schema = context.getInputSchema();
+    if (schema != null && schema.getFields() != null) {
+      if (schema.getField(column) != null) {
+        return Collections.singletonList(
+          new FieldTransformOperation(String.format("Replace column %s", column),
+                                      String.format("Replace the column %s with expression %s", column, expression),
+                                      Collections.singletonList(column), column));
+      } else {
+        return Collections.singletonList(
+          new FieldTransformOperation(String.format("Add column %s", column),
+                                      String.format("Add the column %s with expression %s", column, expression),
+                                      Collections.emptyList(), column));
+      }
+    }
+    return Collections.emptyList();
   }
 
   @Override

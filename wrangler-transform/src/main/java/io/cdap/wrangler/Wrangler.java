@@ -258,7 +258,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     boolean failure = false;
     for (Directive directive : directives) {
       try {
-        List<FieldTransformOperation> operations = directive.getFieldOperation();
+        List<FieldTransformOperation> operations = directive.getFieldOperations(context);
         operations.forEach(operation -> usedFields.addAll(operation.getInputFields()));
         fieldOperations.addAll(operations);
       } catch (UnsupportedOperationException e) {

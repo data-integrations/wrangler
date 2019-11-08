@@ -19,6 +19,7 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
@@ -49,7 +50,7 @@ public class FillNullOrEmpty implements Directive {
   private String value;
 
   @Override
-  public List<FieldTransformOperation> getFieldOperation() {
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
     return Collections.singletonList(new FieldTransformOperation(String.format("Fill null or emptry for column %s",
                                                                                column),
                                                                  String.format("Fill null or empty for column %s with" +
