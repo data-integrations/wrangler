@@ -42,7 +42,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * A directive for apply an expression to store the result in a column.
@@ -82,8 +81,7 @@ public class ColumnExpression implements Directive {
   public List<FieldTransformOperation> getFieldOperations(StageContext context) {
     Schema schema = context.getInputSchema();
     if (schema != null && schema.getFields() != null) {
-      List<String> inputFields = schema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
-      if (inputFields.contains(column)) {
+      if (schema.getField(column) != null) {
         return Collections.singletonList(
           new FieldTransformOperation(String.format("Replace column %s", column),
                                       String.format("Replace the column %s with expression %s", column, expression),
