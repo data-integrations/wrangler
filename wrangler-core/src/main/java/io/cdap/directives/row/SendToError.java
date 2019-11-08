@@ -19,7 +19,7 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.lineage.field.FieldOperation;
+import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
@@ -75,7 +75,7 @@ public class SendToError implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperation() {
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
     return el.variables().stream().map(
       variable -> new FieldTransformOperation(String.format("Send to error for column %s", variable),
                                               String.format("Send to error based on column %s", variable),
