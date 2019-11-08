@@ -20,6 +20,7 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.common.Bytes;
+import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
@@ -57,7 +58,7 @@ public final class SetType implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperation() {
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
     return Collections.singletonList(new FieldTransformOperation(String.format("Set type for column %s", col),
                                                                  String.format("Set type for column %s with" +
                                                                                  " value %s", col, type),
