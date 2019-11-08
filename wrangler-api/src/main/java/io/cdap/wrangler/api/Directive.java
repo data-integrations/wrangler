@@ -120,6 +120,8 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
 
   /**
    * Get the field operations related to get this directive.
+   * TODO: CDAP-16101 correctly emit the field lineage for wrangler, this method might be deprecated when we have
+   * the correct fix.
    *
    * @return a list of field operations about this directive
    */
