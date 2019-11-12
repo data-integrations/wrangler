@@ -19,6 +19,8 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -30,6 +32,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,6 +52,13 @@ public class Lower implements Directive {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME);
     return builder.build();
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(new FieldTransformOperation(String.format("Lowercase column %s", column),
+                                                                 String.format("Lowercase column %s", column),
+                                                                 Collections.singletonList(column), column));
   }
 
   @Override
