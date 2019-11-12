@@ -532,14 +532,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       } else {
         // this is normal in cloud environments
         LOG.info(String.format("Stage:%s - The Dataprep service is not accessible in this environment. "
-                                 + "No aliasing and restriction will be applied.", getContext().getStageName()));
+                                 + "No aliasing and restriction will be applied.", context.getStageName()));
         recipe.initialize(null);
       }
     } catch (IOException | URISyntaxException e) {
       // If there is a issue, we need to fail the pipeline that has the plugin.
       throw new IllegalArgumentException(
         String.format("Stage:%s - Issue in retrieving the configuration from the service. %s",
-                      getContext().getStageName(), e.getMessage()), e
+                      context.getStageName(), e.getMessage()), e
       );
     }
     return recipe;
