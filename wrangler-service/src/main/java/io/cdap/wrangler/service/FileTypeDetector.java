@@ -95,6 +95,7 @@ public class FileTypeDetector {
   public String detectFileType(String location) {
     // We first attempt to detect the type of file based on extension.
     String extension = FilenameUtils.getExtension(location);
+    extension = extension == null ? null : extension.toLowerCase();
     if (extensions.containsKey(extension)) {
       return extensions.get(extension);
     } else {
