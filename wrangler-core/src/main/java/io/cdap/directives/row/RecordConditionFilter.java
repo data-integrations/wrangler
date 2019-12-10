@@ -19,6 +19,8 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -36,7 +38,9 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -82,6 +86,15 @@ public class RecordConditionFilter implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return el.variables().stream().map(
+      variable -> new FieldTransformOperation(String.format("Record condition filter for column %s", variable),
+                                              String.format("Filter based on column %s", variable),
+                                              Collections.singletonList(variable), variable))
+             .collect(Collectors.toList());
   }
 
   @Override

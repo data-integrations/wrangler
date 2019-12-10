@@ -19,6 +19,8 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -34,6 +36,7 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -59,6 +62,17 @@ public class RecordRegexFilter implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("regex", TokenType.TEXT);
     return builder.build();
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(new FieldTransformOperation(String.format("Record regex filter for column %s",
+                                                                               column),
+                                                                 String.format("Filter column %s if %s regex %s",
+                                                                               column,
+                                                                               matched ? "matched" : "not matched",
+                                                                               pattern),
+                                                                 Collections.singletonList(column), column));
   }
 
   @Override

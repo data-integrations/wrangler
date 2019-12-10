@@ -19,6 +19,8 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -37,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -59,6 +62,14 @@ public class ParseSimpleDate implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("format", TokenType.TEXT);
     return builder.build();
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(new FieldTransformOperation(String.format("Parse simple date on %s", column),
+                                                                 String.format("Parsing %s as date with format %s",
+                                                                               column, formatter.toPattern()),
+                                                                 Collections.singletonList(column), column));
   }
 
   @Override
