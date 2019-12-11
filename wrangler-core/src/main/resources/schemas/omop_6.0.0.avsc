@@ -1,0 +1,4767 @@
+{
+  "type": "record",
+  "name": "OMOP_6.0.0",
+  "namespace": "google.com.datamodels.omop",
+  "doc": "see https://github.com/OHDSI/CommonDataModel/blob/v6.0.0/OMOP_CDM_v6_0.pdf for information about the OMOP Schemas",
+  "_revision": 1,
+  "fields": [
+    {
+      "name": "CARE_SITE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CARE_SITE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The CARE_SITE table contains a list of uniquely identified institutional (physical or organizational) units where healthcare delivery is practiced (offices, wards, hospitals, clinics, etc.).",
+          "fields": [
+            {
+              "name": "care_site_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Care Site."
+            },
+            {
+              "name": "care_site_name",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The verbatim description or name of the Care Site as in data source",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "place_of_service_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Place of Service Concept ID in the Standardized Vocabularies."
+            },
+            {
+              "name": "location_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the geographic Location in the LOCATION table, where the detailed address information is stored."
+            },
+            {
+              "name": "care_site_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The identifier for the Care Site in the source data, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "place_of_service_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Place of Service as it appears in the source data, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CDM_SOURCE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CDM_SOURCE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The CDM_SOURCE table contains detail about the source database and the process used to transform the data into the OMOP Common Data Model.",
+          "fields": [
+            {
+              "name": "cdm_source_name",
+              "type": [
+                "string"
+              ],
+              "doc": "The full name of the source",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "cdm_source_abbreviation",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "An abbreviation of the name",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "25"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "cdm_holder",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The name of the organization responsible for the development of the CDM instance",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "source_description",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A description of the source data origin and purpose for collection. The description may contain a summary of the period of time that is expected to be covered by this dataset."
+            },
+            {
+              "name": "source_documentation_reference",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "URL or other external reference to location of source documentation",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "cdm_etl_reference",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "URL or other external reference to location of ETL specification documentation and ETL source code",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "source_release_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date for which the source data are most current, such as the last day of data capture"
+            },
+            {
+              "name": "cdm_release_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date when the CDM was instantiated"
+            },
+            {
+              "name": "cdm_version",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The version of CDM used",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "10"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "vocabulary_version",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The version of the vocabulary used",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "COHORT",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "COHORT",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The COHORT table contains records of subjects that satisfy a given set of criteria for a duration of time. The definition of the cohort is contained within the COHORT_DEFINITION table. Cohorts can be constructed of patients (Persons), Providers or Visits.",
+          "fields": [
+            {
+              "name": "cohort_definition_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a record in the COHORT_DEFINITION table containing relevant Cohort Definition information."
+            },
+            {
+              "name": "subject_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the subject in the cohort. These could be referring to records in the PERSON, PROVIDER, VISIT_OCCURRENCE table."
+            },
+            {
+              "name": "cohort_start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the Cohort Definition criteria for the Person, Provider or Visit first match."
+            },
+            {
+              "name": "cohort_end_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the Cohort Definition criteria for the Person, Provider or Visit no longer match or the Cohort membership was terminated."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "COHORT_DEFINITION",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "COHORT_DEFINITION",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The COHORT_DEFINITION table contains records defining a Cohort derived from the data through the associated description and syntax and upon instantiation (execution of the algorithm) placed into the COHORT table. Cohorts are a set of subjects that satisfy a given combination of inclusion criteria for a duration of time. The COHORT_DEFINITION table provides a standardized structure for maintaining the rules governing the inclusion of a subject into a cohort, and can store operational programming code to instantiate the cohort within the OMOP Common Data Model.",
+          "fields": [
+            {
+              "name": "cohort_definition_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Cohort."
+            },
+            {
+              "name": "cohort_definition_name",
+              "type": [
+                "string"
+              ],
+              "doc": "A short description of the Cohort.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "cohort_definition_description",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A complete description of the Cohort definition"
+            },
+            {
+              "name": "definition_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "Type defining what kind of Cohort Definition the record represents and how the syntax may be executed"
+            },
+            {
+              "name": "cohort_definition_syntax",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Syntax or code to operationalize the Cohort definition"
+            },
+            {
+              "name": "subject_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the Concept to which defines the domain of subjects that are members of the cohort (e.g., Person, Provider, Visit)."
+            },
+            {
+              "name": "cohort_initiation_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A date to indicate when the Cohort was initiated in the COHORT table"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CONCEPT",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CONCEPT",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The Standardized Vocabularies contains records, or Concepts, that uniquely identify each fundamental unit of meaning used to express clinical information in all domain tables of the CDM. Concepts are derived from vocabularies, which represent clinical information across a domain (e.g. conditions, drugs, procedures) through the use of codes and associated descriptions. Some Concepts are designated Standard Concepts, meaning these Concepts can be used as normative expressions of a clinical entity within the OMOP Common Data Model and within standardized analytics. Each Standard Concept belongs to one domain, which defines the location where the Concept would be expected to occur within data tables of the CDM.",
+          "fields": [
+            {
+              "name": "concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Concept across all domains."
+            },
+            {
+              "name": "concept_name",
+              "type": [
+                "string"
+              ],
+              "doc": "An unambiguous, meaningful and descriptive name for the Concept.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "domain_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A foreign key to the DOMAIN table the Concept belongs to.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "vocabulary_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A foreign key to the VOCABULARY table indicating from which source the Concept has been adapted.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "concept_class_id",
+              "type": [
+                "string"
+              ],
+              "doc": "The attribute or concept class of the Concept. Examples are 'Clinical Drug', 'Ingredient', 'Clinical Finding' etc.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "standard_concept",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "This flag determines where a Concept is a Standard Concept, i.e. is used in the data, a Classification Concept, or a non-standard Source Concept. The allowables values are 'S' (Standard Concept) and 'C' (Classification Concept), otherwise the content is NULL.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "concept_code",
+              "type": [
+                "string"
+              ],
+              "doc": "The concept code represents the identifier of the Concept in the source vocabulary, such as SNOMED-CT concept IDs, RxNorm RXCUIs etc. Note that concept codes are not unique across vocabularies.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "valid_start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the Concept was first recorded. The default value is 1-Jan-1970, meaning, the Concept has no (known) date of inception."
+            },
+            {
+              "name": "valid_end_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the Concept became invalid because it was deleted or superseded (updated) by a new concept. The default value is 31-Dec-2099, meaning, the Concept is valid until it becomes deprecated."
+            },
+            {
+              "name": "invalid_reason",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Reason the Concept was invalidated. Possible values are D (deleted), U (replaced with an update) or NULL when valid_end_date has the default value.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CONCEPT_ANCESTOR",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CONCEPT_ANCESTOR",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The CONCEPT_ANCESTOR table is designed to simplify observational analysis by providing the complete hierarchical relationships between Concepts. Only direct parent-child relationships between Concepts are stored in the CONCEPT_RELATIONSHIP table. To determine higher level ancestry connections, all individual direct relationships would have to be navigated at analysis time. The  CONCEPT_ANCESTOR table includes records for all parent-child relationships, as well as grandparent-grandchild relationships and those of any other level of lineage. Using the CONCEPT_ANCESTOR table allows for querying for all descendants of a hierarchical concept. For example, drug ingredients and drug products are all descendants of a drug class ancestor.",
+          "fields": [
+            {
+              "name": "ancestor_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the concept in the concept table for the higher-level concept that forms the ancestor in the relationship."
+            },
+            {
+              "name": "descendant_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the concept in the concept table for the lower-level concept that forms the descendant in the relationship."
+            },
+            {
+              "name": "min_levels_of_separation",
+              "type": [
+                "int"
+              ],
+              "doc": "The minimum separation in number of levels of hierarchy between ancestor and descendant concepts. This is an attribute that is used to simplify hierarchic analysis."
+            },
+            {
+              "name": "max_levels_of_separation",
+              "type": [
+                "int"
+              ],
+              "doc": "The maximum separation in number of levels of hierarchy between ancestor and descendant concepts. This is an attribute that is used to simplify hierarchic analysis."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CONCEPT_CLASS",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CONCEPT_CLASS",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The CONCEPT_CLASS table is a reference table, which includes a list of the classifications used to differentiate Concepts within a given Vocabulary. This reference table is populated with a single record for each Concept Class:",
+          "fields": [
+            {
+              "name": "concept_class_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A unique key for each class.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "concept_class_name",
+              "type": [
+                "string"
+              ],
+              "doc": "The name describing the Concept Class, e.g. \"Clinical Finding\", \"Ingredient\", etc.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "concept_class_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to an identifier in the CONCEPT table for the unique Concept Class the record belongs to."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CONCEPT_RELATIONSHIP",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CONCEPT_RELATIONSHIP",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The CONCEPT_RELATIONSHIP table contains records that define direct relationships between any two Concepts and the nature or type of the relationship. Each type of a relationship is defined in the RELATIONSHIP table.",
+          "fields": [
+            {
+              "name": "concept_id_1",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept in the CONCEPT table associated with the relationship. Relationships are directional, and this field represents the source concept designation."
+            },
+            {
+              "name": "concept_id_2",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept in the CONCEPT table associated with the relationship. Relationships are directional, and this field represents the destination concept designation."
+            },
+            {
+              "name": "relationship_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A unique identifier to the type or nature of the Relationship as defined in the RELATIONSHIP table.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "valid_start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the instance of the Concept Relationship is first recorded."
+            },
+            {
+              "name": "valid_end_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the Concept Relationship became invalid because it was deleted or superseded (updated) by a new relationship. Default value is 31-Dec-2099."
+            },
+            {
+              "name": "invalid_reason",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Reason the relationship was invalidated. Possible values are 'D' (deleted), 'U' (replaced with an update) or NULL when valid_end_date has the default value.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CONCEPT_SYNONYM",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CONCEPT_SYNONYM",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The CONCEPT_SYNONYM table is used to store alternate names and descriptions for Concepts.",
+          "fields": [
+            {
+              "name": "concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the Concept in the CONCEPT table."
+            },
+            {
+              "name": "concept_synonym_name",
+              "type": [
+                "string"
+              ],
+              "doc": "The alternative name for the Concept.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1000"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "language_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept representing the language."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CONDITION_ERA",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CONDITION_ERA",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "A Condition Era is defined as a span of time when the Person is assumed to have a given condition.\nSimilar to Drug Eras, Condition Eras are chronological periods of Condition Occurrence. Combining individual Condition Occurrences into a single Condition Era serves two purposes:",
+          "fields": [
+            {
+              "name": "condition_era_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Condition Era."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person who is experiencing the Condition during the Condition Era. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "condition_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a standard Condition Concept identifier in the Standardized Vocabularies."
+            },
+            {
+              "name": "condition_era_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The start date for the Condition Era constructed from the individual instances of Condition Occurrences. It is the start date of the very first chronologically recorded instance of the condition."
+            },
+            {
+              "name": "condition_era_end_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The end date for the Condition Era constructed from the individual instances of Condition Occurrences. It is the end date of the final continuously recorded instance of the Condition."
+            },
+            {
+              "name": "condition_occurrence_count",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The number of individual Condition Occurrences used to construct the condition era."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CONDITION_OCCURRENCE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "CONDITION_OCCURRENCE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "Conditions are records of a Person suggesting the presence of a disease or medical condition stated as a diagnosis, a sign, or a symptom, which is either observed by a Provider or reported by the patient. Conditions are recorded in different sources and levels of standardization, for example:",
+          "fields": [
+            {
+              "name": "condition_occurrence_id",
+              "type": [
+                "long"
+              ],
+              "doc": "A unique identifier for each Condition Occurrence event."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "long"
+              ],
+              "doc": "A foreign key identifier to the Person who is experiencing the condition. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "condition_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies belonging to the 'Condition' domain."
+            },
+            {
+              "name": "condition_start_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date when the instance of the Condition is recorded."
+            },
+            {
+              "name": "condition_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time when the instance of the Condition is recorded."
+            },
+            {
+              "name": "condition_end_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date when the instance of the Condition is considered to have ended."
+            },
+            {
+              "name": "condition_end_datetime",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date when the instance of the Condition is considered to have ended."
+            },
+            {
+              "name": "condition_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the source data from which the Condition was recorded, the level of standardization, and the type of occurrence. These belong to the 'Condition Type' vocabulary"
+            },
+            {
+              "name": "condition_status_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies reflecting the point of care at which the Condition was diagnosed."
+            },
+            {
+              "name": "stop_reason",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The reason that the Condition was no longer present, as indicated in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Provider in the PROVIDER table who was responsible for capturing (diagnosing) the Condition."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the visit in the VISIT_OCCURRENCE table during which the Condition was determined (diagnosed)."
+            },
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the visit in the VISIT_DETAIL table during which the Condition was determined (diagnosed)."
+            },
+            {
+              "name": "condition_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Condition as it appears in the source data. This code is mapped to a Standard Condition Concept in the Standardized Vocabularies and the original code is stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "condition_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Condition Concept that refers to the code used in the source."
+            },
+            {
+              "name": "condition_status_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the condition status as it appears in the source data.  This code is mapped to a Standard Concept in the Standardized Vocabularies and the original code is stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "COST",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "COST",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The COST table captures records containing the cost of any medical event recorded in one of the OMOP clinical event tables such as DRUG_EXPOSURE, PROCEDURE_OCCURRENCE, VISIT_OCCURRENCE, VISIT_DETAIL, DEVICE_OCCURRENCE, OBSERVATION or MEASUREMENT.",
+          "fields": [
+            {
+              "name": "cost_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each COST record."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each PERSON."
+            },
+            {
+              "name": "cost_event_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the event (e.g. Measurement, Procedure, Visit, Drug Exposure, etc) record for which cost data are recorded."
+            },
+            {
+              "name": "cost_event_field_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to a concept in the CONCEPT table representing the identity of the field represented by COST_EVENT_ID"
+            },
+            {
+              "name": "cost_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Cost Concept identifier in the Standardized Vocabularies belonging to the 'Cost' vocabulary."
+            },
+            {
+              "name": "cost_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to a concept in the CONCEPT table for the provenance or the source of the COST data and belonging to the 'Cost Type' vocabulary"
+            },
+            {
+              "name": "cost_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Cost Concept that refers to the code used in the source."
+            },
+            {
+              "name": "cost_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source value for the cost as it appears in the source data",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "currency_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the concept representing the 3-letter code used to delineate international currencies, such as USD for US Dollar. These belong to the 'Currency' vocabulary"
+            },
+            {
+              "name": "cost",
+              "type": [
+                "float"
+              ],
+              "doc": "The actual financial cost amount"
+            },
+            {
+              "name": "incurred_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The first date of service of the clinical event corresponding to the cost as in table capturing the information (e.g. date of visit, date of procedure, date of condition, date of drug etc)."
+            },
+            {
+              "name": "billed_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date a bill was generated for a service or encounter"
+            },
+            {
+              "name": "paid_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date payment was received for a service or encounter"
+            },
+            {
+              "name": "revenue_code_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key referring to a Standard Concept ID in the Standardized Vocabularies for Revenue codes belonging to the 'Revenue Code' vocabulary."
+            },
+            {
+              "name": "drg_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key referring to a Standard Concept ID in the Standardized Vocabularies for DRG codes belonging to the 'DRG' vocabulary."
+            },
+            {
+              "name": "revenue_code_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source value for the Revenue code as it appears in the source data, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "drg_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source value for the 3-digit DRG source code as it appears in the source data, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "payer_plan_period_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the PAYER_PLAN_PERIOD table, where the details of the Payer, Plan and Family are stored. Record the payer_plan_id that relates to the payer who contributed to the paid_by_payer field."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEVICE_EXPOSURE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "DEVICE_EXPOSURE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The 'Device' domain captures information about a person's exposure to a foreign physical object or instrument which is used for diagnostic or therapeutic purposes through a mechanism beyond chemical action. Devices include implantable objects (e.g. pacemakers, stents, artificial joints), medical equipment and supplies (e.g. bandages, crutches, syringes), other instruments used in medical procedures (e.g. sutures, defibrillators) and material used in clinical care (e.g. adhesives, body material, dental material, surgical material).",
+          "fields": [
+            {
+              "name": "device_exposure_id",
+              "type": [
+                "long"
+              ],
+              "doc": "A system-generated unique identifier for each Device Exposure."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "long"
+              ],
+              "doc": "A foreign key identifier to the Person who is subjected to the Device. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "device_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies belonging to the 'Device' domain."
+            },
+            {
+              "name": "device_exposure_start_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date the Device or supply was applied or used."
+            },
+            {
+              "name": "device_exposure_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time the Device or supply was applied or used."
+            },
+            {
+              "name": "device_exposure_end_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date use of the Device or supply was ceased."
+            },
+            {
+              "name": "device_exposure_end_datetime",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date and time use of the Device or supply was ceased."
+            },
+            {
+              "name": "device_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the type of Device Exposure recorded. It indicates how the Device Exposure was represented in the source data and belongs to the 'Device Type' domain."
+            },
+            {
+              "name": "unique_device_id",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A UDI or equivalent identifying the instance of the Device used in the Person.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "quantity",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The number of individual Devices used in the exposure."
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the PROVIDER table who initiated or administered the Device."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the visit in the VISIT_OCCURRENCE table during which the Device was used."
+            },
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the visit detail record in the VISIT_DETAIL table during which the Device was used."
+            },
+            {
+              "name": "device_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Device as it appears in the source data. This code is mapped to a Standard Device Concept in the Standardized Vocabularies and the original code is stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "device_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Device Concept that refers to the code used in the source."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DOMAIN",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "DOMAIN",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The DOMAIN table includes a list of OMOP-defined Domains the Concepts of the Standardized Vocabularies can belong to. A Domain defines the set of allowable Concepts for the standardized fields in the CDM tables. For example, the \"Condition\" Domain contains Concepts that describe a condition of a patient, and these Concepts can only be stored in the condition_concept_id field of the CONDITION_OCCURRENCE and CONDITION_ERA tables. This reference table is populated with a single record for each Domain and includes a descriptive name for the Domain.",
+          "fields": [
+            {
+              "name": "domain_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A unique key for each domain.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "domain_name",
+              "type": [
+                "string"
+              ],
+              "doc": "The name describing the Domain, e.g. \"Condition\", \"Procedure\", \"Measurement\" etc.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "domain_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to an identifier in the CONCEPT table for the unique Domain Concept the Domain record belongs to."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DOSE_ERA",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "DOSE_ERA",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "A Dose Era is defined as a span of time when the Person is assumed to be exposed to a constant dose of a specific active ingredient.",
+          "fields": [
+            {
+              "name": "dose_era_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Dose Era."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person who is subjected to the drug during the drug era. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "drug_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies for the active Ingredient Concept."
+            },
+            {
+              "name": "unit_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies for the unit concept."
+            },
+            {
+              "name": "dose_value",
+              "type": [
+                "float"
+              ],
+              "doc": "The numeric value of the dose."
+            },
+            {
+              "name": "dose_era_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The start date for the drug era constructed from the individual instances of drug exposures. It is the start date of the very first chronologically recorded instance of utilization of a drug."
+            },
+            {
+              "name": "dose_era_end_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The end date for the drug era constructed from the individual instance of drug exposures. It is the end date of the final continuously recorded instance of utilization of a drug."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DRUG_ERA",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "DRUG_ERA",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "A Drug Era is defined as a span of time when the Person is assumed to be exposed to a particular active ingredient. A Drug Era is not the same as a Drug Exposure: Exposures are individual records corresponding to the source when Drug was delivered to the Person, while successive periods of Drug Exposures are combined under certain rules to produce continuous Drug Eras.",
+          "fields": [
+            {
+              "name": "drug_era_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Drug Era."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person who is subjected to the Drug during the fDrug Era. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "drug_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies for the Ingredient Concept."
+            },
+            {
+              "name": "drug_era_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The start date for the Drug Era constructed from the individual instances of Drug Exposures. It is the start date of the very first chronologically recorded instance of conutilization of a Drug."
+            },
+            {
+              "name": "drug_era_end_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The end date for the drug era constructed from the individual instance of drug exposures. It is the end date of the final continuously recorded instance of utilization of a drug."
+            },
+            {
+              "name": "drug_exposure_count",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The number of individual Drug Exposure occurrences used to construct the Drug Era."
+            },
+            {
+              "name": "gap_days",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The number of days that are not covered by DRUG_EXPOSURE records that were used to make up the era record."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DRUG_EXPOSURE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "DRUG_EXPOSURE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The 'Drug' domain captures records about the utilization of a Drug when ingested or otherwise introduced into the body. A Drug is a biochemical substance formulated in such a way that when administered to a Person it will exert a certain physiological effect. Drugs include prescription and over-the-counter medicines, vaccines, and large-molecule biologic therapies. Radiological devices ingested or applied locally do not count as Drugs.",
+          "fields": [
+            {
+              "name": "drug_exposure_id",
+              "type": [
+                "long"
+              ],
+              "doc": "A system-generated unique identifier for each Drug utilization event."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "long"
+              ],
+              "doc": "A foreign key identifier to the Person who is subjected to the Drug. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "drug_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies belonging to the 'Drug' domain."
+            },
+            {
+              "name": "drug_exposure_start_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The start date for the current instance of Drug utilization. Valid entries include a start date of a prescription, the date a prescription was filled, or the date on which a Drug administration procedure was recorded."
+            },
+            {
+              "name": "drug_exposure_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The start date and time for the current instance of Drug utilization. Valid entries include a start datetime of a prescription, the date and time a prescription was filled, or the date and time on which a Drug administration procedure was recorded."
+            },
+            {
+              "name": "drug_exposure_end_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The end date for the current instance of Drug utilization. Depending on different sources, it could be a known or an inferred date and denotes the last day at which the patient was still exposed to Drug."
+            },
+            {
+              "name": "drug_exposure_end_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The end date and time for the current instance of Drug utilization. Depending on different sources, it could be a known or an inferred date and time and denotes the last day at which the patient was still exposed to Drug."
+            },
+            {
+              "name": "verbatim_end_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The known end date of a drug_exposure as provided by the source."
+            },
+            {
+              "name": "drug_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the type of Drug Exposure recorded. It indicates how the Drug Exposure was represented in the source data and belongs to the 'Drug Type' vocabulary."
+            },
+            {
+              "name": "stop_reason",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The reason the Drug was stopped. Reasons include regimen completed, changed, removed, etc.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "refills",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The number of refills after the initial prescription. The initial prescription is not counted, values start with null."
+            },
+            {
+              "name": "quantity",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The quantity of drug as recorded in the original prescription or dispensing record."
+            },
+            {
+              "name": "days_supply",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The number of days of supply of the medication as prescribed. This reflects the intention of the provider for the length of exposure."
+            },
+            {
+              "name": "sig",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The directions ('signetur') on the Drug prescription as recorded in the original prescription (and printed on the container) or dispensing record."
+            },
+            {
+              "name": "route_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies reflecting the route of administration and belonging to the 'Route' domain."
+            },
+            {
+              "name": "lot_number",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "An identifier assigned to a particular quantity or lot of Drug product from the manufacturer.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the PROVIDER table who initiated (prescribed or administered) the Drug Exposure."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit in the VISIT_OCCURRENCE table during which the Drug Exposure was initiated."
+            },
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit Detail in the VISIT_DETAIL table during which the Drug Exposure was initiated."
+            },
+            {
+              "name": "drug_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Drug as it appears in the source data. This code is mapped to a Standard Drug concept in the Standardized Vocabularies and the original code is, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "drug_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Drug Concept that refers to the code used in the source."
+            },
+            {
+              "name": "route_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The information about the route of administration as detailed in the source.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "dose_unit_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The information about the dose unit as detailed in the source.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DRUG_STRENGTH",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "DRUG_STRENGTH",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The DRUG_STRENGTH table contains structured content about the amount or concentration and associated units of a specific ingredient contained within a particular drug product. This table is supplemental information to support standardized analysis of drug utilization.",
+          "fields": [
+            {
+              "name": "drug_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the Concept in the CONCEPT table representing the identifier for Branded Drug or Clinical Drug Concept."
+            },
+            {
+              "name": "ingredient_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the Concept in the CONCEPT table, representing the identifier for drug Ingredient Concept contained within the drug product."
+            },
+            {
+              "name": "amount_value",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The numeric value associated with the amount of active ingredient contained within the product."
+            },
+            {
+              "name": "amount_unit_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Concept in the CONCEPT table representing the identifier for the Unit for the absolute amount of active ingredient."
+            },
+            {
+              "name": "numerator_value",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The numeric value associated with the concentration of the active ingredient contained in the product"
+            },
+            {
+              "name": "numerator_unit_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Concept in the CONCEPT table representing the identifier for the numerator Unit for the concentration of active ingredient."
+            },
+            {
+              "name": "denominator_value",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The amount of total liquid (or other divisible product, such as ointment, gel, spray, etc.)."
+            },
+            {
+              "name": "denominator_unit_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Concept in the CONCEPT table representing the identifier for the denominator Unit for the concentration of active ingredient."
+            },
+            {
+              "name": "box_size",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The number of units of Clinical of Branded Drug, or Quantified Clinical or Branded Drug contained in a box as dispensed to the patient"
+            },
+            {
+              "name": "valid_start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the Concept was first recorded. The default value is 1-Jan-1970."
+            },
+            {
+              "name": "valid_end_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the concept became invalid because it was deleted or superseded (updated) by a new Concept. The default value is 31-Dec-2099."
+            },
+            {
+              "name": "invalid_reason",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Reason the concept was invalidated. Possible values are 'D' (deleted), 'U' (replaced with an update) or NULL when valid_end_date has the default value.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FACT_RELATIONSHIP",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "FACT_RELATIONSHIP",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The FACT_RELATIONSHIP table contains records about the relationships between facts stored as records in any table of the CDM. Relationships can be defined between facts from the same domain, or different domains. Examples of Fact Relationships include: Person relationships (parent-child), care site relationships (hierarchical organizational structure of facilities within a health system), indication relationship (between drug exposures and associated conditions), usage relationships (of devices during the course of an associated procedure), or facts derived from one another (measurements derived from an associated specimen).",
+          "fields": [
+            {
+              "name": "domain_concept_id_1",
+              "type": [
+                "int"
+              ],
+              "doc": "The concept representing the domain of fact one, from which the corresponding table can be inferred."
+            },
+            {
+              "name": "fact_id_1",
+              "type": [
+                "int"
+              ],
+              "doc": "The unique identifier in the table corresponding to the domain of fact one."
+            },
+            {
+              "name": "domain_concept_id_2",
+              "type": [
+                "int"
+              ],
+              "doc": "The concept representing the domain of fact two, from which the corresponding table can be inferred."
+            },
+            {
+              "name": "fact_id_2",
+              "type": [
+                "int"
+              ],
+              "doc": "The unique identifier in the table corresponding to the domain of fact two."
+            },
+            {
+              "name": "relationship_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept ID of relationship in the Standardized Vocabularies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LOCATION",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "LOCATION",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The LOCATION table represents a generic way to capture physical location or address information of Persons and Care Sites.",
+          "fields": [
+            {
+              "name": "location_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each geographic location."
+            },
+            {
+              "name": "address_1",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The address field 1, typically used for the street address, as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "address_2",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The address field 2, typically used for additional detail such as buildings, suites, floors, as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "city",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The city field as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "state",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The state field as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "2"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "zip",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The zip or postal code.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "9"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "county",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The county.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "country",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The country",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "100"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "location_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The verbatim information that is used to uniquely identify the location as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "latitude",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The geocoded latitude"
+            },
+            {
+              "name": "longitude",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The geocoded longitude"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LOCATION_HISTORY",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "LOCATION_HISTORY",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The LOCATION HISTORY table stores relationships between Persons or Care Sites and geographic locations over time.",
+          "fields": [
+            {
+              "name": "location_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier that serves as a foreign key to the location table."
+            },
+            {
+              "name": "relationship_type_concept_id",
+              "type": [
+                "string"
+              ],
+              "doc": "The type of relationship between location and entity.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "domain_id",
+              "type": [
+                "string"
+              ],
+              "doc": "The domain of the entity that is related to the location. Either PERSON, PROVIDER, or CARE_SITE.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "entity_id",
+              "type": [
+                "int"
+              ],
+              "doc": "The unique identifier for the entity. References either person_id, provider_id, or care_site_id, depending on domain_id."
+            },
+            {
+              "name": "start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date the relationship started."
+            },
+            {
+              "name": "end_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date the relationship ended."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MEASUREMENT",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "MEASUREMENT",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The MEASUREMENT table contains records of Measurement, i.e. structured values (numerical or categorical) obtained through systematic and standardized examination or testing of a Person or Person's sample. The MEASUREMENT table contains both orders and results of such Measurements as laboratory tests, vital signs, quantitative findings from pathology reports, etc.",
+          "fields": [
+            {
+              "name": "measurement_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Measurement."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person about whom the measurement was recorded. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "measurement_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the standard measurement concept identifier in the Standardized Vocabularies. These belong to the 'Measurement' domain, but could overlap with the 'Observation' domain (see #3 below)."
+            },
+            {
+              "name": "measurement_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date of the Measurement."
+            },
+            {
+              "name": "measurement_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time of the Measurement. Some database systems don't have a datatype of time. To accommodate all temporal analyses, datatype datetime can be used (combining measurement_date and measurement_time forum discussion)"
+            },
+            {
+              "name": "measurement_time",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The time of the Measurement. This is present for backwards compatibility and will be deprecated in an upcoming version",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "10"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "measurement_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies reflecting the provenance from where the Measurement record was recorded. These belong to the 'Meas Type' vocabulary"
+            },
+            {
+              "name": "operator_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key identifier to the predefined Concept in the Standardized Vocabularies reflecting the mathematical operator that is applied to the value_as_number. Operators are <, <=, =, >=, > and these concepts belong to the 'Meas Value Operator' domain."
+            },
+            {
+              "name": "value_as_number",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "A Measurement result where the result is expressed as a numeric value."
+            },
+            {
+              "name": "value_as_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to a Measurement result represented as a Concept from the Standardized Vocabularies (e.g., positive/negative, present/absent, low/high, etc.). These belong to the 'Meas Value' domain"
+            },
+            {
+              "name": "unit_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept ID of Measurement Units in the Standardized Vocabularies that belong to the 'Unit' domain."
+            },
+            {
+              "name": "range_low",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The lower limit of the normal range of the Measurement result. The lower range is assumed to be of the same unit of measure as the Measurement value."
+            },
+            {
+              "name": "range_high",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The upper limit of the normal range of the Measurement. The upper range is assumed to be of the same unit of measure as the Measurement value."
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the PROVIDER table who was responsible for initiating or obtaining the measurement."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit in the VISIT_OCCURRENCE table during which the Measurement was recorded."
+            },
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit Detail in the VISIT_DETAIL table during which the Measurement was recorded."
+            },
+            {
+              "name": "measurement_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The Measurement name as it appears in the source data. This code is mapped to a Standard Concept in the Standardized Vocabularies and the original code is stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "measurement_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept in the Standard Vocabularies that refers to the code used in the source."
+            },
+            {
+              "name": "unit_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the unit as it appears in the source data. This code is mapped to a standard unit concept in the Standardized Vocabularies and the original code is stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "value_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source value associated with the content of the value_as_number or value_as_concept_id as stored in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "METADATA",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "METADATA",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The METADATA table contains metadata information about a dataset that has been transformed to the OMOP Common Data Model.",
+          "fields": [
+            {
+              "name": "metadata_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Metadata Concept identifier in the Standardized Vocabularies."
+            },
+            {
+              "name": "metadata_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Type Concept identifier in the Standardized Vocabularies."
+            },
+            {
+              "name": "name",
+              "type": [
+                "string"
+              ],
+              "doc": "The name of the Concept stored in metadata_concept_id or a description of the data being stored.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "250"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "value_as_string",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The metadata value stored as a string."
+            },
+            {
+              "name": "value_as_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to a metadata value stored as a Concept ID."
+            },
+            {
+              "name": "metadata date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date associated with the metadata"
+            },
+            {
+              "name": "metadata_datetime",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date and time associated with the metadata"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NOTE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "NOTE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The NOTE table captures unstructured information that was recorded by a provider about a patient in free text notes on a given date.",
+          "fields": [
+            {
+              "name": "note_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each note."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person about whom the Note was recorded. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "note_event_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key identifier to the event (e.g. Measurement, Procedure, Visit, Drug Exposure, etc) record during which the note was recorded."
+            },
+            {
+              "name": "note_event_field_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies reflecting the field to which the note_event_id is referring."
+            },
+            {
+              "name": "note_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date the note was recorded."
+            },
+            {
+              "name": "note_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time the note was recorded."
+            },
+            {
+              "name": "note_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies reflecting the type, origin or provenance of the Note. These belong to the 'Note Type' vocabulary"
+            },
+            {
+              "name": "note_class_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies reflecting the HL7 LOINC Document Type Vocabulary classification of the note."
+            },
+            {
+              "name": "note_title",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The title of the Note as it appears in the source.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "250"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "note_text",
+              "type": [
+                "string"
+              ],
+              "doc": "The content of the Note."
+            },
+            {
+              "name": "encoding_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies reflecting the note character encoding type"
+            },
+            {
+              "name": "language_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies reflecting the language of the note"
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Provider in the PROVIDER table who took the Note."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit in the VISIT_OCCURRENCE table when the Note was taken."
+            },
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit in the VISIT_DETAIL table when the Note was taken."
+            },
+            {
+              "name": "note_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source value associated with the origin of the Note",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NOTE_NLP",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "NOTE_NLP",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The NOTE_NLP table will encode all output of NLP on clinical notes. Each row represents a single extracted term from a note.",
+          "fields": [
+            {
+              "name": "note_nlp_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each term extracted from a note."
+            },
+            {
+              "name": "note_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the Note table note the term was"
+            },
+            {
+              "name": "section_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies representing the section of the extracted term."
+            },
+            {
+              "name": "snippet",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A small window of text surrounding the term.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "250"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "offset",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Character offset of the extracted term in the input note.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "lexical_variant",
+              "type": [
+                "string"
+              ],
+              "doc": "Raw text extracted from the NLP tool.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "250"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "note_nlp_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Standardized Vocabularies reflecting the normalized concept for the extracted term. Domain of the term is represented as part of the Concept table."
+            },
+            {
+              "name": "note_nlp_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept that refers to the code in the source vocabulary used by the NLP system"
+            },
+            {
+              "name": "nlp_system",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Name and version of the NLP system that extracted the term.Useful for data provenance.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "250"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "nlp_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date of the note processing.Useful for data provenance."
+            },
+            {
+              "name": "nlp_datetime",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date and time of the note processing. Useful for data provenance."
+            },
+            {
+              "name": "term_exists",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A summary modifier that signifies presence or absence of the term for a given patient. Useful for quick querying.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "term_temporal",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "An optional time modifier associated with the extracted term. (for now \u201cpast\u201d or \u201cpresent\u201d only). Standardize it later.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "term_modifiers",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A compact description of all the modifiers of the specific term extracted by the NLP system. (e.g. \u201cson has rash\u201d ? \u201cnegated=no,subject=family, certainty=undef,conditional=false,general=false\u201d).",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "2000"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBSERVATION",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "OBSERVATION",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The OBSERVATION table captures clinical facts about a Person obtained in the context of examination, questioning or a procedure. Any data that cannot be represented by any other domains, such as social and lifestyle facts, medical history, family history, etc. are recorded here.",
+          "fields": [
+            {
+              "name": "observation_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each observation."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person about whom the observation was recorded. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "observation_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the standard observation concept identifier in the Standardized Vocabularies."
+            },
+            {
+              "name": "observation_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date of the observation."
+            },
+            {
+              "name": "observation_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time of the observation."
+            },
+            {
+              "name": "observation_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined concept identifier in the Standardized Vocabularies reflecting the type of the observation."
+            },
+            {
+              "name": "value_as_number",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The observation result stored as a number. This is applicable to observations where the result is expressed as a numeric value."
+            },
+            {
+              "name": "value_as_string",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The observation result stored as a string. This is applicable to observations where the result is expressed as verbatim text.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "60"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "value_as_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to an observation result stored as a Concept ID. This is applicable to observations where the result can be expressed as a Standard Concept from the Standardized Vocabularies (e.g., positive/negative, present/absent, low/high, etc.)."
+            },
+            {
+              "name": "qualifier_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept ID for a qualifier (e.g., severity of drug-drug interaction alert)"
+            },
+            {
+              "name": "unit_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept ID of measurement units in the Standardized Vocabularies."
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the PROVIDER table who was responsible for making the observation."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the visit in the VISIT_OCCURRENCE table during which the observation was recorded."
+            },
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the visit in the VISIT_DETAIL table during which the observation was recorded."
+            },
+            {
+              "name": "observation_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The observation code as it appears in the source data. This code is mapped to a Standard Concept in the Standardized Vocabularies and the original code is, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "observation_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept that refers to the code used in the source."
+            },
+            {
+              "name": "unit_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the unit as it appears in the source data. This code is mapped to a standard unit concept in the Standardized Vocabularies and the original code is, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "qualifier_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source value associated with a qualifier to characterize the observation",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "observation_event_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to an event table (e.g., PROCEDURE_OCCURRENCE_ID)."
+            },
+            {
+              "name": "obs_event_field_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Standard Concept identifier in the Standardized Vocabularies referring to the field represented in the OBSERVATION_EVENT_ID."
+            },
+            {
+              "name": "value_as_datetime",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The observation result stored as a datetime value. This is applicable to observations where the result is expressed as a point in time."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBSERVATION_PERIOD",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "OBSERVATION_PERIOD",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The OBSERVATION_PERIOD table contains records which uniquely define the spans of time for which a Person is at-risk to have clinical events recorded within the source systems, even if no events in fact are recorded (healthy patient with no healthcare interactions).",
+          "fields": [
+            {
+              "name": "observation_period_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each observation period."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the person for whom the observation period is defined. The demographic details of that person are stored in the person table."
+            },
+            {
+              "name": "observation_period_start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The start date of the observation period for which data are available from the data source."
+            },
+            {
+              "name": "observation_period_end_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The end date of the observation period for which data are available from the data source."
+            },
+            {
+              "name": "period_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the predefined concept in the Standardized Vocabularies reflecting the source of the observation period information, belonging to the 'Obs Period Type' vocabulary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PAYER_PLAN_PERIOD",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "PAYER_PLAN_PERIOD",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The PAYER_PLAN_PERIOD table captures details of the period of time that a Person is continuously enrolled under a specific health Plan benefit structure from a given Payer. Each Person receiving healthcare is typically covered by a health benefit plan, which pays for (fully or partially), or directly provides, the care. These benefit plans are provided by payers, such as health insurances or state or government agencies. In each plan the details of the health benefits are defined for the Person or her family, and the health benefit Plan might change over time typically with increasing utilization (reaching certain cost thresholds such as deductibles), plan availability and purchasing choices of the Person. The unique combinations of Payer organizations, health benefit Plans and time periods in which they are valid for a Person are recorded in this table.",
+          "fields": [
+            {
+              "name": "payer_plan_period_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A identifier for each unique combination of payer, plan, family code and time span."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person covered by the payer. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "contract_person_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key identifier to the person_id in person table, for the person who is the primary subscriber/contract owner for the record in the payer_plan_period table. Maybe the same person or different person, depending on who is the primary subscriber/contract owner."
+            },
+            {
+              "name": "payer_plan_period_start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The start date of the payer plan period."
+            },
+            {
+              "name": "payer_plan_period_end_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The end date of the payer plan period."
+            },
+            {
+              "name": "payer_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a standard Payer concept identifier in the Standarized Vocabularies"
+            },
+            {
+              "name": "payer_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the payer as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "payer_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a payer concept that refers to the code used in the source."
+            },
+            {
+              "name": "plan_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a standard plan concept identifier that represents the health benefit plan in the Standardized Vocabularies."
+            },
+            {
+              "name": "plan_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Person's health benefit plan as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "plan_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a plan concept that refers to the plan code used in the source data."
+            },
+            {
+              "name": "contract_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a standard concept representing the reason justifying the contract between person_id and contract_person_id."
+            },
+            {
+              "name": "contract_source_value",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The source code representing the reason justifying the contract. Usually it is family relationship like a spouse, domestic partner, child etc."
+            },
+            {
+              "name": "contract_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a concept that refers to the code used in the source as the reason justifying the contract."
+            },
+            {
+              "name": "sponsor_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a concept identifier that represents the sponsor in the Standardized Vocabularies."
+            },
+            {
+              "name": "sponsor_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Person's sponsor of the health plan as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "sponsor_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a sponsor concept that refers to the sponsor code used in the source data."
+            },
+            {
+              "name": "family_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Person's family as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "stop_reason_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a standard termination reason that represents the reason for the termination in the Standardized Vocabularies."
+            },
+            {
+              "name": "stop_reason_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The reason for stop-coverage as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "stop_reason_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a stop-coverage concept that refers to the code used in the source."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PERSON",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "PERSON",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The Person Domain contains records that uniquely identify each patient in the source data who is time at-risk to have clinical observations recorded within the source systems.",
+          "fields": [
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each person."
+            },
+            {
+              "name": "gender_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to an identifier in the CONCEPT table for the unique gender of the person."
+            },
+            {
+              "name": "year_of_birth",
+              "type": [
+                "int"
+              ],
+              "doc": "The year of birth of the person. For data sources with date of birth, the year is extracted. For data sources where the year of birth is not available, the approximate year of birth is derived based on any age group categorization available."
+            },
+            {
+              "name": "month_of_birth",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The month of birth of the person. For data sources that provide the precise date of birth, the month is extracted and stored in this field."
+            },
+            {
+              "name": "day_of_birth",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The day of the month of birth of the person. For data sources that provide the precise date of birth, the day is extracted and stored in this field."
+            },
+            {
+              "name": "birth_datetime",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date and time of birth of the person."
+            },
+            {
+              "name": "death_datetime",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date and time of death of the person."
+            },
+            {
+              "name": "race_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to an identifier in the CONCEPT table for the unique race of the person, belonging to the 'Race' vocabulary."
+            },
+            {
+              "name": "ethnicity_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to the standard concept identifier in the Standardized Vocabularies for the ethnicity of the person, belonging to the 'Ethnicity' vocabulary."
+            },
+            {
+              "name": "location_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the place of residency for the person in the location table, where the detailed address information is stored."
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the primary care provider the person is seeing in the provider table."
+            },
+            {
+              "name": "care_site_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the site of primary care in the care_site table, where the details of the care site are stored."
+            },
+            {
+              "name": "person_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "An (encrypted) key derived from the person identifier in the source data. This is necessary when a use case requires a link back to the person data at the source dataset.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "gender_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the gender of the person as it appears in the source data. The person\u2019s gender is mapped to a standard gender concept in the Standardized Vocabularies; the original value is stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "gender_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the gender concept that refers to the code used in the source."
+            },
+            {
+              "name": "race_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the race of the person as it appears in the source data. The person race is mapped to a standard race concept in the Standardized Vocabularies and the original value is stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "race_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the race concept that refers to the code used in the source."
+            },
+            {
+              "name": "ethnicity_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the ethnicity of the person as it appears in the source data. The person ethnicity is mapped to a standard ethnicity concept in the Standardized Vocabularies and the original code is, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "ethnicity_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the ethnicity concept that refers to the code used in the source."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PROCEDURE_OCCURRENCE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "PROCEDURE_OCCURRENCE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The PROCEDURE_OCCURRENCE table contains records of activities or processes ordered by, or carried out by, a healthcare provider on the patient to have a diagnostic or therapeutic purpose. Procedures are present in various data sources in different forms with varying levels of standardization. For example:",
+          "fields": [
+            {
+              "name": "procedure_occurrence_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A system-generated unique identifier for each Procedure Occurrence."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person who is subjected to the Procedure. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "procedure_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a standard procedure Concept identifier in the Standardized Vocabularies."
+            },
+            {
+              "name": "procedure_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date on which the Procedure was performed."
+            },
+            {
+              "name": "procedure_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time on which the Procedure was performed."
+            },
+            {
+              "name": "procedure_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the type of source data from which the procedure record is derived, belonging to the 'Procedure Type' vocabulary."
+            },
+            {
+              "name": "modifier_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept identifier for a modifier to the Procedure (e.g. bilateral). These concepts are typically distinguished by 'Modifier' concept classes (e.g., 'CPT4 Modifier' as part of the 'CPT4' vocabulary)."
+            },
+            {
+              "name": "quantity",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The quantity of procedures ordered or administered."
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the PROVIDER table who was responsible for carrying out the procedure."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit in the VISIT_OCCURRENCE table during which the Procedure was carried out."
+            },
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the Visit Detail in the VISIT_DETAIL table during which the Procedure was carried out."
+            },
+            {
+              "name": "procedure_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Procedure as it appears in the source data. This code is mapped to a standard procedure Concept in the Standardized Vocabularies and the original code is, stored here for reference. Procedure source codes are typically ICD-9-Proc, CPT-4, HCPCS or OPCS-4 codes.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "procedure_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Procedure Concept that refers to the code used in the source."
+            },
+            {
+              "name": "modifier_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the qualifier as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PROVIDER",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "PROVIDER",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The PROVIDER table contains a list of uniquely identified healthcare providers. These are individuals providing hands-on healthcare to patients, such as physicians, nurses, midwives, physical therapists etc.",
+          "fields": [
+            {
+              "name": "provider_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Provider."
+            },
+            {
+              "name": "provider_name",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "A description of the Provider.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "npi",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The National Provider Identifier (NPI) of the provider.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "dea",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The Drug Enforcement Administration (DEA) number of the provider.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "specialty_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Specialty Concept ID in the Standardized Vocabularies."
+            },
+            {
+              "name": "care_site_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the main Care Site where the provider is practicing."
+            },
+            {
+              "name": "year_of_birth",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "The year of birth of the Provider."
+            },
+            {
+              "name": "gender_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "The gender of the Provider."
+            },
+            {
+              "name": "provider_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The identifier used for the Provider in the source data, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "specialty_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the Provider specialty as it appears in the source data, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "specialty_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept that refers to the code used in the source."
+            },
+            {
+              "name": "gender_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The gender code for the Provider as it appears in the source data, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "gender_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept that refers to the code used in the source."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RELATIONSHIP",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "RELATIONSHIP",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The RELATIONSHIP table provides a reference list of all types of relationships that can be used to associate any two concepts in the CONCEPT_RELATIONSHP table.",
+          "fields": [
+            {
+              "name": "relationship_id",
+              "type": [
+                "string"
+              ],
+              "doc": "The type of relationship captured by the relationship record.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "relationship_name",
+              "type": [
+                "string"
+              ],
+              "doc": "The text that describes the relationship type.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "is_hierarchical",
+              "type": [
+                "string"
+              ],
+              "doc": "Defines whether a relationship defines concepts into classes or hierarchies. Values are 1 for hierarchical relationship or 0 if not.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "defines_ancestry",
+              "type": [
+                "string"
+              ],
+              "doc": "Defines whether a hierarchical relationship contributes to the concept_ancestor table. These are subsets of the hierarchical relationships. Valid values are 1 or 0.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "reverse_relationship_id",
+              "type": [
+                "string"
+              ],
+              "doc": "The identifier for the relationship used to define the reverse relationship between two concepts.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "relationship_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to an identifier in the CONCEPT table for the unique relationship concept."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SOURCE_TO_CONCEPT_MAP",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "SOURCE_TO_CONCEPT_MAP",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The source to concept map table is a legacy data structure within the OMOP Common Data Model, recommended for use in ETL processes to maintain local source codes which are not available as Concepts in the Standardized Vocabularies, and to establish mappings for each source code into a Standard Concept as target_concept_ids that can be used to populate the Common Data Model tables. The SOURCE_TO_CONCEPT_MAP table is no longer populated with content within the Standardized Vocabularies published to the OMOP community.",
+          "fields": [
+            {
+              "name": "source_code",
+              "type": [
+                "string"
+              ],
+              "doc": "The source code being translated into a Standard Concept.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the Source Concept that is being translated into a Standard Concept."
+            },
+            {
+              "name": "source_vocabulary_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A foreign key to the VOCABULARY table defining the vocabulary of the source code that is being translated to a Standard Concept.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "source_code_description",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "An optional description for the source code. This is included as a convenience to compare the description of the source code to the name of the concept.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "target_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the target Concept to which the source code is being mapped."
+            },
+            {
+              "name": "target_vocabulary_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A foreign key to the VOCABULARY table defining the vocabulary of the target Concept.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "valid_start_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the mapping instance was first recorded."
+            },
+            {
+              "name": "valid_end_date",
+              "type": [
+                "string"
+              ],
+              "doc": "The date when the mapping instance became invalid because it was deleted or superseded (updated) by a new relationship. Default value is 31-Dec-2099."
+            },
+            {
+              "name": "invalid_reason",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Reason the mapping instance was invalidated. Possible values are D (deleted), U (replaced with an update) or NULL when valid_end_date has the default value.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "1"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SPECIMEN",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "SPECIMEN",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The specimen domain contains the records identifying biological samples from a person.",
+          "fields": [
+            {
+              "name": "specimen_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each specimen."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person for whom the Specimen is recorded."
+            },
+            {
+              "name": "specimen_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key referring to a Standard Concept identifier in the Standardized Vocabularies for the Specimen."
+            },
+            {
+              "name": "specimen_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key referring to the Concept identifier in the Standardized Vocabularies reflecting the system of record from which the Specimen was represented in the source data."
+            },
+            {
+              "name": "specimen_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The date the specimen was obtained from the Person."
+            },
+            {
+              "name": "specimen_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time on the date when the Specimen was obtained from the person."
+            },
+            {
+              "name": "quantity",
+              "type": [
+                "null",
+                "float"
+              ],
+              "doc": "The amount of specimen collection from the person during the sampling procedure."
+            },
+            {
+              "name": "unit_concept_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept identifier for the Unit associated with the numeric quantity of the Specimen collection."
+            },
+            {
+              "name": "anatomic_site_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept identifier for the anatomic location of specimen collection."
+            },
+            {
+              "name": "disease_status_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Standard Concept identifier for the Disease Status of specimen collection."
+            },
+            {
+              "name": "specimen_source_id",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The Specimen identifier as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "specimen_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The Specimen value as it appears in the source data. This value is mapped to a Standard Concept in the Standardized Vocabularies and the original code is, stored here for reference.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "unit_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The information about the Unit as detailed in the source.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "anatomic_site_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The information about the anatomic site as detailed in the source.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "disease_status_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The information about the disease status as detailed in the source.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SURVEY_CONDUCT",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "SURVEY_CONDUCT",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The SURVEY_CONDUCT table is used to store an instance of a completed survey or questionnaire. It captures details of the individual questionnaire such as who completed it, when it was completed and to which patient treatment or visit it relates to (if any). Each SURVEY has a SURVEY_CONCEPT_ID, a concept in the CONCEPT table identifying the questionnaire e.g. EQ5D, VR12, SF12. Each questionnaire should exist in the CONCEPT table. Each SURVEY can be optionally related to a specific patient visit in order to link it both to the visit during which it was completed and any subsequent visit where treatment was assigned based on the patient's responses.",
+          "fields": [
+            {
+              "name": "SURVEY_CONDUCT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "Unique identifier for each completed survey."
+            },
+            {
+              "name": "PERSON_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person in the PERSON table about whom the survey was completed."
+            },
+            {
+              "name": "SURVEY_CONCEPT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the name and identity of the survey."
+            },
+            {
+              "name": "SURVEY_START_DATE",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Date on which the survey was started."
+            },
+            {
+              "name": "SURVEY_START_DATETIME",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Date and time the survey was started."
+            },
+            {
+              "name": "SURVEY_END_DATE",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Date on which the survey was completed."
+            },
+            {
+              "name": "SURVEY_END_DATETIME",
+              "type": [
+                "string"
+              ],
+              "doc": "Date and time the survey was completed."
+            },
+            {
+              "name": "PROVIDER_ID",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the provider table who was associated with the survey completion."
+            },
+            {
+              "name": "ASSISTED_CONCEPT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies indicating whether the survey was completed with assistance."
+            },
+            {
+              "name": "RESPONDENT_TYPE_CONCEPT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the respondent type. Example: Research Associate, Patient."
+            },
+            {
+              "name": "TIMING_CONCEPT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies that refers to a certain timing. Example: 3 month follow-up, 6 month follow-up."
+            },
+            {
+              "name": "COLLECTION_METHOD_CONCEPT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the data collection method (e.g. Paper, Telephone, Electronic Questionnaire)."
+            },
+            {
+              "name": "ASSISTED_SOURCE_VALUE",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Source value representing whether patient required assistance to complete the survey. Example: \u201cCompleted without assistance\u201d, \u201dCompleted with assistance\u201d.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "RESPONDENT_TYPE_SOURCE_VALUE",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Source code representing role of person who completed the survey.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "100"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "TIMING_SOURCE_VALUE",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Text string representing the timing of the survey. Example: Baseline, 6-month follow-up.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "100"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "COLLECTION_METHOD_SOURCE_VALUE",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The collection method as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "100"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "SURVEY_SOURCE_VALUE",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The survey name/title as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "100"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "SURVEY_SOURCE_CONCEPT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a predefined Concept that refers to the code for the survey name/title used in the source."
+            },
+            {
+              "name": "SURVEY_SOURCE_IDENTIFIER",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Unique identifier for each completed survey in source system.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "100"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "VALIDATED_SURVEY_CONCEPT_ID",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the validation status of the survey."
+            },
+            {
+              "name": "VALIDATED_SURVEY_SOURCE_VALUE",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "Source value representing the validation status of the survey."
+            },
+            {
+              "name": "SURVEY_VERSION_NUMBER",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Version number of the questionnaire or survey used.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "VISIT_OCCURRENCE_ID",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the VISIT_OCCURRENCE table during which the\u00a0survey was completed"
+            },
+            {
+              "name": "RESPONSE_VISIT_OCCURRENCE_ID",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the visit in the VISIT_OCCURRENCE table during which treatment was carried out that relates to this survey."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VISIT_DETAIL",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "VISIT_DETAIL",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The VISIT_DETAIL table is an optional table used to represents details of each record in the parent visit_occurrence table. For every record in visit_occurrence table there may be 0 or more records in the visit_detail table with a 1:n relationship where n may be 0. The visit_detail table is structurally very similar to visit_occurrence table and belongs to the similar domain as the visit.",
+          "fields": [
+            {
+              "name": "visit_detail_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Person's visit or encounter at a healthcare provider."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person for whom the visit is recorded. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "visit_detail_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a visit Concept identifier in the Standardized Vocabularies belonging to the 'Visit' Vocabulary."
+            },
+            {
+              "name": "visit_detail_start_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The start date of the visit."
+            },
+            {
+              "name": "visit_detail_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time of the visit started."
+            },
+            {
+              "name": "visit_detail_end_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The end date of the visit. If this is a one-day visit the end date should match the start date."
+            },
+            {
+              "name": "visit_detail_end_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time of the visit end."
+            },
+            {
+              "name": "visit_detail_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the type of source data from which the visit record is derived belonging to the 'Visit Type' vocabulary."
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the provider table who was associated with the visit."
+            },
+            {
+              "name": "care_site_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the care site in the care site table that was visited."
+            },
+            {
+              "name": "visit_detail_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the visit as it appears in the source data."
+            },
+            {
+              "name": "visit_detail_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept that refers to the code used in the source."
+            },
+            {
+              "name": "admitted_from_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the admitting source as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "admitted_from_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined concept in the 'Place of Service' Vocabulary reflecting the admitting source for a visit."
+            },
+            {
+              "name": "discharge_to_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the discharge disposition as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "discharge_to_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined concept in the 'Place of Service' Vocabulary reflecting the discharge disposition for a visit."
+            },
+            {
+              "name": "preceding_visit_detail_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the VISIT_DETAIL table of the visit immediately preceding this visit"
+            },
+            {
+              "name": "visit_detail_parent_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the VISIT_OCCURRENCE table record to represent the parent Visit this Visit Detail belongs to."
+            },
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to the record in the VISIT_OCCURRENCE table. This is a required field, because for every visit_detail is a child of visit_occurrence and cannot exist without a corresponding parent record in visit_occurrence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VISIT_OCCURRENCE",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "VISIT_OCCURRENCE",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The VISIT_OCCURRENCE table contains the spans of time a Person continuously receives medical services from one or more providers at a Care Site in a given setting within the health care system. Visits are classified into 4 settings: outpatient care, inpatient confinement, emergency room, and long-term care. Persons may transition between these settings over the course of an episode of care (for example, treatment of a disease onset).",
+          "fields": [
+            {
+              "name": "visit_occurrence_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A unique identifier for each Person's visit or encounter at a healthcare provider."
+            },
+            {
+              "name": "person_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key identifier to the Person for whom the visit is recorded. The demographic details of that Person are stored in the PERSON table."
+            },
+            {
+              "name": "visit_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a Concept identifier in the Standardized Vocabularies belonging to the 'Visit' Domain."
+            },
+            {
+              "name": "visit_start_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The start date of the visit."
+            },
+            {
+              "name": "visit_start_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time when the visit started."
+            },
+            {
+              "name": "visit_end_date",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The end date of the visit. If this is a one-day visit the end date should match the start date."
+            },
+            {
+              "name": "visit_end_datetime",
+              "type": [
+                "string"
+              ],
+              "doc": "The date and time when the visit ended."
+            },
+            {
+              "name": "visit_type_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept identifier in the Standardized Vocabularies reflecting the type of source data from which the visit record is derived from belonging to the 'Visit Type' vocabulary."
+            },
+            {
+              "name": "provider_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the provider in the provider table who was associated with the visit."
+            },
+            {
+              "name": "care_site_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the care site in the care site table that was visited."
+            },
+            {
+              "name": "visit_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the visit as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "visit_source_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to a Concept that refers to the code used in the source."
+            },
+            {
+              "name": "admitted_from_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined concept in the Visit Domain reflecting where the patient was admitted from."
+            },
+            {
+              "name": "admitted_from_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for where the patient was admitted from as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "discharge_to_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key to the predefined Concept in the Visit Domain reflecting where the patient was discharged to (discharge disposition)."
+            },
+            {
+              "name": "discharge_to_source_value",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "The source code for the discharge disposition as it appears in the source data.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "50"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "preceding_visit_occurrence_id",
+              "type": [
+                "null",
+                "int"
+              ],
+              "doc": "A foreign key to the VISIT_OCCURRENCE table of the visit immediately preceding this visit"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VOCABULARY",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "VOCABULARY",
+          "namespace": "google.com.datamodels.omop.Models",
+          "doc": "The VOCABULARY table includes a list of the Vocabularies collected from various sources or created de novo by the OMOP community. This reference table is populated with a single record for each Vocabulary source and includes a descriptive name and other associated attributes for the Vocabulary.",
+          "fields": [
+            {
+              "name": "vocabulary_id",
+              "type": [
+                "string"
+              ],
+              "doc": "A unique identifier for each Vocabulary, such as ICD9CM, SNOMED, Visit.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "20"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "vocabulary_name",
+              "type": [
+                "string"
+              ],
+              "doc": "The name describing the vocabulary, for example \"International Classification of Diseases, Ninth Revision, Clinical Modification, Volume 1 and 2 (NCHS)\" etc.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "vocabulary_reference",
+              "type": [
+                "string"
+              ],
+              "doc": "External reference to documentation or available download of the about the vocabulary.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "vocabulary_version",
+              "type": [
+                "null",
+                "string"
+              ],
+              "doc": "Version of the Vocabulary as indicated in the source.",
+              "_asserts": [
+                {
+                  "func": "strLength",
+                  "args": [
+                    "<=",
+                    "255"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "vocabulary_concept_id",
+              "type": [
+                "int"
+              ],
+              "doc": "A foreign key that refers to a standard concept identifier in the CONCEPT table for the Vocabulary the VOCABULARY record belongs to."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
