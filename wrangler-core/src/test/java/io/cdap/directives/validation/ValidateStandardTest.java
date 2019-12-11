@@ -18,9 +18,10 @@ package io.cdap.directives.validation;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import io.cdap.directives.validation.Manifest.Standard;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.utils.Manifest;
+import io.cdap.wrangler.utils.Manifest.Standard;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;

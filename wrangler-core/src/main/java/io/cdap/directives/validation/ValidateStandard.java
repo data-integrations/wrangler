@@ -21,7 +21,6 @@ import com.google.gson.JsonObject;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.directives.validation.Manifest.Standard;
 import io.cdap.directives.validation.conformers.Conformer;
 import io.cdap.directives.validation.conformers.JsonConformer;
 import io.cdap.wrangler.api.Arguments;
@@ -37,6 +36,8 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.Manifest;
+import io.cdap.wrangler.utils.Manifest.Standard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

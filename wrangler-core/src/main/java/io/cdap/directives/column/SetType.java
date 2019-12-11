@@ -19,7 +19,6 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.api.common.Bytes;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,6 +31,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.ColumnConverter;
 
 import java.util.List;
 
@@ -70,200 +70,9 @@ public final class SetType implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      int idx = row.find(col);
-      if (idx != -1) {
-        Object object = row.getValue(idx);
-        if (object == null || (object instanceof String && ((String) object).trim().isEmpty())) {
-          continue;
-        }
-        try {
-          row.setValue(idx, convertType(type, object));
-        } catch (DirectiveExecutionException e) {
-          throw e;
-        } catch (Exception e) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' cannot be converted to a '%s'.", col, type), e);
-        }
-      }
+      ColumnConverter.convertType(NAME, row, col, type);
     }
     return rows;
-  }
-
-  private Object convertType(String toType, Object object) throws Exception {
-    toType = toType.toUpperCase();
-    switch (toType) {
-      case "INTEGER":
-      case "I64":
-      case "INT": {
-        if (object instanceof String) {
-          return Integer.parseInt((String) object);
-        } else if (object instanceof Short) {
-          return ((Short) object).intValue();
-        } else if (object instanceof Float) {
-          return ((Float) object).intValue();
-        } else if (object instanceof Double) {
-          return ((Double) object).intValue();
-        } else if (object instanceof Integer) {
-          return object;
-        } else if (object instanceof Long) {
-          return ((Long) object).intValue();
-        } else if (object instanceof byte[]) {
-          return Bytes.toInt((byte[]) object);
-        } else {
-          return object;
-        }
-      }
-
-      case "I32":
-      case "SHORT": {
-        if (object instanceof String) {
-          return Short.parseShort((String) object);
-        } else if (object instanceof Short) {
-          return object;
-        } else if (object instanceof Float) {
-          return ((Float) object).shortValue();
-        } else if (object instanceof Double) {
-          return ((Double) object).shortValue();
-        } else if (object instanceof Integer) {
-          return ((Integer) object).shortValue();
-        } else if (object instanceof Long) {
-          return ((Long) object).shortValue();
-        } else if (object instanceof byte[]) {
-          return Bytes.toShort((byte[]) object);
-        } else {
-          return object;
-        }
-      }
-
-      case "LONG": {
-        if (object instanceof String) {
-          return Long.parseLong((String) object);
-        } else if (object instanceof Short) {
-          return ((Short) object).longValue();
-        } else if (object instanceof Float) {
-          return ((Float) object).longValue();
-        } else if (object instanceof Double) {
-          return ((Double) object).longValue();
-        } else if (object instanceof Integer) {
-          return ((Integer) object).longValue();
-        } else if (object instanceof Long) {
-          return object;
-        } else if (object instanceof byte[]) {
-          return Bytes.toLong((byte[]) object);
-        } else {
-          return object;
-        }
-      }
-
-      case "BOOL":
-      case "BOOLEAN": {
-        if (object instanceof String) {
-          return Boolean.parseBoolean((String) object);
-        } else if (object instanceof Short) {
-          return ((Short) object) > 0 ? true : false;
-        } else if (object instanceof Float) {
-          return ((Float) object) > 0 ? true : false;
-        } else if (object instanceof Double) {
-          return ((Double) object) > 0 ? true : false;
-        } else if (object instanceof Integer) {
-          return ((Integer) object) > 0 ? true : false;
-        } else if (object instanceof Long) {
-          return ((Long) object) > 0 ? true : false;
-        } else if (object instanceof byte[]) {
-          return Bytes.toBoolean((byte[]) object);
-        } else {
-          return object;
-        }
-      }
-
-      case "STRING": {
-        if (object instanceof String) {
-          return object;
-        } else if (object instanceof Short) {
-          return Short.toString((Short) object);
-        } else if (object instanceof Float) {
-          return Float.toString((Float) object);
-        } else if (object instanceof Double) {
-          return Double.toString((Double) object);
-        } else if (object instanceof Integer) {
-          return Integer.toString((Integer) object);
-        } else if (object instanceof Long) {
-          return Long.toString((Long) object);
-        } else if (object instanceof byte[]) {
-          return Bytes.toString((byte[]) object);
-        } else if (object instanceof Boolean) {
-          return Boolean.toString((Boolean) object);
-        } else {
-          return object;
-        }
-      }
-
-      case "FLOAT": {
-        if (object instanceof String) {
-          return Float.parseFloat((String) object);
-        } else if (object instanceof Short) {
-          return ((Short) object).floatValue();
-        } else if (object instanceof Float) {
-          return object;
-        } else if (object instanceof Double) {
-          return ((Double) object).floatValue();
-        } else if (object instanceof Integer) {
-          return ((Integer) object).floatValue();
-        } else if (object instanceof Long) {
-          return ((Long) object).floatValue();
-        } else if (object instanceof byte[]) {
-          return Bytes.toFloat((byte[]) object);
-        } else {
-          return object;
-        }
-      }
-
-      case "DOUBLE": {
-        if (object instanceof String) {
-          return Double.parseDouble((String) object);
-        } else if (object instanceof Short) {
-          return ((Short) object).doubleValue();
-        } else if (object instanceof Float) {
-          return ((Float) object).doubleValue();
-        } else if (object instanceof Double) {
-          return object;
-        } else if (object instanceof Integer) {
-          return ((Integer) object).doubleValue();
-        } else if (object instanceof Long) {
-          return ((Long) object).doubleValue();
-        } else if (object instanceof byte[]) {
-          return Bytes.toDouble((byte[]) object);
-        } else {
-          return object;
-        }
-      }
-
-      case "BYTES": {
-        if (object instanceof String) {
-          return Bytes.toBytes((String) object);
-        } else if (object instanceof Short) {
-          return Bytes.toBytes((Short) object);
-        } else if (object instanceof Float) {
-          return Bytes.toBytes((Float) object);
-        } else if (object instanceof Double) {
-          return Bytes.toBytes((Double) object);
-        } else if (object instanceof Integer) {
-          return Bytes.toBytes((Integer) object);
-        } else if (object instanceof Long) {
-          return Bytes.toBytes((Long) object);
-        } else if (object instanceof byte[]) {
-          return object;
-        } else {
-          return object;
-        }
-      }
-
-      default:
-        throw new DirectiveExecutionException(
-          NAME, String.format(
-            "Column '%s' is of unsupported type '%s'. Supported types are: " +
-              "int, short, long, double, boolean, string, bytes", col, toType));
-    }
   }
 
   @Override
