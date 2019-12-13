@@ -19,6 +19,8 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -34,7 +36,9 @@ import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A directive for 'find-and-replace' transformations on the column.
@@ -66,6 +70,16 @@ public class FindAndReplace implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return columns.stream().map(
+      variable -> new FieldTransformOperation(String.format("Find and replace for column %s", variable),
+                                              String.format("Find and replace for column %s using pattern %s",
+                                                            variable, pattern),
+                                              Collections.singletonList(variable), variable))
+             .collect(Collectors.toList());
   }
 
   @Override

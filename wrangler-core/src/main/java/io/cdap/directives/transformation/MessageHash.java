@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -37,6 +39,7 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -137,6 +140,15 @@ public class MessageHash implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Message hash for column %s", column),
+                                  String.format("Message hash for column %s using algorithm %s",
+                                                column, digest.getAlgorithm()),
+                                  Collections.singletonList(column), column));
   }
 
   public static boolean isValid(String algorithm) {

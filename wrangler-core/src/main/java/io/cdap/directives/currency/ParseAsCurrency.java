@@ -19,6 +19,8 @@ package io.cdap.directives.currency;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -38,6 +40,8 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -79,6 +83,17 @@ public class ParseAsCurrency implements Directive {
     this.lcl = LocaleUtils.toLocale(locale);
     this.fmt = NumberFormat.getCurrencyInstance(lcl);
     ((DecimalFormat) this.fmt).setParseBigDecimal(true);
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Parse the column %s as currency", source),
+                                  String.format("Parse the column %s as currency to destination %s using locale %s",
+                                                source, destination, locale),
+                                  Collections.singletonList(source),
+                                  source.equals(destination) ?
+                                    Collections.singletonList(destination) : Arrays.asList(source, destination)));
   }
 
   @Override

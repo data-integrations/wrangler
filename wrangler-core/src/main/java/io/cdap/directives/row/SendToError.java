@@ -78,7 +78,8 @@ public class SendToError implements Directive {
   public List<FieldTransformOperation> getFieldOperations(StageContext context) {
     return el.variables().stream().map(
       variable -> new FieldTransformOperation(String.format("Send to error for column %s", variable),
-                                              String.format("Send to error based on column %s", variable),
+                                              String.format("Send to error for column %s based on condition %s",
+                                                            variable, condition),
                                               Collections.singletonList(variable), variable))
              .collect(Collectors.toList());
   }

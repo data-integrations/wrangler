@@ -27,6 +27,8 @@ import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -40,6 +42,8 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -83,6 +87,17 @@ public class JsPath implements Directive {
   public void destroy() {
     // no-op
   }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Json parser for column %s", src),
+                                  String.format("Json parser for column %s to dest %s using path %s",
+                                                src, dest, path),
+                                  Collections.singletonList(src),
+                                  src.equals(dest) ? Collections.singletonList(dest) : Arrays.asList(src, dest)));
+  }
+
 
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
