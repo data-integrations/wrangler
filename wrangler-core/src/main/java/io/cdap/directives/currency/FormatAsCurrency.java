@@ -19,6 +19,8 @@ package io.cdap.directives.currency;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -35,6 +37,8 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.lang3.LocaleUtils;
 
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -75,6 +79,17 @@ public class FormatAsCurrency implements Directive {
 
     this.lcl = LocaleUtils.toLocale(locale);
     this.format = NumberFormat.getCurrencyInstance(lcl);
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Format the column %s as currency", source),
+                                  String.format("Format the column %s as currency to destination %s using locale %s",
+                                                source, destination, locale),
+                                  Collections.singletonList(source),
+                                  source.equals(destination) ?
+                                    Collections.singletonList(destination) : Arrays.asList(source, destination)));
   }
 
   @Override

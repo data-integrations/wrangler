@@ -16,9 +16,12 @@
 
 package io.cdap.directives.column;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -30,6 +33,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,6 +65,17 @@ public class Swap implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return ImmutableList.of(
+      new FieldTransformOperation(String.format("Swap columns %s and %s", left, right),
+                                  String.format("Swap columns %s and %s", left, right),
+                                  Collections.singletonList(left), right),
+      new FieldTransformOperation(String.format("Swap columns %s and %s", left, right),
+                                  String.format("Swap columns %s and %s", left, right),
+                                  Collections.singletonList(right), left));
   }
 
   @Override

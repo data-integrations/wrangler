@@ -19,6 +19,8 @@ package io.cdap.directives.nlp;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.directives.nlp.internal.PorterStemmer;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
@@ -34,6 +36,7 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,6 +50,7 @@ public class Stemming implements Directive {
   public static final String NAME = "stemming";
   private String column;
   private PorterStemmer stemmer;
+  private String porterCol;
 
   @Override
   public UsageDefinition define() {
@@ -59,11 +63,22 @@ public class Stemming implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     this.stemmer = new PorterStemmer();
+    this.porterCol = String.format("%s_porter", column);
   }
 
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(new FieldTransformOperation(String.format("Apply porter stemming on column %s",
+                                                                               column),
+                                                                 String.format("Apply porter stemming on column %s",
+                                                                               column),
+                                                                 Collections.singletonList(column),
+                                                                 Arrays.asList(column, porterCol)));
   }
 
   @Override
@@ -93,7 +108,7 @@ public class Stemming implements Directive {
           }
           try {
             stemmed = stemmer.process(words);
-            row.add(String.format("%s_porter", column), stemmed);
+            row.add(porterCol, stemmed);
           } catch (IOException e) {
             throw new DirectiveExecutionException(
               NAME, String.format("Unable to apply porter stemmer on column '%s'. %s", column, e.getMessage()), e);
@@ -104,7 +119,7 @@ public class Stemming implements Directive {
                                   "Array of String' or 'List of String'.", column, object.getClass().getSimpleName()));
         }
       } else {
-        row.add(String.format("%s_porter", column), stemmed);
+        row.add(porterCol, stemmed);
       }
     }
     return rows;
