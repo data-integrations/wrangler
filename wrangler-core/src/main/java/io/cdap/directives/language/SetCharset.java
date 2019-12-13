@@ -19,6 +19,8 @@ package io.cdap.directives.language;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -35,6 +37,7 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,6 +72,14 @@ public class SetCharset implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Set charset encoding for column %s", column),
+                                  String.format("Set charset encoding for column %s using charset %s", column, charset),
+                                  Collections.singletonList(column), column));
   }
 
   @Override

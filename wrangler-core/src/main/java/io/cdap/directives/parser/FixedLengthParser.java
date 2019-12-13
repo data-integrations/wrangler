@@ -19,6 +19,8 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -36,6 +38,7 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,6 +82,15 @@ public final class FixedLengthParser implements Directive {
     } else {
       this.padding = null;
     }
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Parses fixed-length for column %s", col),
+                                  String.format("Parses fixed-length for column %s using " +
+                                                  "length %d and padding-charater %s", col, recordLength, padding),
+                                  Collections.singletonList(col), col));
   }
 
   @Override

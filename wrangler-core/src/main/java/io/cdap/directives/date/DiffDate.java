@@ -16,9 +16,12 @@
 
 package io.cdap.directives.date;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -33,6 +36,8 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -70,6 +75,21 @@ public class DiffDate implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return ImmutableList.of(
+      new FieldTransformOperation(String.format("Diff date destination column %s", destCol),
+                                  String.format("Diff date destination column %s using columns %s and %s",
+                                                destCol, column1, column2),
+                                  Arrays.asList(column1, column2), destCol),
+      new FieldTransformOperation(String.format("Diff date using %s", column1),
+                                  String.format("Diff date using %s", column1),
+                                  Collections.singletonList(column1), column1),
+      new FieldTransformOperation(String.format("Diff date using %s", column2),
+                                  String.format("Diff date using %s", column2),
+                                  Collections.singletonList(column2), column2));
   }
 
   @Override
