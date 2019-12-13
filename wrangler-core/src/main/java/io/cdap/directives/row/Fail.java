@@ -19,6 +19,8 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -34,7 +36,9 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A directive for erroring the processing if condition is set to true.
@@ -68,6 +72,16 @@ public class Fail implements Directive {
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return el.variables().stream().map(
+      variable -> new FieldTransformOperation(String.format("Fail based on column %s", variable),
+                                              String.format("Fail based on column %s under condition %s",
+                                                            variable, condition),
+                                              Collections.singletonList(variable), variable))
+             .collect(Collectors.toList());
   }
 
   @Override

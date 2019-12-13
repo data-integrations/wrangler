@@ -19,6 +19,8 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,6 +34,8 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,6 +48,13 @@ import java.util.List;
 public class SplitURL implements Directive {
   public static final String NAME = "split-url";
   private String column;
+  private String protocolCol;
+  private String authCol;
+  private String hostCol;
+  private String portCol;
+  private String pathCol;
+  private String queryCol;
+  private String fileCol;
 
   @Override
   public UsageDefinition define() {
@@ -55,11 +66,27 @@ public class SplitURL implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
+    this.protocolCol = column + "_protocol";
+    this.authCol = column + "_authority";
+    this.hostCol = column + "_host";
+    this.portCol = column + "_port";
+    this.pathCol = column + "_path";
+    this.queryCol = column + "_query";
+    this.fileCol = column + "_filename";
   }
 
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(new FieldTransformOperation(String.format("Split url for column %s", column),
+                                                                 String.format("Split url for column %s", column),
+                                                                 Collections.singletonList(column),
+                                                                 Arrays.asList(column, protocolCol, authCol, hostCol,
+                                                                               portCol, pathCol, queryCol, fileCol)));
   }
 
   @Override
@@ -70,25 +97,25 @@ public class SplitURL implements Directive {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          row.add(column + "_protocol", null);
-          row.add(column + "_authority", null);
-          row.add(column + "_host", null);
-          row.add(column + "_port", null);
-          row.add(column + "_path", null);
-          row.add(column + "_query", null);
-          row.add(column + "_filename", null);
+          row.add(protocolCol, null);
+          row.add(authCol, null);
+          row.add(hostCol, null);
+          row.add(portCol, null);
+          row.add(pathCol, null);
+          row.add(queryCol, null);
+          row.add(fileCol, null);
           continue;
         }
         if (object instanceof String) {
           try {
             URL url = new URL((String) object);
-            row.add(column + "_protocol", url.getProtocol());
-            row.add(column + "_authority", url.getAuthority());
-            row.add(column + "_host", url.getHost());
-            row.add(column + "_port", url.getPort());
-            row.add(column + "_path", url.getPath());
-            row.add(column + "_filename", url.getFile());
-            row.add(column + "_query", url.getQuery());
+            row.add(protocolCol, url.getProtocol());
+            row.add(authCol, url.getAuthority());
+            row.add(hostCol, url.getHost());
+            row.add(portCol, url.getPort());
+            row.add(pathCol, url.getPath());
+            row.add(fileCol, url.getFile());
+            row.add(queryCol, url.getQuery());
           } catch (MalformedURLException e) {
             throw new DirectiveExecutionException(
               NAME, String.format("Malformed url '%s' found in column '%s'.", (String) object, column), e);

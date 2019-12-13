@@ -16,9 +16,12 @@
 
 package io.cdap.directives.column;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -33,6 +36,8 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -78,6 +83,21 @@ public class Merge implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return ImmutableList.of(
+      new FieldTransformOperation(String.format("Merge values destination column %s", dest),
+                                  String.format("Merge values destination column %s from columns %s and %s",
+                                                dest, col1, col2),
+                                  Arrays.asList(col1, col2), dest),
+      new FieldTransformOperation(String.format("Merge values source column %s", col1),
+                                  String.format("Merge values source column %s", col1),
+                                  Collections.singletonList(col1), col1),
+      new FieldTransformOperation(String.format("Merge values source column %s", col2),
+                                  String.format("Merge values source column %s", col2),
+                                  Collections.singletonList(col2), col2));
   }
 
   @Override

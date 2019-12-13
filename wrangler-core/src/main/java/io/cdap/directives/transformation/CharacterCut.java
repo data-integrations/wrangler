@@ -19,6 +19,8 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,6 +34,8 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.unix4j.Unix4j;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,6 +70,17 @@ public class CharacterCut implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Character cut for column %s", source),
+                                  String.format("Character cut from column %s to destination %s using range %s",
+                                                source, destination, range),
+                                  Collections.singletonList(source),
+                                  source.equals(destination) ?
+                                    Collections.singletonList(destination) : Arrays.asList(source, destination)));
   }
 
   @Override

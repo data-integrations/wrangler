@@ -19,6 +19,8 @@ package io.cdap.directives.lookup;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,6 +34,8 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.executor.ICDCatalog;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,12 +56,23 @@ public class CatalogLookup implements Directive {
   // Column from which the ICD code needs to be read.
   private String column;
 
+  // This is the generated column
+  private String generatedColumn;
+
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("catalog", TokenType.TEXT);
     builder.define("column", TokenType.COLUMN_NAME);
     return builder.build();
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    return Collections.singletonList(
+      new FieldTransformOperation(String.format("Catalog look up for column %s", column),
+                                  String.format("Catalog look up for the column %s with catalog name %s", column, name),
+                                  Collections.singletonList(column), Arrays.asList(column, generatedColumn)));
   }
 
   @Override
@@ -75,6 +90,7 @@ public class CatalogLookup implements Directive {
       }
     }
     this.name = catalog.getCatalog().replaceAll("-", "_");
+    this.generatedColumn = String.format("%s_%s_description", column, name);
   }
 
   @Override
@@ -92,15 +108,15 @@ public class CatalogLookup implements Directive {
           String code = (String) object;
           StaticCatalog.Entry value = catalog.lookup(code);
           if (value != null) {
-            row.add(String.format("%s_%s_description", column, name), value.getDescription());
+            row.add(generatedColumn, value.getDescription());
           } else {
-            row.add(String.format("%s_%s_description", column, name), null);
+            row.add(generatedColumn, null);
           }
         } else {
-          row.add(String.format("%s_%s_description", column, name), null);
+          row.add(generatedColumn, null);
         }
       } else {
-        row.add(String.format("%s_%s_description", column, name), null);
+        row.add(generatedColumn, null);
       }
     }
     return rows;

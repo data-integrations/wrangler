@@ -19,6 +19,9 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -30,6 +33,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -57,6 +61,25 @@ public class GenerateUUID implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     this.random = new Random();
+  }
+
+  @Override
+  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
+    Schema schema = context.getInputSchema();
+    if (schema != null && schema.getFields() != null) {
+      if (schema.getField(column) != null) {
+        return Collections.singletonList(
+          new FieldTransformOperation(String.format("Genereate UUID for column %s", column),
+                                      String.format("Generate UUID for column %s", column),
+                                      Collections.singletonList(column), column));
+      } else {
+        return Collections.singletonList(
+          new FieldTransformOperation(String.format("Genereate UUID for column %s", column),
+                                      String.format("Generate UUID for column %s", column),
+                                      Collections.emptyList(), column));
+      }
+    }
+    return Collections.emptyList();
   }
 
   @Override
