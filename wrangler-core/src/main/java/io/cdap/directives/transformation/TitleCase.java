@@ -19,8 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,12 +26,13 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.lang.WordUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,7 +42,7 @@ import java.util.List;
 @Name(TitleCase.NAME)
 @Categories(categories = { "transform"})
 @Description("Changes the column values to title case.")
-public class TitleCase implements Directive {
+public class TitleCase implements Directive, Lineage {
   public static final String NAME = "titlecase";
   private String column;
 
@@ -65,13 +64,6 @@ public class TitleCase implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Title case column %s", column),
-                                                                 String.format("Title case column %s", column),
-                                                                 Collections.singletonList(column), column));
-  }
-
-  @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
       int idx = row.find(column);
@@ -86,5 +78,14 @@ public class TitleCase implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Capitalized first letter of the word in the title, heading or " +
+                  "headline specified in column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 }

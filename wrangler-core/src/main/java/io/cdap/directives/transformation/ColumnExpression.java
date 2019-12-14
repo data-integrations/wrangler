@@ -19,9 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -38,7 +38,6 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +58,7 @@ import java.util.Map;
 @Name(ColumnExpression.NAME)
 @Categories(categories = { "transform"})
 @Description("Sets a column by evaluating a JEXL expression.")
-public class ColumnExpression implements Directive {
+public class ColumnExpression implements Directive, Lineage {
   public static final String NAME = "set-column";
   // Column to which the result of experience is applied to.
   private String column;
@@ -75,25 +74,6 @@ public class ColumnExpression implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("expression", TokenType.EXPRESSION);
     return builder.build();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    Schema schema = context.getInputSchema();
-    if (schema != null && schema.getFields() != null) {
-      if (schema.getField(column) != null) {
-        return Collections.singletonList(
-          new FieldTransformOperation(String.format("Replace column %s", column),
-                                      String.format("Replace the column %s with expression %s", column, expression),
-                                      Collections.singletonList(column), column));
-      } else {
-        return Collections.singletonList(
-          new FieldTransformOperation(String.format("Add column %s", column),
-                                      String.format("Add the column %s with expression %s", column, expression),
-                                      Collections.emptyList(), column));
-      }
-    }
-    return Collections.emptyList();
   }
 
   @Override
@@ -144,6 +124,19 @@ public class ColumnExpression implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Mapped result of expression '%s' to column '%s'", expression, column);
+    builder.relation(Many.of(el.variables()), column);
+    el.variables().forEach(col -> {
+      if (!col.equals(column)) {
+        builder.relation(col, col);
+      }
+    });
+    return builder.build();
   }
 }
 

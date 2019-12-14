@@ -19,8 +19,6 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -30,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -39,7 +39,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 @Name("parse-timestamp")
 @Categories(categories = {"parser", "date"})
 @Description("Parses column values representing unix timestamp as date.")
-public class ParseTimestamp implements Directive {
+public class ParseTimestamp implements Directive, Lineage {
   public static final String NAME = "parse-timestamp";
   private static final Set<TimeUnit> SUPPORTED_TIME_UNITS = EnumSet.of(TimeUnit.SECONDS, TimeUnit.MILLISECONDS,
                                                                        TimeUnit.MICROSECONDS);
@@ -81,14 +80,6 @@ public class ParseTimestamp implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(
-      new FieldTransformOperation(String.format("Parse timestamp for column %s", column),
-                                  String.format("Parse timestamp for column %s using time unit %s", column, timeUnit),
-                                  Collections.singletonList(column), column));
   }
 
   @Override
@@ -130,6 +121,14 @@ public class ParseTimestamp implements Directive {
     }
 
     return unit;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a timestamp using time unit as '%s'", column, timeUnit)
+      .relation(column, column)
+      .build();
   }
 
   private long getLongValue(Object object) throws ErrorRowException {

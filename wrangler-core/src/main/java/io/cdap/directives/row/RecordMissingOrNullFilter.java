@@ -19,8 +19,6 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,15 +26,15 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Filters records if they don't have all the columns specified or they have null values or combination.
@@ -45,7 +43,7 @@ import java.util.stream.Collectors;
 @Name(RecordMissingOrNullFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters row that have empty or null columns.")
-public class RecordMissingOrNullFilter implements Directive {
+public class RecordMissingOrNullFilter implements Directive, Lineage {
   public static final String NAME = "filter-empty-or-null";
   private String[] columns;
 
@@ -69,15 +67,6 @@ public class RecordMissingOrNullFilter implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Arrays.stream(columns).map(
-      variable -> new FieldTransformOperation(String.format("Filter null or empty for column %s", variable),
-                                              String.format("Filter null or empty for column %s", variable),
-                                              Collections.singletonList(variable), variable))
-             .collect(Collectors.toList());
-  }
-
-  @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
@@ -98,5 +87,14 @@ public class RecordMissingOrNullFilter implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    List<String> cols = Arrays.asList(columns);
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Filtered null or empty records based on check on columns '%s'", cols);
+    cols.forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }

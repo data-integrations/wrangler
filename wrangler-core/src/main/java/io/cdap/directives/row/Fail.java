@@ -19,8 +19,6 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -36,9 +36,7 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A directive for erroring the processing if condition is set to true.
@@ -47,7 +45,7 @@ import java.util.stream.Collectors;
 @Name(Fail.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Fails when the condition is evaluated to true.")
-public class Fail implements Directive {
+public class Fail implements Directive, Lineage {
   public static final String NAME = "fail";
   private String condition;
   private final EL el = new EL(new EL.DefaultFunctions());
@@ -72,16 +70,6 @@ public class Fail implements Directive {
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return el.variables().stream().map(
-      variable -> new FieldTransformOperation(String.format("Fail based on column %s", variable),
-                                              String.format("Fail based on column %s under condition %s",
-                                                            variable, condition),
-                                              Collections.singletonList(variable), variable))
-             .collect(Collectors.toList());
   }
 
   @Override
@@ -113,5 +101,13 @@ public class Fail implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+                                 .readable(String.format("Pipeline set to fail based on condition '%s'", condition));
+    el.variables().forEach(col -> builder.relation(col, col));
+    return builder.build();
   }
 }

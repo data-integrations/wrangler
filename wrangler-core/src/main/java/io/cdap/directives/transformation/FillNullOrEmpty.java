@@ -19,8 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,13 +26,14 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.json.JSONObject;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,19 +43,10 @@ import java.util.List;
 @Name(FillNullOrEmpty.NAME)
 @Categories(categories = { "transform"})
 @Description("Fills a value of a column with a fixed value if it is either null or empty.")
-public class FillNullOrEmpty implements Directive {
+public class FillNullOrEmpty implements Directive, Lineage {
   public static final String NAME = "fill-null-or-empty";
   private String column;
   private String value;
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Fill null or emptry for column %s",
-                                                                               column),
-                                                                 String.format("Fill null or empty for column %s with" +
-                                                                                 " value %s", column, value),
-                                                                 Collections.singletonList(column), column));
-  }
 
   @Override
   public UsageDefinition define() {
@@ -105,5 +95,13 @@ public class FillNullOrEmpty implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Filled column '%s' values that were null or empty with value %s", column, value)
+      .relation(column, column)
+      .build();
   }
 }

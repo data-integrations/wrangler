@@ -19,8 +19,6 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,6 +27,8 @@ import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -39,7 +39,6 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -51,7 +50,7 @@ import java.util.TimeZone;
 @Name("parse-as-simple-date")
 @Categories(categories = { "parser", "date"})
 @Description("Parses a column as date using format.")
-public class ParseSimpleDate implements Directive {
+public class ParseSimpleDate implements Directive, Lineage {
   public static final String NAME = "parse-as-simple-date";
   private String column;
   private SimpleDateFormat formatter;
@@ -62,14 +61,6 @@ public class ParseSimpleDate implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("format", TokenType.TEXT);
     return builder.build();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Parse simple date on %s", column),
-                                                                 String.format("Parsing %s as date with format %s",
-                                                                               column, formatter.toPattern()),
-                                                                 Collections.singletonList(column), column));
   }
 
   @Override
@@ -119,5 +110,13 @@ public class ParseSimpleDate implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as date using user specified format '%s'", column, formatter.toPattern())
+      .relation(column, column)
+      .build();
   }
 }

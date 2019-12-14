@@ -16,12 +16,9 @@
 
 package io.cdap.directives.transformation;
 
-import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -36,8 +36,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.simmetrics.StringDistance;
 import org.simmetrics.metrics.StringDistances;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,7 +45,7 @@ import java.util.List;
 @Name(TextDistanceMeasure.NAME)
 @Categories(categories = { "transform"})
 @Description("Calculates a text distance measure between two columns containing string.")
-public class TextDistanceMeasure implements Directive {
+public class TextDistanceMeasure implements Directive, Lineage {
   public static final String NAME = "text-distance";
   private String column1;
   private String column2;
@@ -62,21 +60,6 @@ public class TextDistanceMeasure implements Directive {
     builder.define("column2", TokenType.COLUMN_NAME);
     builder.define("destination", TokenType.COLUMN_NAME);
     return builder.build();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return ImmutableList.of(
-      new FieldTransformOperation(String.format("Measure difference generated column %s", destination),
-                                  String.format("Measure difference generated column %s between columns %s and %s",
-                                                destination, column1, column2),
-                                  Arrays.asList(column1, column2), destination),
-      new FieldTransformOperation(String.format("Measure difference using %s", column1),
-                                  String.format("Measure difference using %s", column1),
-                                  Collections.singletonList(column1), column1),
-      new FieldTransformOperation(String.format("Measure difference using %s", column2),
-                                  String.format("Measure difference using %s", column2),
-                                  Collections.singletonList(column2), column2));
   }
 
   @Override
@@ -189,4 +172,16 @@ public class TextDistanceMeasure implements Directive {
 
     return rows;
   }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Compared text in columns '%s' and '%s' and saved it in column '%s'",
+                column1, column2, destination)
+      .relation(Many.columns(column1, column2), destination)
+      .relation(column1, column1)
+      .relation(column2, column2)
+      .build();
+  }
+
 }

@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -30,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
@@ -39,7 +39,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -50,7 +49,7 @@ import java.util.Set;
 @Name(MessageHash.NAME)
 @Categories(categories = { "transform", "hash"})
 @Description("Creates a message digest for the column using algorithm, replacing the column value.")
-public class MessageHash implements Directive {
+public class MessageHash implements Directive, Lineage {
   public static final String NAME = "hash";
   private static final Set<String> algorithms = ImmutableSet.of(
     "BLAKE2B-160",
@@ -143,12 +142,11 @@ public class MessageHash implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(
-      new FieldTransformOperation(String.format("Message hash for column %s", column),
-                                  String.format("Message hash for column %s using algorithm %s",
-                                                column, digest.getAlgorithm()),
-                                  Collections.singletonList(column), column));
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Anonymized the column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 
   public static boolean isValid(String algorithm) {

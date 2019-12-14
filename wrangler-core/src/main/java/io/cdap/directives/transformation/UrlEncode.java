@@ -19,8 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,13 +26,14 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,7 +43,7 @@ import java.util.List;
 @Name(UrlEncode.NAME)
 @Categories(categories = { "transform"})
 @Description("URL encode a column value.")
-public class UrlEncode implements Directive {
+public class UrlEncode implements Directive, Lineage {
   public static final String NAME = "url-encode";
   private String column;
 
@@ -66,10 +65,11 @@ public class UrlEncode implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Url encode column %s", column),
-                                                                 String.format("Url encode column %s", column),
-                                                                 Collections.singletonList(column), column));
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Encoded column '%s' as url", column)
+      .relation(column, column)
+      .build();
   }
 
   @Override

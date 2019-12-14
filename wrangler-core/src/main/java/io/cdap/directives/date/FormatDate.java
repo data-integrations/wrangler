@@ -19,8 +19,6 @@ package io.cdap.directives.date;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -39,7 +39,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,7 +48,7 @@ import java.util.List;
 @Name("format-date")
 @Categories(categories = {"date", "format"})
 @Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")
-public class FormatDate implements Directive {
+public class FormatDate implements Directive, Lineage {
   public static final String NAME = "format-date";
   private String format;
   private String column;
@@ -73,14 +72,6 @@ public class FormatDate implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Format column %s as date", column),
-                                                                 String.format("Format column %s using date-time " +
-                                                                                 "format %s", column, format),
-                                                                 Collections.singletonList(column), column));
   }
 
   @Override
@@ -114,5 +105,13 @@ public class FormatDate implements Directive {
       results.add(dt);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Formatted date in column '%s' using format '%s'", column, format)
+      .relation(column, column)
+      .build();
   }
 }

@@ -19,8 +19,6 @@ package io.cdap.directives.currency;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -30,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -37,8 +37,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.lang3.LocaleUtils;
 
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,7 +47,7 @@ import java.util.Locale;
 @Name(FormatAsCurrency.NAME)
 @Categories(categories = {"currency"})
 @Description("Formats a number as currency using the locale specified. Default locale is en_US.")
-public class FormatAsCurrency implements Directive {
+public class FormatAsCurrency implements Directive, Lineage {
   public static final String NAME = "format-as-currency";
   private String source;
   private String destination;
@@ -82,17 +80,6 @@ public class FormatAsCurrency implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(
-      new FieldTransformOperation(String.format("Format the column %s as currency", source),
-                                  String.format("Format the column %s as currency to destination %s using locale %s",
-                                                source, destination, locale),
-                                  Collections.singletonList(source),
-                                  source.equals(destination) ?
-                                    Collections.singletonList(destination) : Arrays.asList(source, destination)));
-  }
-
-  @Override
   public void destroy() {
     // no-op
   }
@@ -113,5 +100,13 @@ public class FormatAsCurrency implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Formatted column '%s' to currency locale '%s' into '%s'", source, destination, locale)
+      .conditional(source, destination)
+      .build();
   }
 }
