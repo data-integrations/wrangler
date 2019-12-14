@@ -35,8 +35,6 @@ import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.StageSubmitterContext;
 import io.cdap.cdap.etl.api.Transform;
 import io.cdap.cdap.etl.api.TransformContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldOperation;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
@@ -55,9 +53,10 @@ import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
-import io.cdap.wrangler.parser.ConfigDirectiveContext;
+import io.cdap.wrangler.lineage.LineageOperations;
 import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
+import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
@@ -73,14 +72,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -108,7 +103,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   // Wrangle Execution RecipePipeline
   private RecipePipeline pipeline;
 
-  // Output Schema associated with transform output.
+  // Output Schema associated with readable output.
   private Schema oSchema = null;
 
   // Error counter.
@@ -242,45 +237,48 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
   }
 
+  /**
+   * {@code prepareRun} is invoked by the client once before the job is submitted, but after the resolution
+   * of macros if there are any defined.
+   *
+   * @param context a instance {@link StageSubmitterContext}
+   * @throws Exception thrown if there any issue with prepareRun.
+   */
   @Override
   public void prepareRun(StageSubmitterContext context) throws Exception {
     super.prepareRun(context);
-    RecipeParser parser = initializeAndGetParser(context);
 
-    List<String> inputFields = getFields(context.getInputSchema(), "input");
-    List<String> outputFields = getFields(context.getOutputSchema(), "output");
-
-    List<Directive> directives = parser.parse();
-    // this is to track field with explicit operation
-    List<String> usedFields = new ArrayList<>();
-    List<FieldOperation> fieldOperations = new ArrayList<>();
-
-    boolean failure = false;
-    for (Directive directive : directives) {
-      try {
-        List<FieldTransformOperation> operations = directive.getFieldOperations(context);
-        operations.forEach(operation -> usedFields.addAll(operation.getInputFields()));
-        fieldOperations.addAll(operations);
-      } catch (UnsupportedOperationException e) {
-        failure = true;
-        fieldOperations.clear();
-        fieldOperations.add(new FieldTransformOperation("Prepare Data",
-                                                        new MigrateToV2(config.directives).migrate(),
-                                                        inputFields, outputFields));
-        break;
-      }
+    // Validate input schema. If there is no input schema available then there
+    // is no transformations that can be applied to just return.
+    Schema inputSchema = context.getInputSchema();
+    if (inputSchema == null || inputSchema.getFields() == null || inputSchema.getFields().isEmpty()) {
+      return;
     }
 
-    if (!failure) {
-      // TODO: CDAP-16101 correctly emit the field lineage for wrangler
-      // This is a very hacky way to emit the FLL for other fields that do not go through directives
-      inputFields.removeAll(usedFields);
-      inputFields.forEach(field -> fieldOperations.add(
-        new FieldTransformOperation(String.format("Identity transform for field %s", field),
-                                    String.format("Identity transform for field %s", field),
-                                    Collections.singletonList(field), field)));
+    // After input and output schema are validated, it's time to extract
+    // all the fields from input and output schema.
+    Set<String> input = inputSchema.getFields().stream()
+      .map(Schema.Field::getName).collect(Collectors.toSet());
+
+    // If there is input schema, but if there is no output schema, there is nothing to apply
+    // transformations on. So, there is no point in generating field level lineage.
+    Schema outputSchema = context.getOutputSchema();
+    if (outputSchema == null || outputSchema.getFields() == null || outputSchema.getFields().isEmpty()) {
+      return;
     }
-    context.record(fieldOperations);
+
+    // After input and output schema are validated, it's time to extract
+    // all the fields from input and output schema.
+    Set<String> output = outputSchema.getFields().stream()
+      .map(Schema.Field::getName).collect(Collectors.toSet());
+
+    // Parse the recipe and extract all the instances of directives
+    // to be processed for extracting lineage.
+    RecipeParser recipe = getRecipeParser(context);
+    List<Directive> directives = recipe.parse();
+
+    LineageOperations lineageOperations = new LineageOperations(input, output, directives);
+    context.record(lineageOperations.generate());
   }
 
   /**
@@ -294,7 +292,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    RecipeParser recipe = initializeAndGetParser(context);
+    RecipeParser recipe = getRecipeParser(context);
 
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
 
@@ -471,25 +469,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     return input.get(fieldName);
   }
 
-  private List<String> getFields(Schema schema, String input) {
-    if (checkSchema(schema, input)) {
-      return schema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
-    }
-    return Collections.emptyList();
-  }
-
-  private boolean checkSchema(Schema schema, String name) {
-    if (schema == null) {
-      LOG.debug(String.format("The %s schema is null. Field level lineage will not be recorded", name));
-      return false;
-    }
-    if (schema.getFields() == null) {
-      LOG.debug(String.format("The %s schema fields are null. Field level lineage will not be recorded", name));
-      return false;
-    }
-    return true;
-  }
-
   /**
    * Validates input schema.
    *
@@ -507,8 +486,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
   }
 
-  private RecipeParser initializeAndGetParser(
-    StageContext context) throws DirectiveLoadException, DirectiveParseException {
+  /**
+   * This method creates a {@link CompositeDirectiveRegistry} and initializes the {@link RecipeParser}
+   * with {@link NoOpDirectiveContext}
+   *
+   * @param context
+   * @return
+   * @throws DirectiveLoadException
+   * @throws DirectiveParseException
+   */
+  private RecipeParser getRecipeParser(StageContext context)
+    throws DirectiveLoadException, DirectiveParseException {
+
     registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry(), new UserDirectiveRegistry(context));
     registry.reload(context.getNamespace());
 
@@ -517,31 +506,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
     }
 
-    RecipeParser recipe = new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
-                                                 registry);
+    RecipeParser recipe = new GrammarBasedParser(
+      context.getNamespace(),
+      new MigrateToV2(directives).migrate(),
+      registry
+    );
 
-    // Make a call to retrieve the directive config and create a context.
-    // In this plugin, a call is made to the service at runtime.
-    // NOTE: This has to be moved to pre-start-plugin phase so that the information
-    // it's not heavily parallelized to crash the service.
-    try {
-      URL url = getDPServiceURL(context, CONFIG_METHOD);
-      if (url != null) {
-        ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
-        recipe.initialize(dContext);
-      } else {
-        // this is normal in cloud environments
-        LOG.info(String.format("Stage:%s - The Dataprep service is not accessible in this environment. "
-                                 + "No aliasing and restriction will be applied.", context.getStageName()));
-        recipe.initialize(null);
-      }
-    } catch (IOException | URISyntaxException e) {
-      // If there is a issue, we need to fail the pipeline that has the plugin.
-      throw new IllegalArgumentException(
-        String.format("Stage:%s - Issue in retrieving the configuration from the service. %s",
-                      context.getStageName(), e.getMessage()), e
-      );
-    }
+    recipe.initialize(new NoOpDirectiveContext());
     return recipe;
   }
 

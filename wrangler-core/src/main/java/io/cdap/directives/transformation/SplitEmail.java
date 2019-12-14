@@ -19,8 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,12 +27,13 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,7 +43,7 @@ import java.util.List;
 @Name(SplitEmail.NAME)
 @Categories(categories = { "transform", "email"})
 @Description("Split a email into account and domain.")
-public class SplitEmail implements Directive {
+public class SplitEmail implements Directive, Lineage {
   public static final String NAME = "split-email";
   private String column;
   private String generatedAccountCol;
@@ -67,15 +66,6 @@ public class SplitEmail implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Split email for column %s", column),
-                                                                 String.format("Split email for column %s", column),
-                                                                 Collections.singletonList(column),
-                                                                 Arrays.asList(column, generatedAccountCol,
-                                                                               generatedDomainCol)));
   }
 
   @Override
@@ -119,6 +109,15 @@ public class SplitEmail implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Split column '%s' into columns '%s' and '%s'",
+                column, generatedAccountCol, generatedDomainCol)
+      .relation(column, Many.of(column, generatedAccountCol, generatedDomainCol))
+      .build();
   }
 
   private Pair<String, String> extractDomainAndAccount(String emailId) {

@@ -19,9 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,11 +26,12 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -45,7 +43,7 @@ import java.util.UUID;
 @Name(GenerateUUID.NAME)
 @Categories(categories = { "transform", "uuid"})
 @Description("Populates a column with a universally unique identifier (UUID) of the record.")
-public class GenerateUUID implements Directive {
+public class GenerateUUID implements Directive, Lineage {
   public static final String NAME = "generate-uuid";
   private String column;
   private Random random;
@@ -61,25 +59,6 @@ public class GenerateUUID implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     this.random = new Random();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    Schema schema = context.getInputSchema();
-    if (schema != null && schema.getFields() != null) {
-      if (schema.getField(column) != null) {
-        return Collections.singletonList(
-          new FieldTransformOperation(String.format("Genereate UUID for column %s", column),
-                                      String.format("Generate UUID for column %s", column),
-                                      Collections.singletonList(column), column));
-      } else {
-        return Collections.singletonList(
-          new FieldTransformOperation(String.format("Genereate UUID for column %s", column),
-                                      String.format("Generate UUID for column %s", column),
-                                      Collections.emptyList(), column));
-      }
-    }
-    return Collections.emptyList();
   }
 
   @Override
@@ -99,5 +78,13 @@ public class GenerateUUID implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Generated unique identifier based on column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 }

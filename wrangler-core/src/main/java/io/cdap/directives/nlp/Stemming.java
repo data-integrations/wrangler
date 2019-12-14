@@ -19,8 +19,6 @@ package io.cdap.directives.nlp;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.directives.nlp.internal.PorterStemmer;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
@@ -29,6 +27,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -36,7 +37,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +46,7 @@ import java.util.List;
 @Name("stemming")
 @Categories(categories = { "nlp"})
 @Description("Apply Porter Stemming on the column value.")
-public class Stemming implements Directive {
+public class Stemming implements Directive, Lineage {
   public static final String NAME = "stemming";
   private String column;
   private PorterStemmer stemmer;
@@ -69,16 +69,6 @@ public class Stemming implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Apply porter stemming on column %s",
-                                                                               column),
-                                                                 String.format("Apply porter stemming on column %s",
-                                                                               column),
-                                                                 Collections.singletonList(column),
-                                                                 Arrays.asList(column, porterCol)));
   }
 
   @Override
@@ -123,5 +113,13 @@ public class Stemming implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Reduced derived words using Porter technique from column '%s'", column)
+      .relation(column, Many.of(column, porterCol))
+      .build();
   }
 }
