@@ -15,19 +15,22 @@
  */
 package io.cdap.wrangler.utils;
 
-import java.io.IOException;
 import org.apache.avro.Schema;
-import io.cdap.wrangler.proto.NamespacedId;
+import org.apache.commons.collections4.SetValuedMap;
+
+import java.io.IOException;
+
 
 /**
- * The AvroSchemaLoader interface abstracts loading an AVRO schema definitions and
- * returning a parsed {@link Schema} schema.
+ * The {@link AvroSchemaLoader} interface abstracts loading an AVRO data model schema definitions.
  */
 public interface AvroSchemaLoader {
 
   /**
-   * Loads and parses an AVRO schema
-   * @return {@link Schema} schema
+   * Loads and parses an AVRO data model schema.
+   *
+   * @return a map with keys representing the name of the schema. The value is a set of all of the revisions of the
+   * {@link Schema}.
    */
-  Schema load(NamespacedId namespacedId) throws IOException;
+  SetValuedMap<String, Schema> load() throws IOException;
 }

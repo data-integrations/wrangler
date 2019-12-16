@@ -1,9 +1,9 @@
 {
   "type": "record",
-  "name": "OMOP_6.0.0",
+  "name": "OMOP_6_0_0",
   "namespace": "google.com.datamodels.omop",
   "doc": "see https://github.com/OHDSI/CommonDataModel/blob/v6.0.0/OMOP_CDM_v6_0.pdf for information about the OMOP Schemas",
-  "_revision": 1,
+  "_revision": "1",
   "fields": [
     {
       "name": "CARE_SITE",

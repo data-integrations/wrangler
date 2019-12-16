@@ -31,6 +31,7 @@ import io.cdap.wrangler.service.explorer.FilesystemExplorer;
 import io.cdap.wrangler.service.gcs.GCSHandler;
 import io.cdap.wrangler.service.kafka.KafkaHandler;
 import io.cdap.wrangler.service.s3.S3Handler;
+import io.cdap.wrangler.service.schema.DataModelHandler;
 import io.cdap.wrangler.service.schema.SchemaRegistryHandler;
 import io.cdap.wrangler.service.spanner.SpannerHandler;
 
@@ -65,5 +66,6 @@ public class DataPrepService extends AbstractSystemService {
     addHandler(new ADLSHandler());
     addHandler(new BigQueryHandler());
     addHandler(new SpannerHandler());
+    addHandler(new DataModelHandler());
   }
 }
