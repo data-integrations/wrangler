@@ -87,7 +87,7 @@ public class SetHeader implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Set the new header as columns '%s'", columns)
-      .generate(Many.of(columns))
+      .create(Many.of(columns))
       .build();
   }
 }

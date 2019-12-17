@@ -22,8 +22,8 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
  */
 @Beta
 public final class Many implements Serializable {
+  private static final long serialVersionUID = 4387496062863547599L;
   private List<String> columns = new ArrayList<>();
 
   /**
@@ -70,42 +71,23 @@ public final class Many implements Serializable {
   }
 
   /**
-   * List of columns as source or target.
+   * List of columns of type string as source or target.
    *
    * @param columns list source or target columns of type {@link List} of {@link String}.
    * @return a instance of {@link Many}.
    */
-  public static Many of(List<String> columns) {
+  public static Many of(Collection<String> columns) {
     return new Many(columns);
   }
 
   /**
-   * Set of columns as source or target.
-   *
-   * @param columns list source or target columns of type {@linkn Set} of {@link String}.
-   * @return a instance of {@link Many}.
-   */
-  public static Many of(Set<String> columns) {
-    return new Many(columns);
-  }
-
-  /**
-   * List of {@link ColumnName} specified as source or target.
+   * List of {@link ColumnName} specified as source or target. The method will convert the {@link ColumnName} to
+   * string.
    *
    * @param columns list source or target columns of type {@link List} of {@link ColumnName}.
    * @return a instance of {@link Many}.
    */
-  public static Many columns(List<ColumnName> columns) {
-    return new Many(columns.stream().map(ColumnName::value).collect(Collectors.toList()));
-  }
-
-  /**
-   * Set of {@link ColumnName} specified as source or target.
-   *
-   * @param columns list source or target columns of type {@link Set} of {@link ColumnName}.
-   * @return a instance of {@link Many}.
-   */
-  public static Many columns(Set<ColumnName> columns) {
+  public static Many columns(Collection<ColumnName> columns) {
     return new Many(columns.stream().map(ColumnName::value).collect(Collectors.toList()));
   }
 
@@ -133,11 +115,7 @@ public final class Many implements Serializable {
     // prevent anyone from creating this object.
   }
 
-  private Many(List<String> columns) {
-    this.columns.addAll(columns);
-  }
-
-  private Many(Set<String> columns) {
+  private Many(Collection<String> columns) {
     this.columns.addAll(columns);
   }
 
