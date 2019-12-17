@@ -16,12 +16,9 @@
 
 package io.cdap.directives.column;
 
-import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -36,8 +36,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,7 +45,7 @@ import java.util.List;
 @Name(Merge.NAME)
 @Categories(categories = { "column"})
 @Description("Merges values from two columns using a separator into a new column.")
-public class Merge implements Directive {
+public class Merge implements Directive, Lineage {
   public static final String NAME = "merge";
   // Scope column1
   private String col1;
@@ -86,21 +84,6 @@ public class Merge implements Directive {
   }
 
   @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return ImmutableList.of(
-      new FieldTransformOperation(String.format("Merge values destination column %s", dest),
-                                  String.format("Merge values destination column %s from columns %s and %s",
-                                                dest, col1, col2),
-                                  Arrays.asList(col1, col2), dest),
-      new FieldTransformOperation(String.format("Merge values source column %s", col1),
-                                  String.format("Merge values source column %s", col1),
-                                  Collections.singletonList(col1), col1),
-      new FieldTransformOperation(String.format("Merge values source column %s", col2),
-                                  String.format("Merge values source column %s", col2),
-                                  Collections.singletonList(col2), col2));
-  }
-
-  @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
@@ -116,5 +99,13 @@ public class Merge implements Directive {
       results.add(row);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Merged column '%s' and '%s' using delimiter '%s' into column '%s'", col1, col2, delimiter, dest)
+      .relation(Many.columns(col1, col2), Many.of(col1, col2, dest))
+      .build();
   }
 }

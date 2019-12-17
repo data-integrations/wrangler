@@ -19,8 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -36,9 +36,7 @@ import org.unix4j.Unix4j;
 import org.unix4j.builder.Unix4jCommandBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A directive for 'find-and-replace' transformations on the column.
@@ -47,7 +45,7 @@ import java.util.stream.Collectors;
 @Name(FindAndReplace.NAME)
 @Categories(categories = { "transform"})
 @Description("Finds and replaces text in column values using a sed-format expression.")
-public class FindAndReplace implements Directive {
+public class FindAndReplace implements Directive, Lineage {
   public static final String NAME = "find-and-replace";
   private String pattern;
   private List<String> columns;
@@ -70,16 +68,6 @@ public class FindAndReplace implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return columns.stream().map(
-      variable -> new FieldTransformOperation(String.format("Find and replace for column %s", variable),
-                                              String.format("Find and replace for column %s using pattern %s",
-                                                            variable, pattern),
-                                              Collections.singletonList(variable), variable))
-             .collect(Collectors.toList());
   }
 
   @Override
@@ -107,6 +95,14 @@ public class FindAndReplace implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Found and replaced '%s' using expression '%s'", columns, pattern);
+    columns.forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }
 

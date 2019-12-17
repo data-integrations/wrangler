@@ -19,8 +19,6 @@ package io.cdap.directives.aggregates;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -38,9 +36,7 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A directive that defines a transient variable who's life-expectancy is only within the record.
@@ -80,16 +76,6 @@ public class SetTransientVariable implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return el.variables().stream().map(
-      column -> new FieldTransformOperation(String.format("Set transient variable for column %s", column),
-                                            String.format("Set transient variable %s for column %s",
-                                                          variable, column),
-                                            Collections.singletonList(column), column))
-             .collect(Collectors.toList());
   }
 
   @Override

@@ -19,8 +19,6 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Text;
@@ -36,7 +36,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -47,7 +46,7 @@ import java.util.regex.Pattern;
 @Name(RecordRegexFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows if the regex is matched or not matched.")
-public class RecordRegexFilter implements Directive {
+public class RecordRegexFilter implements Directive, Lineage {
   public static final String NAME = "filter-by-regex";
   private String column;
   private Pattern pattern;
@@ -62,17 +61,6 @@ public class RecordRegexFilter implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("regex", TokenType.TEXT);
     return builder.build();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Record regex filter for column %s",
-                                                                               column),
-                                                                 String.format("Filter column %s if %s regex %s",
-                                                                               column,
-                                                                               matched ? "matched" : "not matched",
-                                                                               pattern),
-                                                                 Collections.singletonList(column), column));
   }
 
   @Override
@@ -141,6 +129,15 @@ public class RecordRegexFilter implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Filtered column '%s' based on whether the expression '%s' %s ",
+                column, pattern, matched ? "matched" : "not matched")
+      .relation(column, column)
+      .build();
   }
 
   private boolean matchPattern(String value) {

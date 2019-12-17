@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -43,7 +46,7 @@ import java.util.List;
 @Name(SetHeader.NAME)
 @Categories(categories = { "column"})
 @Description("Sets the header of columns, in the order they are specified.")
-public class SetHeader implements Directive {
+public class SetHeader implements Directive, Lineage {
   public static final String NAME = "set-headers";
   // Name of the columns represented in a {@link Row}
   private List<String> columns = new ArrayList<>();
@@ -78,6 +81,14 @@ public class SetHeader implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Set the new header as columns '%s'", columns)
+      .create(Many.of(columns))
+      .build();
   }
 }
 

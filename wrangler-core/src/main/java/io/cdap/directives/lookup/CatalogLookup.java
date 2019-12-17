@@ -19,8 +19,6 @@ package io.cdap.directives.lookup;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,14 +26,15 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.executor.ICDCatalog;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,7 +44,7 @@ import java.util.List;
 @Name(CatalogLookup.NAME)
 @Categories(categories = { "lookup"})
 @Description("Looks-up values from pre-loaded (static) catalogs.")
-public class CatalogLookup implements Directive {
+public class CatalogLookup implements Directive, Lineage {
   public static final String NAME = "catalog-lookup";
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;
@@ -65,14 +64,6 @@ public class CatalogLookup implements Directive {
     builder.define("catalog", TokenType.TEXT);
     builder.define("column", TokenType.COLUMN_NAME);
     return builder.build();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(
-      new FieldTransformOperation(String.format("Catalog look up for column %s", column),
-                                  String.format("Catalog look up for the column %s with catalog name %s", column, name),
-                                  Collections.singletonList(column), Arrays.asList(column, generatedColumn)));
   }
 
   @Override
@@ -120,5 +111,13 @@ public class CatalogLookup implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Looked up catalog using value in column '%s' and wrote it to column '%s'", column, generatedColumn)
+      .relation(column, Many.of(column, generatedColumn))
+      .build();
   }
 }

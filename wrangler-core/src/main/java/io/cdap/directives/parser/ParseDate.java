@@ -30,6 +30,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -48,7 +51,7 @@ import java.util.TimeZone;
 @Categories(categories = { "parser", "date"})
 @Description("Parses column values as dates using natural language processing and " +
   "automatically identifying the format (expensive in terms of time consumed).")
-public class ParseDate implements Directive {
+public class ParseDate implements Directive, Lineage {
   public static final String NAME = "parse-as-date";
   private String column;
   private TimeZone timezone;
@@ -74,6 +77,14 @@ public class ParseDate implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as date with timezone '%s'", column, timezone)
+      .all(Many.columns(column))
+      .build();
   }
 
   @Override
