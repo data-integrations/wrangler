@@ -16,12 +16,9 @@
 
 package io.cdap.directives.date;
 
-import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -36,8 +36,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,7 +46,7 @@ import java.util.List;
 @Categories(categories = {"date"})
 @Description("Calculates the difference in milliseconds between two Date objects." +
   "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
-public class DiffDate implements Directive {
+public class DiffDate implements Directive, Lineage {
   public static final String NAME = "diff-date";
   private String column1;
   private String column2;
@@ -75,21 +73,6 @@ public class DiffDate implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return ImmutableList.of(
-      new FieldTransformOperation(String.format("Diff date destination column %s", destCol),
-                                  String.format("Diff date destination column %s using columns %s and %s",
-                                                destCol, column1, column2),
-                                  Arrays.asList(column1, column2), destCol),
-      new FieldTransformOperation(String.format("Diff date using %s", column1),
-                                  String.format("Diff date using %s", column1),
-                                  Collections.singletonList(column1), column1),
-      new FieldTransformOperation(String.format("Diff date using %s", column2),
-                                  String.format("Diff date using %s", column2),
-                                  Collections.singletonList(column2), column2));
   }
 
   @Override
@@ -123,5 +106,16 @@ public class DiffDate implements Directive {
       return null;
     }
     return (ZonedDateTime) o;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Calculated difference between dates in column '%s' and '%s' and store in '%s'"
+        , column1, column2, destCol)
+      .relation(Many.columns(column1, column2), destCol)
+      .relation(column1, column1)
+      .relation(column2, column2)
+      .build();
   }
 }

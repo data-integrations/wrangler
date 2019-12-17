@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
@@ -46,7 +49,7 @@ import java.util.List;
 @Categories(categories = { "column"})
 @Description("Sanatizes column names: trims, lowercases, and replaces all but [A-Z][a-z][0-9]_." +
   "with an underscore '_'.")
-public final class CleanseColumnNames implements Directive {
+public final class CleanseColumnNames implements Directive, Lineage {
   public static final String NAME = "cleanse-column-names";
 
   @Override
@@ -80,5 +83,14 @@ public final class CleanseColumnNames implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Sanitized all column names: trimmed sides, lower-cased, " +
+                  "and replaced all but [A-Z][a-z][0-9]_ characters")
+      .all(Many.of())
+      .build();
   }
 }

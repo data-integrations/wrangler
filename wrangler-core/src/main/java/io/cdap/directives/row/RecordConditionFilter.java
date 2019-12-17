@@ -19,8 +19,6 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,6 +27,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -38,9 +38,7 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -55,7 +53,7 @@ import java.util.stream.Collectors;
 @Name(RecordConditionFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows based on condition type specified.")
-public class RecordConditionFilter implements Directive {
+public class RecordConditionFilter implements Directive, Lineage {
   public static final String NAME = "filter-row";
   private String condition;
   private final EL el = new EL(new EL.DefaultFunctions());
@@ -86,15 +84,6 @@ public class RecordConditionFilter implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return el.variables().stream().map(
-      variable -> new FieldTransformOperation(String.format("Record condition filter for column %s", variable),
-                                              String.format("Filter based on column %s", variable),
-                                              Collections.singletonList(variable), variable))
-             .collect(Collectors.toList());
   }
 
   @Override
@@ -134,5 +123,13 @@ public class RecordConditionFilter implements Directive {
       results.add(row);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Filtered records based on columns '%s'", el.variables());
+    el.variables().forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }

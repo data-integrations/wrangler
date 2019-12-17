@@ -23,8 +23,6 @@ import com.google.gson.JsonObject;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -33,13 +31,14 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,7 +48,7 @@ import java.util.List;
 @Name("write-as-json-object")
 @Categories(categories = { "writer", "json"})
 @Description("Creates a JSON object based on source columns specified. JSON object is written into dest-column.")
-public class WriteAsJsonObject implements Directive {
+public class WriteAsJsonObject implements Directive, Lineage {
   public static final String NAME = "write-as-json-object";
   private String column;
   private List<String> columns;
@@ -73,21 +72,6 @@ public class WriteAsJsonObject implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    List<FieldTransformOperation> operations = new ArrayList<>();
-    operations.add(new FieldTransformOperation(String.format("Write as json object for columns %s", columns),
-                                               String.format("Write as json object " +
-                                                               "for columns %s to column %s", columns, column),
-                                               columns, column));
-    columns.forEach(
-      variable -> operations.add(
-        new FieldTransformOperation(String.format("Write as json object using column %s", variable),
-                                    String.format("Write as json object using column %s", variable),
-                                    Collections.singletonList(variable), variable)));
-    return operations;
   }
 
   @Override
@@ -121,5 +105,14 @@ public class WriteAsJsonObject implements Directive {
       row.addOrSet(column, object);
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+                                 .readable("Wrote columns '%s' as json object into column '%s'", columns, column);
+    builder.relation(Many.of(columns), column);
+    columns.forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }

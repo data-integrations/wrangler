@@ -19,8 +19,6 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -31,6 +29,9 @@ import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.NumericList;
 import io.cdap.wrangler.api.parser.Text;
@@ -38,7 +39,6 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,7 +48,7 @@ import java.util.List;
 @Name("parse-as-fixed-length")
 @Categories(categories = { "parser"})
 @Description("Parses fixed-length records using the specified widths and padding-character.")
-public final class FixedLengthParser implements Directive {
+public final class FixedLengthParser implements Directive, Lineage {
   public static final String NAME = "parse-as-fixed-length";
   private int[] widths;
   private String col;
@@ -82,15 +82,6 @@ public final class FixedLengthParser implements Directive {
     } else {
       this.padding = null;
     }
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(
-      new FieldTransformOperation(String.format("Parses fixed-length for column %s", col),
-                                  String.format("Parses fixed-length for column %s using " +
-                                                  "length %d and padding-charater %s", col, recordLength, padding),
-                                  Collections.singletonList(col), col));
   }
 
   @Override
@@ -148,5 +139,13 @@ public final class FixedLengthParser implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' with fixed lengths for columns", col)
+      .all(Many.of(col))
+      .build();
   }
 }

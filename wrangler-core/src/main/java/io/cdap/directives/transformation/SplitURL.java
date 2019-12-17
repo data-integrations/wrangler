@@ -19,8 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,14 +26,15 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,7 +44,7 @@ import java.util.List;
 @Name(SplitURL.NAME)
 @Categories(categories = { "transform", "url"})
 @Description("Split a url into it's components host,protocol,port,etc.")
-public class SplitURL implements Directive {
+public class SplitURL implements Directive, Lineage {
   public static final String NAME = "split-url";
   private String column;
   private String protocolCol;
@@ -78,15 +77,6 @@ public class SplitURL implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Split url for column %s", column),
-                                                                 String.format("Split url for column %s", column),
-                                                                 Collections.singletonList(column),
-                                                                 Arrays.asList(column, protocolCol, authCol, hostCol,
-                                                                               portCol, pathCol, queryCol, fileCol)));
   }
 
   @Override
@@ -130,5 +120,14 @@ public class SplitURL implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Split column '%s' into url parts as columns '%s', '%s', '%s', '%s', '%s', '%s', '%s'",
+                column, protocolCol, authCol, hostCol, portCol, pathCol, queryCol, fileCol)
+      .relation(column, Many.of(column, protocolCol, authCol, hostCol, portCol, pathCol, queryCol, fileCol))
+      .build();
   }
 }

@@ -19,8 +19,6 @@ package io.cdap.directives.language;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -29,6 +27,8 @@ import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -37,7 +37,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -50,7 +49,7 @@ import java.util.List;
 @Name("set-charset")
 @Categories(categories = {"language"})
 @Description("Sets the character set decoding to UTF-8.")
-public class SetCharset implements Directive {
+public class SetCharset implements Directive, Lineage {
   public static final String NAME = "set-charset";
   private String column;
   private String charset;
@@ -72,14 +71,6 @@ public class SetCharset implements Directive {
   @Override
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(
-      new FieldTransformOperation(String.format("Set charset encoding for column %s", column),
-                                  String.format("Set charset encoding for column %s using charset %s", column, charset),
-                                  Collections.singletonList(column), column));
   }
 
   @Override
@@ -119,5 +110,13 @@ public class SetCharset implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Changed character set of column '%s' to '%s'", column, charset)
+      .relation(column, column)
+      .build();
   }
 }

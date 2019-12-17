@@ -19,8 +19,6 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -28,12 +26,13 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -55,7 +54,7 @@ import java.util.Random;
 @Name(MaskShuffle.NAME)
 @Categories(categories = { "transform"})
 @Description("Masks a column value by shuffling characters while maintaining the same length.")
-public class MaskShuffle implements Directive {
+public class MaskShuffle implements Directive, Lineage {
   public static final String NAME = "mask-shuffle";
   // Column on which to apply mask.
   private String column;
@@ -65,13 +64,6 @@ public class MaskShuffle implements Directive {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME);
     return builder.build();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Mask shuffle on column %s", column),
-                                                                 String.format("Mask shuffle on column %s", column),
-                                                                 Collections.singletonList(column), column));
   }
 
   @Override
@@ -99,6 +91,14 @@ public class MaskShuffle implements Directive {
     }
 
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Masked column '%s' by shuffling the values", column)
+      .relation(column, column)
+      .build();
   }
 
   private String maskShuffle(String str, int seed) {

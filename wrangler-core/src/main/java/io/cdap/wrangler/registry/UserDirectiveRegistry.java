@@ -106,7 +106,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * it's attempted to be loaded as a user plugin. If it does not exist there a null is returned.
    * But, if the plugin exists, then it's loaded and an entry is made into the registry. </p>
    *
-   * <p>When invoked through a transform, each plugin is assigned a unique id. The unique
+   * <p>When invoked through a readable, each plugin is assigned a unique id. The unique
    * id is generated during the <code>configure</code> phase of the plugin. Those ids are
    * passed to initialize through the properties.</p>
    *

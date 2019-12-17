@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -43,7 +46,7 @@ import java.util.List;
 @Name(ColumnsReplace.NAME)
 @Categories(categories = { "column"})
 @Description("Modifies column names in bulk using a sed-format expression.")
-public class ColumnsReplace implements Directive {
+public class ColumnsReplace implements Directive, Lineage {
   public static final String NAME = "columns-replace";
   private String sed;
 
@@ -78,6 +81,14 @@ public class ColumnsReplace implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Reformatted all columns using expression '%s'", sed)
+      .all(Many.of())
+      .build();
   }
 }
 

@@ -31,6 +31,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -63,8 +66,8 @@ import java.util.Map;
 @Plugin(type = Directive.TYPE)
 @Name(InvokeHttp.NAME)
 @Categories(categories = { "http"})
-@Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
-public class InvokeHttp implements Directive {
+@Description("Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
+public class InvokeHttp implements Directive, Lineage {
   public static final String NAME = "invoke-http";
   private String url;
   private List<String> columns;
@@ -141,6 +144,14 @@ public class InvokeHttp implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Invoked external service '%s' to enrich row based on columns '%s'", url, columns)
+      .all(Many.of(columns))
+      .build();
   }
 
   private class ServiceResponseHandler implements ResponseHandler<Map<String, Object>> {

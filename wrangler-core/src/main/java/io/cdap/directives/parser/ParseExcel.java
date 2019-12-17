@@ -30,6 +30,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -58,7 +61,7 @@ import java.util.TreeMap;
 @Name("parse-as-excel")
 @Categories(categories = { "parser", "excel"})
 @Description("Parses column as Excel file.")
-public class ParseExcel implements Directive {
+public class ParseExcel implements Directive, Lineage {
   public static final String NAME = "parse-as-excel";
   private static final Logger LOG = LoggerFactory.getLogger(ParseExcel.class);
   private String column;
@@ -206,6 +209,14 @@ public class ParseExcel implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a Excel", column)
+      .all(Many.columns(column))
+      .build();
   }
 
   private boolean checkIfRowIsEmpty(org.apache.poi.ss.usermodel.Row row) {

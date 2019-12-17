@@ -20,20 +20,19 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.common.Bytes;
-import io.cdap.cdap.etl.api.StageContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,7 +43,7 @@ import java.util.List;
 @Name(SetType.NAME)
 @Categories(categories = {"column"})
 @Description("Converting data type of a column.")
-public final class SetType implements Directive {
+public final class SetType implements Directive, Lineage {
   public static final String NAME = "set-type";
   private String col;
   private String type;
@@ -55,14 +54,6 @@ public final class SetType implements Directive {
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("type", TokenType.IDENTIFIER);
     return builder.build();
-  }
-
-  @Override
-  public List<FieldTransformOperation> getFieldOperations(StageContext context) {
-    return Collections.singletonList(new FieldTransformOperation(String.format("Set type for column %s", col),
-                                                                 String.format("Set type for column %s with" +
-                                                                                 " value %s", col, type),
-                                                                 Collections.singletonList(col), col));
   }
 
   @Override
@@ -273,5 +264,13 @@ public final class SetType implements Directive {
             "Column '%s' is of unsupported type '%s'. Supported types are: " +
               "int, short, long, double, boolean, string, bytes", col, toType));
     }
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Changed the column '%s' to type '%s'", col, type)
+      .relation(col, col)
+      .build();
   }
 }
