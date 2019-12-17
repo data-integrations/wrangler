@@ -35,7 +35,7 @@ import io.cdap.cdap.api.annotation.Beta;
  *
  *   <ul>
  *     <il>
- *       <code>readable</code> - This method is defined to provide the post readable description of the mutation
+ *       <code>readable</code> - This method is defined to provide the post transformation description of the mutation
  *     the directive is applying on data. Care should be taken to use the right tense as the lineage would be consumed
  *     by users after the transformation has been applied on the data. As best practise, it's highly recommended to use
  *     past-tense for describing the transformations. Additionally, the language of the description is not trying

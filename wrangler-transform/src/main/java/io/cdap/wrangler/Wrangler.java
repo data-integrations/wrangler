@@ -17,7 +17,6 @@
 package io.cdap.wrangler;
 
 import com.google.common.collect.ImmutableMap;
-import io.cdap.cdap.api.ServiceDiscoverer;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
@@ -58,7 +57,6 @@ import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
-import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
@@ -68,10 +66,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -514,23 +508,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     recipe.initialize(new NoOpDirectiveContext());
     return recipe;
-  }
-
-  /**
-   * Retrieves the base url from the context and appends method to value to the final url.
-   *
-   * @param method to be invoked.
-   * @return fully formed url to the method.
-   */
-  private URL getDPServiceURL(ServiceDiscoverer discoverer,
-                              String method) throws URISyntaxException, MalformedURLException {
-    URL url = discoverer.getServiceURL(Contexts.SYSTEM, APPLICATION_NAME, SERVICE_NAME);
-    if (url == null) {
-      return null;
-    }
-    URI uri = url.toURI();
-    String path = uri.getPath() + method;
-    return uri.resolve(path).toURL();
   }
 
   /**

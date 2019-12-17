@@ -80,7 +80,7 @@ public class LineageOperationsTest {
   @Test
   public void testDropLineage() throws Exception {
     List<FieldOperation> lineage4 = lineage(inputSchema, outputSchema, "drop a,b,c,d;\nset-column :o exp:{h}");
-    Assert.assertEquals(2, lineage4.size());
+    Assert.assertEquals(3, lineage4.size());
   }
 
   /*
@@ -91,7 +91,7 @@ public class LineageOperationsTest {
   @Test
   public void testColumnExpression() throws Exception {
     List<FieldOperation> lineage3 = lineage(inputSchema, outputSchema, "set-column :n exp:{a + b + c + 1}");
-    Assert.assertEquals(1, lineage3.size());
+    Assert.assertEquals(4, lineage3.size());
   }
 
   private List<FieldOperation> lineage(Schema inputSchema, Schema outputSchema, String recipe) throws Exception {

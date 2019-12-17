@@ -51,6 +51,8 @@ import java.util.List;
  */
 @Beta
 public final class Relation implements Serializable {
+  private static final long serialVersionUID = 789984476035584877L;
+
   /**
    * Specifies the type of relations that can exist between source and target.
    */

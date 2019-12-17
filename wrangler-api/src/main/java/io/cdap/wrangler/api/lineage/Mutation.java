@@ -41,17 +41,17 @@ import java.util.UUID;
  */
 @Beta
 public final class Mutation implements Serializable {
+  private static final long serialVersionUID = 1243542667080258334L;
   private final String readable;
   private final List<Relation> relations;
 
   private Mutation() {
-    this.readable = "";
-    this.relations = new ArrayList<>();
+    this("", Collections.emptyList());
   }
 
   private Mutation(String readable, List<Relation> relations) {
     this.readable = readable;
-    this.relations = relations;
+    this.relations = Collections.unmodifiableList(new ArrayList<>(relations));
   }
 
   /**
@@ -131,7 +131,7 @@ public final class Mutation implements Serializable {
      * @param targets a list of targets.
      * @return a instance of {@link Mutation.Builder}.
      */
-    public Mutation.Builder generate(Many targets) {
+    public Mutation.Builder create(Many targets) {
       relations.add(new Relation(uuid(), Collections.emptyList(),
                                  targets.columns(), Relation.Type.CREATE));
       return this;

@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.lineage;
 
+import com.google.common.collect.Sets;
 import io.cdap.cdap.etl.api.lineage.field.FieldOperation;
 import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Directive;
@@ -25,7 +26,6 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -46,9 +46,9 @@ public final class LineageOperations {
    * @param directives A {@link List} of directives.
    */
   public LineageOperations(Set<String> input, Set<String> output, List<Directive> directives) {
-    this.input = input;
-    this.output = output;
-    this.directives = directives;
+    this.input = Collections.unmodifiableSet(new HashSet<>(input));
+    this.output = Collections.unmodifiableSet(new HashSet<>(output));
+    this.directives = Collections.unmodifiableList(new ArrayList<>(directives));;
   }
 
   /**
@@ -120,10 +120,8 @@ public final class LineageOperations {
     // We iterate through all the input fields in the schema, check if there is corresponding
     // field in the output schema. If both exists, then a identity mapping transform is added
     // to the {@code FieldTransformationOperation} is added.
-    input.removeAll(definedSources);
-    Iterator<String> iterator = input.iterator();
-    while (iterator.hasNext()) {
-      String next = iterator.next();
+    Set<String> difference = Sets.difference(input, definedSources);
+    for (String next : difference) {
       if (output.contains(next)) {
         FieldTransformOperation transformation =
           new FieldTransformOperation(
