@@ -27,11 +27,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * The {@linik AvroSchemaGlossary} class is used for management of AVRO data model schema definitions.
+ * The {@link AvroSchemaGlossary} class is used for management of AVRO data model schema definitions.
  */
 public class AvroSchemaGlossary {
 
   private static final Logger LOG = LoggerFactory.getLogger(AvroSchemaGlossary.class);
+  private static final String REVISION_PROPERTY = "_revision";
+
   private final AvroSchemaLoader avroSchemaLoader;
   private SetValuedMap<String, Schema> glossary = new HashSetValuedHashMap<>();
 
@@ -65,13 +67,14 @@ public class AvroSchemaGlossary {
     Schema result = null;
     for (Schema schema : schemas) {
       try {
-        long rev = Long.parseLong(schema.getProp("_revision"), 10);
+        long rev = Long.parseLong(schema.getProp(AvroSchemaGlossary.REVISION_PROPERTY), 10);
         if (rev == revision) {
           result = schema;
           break;
         }
       } catch (NumberFormatException e) {
-        LOG.error("unable to parse _revision property within schema %s", schema.getFullName());
+        LOG.error(String.format("unable to parse %s property within schema %s", AvroSchemaGlossary.REVISION_PROPERTY,
+                                schema.getFullName()));
       }
     }
     return result;

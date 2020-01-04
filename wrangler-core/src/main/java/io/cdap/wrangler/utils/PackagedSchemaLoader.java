@@ -28,14 +28,14 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 /**
- * PackagedSchemaLoader loads an AVRO data model schema bundled as a resource within a package.
+ * The {@link PackagedSchemaLoader} object loads an AVRO data model schema bundled as a resource within a package.
  */
 public class PackagedSchemaLoader implements AvroSchemaLoader {
+  private static final String FORMAT = "avsc";
 
   private final ClassLoader classLoader;
-  private final String manifestPath;
   private final String resourceDirectory;
-  private static final String FORMAT = "avsc";
+  private final String manifestPath;
 
   public PackagedSchemaLoader(ClassLoader classLoader, String resourceDirectory, String manifestPath) {
     this.classLoader = classLoader;
@@ -44,10 +44,11 @@ public class PackagedSchemaLoader implements AvroSchemaLoader {
   }
 
   /**
-   * Loads an AVRO schema definition packaged as a resource within the packaged defined by the class loader.
+   * Loads an AVRO schema definition packaged as a resource within the class loader package.
    *
    * @return a map with keys representing the name of the schema. The value is a set of all of the revisions of the
-   * @throws IOException when resource missing or parsing error.
+   *          schema.
+   * @throws IOException when the resource is missing or a parsing error.
    */
   @Override
   public SetValuedMap<String, Schema> load() throws IOException {
@@ -68,6 +69,9 @@ public class PackagedSchemaLoader implements AvroSchemaLoader {
     if (manifest.getStandards() == null) {
       return avroSchemas;
     }
+
+    // The AVRO parser treats meta data properties with a name that has an underscore prefix as invalid names while
+    // the AVRO 1.9.1 spec states that underscore prefixes are valid. Consequently disabling validation.
     Schema.Parser parser = new Schema.Parser().setValidate(false);
     for (Map.Entry<String, Standard> spec : manifest.getStandards().entrySet()) {
       if (spec.getValue().getFormat().equals(PackagedSchemaLoader.FORMAT)) {

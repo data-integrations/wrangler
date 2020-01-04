@@ -27,12 +27,8 @@ import io.cdap.wrangler.proto.NotFoundException;
 import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.schema.DataModelSchemaEntry;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
-import io.cdap.wrangler.utils.AvroSchemaGlossary;
-import io.cdap.wrangler.utils.PackagedSchemaLoader;
 
 import org.apache.avro.Schema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,18 +41,6 @@ import javax.ws.rs.PathParam;
  */
 public class DataModelHandler extends AbstractWranglerHandler {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DataModelHandler.class);
-  private static final AvroSchemaGlossary GLOSSARY;
-
-  static {
-    PackagedSchemaLoader loader = new PackagedSchemaLoader(
-      DataModelHandler.class.getClassLoader(), "schemas", "manifest.json");
-    GLOSSARY = new AvroSchemaGlossary(loader);
-    if (!GLOSSARY.configure()) {
-      LOG.error("unable to load system data model schemas");
-    }
-  }
-
   @GET
   @Path("v2/contexts/{context}/schemas")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
@@ -65,7 +49,7 @@ public class DataModelHandler extends AbstractWranglerHandler {
     respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
       Namespace defaultNamespace = new Namespace(Contexts.SYSTEM, 0L);
       List<DataModelSchemaEntry> results = new ArrayList<>();
-      for (Schema schema : GLOSSARY.getAll()) {
+      for (Schema schema : DataModelGlossary.getGlossary().getAll()) {
         results.add(new DataModelSchemaEntry(new NamespacedId(defaultNamespace, schema.getFullName()),
                                              schema.getName(),
                                              schema.getDoc(),
@@ -83,7 +67,7 @@ public class DataModelHandler extends AbstractWranglerHandler {
                          @PathParam("context") String namespace,
                          @PathParam("id") String id, @PathParam("revision") long revision) {
     respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      Schema schema = GLOSSARY.get(id, revision);
+      Schema schema = DataModelGlossary.getGlossary().get(id, revision);
       if (schema == null) {
         throw new NotFoundException(String.format("unable to find schema %s revision %d", id, revision));
       }
