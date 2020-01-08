@@ -19,26 +19,12 @@ package io.cdap.directives.validation;
 import java.util.Objects;
 
 /**
- * Contains information about an issue that occurred when trying to validate some data (against a schema).
+ * Contains information about an issue that occurred when trying to validate some data (against a
+ * schema).
  */
 public class ConformanceIssue {
-
-  /**
-   * Schema location refers to the part of the schema where this issue occurred. The exact format varies by schema
-   * implementation. For JSON Schema for example, it may look like #/definitions/Blue.
-   */
   private final String schemaLocation;
-
-  /**
-   * Data location refers to the part of the input data where this issue occurred. The exact format varies by conformer
-   * implementation. This may be a dot/bracket notation style path or something similar.
-   */
   private final String dataLocation;
-
-
-  /**
-   * A human readable description of why the data didn't conform.
-   */
   private final String error;
 
   public ConformanceIssue(String schemaLocation, String dataLocation, String error) {
@@ -67,7 +53,7 @@ public class ConformanceIssue {
       return String.format("error at schema %s: %s", getSchemaLocation(), error);
     }
     return String.format(
-      "error at schema %s, at data %s: %s", getSchemaLocation(), dataLocation, error);
+        "error at schema %s, at data %s: %s", getSchemaLocation(), dataLocation, error);
   }
 
   @Override
@@ -80,8 +66,8 @@ public class ConformanceIssue {
     }
     ConformanceIssue that = (ConformanceIssue) o;
     return Objects.equals(schemaLocation, that.schemaLocation)
-      && Objects.equals(dataLocation, that.dataLocation)
-      && Objects.equals(error, that.error);
+        && Objects.equals(dataLocation, that.dataLocation)
+        && Objects.equals(error, that.error);
   }
 
   @Override
