@@ -49,7 +49,22 @@ public class CsvParserTest {
     );
 
     rows = TestingRig.execute(directives, rows);
-    Assert.assertTrue(rows.size() == 2);
+    Assert.assertEquals(2, rows.size());
     Assert.assertEquals("07/29/2013", rows.get(0).getValue("date"));
+  }
+
+  @Test
+  public void testHeaders() throws Exception {
+    String[] directives = new String[] { "parse-as-csv body , true" };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "first name, last  \t  name"),
+      new Row("body", "alice,zed")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("alice", rows.get(0).getValue("first_name"));
+    Assert.assertEquals("zed", rows.get(0).getValue("last_name"));
   }
 }
