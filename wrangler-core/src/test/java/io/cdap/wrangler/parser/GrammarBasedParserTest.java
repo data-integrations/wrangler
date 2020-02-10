@@ -19,7 +19,7 @@ package io.cdap.wrangler.parser;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
-import io.cdap.wrangler.api.Executor;
+import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class GrammarBasedParserTest {
 
     RecipeParser parser = TestingRig.parse(recipe);
     parser.initialize(null);
-    List<Executor> directives = parser.parse();
+    List<Directive> directives = parser.parse();
     Assert.assertEquals(2, directives.size());
   }
 
@@ -73,7 +73,7 @@ public class GrammarBasedParserTest {
 
     RecipeParser parser = TestingRig.parse(recipe);
     parser.initialize(null);
-    List<Executor> directives = parser.parse();
+    List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
   }
 

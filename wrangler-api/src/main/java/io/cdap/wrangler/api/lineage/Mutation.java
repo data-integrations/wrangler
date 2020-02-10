@@ -16,60 +16,242 @@
 
 package io.cdap.wrangler.api.lineage;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import io.cdap.cdap.api.annotation.Beta;
+import io.cdap.wrangler.api.parser.ColumnName;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 /**
- * This class <code>Mutation</code> defines a mutation on the column.
- * <code>MutationType</code> defines the type of mutation that is being
- * applied within a column.
+ * The <code>Mutation</code> class represents a collection of relations which can be used to generate lineage for
+ * a directive. It uses a UUID so that the name will be unique.
+ *
+ * <p>As this class is immutable, the constructor requires all the member variables to be presented
+ * for an instance of this object to be created.</p>
+ *
+ * The class has methods to retrieve the <code>readable</code> text describing the transformation, and
+ * <code>relations</code> to retrieve all the associations of source to targets
+ *
+ * @see Lineage
+ * @see Relation
+ * @see Many
  */
-public final class Mutation {
-  // Name of the column on which the mutation is applied.
-  private final String column;
+@Beta
+public final class Mutation implements Serializable {
+  private static final long serialVersionUID = 1243542667080258334L;
+  private final String readable;
+  private final List<Relation> relations;
 
-  // Specifies the type of the mutation being applied on the column.
-  private final MutationType type;
+  private Mutation() {
+    this("", Collections.emptyList());
+  }
 
-  // Optional description for the mutation specified.
-  private final String description;
-
-  public Mutation(String column, MutationType type, String description) {
-    this.column = column;
-    this.type = type;
-    this.description = description;
+  private Mutation(String readable, List<Relation> relations) {
+    this.readable = readable;
+    this.relations = Collections.unmodifiableList(new ArrayList<>(relations));
   }
 
   /**
-   * @return the column on which mutation is being applied.
+   * @return a readable {@link String} version of the transformation to be included in lineage.
    */
-  public String column() {
-    return column;
+  public String readable() {
+    return readable;
   }
 
   /**
-   * @return the type of mutation being applied on the <code>column</code>.
+   * @return a {@link List} of {@link Relation} associated with the transformation.
    */
-  public MutationType type() {
-    return type;
+  public List<Relation> relations() {
+    return relations;
   }
 
   /**
-   * @return the optional description for the mutation.
+   * @return a instance of {@link Mutation.Builder}
    */
-  public String description() {
-    return description;
+  public static Mutation.Builder builder() {
+    return new Mutation.Builder();
   }
 
   /**
-   * Generates a <code>JsonElement</code> object representation of <code>Mutation</code>
-   * @return the object representation of <code>Mutation</code> as <code>JsonElement</code>
+   * Builder to create Mutation.
    */
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("column", column);
-    object.addProperty("type", type.name());
-    object.addProperty("description", description);
-    return object;
+  public static class Builder {
+    private final List<Relation> relations;
+    private String description;
+
+    /**
+     * A builder constructor.
+     */
+    public Builder() {
+      this.relations = new ArrayList<>();
+    }
+
+    /**
+     * An easy way to created a formatted string of transformation.
+     *
+     * @param format a format string.
+     * @param args Arguments referenced by the format specifiers in the format string.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder readable(String format, Object ... args) {
+      this.description = String.format(format, args);
+      return this;
+    }
+
+    /**
+     * A variation to specify the readable string for transformation.
+     *
+     * @param format a format string.
+     * @param args Arguments referenced by the format specifiers in the format string.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder readable(String format, List<Object> args) {
+      readable(format, args.toArray());
+      return this;
+    }
+
+    /**
+     * Specifies a relation that need to be dropped.
+     *
+     * @param sources a list of sources to be dropped from lineage.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder drop(Many sources) {
+      relations.add(new Relation(uuid(), sources.columns(),
+                                 Collections.emptyList(), Relation.Type.DROP));
+      return this;
+    }
+
+    /**
+     * Specifies a relation that has no cause but effect.
+     *
+     * @param targets a list of targets.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder create(Many targets) {
+      relations.add(new Relation(uuid(), Collections.emptyList(),
+                                 targets.columns(), Relation.Type.CREATE));
+      return this;
+    }
+
+    /**
+     * A relation that has association with all in the output field.
+     * This method is used usually during parse scenarios.
+     *
+     * @param sources list of sources to be associated with all output.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder all(Many sources) {
+      relations.add(new Relation(uuid(), sources.columns(),
+                                 Collections.emptyList(), Relation.Type.ALL));
+      return this;
+    }
+
+    /**
+     * A standard relation between source of {@link ColumnName} to target of {@link ColumnName}.
+     *
+     * @param source a instance of {@link ColumnName} source.
+     * @param target a instance of {@link ColumnName} target.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder relation(ColumnName source, ColumnName target) {
+      relation(source.value(), target.value());
+      return this;
+    }
+
+    /**
+     * A relation that's conditional, depending on whether source and target are same.
+     *
+     * @param source a instance of {@link String} source.
+     * @param target a instance of {@link String} target.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder conditional(String source, String target) {
+      relation(source, source.equals(target) ? Many.of(target) : Many.of(source, target));
+      return this;
+    }
+
+    /**
+     * A standard one-to-one relation.
+     *
+     * @param source a source column.
+     * @param target a target column.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder relation(String source, String target) {
+      relation(source, Many.of(target));
+      return this;
+    }
+
+    /**
+     * A standard one-to-one relation.
+     *
+     * @param source a source column of type {@link ColumnName}.
+     * @param targets a target column of type {@link ColumnName}.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder relation(ColumnName source, Many targets) {
+      relation(source.value(), targets);
+      return this;
+    }
+
+    /**
+     * A relation specifying one-to-many.
+     *
+     * @param source a source column of type {@link String}.
+     * @param targets {@link Many} target columns to be associated with source.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder relation(String source, Many targets) {
+      relation(Many.of(source), targets);
+      return this;
+    }
+
+    /**
+     * Specifies a relation that is many-to-one.
+     *
+     * @param sources {@link Many} source columns to be associated with target.
+     * @param target a target column of type {@link String}.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder relation(Many sources, String target) {
+      relation(sources, Many.of(target));
+      return this;
+    }
+
+    /**
+     * Specifies {@link Many} to {@link Many} relation.
+     *
+     * @param sources {@link Many} source columns to be associated with {@link Many} targets.
+     * @param targets {@link Many} target columns to be associated with {@link Many} sources.
+     * @return a instance of {@link Mutation.Builder}
+     */
+    public Mutation.Builder relation(Many sources, Many targets) {
+      relations.add(new Relation(uuid(), sources.columns(), targets.columns()));
+      return this;
+    }
+
+    /**
+     * Specifies a many-to-one relation.
+     *
+     * @param sources {@link Many} source columns to be associated with target.
+     * @param target a instance of {@link ColumnName} target.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder relation(Many sources, ColumnName target) {
+      relation(sources, target.value());
+      return this;
+    }
+
+    private String uuid() {
+      return UUID.randomUUID().toString();
+    }
+
+    public Mutation build() {
+      return new Mutation(description, relations);
+    }
   }
 }

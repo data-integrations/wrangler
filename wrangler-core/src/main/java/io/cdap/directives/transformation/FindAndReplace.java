@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -43,7 +45,7 @@ import java.util.List;
 @Name(FindAndReplace.NAME)
 @Categories(categories = { "transform"})
 @Description("Finds and replaces text in column values using a sed-format expression.")
-public class FindAndReplace implements Directive {
+public class FindAndReplace implements Directive, Lineage {
   public static final String NAME = "find-and-replace";
   private String pattern;
   private List<String> columns;
@@ -93,6 +95,14 @@ public class FindAndReplace implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Found and replaced '%s' using expression '%s'", columns, pattern);
+    columns.forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }
 

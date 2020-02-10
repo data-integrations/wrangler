@@ -25,6 +25,8 @@ import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -38,7 +40,7 @@ import java.util.List;
 @Name(Rename.NAME)
 @Categories(categories = { "column"})
 @Description("Renames a column 'source' to 'target'")
-public final class Rename implements Directive {
+public final class Rename implements Directive, Lineage {
   public static final String NAME = "rename";
   private ColumnName source;
   private ColumnName target;
@@ -81,5 +83,13 @@ public final class Rename implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Renamed column '%s' to '%s'", source.value(), target.value())
+      .relation(source, target)
+      .build();
   }
 }

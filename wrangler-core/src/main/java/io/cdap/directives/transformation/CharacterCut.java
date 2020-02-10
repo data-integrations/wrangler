@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -41,7 +44,7 @@ import java.util.List;
 @Name(CharacterCut.NAME)
 @Categories(categories = { "transform"})
 @Description("UNIX-like 'cut' directive for splitting text.")
-public class CharacterCut implements Directive {
+public class CharacterCut implements Directive, Lineage {
   public static final String NAME = "cut-character";
   private String source;
   private String destination;
@@ -93,5 +96,14 @@ public class CharacterCut implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable(String.format("Character cut from column %s to destination %s using range %s",
+                              source, destination, range))
+      .conditional(source, destination)
+      .build();
   }
 }

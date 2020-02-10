@@ -27,6 +27,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -49,7 +52,7 @@ import java.util.Map;
 @Name("parse-as-avro-file")
 @Categories(categories = { "parser", "avro"})
 @Description("parse-as-avro-file <column>.")
-public class ParseAvroFile implements Directive {
+public class ParseAvroFile implements Directive, Lineage {
   public static final String NAME = "parse-as-avro-file";
   private String column;
   private Gson gson;
@@ -107,6 +110,14 @@ public class ParseAvroFile implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a Avro file", column)
+      .all(Many.columns(column))
+      .build();
   }
 
   /**

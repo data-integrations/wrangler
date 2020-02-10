@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -43,7 +46,7 @@ import java.util.List;
 @Categories(categories = {"date"})
 @Description("Calculates the difference in milliseconds between two Date objects." +
   "Positive if <column2> earlier. Must use 'parse-as-date' or 'parse-as-simple-date' first.")
-public class DiffDate implements Directive {
+public class DiffDate implements Directive, Lineage {
   public static final String NAME = "diff-date";
   private String column1;
   private String column2;
@@ -103,5 +106,16 @@ public class DiffDate implements Directive {
       return null;
     }
     return (ZonedDateTime) o;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Calculated difference between dates in column '%s' and '%s' and store in '%s'"
+        , column1, column2, destCol)
+      .relation(Many.columns(column1, column2), destCol)
+      .relation(column1, column1)
+      .relation(column2, column2)
+      .build();
   }
 }

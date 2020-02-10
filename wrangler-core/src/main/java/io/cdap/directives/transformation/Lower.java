@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -39,7 +41,7 @@ import java.util.List;
 @Name(Lower.NAME)
 @Categories(categories = { "transform"})
 @Description("Changes the column values to lowercase.")
-public class Lower implements Directive {
+public class Lower implements Directive, Lineage {
   public static final String NAME = "lowercase";
   // Columns of the column to be lower cased.
   private String column;
@@ -76,5 +78,13 @@ public class Lower implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Lower cased the characters of values in column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 }
