@@ -29,6 +29,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -45,7 +48,7 @@ import java.util.Map;
 @Name(TableLookup.NAME)
 @Categories(categories = { "lookup"})
 @Description("Uses the given column as a key to perform a lookup into the specified table.")
-public class TableLookup implements Directive {
+public class TableLookup implements Directive, Lineage {
   public static final String NAME = "table-lookup";
   private String column;
   private String table;
@@ -120,5 +123,13 @@ public class TableLookup implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Looking up row in table '%s' based on column '%s'", table, column)
+      .all(Many.of(column))
+      .build();
   }
 }

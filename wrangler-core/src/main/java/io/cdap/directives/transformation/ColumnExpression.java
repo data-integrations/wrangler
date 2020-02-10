@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -55,7 +58,7 @@ import java.util.Map;
 @Name(ColumnExpression.NAME)
 @Categories(categories = { "transform"})
 @Description("Sets a column by evaluating a JEXL expression.")
-public class ColumnExpression implements Directive {
+public class ColumnExpression implements Directive, Lineage {
   public static final String NAME = "set-column";
   // Column to which the result of experience is applied to.
   private String column;
@@ -121,6 +124,19 @@ public class ColumnExpression implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Mapped result of expression '%s' to column '%s'", expression, column);
+    builder.relation(Many.of(el.variables()), column);
+    el.variables().forEach(col -> {
+      if (!col.equals(column)) {
+        builder.relation(col, col);
+      }
+    });
+    return builder.build();
   }
 }
 

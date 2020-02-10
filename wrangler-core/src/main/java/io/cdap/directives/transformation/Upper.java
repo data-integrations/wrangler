@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -39,7 +41,7 @@ import java.util.List;
 @Name(Upper.NAME)
 @Categories(categories = { "transform"})
 @Description("Changes the column values to uppercase.")
-public class Upper implements Directive {
+public class Upper implements Directive, Lineage {
   public static final String NAME = "uppercase";
   // Columns of the column to be upper-cased
   private String column;
@@ -76,5 +78,13 @@ public class Upper implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Upper cased the characters of values in column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 }

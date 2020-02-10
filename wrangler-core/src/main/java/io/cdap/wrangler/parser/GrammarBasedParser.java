@@ -38,7 +38,6 @@ import io.cdap.wrangler.registry.DirectiveRegistry;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * This class <code>GrammarBasedParser</code> is an implementation of <code>RecipeParser</code>.
@@ -51,7 +50,7 @@ public class GrammarBasedParser implements RecipeParser {
   private final Compiler compiler = new RecipeCompiler();
   private final DirectiveRegistry registry;
   private final String recipe;
-  private final List<Executor> directives;
+  private final List<Directive> directives;
   private DirectiveContext context;
 
   public GrammarBasedParser(String namespace, String[] directives, DirectiveRegistry registry) {
@@ -72,7 +71,7 @@ public class GrammarBasedParser implements RecipeParser {
    * @return List of {@link Executor}.
    */
   @Override
-  public List<Executor> parse()
+  public List<Directive> parse()
     throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException {
     try {
       CompileStatus status = compiler.compile(recipe);
@@ -132,7 +131,6 @@ public class GrammarBasedParser implements RecipeParser {
    *
    * @param context
    */
-  @Nullable
   @Override
   public void initialize(DirectiveContext context) {
     if (context == null) {

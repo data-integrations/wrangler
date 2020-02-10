@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -41,7 +44,7 @@ import java.util.List;
 @Name(SplitToColumns.NAME)
 @Categories(categories = { "column"})
 @Description("Splits a column into one or more columns around matches of the specified regular expression.")
-public class SplitToColumns implements Directive {
+public class SplitToColumns implements Directive, Lineage {
   public static final String NAME = "split-to-columns";
   // Column on which to apply mask.
   private String column;
@@ -98,6 +101,27 @@ public class SplitToColumns implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Split the column '%s' with regex '%s'", column, regex)
+      .relation(
+        column,
+        Many.columns(
+          column,
+          String.format("%s_%d", column, 1),
+          String.format("%s_%d", column, 2),
+          String.format("%s_%d", column, 3),
+          String.format("%s_%d", column, 4),
+          String.format("%s_%d", column, 5),
+          String.format("%s_%d", column, 6),
+          String.format("%s_%d", column, 7),
+          String.format("%s_%d", column, 8),
+          String.format("%s_%d", column, 9),
+          String.format("%s_%d", column, 10)))
+    .build();
   }
 }
 

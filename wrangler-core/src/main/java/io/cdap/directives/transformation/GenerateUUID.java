@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -41,7 +43,7 @@ import java.util.UUID;
 @Name(GenerateUUID.NAME)
 @Categories(categories = { "transform", "uuid"})
 @Description("Populates a column with a universally unique identifier (UUID) of the record.")
-public class GenerateUUID implements Directive {
+public class GenerateUUID implements Directive, Lineage {
   public static final String NAME = "generate-uuid";
   private String column;
   private Random random;
@@ -76,5 +78,13 @@ public class GenerateUUID implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Generated unique identifier based on column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 }

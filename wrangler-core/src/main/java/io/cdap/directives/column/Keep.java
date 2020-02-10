@@ -27,6 +27,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -45,7 +47,7 @@ import java.util.Set;
 @Name("keep")
 @Categories(categories = { "column"})
 @Description("Keeps the specified columns and drops all others.")
-public class Keep implements Directive {
+public class Keep implements Directive, Lineage {
   public static final String NAME = "keep";
   private final Set<String> keep = new HashSet<>();
 
@@ -82,5 +84,13 @@ public class Keep implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+                                  .readable("Removed all columns except '%s'", keep);
+    keep.forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }

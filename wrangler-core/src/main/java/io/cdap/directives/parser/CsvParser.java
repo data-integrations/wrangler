@@ -28,6 +28,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
@@ -53,7 +56,7 @@ import java.util.Set;
 @Name(CsvParser.NAME)
 @Categories(categories = { "parser", "csv"})
 @Description("Parses a column as CSV (comma-separated values).")
-public class CsvParser implements Directive {
+public class CsvParser implements Directive, Lineage {
   public static final String NAME = "parse-as-csv";
   private ColumnName columnArg;
   private Text delimiterArg;
@@ -97,6 +100,7 @@ public class CsvParser implements Directive {
         delimiter = unescapedStr.charAt(0);
       }
     }
+
 
     this.format = CSVFormat.DEFAULT.withDelimiter(delimiter);
     this.format.withIgnoreEmptyLines(true)
@@ -196,5 +200,13 @@ public class CsvParser implements Directive {
       }
     }
     return true;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as CSV with delimiter '%s'", columnArg.value(), delimiterArg.value())
+      .all(Many.columns(columnArg))
+      .build();
   }
 }
