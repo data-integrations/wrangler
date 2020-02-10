@@ -19,6 +19,7 @@ package io.cdap.wrangler.executor;
 import com.google.common.collect.Lists;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveNotFoundException;
@@ -48,7 +49,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
 
   private static final Logger LOG = LoggerFactory.getLogger(RecipePipelineExecutor.class);
   private ExecutorContext context;
-  private List<Executor> directives;
+  private List<Directive> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private RecordConvertor convertor = new RecordConvertor();
 

@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -40,7 +42,7 @@ import java.util.List;
 @Name(RightTrim.NAME)
 @Categories(categories = { "transform"})
 @Description("Trimming whitespace from right side of a string.")
-public class RightTrim implements Directive {
+public class RightTrim implements Directive, Lineage {
   public static final String NAME = "rtrim";
   // Columns of the column to be upper-cased
   private String column;
@@ -77,5 +79,13 @@ public class RightTrim implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Removed spaces on the right in values of column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 }

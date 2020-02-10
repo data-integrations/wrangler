@@ -17,6 +17,7 @@
 package io.cdap.wrangler.parser;
 
 import com.google.gson.Gson;
+import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveNotFoundException;
 import io.cdap.wrangler.api.DirectiveParseException;
@@ -98,7 +99,7 @@ public class ConfigDirectiveContextTest {
     );
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Executor> steps = directives.parse();
+    List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 
@@ -116,7 +117,7 @@ public class ConfigDirectiveContextTest {
     );
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Executor> steps = directives.parse();
+    List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 
@@ -134,7 +135,7 @@ public class ConfigDirectiveContextTest {
     );
     directives.initialize(new ConfigDirectiveContext(config));
 
-    List<Executor> steps = directives.parse();
+    List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
 

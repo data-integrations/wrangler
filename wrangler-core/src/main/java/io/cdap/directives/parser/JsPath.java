@@ -34,6 +34,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -49,7 +51,7 @@ import java.util.List;
 @Name("json-path")
 @Categories(categories = { "parser", "json"})
 @Description("Parses JSON elements using a DSL (a JSON path expression).")
-public class JsPath implements Directive {
+public class JsPath implements Directive, Lineage {
   public static final String NAME = "json-path";
   private String src;
   private String dest;
@@ -117,6 +119,15 @@ public class JsPath implements Directive {
     }
 
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Extracted value from column '%s' represented as Json to destination column '%s' using path '%s'",
+                src, dest, path)
+      .conditional(src, dest)
+      .build();
   }
 }
 

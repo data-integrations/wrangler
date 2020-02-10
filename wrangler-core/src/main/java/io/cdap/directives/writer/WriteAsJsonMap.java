@@ -28,6 +28,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -43,7 +46,7 @@ import java.util.Map;
 @Name("write-as-json-map")
 @Categories(categories = { "writer", "json"})
 @Description("Writes all record columns as JSON map.")
-public class WriteAsJsonMap implements Directive {
+public class WriteAsJsonMap implements Directive, Lineage {
   public static final String NAME = "write-as-json-map";
   private String column;
   private Gson gson;
@@ -76,5 +79,13 @@ public class WriteAsJsonMap implements Directive {
       row.addOrSet(column, gson.toJson(toJson));
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Wrote column '%s' as a json map", column)
+      .all(Many.of(column))
+      .build();
   }
 }

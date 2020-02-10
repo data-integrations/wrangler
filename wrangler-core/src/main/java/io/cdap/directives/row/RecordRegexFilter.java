@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Text;
@@ -44,7 +46,7 @@ import java.util.regex.Pattern;
 @Name(RecordRegexFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows if the regex is matched or not matched.")
-public class RecordRegexFilter implements Directive {
+public class RecordRegexFilter implements Directive, Lineage {
   public static final String NAME = "filter-by-regex";
   private String column;
   private Pattern pattern;
@@ -127,6 +129,15 @@ public class RecordRegexFilter implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Filtered column '%s' based on whether the expression '%s' %s ",
+                column, pattern, matched ? "matched" : "not matched")
+      .relation(column, column)
+      .build();
   }
 
   private boolean matchPattern(String value) {

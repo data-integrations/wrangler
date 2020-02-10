@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -41,9 +44,16 @@ import java.util.List;
 @Name(SplitURL.NAME)
 @Categories(categories = { "transform", "url"})
 @Description("Split a url into it's components host,protocol,port,etc.")
-public class SplitURL implements Directive {
+public class SplitURL implements Directive, Lineage {
   public static final String NAME = "split-url";
   private String column;
+  private String protocolCol;
+  private String authCol;
+  private String hostCol;
+  private String portCol;
+  private String pathCol;
+  private String queryCol;
+  private String fileCol;
 
   @Override
   public UsageDefinition define() {
@@ -55,6 +65,13 @@ public class SplitURL implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
+    this.protocolCol = column + "_protocol";
+    this.authCol = column + "_authority";
+    this.hostCol = column + "_host";
+    this.portCol = column + "_port";
+    this.pathCol = column + "_path";
+    this.queryCol = column + "_query";
+    this.fileCol = column + "_filename";
   }
 
   @Override
@@ -70,25 +87,25 @@ public class SplitURL implements Directive {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          row.add(column + "_protocol", null);
-          row.add(column + "_authority", null);
-          row.add(column + "_host", null);
-          row.add(column + "_port", null);
-          row.add(column + "_path", null);
-          row.add(column + "_query", null);
-          row.add(column + "_filename", null);
+          row.add(protocolCol, null);
+          row.add(authCol, null);
+          row.add(hostCol, null);
+          row.add(portCol, null);
+          row.add(pathCol, null);
+          row.add(queryCol, null);
+          row.add(fileCol, null);
           continue;
         }
         if (object instanceof String) {
           try {
             URL url = new URL((String) object);
-            row.add(column + "_protocol", url.getProtocol());
-            row.add(column + "_authority", url.getAuthority());
-            row.add(column + "_host", url.getHost());
-            row.add(column + "_port", url.getPort());
-            row.add(column + "_path", url.getPath());
-            row.add(column + "_filename", url.getFile());
-            row.add(column + "_query", url.getQuery());
+            row.add(protocolCol, url.getProtocol());
+            row.add(authCol, url.getAuthority());
+            row.add(hostCol, url.getHost());
+            row.add(portCol, url.getPort());
+            row.add(pathCol, url.getPath());
+            row.add(fileCol, url.getFile());
+            row.add(queryCol, url.getQuery());
           } catch (MalformedURLException e) {
             throw new DirectiveExecutionException(
               NAME, String.format("Malformed url '%s' found in column '%s'.", (String) object, column), e);
@@ -103,5 +120,14 @@ public class SplitURL implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Split column '%s' into url parts as columns '%s', '%s', '%s', '%s', '%s', '%s', '%s'",
+                column, protocolCol, authCol, hostCol, portCol, pathCol, queryCol, fileCol)
+      .relation(column, Many.of(column, protocolCol, authCol, hostCol, portCol, pathCol, queryCol, fileCol))
+      .build();
   }
 }

@@ -35,6 +35,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Numeric;
@@ -62,7 +65,7 @@ import java.util.concurrent.TimeUnit;
 @Name("parse-as-avro")
 @Categories(categories = { "parser", "avro"})
 @Description("Parses column as AVRO generic record.")
-public class ParseAvro implements Directive {
+public class ParseAvro implements Directive, Lineage {
   public static final String NAME = "parse-as-avro";
   private String column;
   private String schemaId;
@@ -175,5 +178,13 @@ public class ParseAvro implements Directive {
         + (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a Avro record", column)
+      .all(Many.columns(column))
+      .build();
   }
 }

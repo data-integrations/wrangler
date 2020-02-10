@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -45,7 +47,7 @@ import java.util.Locale;
 @Name(Encode.NAME)
 @Categories(categories = { "transform"})
 @Description("Encodes column values using one of base32, base64, or hex.")
-public class Encode implements Directive {
+public class Encode implements Directive, Lineage {
   public static final String NAME = "encode";
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();
@@ -139,5 +141,13 @@ public class Encode implements Directive {
       row.addOrSet(String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), obj);
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Encoded column '%s' using method '%s'", column, method.getType())
+      .relation(column, column)
+      .build();
   }
 }

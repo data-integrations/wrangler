@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -49,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 @Name("parse-timestamp")
 @Categories(categories = {"parser", "date"})
 @Description("Parses column values representing unix timestamp as date.")
-public class ParseTimestamp implements Directive {
+public class ParseTimestamp implements Directive, Lineage {
   public static final String NAME = "parse-timestamp";
   private static final Set<TimeUnit> SUPPORTED_TIME_UNITS = EnumSet.of(TimeUnit.SECONDS, TimeUnit.MILLISECONDS,
                                                                        TimeUnit.MICROSECONDS);
@@ -119,6 +121,14 @@ public class ParseTimestamp implements Directive {
     }
 
     return unit;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a timestamp using time unit as '%s'", column, timeUnit)
+      .relation(column, column)
+      .build();
   }
 
   private long getLongValue(Object object) throws ErrorRowException {
