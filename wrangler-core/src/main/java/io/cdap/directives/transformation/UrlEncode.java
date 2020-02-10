@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -41,7 +43,7 @@ import java.util.List;
 @Name(UrlEncode.NAME)
 @Categories(categories = { "transform"})
 @Description("URL encode a column value.")
-public class UrlEncode implements Directive {
+public class UrlEncode implements Directive, Lineage {
   public static final String NAME = "url-encode";
   private String column;
 
@@ -60,6 +62,14 @@ public class UrlEncode implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Encoded column '%s' as url", column)
+      .relation(column, column)
+      .build();
   }
 
   @Override

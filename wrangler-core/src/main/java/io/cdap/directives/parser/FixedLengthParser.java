@@ -29,6 +29,9 @@ import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.NumericList;
 import io.cdap.wrangler.api.parser.Text;
@@ -45,7 +48,7 @@ import java.util.List;
 @Name("parse-as-fixed-length")
 @Categories(categories = { "parser"})
 @Description("Parses fixed-length records using the specified widths and padding-character.")
-public final class FixedLengthParser implements Directive {
+public final class FixedLengthParser implements Directive, Lineage {
   public static final String NAME = "parse-as-fixed-length";
   private int[] widths;
   private String col;
@@ -136,5 +139,13 @@ public final class FixedLengthParser implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' with fixed lengths for columns", col)
+      .all(Many.of(col))
+      .build();
   }
 }

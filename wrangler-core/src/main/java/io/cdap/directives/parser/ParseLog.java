@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -42,7 +45,7 @@ import java.util.List;
 @Name("parse-as-log")
 @Categories(categories = { "parser", "logs"})
 @Description("Parses Apache HTTPD and NGINX logs.")
-public class ParseLog implements Directive {
+public class ParseLog implements Directive, Lineage {
   public static final String NAME = "parse-as-log";
   private String column;
   private String format;
@@ -109,6 +112,14 @@ public class ParseLog implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as webserver log using format '%s'", column, format)
+      .all(Many.columns(column))
+      .build();
   }
 
   /**

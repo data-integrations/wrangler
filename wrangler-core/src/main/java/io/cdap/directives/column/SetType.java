@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -41,7 +43,7 @@ import java.util.List;
 @Name(SetType.NAME)
 @Categories(categories = {"column"})
 @Description("Converting data type of a column.")
-public final class SetType implements Directive {
+public final class SetType implements Directive, Lineage {
   public static final String NAME = "set-type";
   private String col;
   private String type;
@@ -262,5 +264,13 @@ public final class SetType implements Directive {
             "Column '%s' is of unsupported type '%s'. Supported types are: " +
               "int, short, long, double, boolean, string, bytes", col, toType));
     }
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Changed the column '%s' to type '%s'", col, type)
+      .relation(col, col)
+      .build();
   }
 }
