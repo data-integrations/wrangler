@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -46,7 +48,7 @@ import java.util.List;
 @Name("format-date")
 @Categories(categories = {"date", "format"})
 @Description("Formats a column using a date-time format. Use 'parse-as-date` beforehand.")
-public class FormatDate implements Directive {
+public class FormatDate implements Directive, Lineage {
   public static final String NAME = "format-date";
   private String format;
   private String column;
@@ -103,5 +105,13 @@ public class FormatDate implements Directive {
       results.add(dt);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Formatted date in column '%s' using format '%s'", column, format)
+      .relation(column, column)
+      .build();
   }
 }

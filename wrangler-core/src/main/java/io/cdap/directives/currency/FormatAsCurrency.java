@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -45,7 +47,7 @@ import java.util.Locale;
 @Name(FormatAsCurrency.NAME)
 @Categories(categories = {"currency"})
 @Description("Formats a number as currency using the locale specified. Default locale is en_US.")
-public class FormatAsCurrency implements Directive {
+public class FormatAsCurrency implements Directive, Lineage {
   public static final String NAME = "format-as-currency";
   private String source;
   private String destination;
@@ -98,5 +100,13 @@ public class FormatAsCurrency implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Formatted column '%s' to currency locale '%s' into '%s'", source, destination, locale)
+      .conditional(source, destination)
+      .build();
   }
 }

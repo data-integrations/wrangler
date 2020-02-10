@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -41,7 +43,7 @@ import java.util.List;
 @Name(FillNullOrEmpty.NAME)
 @Categories(categories = { "transform"})
 @Description("Fills a value of a column with a fixed value if it is either null or empty.")
-public class FillNullOrEmpty implements Directive {
+public class FillNullOrEmpty implements Directive, Lineage {
   public static final String NAME = "fill-null-or-empty";
   private String column;
   private String value;
@@ -93,5 +95,13 @@ public class FillNullOrEmpty implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Filled column '%s' values that were null or empty with value %s", column, value)
+      .relation(column, column)
+      .build();
   }
 }

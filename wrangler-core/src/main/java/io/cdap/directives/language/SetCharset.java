@@ -27,6 +27,8 @@ import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -47,7 +49,7 @@ import java.util.List;
 @Name("set-charset")
 @Categories(categories = {"language"})
 @Description("Sets the character set decoding to UTF-8.")
-public class SetCharset implements Directive {
+public class SetCharset implements Directive, Lineage {
   public static final String NAME = "set-charset";
   private String column;
   private String charset;
@@ -108,5 +110,13 @@ public class SetCharset implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Changed character set of column '%s' to '%s'", column, charset)
+      .relation(column, column)
+      .build();
   }
 }

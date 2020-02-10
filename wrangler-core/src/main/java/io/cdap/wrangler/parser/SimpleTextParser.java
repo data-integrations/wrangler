@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.parser;
 
+import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.Executor;
@@ -28,7 +29,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-import javax.annotation.Nullable;
 
 /**
  * Parses the DSL into specification containing stepRegistry for wrangling.
@@ -71,8 +71,8 @@ public class SimpleTextParser implements RecipeParser {
    * @throws ParseException
    */
   @Override
-  public List<Executor> parse() throws DirectiveParseException {
-    List<Executor> directives = new ArrayList<>();
+  public List<Directive> parse() throws DirectiveParseException {
+    List<Directive> directives = new ArrayList<>();
 
     // Split directive by EOL
     int lineno = 1;
@@ -147,7 +147,6 @@ public class SimpleTextParser implements RecipeParser {
    *
    * @param context
    */
-  @Nullable
   @Override
   public void initialize(DirectiveContext context) {
     if (context == null) {

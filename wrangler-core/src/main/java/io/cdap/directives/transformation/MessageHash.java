@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
@@ -47,7 +49,7 @@ import java.util.Set;
 @Name(MessageHash.NAME)
 @Categories(categories = { "transform", "hash"})
 @Description("Creates a message digest for the column using algorithm, replacing the column value.")
-public class MessageHash implements Directive {
+public class MessageHash implements Directive, Lineage {
   public static final String NAME = "hash";
   private static final Set<String> algorithms = ImmutableSet.of(
     "BLAKE2B-160",
@@ -137,6 +139,14 @@ public class MessageHash implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Anonymized the column '%s'", column)
+      .relation(column, column)
+      .build();
   }
 
   public static boolean isValid(String algorithm) {

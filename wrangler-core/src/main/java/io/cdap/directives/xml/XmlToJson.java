@@ -31,6 +31,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -47,7 +50,7 @@ import java.util.List;
 @Name("parse-xml-to-json")
 @Categories(categories = { "xml"})
 @Description("Parses a XML document to JSON representation.")
-public class XmlToJson implements Directive {
+public class XmlToJson implements Directive, Lineage {
   public static final String NAME = "parse-xml-to-json";
   // Column within the input row that needs to be parsed as Json
   private String col;
@@ -105,5 +108,13 @@ public class XmlToJson implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Converted xml in column '%s' to json", col)
+      .all(Many.of(col))
+      .build();
   }
 }

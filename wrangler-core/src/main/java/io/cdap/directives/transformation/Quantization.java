@@ -30,6 +30,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.Ranges;
@@ -46,7 +48,7 @@ import java.util.List;
 @Name(Quantization.NAME)
 @Categories(categories = { "transform"})
 @Description("Quanitize the range of numbers into label values.")
-public class Quantization implements Directive {
+public class Quantization implements Directive, Lineage {
   public static final String NAME = "quantize";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();
   private String col1;
@@ -123,7 +125,14 @@ public class Quantization implements Directive {
       }
       results.add(row);
     }
-
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Quanitized column '%s' into column '%s'", col1, col2)
+      .conditional(col1, col2)
+      .build();
   }
 }

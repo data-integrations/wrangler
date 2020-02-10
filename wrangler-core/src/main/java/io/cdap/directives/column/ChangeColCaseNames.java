@@ -27,6 +27,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -41,7 +44,7 @@ import java.util.List;
 @Name(ChangeColCaseNames.NAME)
 @Categories(categories = { "column"})
 @Description("Changes the case of column names to either lowercase or uppercase.")
-public class ChangeColCaseNames implements Directive {
+public class ChangeColCaseNames implements Directive, Lineage {
   public static final String NAME = "change-column-case";
   private boolean toLower;
 
@@ -82,6 +85,14 @@ public class ChangeColCaseNames implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Changed all column names to ", toLower ? "'lowercase'" : "'uppercase'")
+      .all(Many.of())
+      .build();
   }
 }
 

@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -41,7 +44,7 @@ import java.util.List;
 @Name(CatalogLookup.NAME)
 @Categories(categories = { "lookup"})
 @Description("Looks-up values from pre-loaded (static) catalogs.")
-public class CatalogLookup implements Directive {
+public class CatalogLookup implements Directive, Lineage {
   public static final String NAME = "catalog-lookup";
   // StaticCatalog that holds the ICD code and their descriptions
   private StaticCatalog catalog;
@@ -51,6 +54,9 @@ public class CatalogLookup implements Directive {
 
   // Column from which the ICD code needs to be read.
   private String column;
+
+  // This is the generated column
+  private String generatedColumn;
 
   @Override
   public UsageDefinition define() {
@@ -75,6 +81,7 @@ public class CatalogLookup implements Directive {
       }
     }
     this.name = catalog.getCatalog().replaceAll("-", "_");
+    this.generatedColumn = String.format("%s_%s_description", column, name);
   }
 
   @Override
@@ -92,17 +99,25 @@ public class CatalogLookup implements Directive {
           String code = (String) object;
           StaticCatalog.Entry value = catalog.lookup(code);
           if (value != null) {
-            row.add(String.format("%s_%s_description", column, name), value.getDescription());
+            row.add(generatedColumn, value.getDescription());
           } else {
-            row.add(String.format("%s_%s_description", column, name), null);
+            row.add(generatedColumn, null);
           }
         } else {
-          row.add(String.format("%s_%s_description", column, name), null);
+          row.add(generatedColumn, null);
         }
       } else {
-        row.add(String.format("%s_%s_description", column, name), null);
+        row.add(generatedColumn, null);
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Looked up catalog using value in column '%s' and wrote it to column '%s'", column, generatedColumn)
+      .relation(column, Many.of(column, generatedColumn))
+      .build();
   }
 }
