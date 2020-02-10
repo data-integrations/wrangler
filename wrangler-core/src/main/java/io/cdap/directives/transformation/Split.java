@@ -40,7 +40,7 @@ import java.util.List;
  */
 @Plugin(type = Directive.TYPE)
 @Name(Split.NAME)
-@Categories(categories = { "transform"})
+@Categories(categories = { "readable"})
 @Description("Use 'split-to-columns' or 'split-to-rows'.")
 @Deprecated
 public class Split implements Directive {

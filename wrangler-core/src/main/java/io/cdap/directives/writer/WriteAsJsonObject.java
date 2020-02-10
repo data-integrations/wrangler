@@ -31,6 +31,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -45,7 +48,7 @@ import java.util.List;
 @Name("write-as-json-object")
 @Categories(categories = { "writer", "json"})
 @Description("Creates a JSON object based on source columns specified. JSON object is written into dest-column.")
-public class WriteAsJsonObject implements Directive {
+public class WriteAsJsonObject implements Directive, Lineage {
   public static final String NAME = "write-as-json-object";
   private String column;
   private List<String> columns;
@@ -102,5 +105,14 @@ public class WriteAsJsonObject implements Directive {
       row.addOrSet(column, object);
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+                                 .readable("Wrote columns '%s' as json object into column '%s'", columns, column);
+    builder.relation(Many.of(columns), column);
+    columns.forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }

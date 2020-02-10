@@ -46,6 +46,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -61,7 +64,7 @@ import java.util.List;
 @Categories(categories = { "parser", "hl7"})
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
   "JSON object enumeration terminates.")
-public class HL7Parser implements Directive {
+public class HL7Parser implements Directive, Lineage {
   public static final String NAME = "parse-as-hl7";
   private String column;
   private HapiContext context;
@@ -94,6 +97,14 @@ public class HL7Parser implements Directive {
   @Override
   public void destroy() {
     // no-op
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as HL7 record", column)
+      .all(Many.columns(column))
+      .build();
   }
 
   @Override
