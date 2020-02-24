@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package io.cdap.directives.validation;
+package io.cdap.wrangler.utils;
 
 import java.io.Serializable;
 import java.util.Collections;
