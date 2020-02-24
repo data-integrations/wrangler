@@ -30,6 +30,7 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.ColumnConverter;
 
 import java.util.List;
 
@@ -69,18 +70,7 @@ public final class Rename implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      int idx = row.find(source.value());
-      int idxnew = row.find(target.value());
-      if (idx != -1) {
-        if (idxnew == -1) {
-          row.setColumn(idx, target.value());
-        } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' already exists. Apply the 'drop %s' directive before " +
-                                  "renaming '%s' to '%s'.",
-                                target.value(), target.value(), source.value(), target.value()));
-        }
-      }
+      ColumnConverter.rename(NAME, row, source.value(), target.value());
     }
     return rows;
   }

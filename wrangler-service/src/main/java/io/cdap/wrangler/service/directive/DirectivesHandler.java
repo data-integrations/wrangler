@@ -45,7 +45,6 @@ import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.GrammarMigrator;
@@ -58,6 +57,7 @@ import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.TokenType;
+import io.cdap.wrangler.datamodel.DataModelGlossary;
 import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.Workspace;
@@ -69,18 +69,22 @@ import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
+import io.cdap.wrangler.proto.ConflictException;
 import io.cdap.wrangler.proto.ErrorRecordsException;
 import io.cdap.wrangler.proto.NamespacedId;
+import io.cdap.wrangler.proto.NotFoundException;
 import io.cdap.wrangler.proto.Request;
 import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.WorkspaceIdentifier;
 import io.cdap.wrangler.proto.connection.ConnectionType;
 import io.cdap.wrangler.proto.workspace.ColumnStatistics;
 import io.cdap.wrangler.proto.workspace.ColumnValidationResult;
+import io.cdap.wrangler.proto.workspace.DataModelInfo;
 import io.cdap.wrangler.proto.workspace.DirectiveArtifact;
 import io.cdap.wrangler.proto.workspace.DirectiveDescriptor;
 import io.cdap.wrangler.proto.workspace.DirectiveExecutionResponse;
 import io.cdap.wrangler.proto.workspace.DirectiveUsage;
+import io.cdap.wrangler.proto.workspace.ModelInfo;
 import io.cdap.wrangler.proto.workspace.WorkspaceInfo;
 import io.cdap.wrangler.proto.workspace.WorkspaceSummaryResponse;
 import io.cdap.wrangler.proto.workspace.WorkspaceValidationResult;
@@ -144,6 +148,9 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   private static final String COLUMN_NAME = "body";
   private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   private static final String DELIMITER_HEADER = "delimiter";
+  private static final String DATA_MODEL_PROPERTY = "dataModel";
+  private static final String DATA_MODEL_REVISION_PROPERTY = "dataModelRevision";
+  private static final String DATA_MODEL_MODEL_PROPERTY = "dataModelModel";
 
   private DirectiveRegistry composite;
 
@@ -813,6 +820,173 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       return new JsonParser().parse(schemaJson)
         .getAsJsonObject()
         .get("fields").getAsJsonArray();
+    });
+  }
+
+  /**
+   * Adds a data model to workspace. There is a one-to-one mapping between workspaces and models.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param id Workspace to associate a data model.
+   */
+  @POST
+  @Path("contexts/{context}/workspaces/{id}/datamodels")
+  public void addDataModel(HttpServiceRequest request, HttpServiceResponder responder,
+                           @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, ns -> {
+      NamespacedId namespacedId = new NamespacedId(ns, id);
+      Workspace workspace = getWorkspace(namespacedId);
+      RequestExtractor handler = new RequestExtractor(request);
+      DataModelInfo dataModelInfo = handler.getContent("UTF-8", DataModelInfo.class);
+      if (dataModelInfo == null || dataModelInfo.getId() == null || dataModelInfo.getRevision() == null) {
+        throw new BadRequestException("request body is missing required id and revision fields.");
+      }
+      if (DataModelGlossary.getGlossary() == null) {
+        throw new BadRequestException("There is no data model initialized.");
+      }
+      org.apache.avro.Schema schema = DataModelGlossary.getGlossary()
+        .get(dataModelInfo.getId(), dataModelInfo.getRevision());
+      if (schema == null) {
+        throw new BadRequestException(String.format("Unable to find data model %s revision %d", dataModelInfo.getId(),
+                                                    dataModelInfo.getRevision()));
+      }
+
+      Map<String, String> properties = new HashMap<>(workspace.getProperties());
+      if (properties.get(DATA_MODEL_PROPERTY) != null) {
+        throw new ConflictException("data model property already set");
+      }
+
+      properties.put(DATA_MODEL_PROPERTY, dataModelInfo.getId());
+      properties.put(DATA_MODEL_REVISION_PROPERTY, Long.toString(dataModelInfo.getRevision()));
+
+      // Save the properties that were added
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.updateWorkspaceProperties(namespacedId, properties);
+      });
+
+      return new ServiceResponse<>(dataModelInfo);
+    });
+  }
+
+  /**
+   * Removes a data model from a workspace.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param id Workspace to disassociate a data model from.
+   */
+  @DELETE
+  @Path("contexts/{context}/workspaces/{id}/datamodels")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  public void removeDataModel(HttpServiceRequest request, HttpServiceResponder responder,
+                              @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, ns -> {
+      NamespacedId namespacedId = new NamespacedId(ns, id);
+      Workspace workspace = getWorkspace(namespacedId);
+      Map<String, String> properties = new HashMap<>(workspace.getProperties());
+      properties.remove(DATA_MODEL_PROPERTY);
+      properties.remove(DATA_MODEL_REVISION_PROPERTY);
+
+      // Save the properties that were added
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.updateWorkspaceProperties(namespacedId, properties);
+      });
+      return new ServiceResponse<Void>("successfully removed the data model from the workspace");
+    });
+  }
+
+  /**
+   * Adds a model to the workspace. There is a one-to-one mapping between workspace and model. In addition, the model
+   * must be a member of the data model associated with the workspace. If not, an error will be raised.
+   *
+   * @param request Handler for incoming request.
+   * @param responder Responder for data going out.
+   * @param id Workspace to associated a model with.
+   */
+  @POST
+  @Path("contexts/{context}/workspaces/{id}/models")
+  public void addModels(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("context") String namespace, @PathParam("id") String id) {
+    respond(request, responder, namespace, ns -> {
+      NamespacedId namespacedId = new NamespacedId(ns, id);
+      Workspace workspace = getWorkspace(namespacedId);
+      RequestExtractor handler = new RequestExtractor(request);
+      ModelInfo model = handler.getContent("UTF-8", ModelInfo.class);
+      if (model == null || model.getId() == null) {
+        throw new BadRequestException("request body is empty.");
+      }
+
+      Map<String, String> properties = new HashMap<>(workspace.getProperties());
+      Long revision = null;
+      try {
+        revision = Long.parseLong(properties.get(DATA_MODEL_REVISION_PROPERTY));
+      } catch (NumberFormatException e) {
+        revision = DataModelInfo.INVALID_REVISION;
+      }
+      DataModelInfo dataModelInfo = new DataModelInfo(properties.get(DATA_MODEL_PROPERTY), revision);
+      if (dataModelInfo.getId() == null || dataModelInfo.getRevision().equals(DataModelInfo.INVALID_REVISION)) {
+        throw new BadRequestException("data model or data model revision properties has not been set.");
+      }
+      
+      if (properties.get(DATA_MODEL_MODEL_PROPERTY) != null) {
+        throw new ConflictException("model property already set.");
+      }
+
+      if (DataModelGlossary.getGlossary() == null) {
+        throw new BadRequestException("There is no data model initialized.");
+      }
+      org.apache.avro.Schema schema = DataModelGlossary.getGlossary()
+        .get(dataModelInfo.getId(), dataModelInfo.getRevision());
+      List<org.apache.avro.Schema.Field> fieldMatch = schema.getFields().stream()
+        .filter(field -> field.name().equals(model.getId()))
+        .collect(Collectors.toList());
+      if (fieldMatch.isEmpty()) {
+        throw new NotFoundException(
+          String.format("Unable to find model %s in data model %s revision %d.", model.getId(), dataModelInfo.getId(),
+                        dataModelInfo.getRevision()));
+      }
+
+      properties.put(DATA_MODEL_MODEL_PROPERTY, model.getId());
+
+      // Save the properties that were added
+      TransactionRunners.run(getContext(), context -> {
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        ws.updateWorkspaceProperties(namespacedId, properties);
+      });
+
+      return new ServiceResponse<>(dataModelInfo);
+    });
+  }
+
+  /**
+   *
+   */
+  @DELETE
+  @Path("contexts/{context}/workspaces/{id}/models/{modelid}")
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  public void removeModels(HttpServiceRequest request, HttpServiceResponder responder,
+                           @PathParam("context") String namespace, @PathParam("id") String id,
+                           @PathParam("modelid") String modelId) {
+    respond(request, responder, namespace, ns -> {
+      NamespacedId namespacedId = new NamespacedId(ns, id);
+      Workspace workspace = getWorkspace(namespacedId);
+      Map<String, String> properties = new HashMap<>(workspace.getProperties());
+      if (properties.containsKey(DATA_MODEL_MODEL_PROPERTY)) {
+        if (!modelId.equals(properties.get(DATA_MODEL_MODEL_PROPERTY))) {
+          throw new NotFoundException(String.format("model %s is not a property of the workspace.", modelId));
+        }
+        properties.remove(DATA_MODEL_MODEL_PROPERTY);
+
+        // Save the properties that were added
+        TransactionRunners.run(getContext(), context -> {
+          WorkspaceDataset ws = WorkspaceDataset.get(context);
+          ws.updateWorkspaceProperties(namespacedId, properties);
+        });
+      }
+      return new ServiceResponse<Void>("successfully removed the data model from the workspace");
     });
   }
 
