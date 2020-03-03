@@ -138,6 +138,19 @@ public final class Mutation implements Serializable {
     }
 
     /**
+     * A relation that has association with all the input fields.
+     * This method is used usually during set columns scenarios.
+     *
+     * @param targets a list of targets.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder generate(Many targets) {
+      relations.add(new Relation(uuid(), Collections.emptyList(),
+                                 targets.columns(), Relation.Type.GENERATE));
+      return this;
+    }
+
+    /**
      * A relation that has association with all in the output field.
      * This method is used usually during parse scenarios.
      *
