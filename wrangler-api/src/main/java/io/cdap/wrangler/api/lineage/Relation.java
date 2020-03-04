@@ -32,12 +32,16 @@ import java.util.List;
  *   type. This type is used when the column wouldn't be present after the transformation is performed.
  *   </li>
  *   <li>
- *     <code>ALL</code> - This type represents a relation with many. one-to-many or many-to-many relation. This
+ *     <code>ALL</code> - This type represents a relation with many, one-to-many or many-to-many relation. This
  *     type is generally used when the transformation is unclear about what columns would be generated.
  *   </li>
  *   <li>
  *     <code>CREATE</code> - This type represents a relation in which a transformation creates a target without
  *     having any source.
+ *   </li>
+ *   <li>
+ *     <code>GENERATE</code> - This type represents a relation with many, one-to-many or many-to-many relation. This
+ *     type is generaly used when the transformation is unclear about the input columns
  *   </li>
  *   <li>
  *     <code>STANDARD</code> - This type represents all standard relations like many-to-many, many-to-one and
@@ -60,6 +64,7 @@ public final class Relation implements Serializable {
     DROP,
     ALL,
     CREATE,
+    GENERATE,
     STANDARD,
   }
 
@@ -70,12 +75,14 @@ public final class Relation implements Serializable {
 
   /**
    * A constructor to create a relation with a unique id and associated source and target columns.
-   * This method defaults the relation type of {}
+   * This method defaults the relation type to STANDARD
    *
    * @param id of the relation.
    * @param sources a {@link List} of sources columns.
    * @param targets a {@link List} of target columns.
+   * @deprecated id is no longer needed to construct the relation, wrangler itself will generate the id
    */
+  @Deprecated
   Relation(String id, List<String> sources, List<String> targets) {
     this(id, sources, targets, Type.STANDARD);
   }
@@ -87,7 +94,9 @@ public final class Relation implements Serializable {
    * @param sources a {@link List} of sources columns.
    * @param targets a {@link List} of target columns.
    * @param type of relation.
+   * @deprecated id is no longer needed to construct the relation, wrangler itself will generate the id
    */
+  @Deprecated
   Relation(String id, List<String> sources, List<String> targets, Type type) {
     this.id = id;
     this.sources = sources;
@@ -96,8 +105,33 @@ public final class Relation implements Serializable {
   }
 
   /**
-   * @return a {@link String} representation of an id for uniquely identifying the relation.
+   * A constructor to create a relation with a unique id and associated source and target columns.
+   * This method defaults the relation type to STANDARD
+   *
+   * @param sources a {@link List} of sources columns.
+   * @param targets a {@link List} of target columns.
    */
+  Relation(List<String> sources, List<String> targets) {
+    this(null, sources, targets);
+  }
+
+  /**
+   * A constructor to create a relation with a specified {@link Relation.Type} specified.
+   *
+   * @param sources a {@link List} of sources columns.
+   * @param targets a {@link List} of target columns.
+   * @param type of relation.
+   */
+  Relation(List<String> sources, List<String> targets, Type type) {
+    this(null, sources, targets, type);
+  }
+
+  /**
+   * @return a {@link String} representation of an id for uniquely identifying the relation.
+   * @deprecated this id is no longer needed to construct the relation, the wrangler transform will generate id for
+   * the relation
+   */
+  @Deprecated
   public String id() {
     return id;
   }
