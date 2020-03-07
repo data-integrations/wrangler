@@ -36,7 +36,7 @@ public final class Logical {
     return num1 | num2;
   }
 
-  public static long BitXor(long num1, long num2) {
+  public static long BitXOr(long num1, long num2) {
     return num1 ^ num2;
   }
 
