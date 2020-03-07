@@ -4,5 +4,5 @@ The transform functions are used in Wrangler to transform the records. The funct
 
 ## Date and Time Functions
 
-## [Logical Functions](Logical.md)
+## [Logical Functions](logical-functions.md)
 The logical functions perform bitwise operations.
