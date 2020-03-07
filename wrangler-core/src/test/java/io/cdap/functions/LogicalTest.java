@@ -33,7 +33,7 @@ public class LogicalTest {
     String[] directives = new String[]{
       "set-column and logical:BitAnd(352, 400)",
       "set-column or logical:BitOr(352, 400)",
-      "set-column xor logical:BitXOr(352, 400)",
+      "set-column xor logical:BitXor(352, 400)",
       "set-column compress logical:BitCompress('0101100000')",
       "set-column expand logical:BitExpand(352)",
       "set-column not1 logical:Not(5-5)",
