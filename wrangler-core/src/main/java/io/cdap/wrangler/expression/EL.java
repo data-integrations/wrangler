@@ -21,10 +21,12 @@ import com.google.common.base.Strings;
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.functions.DDL;
 import io.cdap.functions.DataQuality;
+import io.cdap.functions.DateAndTime;
 import io.cdap.functions.Dates;
 import io.cdap.functions.GeoFences;
 import io.cdap.functions.Global;
 import io.cdap.functions.JSON;
+import io.cdap.functions.Logical;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -73,7 +75,7 @@ public final class EL {
       JexlInfo info = e.getInfo();
       throw new ELException(
         String.format("Error encountered while executing '%s' at line '%d' and column '%d'. " +
-                        "Make sure a valid jexl transformation is provided.",
+                        "Make sure expression is valid.",
                       info.getDetail().toString(), info.getLine(), info.getColumn()));
     } catch (Exception e) {
       throw new ELException(e.getMessage());
@@ -102,11 +104,11 @@ public final class EL {
       JexlInfo info = e.getInfo();
       throw new ELException(
         String.format("Error encountered while executing '%s', at line '%d' and column '%d'. " +
-                        "Make sure a valid jexl transformation is provided.",
+                        "Make sure expression is valid.",
                       info.getDetail().toString(), info.getLine(), info.getColumn()));
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
-                              "or convert to right data type using conversion functions available. Reason : "
+                              "or convert to correct data type. Reason : "
                               + e.getMessage());
     } catch (Exception e) {
       if (e.getCause() != null) {
@@ -140,6 +142,8 @@ public final class EL {
       functions.put("dq", DataQuality.class);
       functions.put("ddl", DDL.class);
       functions.put("geo", GeoFences.class);
+      functions.put("logical", Logical.class);
+      functions.put("datetime", DateAndTime.class);
       return functions;
     }
 
