@@ -18,6 +18,8 @@ set-column val logical:BitAnd(352, 400)
 set-column val logical:BitAnd(a,b)
 ```
 
+---
+
 ## BitOr
 Returns the bitwise OR of the two long arguments.
 
@@ -32,6 +34,8 @@ set-column val logical:BitOr(352,400)
 set-column val logical:BitOr(a,b)
 ```
 
+---
+
 ## BitXOr
 Returns the bitwise XOR of the two long arguments.
 
@@ -45,6 +49,8 @@ Returns the bitwise XOR of the two long arguments.
 set-column val logical:BitXOr(352,400)
 set-column val logical:BitXOr(a,b)
 ```
+
+---
 
 ## BitCompress
 Returns the integer made from the string argument, which contains a binary representation of "1"s and "0"s.
@@ -62,8 +68,10 @@ set-column val logical:BitCompress("0101100000")
 set-column val logical:BitCompress(mynumber)
 ```
 
+---
+
 ## BitExpand
-Returns a string containing the binary representation in "1"s and "0"s of the given integer.
+Returns a string containing the binary representation in "1"s and "0"s of the given long.
 
 ### Input
 number(long)
