@@ -35,7 +35,7 @@ set-column val logical:BitOr(352,400)
 set-column val logical:BitOr(a,b)
 ```
 
-## BitXOr
+## BitXor
 Returns the bitwise XOR of the two long arguments.
 
 ### Input
@@ -63,9 +63,9 @@ String
 number(long)
 
 ### Example
-If mynumber contains the string "0101100000", then the following two functions are equivalent, and return the number 352.
+If mynumber contains the string "101100000", then the following two functions are equivalent, and return the number 352.
 ```
-set-column val logical:BitCompress("0101100000")
+set-column val logical:BitCompress("101100000")
 set-column val logical:BitCompress(mynumber)
 ```
 
