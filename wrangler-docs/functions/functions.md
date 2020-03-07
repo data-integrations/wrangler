@@ -38,3 +38,6 @@ Use the Json functions to manipulate Json.
 ## [Data Quality Functions](data-quality.md)
 Use the Data Quality functions to validate the quality of the data.
 
+## [Data Definition Functions](ddl.md)
+Use the data definitions functions to manipulate the scehma. 
+
