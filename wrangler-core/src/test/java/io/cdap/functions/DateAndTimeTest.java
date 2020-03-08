@@ -533,12 +533,44 @@ public class DateAndTimeTest {
   public void testWeekdayFromDate() throws Exception {
     String[] directives = new String[]{
       "set-column weekday1 datetime:WeekdayFromDate('2008-08-18')",
-      "set-column weekday2 datetime:WeekdayFromDate('2008-08-18', 'saturday')"
+      "set-column weekday2 datetime:WeekdayFromDate('2008-08-18', 'saturday')",
+      "set-column weekday3 datetime:WeekdayFromDate('2008-08-18', 'friday')",
+      "set-column weekday4 datetime:WeekdayFromDate('2008-08-18', 'thursday')",
+      "set-column weekday5 datetime:WeekdayFromDate('2008-08-18', 'wednesday')",
+      "set-column weekday6 datetime:WeekdayFromDate('2008-08-18', 'tuesday')",
+      "set-column weekday7 datetime:WeekdayFromDate('2008-08-18', 'monday')",
     };
     List<Row> rows = Arrays.asList(new Row());
     rows = TestingRig.execute(directives, rows);
     Assert.assertTrue(rows.size() == 1);
     Assert.assertEquals(1, rows.get(0).getValue("weekday1"));
     Assert.assertEquals(2, rows.get(0).getValue("weekday2"));
+    Assert.assertEquals(3, rows.get(0).getValue("weekday3"));
+    Assert.assertEquals(4, rows.get(0).getValue("weekday4"));
+    Assert.assertEquals(5, rows.get(0).getValue("weekday5"));
+    Assert.assertEquals(6, rows.get(0).getValue("weekday6"));
+    Assert.assertEquals(7, rows.get(0).getValue("weekday7"));
+  }
+
+  @Test
+  public void testYeardayFromDate() throws Exception {
+    String[] directives = new String[]{
+      "set-column year datetime:YeardayFromDate('2008-08-18')"
+    };
+    List<Row> rows = Arrays.asList(new Row());
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(231, rows.get(0).getValue("year"));
+  }
+
+  @Test
+  public void testYearweekFromDate() throws Exception {
+    String[] directives = new String[]{
+      "set-column yearweek datetime:YearweekFromDate('2008-08-18')"
+    };
+    List<Row> rows = Arrays.asList(new Row());
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(33, rows.get(0).getValue("yearweek"));
   }
 }

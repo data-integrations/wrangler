@@ -35,9 +35,7 @@ import java.time.format.SignStyle;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
-import java.util.Locale;
 
 /**
  * Collection of useful expression functions made available in the context
@@ -997,16 +995,17 @@ public final class DateAndTime {
   }
 
   /**
-   * @return Returns the day number of the week from the given date.
+   * @return Returns the day number of the week from the given date with start of week provided.
    */
   public static int WeekdayFromDate(LocalDate date, String startOfWeek) {
-    return date.with(
+    int daysInWeek = date.with(
       TemporalAdjusters.previousOrSame(
         DayOfWeek.valueOf(
           startOfWeek.toUpperCase()
         )
       )
-    ).atStartOfDay(ZoneId.of("UTC")).getDayOfWeek().getValue();
+    ).getDayOfWeek().getValue();
+    return 7 - daysInWeek + 1;
   }
   /**
    * @return Returns the day number of the week from the given date.
@@ -1061,8 +1060,8 @@ public final class DateAndTime {
    * @return Returns the week number in the year from the given date.
    */
   public static int YearweekFromDate(LocalDate date) {
-    TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear();
-    return date.get(woy);
+    // Start of the week is MONDAY and it should have minimum 7 days of the week.
+    return date.get(WeekFields.of(DayOfWeek.MONDAY, 7).weekOfWeekBasedYear());
   }
 
   /**
