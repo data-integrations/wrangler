@@ -1,6 +1,6 @@
 # Directives
 
-These directives are currently available:
+A collection for Directives available within Wrangler. 
 
 ## Parsers
 
