@@ -1,4 +1,4 @@
-# Data Prep
+# Wrangler
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
@@ -9,20 +9,13 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](https://cdap-users.herokuapp.com?t=1)
 
-A collection of libraries, a pipeline plugin, and a service for performing data
-cleansing, transformation, and filtering using a set of data manipulation instructions
-(directives). 
-
-  * Data Prep defines few concepts that might be useful if you are just getting started with it. Learn about them [here](wrangler-docs/concepts.md)
-  * The Data Prep Transform is [separately documented](wrangler-transform/wrangler-docs/data-prep-transform.md).
-  * [Data Prep Cheatsheet](wrangler-docs/cheatsheet.md)
-
+Wrangler is wide collection of transformation, filtering, data quality libraries for preparing data durinig an data integration process.
 
 ## Directives
 
 ## Functions
 
-## Extending with User Defined Directives
+## User Defined Directives
 **User Defined Directives, also known as UDD**, allow creation of custom directves to transform records in Wrangler. While there is a large collection of directives, tthere are however some omissions, and some specific cases for which UDDs are the solution. Learn more how you can build your custom directives [here](wrangler-docs/custom-directive.md).
 
 ## Contact
@@ -45,7 +38,6 @@ CDAP IRC Channel: [#cdap on irc.freenode.net](http://webchat.freenode.net?channe
 ### Slack Team
 
 CDAP Users on Slack: [cdap-users team](https://cdap-users.herokuapp.com)
-
 
 ## License and Trademarks
 
