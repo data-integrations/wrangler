@@ -115,9 +115,9 @@ public class ColumnExpression implements Directive, Lineage {
         ELResult result = el.execute(ctx);
         int idx = row.find(this.column);
         if (idx == -1) {
-          row.add(this.column, result.getObject());
+          row.add(this.column, result == null ? null : result.getObject());
         } else {
-          row.setValue(idx, result.getObject());
+          row.setValue(idx, result == null ? null : result.getObject());
         }
       } catch (ELException e) {
         throw new DirectiveExecutionException(NAME, e.getMessage(), e);

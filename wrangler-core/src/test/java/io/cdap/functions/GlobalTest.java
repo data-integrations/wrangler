@@ -98,4 +98,103 @@ public class GlobalTest {
     rows = TestingRig.execute(directives, rows);
     Assert.assertEquals("a-b-c", rows.get(0).getValue("d"));
   }
+
+  @Test
+  public void testIsNotNull() throws Exception {
+    String[] directives = new String[]{
+      "set-column test1 IsNotNull(a) ? a : null",
+      "set-column test2 IsNotNull(b) ? b : null",
+      "set-column test3 IsNotNull(c) ? c : null",
+      "set-column test4 if(IsNotNull(c)){ a } else {b}"
+    };
+    List<Row> rows = Arrays.asList(new Row("a", null)
+                                     .add("b", "value")
+                                     .add("c", new Long(999))
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(null, rows.get(0).getValue("test1"));
+    Assert.assertEquals("value", rows.get(0).getValue("test2"));
+    Assert.assertEquals(999L, rows.get(0).getValue("test3"));
+    Assert.assertEquals(null, rows.get(0).getValue("test4"));
+  }
+
+  @Test
+  public void testIsNull() throws Exception {
+    String[] directives = new String[]{
+      "set-column test1 IsNull(a) ? a : null",
+      "set-column test2 IsNull(b) ? b : null",
+      "set-column test3 IsNull(c) ? c : null",
+      "set-column test4 if(IsNull(c)){ a } else {b}"
+    };
+    List<Row> rows = Arrays.asList(new Row("a", null)
+                                     .add("b", "value")
+                                     .add("c", new Long(999))
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(null, rows.get(0).getValue("test1"));
+    Assert.assertEquals(null, rows.get(0).getValue("test2"));
+    Assert.assertEquals(null, rows.get(0).getValue("test3"));
+    Assert.assertEquals("value", rows.get(0).getValue("test4"));
+  }
+
+  @Test
+  public void testNullToEmpty() throws Exception {
+    String[] directives = new String[]{
+      "set-column test1 NullToEmpty(a)",
+      "set-column test2 NullToEmpty(b)",
+      "set-column test3 NullToEmpty(c)"
+    };
+    List<Row> rows = Arrays.asList(new Row("a", null)
+                                     .add("b", "value")
+                                     .add("c", new Long(999))
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("", rows.get(0).getValue("test1"));
+    Assert.assertEquals("value", rows.get(0).getValue("test2"));
+    Assert.assertEquals(999L, rows.get(0).getValue("test3"));
+  }
+
+  @Test
+  public void testNullToZero() throws Exception {
+    String[] directives = new String[]{
+      "set-column test1 NullToZero(a)",
+      "set-column test2 NullToZero(b == 'value' ? a : b)",
+      "set-column test3 NullToZero(c)"
+    };
+    List<Row> rows = Arrays.asList(new Row("a", null)
+                                     .add("b", "value")
+                                     .add("c", new Long(999))
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(0, rows.get(0).getValue("test1"));
+    Assert.assertEquals(0, rows.get(0).getValue("test2"));
+    Assert.assertEquals(999L, rows.get(0).getValue("test3"));
+  }
+
+  @Test
+  public void testNullToValue() throws Exception {
+    String[] directives = new String[]{
+      "set-column test1 NullToValue(a, 42)",
+      "set-column test2 NullToValue(b == 'value' ? a : b, 42)",
+      "set-column test3 NullToValue(c, 42)"
+    };
+    List<Row> rows = Arrays.asList(new Row("a", null)
+                                     .add("b", "value")
+                                     .add("c", new Long(999))
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals(42, rows.get(0).getValue("test1"));
+    Assert.assertEquals(42, rows.get(0).getValue("test2"));
+    Assert.assertEquals(999L, rows.get(0).getValue("test3"));
+  }
 }

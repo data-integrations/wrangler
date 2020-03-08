@@ -213,4 +213,74 @@ public final class Global {
     }
     return string;
   }
+
+  /**
+   * Returns true when an expression does not evaluate to the null value.
+   *
+   * @param value to be evaluated.
+   * @return true when not null, false otherwise.
+   */
+  public static boolean IsNotNull(Object value) {
+    if (value != null) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns true when an expression evaluates to the null value.
+   *
+   * @param value to be evaluated.
+   * @return false when not null, true otherwise.
+   */
+  public static boolean IsNull(Object value) {
+    return !IsNotNull(value);
+  }
+
+  /**
+   * Returns an empty string if the input column is null, otherwise returns the input column value.
+   *
+   * @param value to be evaluated.
+   * @return Empty string if null, else 'value'
+   */
+  public static Object NullToEmpty(Object value) {
+    if (IsNull(value)) {
+      return new String("");
+    }
+    return value;
+  }
+
+  /**
+   * Returns zero if the input column is null, otherwise returns the input column value.
+   *
+   * @param value to be evaluated.
+   * @return Empty string if null, else 'value'
+   */
+  public static Object NullToZero(Object value) {
+    if (IsNull(value)) {
+      return 0;
+    }
+    return value;
+  }
+
+  /**
+   * Returns the specified value if the input column is null, otherwise returns the input column value.
+   *
+   * @param value to evaluated.
+   * @param replace value to replace with.
+   * @return value if not null, else with replaced value.
+   */
+  public static Object NullToValue(Object value, Object replace) {
+    if (IsNull(value)) {
+      return replace;
+    }
+    return value;
+  }
+
+  /**
+   * @return Assigns a null value to the target column.
+   */
+  public static Object SetNull() {
+   return null;
+  }
 }
