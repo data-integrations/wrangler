@@ -1,6 +1,6 @@
 # Concepts
 
-This implementation of Data Prep uses the concepts of _Record_, _Column_, _Directive_,
+This implementation of Wrangler uses the concepts of _Record_, _Column_, _Directive_,
 _Step_, and _Pipeline_.
 
 ### Recipe
