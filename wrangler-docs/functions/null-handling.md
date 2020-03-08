@@ -2,7 +2,7 @@
 
 The collection of functions for handling nulls in your data. 
 
-### IsNotNull
+## IsNotNull
 Returns `true` when an expression does not evaluate to the `null` value.
 
 #### Namespace
@@ -27,7 +27,7 @@ set-column col3 IsNotNull(c) ? c : null
 set-column col4 if(IsNotNull(c)) { a } else { b }
 ```
 
-### IsNull
+## IsNull
 Returns `true` when an expression evaluates to the `null` value.
 
 #### Namespace
@@ -52,7 +52,7 @@ set-column col3 IsNull(c) ? c : null
 set-column col4 if(IsNull(c)) { a } else { b }
 ```
 
-### NullToEmpty
+## NullToEmpty
 Returns an `empty string` if the input column is `null`, otherwise returns the input column value.
 
 #### Namespace
@@ -76,7 +76,7 @@ set-column col2 NullToEmpty(b)
 set-column col3 NullToEmpty(c)
 ```
 
-### NullToZero
+## NullToZero
 Returns zero if the input column is `null`, otherwise returns the input column value.
 
 #### Namespace
@@ -100,7 +100,7 @@ set-column col2 NullToZero(b == 'value' ? a : b)
 set-column col3 NullToZero(c)
 ```
 
-### NullToValue
+## NullToValue
 Returns zero if the input column is `null`, otherwise returns the input column value.
 
 #### Namespace

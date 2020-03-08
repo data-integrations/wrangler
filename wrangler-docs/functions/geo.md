@@ -1,17 +1,17 @@
-# Geofence Functions
+# Geo 
 
 These are functions for detecting if the location point is inside the given set of geofences.
 The function can be used in the directive `filter-row-if-false`, `filter-row-if-true`, `filter-row-on`,
-`set column` or `send-to-error`.
+`set column`, `set-column` or `send-to-error`.
 
 ## Pre-requisite
 
-The Geofences should be represented in geoJson format. The location coordinates should be 
+The Geofences should be represented in [geojson](https://geojson.org/) format. The location coordinates should be 
 represented as Double type values .
 
-## Example Data
+## Example data
 
-Upload to the workspace `body` an input record such as:
+`fence` in the input is defined as json specified below:
 
 ```
 {
@@ -52,17 +52,31 @@ Upload to the workspace `body` an input record such as:
 }
 ```
 
-Once such a record is loaded, either the direct values of location coordinates could be used or 
-could be set as columns
-```
-  set column latitude 37.37220352507352
-  set column longitude -122.04608917236328
-```
-## Geofence Function
+## InFence
 
-The function returns `true` if the location point is inside any of the given set of geofences, `false` otherwise.
+### Namespace
+`geo`
 
-| Function                                | Condition                           | Example                                              |
-| --------------------------------------- | ----------------------------------- | ---------------------------------------------------- |
-|`locationInFence(double, double, String)`| Tests if point is inside the fences | `send-to-error !geo:inFence(latitude,longitude,body)`|
+### Input
+latitude(`double`), longitude(`double`), json fence (`string`)
+
+### Output
+true/false
+
+### Example
+if `latitude` contains `37.378990156513105` and `longitude` contains `-122.05076694488525` and 
+`fence` contains a json `string`, then resulting operation is `true`
+
+```
+  set-column infence geo:InFence(37.378990156513105, -122.05076694488525, fence)
+  send-to-error !geo:InFence(latitude,longitude,fence)
+```
+
+When `latitude` contains `43.46089378008257` and `longitude` contains `-462.49145507812494` and 
+`fence` contains a json `string`, then resulting operation is `false`
+
+```
+  set-column infence geo:InFence(43.46089378008257, -462.49145507812494, fence)
+  send-to-error !geo:InFence(latitude,longitude,fence)
+```
 

@@ -47,7 +47,7 @@ public final class GeoFences {
    * @param geofences GeoJson representation of the fence area
    * @return true if location is inside any of the given geofences, else false
    */
-  public static Boolean inFence(double latitude, double longitude, String geofences) {
+  public static Boolean InFence(double latitude, double longitude, String geofences) {
     Coordinates location = Coordinates.of(longitude, latitude);
     Boolean inzone = false;
     FeatureCollection featureCollection;

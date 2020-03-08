@@ -10,7 +10,7 @@ Functions that have the days of week in the argument take a string that specifie
 The day is specified as a three-letter abbreviation, or the full name. For example, the strings "mon" and "monday" 
 are both valid.
 
-### CurrentDate
+## CurrentDate
 Returns the `date` at the time this function was called. 
 
 #### Namespace
@@ -28,7 +28,7 @@ Use this function to add the current date to a column.
 set-column CurrentDate datetime:CurrentDate()
 ```
 
-### CurrentTime
+## CurrentTime
 Returns the `time` at the time this function was called. 
 
 #### Namespace
