@@ -55,7 +55,7 @@ public final class EL {
     engine = new JexlBuilder()
       .namespaces(registration.functions())
       .silent(false)
-      .cache(1024)
+      .cache(1024*1024)
       .strict(true)
       .logger(new NullLogger())
       .create();
@@ -74,8 +74,7 @@ public final class EL {
       // So instead use info object to get information about error message and create custom error message.
       JexlInfo info = e.getInfo();
       throw new ELException(
-        String.format("Error encountered while executing '%s' at line '%d' and column '%d'. " +
-                        "Make sure expression is valid.",
+        String.format("'%s', at line '%d' and column '%d' is invalid. ",
                       info.getDetail().toString(), info.getLine(), info.getColumn()));
     } catch (Exception e) {
       throw new ELException(e.getMessage());
@@ -101,11 +100,11 @@ public final class EL {
     } catch (JexlException e) {
       // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
       // So instead use info object to get information about error message and create custom error message.
+
       JexlInfo info = e.getInfo();
       throw new ELException(
-        String.format("Error encountered while executing '%s', at line '%d' and column '%d'. " +
-                        "Make sure expression is valid.",
-                      info.getDetail().toString(), info.getLine(), info.getColumn()));
+        String.format("'%s', at line '%d' and column '%d'. ",
+                      e.getMessage(), info.getLine(), info.getColumn()));
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
                               "or convert to correct data type. Reason : "
@@ -152,12 +151,10 @@ public final class EL {
   private final class NullLogger implements Log {
     @Override
     public void debug(Object o) {
-
     }
 
     @Override
     public void debug(Object o, Throwable throwable) {
-
     }
 
     @Override
