@@ -11,28 +11,37 @@ The day is specified as a three-letter abbreviation, or the full name. For examp
 are both valid.
 
 ### CurrentDate
+Returns the `date` at the time this function was called. 
 
 #### Namespace
 `datetime`
 
 #### Input
+None
 
 #### Output
+date (`date`)
 
 #### Example
+Use this function to add the current date to a column. 
 ```
-set-column val logical:BitAnd(352, 400)
-set-column val logical:BitAnd(a,b)
+set-column CurrentDate datetime:CurrentDate()
 ```
 
-## CurrentTime
+### CurrentTime
+Returns the `time` at the time this function was called. 
 
-### Input
+#### Namespace
+`datetime`
 
-### Output
+#### Input
+None
 
-### Example
+#### Output
+time (`time`)
+
+#### Example   
+Use this function to add the current time to a column.
 ```
-set-column val logical:BitAnd(352, 400)
-set-column val logical:BitAnd(a,b)
+set-column CurrentTime datetime:CurrentTime()
 ```
