@@ -6,7 +6,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core)
 [![Join CDAP community](https://cdap-users.herokuapp.com/badge.svg?t=wrangler)](https://cdap-users.herokuapp.com?t=1)
 
-Wrangler is wide collection of transformation, filtering, data quality libraries for preparing data durinig an data integration process. Wrangler transformations and checks are specified using a declarative language that is simple to get stated.
+Wrangler provides wide collection of transformation, filtering, data quality libraries for preparing data durinig an data integration process. Wrangler transformations and checks are specified using a declarative language that is simple to get stated.
 
 ## Directives
 
