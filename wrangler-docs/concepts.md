@@ -1,4 +1,4 @@
-# DataPrep Concepts
+# Concepts
 
 This implementation of Data Prep uses the concepts of _Record_, _Column_, _Directive_,
 _Step_, and _Pipeline_.
