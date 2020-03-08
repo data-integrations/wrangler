@@ -37,11 +37,11 @@ public class DirectiveExecutionException extends Exception {
   }
 
   public DirectiveExecutionException(String directiveName, String errorMessage) {
-    this(String.format("Error encountered while executing '%s' : %s", directiveName, errorMessage));
+    this(String.format("Error executing '%s'- %s", directiveName, errorMessage));
   }
 
   public DirectiveExecutionException(String directiveName, String errorMessage, Throwable e) {
-    this(String.format("Error encountered while executing '%s' : %s", directiveName, errorMessage), e);
+    this(String.format("Error executing '%s'- %s", directiveName, errorMessage), e);
   }
 }
 

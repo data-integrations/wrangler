@@ -55,7 +55,7 @@ public final class EL {
     engine = new JexlBuilder()
       .namespaces(registration.functions())
       .silent(false)
-      .cache(1024*1024)
+      .cache(1024 * 1024)
       .strict(true)
       .logger(new NullLogger())
       .create();
@@ -72,10 +72,7 @@ public final class EL {
     } catch (JexlException e) {
       // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
       // So instead use info object to get information about error message and create custom error message.
-      JexlInfo info = e.getInfo();
-      throw new ELException(
-        String.format("'%s', at line '%d' and column '%d' is invalid. ",
-                      info.getDetail().toString(), info.getLine(), info.getColumn()));
+      throw new ELException(constructErrMessage(e));
     } catch (Exception e) {
       throw new ELException(e.getMessage());
     }
@@ -98,13 +95,7 @@ public final class EL {
       ELResult variable = new ELResult(value);
       return variable;
     } catch (JexlException e) {
-      // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
-      // So instead use info object to get information about error message and create custom error message.
-
-      JexlInfo info = e.getInfo();
-      throw new ELException(
-        String.format("'%s', at line '%d' and column '%d'. ",
-                      e.getMessage(), info.getLine(), info.getColumn()));
+      throw new ELException(constructErrMessage(e));
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
                               "or convert to correct data type. Reason : "
@@ -116,6 +107,24 @@ public final class EL {
         throw new ELException(e.getMessage());
       }
     }
+  }
+
+  private String constructErrMessage(JexlException e) {
+    if (e == null) {
+      return String.format("Unable to determine the cause of error.");
+    }
+    JexlInfo info = e.getInfo();
+    Throwable cause = e.getCause();
+    StringBuilder sb = new StringBuilder("");
+    if (info != null && info.getDetail() != null) {
+      sb.append("function '").append(info.getDetail()).append("' '");
+    }
+    if (cause != null) {
+      sb.append(cause.getMessage()).append("', at line '")
+        .append(info.getLine()).append(" and column '")
+        .append(info.getColumn()).append("'.");
+    }
+    return sb.toString();
   }
 
   public ELResult execute(ELContext context) throws ELException {

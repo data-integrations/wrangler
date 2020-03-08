@@ -14,7 +14,33 @@
  *  the License.
  */
 
-package io.cdap.functions.ibm;
+package io.cdap.functions;
 
-public class StringFunc {
+public final class Math {
+
+  public static double Abs(double value) {
+    return java.lang.Math.abs(value);
+  }
+
+  public static double Acos(double value) {
+    return java.lang.Math.acos(value);
+  }
+
+  public static double Asos(double value) {
+    return java.lang.Math.asin(value);
+  }
+
+  public static double Atan(double value) {
+    return java.lang.Math.atan(value);
+  }
+
+  public static double Atan2(double x, double y) {
+    return java.lang.Math.atan2(x, y);
+  }
+
+  public static double Ceil(double val) {
+    return java.lang.Math.ceil(val);
+  }
+
+
 }
