@@ -13,7 +13,7 @@ Wrangler provides wide collection of transformation, filtering, data quality lib
 A collection of [Directives](wrangler-docs/directives.md) and [Functions](wrangler-docs/functions/functions.md) to provide a complete solutions for dealing with your data. 
 
 ## User Defined Directives
-**User Defined Directives, also known as UDD**, allow creation of custom directves to transform records in Wrangler. While there is a large collection of directives, tthere are however some omissions, and some specific cases for which UDDs are the solution. Learn more how you can build your custom directives [here](wrangler-docs/custom-directive.md).
+[User Defined Directives](wrangler-docs/custom-directive.md), also known as UDD, allow creation of custom directves to transform records in Wrangler. While there is a large collection of directives, tthere are however some omissions, and some specific cases for which UDDs are the solution.
 
 
 ## License and Trademarks
