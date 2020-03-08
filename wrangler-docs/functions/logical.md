@@ -1,18 +1,21 @@
-# Logical Bitwise Functions
+# Logical Bitwise
 
 The logical functions perform bit operations. All the functions described below are in the 
 `logical` namespace. To use the functions defined in this namespace prefix function invocation with `logical:<func>`.
 
-## BitAnd
+### BitAnd
 Returns the bitwise `AND` of the two `long` arguments.
 
-### Input
+#### Namespace
+`logical`
+
+#### Input
 number1(long), number2(long)
 
-### Output
+#### Output
 long
 
-### Example
+#### Example
 If `a` contains the number `352` and `b` contains the number `400`, 
 then the following two functions are equivalent, and return the value `256`:
 ```
@@ -20,16 +23,19 @@ set-column val logical:BitAnd(352, 400)
 set-column val logical:BitAnd(a,b)
 ```
 
-## BitOr
+### BitOr
 Returns the bitwise `OR` of the two `long` arguments.
 
-### Input
+#### Namespace
+`logical`
+
+#### Input
 number1(long), number2(long)
 
-### Output
+#### Output
 long
 
-### Example
+#### Example
 If `a` contains the number `352` and `b` contains the number `400`, 
 then the following two functions are equivalent, and return the value `496`.
 
@@ -38,16 +44,19 @@ set-column val logical:BitOr(352,400)
 set-column val logical:BitOr(a,b)
 ```
 
-## BitXor
+### BitXor
 Returns the bitwise `XOR` of the two `long` arguments.
 
-### Input
+#### Namespace
+`logical`
+
+#### Input
 number1(long), number2(long)
 
-### Output
+#### Output
 long
 
-### Example
+#### Example
 
 If `a` contains the number `352` and `b` contains the number `400`, 
 then the following two functions are equivalent, and return the value `240`:
@@ -57,17 +66,20 @@ set-column val logical:BitXOr(352,400)
 set-column val logical:BitXOr(a,b)
 ```
 
-## BitCompress
+### BitCompress
 Returns the `integer` made from the string argument, 
 which contains a binary representation of `"1"s` and `"0"s`.
 
-### Input
+#### Namespace
+`logical`
+
+#### Input
 String
 
-### Output
+#### Output
 number(long)
 
-### Example
+#### Example
 If `mynumber` contains the string `"101100000"`, 
 then the following two functions are equivalent, and return the number `352`.
 ```
@@ -75,17 +87,20 @@ set-column val logical:BitCompress("101100000")
 set-column val logical:BitCompress(mynumber)
 ```
 
-## BitExpand
+### BitExpand
 Returns a `string` containing the binary representation in `"1"s` and `"0"s` 
 of the given `long`.
 
-### Input
+#### Namespace
+`logical`
+
+#### Input
 number(long)
 
-### Output
+#### Output
 String
 
-### Example
+#### Example
 If `mynumber` contains the number `352`, then the following two functions 
 are equivalent, and return the string `"101100000"`
 ```
@@ -93,20 +108,23 @@ set-column val logical:BitExpand(352)
 set-column val logical:BitExpand(mynumber)
 ```
 
-## Not
+### Not
 Returns the Not of the logical value of an expression. If the value of expression is `true`, the Not function 
 returns a value of `false (0)`. If the value of expression is `false`, the `NOT` function returns a value of `true (1)`. 
 A numeric expression that evaluates to `0` is a logical value of `false`. A numeric expression that evaluates to 
 anything else, other than the `null` value, is a logical `true`. An empty string is logically `false`. All other string 
 expressions, including strings that include an empty string, spaces, or the number `0` and spaces, are logically `true`.
 
-### Input
+#### Namespace
+`logical`
+
+#### Input
 expression
 
-### Output
+#### Output
 number (short)
 
-### Example
+#### Example
 If `mynumber` contains the number `352`, then the following two functions are equivalent, 
 and return the string `"101100000"`
 ```
@@ -115,22 +133,25 @@ set-column val logical:Not(5+5)
 set-column val logical:Not('value')
 ```
 
-## SetBit
+### SetBit
 Returns an `long` with specific bits set to a specific state, where `'origValue'` is the input value to perform 
 the action on, `'bitArray'` is a array containing a list bit numbers (starting from 1) to set the state of, 
 and `'bitState'` is either `1` or `0`, indicating which state to set those bits.
 
-### Input
+#### Namespace
+`logical`
+
+#### Input
 
  - origValue (long)
  - bitArray (int[])
  - bitState (1 or 0)
 
-### Output
+#### Output
 
 number (long)
 
-### Example
+#### Example
 If `origValue` contains the number `352`, `bitArray` contains the list `[2,4,8]`, and `bitState` 
 contains the value `1`, then the following two functions are equivalent, and return the value `494`:
 

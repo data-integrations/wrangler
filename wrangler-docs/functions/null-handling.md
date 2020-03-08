@@ -2,19 +2,19 @@
 
 The collection of functions for handling nulls in your data. 
 
-## IsNotNull
+### IsNotNull
 Returns `true` when an expression does not evaluate to the `null` value.
 
-## Namespace
+#### Namespace
 Global. No namespace qualifier required. 
 
-### Input
+#### Input
 any object or expression
 
-### Output
+#### Output
 boolean (true/false)
 
-### Example
+#### Example
 If `a` contains the `null`, `b` contains string `value` and `c` contains number `999` then
 If the input column does not contain a `null`, the output column contains the value of the input column. 
 If the input column does contain a `null`, then the output column contains the string `null`. In the below
@@ -27,19 +27,19 @@ set-column col3 IsNotNull(c) ? c : null
 set-column col4 if(IsNotNull(c)) { a } else { b }
 ```
 
-## IsNull
+### IsNull
 Returns `true` when an expression evaluates to the `null` value.
 
-## Namespace
+#### Namespace
 Global. No namespace qualifier required. 
 
-### Input
+#### Input
 any object or expression
 
-### Output
+#### Output
 boolean (true/false)
 
-### Example
+#### Example
 If `a` contains the `null`, `b` contains string `value` and `c` contains number `999` then
 If the input column does not contain a `null`, the output column contains the value of the input column. 
 If the input column does contain a `null`, then the output column contains the string `null`. In the below
@@ -52,19 +52,19 @@ set-column col3 IsNull(c) ? c : null
 set-column col4 if(IsNull(c)) { a } else { b }
 ```
 
-## NullToEmpty
+### NullToEmpty
 Returns an `empty string` if the input column is `null`, otherwise returns the input column value.
 
-## Namespace
+#### Namespace
 Global. No namespace qualifier required. 
 
-### Input
+#### Input
 any object or expression
 
-### Output
+#### Output
 input value or string
 
-### Example
+#### Example
 If `a` contains the `null`, `b` contains string `value` and `c` contains number `999` then
 If the input column does not contain a `null`, the output column contains the value of the input column. 
 If the input column does contain a `null`, then the output column contains the string `null`. In the below
@@ -76,19 +76,19 @@ set-column col2 NullToEmpty(b)
 set-column col3 NullToEmpty(c)
 ```
 
-## NullToZero
+### NullToZero
 Returns zero if the input column is `null`, otherwise returns the input column value.
 
-## Namespace
+#### Namespace
 Global. No namespace qualifier required. 
 
-### Input
+#### Input
 column value (object/expression)
 
-### Output
+#### Output
 column value or zero. 
 
-### Example
+#### Example
 If `a` contains the `null`, `b` contains string `value` and `c` contains number `999` then
 If the input column does not contain a `null`, the output column contains the value of the input column. 
 If the input column does contain a `null`, then the output column contains the string `null`. In the below
@@ -100,19 +100,19 @@ set-column col2 NullToZero(b == 'value' ? a : b)
 set-column col3 NullToZero(c)
 ```
 
-## NullToValue
+### NullToValue
 Returns zero if the input column is `null`, otherwise returns the input column value.
 
-## Namespace
+#### Namespace
 Global. No namespace qualifier required. 
 
-### Input
+#### Input
 column value (object/expression)
 
-### Output
+#### Output
 column value or zero. 
 
-### Example
+#### Example
 If `a` contains the `null`, `b` contains string `value` and `c` contains number `999` then
 If the input column does not contain a `null`, the output column contains the value of the input column. 
 If the input column does contain a `null`, then the output column contains the string `null`. In the below
