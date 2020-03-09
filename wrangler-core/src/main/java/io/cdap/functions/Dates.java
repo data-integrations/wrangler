@@ -36,6 +36,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
  *
  * set-column column <expression>
  */
+@Deprecated
 public final class Dates {
   /**
    * Converts a date to long -- unix timestamp in milli-seconds.
