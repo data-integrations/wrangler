@@ -871,8 +871,17 @@ public final class DateAndTime {
    * @param epochTimestamp specified in seconds.
    * @return a instance {@link LocalDateTime}
    */
-  public static LocalDateTime TimestampFromTimet(long epochTimestamp) {
+  public static LocalDateTime TimestampFromEpoch(long epochTimestamp) {
     return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochTimestamp*1000), ZoneId.of("UTC"));
+  }
+  /**
+   * Returns a time stamp from the given epoch time specified in seconds.
+   *
+   * @param epochTimestamp specified in seconds.
+   * @return a instance {@link LocalDateTime}
+   */
+  public static LocalDateTime TimestampFromEpoch(String epochTimestamp) {
+    return TimestampFromEpoch(Long.parseLong(epochTimestamp));
   }
 
   /**
@@ -884,7 +893,7 @@ public final class DateAndTime {
    * @param timestamp who's timestamp has to replaced.
    * @return modified timestamp.
    */
-  public static LocalDateTime TimestampFromTime2(LocalTime time, LocalDateTime timestamp) {
+  public static LocalDateTime TimestampFromTime(LocalTime time, LocalDateTime timestamp) {
     return timestamp
       .withHour(time.getHour())
       .withMinute(time.getMinute())
@@ -901,8 +910,8 @@ public final class DateAndTime {
    * @param timestamp who's timestamp has to replaced.
    * @return modified timestamp.
    */
-  public static LocalDateTime TimestampFromTime2(LocalTime time, String timestamp) {
-    return TimestampFromTime2(time, getTimestamp(timestamp));
+  public static LocalDateTime TimestampFromTime(LocalTime time, String timestamp) {
+    return TimestampFromTime(time, getTimestamp(timestamp));
   }
 
   /**
@@ -914,8 +923,8 @@ public final class DateAndTime {
    * @param timestamp who's timestamp has to replaced.
    * @return modified timestamp.
    */
-  public static LocalDateTime TimestampFromTime2(String time, LocalDateTime timestamp) {
-    return TimestampFromTime2(getTime(time), timestamp);
+  public static LocalDateTime TimestampFromTime(String time, LocalDateTime timestamp) {
+    return TimestampFromTime(getTime(time), timestamp);
   }
 
   /**
@@ -927,8 +936,8 @@ public final class DateAndTime {
    * @param timestamp who's timestamp has to replaced.
    * @return modified timestamp.
    */
-  public static LocalDateTime TimestampFromTime2(String time, String timestamp) {
-    return TimestampFromTime2(getTime(time), getTimestamp(timestamp));
+  public static LocalDateTime TimestampFromTime(String time, String timestamp) {
+    return TimestampFromTime(getTime(time), getTimestamp(timestamp));
   }
 
   /**
@@ -978,6 +987,20 @@ public final class DateAndTime {
    */
   public static LocalDateTime TimestampOffsetBySeconds(String timestamp, long secondsOffset) {
     return TimestampOffsetBySeconds(getTimestamp(timestamp), secondsOffset);
+  }
+
+  /**
+   * @return Returns the time stamp, with offsets applied from the base time stamp with seconds offset.
+   */
+  public static LocalDateTime TimestampOffsetBySeconds(LocalDateTime timestamp, String secondsOffset) {
+    return TimestampOffsetBySeconds(timestamp, Long.parseLong(secondsOffset));
+  }
+
+  /**
+   * @return Returns the time stamp, with offsets applied from the base time stamp with seconds offset.
+   */
+  public static LocalDateTime TimestampOffsetBySeconds(String timestamp, String secondsOffset) {
+    return TimestampOffsetBySeconds(getTimestamp(timestamp), Long.parseLong(secondsOffset));
   }
 
   /**

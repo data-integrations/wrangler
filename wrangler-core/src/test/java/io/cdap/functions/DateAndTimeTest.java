@@ -477,23 +477,25 @@ public class DateAndTimeTest {
   @Test
   public void testTimestampFromTimet() throws Exception {
     String[] directives = new String[]{
-      "set-column TimestampFromTimet datetime:TimestampFromTimet(1234567890)"
+      "set-column TimestampFromEpoch1 datetime:TimestampFromEpoch(1234567890)",
+      "set-column TimestampFromEpoch2 datetime:TimestampFromEpoch('1234567890')"
     };
     List<Row> rows = Arrays.asList(new Row());
     rows = TestingRig.execute(directives, rows);
     Assert.assertTrue(rows.size() == 1);
-    Assert.assertEquals(getTimestamp("2009-02-13 23:31:30"), rows.get(0).getValue("TimestampFromTimet"));
+    Assert.assertEquals(getTimestamp("2009-02-13 23:31:30"), rows.get(0).getValue("TimestampFromEpoch1"));
+    Assert.assertEquals(getTimestamp("2009-02-13 23:31:30"), rows.get(0).getValue("TimestampFromEpoch2"));
   }
 
   @Test
   public void testTimestampFromTime2() throws Exception {
     String[] directives = new String[]{
-      "set-column TimestampFromTime2 datetime:TimestampFromTime2('12:03:22', '2008-08-18 22:30:52')"
+      "set-column TimestampFromTime datetime:TimestampFromTime('12:03:22', '2008-08-18 22:30:52')"
     };
     List<Row> rows = Arrays.asList(new Row());
     rows = TestingRig.execute(directives, rows);
     Assert.assertTrue(rows.size() == 1);
-    Assert.assertEquals(getTimestamp("2008-08-18 12:03:22"), rows.get(0).getValue("TimestampFromTime2"));
+    Assert.assertEquals(getTimestamp("2008-08-18 12:03:22"), rows.get(0).getValue("TimestampFromTime"));
   }
 
   @Test

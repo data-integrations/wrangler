@@ -46,23 +46,23 @@ public final class JSON {
 
   private static final JsonParser PARSER = new JsonParser();
 
-  public static JsonElement select(String json, String path, String ...paths) {
+  public static JsonElement Select(String json, String path, String ...paths) {
     JsonElement element = PARSER.parse(json);
-    return select(element, path, paths);
+    return Select(element, path, paths);
   }
 
-  public static JsonElement select(String json, boolean toLower, String path, String ...paths) {
+  public static JsonElement Select(String json, boolean toLower, String path, String ...paths) {
     JsonElement element = PARSER.parse(json);
-    return select(element, toLower, path, paths);
+    return Select(element, toLower, path, paths);
   }
 
-  public static JsonElement select(JsonElement element, String path, String ...paths) {
-    return select(element, true, path, paths);
+  public static JsonElement Select(JsonElement element, String path, String ...paths) {
+    return Select(element, true, path, paths);
   }
 
-  public static JsonElement select(JsonElement element, boolean toLower, String path, String ...paths) {
+  public static JsonElement Select(JsonElement element, boolean toLower, String path, String ...paths) {
     if (toLower) {
-      element = keysToLower(element);
+      element = KeysToLower(element);
     }
     DocumentContext context = JsonPath.using(GSON_CONFIGURATION).parse(element);
     if (paths.length == 0) {
@@ -77,9 +77,9 @@ public final class JSON {
     }
   }
 
-  public static JsonElement drop(String json, String field, String ... fields) {
+  public static JsonElement Drop(String json, String field, String ... fields) {
     JsonElement element = PARSER.parse(json);
-    return drop(element, field, fields);
+    return Drop(element, field, fields);
   }
 
   /**
@@ -93,14 +93,14 @@ public final class JSON {
    * @param fields list of fields to be deleted.
    * @return
    */
-  public static JsonElement drop(JsonElement element, String field, String ... fields) {
+  public static JsonElement Drop(JsonElement element, String field, String ... fields) {
     if(element.isJsonObject()) {
       JsonObject object = element.getAsJsonObject();
       Set<Map.Entry<String, JsonElement>> entries = object.entrySet();
       Iterator<Map.Entry<String, JsonElement>> iterator = entries.iterator();
       while (iterator.hasNext()) {
         Map.Entry<String, JsonElement> next = iterator.next();
-        drop(next.getValue(), field, fields);
+        Drop(next.getValue(), field, fields);
       }
       object.remove(field);
       for (String fld : fields) {
@@ -111,7 +111,7 @@ public final class JSON {
       for (int i = 0; i < object.size(); ++i) {
         JsonElement arrayElement = object.get(i);
         if (arrayElement.isJsonObject()) {
-          drop(arrayElement, field, fields);
+          Drop(arrayElement, field, fields);
         }
       }
     }
@@ -124,7 +124,7 @@ public final class JSON {
    * @param element to be transformed.
    * @return modified element.
    */
-  public static JsonElement keysToLower(JsonElement element) {
+  public static JsonElement KeysToLower(JsonElement element) {
     if (element.isJsonObject()) {
       JsonObject newObject = new JsonObject();
       JsonObject object = element.getAsJsonObject();
@@ -134,21 +134,21 @@ public final class JSON {
         Map.Entry<String, JsonElement> next = iterator.next();
         String name = next.getKey();
         JsonElement child = next.getValue();
-        newObject.add(name.toLowerCase(), keysToLower(child));
+        newObject.add(name.toLowerCase(), KeysToLower(child));
       }
       return newObject;
     } else if (element.isJsonArray()) {
       JsonArray newArray = new JsonArray();
       JsonArray array = element.getAsJsonArray();
       for (int i = 0; i < array.size(); ++i) {
-        newArray.add(keysToLower(array.get(i)));
+        newArray.add(KeysToLower(array.get(i)));
       }
       return newArray;
     }
     return element;
   }
 
-  public static String join(JsonElement element, String separator) {
+  public static String Join(JsonElement element, String separator) {
     StringBuilder sb = new StringBuilder();
     if (element instanceof JsonArray) {
       JsonArray array = element.getAsJsonArray();
@@ -172,7 +172,7 @@ public final class JSON {
    * @param element the value to convert to JSON string
    * @return a JSON string.
    */
-  public static String stringify(JsonElement element) {
+  public static String Stringify(JsonElement element) {
     if (element == null) {
       return "null";
     }
@@ -186,8 +186,8 @@ public final class JSON {
    * @param json string representation of json.
    * @return parsed json else throws an exception.
    */
-  public static JsonElement parse(String json) {
-    return parse(json, false);
+  public static JsonElement Parse(String json) {
+    return Parse(json, false);
   }
 
   /**
@@ -197,12 +197,30 @@ public final class JSON {
    * @param toLower true to lower case keys, false to leave it as-is.
    * @return parsed json else throws an exception.
    */
-  public static JsonElement parse(String json, boolean toLower) {
+  public static JsonElement Parse(String json, boolean toLower) {
     JsonElement element = PARSER.parse(json);
     if (toLower) {
-      element = keysToLower(element);
+      element = KeysToLower(element);
     }
     return element;
+  }
+
+  /**
+   * @return Number of elements in the array.
+   */
+  public static int ArrayLength(JsonArray array) {
+    return array.size();
+  }
+
+  /**
+   * @return Number of elements in the array.
+   */
+  public static int ArrayLength(String json) {
+    JsonElement element = Parse(json);
+    if (element instanceof JsonArray) {
+      return ((JsonArray) element).size();
+    }
+    return 0;
   }
 }
 

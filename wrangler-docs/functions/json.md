@@ -3,6 +3,8 @@
 These are date functions that can be useful in transforming your data. All of these
 functions are used in conjunction with the [PARSE-AS-JSON](parse-as-json.md) directive.
 
+`json-string` represents the string version of json. `json-element` represents either the 
+the json object or json array. `json-object` and `json-array` represent different collections.  
 
 ## Pre-requisite
 
@@ -10,14 +12,9 @@ All of these functions can be applied only after the PARSE-AS-JSON directive has
 applied.
 
 
-## Namespace
+## Example data
 
-All date-related functions are in the namespace `json`.
-
-
-## Example Data
-
-Upload to the workspace `body` an input record such as:
+Upload to the workspace `json` an input record such as:
 
 ```
 {
@@ -65,11 +62,77 @@ listed here:
   columns-replace s/body_//g
 ```
 
-## List of JSON Functions
+## Select
+Returns part of json specified by json path.   
 
-| Function                         | Description                                                                                                              | Example                                               |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
-| `array_join(aliases, separator)` | Joins all the elements in an array with a string separator. Returns the array unmodified if an object. Handles nulls.    | `set-column alias_list json:array_join(aliases, ",")` |
-| `array_sum(numbers)`             | Computes sum of the elements. Skips `null` values. Returns `0` if any elements that are not summable are found.          | `set-column sum json:array_sum(numbers)`              |
-| `array_max(numbers)`             | Finds the maximum of the elements. Skips `null` values. Returns `0x0.0000000000001P-1022` if any issues with an element. | `set-column max json:array_max(numbers)`              |
-| `array_min(numbers)`             | Finds the minimum of the elements. Skips `null` values. Returns `0x1.fffffffffffffP+1023` if any issues with an element. | `set-column min json:array_min(numbers)`              |
+### Namespace
+`json`
+
+### Input
+`json-string` or `json-object`  
+
+### Output
+`json-element`
+
+### Example
+
+if `body` has the json specified above, then the result of the operation would return `8` 
+as the result.
+
+```
+  set-column len json:ArrayLength(json:Select(body, true, $.numbers))
+```
+
+## Drop
+Recursively drops elements from the provided json. 
+
+### Namespace
+`json`
+
+### Input
+`json-string` or `json-object` 
+
+### Output
+`json-element`
+
+### Example
+
+```
+    set-column newjson \
+      json:Drop(json, 'numbers', 'integer', 'float', 'aliases', 'name')
+```
+
+The resulting json is as follows:
+```
+{
+    "coordinates":[12.56,45.789],
+    "responses":[
+        {"a":1,"b":"X","c":2.8},
+        {"a":2,"b":"Y","c":232342.8},
+        {"a":3,"b":"Z","c":null},
+        {"a":4,"b":"U"}
+    ],
+    "double":2.8
+}
+```
+
+## ArrayLength
+Returns the length of the json array.  
+
+### Namespace
+`json`
+
+### Input
+`json-array` or `json-string` that is an array.   
+
+### Output
+number(`int`)
+
+### Example
+
+if `body` has the json specified above, then the result of the operation would return `8` 
+as the result.
+
+```
+  set-column len json:ArrayLength(json:Select(body, true, $.numbers))
+```
