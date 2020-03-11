@@ -85,7 +85,7 @@ public class WriteAsJsonMap implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Wrote column '%s' as a json map", column)
-      .all(Many.of(column))
+      .generate(Many.of(column))
       .build();
   }
 }

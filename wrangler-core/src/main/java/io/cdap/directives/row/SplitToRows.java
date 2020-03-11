@@ -106,7 +106,7 @@ public class SplitToRows implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Split column '%s' into multiple rows using expressions '%s'", column, regex)
-      .all(Many.columns(column))
+      .relation(Many.columns(column), Many.columns(column))
       .build();
   }
 }

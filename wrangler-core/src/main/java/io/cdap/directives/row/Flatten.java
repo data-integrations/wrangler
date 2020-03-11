@@ -156,7 +156,7 @@ public class Flatten implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Expanded to individual records based on values in columns '%s''", Arrays.asList(columns))
-      .all(Many.columns(columns))
+      .all(Many.columns(columns), Many.columns(columns))
       .build();
   }
 }

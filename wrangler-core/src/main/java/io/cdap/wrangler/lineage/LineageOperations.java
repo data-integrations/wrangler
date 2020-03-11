@@ -102,10 +102,12 @@ public final class LineageOperations {
               sources = sources.isEmpty() ? new ArrayList<>(input) : sources;
               checkAndSetActualFields(operations, availableSources, lastAllOperationIndex, lastAllOutput, sources);
               // add the diff of all output and input fields as the output targets
-              Set<String> diff = new HashSet<>(Sets.difference(output, availableSources));
+              Set<String> outputs = new HashSet<>(Sets.difference(output, availableSources));
               // if the sources are in the output fields itself, add that to the targets
-              diff.addAll(Sets.intersection(new HashSet<>(sources), output));
-              targets = new ArrayList<>(diff);
+              outputs.addAll(Sets.intersection(new HashSet<>(sources), output));
+              // add all the targets that this relation provides to the outputs
+              outputs.addAll(targets);
+              targets = new ArrayList<>(outputs);
               operations.add(
                 new FieldTransformOperation(
                   name,
