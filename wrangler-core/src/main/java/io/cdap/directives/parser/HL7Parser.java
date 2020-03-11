@@ -103,7 +103,7 @@ public class HL7Parser implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Parsed column '%s' as HL7 record", column)
-      .all(Many.columns(column))
+      .all(Many.columns(column), Many.columns(column))
       .build();
   }
 
