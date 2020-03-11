@@ -206,7 +206,7 @@ public class CsvParser implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Parsed column '%s' as CSV with delimiter '%s'", columnArg.value(), delimiterArg.value())
-      .all(Many.columns(columnArg))
+      .all(Many.columns(columnArg), Many.columns(columnArg))
       .build();
   }
 }

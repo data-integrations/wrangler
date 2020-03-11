@@ -98,7 +98,7 @@ public class WriteAsCSV implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Wrote column '%s' in the common separated value (CSV) format", column)
-      .all(Many.of(column))
+      .generate(Many.of(column))
       .build();
   }
 }
