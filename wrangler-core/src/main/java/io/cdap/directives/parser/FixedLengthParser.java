@@ -145,7 +145,7 @@ public final class FixedLengthParser implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Parsed column '%s' with fixed lengths for columns", col)
-      .all(Many.of(col))
+      .all(Many.of(col), Many.of(col))
       .build();
   }
 }
