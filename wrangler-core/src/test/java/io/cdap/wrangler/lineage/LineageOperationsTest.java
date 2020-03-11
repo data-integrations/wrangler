@@ -159,7 +159,7 @@ public class LineageOperationsTest {
     // order might not preserve
     compareFieldOperation(operations, 0, "Parsed column 'body' as CSV with delimiter ','",
                           Collections.singleton("body"),
-                          ImmutableSet.of("body_1", "body_2", "id", "name", "sum"));
+                          ImmutableSet.of("body_1", "body_2", "id", "name", "sum", "body"));
     compareFieldOperation(operations, 1, "Dropped columns [body]",
                           Collections.singleton("body"), Collections.emptySet());
     compareFieldOperation(operations, 2, "Renamed column 'body_1' to 'id'",

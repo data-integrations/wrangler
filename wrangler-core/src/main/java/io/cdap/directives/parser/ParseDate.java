@@ -83,7 +83,7 @@ public class ParseDate implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Parsed column '%s' as date with timezone '%s'", column, timezone)
-      .all(Many.columns(column))
+      .all(Many.columns(column), Many.columns(column))
       .build();
   }
 

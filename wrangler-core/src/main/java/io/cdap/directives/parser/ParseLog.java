@@ -118,7 +118,7 @@ public class ParseLog implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Parsed column '%s' as webserver log using format '%s'", column, format)
-      .all(Many.columns(column))
+      .all(Many.columns(column), Many.columns(column))
       .build();
   }
 

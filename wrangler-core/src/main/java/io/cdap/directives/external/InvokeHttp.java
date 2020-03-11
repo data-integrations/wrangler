@@ -150,7 +150,7 @@ public class InvokeHttp implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Invoked external service '%s' to enrich row based on columns '%s'", url, columns)
-      .all(Many.of(columns))
+      .all(Many.of(columns), Many.of(columns))
       .build();
   }
 
