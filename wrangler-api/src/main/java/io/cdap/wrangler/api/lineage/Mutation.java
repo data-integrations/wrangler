@@ -170,7 +170,7 @@ public final class Mutation implements Serializable {
      * For example, csv parser will parse field body -> a,b,c, and still preserve body.
      *
      * @param sources list of sources to be associated with targets and all output fields.
-     * @param sources list of targets to be associated with the sources.
+     * @param targets list of targets to be associated with the sources.
      * @return a instance of {@link Mutation.Builder}.
      */
     public Mutation.Builder all(Many sources, Many targets) {
