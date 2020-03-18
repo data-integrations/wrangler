@@ -97,7 +97,7 @@ public class ExtractRegexGroups implements Directive, Lineage {
   public Mutation lineage() {
     return Mutation.builder()
       .readable("Split column '%s' based on expression '%s' ", column, regex)
-      .all(Many.of(column))
+      .all(Many.of(column), Many.of(column))
       .build();
   }
 }

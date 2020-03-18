@@ -138,6 +138,19 @@ public final class Mutation implements Serializable {
     }
 
     /**
+     * A relation that has association with all the input fields.
+     * This method is used usually during set columns scenarios.
+     *
+     * @param targets a list of targets.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder generate(Many targets) {
+      relations.add(new Relation(uuid(), Collections.emptyList(),
+                                 targets.columns(), Relation.Type.GENERATE));
+      return this;
+    }
+
+    /**
      * A relation that has association with all in the output field.
      * This method is used usually during parse scenarios.
      *
@@ -147,6 +160,21 @@ public final class Mutation implements Serializable {
     public Mutation.Builder all(Many sources) {
       relations.add(new Relation(uuid(), sources.columns(),
                                  Collections.emptyList(), Relation.Type.ALL));
+      return this;
+    }
+
+    /**
+     * A relation that has association with a set of targets + all in the output field.
+     * This method is used usually during parse scenarios, where the directive knows some part of the relation,
+     * but unclear about the overall outputs it will generate
+     * For example, csv parser will parse field body -> a,b,c, and still preserve body.
+     *
+     * @param sources list of sources to be associated with targets and all output fields.
+     * @param targets list of targets to be associated with the sources.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder all(Many sources, Many targets) {
+      relations.add(new Relation(sources.columns(), targets.columns(), Relation.Type.ALL));
       return this;
     }
 
