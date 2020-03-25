@@ -74,9 +74,9 @@ public final class EL {
       throw new ELException(
         String.format("Error encountered while executing '%s' at line '%d' and column '%d'. " +
                         "Make sure a valid jexl transformation is provided.",
-                      info.getDetail().toString(), info.getLine(), info.getColumn()));
+                      info.getDetail().toString(), info.getLine(), info.getColumn()), e);
     } catch (Exception e) {
-      throw new ELException(e.getMessage());
+      throw new ELException(e);
     }
   }
 
@@ -103,16 +103,16 @@ public final class EL {
       throw new ELException(
         String.format("Error encountered while executing '%s', at line '%d' and column '%d'. " +
                         "Make sure a valid jexl transformation is provided.",
-                      info.getDetail().toString(), info.getLine(), info.getColumn()));
+                      info.getDetail().toString(), info.getLine(), info.getColumn()), e);
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
                               "or convert to right data type using conversion functions available. Reason : "
-                              + e.getMessage());
+                              + e.getMessage(), e);
     } catch (Exception e) {
       if (e.getCause() != null) {
-        throw new ELException(e.getCause().getMessage());
+        throw new ELException(e.getCause().getMessage(), e);
       } else {
-        throw new ELException(e.getMessage());
+        throw new ELException(e);
       }
     }
   }

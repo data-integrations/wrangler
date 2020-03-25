@@ -20,7 +20,12 @@ package io.cdap.wrangler.expression;
  * Class description here.
  */
 public class ELException extends Exception {
-  public ELException(String message) {
-    super(message);
+
+  public ELException(Throwable cause) {
+    super(cause);
+  }
+
+  public ELException(String message, Throwable cause) {
+    super(message, cause);
   }
 }
