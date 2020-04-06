@@ -39,6 +39,11 @@ public final class GeoFences {
       .create();
 
   /**
+   * Don't let anyone instantiate this class.
+   */
+  private GeoFences() {}
+
+  /**
    * Static method to be used with jexl
    * Checks if Point is inside any of the given polygonal geofences based on the winding number algorithm.
    *

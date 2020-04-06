@@ -1,21 +1,16 @@
 # JSON Functions
 
-These are date functions that can be useful in transforming your data. All of these
-functions are used in conjunction with the [PARSE-AS-JSON](parse-as-json.md) directive.
+These are json functions that can be useful in transforming your json data. 
 
-`json-string` represents the string version of json. `json-element` represents either the 
-the json object or json array. `json-object` and `json-array` represent different collections.  
-
-## Pre-requisite
-
-All of these functions can be applied only after the PARSE-AS-JSON directive has been
-applied.
-
+ - `json-string` represents the string version of json. 
+ - `json-element` represents either the 
+the json object or json array. 
+ - `json-object` and `json-array` represent different collections.
+ - `json-null` represents a null element of json.   
 
 ## Example data
 
 Upload to the workspace `json` an input record such as:
-
 ```
 {
     "name": {
@@ -55,11 +50,118 @@ Upload to the workspace `json` an input record such as:
 }
 ```
 
-Once such a record is loaded, apply these directives before applying any of the functions
-listed here:
+Below is an example malformed json described as `malformed_json` that is missing a comma. 
+
 ```
-  parse-as-json body
-  columns-replace s/body_//g
+    {
+      a : 1,
+      b : 2.0,
+      c : test
+      d : true
+    }
+```
+
+## Parse
+Parses a json into `json-element`. If there are any issues in parsing, the function would return
+`json-null`     
+
+### Namespace
+`json`
+
+### Input
+`json-string` 
+
+### Output
+`json-element`
+
+### Example
+
+if `json` has the input json specified, then the result of the operation would return `json-element`
+that contains a parsed json.  
+
+```
+  set-column parsedjson json:Parse(json)
+```
+
+When a malformed json `malformed_json` is parsed, then the result of operation is `json-null`
+
+```
+  set-column malformedjson json:Parse(malformed_json)
+```
+
+## IsValid
+Returns `true` if json is valid, else `false`
+
+### Namespace
+`json`
+
+### Input
+`json-string` 
+
+### Output
+boolean(`true`|`false`)
+
+### Example
+
+if `json` has the input json specified, then the result of the operation would return `true`
+
+```
+  set-column validjson json:IsJsonValid(json)
+```
+
+When a malformed json `malformed_json` is parsed, then the result of operation is `false`
+
+```
+  set-column validjson json:IsJsonValid(malformed_json)
+```
+
+## IsNull
+Returns `true` if json is `json-null` object, else `false`
+
+### Namespace
+`json`
+
+### Input
+`json-element` 
+
+### Output
+boolean(`true`|`false`)
+
+### Example
+
+if `json` has the input json specified, then the result of the operation would return `false`
+
+```
+  set-column parsedjson json:Parse(json)
+  set-column notnull json:IsNull(parsedjson)
+```
+
+When a malformed json `malformed_json` is parsed, then the result of operation is `true`
+
+```
+  set-column parsedjson json:Parse(json) // Would return null as json is invalid. 
+  set-column null json:IsNull(parsedjson)
+```
+
+## IsObject
+Returns `true` if json is `json-object` object, else `false`
+
+### Namespace
+`json`
+
+### Input
+`json-element` 
+
+### Output
+boolean(`true`|`false`)
+
+### Example
+
+if `json` has the input json specified, then the result of the operation would return `true`.
+
+```
+  set-column parsedjson json:Parse(json)
+  set-column object json:IsObject(parsedjson)
 ```
 
 ## Select

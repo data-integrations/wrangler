@@ -33,6 +33,11 @@ import org.apache.commons.validator.routines.UrlValidator;
 public class DataQuality extends Types {
 
   /**
+   * Don't let anyone instantiate this class.
+   */
+  private DataQuality() {}
+
+  /**
    * Given a row, finds the length of the row.
    *
    * @param row length needs to be determined.

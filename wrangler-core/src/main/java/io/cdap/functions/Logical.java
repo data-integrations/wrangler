@@ -22,6 +22,11 @@ package io.cdap.functions;
 public final class Logical {
 
   /**
+   * Don't let anyone instantiate this class.
+   */
+  private Logical() {}
+
+  /**
    * Bitwise 'AND' operation of two numbers.
    *
    * @param num1 first number.

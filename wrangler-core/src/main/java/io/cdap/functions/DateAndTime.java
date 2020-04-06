@@ -136,7 +136,6 @@ public final class DateAndTime {
     }
     return dayOfWeek;
   }
-
   /**
    * @return returns current date with time.
    */
@@ -192,9 +191,9 @@ public final class DateAndTime {
    * @param days to be added to current date.
    * @return returns a {@link LocalDate} by adding days to current date.
    */
-  public static LocalDate DateFromDaysSince(int days) {
+  public static LocalDate DateFromDaysSince(Number days) {
     LocalDate baseline = LocalDate.now();
-    return baseline.plusDays(days);
+    return baseline.plusDays(days.longValue());
   }
 
   /**
@@ -205,10 +204,9 @@ public final class DateAndTime {
    * @param baseline date to which 'days' are added.
    * @return days added positive or negative to the baseline date.
    */
-  public static LocalDate DateFromDaysSince(int days, String baseline) {
+  public static LocalDate DateFromDaysSince(Number days, String baseline) {
     LocalDate baselineDate = getDate(baseline);
-    // DateTime.parse(baseline, DateTimeFormat.forPattern(DATE_FORMAT));
-    return baselineDate.plusDays(days);
+    return baselineDate.plusDays(days.longValue());
   }
 
   /**
@@ -219,8 +217,8 @@ public final class DateAndTime {
    * @param day to be used for date
    * @return a instance of {@link LocalDate}
    */
-  public static LocalDate DateFromComponents(int year, int month, int day) {
-    return LocalDate.of(year, month, day);
+  public static LocalDate DateFromComponents(Number year, Number month, Number day) {
+    return LocalDate.of(year.intValue(), month.intValue(), day.intValue());
   }
 
   /**
@@ -229,8 +227,8 @@ public final class DateAndTime {
    * @param julianDay Julian day number
    * @return a instance of {@link LocalDate} that represents the Julian day.
    */
-  public static LocalDate DateFromJulianDay(int julianDay) {
-    DateTime datetime = new DateTime(DateTimeUtils.fromJulianDay(julianDay));
+  public static LocalDate DateFromJulianDay(Number julianDay) {
+    DateTime datetime = new DateTime(DateTimeUtils.fromJulianDay(julianDay.doubleValue()));
     return LocalDate.of(datetime.getYear(), datetime.getMonthOfYear(), datetime.getDayOfMonth());
   }
 
@@ -244,8 +242,11 @@ public final class DateAndTime {
    * @param daysOffset days offset to be applied.
    * @return Modified date with offsets applied.
    */
-  public static LocalDate DateOffsetByComponents(LocalDate baseline, int yearOffset, int monthOffset, int daysOffset) {
-    return baseline.plusYears(yearOffset).plusMonths(monthOffset).plusDays(daysOffset);
+  public static LocalDate DateOffsetByComponents(LocalDate baseline, Number yearOffset,
+                                                 Number monthOffset, Number daysOffset) {
+    return baseline.plusYears(yearOffset.longValue())
+      .plusMonths(monthOffset.longValue())
+      .plusDays(daysOffset.longValue());
   }
 
   /**
@@ -258,7 +259,8 @@ public final class DateAndTime {
    * @param daysOffset days offset to be applied.
    * @return Modified date with offsets applied.
    */
-  public static LocalDate DateOffsetByComponents(String baseline, int yearOffset, int monthOffset, int daysOffset) {
+  public static LocalDate DateOffsetByComponents(String baseline, Number yearOffset,
+                                                 Number monthOffset, Number daysOffset) {
     return DateOffsetByComponents(getDate(baseline), yearOffset, monthOffset, daysOffset);
   }
 
@@ -354,8 +356,8 @@ public final class DateAndTime {
    * @param daysOffset days to offset the baseline date.
    * @return Date offset by days.
    */
-  public static LocalDate DateOffsetByDays(LocalDate date, int daysOffset) {
-    return date.plusDays(daysOffset);
+  public static LocalDate DateOffsetByDays(LocalDate date, Number daysOffset) {
+    return date.plusDays(daysOffset.longValue());
   }
 
   /**
@@ -365,7 +367,7 @@ public final class DateAndTime {
    * @param daysOffset days to offset the baseline date.
    * @return Date offset by days.
    */
-  public static LocalDate DateOffsetByDays(String date, int daysOffset) {
+  public static LocalDate DateOffsetByDays(String date, Number daysOffset) {
     return DateOffsetByDays(getDate(date), daysOffset);
   }
 
@@ -586,17 +588,18 @@ public final class DateAndTime {
    * @param offset offset week.
    * @return date of the specified day of the week offset
    */
-  public static LocalDate NthWeekdayFromDate(LocalDate source, String textDayOfWeek, int offset) {
+  public static LocalDate NthWeekdayFromDate(LocalDate source, String textDayOfWeek, Number offset) {
     LocalDate target = source;
-    if (offset > 0) {
-      for (int i = 0; i < offset; i++) {
+    int counter = offset.intValue();
+    if (counter > 0) {
+      for (int i = 0; i < counter; i++) {
         target = target.with(TemporalAdjusters.next(getDayOfWeek(textDayOfWeek)));
       }
-    } else if (offset < 0){
-      for (int i = offset; i < 0; i++) {
+    } else if (counter < 0){
+      for (int i = counter; i < 0; i++) {
         target = target.with(TemporalAdjusters.previous(getDayOfWeek(textDayOfWeek)));
       }
-    } else if (offset == 0) {
+    } else if (counter == 0) {
       target = target.with(TemporalAdjusters.next(getDayOfWeek(textDayOfWeek)));
     }
     return target;
@@ -612,7 +615,7 @@ public final class DateAndTime {
    * @param offset offset week.
    * @return date of the specified day of the week offset
    */
-  public static LocalDate NthWeekdayFromDate(String source, String textDayOfWeek, int offset) {
+  public static LocalDate NthWeekdayFromDate(String source, String textDayOfWeek, Number offset) {
     return NthWeekdayFromDate(getDate(source), textDayOfWeek, offset);
   }
 
@@ -723,8 +726,8 @@ public final class DateAndTime {
    * @param nanoseconds component of {@link LocalTime}
    * @return a instance of {@link LocalTime}
    */
-  public static LocalTime TimeFromComponents(int hours, int mins, int seconds, int nanoseconds) {
-    return LocalTime.of(hours, mins, seconds, nanoseconds);
+  public static LocalTime TimeFromComponents(Number hours, Number mins, Number seconds, Number nanoseconds) {
+    return LocalTime.of(hours.intValue(), mins.intValue(), seconds.intValue(), nanoseconds.intValue());
   }
 
   /**
@@ -733,8 +736,8 @@ public final class DateAndTime {
    * @param seconds since midnight.
    * @return time since midnight.
    */
-  public static LocalTime TimeFromMidnightSeconds(int seconds) {
-    return LocalTime.of(0,0,0).plusSeconds(seconds);
+  public static LocalTime TimeFromMidnightSeconds(Number seconds) {
+    return LocalTime.of(0,0,0).plusSeconds(seconds.longValue());
   }
 
   /**
@@ -758,8 +761,10 @@ public final class DateAndTime {
    * @param seconds offset to added to baseline.
    * @return hour, min and second added to baseline.
    */
-  public static LocalTime TimeOffsetByComponents(LocalTime time, int hour, int min, int seconds) {
-    return time.plusHours(hour).plusMinutes(min).plusSeconds(seconds);
+  public static LocalTime TimeOffsetByComponents(LocalTime time, Number hour, Number min, Number seconds) {
+    return time.plusHours(hour.intValue())
+      .plusMinutes(min.intValue())
+      .plusSeconds(seconds.intValue());
   }
 
   /**
@@ -773,7 +778,7 @@ public final class DateAndTime {
    * @param seconds offset to added to baseline.
    * @return hour, min and second added to baseline.
    */
-  public static LocalTime TimeOffsetByComponents(String time, int hour, int min, int seconds) {
+  public static LocalTime TimeOffsetByComponents(String time, Number hour, Number min, Number seconds) {
     return TimeOffsetByComponents(getTime(time), hour, min, seconds);
   }
 
@@ -828,8 +833,8 @@ public final class DateAndTime {
    * @param time base timestamp.
    * @return timestamp with seconds added to base time.
    */
-  public static LocalDateTime TimestampFromSecondSince(int seconds, LocalDateTime time) {
-    return time.plusSeconds(seconds);
+  public static LocalDateTime TimestampFromSecondSince(Number seconds, LocalDateTime time) {
+    return time.plusSeconds(seconds.longValue());
   }
 
   /**
@@ -839,7 +844,7 @@ public final class DateAndTime {
    * @param time base timestamp.
    * @return timestamp with seconds added to base time.
    */
-  public static LocalDateTime TimestampFromSecondSince(int seconds, String time) {
+  public static LocalDateTime TimestampFromSecondSince(Number seconds, String time) {
     return TimestampFromSecondSince(seconds, getTimestamp(time));
   }
 
@@ -871,8 +876,8 @@ public final class DateAndTime {
    * @param epochTimestamp specified in seconds.
    * @return a instance {@link LocalDateTime}
    */
-  public static LocalDateTime TimestampFromEpoch(long epochTimestamp) {
-    return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochTimestamp*1000), ZoneId.of("UTC"));
+  public static LocalDateTime TimestampFromEpoch(Number epochTimestamp) {
+    return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochTimestamp.longValue()*1000), ZoneId.of("UTC"));
   }
   /**
    * Returns a time stamp from the given epoch time specified in seconds.
@@ -943,34 +948,24 @@ public final class DateAndTime {
   /**
    * @return Returns the time stamp, with offsets applied from the base time stamp.
    */
-  public static LocalDateTime TimestampOffsetByComponents(LocalDateTime timestamp, long yearOffset,
-                                                          long monthOffset, long dayOfMonthOffset,
-                                                          long hourOffset, long minOffset, long secondOffset) {
+  public static LocalDateTime TimestampOffsetByComponents(LocalDateTime timestamp, Number yearOffset,
+                                                          Number monthOffset, Number dayOfMonthOffset,
+                                                          Number hourOffset, Number minOffset, Number secondOffset) {
     return timestamp
-      .plusYears(yearOffset)
-      .plusMonths(monthOffset)
-      .plusDays(dayOfMonthOffset)
-      .plusHours(hourOffset)
-      .plusMinutes(minOffset)
-      .plusSeconds(secondOffset);
+      .plusYears(yearOffset.longValue())
+      .plusMonths(monthOffset.longValue())
+      .plusDays(dayOfMonthOffset.longValue())
+      .plusHours(hourOffset.longValue())
+      .plusMinutes(minOffset.longValue())
+      .plusSeconds(secondOffset.longValue());
   }
 
   /**
    * @return Returns the time stamp, with offsets applied from the base time stamp.
    */
-  public static LocalDateTime TimestampOffsetByComponents(String timestamp, int yearOffset,
-                                                          int monthOffset, int dayOfMonthOffset,
-                                                          int hourOffset, int minOffset, int secondOffset) {
-    return TimestampOffsetByComponents(getTimestamp(timestamp), yearOffset, monthOffset,
-                                       dayOfMonthOffset, hourOffset, minOffset, secondOffset);
-  }
-
-  /**
-   * @return Returns the time stamp, with offsets applied from the base time stamp.
-   */
-  public static LocalDateTime TimestampOffsetByComponents(String timestamp, long yearOffset,
-                                                          long monthOffset, long dayOfMonthOffset,
-                                                          long hourOffset, long minOffset, long secondOffset) {
+  public static LocalDateTime TimestampOffsetByComponents(String timestamp, Number yearOffset,
+                                                          Number monthOffset, Number dayOfMonthOffset,
+                                                          Number hourOffset, Number minOffset, Number secondOffset) {
     return TimestampOffsetByComponents(getTimestamp(timestamp), yearOffset, monthOffset,
                                        dayOfMonthOffset, hourOffset, minOffset, secondOffset);
   }
@@ -978,14 +973,14 @@ public final class DateAndTime {
   /**
    * @return Returns the time stamp, with offsets applied from the base time stamp with seconds offset.
    */
-  public static LocalDateTime TimestampOffsetBySeconds(LocalDateTime timestamp, long secondsOffset) {
-    return timestamp.plusSeconds(secondsOffset);
+  public static LocalDateTime TimestampOffsetBySeconds(LocalDateTime timestamp, Number secondsOffset) {
+    return timestamp.plusSeconds(secondsOffset.longValue());
   }
 
   /**
    * @return Returns the time stamp, with offsets applied from the base time stamp with seconds offset.
    */
-  public static LocalDateTime TimestampOffsetBySeconds(String timestamp, long secondsOffset) {
+  public static LocalDateTime TimestampOffsetBySeconds(String timestamp, Number secondsOffset) {
     return TimestampOffsetBySeconds(getTimestamp(timestamp), secondsOffset);
   }
 

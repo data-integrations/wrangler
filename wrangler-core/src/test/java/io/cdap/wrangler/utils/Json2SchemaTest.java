@@ -55,7 +55,7 @@ public class Json2SchemaTest {
   };
 
   private static final String[] directives = new String[] {
-    "set-column body json:Parse(body, false)"
+    "set-column body json:Parse(body)"
   };
 
   @Test

@@ -345,6 +345,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
     long start = 0;
+
     List<StructuredRecord> records;
     try {
       // Creates a row as starting point for input to the pipeline.

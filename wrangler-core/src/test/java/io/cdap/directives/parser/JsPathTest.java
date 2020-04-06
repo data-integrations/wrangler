@@ -70,13 +70,12 @@ public class JsPathTest {
     );
 
     String[] directives = new String[] {
-      "set-column s0 json:Select(body, true, \"$.name.fname\", \"$.name.lname\")",
-      "set-column s1 json:Select(body, true, \"$.name.fname\")",
-      "set-column s11 json:Select(body, true, \"$.numbers\")",
-      "set-column s2 json:Select(body, true, \"$.numbers\")",
-      "set-column s4 json:Drop(body, \"numbers\", \"integer\", \"float\", \"aliases\", \"name\")",
-      "set-column s5 json:Join(s11, \":\")",
-      "set-column s6 json:ArrayLength(json:Select(body, true, '$.numbers'))"
+      "set-column body json:Parse(body)",
+      "set-column s0 json:Select(body, '$.name.fname', '$.name.lname')",
+      "set-column s1 json:Select(body, '$.name.fname')",
+      "set-column s11 json:Select(body, '$.numbers')",
+      "set-column s2 json:Select(body, '$.numbers')",
+      "set-column s6 json:ArrayLength(json:Select(body, '$.numbers'))",
     };
 
     rows = TestingRig.execute(directives, rows);

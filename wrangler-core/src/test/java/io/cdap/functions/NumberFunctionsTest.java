@@ -16,31 +16,29 @@
 
 package io.cdap.functions;
 
-public final class Math {
+import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.Row;
+import org.junit.Assert;
+import org.junit.Test;
 
-  public static double Abs(double value) {
-    return java.lang.Math.abs(value);
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Tests functionality of {@link NumberFunctions}
+ */
+public class NumberFunctionsTest {
+
+  @Test
+  public void testNumbers() throws Exception {
+    String[] directives = new String[]{
+      "set-column double { a = 43.2; number:AsDouble(a) }",
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row()
+    );
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
   }
-
-  public static double Acos(double value) {
-    return java.lang.Math.acos(value);
-  }
-
-  public static double Asos(double value) {
-    return java.lang.Math.asin(value);
-  }
-
-  public static double Atan(double value) {
-    return java.lang.Math.atan(value);
-  }
-
-  public static double Atan2(double x, double y) {
-    return java.lang.Math.atan2(x, y);
-  }
-
-  public static double Ceil(double val) {
-    return java.lang.Math.ceil(val);
-  }
-
-
 }
