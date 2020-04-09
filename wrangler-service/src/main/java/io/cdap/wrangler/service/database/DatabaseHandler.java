@@ -368,7 +368,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
           resultSet = statement.executeQuery("SELECT table_name FROM all_tables");
         } else {
           DatabaseMetaData metaData = connection.getMetaData();
-          resultSet = metaData.getTables(null, null, "%", null);
+          resultSet = metaData.getTables(connection.getCatalog(), connection.getSchema(), "%", null);
         }
         try {
           while (resultSet.next()) {
