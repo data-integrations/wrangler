@@ -32,6 +32,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,12 +45,17 @@ public final class GCPUtils {
   public static final String SERVICE_ACCOUNT_KEYFILE = "service-account-keyfile";
 
   public static ServiceAccountCredentials loadLocalFile(String path) throws IOException {
+    return loadLocalFile(path, Collections.emptyList());
+  }
+
+  public static ServiceAccountCredentials loadLocalFile(String path, List<String> scopes) throws IOException {
     File credentialsPath = new File(path);
     if (!credentialsPath.exists()) {
       throw new FileNotFoundException("Service account file " + credentialsPath.getName() + " does not exist.");
     }
     try (FileInputStream serviceAccountStream = new FileInputStream(credentialsPath)) {
-      return ServiceAccountCredentials.fromStream(serviceAccountStream);
+      ServiceAccountCredentials serviceAccountCredentials = ServiceAccountCredentials.fromStream(serviceAccountStream);
+      return (ServiceAccountCredentials) serviceAccountCredentials.createScoped(scopes);
     } catch (FileNotFoundException e) {
       throw new IOException(
         String.format("Unable to find service account file '%s'.", path), e);
@@ -62,7 +70,7 @@ public final class GCPUtils {
    */
   public static Storage getStorageService(ConnectionMeta connection) throws IOException {
     StorageOptions.Builder storageOptionsBuilder = StorageOptions.newBuilder();
-    setProperties(connection, storageOptionsBuilder);
+    setProperties(connection, storageOptionsBuilder, Collections.emptyList());
     return storageOptionsBuilder.build().getService();
   }
 
@@ -71,7 +79,8 @@ public final class GCPUtils {
    */
   public static BigQuery getBigQueryService(ConnectionMeta connection) throws IOException {
     BigQueryOptions.Builder bigQueryOptionsBuilder = BigQueryOptions.newBuilder();
-    setProperties(connection, bigQueryOptionsBuilder);
+    setProperties(connection, bigQueryOptionsBuilder, Arrays.asList("https://www.googleapis.com/auth/drive",
+                                                                    "https://www.googleapis.com/auth/bigquery"));
     return bigQueryOptionsBuilder.build().getService();
   }
 
@@ -101,10 +110,10 @@ public final class GCPUtils {
    * set credentials and project_id if those are provided in the input connection
    */
   private static void setProperties(ConnectionMeta connection,
-                                    ServiceOptions.Builder serviceOptions) throws IOException {
+                                    ServiceOptions.Builder serviceOptions, List<String> scopes) throws IOException {
     if (connection.getProperties().containsKey(SERVICE_ACCOUNT_KEYFILE)) {
       String path = connection.getProperties().get(SERVICE_ACCOUNT_KEYFILE);
-      serviceOptions.setCredentials(loadLocalFile(path));
+      serviceOptions.setCredentials(loadLocalFile(path, scopes));
     }
     if (connection.getProperties().containsKey(PROJECT_ID)) {
       String projectId = connection.getProperties().get(PROJECT_ID);
