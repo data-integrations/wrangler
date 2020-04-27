@@ -38,6 +38,11 @@ import javax.annotation.Nullable;
 public final class DDL {
 
   /**
+   * Don't let anyone instantiate this class.
+   */
+  private DDL() {}
+
+  /**
    * Given a JSON representation of schema, returns a {@link Schema} object.
    *
    * @param json string representation of schema.
@@ -86,7 +91,7 @@ public final class DDL {
    * @throws IOException thrown if there are any issues with parsing.
    */
   public static JsonElement toJson(StructuredRecord record) throws IOException {
-    return JSON.parse(StructuredRecordJsonConverter.toJsonString(record));
+    return JsonFunctions.Parse(StructuredRecordJsonConverter.toJsonString(record));
   }
 
   /**
