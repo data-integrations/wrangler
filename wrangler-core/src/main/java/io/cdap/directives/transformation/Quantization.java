@@ -30,6 +30,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.Ranges;
@@ -46,7 +48,7 @@ import java.util.List;
 @Name(Quantization.NAME)
 @Categories(categories = { "transform"})
 @Description("Quanitize the range of numbers into label values.")
-public class Quantization implements Directive {
+public class Quantization implements Directive, Lineage {
   public static final String NAME = "quantize";
   private final RangeMap<Double, String> rangeMap = TreeRangeMap.create();
   private String col1;
@@ -87,6 +89,13 @@ public class Quantization implements Directive {
       if (idx != -1) {
         try {
           Object object = row.getValue(idx);
+
+          if (object == null) {
+            throw new DirectiveExecutionException(
+              NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
+                                    "'Float' or 'Double'.", col1));
+          }
+
           Double d;
           if (object instanceof String) {
             d = Double.parseDouble((String) object);
@@ -96,9 +105,8 @@ public class Quantization implements Directive {
             d = ((Float) object).doubleValue();
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String, Float or Double.",
-                            toString(), object != null ? object.getClass().getName() : "null", col1)
-            );
+              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String', " +
+                                    "'Float' or 'Double'.", col1, object.getClass().getSimpleName()));
           }
           String value = rangeMap.get(d);
           int destIdx = row.find(col2);
@@ -108,16 +116,23 @@ public class Quantization implements Directive {
             row.setValue(destIdx, value);
           }
         } catch (NumberFormatException e) {
-          throw new DirectiveExecutionException(toString(), e);
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has invalid type. It should be of type 'String', " +
+                                  "'Float' or 'Double'.", col1), e);
         }
       } else {
-        throw new DirectiveExecutionException(
-          String.format("%s : %s was not found or is not of type string. Please check the wrangle configuration.",
-                        toString(), col1));
+        throw new DirectiveExecutionException(NAME, "Column '" + col1 + "' does not exist.");
       }
       results.add(row);
     }
-
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Quanitized column '%s' into column '%s'", col1, col2)
+      .conditional(col1, col2)
+      .build();
   }
 }

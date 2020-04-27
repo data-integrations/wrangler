@@ -19,6 +19,7 @@ package io.cdap.wrangler.executor;
 import com.google.common.collect.Lists;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveNotFoundException;
@@ -42,19 +43,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The class <code>RecipePipelineExecutor</code> compiles the recipe and executes
- * the directives.
+ * The class <code>RecipePipelineExecutor</code> compiles the recipe and executes the directives.
  */
 public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
+
   private static final Logger LOG = LoggerFactory.getLogger(RecipePipelineExecutor.class);
   private ExecutorContext context;
-  private List<Executor> directives;
+  private List<Directive> directives;
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private RecordConvertor convertor = new RecordConvertor();
 
   /**
-   * Configures the pipeline based on the directives. It parses the recipe,
-   * converting it into executable directives.
+   * Configures the pipeline based on the directives. It parses the recipe, converting it into executable directives.
    *
    * @param parser Wrangle directives parser.
    */
@@ -71,8 +71,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
   }
 
   /**
-   * Invokes each directives destroy method to perform any cleanup
-   * required by each individual directive.
+   * Invokes each directives destroy method to perform any cleanup required by each individual directive.
    */
   @Override
   public void destroy() {
@@ -100,7 +99,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       List<StructuredRecord> output = convertor.toStructureRecord(rows, schema);
       return output;
     } catch (RecordConvertorException e) {
-      throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage());
+      throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage(), e);
     }
   }
 
@@ -140,7 +139,9 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
           }
         } catch (ErrorRowException e) {
           messages.add(String.format("%s", e.getMessage()));
-          collector.add(new ErrorRecord(newRows.get(0), String.join(",", messages), e.getCode()));
+          collector
+            .add(new ErrorRecord(newRows.get(0), String.join(",", messages), e.getCode(),
+              e.isShownInWrangler()));
         }
         i++;
       }

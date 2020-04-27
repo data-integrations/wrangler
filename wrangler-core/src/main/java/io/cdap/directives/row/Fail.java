@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -43,7 +45,7 @@ import java.util.List;
 @Name(Fail.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Fails when the condition is evaluated to true.")
-public class Fail implements Directive {
+public class Fail implements Directive, Lineage {
   public static final String NAME = "fail";
   private String condition;
   private final EL el = new EL(new EL.DefaultFunctions());
@@ -59,13 +61,14 @@ public class Fail implements Directive {
   public void initialize(Arguments args) throws DirectiveParseException {
     Expression expression = args.value("condition");
     if (expression.value().isEmpty()) {
-      throw new DirectiveParseException("No condition has been specified.");
+      throw new DirectiveParseException(
+        NAME, "No condition has been specified. Make sure condition is provided");
     }
     condition = expression.value();
     try {
       el.compile(condition);
     } catch (ELException e) {
-      throw new DirectiveParseException(e.getMessage());
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
   }
 
@@ -91,13 +94,20 @@ public class Fail implements Directive {
         ELResult result = el.execute(ctx);
         if (result.getBoolean()) {
           throw new DirectiveExecutionException(
-            String.format("Condition '%s' evaluated to true. Terminating processing.", condition)
-          );
+            NAME, String.format("Condition '%s' evaluated to true. Terminating processing.", condition));
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+                                 .readable(String.format("Pipeline set to fail based on condition '%s'", condition));
+    el.variables().forEach(col -> builder.relation(col, col));
+    return builder.build();
   }
 }

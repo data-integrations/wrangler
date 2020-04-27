@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,12 +13,22 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+package io.cdap.wrangler.proto.workspace;
 
-package io.cdap.wrangler.api.lineage;
+import javax.annotation.Nullable;
 
 /**
- * Class description here.
+ *The ModelInfo
  */
-public interface Mutator {
-  MutationDefinition lineage();
+public final class ModelInfo {
+  private final String id;
+
+  ModelInfo(@Nullable String id) {
+    this.id = id;
+  }
+
+  @Nullable
+  public String getId() {
+    return id;
+  }
 }

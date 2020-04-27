@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -42,7 +45,7 @@ import java.util.List;
 @Name("parse-as-log")
 @Categories(categories = { "parser", "logs"})
 @Description("Parses Apache HTTPD and NGINX logs.")
-public class ParseLog implements Directive {
+public class ParseLog implements Directive, Lineage {
   public static final String NAME = "parse-as-log";
   private String column;
   private String format;
@@ -84,6 +87,12 @@ public class ParseLog implements Directive {
       if (idx != -1) {
         Object object = row.getValue(idx);
 
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String' or 'byte array'.",
+                                column));
+        }
+
         String log;
         if (object instanceof String) {
           log = (String) object;
@@ -91,9 +100,8 @@ public class ParseLog implements Directive {
           log = new String((byte[]) object);
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String or byte[].",
-                          toString(), object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String' or 'byte array'.",
+                                column, object.getClass().getSimpleName()));
         }
         line.set(row);
         try {
@@ -104,6 +112,14 @@ public class ParseLog implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as webserver log using format '%s'", column, format)
+      .all(Many.columns(column), Many.columns(column))
+      .build();
   }
 
   /**

@@ -17,17 +17,13 @@
 package io.cdap.wrangler.service.database;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Closeables;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.artifact.ArtifactInfo;
-import io.cdap.cdap.api.artifact.CloseableClassLoader;
 import io.cdap.cdap.api.plugin.PluginClass;
+import io.cdap.cdap.api.plugin.PluginConfigurer;
+import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
@@ -42,6 +38,7 @@ import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.ConnectionSample;
 import io.cdap.wrangler.proto.Namespace;
 import io.cdap.wrangler.proto.NamespacedId;
+import io.cdap.wrangler.proto.NotFoundException;
 import io.cdap.wrangler.proto.PluginSpec;
 import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.connection.Connection;
@@ -81,7 +78,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -99,44 +96,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   private static final List<String> MACRO_FIELDS = ImmutableList.of("username", "password");
   private static final String JDBC = "jdbc";
   private final Map<String, ServiceMacroEvaluator> macroEvaluators = new HashMap<>();
-
-  // Driver class loaders cached.
-  private final LoadingCache<NamespacedId, CloseableClassLoader> cache = CacheBuilder.newBuilder()
-    .expireAfterAccess(60, TimeUnit.MINUTES)
-    .removalListener((RemovalListener<NamespacedId, CloseableClassLoader>) removalNotification -> {
-      CloseableClassLoader value = removalNotification.getValue();
-      if (value != null) {
-        try {
-          Closeables.close(value, true);
-        } catch (IOException e) {
-          // never happens.
-        }
-      }
-    }).build(new CacheLoader<NamespacedId, CloseableClassLoader>() {
-      @Override
-      public CloseableClassLoader load(NamespacedId id) throws Exception {
-        List<ArtifactInfo> artifacts = getContext().listArtifacts(id.getNamespace().getName());
-        ArtifactInfo info = null;
-        for (ArtifactInfo artifact : artifacts) {
-          Set<PluginClass> pluginClassSet = artifact.getClasses().getPlugins();
-          for (PluginClass plugin : pluginClassSet) {
-            if (JDBC.equalsIgnoreCase(plugin.getType()) && plugin.getName().equals(id.getId())) {
-              info = artifact;
-              break;
-            }
-          }
-          if (info != null) {
-            break;
-          }
-        }
-        if (info == null) {
-          throw new IllegalArgumentException(
-            String.format("Database driver '%s' not found.", id.getId())
-          );
-        }
-        return getContext().createClassLoader(id.getNamespace().getName(), info, null);
-      }
-    });
 
   static final class DriverInfo {
     private final String jdbcUrlPattern;
@@ -169,10 +128,6 @@ public class DatabaseHandler extends AbstractWranglerHandler {
 
     String getPort() {
       return port;
-    }
-
-    boolean isBasicAllowed() {
-      return basicAllowed;
     }
 
   }
@@ -337,19 +292,12 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void testConnection(HttpServiceRequest request, HttpServiceResponder responder,
                              @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      DriverCleanup cleanup = null;
-      try {
-        // Extract the body of the request and transform it to the Connection object.
-        RequestExtractor extractor = new RequestExtractor(request);
-        ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
+      // Extract the body of the request and transform it to the Connection object.
+      RequestExtractor extractor = new RequestExtractor(request);
+      ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
-        cleanup = loadAndExecute(ns, connection, java.sql.Connection::getMetaData, getContext());
-        return new ServiceResponse<>("Successfully connected to database.");
-      } finally {
-        if (cleanup != null) {
-          cleanup.destroy();
-        }
-      }
+      loadAndExecute(ns, connection, java.sql.Connection::getMetaData, getContext());
+      return new ServiceResponse<>("Successfully connected to database.");
     });
   }
 
@@ -365,42 +313,35 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      DriverCleanup cleanup = null;
-      try {
-        // Extract the body of the request and transform it to the Connection object.
-        RequestExtractor extractor = new RequestExtractor(request);
-        ConnectionMeta conn = extractor.getConnectionMeta(ConnectionType.DATABASE);
+      // Extract the body of the request and transform it to the Connection object.
+      RequestExtractor extractor = new RequestExtractor(request);
+      ConnectionMeta conn = extractor.getConnectionMeta(ConnectionType.DATABASE);
 
-        List<String> values = new ArrayList<>();
-        cleanup = loadAndExecute(ns, conn, connection -> {
-          DatabaseMetaData metaData = connection.getMetaData();
-          ResultSet resultSet;
-          PreparedStatement ps = null;
-          if ("postgresql".equals(connection.getMetaData().getDatabaseProductName().toLowerCase().trim())) {
-            ps = connection.prepareStatement(
-              "SELECT datname AS TABLE_CAT FROM pg_database WHERE datistemplate = false;"
-            );
-            resultSet = ps.executeQuery();
-          } else {
-            resultSet = metaData.getCatalogs();
-          }
-          try {
-            while (resultSet.next()) {
-              values.add(resultSet.getString("TABLE_CAT"));
-            }
-          } finally {
-            resultSet.close();
-            if (ps != null) {
-              ps.close();
-            }
-          }
-        }, getContext());
-        return new ServiceResponse<>(values);
-      } finally {
-        if (cleanup != null) {
-          cleanup.destroy();
+      List<String> values = new ArrayList<>();
+      loadAndExecute(ns, conn, connection -> {
+        DatabaseMetaData metaData = connection.getMetaData();
+        ResultSet resultSet;
+        PreparedStatement ps = null;
+        if ("postgresql".equals(connection.getMetaData().getDatabaseProductName().toLowerCase().trim())) {
+          ps = connection.prepareStatement(
+            "SELECT datname AS TABLE_CAT FROM pg_database WHERE datistemplate = false;"
+          );
+          resultSet = ps.executeQuery();
+        } else {
+          resultSet = metaData.getCatalogs();
         }
-      }
+        try {
+          while (resultSet.next()) {
+            values.add(resultSet.getString("TABLE_CAT"));
+          }
+        } finally {
+          resultSet.close();
+          if (ps != null) {
+            ps.close();
+          }
+        }
+      }, getContext());
+      return new ServiceResponse<>(values);
     });
   }
 
@@ -417,45 +358,38 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      DriverCleanup cleanup = null;
-      try {
-        List<Name> values = new ArrayList<>();
-        Connection conn = getConnection(new NamespacedId(ns, id));
-        cleanup = loadAndExecute(ns, conn, connection -> {
-          String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
-          ResultSet resultSet;
-          if (product.equalsIgnoreCase("oracle")) {
-            Statement statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT table_name FROM all_tables");
-          } else {
-            DatabaseMetaData metaData = connection.getMetaData();
-            resultSet = metaData.getTables(null, null, "%", null);
-          }
-          try {
-            while (resultSet.next()) {
-              String name;
-              if (product.equalsIgnoreCase("oracle")) {
-                name = resultSet.getString("table_name");
-                if (name.contains("$")) {
-                  continue;
-                }
-              } else {
-                name = resultSet.getString(3);
-              }
-              values.add(new Name(name));
-            }
-          } finally {
-            if (resultSet != null) {
-              resultSet.close();
-            }
-          }
-        }, getContext());
-        return new ServiceResponse<>(values);
-      } finally {
-        if (cleanup != null) {
-          cleanup.destroy();
+      List<Name> values = new ArrayList<>();
+      Connection conn = getConnection(new NamespacedId(ns, id));
+      loadAndExecute(ns, conn, connection -> {
+        String product = connection.getMetaData().getDatabaseProductName().toLowerCase();
+        ResultSet resultSet;
+        if (product.equalsIgnoreCase("oracle")) {
+          Statement statement = connection.createStatement();
+          resultSet = statement.executeQuery("SELECT table_name FROM all_tables");
+        } else {
+          DatabaseMetaData metaData = connection.getMetaData();
+          resultSet = metaData.getTables(connection.getCatalog(), connection.getSchema(), "%", null);
         }
-      }
+        try {
+          while (resultSet.next()) {
+            String name;
+            if (product.equalsIgnoreCase("oracle")) {
+              name = resultSet.getString("table_name");
+              if (name.contains("$")) {
+                continue;
+              }
+            } else {
+              name = resultSet.getString(3);
+            }
+            values.add(new Name(name));
+          }
+        } finally {
+          if (resultSet != null) {
+            resultSet.close();
+          }
+        }
+      }, getContext());
+      return new ServiceResponse<>(values);
     });
   }
 
@@ -477,47 +411,40 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
-      DriverCleanup cleanup = null;
-      try {
-        AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
-        Connection conn = getConnection(new NamespacedId(ns, id));
+      AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
+      Connection conn = getConnection(new NamespacedId(ns, id));
 
-        cleanup = loadAndExecute(ns, conn, connection -> {
-          try (Statement statement = connection.createStatement();
-               ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
-            List<Row> rows = getRows(lines, result);
+      loadAndExecute(ns, conn, connection -> {
+        try (Statement statement = connection.createStatement();
+          ResultSet result = statement.executeQuery(String.format("select * from %s", table))) {
+          List<Row> rows = getRows(lines, result);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(PropertyIds.NAME, table);
-            properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
-            properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-            properties.put(PropertyIds.CONNECTION_ID, id);
-            WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(table)
-              .setScope(scope)
-              .setProperties(properties)
-              .build();
-            String sampleId = TransactionRunners.run(getContext(), context -> {
-              WorkspaceDataset ws = WorkspaceDataset.get(context);
-              NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
+          Map<String, String> properties = new HashMap<>();
+          properties.put(PropertyIds.NAME, table);
+          properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.DATABASE.getType());
+          properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
+          properties.put(PropertyIds.CONNECTION_ID, id);
+          WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(table)
+            .setScope(scope)
+            .setProperties(properties)
+            .build();
+          String sampleId = TransactionRunners.run(getContext(), context -> {
+            WorkspaceDataset ws = WorkspaceDataset.get(context);
+            NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
-              ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-              byte[] data = serDe.toByteArray(rows);
-              ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
-              return workspaceId.getId();
-            });
+            ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+            byte[] data = serDe.toByteArray(rows);
+            ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+            return workspaceId.getId();
+          });
 
-            ConnectionSample sample = new ConnectionSample(sampleId, table,
-                                                           ConnectionType.DATABASE.getType(),
-                                                           SamplingMethod.NONE.getMethod(), id);
-            sampleRef.set(sample);
-          }
-        }, getContext());
-        return new ServiceResponse<>(sampleRef.get());
-      } finally {
-        if (cleanup != null) {
-          cleanup.destroy();
+          ConnectionSample sample = new ConnectionSample(sampleId, table,
+                                                         ConnectionType.DATABASE.getType(),
+                                                         SamplingMethod.NONE.getMethod(), id);
+          sampleRef.set(sample);
         }
-      }
+      }, getContext());
+      return new ServiceResponse<>(sampleRef.get());
     });
   }
 
@@ -607,33 +534,30 @@ public class DatabaseHandler extends AbstractWranglerHandler {
    * Loads the driver and gets the connection to the database.
    *
    * @param connection the connection to be connected to.
-   * @return pair of connection and the driver cleanup.
    */
-  private DriverCleanup loadAndExecute(Namespace namespace, ConnectionMeta connection,
-                                       Executor executor, SystemHttpServiceContext context) throws Exception {
-    DriverCleanup cleanup;
-    String name = connection.getProperties().get("name");
-    String classz = connection.getProperties().get("class");
+  private void loadAndExecute(Namespace namespace, ConnectionMeta connection,
+                              Executor executor, SystemHttpServiceContext context) throws Exception {
+    String jdbcPluginName = connection.getProperties().get("name");
     String url = connection.getProperties().get("url");
 
-    NamespacedId key = new NamespacedId(namespace, name);
-    ClassLoader classLoader = cache.get(key);
-    try {
-      @SuppressWarnings("unchecked")
-      Class<? extends Driver> driverClass = (Class<? extends Driver>) classLoader.loadClass(classz);
-      cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
-      String namespaceName = namespace.getName();
+    PluginConfigurer pluginConfigurer = context.createPluginConfigurer(namespace.getName());
+    Class<? extends Driver> driverClass = pluginConfigurer.usePluginClass(JDBC, jdbcPluginName,
+                                                                          UUID.randomUUID().toString(),
+                                                                          PluginProperties.builder().build());
+    if (driverClass == null) {
+      throw new NotFoundException("Could not find a JDBC driver plugin named " + jdbcPluginName);
+    }
 
-      Map<String, String> evaluated = evaluateMacros(connection, context, namespaceName);
+    DriverCleanup cleanup = ensureJDBCDriverIsAvailable(driverClass, url);
+    try {
+      Map<String, String> evaluated = evaluateMacros(connection, context, namespace.getName());
       String username = evaluated.get("username");
       String password = evaluated.get("password");
 
       java.sql.Connection conn = DriverManager.getConnection(url, username, password);
       executor.execute(conn);
-      return cleanup;
-    } catch (Exception e) {
-      cache.invalidate(key);
-      throw e;
+    } finally {
+      cleanup.destroy();
     }
   }
 
@@ -661,12 +585,11 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       final JDBCDriverShim shim = new JDBCDriverShim(driver);
       try {
         deregisterAllDrivers(classz);
-        DriverManager.registerDriver(shim);
-        return new DriverCleanup(shim);
       } catch (NoSuchFieldException | ClassNotFoundException e1) {
         LOG.warn("Unable to deregister JDBC Driver class {}", classz);
       }
-      return null;
+      DriverManager.registerDriver(shim);
+      return new DriverCleanup(shim);
     }
   }
 
@@ -701,6 +624,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   /**
    * Table name object.
    */
+  @SuppressWarnings({"FieldCanBeLocal", "unused"})
   private static class Name {
     private final String name;
     private final int count;

@@ -22,6 +22,9 @@ import io.cdap.cdap.api.artifact.ArtifactInfo;
 import io.cdap.cdap.api.artifact.ArtifactManager;
 import io.cdap.cdap.api.artifact.CloseableClassLoader;
 import io.cdap.cdap.api.plugin.PluginClass;
+import io.cdap.cdap.api.plugin.PluginConfigurer;
+import io.cdap.cdap.api.plugin.PluginProperties;
+import io.cdap.cdap.api.service.http.HttpServiceContext;
 import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
@@ -33,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import javax.annotation.Nullable;
 
@@ -62,7 +66,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   private final Map<String, Map<String, DirectiveInfo>> registry = new ConcurrentSkipListMap<>();
   private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
   private StageContext context = null;
-  private ArtifactManager manager = null;
+  private HttpServiceContext manager = null;
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -77,7 +81,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @param manager an instance of {@link ArtifactManager}.
    * @throws DirectiveLoadException thrown if there are issues loading the plugin.
    */
-  public UserDirectiveRegistry(ArtifactManager manager) throws DirectiveLoadException {
+  public UserDirectiveRegistry(HttpServiceContext manager) throws DirectiveLoadException {
     this.manager = manager;
   }
 
@@ -102,7 +106,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * it's attempted to be loaded as a user plugin. If it does not exist there a null is returned.
    * But, if the plugin exists, then it's loaded and an entry is made into the registry. </p>
    *
-   * <p>When invoked through a transform, each plugin is assigned a unique id. The unique
+   * <p>When invoked through a readable, each plugin is assigned a unique id. The unique
    * id is generated during the <code>configure</code> phase of the plugin. Those ids are
    * passed to initialize through the properties.</p>
    *
@@ -112,28 +116,25 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   @Nullable
   @Override
   public DirectiveInfo get(String namespace, String name) throws DirectiveLoadException {
-    if (!registry.containsKey(namespace)) {
-      return null;
-    }
-    Map<String, DirectiveInfo> namespaceRegistry = registry.get(namespace);
+    Class<? extends Directive> directive = null;
     try {
-      if (!namespaceRegistry.containsKey(name)) {
-        if (context != null) {
-          Class<? extends Directive> directive = context.loadPluginClass(name);
-          if (directive == null) {
-            throw new DirectiveLoadException(
-              String.format("10-5 - Unable to load the user defined directive '%s'. " +
-                              "Please check if the artifact containing UDD is still present. It was there when the " +
-                              "pipeline was deployed, but don't seem to find it now.", name)
-            );
-          }
-          DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
-          namespaceRegistry.put(classz.name(), classz);
-          return classz;
-        }
+      if (context != null) {
+        directive = context.loadPluginClass(name);
       } else {
-        return namespaceRegistry.get(name);
+        if (manager != null) {
+          PluginConfigurer configurer = manager.createPluginConfigurer(namespace);
+          directive = configurer.usePluginClass(Directive.TYPE, name, UUID.randomUUID().toString(),
+                                                PluginProperties.builder().build());
+        }
       }
+      if (directive == null) {
+        throw new DirectiveLoadException(
+          String.format("10-5 - Unable to load the user defined directive '%s'. " +
+                          "Please check if the artifact containing UDD is still present.", name)
+        );
+      }
+      DirectiveInfo directiveInfo = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
+      return directiveInfo;
     } catch (IllegalAccessException | InstantiationException e) {
       throw new DirectiveLoadException(e.getMessage(), e);
     } catch (IllegalArgumentException e) {
@@ -145,7 +146,6 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     } catch (Exception e) {
       throw new DirectiveLoadException(e.getMessage(), e);
     }
-    return null;
   }
 
   @Override

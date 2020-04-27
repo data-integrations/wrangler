@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -41,7 +44,7 @@ import java.util.List;
 @Name(SplitToRows.NAME)
 @Categories(categories = { "row"})
 @Description("Splits a column into multiple rows, copies the rest of the columns.")
-public class SplitToRows implements Directive {
+public class SplitToRows implements Directive, Lineage {
   public static final String NAME = "split-to-rows";
   // Column on which to apply mask.
   private String column;
@@ -76,7 +79,13 @@ public class SplitToRows implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
-        if (object != null && object instanceof String) {
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column));
+        }
+
+        if (object instanceof String) {
           String[] lines = ((String) object).split(regex);
           for (String line : lines) {
             Row r = new Row(row);
@@ -85,14 +94,20 @@ public class SplitToRows implements Directive {
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
-
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()));
         }
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Split column '%s' into multiple rows using expressions '%s'", column, regex)
+      .relation(Many.columns(column), Many.columns(column))
+      .build();
   }
 }
 

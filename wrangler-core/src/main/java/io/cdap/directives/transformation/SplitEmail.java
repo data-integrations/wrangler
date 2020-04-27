@@ -27,6 +27,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -40,9 +43,11 @@ import java.util.List;
 @Name(SplitEmail.NAME)
 @Categories(categories = { "transform", "email"})
 @Description("Split a email into account and domain.")
-public class SplitEmail implements Directive {
+public class SplitEmail implements Directive, Lineage {
   public static final String NAME = "split-email";
   private String column;
+  private String generatedAccountCol;
+  private String generatedDomainCol;
 
   @Override
   public UsageDefinition define() {
@@ -54,6 +59,8 @@ public class SplitEmail implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
+    this.generatedAccountCol = column + "_account";
+    this.generatedDomainCol = column + "_domain";
   }
 
   @Override
@@ -68,8 +75,8 @@ public class SplitEmail implements Directive {
       if (idx != -1) {
         Object object = row.getValue(idx);
         if (object == null) {
-          row.add(column + "_account", null);
-          row.add(column + "_domain", null);
+          row.add(generatedAccountCol, null);
+          row.add(generatedDomainCol, null);
           continue;
         }
         if (object instanceof String) {
@@ -77,32 +84,40 @@ public class SplitEmail implements Directive {
           int nameIdx = emailAddress.lastIndexOf("<"); // Joltie, Root <joltie.root@yahoo.com>
           if (nameIdx == -1) {
             Pair<String, String> components = extractDomainAndAccount(emailAddress);
-            row.add(column + "_account", components.getFirst());
-            row.add(column + "_domain", components.getSecond());
+            row.add(generatedAccountCol, components.getFirst());
+            row.add(generatedDomainCol, components.getSecond());
           } else {
             String name = emailAddress.substring(0, nameIdx);
             int endIdx = emailAddress.lastIndexOf(">");
             if (endIdx == -1) {
-              row.add(column + "_account", null);
-              row.add(column + "_domain", null);
+              row.add(generatedAccountCol, null);
+              row.add(generatedDomainCol, null);
             } else {
               emailAddress = emailAddress.substring(nameIdx + 1, endIdx);
               Pair<String, String> components = extractDomainAndAccount(emailAddress);
-              row.add(column + "_account", components.getFirst());
-              row.add(column + "_domain", components.getSecond());
+              row.add(generatedAccountCol, components.getFirst());
+              row.add(generatedDomainCol, components.getSecond());
             }
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. " +
+                                  "It should be of type 'String'.", column, object.getClass().getSimpleName()));
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Split column '%s' into columns '%s' and '%s'",
+                column, generatedAccountCol, generatedDomainCol)
+      .relation(column, Many.of(column, generatedAccountCol, generatedDomainCol))
+      .build();
   }
 
   private Pair<String, String> extractDomainAndAccount(String emailId) {

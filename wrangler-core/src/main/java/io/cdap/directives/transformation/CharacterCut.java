@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -41,7 +44,7 @@ import java.util.List;
 @Name(CharacterCut.NAME)
 @Categories(categories = { "transform"})
 @Description("UNIX-like 'cut' directive for splitting text.")
-public class CharacterCut implements Directive {
+public class CharacterCut implements Directive, Lineage {
   public static final String NAME = "cut-character";
   private String source;
   private String destination;
@@ -74,20 +77,33 @@ public class CharacterCut implements Directive {
       int idx = row.find(source);
       if (idx != -1) {
         Object value = row.getValue(idx);
+
+        if (value == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", source));
+        }
+
         if (value instanceof String) {
           String result = Unix4j.fromString((String) value).cut("-c", range).toStringResult();
           row.addOrSet(destination, result);
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          value.getClass().getName(), source)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                source, value.getClass().getSimpleName()));
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Scope column '" + source +
-                                                "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, "Scope column '" + source + "' does not exist.");
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable(String.format("Character cut from column %s to destination %s using range %s",
+                              source, destination, range))
+      .conditional(source, destination)
+      .build();
   }
 }

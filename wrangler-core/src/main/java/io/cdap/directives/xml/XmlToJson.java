@@ -31,6 +31,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -47,7 +50,7 @@ import java.util.List;
 @Name("parse-xml-to-json")
 @Categories(categories = { "xml"})
 @Description("Parses a XML document to JSON representation.")
-public class XmlToJson implements Directive {
+public class XmlToJson implements Directive, Lineage {
   public static final String NAME = "parse-xml-to-json";
   // Column within the input row that needs to be parsed as Json
   private String col;
@@ -83,8 +86,9 @@ public class XmlToJson implements Directive {
       int idx = row.find(col);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
         if (object == null) {
-          throw new DirectiveExecutionException(toString() + " : Did not find '" + col + "' in the row.");
+          throw new DirectiveExecutionException(NAME, "' : Column '" + col + "' does not exist.");
         }
 
         try {
@@ -95,16 +99,22 @@ public class XmlToJson implements Directive {
             row.remove(idx);
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                            col, object != null ? object.getClass().getName() : "null")
-            );
+              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                  col, object.getClass().getSimpleName()));
           }
         } catch (JSONException e) {
-          throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
+          throw new DirectiveExecutionException(NAME, e.getMessage(), e);
         }
       }
     }
     return rows;
   }
 
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Converted xml in column '%s' to json", col)
+      .all(Many.of(col))
+      .build();
+  }
 }

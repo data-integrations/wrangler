@@ -38,7 +38,6 @@ import io.cdap.wrangler.registry.DirectiveRegistry;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * This class <code>GrammarBasedParser</code> is an implementation of <code>RecipeParser</code>.
@@ -51,7 +50,7 @@ public class GrammarBasedParser implements RecipeParser {
   private final Compiler compiler = new RecipeCompiler();
   private final DirectiveRegistry registry;
   private final String recipe;
-  private final List<Executor> directives;
+  private final List<Directive> directives;
   private DirectiveContext context;
 
   public GrammarBasedParser(String namespace, String[] directives, DirectiveRegistry registry) {
@@ -72,7 +71,7 @@ public class GrammarBasedParser implements RecipeParser {
    * @return List of {@link Executor}.
    */
   @Override
-  public List<Executor> parse()
+  public List<Directive> parse()
     throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException {
     try {
       CompileStatus status = compiler.compile(recipe);
@@ -96,16 +95,15 @@ public class GrammarBasedParser implements RecipeParser {
         // Checks if the directive has been excluded from being used.
         if (!root.equals(command) && context.isExcluded(command)) {
           throw new DirectiveParseException(
-            String.format("Aliased directive '%s' has been configured as restricted directive and "
-                            + "is hence unavailable. Please contact your administrator", command)
+            command, String.format("Aliased directive '%s' has been configured as restricted directive and "
+                                     + "is hence unavailable. Please contact your administrator", command)
           );
         }
 
         if (context.isExcluded(root)) {
           throw new DirectiveParseException(
-            String.format("Directive '%s' has been configured as restricted directive and is hence unavailable. " +
-                            "Please contact your administrator", command)
-          );
+            command, String.format("Directive '%s' has been configured as restricted directive and is hence " +
+                                     "unavailable. Please contact your administrator", command));
         }
 
         DirectiveInfo info = registry.get(namespace, root);
@@ -133,7 +131,6 @@ public class GrammarBasedParser implements RecipeParser {
    *
    * @param context
    */
-  @Nullable
   @Override
   public void initialize(DirectiveContext context) {
     if (context == null) {

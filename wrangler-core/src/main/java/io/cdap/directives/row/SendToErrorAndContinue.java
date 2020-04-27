@@ -29,6 +29,8 @@ import io.cdap.wrangler.api.ReportErrorAndProceed;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Text;
@@ -55,7 +57,7 @@ import java.util.List;
 @Name(SendToErrorAndContinue.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Send records that match condition to the error collector and continues processing.")
-public class SendToErrorAndContinue implements Directive {
+public class SendToErrorAndContinue implements Directive, Lineage {
   public static final String NAME = "send-to-error-and-continue";
   private final EL el = new EL(new EL.DefaultFunctions());
   private String condition;
@@ -78,8 +80,7 @@ public class SendToErrorAndContinue implements Directive {
       el.compile(condition);
     } catch (ELException e) {
       throw new DirectiveParseException(
-        String.format("Invalid condition '%s'.", condition)
-      );
+        NAME, String.format("Invalid condition '%s'.", condition), e);
     }
     if (args.contains("metric")) {
       metric = ((Identifier) args.value("metric")).value();
@@ -133,10 +134,18 @@ public class SendToErrorAndContinue implements Directive {
           throw new ReportErrorAndProceed(message, 1);
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
       results.add(row);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Redirect records to error path based on expression'%s'", condition);
+    el.variables().forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }

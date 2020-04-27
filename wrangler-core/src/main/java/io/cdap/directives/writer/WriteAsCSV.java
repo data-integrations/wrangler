@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -46,7 +49,7 @@ import java.util.List;
 @Name("write-as-csv")
 @Categories(categories = { "writer", "csv"})
 @Description("Writes the records files as well-formatted CSV")
-public class WriteAsCSV implements Directive {
+public class WriteAsCSV implements Directive, Lineage {
   public static final String NAME = "write-as-csv";
   private String column;
 
@@ -85,9 +88,17 @@ public class WriteAsCSV implements Directive {
         }
         row.add(column, bOut.toString());
       } catch (IOException e) {
-        throw new DirectiveExecutionException(toString() + " : Failed to write CSV row. " + e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Wrote column '%s' in the common separated value (CSV) format", column)
+      .generate(Many.of(column))
+      .build();
   }
 }

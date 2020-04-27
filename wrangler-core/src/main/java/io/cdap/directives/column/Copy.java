@@ -27,11 +27,12 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.i18n.Messages;
-import io.cdap.wrangler.i18n.MessagesFactory;
 
 import java.util.List;
 
@@ -42,8 +43,7 @@ import java.util.List;
 @Name(Copy.NAME)
 @Categories(categories = { "column"})
 @Description("Copies values from a source column into a destination column.")
-public class Copy implements Directive {
-  private static final Messages MSG = MessagesFactory.getMessages();
+public class Copy implements Directive, Lineage {
   public static final String NAME = "copy";
   private ColumnName source;
   private ColumnName destination;
@@ -77,7 +77,7 @@ public class Copy implements Directive {
     for (Row row : rows) {
       int sidx = row.find(source.value());
       if (sidx == -1) {
-        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), source.value()));
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", source.value()));
       }
 
       int didx = row.find(destination.value());
@@ -93,12 +93,21 @@ public class Copy implements Directive {
         // if destination column exists, and force is set to false, then throw exception, else
         // overwrite it.
         if (!force) {
-          throw new DirectiveExecutionException(toString() + " : Destination column '" + destination.value()
-                                    + "' does not exist in the row. Use 'force' option to add new column.");
+          throw new DirectiveExecutionException(
+            NAME, String.format("Destination column '%s' already exists in the row. Use 'force' " +
+                                  "option to overwrite the column.", destination.value()));
         }
         row.setValue(didx, row.getValue(sidx));
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Copied value from column '%s' to '%s'", source.value(), destination.value())
+      .conditional(source.value(), destination.value())
+      .build();
   }
 }

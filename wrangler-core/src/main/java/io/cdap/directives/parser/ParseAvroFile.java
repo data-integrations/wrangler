@@ -27,6 +27,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -49,7 +52,7 @@ import java.util.Map;
 @Name("parse-as-avro-file")
 @Categories(categories = { "parser", "avro"})
 @Description("parse-as-avro-file <column>.")
-public class ParseAvroFile implements Directive {
+public class ParseAvroFile implements Directive, Lineage {
   public static final String NAME = "parse-as-avro-file";
   private String column;
   private Gson gson;
@@ -90,7 +93,7 @@ public class ParseAvroFile implements Directive {
               results.add(newRow);
             }
           } catch (IOException e) {
-            throw new DirectiveExecutionException(toString() + " : Failed to parse Avro data file." + e.getMessage());
+            throw new DirectiveExecutionException(NAME, "Failed to parse Avro data file. " + e.getMessage(), e);
           } finally {
             if (reader != null) {
               try {
@@ -101,12 +104,20 @@ public class ParseAvroFile implements Directive {
             }
           }
         } else {
-          throw new DirectiveExecutionException(toString() + " : column " + column +
-                                                  " should be of type byte array avro file.");
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' is of invalid type. It should be of type 'byte array'.", column));
         }
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a Avro file", column)
+      .all(Many.columns(column))
+      .build();
   }
 
   /**

@@ -29,11 +29,15 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,7 +47,7 @@ import java.util.List;
 @Name(Flatten.NAME)
 @Categories(categories = { "row"})
 @Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
-public class Flatten implements Directive {
+public class Flatten implements Directive, Lineage {
   public static final String NAME = "flatten";
   // Column within the input row that needs to be parsed as Json
   private String[] columns;
@@ -146,5 +150,13 @@ public class Flatten implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Expanded to individual records based on values in columns '%s''", Arrays.asList(columns))
+      .all(Many.columns(columns), Many.columns(columns))
+      .build();
   }
 }

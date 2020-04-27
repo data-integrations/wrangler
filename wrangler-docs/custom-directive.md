@@ -8,16 +8,16 @@ User Defined Directives, also known as UDD, allow you to create custom functions
 
 UDDs, similar to User-defined Functions (UDFs) have a long history of usefulness in SQL-derived languages and other data processing and query systems.  While the framework can be rich in their expressiveness, there's just no way they can anticipate all the things a developer wants to do.  Thus, the custom UDF has become commonplace in our data manipulation toolbox. In order to support customization or extension, CDAP now has the ability to build your own functions for manipulating data through UDDs.
 
-Developing CDAP DataPrep UDDs by no means rocket science, and is an effective way of solving problems that could either be downright impossible, or does not meet your requirements or very akward to solve. 
+Developing CDAP DataPrep UDDs by no means rocket science, and is an effective way of solving problems that could either be downright impossible, or does not meet your requirements or very awkward to solve. 
 
 **U**ser **D**efined **D**irective (UDD) or Custom Directives are easier and simpler way for users to build and integrate custom directives with wrangler. UDD framework allow users to develop, deploy and use data processing directives
 within the data preparation tool.
 
-Building a custom directive involves implementing three simple methods :
+Building a custom directive involves implementing four simple methods :
   * **D** -- `define()` -- Define how the framework should interpret the arguments. 
   * **I** -- `initialize()` -- Invoked by the framework to initialize the custom directive with arguments parsed. 
   * **E** -- `execute()` -- Execute and apply your business logic for transforming the `Row`.
-  * **D** -- `destory()` -- Invoke by the framework to destroy any resources held by the directive. 
+  * **D** -- `destroy()` -- Invoke by the framework to destroy any resources held by the directive. 
   
 ## Steps to Build a directive
 
@@ -34,9 +34,9 @@ Building a custom directive involves implementing three simple methods :
 
 ```
     [1] parse-as-csv :body ',' true
-    [2] #pragma load-directives text-reverse,text-sanatization;
+    [2] #pragma load-directives text-reverse,text-sanitization;
     [3] text-reverse :text
-    [4] text-sanatization :description
+    [4] text-sanitization :description
 ```
 
 More description of the above lines. 
@@ -50,7 +50,7 @@ There is one simple interface for developing your customized directive. The simp
 
 ### Simple API
 
-Building a UDD with the simpler UDD API involves nothing more than writing a class with three function (evaluate) and few annotations. Here is an example:
+Building a UDD with the simpler UDD API involves nothing more than writing a class with four function (evaluate) and few annotations. Here is an example:
 
 ```
 @Plugin(type = UDD.Type)
@@ -72,7 +72,7 @@ public SimpleUDD implements Directive {
     ...
   }
   
-  public void destory() {
+  public void destroy() {
     ...
   }
 }

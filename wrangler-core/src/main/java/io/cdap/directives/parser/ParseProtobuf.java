@@ -33,6 +33,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Numeric;
@@ -61,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 @Name("parse-as-protobuf")
 @Categories(categories = { "parser", "protobuf"})
 @Description("Parses column as protobuf encoded memory representations.")
-public class ParseProtobuf implements Directive {
+public class ParseProtobuf implements Directive, Lineage {
   public static final String NAME = "parse-as-protobuf";
   private static final Logger LOG = LoggerFactory.getLogger(ParseProtobuf.class);
   private String column;
@@ -134,19 +137,13 @@ public class ParseProtobuf implements Directive {
 
       try {
         decoder = retryer.call(decoderCallable);
-        if (decoder != null) {
-          decoderInitialized = true;
-        } else {
-          throw new DirectiveExecutionException("Unsupported protobuf decoder type");
+        if (decoder == null) {
+          throw new DirectiveExecutionException(NAME, "Unsupported protobuf decoder type.");
         }
-      } catch (ExecutionException e) {
+        decoderInitialized = true;
+      } catch (ExecutionException | RetryException e) {
         throw new DirectiveExecutionException(
-          String.format("Unable to retrieve protobuf descriptor from schema registry. %s", e.getCause())
-        );
-      } catch (RetryException e) {
-        throw new DirectiveExecutionException(
-          String.format("Issue in retrieving protobuf descriptor from schema registry. %s", e.getCause())
-        );
+          NAME, String.format("Unable to retrieve protobuf descriptor from schema registry. %s", e.getMessage()), e);
       }
     }
 
@@ -159,14 +156,22 @@ public class ParseProtobuf implements Directive {
             byte[] bytes = (byte[]) object;
             results.addAll(decoder.decode(bytes));
           } else {
-            throw new ErrorRowException(toString() + " : column " + column + " should be of type byte array", 1);
+            throw new ErrorRowException(NAME, "Column " + column + " should be of type 'byte array'", 1);
           }
         }
       }
     } catch (DecoderException e) {
-      throw new ErrorRowException(toString() + " Issue decoding Protobuf record. Check schema version '" +
-                                (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
+      throw new ErrorRowException(NAME, "Issue decoding Protobuf record. Check schema version '"
+        + (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a protobuf message", column)
+      .all(Many.columns(column))
+      .build();
   }
 }

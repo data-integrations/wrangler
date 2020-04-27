@@ -35,6 +35,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Numeric;
@@ -62,7 +65,7 @@ import java.util.concurrent.TimeUnit;
 @Name("parse-as-avro")
 @Categories(categories = { "parser", "avro"})
 @Description("Parses column as AVRO generic record.")
-public class ParseAvro implements Directive {
+public class ParseAvro implements Directive, Lineage {
   public static final String NAME = "parse-as-avro";
   private String column;
   private String schemaId;
@@ -88,7 +91,8 @@ public class ParseAvro implements Directive {
     this.schemaId = ((Identifier) args.value("schema-id")).value();
     this.type = ((Identifier) args.value("encode-type")).value();
     if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
-      throw new DirectiveParseException("Parsing AVRO can be either of type 'json' or 'binary'");
+      throw new DirectiveParseException(
+        NAME, String.format("Invalid encoding type '%s'. The type must be either 'json' or 'binary'.", type));
     }
     if (args.contains("version")) {
       this.version = ((Numeric) args.value("version")).value().intValue();
@@ -140,19 +144,14 @@ public class ParseAvro implements Directive {
 
       try {
         decoder = retryer.call(decoderCallable);
-        if (decoder != null) {
-          decoderInitialized = true;
-        } else {
-          throw new DirectiveExecutionException("Unsupported decoder types. Supports only 'json' or 'binary'");
+        if (decoder == null) {
+          throw new DirectiveExecutionException(NAME, "Avro parsing is supported for 'json' and 'binary' types only.");
         }
-      } catch (ExecutionException e) {
+
+        decoderInitialized = true;
+      } catch (ExecutionException | RetryException e) {
         throw new DirectiveExecutionException(
-          String.format("Unable to retrieve schema from schema registry. %s", e.getCause())
-        );
-      } catch (RetryException e) {
-        throw new DirectiveExecutionException(
-          String.format("Issue in retrieving schema from schema registry. %s", e.getCause())
-        );
+          NAME, String.format("Unable to retrieve schema from schema registry. %s", e.getMessage()), e);
       }
     }
 
@@ -170,15 +169,22 @@ public class ParseAvro implements Directive {
             results.addAll(decoder.decode(bytes));
           } else {
             throw new ErrorRowException(
-              toString() + " : column " + column + " should be of type string or byte array", 1
-            );
+              NAME, "Column " + column + " should be of type 'String' or 'byte array'.", 1);
           }
         }
       }
     } catch (DecoderException e) {
-      throw new ErrorRowException(toString() + " Issue decoding Avro record. Check schema version '" +
-                                (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
+      throw new ErrorRowException(NAME, "Issue decoding Avro record. Check schema version '"
+        + (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a Avro record", column)
+      .all(Many.columns(column))
+      .build();
   }
 }

@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -39,7 +41,7 @@ import java.util.List;
 @Name(LeftTrim.NAME)
 @Categories(categories = { "transform"})
 @Description("Trimming whitespace from left side of a string.")
-public class LeftTrim implements Directive {
+public class LeftTrim implements Directive, Lineage {
   public static final String NAME = "ltrim";
   // Columns of the column to be upper-cased
   private String col;
@@ -76,5 +78,13 @@ public class LeftTrim implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Removed spaces on the left in values of column '%s'", col)
+      .relation(col, col)
+      .build();
   }
 }

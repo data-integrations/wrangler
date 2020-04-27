@@ -2,7 +2,7 @@
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
-[![Build Status](https://travis-ci.org/hydrator/wrangler.svg?branch=develop)](https://travis-ci.org/hydrator/wrangler)
+[![Build Status](https://travis-ci.org/cdapio/hydrator-plugins.svg?branch=develop)](https://travis-ci.org/cdapio/hydrator-plugins)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/11434/badge.svg)](https://scan.coverity.com/projects/hydrator-wrangler-transform)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core)
 [![Javadoc](https://javadoc-emblem.rhcloud.com/doc/io.cdap.wrangler/wrangler-core/badge.svg)](http://www.javadoc.io/doc/io.cdap.wrangler/wrangler-core)

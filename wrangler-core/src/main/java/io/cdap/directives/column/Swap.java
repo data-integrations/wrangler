@@ -26,11 +26,12 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.i18n.Messages;
-import io.cdap.wrangler.i18n.MessagesFactory;
 
 import java.util.List;
 
@@ -41,9 +42,8 @@ import java.util.List;
 @Name(Swap.NAME)
 @Categories(categories = { "column"})
 @Description("Swaps the column names of two columns.")
-public class Swap implements Directive {
+public class Swap implements Directive, Lineage {
   public static final String NAME = "swap";
-  private static final Messages MSG = MessagesFactory.getMessages();
   private String left;
   private String right;
 
@@ -73,16 +73,24 @@ public class Swap implements Directive {
       int didx = row.find(right);
 
       if (sidx == -1) {
-        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), left));
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", left));
       }
 
       if (didx == -1) {
-        throw new DirectiveExecutionException(MSG.get("column.not.found", toString(), right));
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", right));
       }
 
       row.setColumn(sidx, right);
       row.setColumn(didx, left);
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Swapped columns '%s' and '%s'", left, right)
+      .relation(Many.of(left, right), Many.of(right, left))
+      .build();
   }
 }

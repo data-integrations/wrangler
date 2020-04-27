@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Text;
@@ -44,7 +46,7 @@ import java.util.regex.Pattern;
 @Name(RecordRegexFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows if the regex is matched or not matched.")
-public class RecordRegexFilter implements Directive {
+public class RecordRegexFilter implements Directive, Lineage {
   public static final String NAME = "filter-by-regex";
   private String column;
   private Pattern pattern;
@@ -69,7 +71,8 @@ public class RecordRegexFilter implements Directive {
     } else if (matchType.equalsIgnoreCase("if-not-matched")) {
       matched = false;
     } else {
-      throw new DirectiveParseException("Match type specified is not 'if-matched' or 'if-not-matched'");
+      throw new DirectiveParseException(
+        NAME, "Match type specified is not 'if-matched' or 'if-not-matched'");
     }
     column = ((ColumnName) args.value("column")).value();
     String regex = ((Text) args.value("regex")).value();
@@ -95,6 +98,13 @@ public class RecordRegexFilter implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
+                                  "'JSONObject' or 'Number'.", column));
+        }
+
         if (object instanceof JSONObject) {
           if (pattern == null && JSONObject.NULL.equals(object)) {
             continue;
@@ -109,8 +119,8 @@ public class RecordRegexFilter implements Directive {
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid value type '%s' of column '%s'. Should be of type String.",
-                          toString(), object != null ? object.getClass().getName() : "null", column)
+            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type " +
+                                  "'String', 'JSONObject' or 'Number'.", column, object.getClass().getSimpleName())
           );
         }
         results.add(row);
@@ -119,6 +129,15 @@ public class RecordRegexFilter implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Filtered column '%s' based on whether the expression '%s' %s ",
+                column, pattern, matched ? "matched" : "not matched")
+      .relation(column, column)
+      .build();
   }
 
   private boolean matchPattern(String value) {

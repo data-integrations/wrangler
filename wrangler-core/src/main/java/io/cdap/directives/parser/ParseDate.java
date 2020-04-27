@@ -30,6 +30,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -48,7 +51,7 @@ import java.util.TimeZone;
 @Categories(categories = { "parser", "date"})
 @Description("Parses column values as dates using natural language processing and " +
   "automatically identifying the format (expensive in terms of time consumed).")
-public class ParseDate implements Directive {
+public class ParseDate implements Directive, Lineage {
   public static final String NAME = "parse-as-date";
   private String column;
   private TimeZone timezone;
@@ -77,6 +80,14 @@ public class ParseDate implements Directive {
   }
 
   @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as date with timezone '%s'", column, timezone)
+      .all(Many.columns(column), Many.columns(column))
+      .build();
+  }
+
+  @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
@@ -101,8 +112,8 @@ public class ParseDate implements Directive {
           }
         } else {
           throw new ErrorRowException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object.getClass().getName(), column), 1);
+            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()), 1);
         }
       }
     }

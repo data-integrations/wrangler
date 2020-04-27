@@ -28,6 +28,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
@@ -50,10 +53,11 @@ import java.util.Set;
  * A CSV Parser Stage for parsing the {@link Row} provided based on configuration.
  */
 @Plugin(type = Directive.TYPE)
-@Name("parse-as-csv")
+@Name(CsvParser.NAME)
 @Categories(categories = { "parser", "csv"})
 @Description("Parses a column as CSV (comma-separated values).")
-public class CsvParser implements Directive {
+public class CsvParser implements Directive, Lineage {
+  public static final String NAME = "parse-as-csv";
   private ColumnName columnArg;
   private Text delimiterArg;
   private Bool headerArg;
@@ -90,11 +94,13 @@ public class CsvParser implements Directive {
       if (delimiterArg.value().startsWith("\\")) {
         String unescapedStr = StringEscapeUtils.unescapeJava(delimiterArg.value());
         if (unescapedStr == null) {
-          throw new DirectiveParseException("Invalid delimiter for CSV Parser: " + delimiterArg.value());
+          throw new DirectiveParseException(
+            NAME, String.format("Invalid delimiter for CSV Parser '%s'", delimiterArg.value()));
         }
         delimiter = unescapedStr.charAt(0);
       }
     }
+
 
     this.format = CSVFormat.DEFAULT.withDelimiter(delimiter);
     this.format.withIgnoreEmptyLines(true)
@@ -141,7 +147,7 @@ public class CsvParser implements Directive {
         for (CSVRecord csvRecord : csvRecords) {
           if (!checkedHeader && hasHeader && isHeader(csvRecord)) {
             for (int i = 0; i < csvRecord.size(); i++) {
-              headers.add(csvRecord.get(i).trim());
+              headers.add(csvRecord.get(i).trim().replaceAll("\\s+", "_"));
             }
             if (rows.size() > 0) {
               return new ArrayList<>();
@@ -152,7 +158,7 @@ public class CsvParser implements Directive {
         }
       } catch (IOException e) {
         // When there is error parsing data, the data is written to error.
-        throw new ErrorRowException(e.getMessage(), 1);
+        throw new ErrorRowException(NAME, e.getMessage(), 1);
       }
     }
     return rows;
@@ -194,5 +200,13 @@ public class CsvParser implements Directive {
       }
     }
     return true;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as CSV with delimiter '%s'", columnArg.value(), delimiterArg.value())
+      .all(Many.columns(columnArg), Many.columns(columnArg))
+      .build();
   }
 }

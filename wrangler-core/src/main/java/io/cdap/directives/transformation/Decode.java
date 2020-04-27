@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -46,7 +48,7 @@ import java.util.Locale;
 @Name(Decode.NAME)
 @Categories(categories = { "transform"})
 @Description("Decodes column values using one of base32, base64, or hex.")
-public class Decode implements Directive {
+public class Decode implements Directive, Lineage {
   public static final String NAME = "decode";
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();
@@ -88,9 +90,7 @@ public class Decode implements Directive {
     type = type.toUpperCase();
     if (!type.equals("BASE64") && !type.equals("BASE32") && !type.equals("HEX")) {
       throw new DirectiveParseException(
-        String.format("Type of decoding specified '%s' is not supported. Supports base64, base32 & hex.",
-                      type)
-      );
+        NAME, String.format("Decoding type '%s' is not supported. Supported types are base64, base32 & hex.", type));
     }
     this.method = Method.valueOf(type);
   }
@@ -120,9 +120,8 @@ public class Decode implements Directive {
         value = (byte[]) object;
       } else {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type string or byte array, "
-            , toString(), value.getClass().getName(), column)
-        );
+          NAME, String.format("Column '%s' has invalid type '%s'. It should be a non-null 'String' or 'byte array'.",
+                              column, object.getClass().getSimpleName()));
       }
 
       byte[] out = new byte[0];
@@ -135,18 +134,25 @@ public class Decode implements Directive {
           out = hexEncode.decode(value);
         } catch (DecoderException e) {
           throw new DirectiveExecutionException(
-            String.format("%s : Failed to decode hex value.", toString())
-          );
+            NAME, String.format("Failed to decode hex value. %s", e.getMessage()), e);
         }
       } else {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid type of encoding '%s' specified", toString(), method.toString())
-        );
+          NAME, String.format("Specified decoding type '%s' is not supported. Supported types are base64, " +
+                                "base32 & hex.", method.toString()));
       }
 
       String obj = new String(out, StandardCharsets.UTF_8);
       row.addOrSet(String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), obj);
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Decoded column '%s' using method '%s'", column, method.getType())
+      .relation(column, column)
+      .build();
   }
 }

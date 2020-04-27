@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -48,7 +50,7 @@ import java.util.Locale;
 @Name(ParseAsCurrency.NAME)
 @Categories(categories = {"currency"})
 @Description("Parses the string as a currency using specified locale. Default locale is en_US.")
-public class ParseAsCurrency implements Directive {
+public class ParseAsCurrency implements Directive, Lineage {
   public static final String NAME = "parse-as-currency";
   private String source;
   private String destination;
@@ -104,10 +106,18 @@ public class ParseAsCurrency implements Directive {
           BigDecimal number = (BigDecimal) fmt.parse(value);
           row.addOrSet(destination, number.doubleValue());
         } catch (ParseException e) {
-          throw new ErrorRowException(e.getMessage(), 1);
+          throw new ErrorRowException(NAME, e.getMessage(), 1);
         }
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as locale currency '%s' into column '%s'", source, locale, destination)
+      .conditional(source, destination)
+      .build();
   }
 }

@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
@@ -47,7 +49,7 @@ import java.util.Set;
 @Name(MessageHash.NAME)
 @Categories(categories = { "transform", "hash"})
 @Description("Creates a message digest for the column using algorithm, replacing the column value.")
-public class MessageHash implements Directive {
+public class MessageHash implements Directive, Lineage {
   public static final String NAME = "hash";
   private static final Set<String> algorithms = ImmutableSet.of(
     "BLAKE2B-160",
@@ -119,17 +121,13 @@ public class MessageHash implements Directive {
     Text algorithm = args.value("algorithm");
     if (!MessageHash.isValid(algorithm.value())) {
       throw new DirectiveParseException(
-        String.format("Algorithm '%s' specified in directive '%s' at line %d is not supported", algorithm,
-                      NAME, args.line())
-      );
+        NAME, String.format("Algorithm '%s' specified at line %d is not supported.", algorithm, args.line()));
     }
     try {
       this.digest = MessageDigest.getInstance(algorithm.value());
     } catch (NoSuchAlgorithmException e) {
       throw new DirectiveParseException(
-        String.format("Unable to find algorithm specified '%s' in directive '%s' at line %d.",
-                      algorithm, NAME, args.line())
-      );
+        NAME, String.format("Unable to find algorithm '%s' specified at line %d.", algorithm, args.line()));
     }
 
     this.encode = false;
@@ -143,6 +141,14 @@ public class MessageHash implements Directive {
     // no-op
   }
 
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Anonymized the column '%s'", column)
+      .relation(column, column)
+      .build();
+  }
+
   public static boolean isValid(String algorithm) {
     return (algorithm != null && algorithms.contains(algorithm));
   }
@@ -153,6 +159,13 @@ public class MessageHash implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String' or 'byte array'.",
+                                column));
+        }
+
         byte[] message;
         if (object instanceof String) {
           message = ((String) object).getBytes(StandardCharsets.UTF_8);
@@ -160,9 +173,8 @@ public class MessageHash implements Directive {
           message = ((byte[]) object);
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String or byte[].", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
+                                column, object.getClass().getSimpleName()));
         }
 
         digest.update(message);
@@ -176,7 +188,7 @@ public class MessageHash implements Directive {
           row.addOrSet(column, hashed);
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
     }
     return rows;

@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -42,7 +45,7 @@ import java.util.List;
 @Name(Merge.NAME)
 @Categories(categories = { "column"})
 @Description("Merges values from two columns using a separator into a new column.")
-public class Merge implements Directive {
+public class Merge implements Directive, Lineage {
   public static final String NAME = "merge";
   // Scope column1
   private String col1;
@@ -96,5 +99,13 @@ public class Merge implements Directive {
       results.add(row);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Merged column '%s' and '%s' using delimiter '%s' into column '%s'", col1, col2, delimiter, dest)
+      .relation(Many.columns(col1, col2), Many.of(col1, col2, dest))
+      .build();
   }
 }

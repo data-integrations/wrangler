@@ -46,6 +46,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -61,7 +64,7 @@ import java.util.List;
 @Categories(categories = { "parser", "hl7"})
 @Description("Parses <column> for Health Level 7 Version 2 (HL7 V2) messages; <depth> indicates at which point " +
   "JSON object enumeration terminates.")
-public class HL7Parser implements Directive {
+public class HL7Parser implements Directive, Lineage {
   public static final String NAME = "parse-as-hl7";
   private String column;
   private HapiContext context;
@@ -97,12 +100,27 @@ public class HL7Parser implements Directive {
   }
 
   @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as HL7 record", column)
+      .all(Many.columns(column), Many.columns(column))
+      .build();
+  }
+
+  @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
       try {
         int idx = row.find(column);
         if (idx != -1) {
           Object object = row.getValue(idx);
+
+          if (object == null) {
+            throw new DirectiveExecutionException(
+              NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column)
+            );
+          }
+
           // Handling the first parsing on HL7 message
           if (object instanceof String) {
             Message message = parser.parse((String) object);
@@ -111,13 +129,14 @@ public class HL7Parser implements Directive {
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.",
-                            toString(), object != null ? object.getClass().getName() : "null", column)
+              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                  column, object.getClass().getSimpleName())
             );
           }
+
         }
       } catch (HL7Exception e) {
-        throw new DirectiveExecutionException(toString() + " : " + e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
     }
     return rows;

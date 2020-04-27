@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.parser;
 
+import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.Executor;
@@ -28,7 +29,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-import javax.annotation.Nullable;
 
 /**
  * Parses the DSL into specification containing stepRegistry for wrangling.
@@ -71,8 +71,8 @@ public class SimpleTextParser implements RecipeParser {
    * @throws ParseException
    */
   @Override
-  public List<Executor> parse() throws DirectiveParseException {
-    List<Executor> directives = new ArrayList<>();
+  public List<Directive> parse() throws DirectiveParseException {
+    List<Directive> directives = new ArrayList<>();
 
     // Split directive by EOL
     int lineno = 1;
@@ -97,16 +97,15 @@ public class SimpleTextParser implements RecipeParser {
       // Checks if the directive has been excluded from being used.
       if (!root.equals(command) && context.isExcluded(command)) {
         throw new DirectiveParseException(
-          String.format("Aliased directive '%s' has been configured as restricted directive and "
-                          + "is hence unavailable. Please contact your administrator", command)
+          command, String.format("Aliased directive '%s' has been configured as restricted directive and "
+                                   + "is hence unavailable. Please contact your administrator", command)
         );
       }
 
       if (context.isExcluded(root)) {
         throw new DirectiveParseException(
-          String.format("Executor '%s' has been configured as restricted directive and is hence unavailable. " +
-                          "Please contact your administrator", command)
-        );
+          command, String.format("Executor '%s' has been configured as restricted directive and is hence " +
+                                   "unavailable. Please contact your administrator", command));
       }
     }
     return directives;
@@ -137,9 +136,7 @@ public class SimpleTextParser implements RecipeParser {
       if (!optional) {
         String usage = usageRegistry.getUsage(directive);
         throw new DirectiveParseException(
-          String.format("Missing field '%s' at line number %d for directive <%s> (usage: %s)",
-                        field, lineno, directive, usage)
-        );
+          directive, String.format("Missing field '%s' at line number %d (usage: %s)", field, lineno, usage));
       }
     }
     return value;
@@ -150,7 +147,6 @@ public class SimpleTextParser implements RecipeParser {
    *
    * @param context
    */
-  @Nullable
   @Override
   public void initialize(DirectiveContext context) {
     if (context == null) {

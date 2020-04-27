@@ -27,6 +27,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -51,7 +53,7 @@ import java.util.List;
 @Name(RecordConditionFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows based on condition type specified.")
-public class RecordConditionFilter implements Directive {
+public class RecordConditionFilter implements Directive, Lineage {
   public static final String NAME = "filter-row";
   private String condition;
   private final EL el = new EL(new EL.DefaultFunctions());
@@ -75,7 +77,7 @@ public class RecordConditionFilter implements Directive {
     try {
       el.compile(condition);
     } catch (ELException e) {
-      throw new DirectiveParseException(e.getMessage());
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
   }
 
@@ -116,10 +118,18 @@ public class RecordConditionFilter implements Directive {
           continue;
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(e.getMessage());
+        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
       }
       results.add(row);
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    Mutation.Builder builder = Mutation.builder()
+      .readable("Filtered records based on columns '%s'", el.variables());
+    el.variables().forEach(column -> builder.relation(column, column));
+    return builder.build();
   }
 }

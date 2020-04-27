@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -49,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 @Name("parse-timestamp")
 @Categories(categories = {"parser", "date"})
 @Description("Parses column values representing unix timestamp as date.")
-public class ParseTimestamp implements Directive {
+public class ParseTimestamp implements Directive, Lineage {
   public static final String NAME = "parse-timestamp";
   private static final Set<TimeUnit> SUPPORTED_TIME_UNITS = EnumSet.of(TimeUnit.SECONDS, TimeUnit.MILLISECONDS,
                                                                        TimeUnit.MICROSECONDS);
@@ -107,34 +109,44 @@ public class ParseTimestamp implements Directive {
     try {
       unit = TimeUnit.valueOf(unitValue.toUpperCase());
     } catch (IllegalArgumentException e) {
-      throw new DirectiveParseException(String.format("'%s' is not a supported time unit. Supported time " +
-                                                        "units are %s", unitValue, SUPPORTED_TIME_UNITS));
+      throw new DirectiveParseException(
+        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
+                            unitValue, SUPPORTED_TIME_UNITS), e);
     }
 
     if (!SUPPORTED_TIME_UNITS.contains(unit)) {
-      throw new DirectiveParseException(String.format("'%s' is not a supported time unit. Supported time " +
-                                                        "units are %s", unitValue, SUPPORTED_TIME_UNITS));
+      throw new DirectiveParseException(
+        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
+                            unitValue, SUPPORTED_TIME_UNITS));
     }
 
     return unit;
   }
 
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as a timestamp using time unit as '%s'", column, timeUnit)
+      .relation(column, column)
+      .build();
+  }
+
   private long getLongValue(Object object) throws ErrorRowException {
-    String errorMsg = String.format("%s : Invalid type '%s' of column '%s'. Must be of type Long or String.",
-                                    toString(), object.getClass().getName(), column);
+    String errorMsg = String.format("Invalid type '%s' of column '%s'. Must be of type 'Long' or 'String'.",
+                                    object.getClass().getSimpleName(), column);
     try {
       if (object instanceof Long) {
-        return  (long) object;
+        return (long) object;
       } else if (object instanceof String) {
         return Long.parseLong((String) object);
       }
     } catch (Exception e) {
       // Exception while casting the object, do not handle it here, so that ErrorRowException is thrown.
-      errorMsg = String.format("%s : Invalid value for column '%s'. Must be of type Long or String representing long.",
-                               toString(), column);
+      errorMsg = String.format("Invalid value for column '%s'. Must be of type 'Long' or 'String' " +
+                                 "representing long.", column);
     }
 
-    throw new ErrorRowException(errorMsg, 2);
+    throw new ErrorRowException(NAME, errorMsg, 2);
   }
 
   private ZonedDateTime getZonedDateTime(long ts, TimeUnit unit, ZoneId zoneId) {

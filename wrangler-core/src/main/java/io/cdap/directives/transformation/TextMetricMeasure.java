@@ -26,6 +26,9 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -42,7 +45,7 @@ import java.util.List;
 @Name(TextMetricMeasure.NAME)
 @Categories(categories = { "transform"})
 @Description("Calculates the metric for comparing two string values.")
-public class TextMetricMeasure implements Directive {
+public class TextMetricMeasure implements Directive, Lineage {
   public static final String NAME = "text-metric";
   private String column1;
   private String column2;
@@ -168,5 +171,16 @@ public class TextMetricMeasure implements Directive {
     }
 
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Compared text in columns '%s' and '%s' and saved it in column '%s'",
+                column1, column2, destination)
+      .relation(Many.columns(column1, column2), destination)
+      .relation(column1, column1)
+      .relation(column2, column2)
+      .build();
   }
 }

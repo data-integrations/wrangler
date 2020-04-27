@@ -16,6 +16,9 @@
 
 package io.cdap.wrangler.api;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Exception throw when the record needs to emitted to error collector.
  */
@@ -26,9 +29,20 @@ public class ErrorRowException extends Exception {
   // Code associated with the error message.
   private int code;
 
-  public ErrorRowException(String message, int code) {
+  private boolean showInWrangler;
+
+  public ErrorRowException(String message, int code, boolean showInWrangler) {
     this.message = message;
     this.code = code;
+    this.showInWrangler = showInWrangler;
+  }
+
+  public ErrorRowException(String message, int code) {
+    this(message, code, false);
+  }
+
+  public ErrorRowException(String directiveName, String errorMessage, int code) {
+    this(String.format("Error encountered while executing '%s' : %s", directiveName, errorMessage), code);
   }
 
   /**
@@ -43,5 +57,12 @@ public class ErrorRowException extends Exception {
    */
   public int getCode() {
     return code;
+  }
+
+  /**
+   * @return Flag indicating whether this record should prevent further wrangling.
+   */
+  public boolean isShownInWrangler() {
+    return showInWrangler;
   }
 }

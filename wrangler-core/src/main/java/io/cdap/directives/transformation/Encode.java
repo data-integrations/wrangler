@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -45,7 +47,7 @@ import java.util.Locale;
 @Name(Encode.NAME)
 @Categories(categories = { "transform"})
 @Description("Encodes column values using one of base32, base64, or hex.")
-public class Encode implements Directive {
+public class Encode implements Directive, Lineage {
   public static final String NAME = "encode";
   private final Base64 base64Encode = new Base64();
   private final Base32 base32Encode = new Base32();
@@ -87,9 +89,8 @@ public class Encode implements Directive {
     value = value.toUpperCase();
     if (!value.equals("BASE64") && !value.equals("BASE32") && !value.equals("HEX")) {
       throw new DirectiveParseException(
-        String.format("Type of encoding specified '%s' is not supported. Supports base64, base32 & hex.",
-                      value)
-      );
+        NAME, String.format("Type of encoding specified '%s' is not supported. Supported types are " +
+                              "base64, base32 & hex.", value));
     }
     this.method = Method.valueOf(value);
   }
@@ -119,9 +120,8 @@ public class Encode implements Directive {
         value = (byte[]) object;
       } else {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid value type '%s' of column '%s'. Should be of type string or byte array, "
-            , toString(), value.getClass().getName(), column)
-        );
+          NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
+                              column, object.getClass().getSimpleName()));
       }
 
       byte[] out = new byte[0];
@@ -133,13 +133,21 @@ public class Encode implements Directive {
         out = hexEncode.encode(value);
       } else {
         throw new DirectiveExecutionException(
-          String.format("%s : Invalid type of encoding '%s' specified", toString(), method.toString())
-        );
+          NAME, String.format("Specified encoding type '%s' is not supported. Supported types are base64, " +
+                                "base32 & hex.", method.toString()));
       }
 
       String obj = new String(out, StandardCharsets.UTF_8);
       row.addOrSet(String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), obj);
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Encoded column '%s' using method '%s'", column, method.getType())
+      .relation(column, column)
+      .build();
   }
 }

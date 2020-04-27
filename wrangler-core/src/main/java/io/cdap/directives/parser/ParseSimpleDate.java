@@ -27,6 +27,8 @@ import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -48,7 +50,7 @@ import java.util.TimeZone;
 @Name("parse-as-simple-date")
 @Categories(categories = { "parser", "date"})
 @Description("Parses a column as date using format.")
-public class ParseSimpleDate implements Directive {
+public class ParseSimpleDate implements Directive, Lineage {
   public static final String NAME = "parse-as-simple-date";
   private String column;
   private SimpleDateFormat formatter;
@@ -97,16 +99,24 @@ public class ParseSimpleDate implements Directive {
                                                                .atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC)));
             row.setValue(idx, zonedDateTime);
           } catch (ParseException e) {
-            throw new ErrorRowException(String.format("Failed to parse '%s' with pattern '%s'",
-                                                      object, formatter.toPattern()), 1);
+            throw new ErrorRowException(
+              NAME, String.format("Failed to parse '%s' with pattern '%s'", object, formatter.toPattern()), 1);
           }
         } else {
           throw new ErrorRowException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object.getClass().getName(), column), 2);
+            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()), 2);
         }
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as date using user specified format '%s'", column, formatter.toPattern())
+      .relation(column, column)
+      .build();
   }
 }

@@ -34,6 +34,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -56,7 +59,7 @@ import java.util.Map;
 @Name("parse-as-json")
 @Categories(categories = { "parser", "json"})
 @Description("Parses a column as JSON.")
-public class JsParser implements Directive {
+public class JsParser implements Directive, Lineage {
   public static final String NAME = "parse-as-json";
   // Column within the input row that needs to be parsed as Json
   private String column;
@@ -114,10 +117,8 @@ public class JsParser implements Directive {
             element = (JsonElement) value;
           } else {
             throw new DirectiveExecutionException(
-              String.format("%s : Invalid type '%s' of column '%s'. " +
-                              "Should be of type string or a valid Json object.",
-                            toString(), element != null ? element.getClass().getName() : "null", column)
-            );
+              NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'" +
+                                    " or 'JsonObject' or 'JsonArray'.", column, value.getClass().getSimpleName()));
           }
 
           row.remove(idx);
@@ -143,11 +144,19 @@ public class JsParser implements Directive {
             }
           }
         } catch (JSONException e) {
-          throw new ErrorRowException(toString() + " : " + e.getMessage(), 1);
+          throw new ErrorRowException(NAME, e.getMessage(), 1);
         }
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Parsed column '%s' as Json", column)
+      .all(Many.columns(column))
+      .build();
   }
 
   /**

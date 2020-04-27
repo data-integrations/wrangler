@@ -28,6 +28,8 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.Text;
@@ -44,7 +46,7 @@ import java.util.List;
 @Name(SetRecordDelimiter.NAME)
 @Categories(categories = { "row" })
 @Description("Sets the record delimiter.")
-public class SetRecordDelimiter implements Directive {
+public class SetRecordDelimiter implements Directive, Lineage {
   public static final String NAME = "set-record-delim";
   private String column;
   private String delimiter;
@@ -101,5 +103,13 @@ public class SetRecordDelimiter implements Directive {
       }
     }
     return results;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Split value in column '%s' into multiple records using delimiter '%s'", column, delimiter)
+      .relation(column, column)
+      .build();
   }
 }

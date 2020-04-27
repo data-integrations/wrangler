@@ -31,6 +31,9 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Many;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -63,8 +66,8 @@ import java.util.Map;
 @Plugin(type = Directive.TYPE)
 @Name(InvokeHttp.NAME)
 @Categories(categories = { "http"})
-@Description("[EXPERIMENTAL] Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
-public class InvokeHttp implements Directive {
+@Description("Invokes an HTTP endpoint, passing columns as a JSON map (potentially slow).")
+public class InvokeHttp implements Directive, Lineage {
   public static final String NAME = "invoke-http";
   private String url;
   private List<String> columns;
@@ -96,21 +99,18 @@ public class InvokeHttp implements Directive {
         String[] components = header.split("=");
         if (components.length != 2) {
           throw new DirectiveParseException (
-            String.format("Incorrect header '%s' specified. " +
-                            "Header should be specified as 'key=value' pairs separated by a comma (,).", header)
-          );
+            NAME, String.format("Incorrect header '%s' specified. Header should be specified as 'key=value' " +
+                                  "pairs separated by a comma (,).", header));
         }
         String key = components[0].trim();
         String value = components[1].trim();
         if (key.isEmpty()) {
           throw new DirectiveParseException(
-            String.format("Key specified for header '%s' cannot be empty.", header)
-          );
+            NAME, String.format("Key specified for header '%s' cannot be empty.", header));
         }
         if (value.isEmpty()) {
           throw new DirectiveParseException(
-            String.format("Value specified for header '%s' cannot be empty.", header)
-          );
+            NAME, String.format("Value specified for header '%s' cannot be empty.", header));
         }
         headers.put(key, value);
       }
@@ -140,10 +140,18 @@ public class InvokeHttp implements Directive {
         }
       } catch (Exception e) {
         // If there are any issues, they will be pushed on the error port.
-        throw new ErrorRowException(e.getMessage(), 500);
+        throw new ErrorRowException(NAME, e.getMessage(), 500);
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Invoked external service '%s' to enrich row based on columns '%s'", url, columns)
+      .all(Many.of(columns), Many.of(columns))
+      .build();
   }
 
   private class ServiceResponseHandler implements ResponseHandler<Map<String, Object>> {

@@ -27,19 +27,20 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.etl.api.Emitter;
+import io.cdap.cdap.etl.api.FailureCollector;
 import io.cdap.cdap.etl.api.InvalidEntry;
 import io.cdap.cdap.etl.api.PipelineConfigurer;
+import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.StageSubmitterContext;
 import io.cdap.cdap.etl.api.Transform;
 import io.cdap.cdap.etl.api.TransformContext;
-import io.cdap.cdap.etl.api.lineage.field.FieldOperation;
-import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
+import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -51,9 +52,10 @@ import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
-import io.cdap.wrangler.parser.ConfigDirectiveContext;
+import io.cdap.wrangler.lineage.LineageOperations;
 import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
+import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveInfo;
@@ -64,13 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -101,7 +97,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   // Wrangle Execution RecipePipeline
   private RecipePipeline pipeline;
 
-  // Output Schema associated with transform output.
+  // Output Schema associated with readable output.
   private Schema oSchema = null;
 
   // Error counter.
@@ -133,13 +129,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
    * </p>
    */
   @Override
-  public void configurePipeline(PipelineConfigurer configurer) throws IllegalArgumentException {
+  public void configurePipeline(PipelineConfigurer configurer) {
     super.configurePipeline(configurer);
+    FailureCollector collector = configurer.getStageConfigurer().getFailureCollector();
 
     try {
       Schema iSchema = configurer.getStageConfigurer().getInputSchema();
-      if (!config.containsMacro("field") && !config.field.equalsIgnoreCase("*")) {
-        validateInputSchema(iSchema);
+      if (!config.containsMacro(Config.NAME_FIELD) && !(config.field.equals("*") || config.field.equals("#"))) {
+        validateInputSchema(iSchema, collector);
       }
 
       String directives = config.directives;
@@ -159,23 +156,25 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         // Directives in this context).
         CompileStatus status = compiler.compile(new MigrateToV2(directives).migrate());
         RecipeSymbol symbols = status.getSymbols();
-        Set<String> dynamicDirectives = symbols.getLoadableDirectives();
-        for (String directive : dynamicDirectives) {
-          Object o = configurer.usePlugin(Directive.TYPE, directive, directive, PluginProperties.builder().build());
-          if (o == null) {
-            throw new IllegalArgumentException(
-              String.format("User Defined Directive '%s' is not deployed or is not available.", directive)
-            );
+        if (symbols != null) {
+          Set<String> dynamicDirectives = symbols.getLoadableDirectives();
+          for (String directive : dynamicDirectives) {
+            Object directivePlugin = configurer.usePlugin(Directive.TYPE, directive, directive,
+                                                          PluginProperties.builder().build());
+            if (directivePlugin == null) {
+              collector.addFailure(
+                String.format("User Defined Directive '%s' is not deployed or is not available.", directive),
+                "Ensure the directive is deployed.")
+                .withPluginNotFound(directive, directive, Directive.TYPE)
+                .withConfigElement(Config.NAME_UDD, directive);
+            }
           }
-        }
+          // If the 'directives' contains macro, then we would not attempt to compile
+          // it.
+          if (!config.containsMacro(Config.NAME_DIRECTIVES)) {
+            // Create the registry that only interacts with system directives.
+            registry = new SystemDirectiveRegistry();
 
-        // If the 'directives' contains macro, then we would not attempt to compile
-        // it.
-        if (!config.containsMacro("directives")) {
-          // Create the registry that only interacts with system directives.
-          registry = new SystemDirectiveRegistry();
-
-          if (symbols != null) {
             Iterator<TokenGroup> iterator = symbols.iterator();
             while (iterator != null && iterator.hasNext()) {
               TokenGroup group = iterator.next();
@@ -183,48 +182,40 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
                 String directive = (String) group.get(0).value();
                 DirectiveInfo directiveInfo = registry.get("", directive);
                 if (directiveInfo == null && !dynamicDirectives.contains(directive)) {
-                  throw new IllegalArgumentException(
+                  collector.addFailure(
                     String.format("Wrangler plugin has a directive '%s' that does not exist in system or " +
-                                    "user space. Either it is a typographical error or the user directive is " +
-                                    "not loaded.", directive)
-                  );
+                                    "user space.", directive),
+                    "Ensure the directive is loaded or the directive name is correct.")
+                    .withConfigProperty(Config.NAME_DIRECTIVES);
                 }
               }
             }
           }
         }
+
       } catch (CompileException e) {
-        throw new IllegalArgumentException(e.getMessage(), e);
+        collector.addFailure("Compilation error occurred : " + e.getMessage(), null);
       } catch (DirectiveParseException e) {
-        throw new IllegalArgumentException(e.getMessage(), e);
+        collector.addFailure(e.getMessage(), null);
       }
 
       // Based on the configuration create output schema.
       try {
-        if (!config.containsMacro("schema")) {
+        if (!config.containsMacro(Config.NAME_SCHEMA)) {
           oSchema = Schema.parseJson(config.schema);
         }
       } catch (IOException e) {
-        throw new IllegalArgumentException("Format of output schema specified is invalid. Please check the format.", e);
-      }
-
-      // Check if configured field is present in the input schema.
-      Schema inputSchema = configurer.getStageConfigurer().getInputSchema();
-      if (!config.containsMacro("field") && !(config.field.equals("*") || config.field.equals("#")) &&
-        (inputSchema != null && inputSchema.getField(config.field) == null)) {
-        throw new IllegalArgumentException(
-          String.format("Field '%s' configured to wrangler is not present in the input. " +
-                          "Only specify fields present in the input", config.field == null ? "null" : config.field)
-        );
+        collector.addFailure("Invalid output schema.", null)
+          .withConfigProperty(Config.NAME_SCHEMA).withStacktrace(e.getStackTrace());
       }
 
       // Check if pre-condition is not null or empty and if so compile expression.
-      if (!config.containsMacro("precondition")) {
+      if (!config.containsMacro(Config.NAME_PRECONDITION)) {
         if (config.precondition != null && !config.precondition.trim().isEmpty()) {
           try {
             new Precondition(config.precondition);
           } catch (PreconditionException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
+            collector.addFailure(e.getMessage(), null).withConfigProperty(Config.NAME_PRECONDITION);
           }
         }
       }
@@ -236,58 +227,52 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     } catch (Exception e) {
       LOG.error(e.getMessage());
-      throw new IllegalArgumentException(e.getMessage(), e);
+      collector.addFailure("Error occurred : " + e.getMessage(), null).withStacktrace(e.getStackTrace());
     }
-  }
-
-  @Override
-  public void prepareRun(StageSubmitterContext context) throws Exception {
-    super.prepareRun(context);
-    List<String> inputFields = new ArrayList<>();
-    List<String> outputFields = new ArrayList<>();
-    Schema inputSchema = context.getInputSchema();
-    if (checkSchema(inputSchema, "input")) {
-      //noinspection ConstantConditions
-      inputFields = inputSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
-    }
-    Schema outputSchema = context.getOutputSchema();
-    if (checkSchema(outputSchema, "output")) {
-      //noinspection ConstantConditions
-      outputFields = outputSchema.getFields().stream().map(Schema.Field::getName).collect(Collectors.toList());
-    }
-    FieldOperation dataPrepOperation = new FieldTransformOperation("Prepare Data",
-                                                                   new MigrateToV2(config.directives).migrate(),
-                                                                   inputFields,
-                                                                   outputFields);
-    context.record(Collections.singletonList(dataPrepOperation));
-  }
-
-  private boolean checkSchema(Schema schema, String name) {
-    if (schema == null) {
-      LOG.debug(String.format("The %s schema is null. Field level lineage will not be recorded", name));
-      return false;
-    }
-    if (schema.getFields() == null) {
-      LOG.debug(String.format("The %s schema fields are null. Field level lineage will not be recorded", name));
-      return false;
-    }
-    return true;
   }
 
   /**
-   * Validates input schema.
+   * {@code prepareRun} is invoked by the client once before the job is submitted, but after the resolution
+   * of macros if there are any defined.
    *
-   * @param inputSchema configured for the plugin.
+   * @param context a instance {@link StageSubmitterContext}
+   * @throws Exception thrown if there any issue with prepareRun.
    */
-  private void validateInputSchema(Schema inputSchema) {
-    if (inputSchema != null) {
-      // Check the existence of field in input schema
-      Schema.Field inputSchemaField = inputSchema.getField(config.field);
-      if (inputSchemaField == null) {
-        throw new IllegalArgumentException(
-          "Field " + config.field + " is not present in the input schema");
-      }
+  @Override
+  public void prepareRun(StageSubmitterContext context) throws Exception {
+    super.prepareRun(context);
+
+    // Validate input schema. If there is no input schema available then there
+    // is no transformations that can be applied to just return.
+    Schema inputSchema = context.getInputSchema();
+    if (inputSchema == null || inputSchema.getFields() == null || inputSchema.getFields().isEmpty()) {
+      return;
     }
+
+    // After input and output schema are validated, it's time to extract
+    // all the fields from input and output schema.
+    Set<String> input = inputSchema.getFields().stream()
+      .map(Schema.Field::getName).collect(Collectors.toSet());
+
+    // If there is input schema, but if there is no output schema, there is nothing to apply
+    // transformations on. So, there is no point in generating field level lineage.
+    Schema outputSchema = context.getOutputSchema();
+    if (outputSchema == null || outputSchema.getFields() == null || outputSchema.getFields().isEmpty()) {
+      return;
+    }
+
+    // After input and output schema are validated, it's time to extract
+    // all the fields from input and output schema.
+    Set<String> output = outputSchema.getFields().stream()
+      .map(Schema.Field::getName).collect(Collectors.toSet());
+
+    // Parse the recipe and extract all the instances of directives
+    // to be processed for extracting lineage.
+    RecipeParser recipe = getRecipeParser(context);
+    List<Directive> directives = recipe.parse();
+
+    LineageOperations lineageOperations = new LineageOperations(input, output, directives);
+    context.record(lineageOperations.generate());
   }
 
   /**
@@ -301,19 +286,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(),
-      new UserDirectiveRegistry(context)
-    );
-    registry.reload(context.getNamespace());
+    RecipeParser recipe = getRecipeParser(context);
 
-    String directives = config.directives;
-    if (config.udds != null && !config.udds.trim().isEmpty()) {
-      directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
-    }
-
-    RecipeParser recipe = new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
-                                                 registry);
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
 
     // Based on the configuration create output schema.
@@ -335,29 +309,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     }
 
-    // Make a call to retrieve the directive config and create a context.
-    // In this plugin, a call is made to the service at runtime.
-    // NOTE: This has to be moved to pre-start-plugin phase so that the information
-    // it's not heavily parallelized to crash the service.
-    try {
-      URL url = getDPServiceURL(CONFIG_METHOD);
-      if (url != null) {
-        ConfigDirectiveContext dContext = new ConfigDirectiveContext(url);
-        recipe.initialize(dContext);
-      } else {
-        // this is normal in cloud environments
-        LOG.info(String.format("Stage:%s - The Dataprep service is not accessible in this environment. "
-                                 + "No aliasing and restriction will be applied.", getContext().getStageName()));
-        recipe.initialize(null);
-      }
-    } catch (IOException | URISyntaxException e) {
-      // If there is a issue, we need to fail the pipeline that has the plugin.
-      throw new IllegalArgumentException(
-        String.format("Stage:%s - Issue in retrieving the configuration from the service. %s",
-                      getContext().getStageName(), e.getMessage()), e
-      );
-    }
-
     try {
       // Create the pipeline executor with context being set.
       pipeline = new RecipePipelineExecutor();
@@ -371,7 +322,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // Initialize the error counter.
     errorCounter = 0;
   }
-
 
   @Override
   public void destroy() {
@@ -514,52 +464,90 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   }
 
   /**
-   * Retrieves the base url from the context and appends method to value to the final url.
+   * Validates input schema.
    *
-   * @param method to be invoked.
-   * @return fully formed url to the method.
-     */
-  private URL getDPServiceURL(String method) throws URISyntaxException, MalformedURLException {
-    URL url = getContext().getServiceURL(APPLICATION_NAME, SERVICE_NAME);
-    if (url == null) {
-      return null;
+   * @param inputSchema configured for the plugin
+   * @param collector failure collector
+   */
+  private void validateInputSchema(@Nullable Schema inputSchema, FailureCollector collector) {
+    if (inputSchema != null) {
+      // Check the existence of field in input schema
+      Schema.Field inputSchemaField = inputSchema.getField(config.field);
+      if (inputSchemaField == null) {
+        collector.addFailure(String.format("Field '%s' must be present in input schema.", config.field), null)
+          .withConfigProperty(Config.NAME_FIELD);
+      }
     }
-    URI uri = url.toURI();
-    String path = uri.getPath() + method;
-    return uri.resolve(path).toURL();
+  }
+
+  /**
+   * This method creates a {@link CompositeDirectiveRegistry} and initializes the {@link RecipeParser}
+   * with {@link NoOpDirectiveContext}
+   *
+   * @param context
+   * @return
+   * @throws DirectiveLoadException
+   * @throws DirectiveParseException
+   */
+  private RecipeParser getRecipeParser(StageContext context)
+    throws DirectiveLoadException, DirectiveParseException {
+
+    registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry(), new UserDirectiveRegistry(context));
+    registry.reload(context.getNamespace());
+
+    String directives = config.directives;
+    if (config.udds != null && !config.udds.trim().isEmpty()) {
+      directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
+    }
+
+    RecipeParser recipe = new GrammarBasedParser(
+      context.getNamespace(),
+      new MigrateToV2(directives).migrate(),
+      registry
+    );
+
+    recipe.initialize(new NoOpDirectiveContext());
+    return recipe;
   }
 
   /**
    * Config for the plugin.
    */
   public static class Config extends PluginConfig {
-    @Name("precondition")
+    static final String NAME_PRECONDITION = "precondition";
+    static final String NAME_FIELD = "field";
+    static final String NAME_DIRECTIVES = "directives";
+    static final String NAME_UDD = "udd";
+    static final String NAME_SCHEMA = "schema";
+    static final String NAME_ON_ERROR = "on-error";
+
+    @Name(NAME_PRECONDITION)
     @Description("Precondition expression specifying filtering before applying directives (true to filter)")
     @Macro
     private String precondition;
 
-    @Name("directives")
+    @Name(NAME_DIRECTIVES)
     @Description("Recipe for wrangling the input records")
     @Macro
     @Nullable
     private String directives;
 
-    @Name("udd")
-    @Description("List of User Defined Directives (UDD) that have to be loaded")
+    @Name(NAME_UDD)
+    @Description("List of User Defined Directives (UDD) that have to be loaded.")
     @Nullable
     private String udds;
 
-    @Name("field")
-    @Description("Name of the input field to be wrangled or '*' to wrangle all the fields")
+    @Name(NAME_FIELD)
+    @Description("Name of the input field to be wrangled or '*' to wrangle all the fields.")
     @Macro
     private final String field;
 
-    @Name("schema")
-    @Description("Specifies the schema that has to be output")
+    @Name(NAME_SCHEMA)
+    @Description("Specifies the schema that has to be output.")
     @Macro
     private final String schema;
 
-    @Name("on-error")
+    @Name(NAME_ON_ERROR)
     @Description("How to handle error in record processing")
     @Macro
     private final String onError;

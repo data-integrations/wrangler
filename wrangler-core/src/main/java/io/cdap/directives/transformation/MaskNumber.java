@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -60,7 +62,7 @@ import java.util.List;
 @Name(MaskNumber.NAME)
 @Categories(categories = { "transform"})
 @Description("Masks a column value using the specified masking pattern.")
-public class MaskNumber implements Directive {
+public class MaskNumber implements Directive, Lineage {
   public static final String NAME = "mask-number";
   // Specifies types of mask
   public static final int MASK_NUMBER = 1;
@@ -106,6 +108,14 @@ public class MaskNumber implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Masked numbers in the column '%s' using masking pattern '%s'", column, mask)
+      .relation(column, column)
+      .build();
   }
 
   private String maskNumber(String number, String mask) {

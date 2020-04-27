@@ -26,6 +26,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.lineage.Lineage;
+import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
@@ -41,7 +43,7 @@ import java.util.List;
 @Name(UrlDecode.NAME)
 @Categories(categories = { "transform"})
 @Description("URL decode a column value.")
-public class UrlDecode implements Directive {
+public class UrlDecode implements Directive, Lineage {
   public static final String NAME = "url-decode";
   private String column;
 
@@ -68,6 +70,12 @@ public class UrlDecode implements Directive {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
+
+        if (object == null) {
+          throw new DirectiveExecutionException(
+            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column));
+        }
+
         if (object instanceof String) {
           try {
             row.setValue(idx, URLDecoder.decode((String) object, "UTF-8"));
@@ -76,14 +84,21 @@ public class UrlDecode implements Directive {
           }
         } else {
           throw new DirectiveExecutionException(
-            String.format("%s : Invalid type '%s' of column '%s'. Should be of type String.", toString(),
-                          object != null ? object.getClass().getName() : "null", column)
-          );
+            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
+                                column, object.getClass().getSimpleName()));
         }
       } else {
-        throw new DirectiveExecutionException(toString() + " : Column '" + column + "' does not exist in the row.");
+        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
       }
     }
     return rows;
+  }
+
+  @Override
+  public Mutation lineage() {
+    return Mutation.builder()
+      .readable("Decoded column '%s' as a url", column)
+      .relation(column, column)
+      .build();
   }
 }
