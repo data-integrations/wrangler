@@ -39,6 +39,11 @@ public final class GeoFences {
       .create();
 
   /**
+   * Don't let anyone instantiate this class.
+   */
+  private GeoFences() {}
+
+  /**
    * Static method to be used with jexl
    * Checks if Point is inside any of the given polygonal geofences based on the winding number algorithm.
    *
@@ -47,7 +52,7 @@ public final class GeoFences {
    * @param geofences GeoJson representation of the fence area
    * @return true if location is inside any of the given geofences, else false
    */
-  public static Boolean inFence(double latitude, double longitude, String geofences) {
+  public static Boolean InFence(double latitude, double longitude, String geofences) {
     Coordinates location = Coordinates.of(longitude, latitude);
     Boolean inzone = false;
     FeatureCollection featureCollection;
