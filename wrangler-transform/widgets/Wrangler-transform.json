@@ -47,14 +47,29 @@
       ]
     },
     {
-      "label" : "Failure Conditions and Handling",
+      "label" : "Error Handling",
       "properties" : [
         {
-          "widget-type": "textbox",
-          "label" : "Failure Threshold",
-          "name": "threshold",
+          "name": "on-error",
+          "label": "On Error",
+          "widget-type": "radio-group",
           "widget-attributes": {
-            "default": "1"
+            "layout": "block",
+            "default": "skip-error",
+            "options": [
+              {
+                "id": "skip-error",
+                "label": "Skip error"
+              },
+              {
+                "id": "send-to-error-port",
+                "label": "Send to error port"
+              },
+              {
+                "id": "fail-pipeline",
+                "label": "Fail pipeline"
+              }
+            ]
           }
         }
       ]
@@ -76,6 +91,7 @@
           "double",
           "bytes",
           "string",
+          "timestamp",
           "array",
           "enum",
           "record",
