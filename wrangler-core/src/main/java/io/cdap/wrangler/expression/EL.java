@@ -17,24 +17,21 @@
 package io.cdap.wrangler.expression;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import io.cdap.cdap.api.common.Bytes;
 import io.cdap.functions.DDL;
 import io.cdap.functions.DataQuality;
-import io.cdap.functions.Dates;
+import io.cdap.functions.DateAndTime;
 import io.cdap.functions.GeoFences;
 import io.cdap.functions.Global;
-import io.cdap.functions.JSON;
+import io.cdap.functions.JsonFunctions;
+import io.cdap.functions.Logical;
+import io.cdap.functions.NumberFunctions;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlInfo;
 import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +41,8 @@ import java.util.Set;
 /**
  * This class <code>EL</code> is a Expression Language Handler.
  */
-public final class EL {
+public final class
+EL {
   private Set<String> variables = new HashSet<>();
   private final JexlEngine engine;
   private JexlScript script = null;
@@ -53,7 +51,7 @@ public final class EL {
     engine = new JexlBuilder()
       .namespaces(registration.functions())
       .silent(false)
-      .cache(1024)
+      .cache(1024 * 1024)
       .strict(true)
       .logger(new NullLogger())
       .create();
@@ -117,6 +115,24 @@ public final class EL {
     }
   }
 
+  private String constructErrMessage(JexlException e) {
+    if (e == null) {
+      return String.format("Unable to determine the cause of error.");
+    }
+    JexlInfo info = e.getInfo();
+    Throwable cause = e.getCause();
+    StringBuilder sb = new StringBuilder("");
+    if (info != null && info.getDetail() != null) {
+      sb.append("function '").append(info.getDetail()).append("' '");
+    }
+    if (cause != null) {
+      sb.append(cause.getMessage()).append("', at line '")
+        .append(info.getLine()).append(" and column '")
+        .append(info.getColumn()).append("'.");
+    }
+    return sb.toString();
+  }
+
   public ELResult execute(ELContext context) throws ELException {
     return execute(context, true);
   }
@@ -129,31 +145,25 @@ public final class EL {
     public Map<String, Object> functions() {
       Map<String, Object> functions = new HashMap<>();
       functions.put(null, Global.class);
-      functions.put("date", Dates.class);
-      functions.put("json", JSON.class);
-      functions.put("math", Math.class);
-      functions.put("string", StringUtils.class);
-      functions.put("strings", Strings.class);
-      functions.put("escape", StringEscapeUtils.class);
-      functions.put("bytes", Bytes.class);
-      functions.put("arrays", Arrays.class);
+      functions.put("json", JsonFunctions.class);
       functions.put("dq", DataQuality.class);
       functions.put("ddl", DDL.class);
       functions.put("geo", GeoFences.class);
+      functions.put("logical", Logical.class);
+      functions.put("datetime", DateAndTime.class);
+      functions.put("number", NumberFunctions.class);
+      functions.put("math", Math.class);
       return functions;
     }
-
   }
 
   private final class NullLogger implements Log {
     @Override
     public void debug(Object o) {
-
     }
 
     @Override
     public void debug(Object o, Throwable throwable) {
-
     }
 
     @Override
