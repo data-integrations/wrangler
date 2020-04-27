@@ -68,9 +68,13 @@ EL {
     } catch (JexlException e) {
       // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
       // So instead use info object to get information about error message and create custom error message.
-      throw new ELException(constructErrMessage(e));
+      JexlInfo info = e.getInfo();
+      throw new ELException(
+        String.format("Error encountered while executing '%s' at line '%d' and column '%d'. " +
+                        "Make sure a valid jexl transformation is provided.",
+                      info.getDetail().toString(), info.getLine(), info.getColumn()), e);
     } catch (Exception e) {
-      throw new ELException(e.getMessage());
+      throw new ELException(e);
     }
   }
 
@@ -91,16 +95,22 @@ EL {
       ELResult variable = new ELResult(value);
       return variable;
     } catch (JexlException e) {
-      throw new ELException(constructErrMessage(e));
+      // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
+      // So instead use info object to get information about error message and create custom error message.
+      JexlInfo info = e.getInfo();
+      throw new ELException(
+        String.format("Error encountered while executing '%s', at line '%d' and column '%d'. " +
+                        "Make sure a valid jexl transformation is provided.",
+                      info.getDetail().toString(), info.getLine(), info.getColumn()), e);
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
-                              "or convert to correct data type. Reason : "
-                              + e.getMessage());
+                              "or convert to right data type using conversion functions available. Reason : "
+                              + e.getMessage(), e);
     } catch (Exception e) {
       if (e.getCause() != null) {
-        throw new ELException(e.getCause().getMessage());
+        throw new ELException(e.getCause().getMessage(), e);
       } else {
-        throw new ELException(e.getMessage());
+        throw new ELException(e);
       }
     }
   }

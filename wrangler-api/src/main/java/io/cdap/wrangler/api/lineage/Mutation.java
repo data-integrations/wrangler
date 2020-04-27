@@ -164,6 +164,21 @@ public final class Mutation implements Serializable {
     }
 
     /**
+     * A relation that has association with a set of targets + all in the output field.
+     * This method is used usually during parse scenarios, where the directive knows some part of the relation,
+     * but unclear about the overall outputs it will generate
+     * For example, csv parser will parse field body -> a,b,c, and still preserve body.
+     *
+     * @param sources list of sources to be associated with targets and all output fields.
+     * @param targets list of targets to be associated with the sources.
+     * @return a instance of {@link Mutation.Builder}.
+     */
+    public Mutation.Builder all(Many sources, Many targets) {
+      relations.add(new Relation(sources.columns(), targets.columns(), Relation.Type.ALL));
+      return this;
+    }
+
+    /**
      * A standard relation between source of {@link ColumnName} to target of {@link ColumnName}.
      *
      * @param source a instance of {@link ColumnName} source.
