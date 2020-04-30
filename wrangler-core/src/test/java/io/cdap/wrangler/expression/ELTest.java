@@ -46,7 +46,7 @@ public class ELTest {
       el.execute(new ELContext().add("a", 1).add("b", 2));
     } catch (ELException e) {
       Assert.assertEquals("Error evaluating expression 'a + b + c'. 'null', at line '1 and column '9'. " +
-                            "Values [ a = 1(integer) b = 2(integer) c = null('null') ].", e.getMessage());
+                            "Input parameters [a(integer) = 1, b(integer) = 2, c(?) = null].", e.getMessage());
     }
   }
 
@@ -58,7 +58,7 @@ public class ELTest {
       el.execute(new ELContext().add("a", 1).add("b", 2));
     } catch (ELException e) {
       Assert.assertEquals("Error evaluating expression 'a +* b + c'. (io.cdap.wrangler.expression.EL.compile@1:3 " +
-                            "parsing error in '+', at line 1, column 3).", e.getMessage());
+                            "parsing error in '+' at line 1, column 3).", e.getMessage());
     }
   }
 
@@ -69,9 +69,9 @@ public class ELTest {
       el.compile("a + b + c");
       el.execute(new ELContext().add("c", "a").add("b", 2));
     } catch (ELException e) {
-      Assert.assertEquals("Error evaluating expression 'a + b + c' (io.cdap.wrangler.expression.EL.compile@1:5 + " +
-                            "error caused by null operand). 'null', at line '1 and column '5'. Values " +
-                            "[ a = null('null') b = 2(integer) c = a(string) ].", e.getMessage());
+      Assert.assertEquals("Error evaluating expression 'a + b + c + d'. 'null', at line '1 and column '5'. " +
+                            "Input parameters [a(?) = null, b(integer) = 2, c(string) = a, d(?) = null].",
+                          e.getMessage());
     }
   }
 
@@ -82,9 +82,9 @@ public class ELTest {
       el.compile("math:maxs(a,b)");
       el.execute(new ELContext().add("a", 1).add("b", 2));
     } catch (ELException e) {
-      Assert.assertEquals("Error evaluating expression 'math:maxs(a, b)' (io.cdap.wrangler.expression.EL." +
-                            "compile@1:10 unsolvable function/method 'maxs'). 'Values [ a = 1(integer) " +
-                            "b = 2(integer) ].", e.getMessage());
+      Assert.assertEquals("Error evaluating expression 'math:maxs(a, b)'. 'Method 'maxs' is not " +
+                            "available in namespace', at line '1 and column '10'. Input " +
+                            "parameters [a(integer) = 1, b(integer) = 2].", e.getMessage());
     }
   }
 
@@ -95,9 +95,24 @@ public class ELTest {
       el.compile("math:max(a,b)");
       el.execute(new ELContext().add("a", 1L).add("b", "a"));
     } catch (ELException e) {
-      Assert.assertEquals("Error evaluating expression 'math:maxs(a, b)' (io.cdap.wrangler.expression.EL." +
-                            "compile@1:10 unsolvable function/method 'maxs'). 'Values [ a = 1(integer) " +
-                            "b = 2(integer) ].", e.getMessage());
+      Assert.assertEquals("Error evaluating expression 'math:max(a, b)'. 'Method 'max' doesn't match " +
+                            "any signatures [ max(double, double) max(float, float) max(long, long) " +
+                            "max(int, int)  ].', at line '1 and column '9'. Input parameters [a(long) = 1, " +
+                            "b(string) = a].", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testMismatchTypeCoersion() throws Exception {
+    try {
+      EL el = new EL(new EL.DefaultFunctions());
+      el.compile("math:max(a,b)");
+      el.execute(new ELContext().add("a", 1).add("b", 2));
+    } catch (ELException e) {
+      Assert.assertEquals("Error evaluating expression 'math:max(a, b)'. 'Method 'max' doesn't match " +
+                            "any signatures [ max(double, double) max(float, float) max(long, long) " +
+                            "max(int, int)  ].', at line '1 and column '9'. Input parameters [a(long) = 1, " +
+                            "b(string) = a].", e.getMessage());
     }
   }
 

@@ -29,19 +29,21 @@ import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlInfo;
-import org.apache.commons.jexl3.JexlOperator;
 import org.apache.commons.jexl3.JexlScript;
+import org.apache.commons.jexl3.internal.introspection.MethodExecutor;
+import org.apache.commons.jexl3.internal.introspection.Uberspect;
+import org.apache.commons.jexl3.introspection.JexlMethod;
 import org.apache.commons.jexl3.introspection.JexlUberspect;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.logging.Log;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.apache.commons.jexl3.introspection.JexlUberspect.MAP;
-import static org.apache.commons.jexl3.introspection.JexlUberspect.POJO;
 
 /**
  * This class <code>EL</code> is a Expression Language Handler.
@@ -51,28 +53,99 @@ public final class EL {
   private final JexlEngine engine;
   private JexlScript script = null;
 
+  /**
+   * ELUberSpect intercepts the <code>getMethod</code> calls.
+   */
+  private class ELUberSpect extends Uberspect {
+    /**
+     * Creates a new Uberspect.
+     *
+     * @param runtimeLogger the logger used for all logging needs
+     * @param sty           the resolver strategy
+     */
+    public ELUberSpect(Log runtimeLogger, ResolverStrategy sty) {
+      super(runtimeLogger, sty);
+    }
+
+    /**
+     * Returns a JexlMethod.
+     *
+     * @param obj    the object
+     * @param name the method name
+     * @param args   method arguments
+     * @return a {@link JexlMethod}
+     */
+    @Override
+    public JexlMethod getMethod(Object obj, String name, Object... args) {
+      Method[] methods = ((Class) obj).getMethods();
+      List<Method> matchingMethods = new ArrayList<>();
+      for (Method method : methods) {
+        String methodName = method.getName();
+        if (methodName.equalsIgnoreCase(name)) {
+          matchingMethods.add(method);
+        }
+      }
+
+      if (matchingMethods.size() < 1) {
+        throw new RuntimeException(String.format("Method '%s' is not available in namespace", name));
+      }
+
+      boolean allMatch = false;
+      for (Method method : matchingMethods) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        boolean match = true;
+        for (int i = 0; i < args.length; ++i) {
+          Class<?> argsType = args[i].getClass();
+          if (ClassUtils.isPrimitiveWrapper(argsType)) {
+            Class<?>[] classes = ClassUtils.wrappersToPrimitives(argsType);
+          }
+          if(!parameterTypes[i].getSimpleName().equalsIgnoreCase(args[i].getClass().getSimpleName())) {
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          allMatch = true;
+          break;
+        }
+      }
+
+      if (!allMatch) {
+        throw new RuntimeException(
+          String.format("Method '%s' doesn't match any signatures [ %s ].", name, options(matchingMethods))
+        );
+      }
+      return MethodExecutor.discover(base(), obj, name, args);
+    }
+
+    private String options(List<Method> methods) {
+      StringBuilder sb = new StringBuilder();
+      for (Method method : methods) {
+        sb.append(method.getName())
+          .append("(");
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        for (int i = 0; i < parameterTypes.length; ++i) {
+          sb.append(parameterTypes[i].getSimpleName().toLowerCase());
+          if (i+1 < parameterTypes.length) {
+            sb.append(", ");
+          }
+        }
+        sb.append(") ");
+      }
+      return sb.toString();
+    }
+  }
+
   public EL(ELRegistration registration) {
+    NullLogger nullLogger = new NullLogger();
     engine = new JexlBuilder()
       .namespaces(registration.functions())
       .silent(false)
       .cache(1024 * 1024)
-      .strict(false)
-      .strategy(new JexlUberspect.ResolverStrategy() {
-        @Override
-        public List<JexlUberspect.PropertyResolver> apply(JexlOperator op, Object obj) {
-          if (op == JexlOperator.ARRAY_GET) {
-            return MAP;
-          }
-          if (op == JexlOperator.ARRAY_SET) {
-            return MAP;
-          }
-          if (op == null && obj instanceof Map) {
-            return MAP;
-          }
-          return POJO;
-        }
-      })
-      .logger(new NullLogger())
+      .strict(true)
+      .uberspect(new ELUberSpect(nullLogger, JexlUberspect.JEXL_STRATEGY))
+      .debug(true)
+      .logger(nullLogger)
       .create();
   }
 
@@ -172,22 +245,28 @@ public final class EL {
 
   private String constructErrMessage(JexlException e, String expression, ELContext context) {
     StringBuilder sbFound = new StringBuilder();
-    sbFound.append("[ ");
+    sbFound.append("[");
+    int i = variables.size();
     for (String variable : variables) {
       if (context.has(variable)) {
-        sbFound.append(variable).append(" = ").append(context.get(variable)).append("(");
+        sbFound.append(variable).append("(");
         Object o = context.get(variable);
         if (o != null) {
           sbFound.append(o.getClass().getSimpleName().toLowerCase());
         } else {
-          sbFound.append("'null'");
+          sbFound.append("?");
         }
-        sbFound.append(") ");
+        sbFound.append(") = ").append(context.get(variable));
+        if (i - 1 > 0) {
+          sbFound.append(", ");
+        }
+        --i;
       }
     }
     sbFound.append("]");
+
     StringBuilder sb = new StringBuilder(constructErrMessage(e, expression));
-    sb.append("Values ").append(sbFound.toString()).append(".");
+    sb.append("Input parameters ").append(sbFound.toString()).append(".");
     return sb.toString();
   }
 
@@ -202,15 +281,13 @@ public final class EL {
       if (info.getDetail() != null) {
         sb.append("Error evaluating expression '")
           .append(info.getDetail())
-          .append("' (")
-          .append(e.getMessage())
-          .append("). '");
+          .append("'. '");
       } else {
         sb.append("Error evaluating expression '")
           .append(expression)
           .append("'. (")
           .append(e.getMessage())
-          .append(", at line ")
+          .append(" at line ")
           .append(info.getLine())
           .append(", column ")
           .append(info.getColumn())
