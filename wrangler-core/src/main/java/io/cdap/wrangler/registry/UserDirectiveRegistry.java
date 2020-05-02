@@ -129,8 +129,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
       }
       if (directive == null) {
         throw new DirectiveLoadException(
-          String.format("10-5 - Unable to load the user defined directive '%s'. " +
-                          "Please check if the artifact containing UDD is still present.", name)
+          String.format("Directive '%s' not found. Check if directive is spelled correctly or if directive is " +
+                          "user defined make sure artifact is uploaded", name)
         );
       }
       DirectiveInfo directiveInfo = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
