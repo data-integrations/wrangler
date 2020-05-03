@@ -122,28 +122,31 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         if (context != null) {
           context.getTransientStore().reset(TransientVariableScope.LOCAL);
         }
-        List<Row> newRows = rows.subList(i, i + 1);
+
+        List<Row> cumulativeRows = rows.subList(i, i + 1);
         try {
           for (Executor<List<Row>, List<Row>> directive : directives) {
             try {
-              newRows = directive.execute(newRows, context);
-              if (newRows.size() < 1) {
+              cumulativeRows = directive.execute(cumulativeRows, context);
+              if (cumulativeRows.size() < 1) {
                 break;
               }
             } catch (ReportErrorAndProceed e) {
-              messages.add(String.format("%d:%s", e.getCode(), e.getMessage()));
+              messages.add(String.format("%s (ecode: %d)", e.getMessage(), e.getCode()));
+              collector
+                .add(new ErrorRecord(rows.subList(i, i + 1).get(0), String.join(",", messages), e.getCode(), true));
+              cumulativeRows = new ArrayList<>();
+              break;
             }
           }
-          if (newRows.size() > 0) {
-            results.addAll(newRows);
-          }
+          results.addAll(cumulativeRows);
         } catch (ErrorRowException e) {
           messages.add(String.format("%s", e.getMessage()));
           collector
-            .add(new ErrorRecord(newRows.get(0), String.join(",", messages), e.getCode(),
+            .add(new ErrorRecord(rows.subList(i, i + 1).get(0), String.join(",", messages), e.getCode(),
               e.isShownInWrangler()));
         }
-        i++;
+        ++i;
       }
     } catch (DirectiveExecutionException e) {
       throw new RecipeException(e.getMessage(), e);

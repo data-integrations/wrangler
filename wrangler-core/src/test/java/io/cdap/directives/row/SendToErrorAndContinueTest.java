@@ -31,6 +31,36 @@ import java.util.List;
  */
 public class SendToErrorAndContinueTest {
 
+  /**
+   * This tests how to filter records that don't match specified number of columns.
+   */
+  @Test
+  public void testErrorAndContinueNoofColumns() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , true",
+      "drop :body",
+      "send-to-error-and-continue exp:{ this.width() < 4} 'filtering records that dont have 4 columns'"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B,C,D"),
+      new Row("body", "X,Y,1"), // has fewer columns.
+      new Row("body", "I,J,3"), // has fewer columns.
+      new Row("body", "U,V,2,3.0")
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(2, errors.size());
+    Assert.assertEquals(1, results.size());
+    Assert.assertEquals("1", errors.get(0).getRow().getValue("C"));
+    Assert.assertEquals("filtering records that dont have 4 columns (ecode: 1)", errors.get(0).getMessage());
+    Assert.assertEquals("filtering records that dont have 4 columns (ecode: 1)", errors.get(1).getMessage());
+    Assert.assertEquals("2", results.get(0).getValue("C"));
+  }
+
   @Test
   public void testErrorConditionTrueAndContinue() throws Exception {
     String[] directives = new String[] {
@@ -51,8 +81,8 @@ public class SendToErrorAndContinueTest {
     List<Row> results = pipeline.execute(rows);
     List<ErrorRecord> errors = pipeline.errors();
 
-    Assert.assertEquals(0, errors.size());
-    Assert.assertEquals(2, results.size());
+    Assert.assertEquals(2, errors.size());
+    Assert.assertEquals(0, results.size());
   }
 
   @Test

@@ -57,14 +57,14 @@ public class BasicStatisticsTest {
 
     Assert.assertTrue(rows.size() > 1);
 
-    Assert.assertEquals(3, summary.length());
+    Assert.assertEquals(3, summary.width());
     Assert.assertEquals(3.0, summary.getValue("total"));
 
     Row stats = (Row) summary.getValue("stats");
     Row types = (Row) summary.getValue("types");
 
-    Assert.assertEquals(7, stats.length());
-    Assert.assertEquals(7, types.length());
+    Assert.assertEquals(7, stats.width());
+    Assert.assertEquals(7, types.width());
   }
 }
 

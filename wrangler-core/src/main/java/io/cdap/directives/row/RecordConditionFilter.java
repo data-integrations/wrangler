@@ -91,19 +91,7 @@ public class RecordConditionFilter implements Directive, Lineage {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      ELContext ctx = new ELContext(context);
-      for (String var : el.variables()) {
-        Object value = row.getValue(var);
-        String strValue;
-        // support numeric values by converting them to string
-        if (value instanceof Number) {
-          Number number = (Number) value;
-          strValue = number.toString();
-          ctx.set(var, strValue);
-        } else {
-          ctx.set(var, row.getValue(var));
-        }
-      }
+      ELContext ctx = new ELContext(context, el, row);
       if (context != null) {
         for (String variable : context.getTransientStore().getVariables()) {
           ctx.set(variable, context.getTransientStore().get(variable));

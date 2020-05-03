@@ -170,9 +170,9 @@ public final class Row implements Serializable {
   }
 
   /**
-   * @return  Length of the row.
+   * @return  width of the row.
    */
-  public int length() {
+  public int width() {
     return columns.size();
   }
 

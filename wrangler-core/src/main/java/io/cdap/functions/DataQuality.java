@@ -39,7 +39,7 @@ public class DataQuality extends Types {
    * @return length of the row.
    */
   public static int columns(Row row) {
-    return row.length();
+    return row.width();
   }
 
   /**

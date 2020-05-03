@@ -74,7 +74,7 @@ public final class EL {
       throw new ELException(
         String.format("Error encountered while executing '%s' at line '%d' and column '%d'. " +
                         "Make sure a valid jexl transformation is provided.",
-                      info.getDetail().toString(), info.getLine(), info.getColumn()), e);
+                      info.toString(), info.getLine(), info.getColumn()), e);
     } catch (Exception e) {
       throw new ELException(e);
     }

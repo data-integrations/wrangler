@@ -50,6 +50,7 @@ public class SetTransientVariableTest {
     rows.add(new Row("fwd", 1).add("A", 2));
 
     final Map<String, Object> s = new HashMap<>();
+    s.put("test", 1);
     rows = TestingRig.execute(recipe, rows, new ExecutorContext() {
       @Override
       public Environment getEnvironment() {
@@ -73,7 +74,7 @@ public class SetTransientVariableTest {
 
       @Override
       public Map<String, String> getProperties() {
-        return null;
+        return new HashMap<>();
       }
 
       @Override

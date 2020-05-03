@@ -47,7 +47,7 @@ public class ParseAvroFileTest {
 
     List<Row> results = TestingRig.execute(directives, rows);
     Assert.assertEquals(1689, results.size());
-    Assert.assertEquals(15, results.get(0).length());
+    Assert.assertEquals(15, results.get(0).width());
     Assert.assertEquals(1495172588118L, results.get(0).getValue("timestamp"));
     Assert.assertEquals(1495194308245L, results.get(1688).getValue("timestamp"));
   }

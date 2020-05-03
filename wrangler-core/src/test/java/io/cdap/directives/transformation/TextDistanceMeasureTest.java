@@ -64,10 +64,10 @@ public class TextDistanceMeasureTest {
 
     List<Row> results = TestingRig.execute(directives, ROWS);
     Assert.assertTrue(results.size() == 4);
-    Assert.assertEquals(15, results.get(0).length());
-    Assert.assertEquals(15, results.get(1).length());
-    Assert.assertEquals(15, results.get(2).length());
-    Assert.assertEquals(14, results.get(3).length());
+    Assert.assertEquals(15, results.get(0).width());
+    Assert.assertEquals(15, results.get(1).width());
+    Assert.assertEquals(15, results.get(2).width());
+    Assert.assertEquals(14, results.get(3).width());
   }
 
 }
