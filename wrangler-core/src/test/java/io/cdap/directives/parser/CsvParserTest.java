@@ -67,4 +67,59 @@ public class CsvParserTest {
     Assert.assertEquals("alice", rows.get(0).getValue("first_name"));
     Assert.assertEquals("zed", rows.get(0).getValue("last_name"));
   }
+
+  @Test
+  public void testTrailingCommas() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , false",
+      "filter-rows-on regex-match body_1 ^school_id$",
+      "drop body",
+      "set columns school_id, student_id, last_name, first_name",
+      "keep school_id,student_id,last_name,first_name"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "school_id, student_id, last_name, first_name,,,"),
+      new Row("body", "14J456,33445566,Potter,Harry,,,"),
+      new Row("body", "14J456,44333433,Weasley,Ron,,,"),
+      new Row("body", "14J456,65765566,Granger,Hermione,,,"),
+      new Row("body", "14J456,13233121,Diggory,Cedric,,,"),
+      new Row("body", "14J456,98786868,Weasley,George,,,"),
+      new Row("body", "14J456,78977876,Weasley,Fred,,,")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertEquals(6, rows.size());
+    for (int i = 0; i < rows.size(); ++i) {
+      Assert.assertEquals(4, rows.get(i).width());
+    }
+  }
+
+  @Test
+  public void testExtraCommas() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , false",
+      "filter-rows-on regex-match body_1 ^school_id$",
+      "drop body",
+      "set columns school_id, student_id, last_name, first_name, body_5",
+      "set-column :last_name exp:{ this.width() == 5 ? (last_name + ',' + first_name) : last_name}",
+      "set-column :first_name exp:{ this.width() == 5 ? body_5 : first_name}",
+      "drop body_5"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "school_id, student_id, last_name, first_name"),
+      new Row("body", "14J456,33445566,Potter,Jr,Harry"),
+      new Row("body", "14J456,44333433,Weasley,Ron")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertEquals(2, rows.size());
+    Assert.assertEquals(4, rows.get(0).width());
+    Assert.assertEquals(4, rows.get(1).width());
+    Assert.assertEquals("Potter,Jr", rows.get(0).getValue("last_name"));
+    Assert.assertEquals("Harry", rows.get(0).getValue("first_name"));
+    Assert.assertEquals("Weasley", rows.get(1).getValue("last_name"));
+    Assert.assertEquals("Ron", rows.get(1).getValue("first_name"));
+  }
 }
