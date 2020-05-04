@@ -96,7 +96,7 @@ public class CsvParserTest {
   }
 
   @Test
-  public void testExtraCommas() throws Exception {
+  public void testExtraCommasAndLeadingZeros() throws Exception {
     String[] directives = new String[] {
       "parse-as-csv body , false",
       "filter-rows-on regex-match body_1 ^school_id$",
@@ -109,8 +109,8 @@ public class CsvParserTest {
 
     List<Row> rows = Arrays.asList(
       new Row("body", "school_id, student_id, last_name, first_name"),
-      new Row("body", "14J456,33445566,Potter,Jr,Harry"),
-      new Row("body", "14J456,44333433,Weasley,Ron")
+      new Row("body", "14J456,0033445566,Potter,Jr,Harry"),
+      new Row("body", "14J456,0044333433,Weasley,Ron")
     );
 
     rows = TestingRig.execute(directives, rows);
@@ -121,5 +121,7 @@ public class CsvParserTest {
     Assert.assertEquals("Harry", rows.get(0).getValue("first_name"));
     Assert.assertEquals("Weasley", rows.get(1).getValue("last_name"));
     Assert.assertEquals("Ron", rows.get(1).getValue("first_name"));
+    Assert.assertEquals("0033445566", rows.get(0).getValue("student_id"));
+    Assert.assertEquals("0044333433", rows.get(1).getValue("student_id"));
   }
 }
