@@ -24,6 +24,7 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
+import com.google.common.base.Splitter;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
@@ -67,7 +68,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.security.Security;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.regex.Pattern;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -88,14 +89,17 @@ import javax.ws.rs.QueryParam;
  */
 public class GCSHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(GCSHandler.class);
+  private static final String MAX_SAMPLE_ROWS = "wrangler.gcs.sampling.max.rows";
   static final long FILE_SIZE = 10 * 1024 * 1024;
   private FileTypeDetector detector;
+  private int maxSampleRows;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     Security.addProvider(new BouncyCastleProvider());
     this.detector = new FileTypeDetector();
+    this.maxSampleRows = Integer.parseInt(context.getRuntimeArguments().getOrDefault(MAX_SAMPLE_ROWS, "5000"));
   }
 
   @POST
@@ -295,20 +299,25 @@ public class GCSHandler extends AbstractWranglerHandler {
         if (contentType.equalsIgnoreCase("text/plain")
           && (encoding.equalsIgnoreCase("utf-8") || encoding.equalsIgnoreCase("ascii"))) {
           String data = new String(bytes, encoding);
-          String[] lines = data.split("\r\n|\r|\n");
-          if (blob.getSize() > GCSHandler.FILE_SIZE) {
-            lines = Arrays.copyOf(lines, lines.length - 1);
-            if (lines.length == 0) {
-              throw new BadRequestException("A single of text file is larger than "
-                                              + FILE_SIZE + ", unable to process");
-            }
-          }
+
+          Iterator<String> lineIter = Splitter.on(Pattern.compile("\r\n|\r|\n")).split(data).iterator();
 
           List<Row> rows = new ArrayList<>();
-          // if the content was truncated, ignore the last line because it's probably not complete.
-          int numLines = shouldTruncate && lines.length > 1 ? lines.length - 1 : lines.length;
-          for (int i = 0; i < numLines; i++) {
-            rows.add(new Row("body", lines[i]));
+          int numLines = 0;
+          while (lineIter.hasNext() && numLines < maxSampleRows) {
+            numLines++;
+            rows.add(new Row("body", lineIter.next()));
+          }
+
+          // if the content was truncated and we didn't reach the maximum number of sample rows,
+          // ignore the last line because it's probably not complete.
+          if (shouldTruncate && !lineIter.hasNext()) {
+            rows.remove(rows.size() - 1);
+          }
+
+          if (shouldTruncate && rows.size() == 0) {
+            throw new BadRequestException("A single line of text file is larger than "
+                                            + FILE_SIZE + " bytes, unable to process");
           }
 
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
