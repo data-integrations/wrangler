@@ -1307,6 +1307,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         String migrate = migrator.migrate();
         RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
         recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
+
         try {
           executor.initialize(recipe, context);
           rows = executor.execute(sample.apply(rows));
@@ -1318,6 +1319,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           .stream()
           .filter(ErrorRecordBase::isShownInWrangler)
           .collect(Collectors.toList());
+
         if (errors.size() > 0) {
           throw new ErrorRecordsException(errors);
         }

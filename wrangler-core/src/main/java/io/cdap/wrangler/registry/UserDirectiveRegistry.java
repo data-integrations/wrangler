@@ -129,8 +129,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
       }
       if (directive == null) {
         throw new DirectiveLoadException(
-          String.format("Directive '%s' not found. Check if directive is spelled correctly or if directive is " +
-                          "user defined make sure artifact is uploaded", name)
+          String.format("Directive '%s' not found. Check if directive is spelled corrected. if the directive is " +
+                          "user defined, make sure artifact has been uploaded", name)
         );
       }
       DirectiveInfo directiveInfo = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
