@@ -69,4 +69,25 @@ public class RowConditionFilterTest {
 
     Assert.assertTrue(rows.size() == 1);
   }
+
+  @Test
+  public void testComparingColumns() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body ',' false",
+      "drop body",
+      "set columns id,fname,lname",
+      "filter-row exp: { fname == lname} true"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "1,root,joltie"),
+      new Row("body", "1,root,root"),
+      new Row("body", "1,joltie,joltie")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertTrue(rows.size() == 1);
+    Assert.assertEquals("root", rows.get(0).getValue("fname"));
+    Assert.assertEquals("joltie", rows.get(0).getValue("lname"));
+  }
 }
