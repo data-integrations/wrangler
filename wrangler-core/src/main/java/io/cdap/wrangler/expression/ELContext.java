@@ -22,6 +22,7 @@ import org.apache.commons.jexl3.JexlContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Manages variables which can be referenced in a JEXL expression.
@@ -38,7 +39,7 @@ public class ELContext implements JexlContext {
   private final Map<String, Object> values = new HashMap<>();
 
   /**
-   * Context object passed to every expresson evaluation.
+   * Context object passed to every expression evaluation.
    * All properties of this class are public to ensure they can be accessed with dot(.) format.
    */
   public static class Context {
@@ -89,6 +90,7 @@ public class ELContext implements JexlContext {
     set("this", row);
   }
 
+  @Nullable
   private void init(ExecutorContext context) {
     if (context != null) {
       // Adds the transient store variables.
