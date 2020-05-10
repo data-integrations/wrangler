@@ -115,9 +115,10 @@ public class ParseAvroFile implements Directive, Lineage {
           }
         } else {
           throw new DirectiveExecutionException(
-            NAME, String.format("Avro data file parsing directive requires '%s' to be of byte. " +
-                                  "Change type in input as byte and make sure the format in File source is " +
-                                  "set as 'blob'. We highly recommend to use File source connector to read Avro files.",
+            NAME, String.format("Avro data file parsing directive requires '%s' to be a bytes field. " +
+                                  "Change type in input to bytes and make sure the format in File source is " +
+                                  "set as 'blob'. We recommend using Avro format in file source instead of using " +
+                                  "this directive",
                                 column));
         }
       }
