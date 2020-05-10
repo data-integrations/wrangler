@@ -35,7 +35,8 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.datamodel.HTTPSchemaLoader;
 import io.cdap.wrangler.utils.AvroSchemaGlossary;
-import io.cdap.wrangler.utils.ColumnConverter;
+import io.cdap.wrangler.utils.ColumnRenamer;
+import io.cdap.wrangler.utils.TypeConvertor;
 import org.apache.avro.Schema;
 
 import java.util.HashMap;
@@ -51,7 +52,7 @@ import java.util.Map;
 @Name(DataModelMapColumn.NAME)
 @Categories(categories = {"data-quality"})
 @Description("Maps a column to target data model field so that matches the target name and type.")
-public class DataModelMapColumn implements Directive, Lineage {
+public class DataModelMapColumn extends ColumnRenamer implements Directive, Lineage {
 
   public static final String NAME = "data-model-map-column";
 
@@ -151,8 +152,8 @@ public class DataModelMapColumn implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName);
-      ColumnConverter.rename(NAME, row, column, targetFieldName);
+      TypeConvertor.convertType(NAME, row, column, targetFieldTypeName);
+      rename(NAME, row, column, targetFieldName);
     }
     return rows;
   }

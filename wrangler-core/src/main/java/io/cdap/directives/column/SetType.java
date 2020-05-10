@@ -31,7 +31,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.utils.ColumnConverter;
+import io.cdap.wrangler.utils.ColumnRenamer;
 
 import java.util.List;
 
@@ -70,7 +70,7 @@ public final class SetType implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      ColumnConverter.convertType(NAME, row, col, type);
+      ColumnRenamer.convertType(NAME, row, col, type);
     }
     return rows;
   }

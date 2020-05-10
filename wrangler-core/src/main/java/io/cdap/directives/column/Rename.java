@@ -30,7 +30,7 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.utils.ColumnConverter;
+import io.cdap.wrangler.utils.ColumnRenamer;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ import java.util.List;
 @Name(Rename.NAME)
 @Categories(categories = { "column"})
 @Description("Renames a column 'source' to 'target'")
-public final class Rename implements Directive, Lineage {
+public final class Rename extends ColumnRenamer implements Directive, Lineage {
   public static final String NAME = "rename";
   private ColumnName source;
   private ColumnName target;
@@ -70,7 +70,7 @@ public final class Rename implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      ColumnConverter.rename(NAME, row, source.value(), target.value());
+      rename(NAME, row, source.value(), target.value());
     }
     return rows;
   }
