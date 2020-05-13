@@ -1,0 +1,5 @@
+// This is a test for using functions and also assignments from already assigned values.
+out.rec3 = in.rec3; // time();
+out.a = in.rec3[0].a;
+out.f = 1.23;
+out.x = 3.4d;

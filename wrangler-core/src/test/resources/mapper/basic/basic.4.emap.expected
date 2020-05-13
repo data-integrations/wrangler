@@ -1,0 +1,32 @@
+{
+  "a": "rec3-array-a-1",
+  "b": null,
+  "c": null,
+  "d": null,
+  "e": null,
+  "f": 1.23,
+  "x": 3.4,
+  "rec2a": null,
+  "rec3": [
+    {
+      "a": "rec3-array-a-1",
+      "b": 5
+    },
+    {
+      "a": "rec3-array-a-2",
+      "b": 6
+    },
+    {
+      "a": "rec3-array-a-3",
+      "b": 7
+    },
+    {
+      "a": "rec3-array-a-4",
+      "b": 8
+    },
+    {
+      "a": "rec3-array-a-5",
+      "b": 9
+    }
+  ]
+}

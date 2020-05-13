@@ -1,0 +1,142 @@
+{
+  "type": "record",
+  "name": "etlSchemaBody",
+  "fields": [
+    {
+      "name": "a",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    {
+      "name": "b",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    {
+      "name": "c",
+      "type": [
+        "long",
+        "null"
+      ]
+    },
+    {
+      "name": "d",
+      "type": [
+        "int",
+        "null"
+      ]
+    },
+    {
+      "name": "e",
+      "type": [
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision" : 10,
+          "scale" : 3
+        },
+        "null"
+      ]
+    },
+    {
+      "name": "f",
+      "type": "double"
+    },
+    {
+      "name": "rec1",
+      "type": {
+        "type": "record",
+        "name": "a63ca67c4a43344acab2ea8adc9a11e24",
+        "fields": [
+          {
+            "name": "a",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "b",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "c",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "rec2",
+            "type": [
+              {
+                "type": "record",
+                "name": "aa235ea570a5e4432b1815a0ef714d96e",
+                "fields": [
+                  {
+                    "name": "a",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  {
+                    "name": "b",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  {
+                    "name": "c",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                ]
+              },
+              "null"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rec3",
+      "type": [
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "record",
+              "name": "a8d9364193d5948cb94b04b87ce877c1c",
+              "fields": [
+                {
+                  "name": "a",
+                  "type": "string"
+                },
+                {
+                  "name": "b",
+                  "type": [
+                    "long",
+                    "null"
+                  ]
+                }
+              ]
+            },
+            "null"
+          ]
+        },
+        "null"
+      ]
+    }
+  ]
+}

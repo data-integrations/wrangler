@@ -1,0 +1,9 @@
+// This is the simplest test that includes assigning
+// fields from input record to output.
+out.a = in.a
+out.b = in.b;
+out.c = in.c;
+out.d = in.d;
+out.e = in.e;
+out.f = in.f;
+out.x = in.f; // This was a cross-assignment.

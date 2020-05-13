@@ -1,0 +1,90 @@
+{
+  "type": "record",
+  "name": "etlSchemaBody",
+  "fields": [
+    {
+      "name": "a",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    {
+      "name": "b",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    {
+      "name": "c",
+      "type": [
+        "long",
+        "null"
+      ]
+    },
+    {
+      "name": "d",
+      "type": [
+        "int",
+        "null"
+      ]
+    },
+    {
+      "name": "e",
+      "type": [
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision" : 10,
+          "scale" : 3
+        },
+        "null"
+      ]
+    },
+    {
+      "name": "f",
+      "type": "double"
+    },
+    {
+      "name": "x",
+      "type": "double"
+    },
+    {
+      "name": "rec2a",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    {
+      "name": "rec3",
+      "type": [
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "record",
+              "name": "a8d9364193d5948cb94b04b87ce877c1c",
+              "fields": [
+                {
+                  "name": "a",
+                  "type": "string"
+                },
+                {
+                  "name": "b",
+                  "type": [
+                    "long",
+                    "null"
+                  ]
+                }
+              ]
+            },
+            "null"
+          ]
+        },
+        "null"
+      ]
+    }
+  ]
+}
