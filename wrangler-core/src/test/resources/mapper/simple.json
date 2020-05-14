@@ -1,8 +1,0 @@
-{
-  "type" : "record",
-  "name" : "Employee",
-  "fields" : [
-    { "name" : "Name" , "type" : "string" },
-    { "name" : "Age" , "type" : "int" }
-  ]
-}

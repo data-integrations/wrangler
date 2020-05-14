@@ -52,4 +52,5 @@ public final class NumberFunctions {
   public static double MantissaFromDFloat(Number value) {
     return 0d;
   }
+
 }

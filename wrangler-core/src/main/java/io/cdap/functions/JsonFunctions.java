@@ -30,6 +30,8 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 
+import javax.annotation.Nullable;
+
 /**
  * Collection of useful expression functions made available in the context
  * of an expression.
@@ -37,7 +39,7 @@ import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
  * set-column column <expression>
  */
 public final class JsonFunctions {
-  public static final Configuration GSON_CONFIGURATION = Configuration
+  private static final Configuration GSON_CONFIGURATION = Configuration
     .builder()
     .mappingProvider(new GsonMappingProvider())
     .jsonProvider(new GsonJsonProvider())
@@ -75,7 +77,7 @@ public final class JsonFunctions {
    */
   public static boolean IsValid(String json) {
     try {
-      JsonElement element = PARSER.parse(json);
+      PARSER.parse(json);
       return true;
     } catch (JsonSyntaxException e) {
       return false;
@@ -102,10 +104,7 @@ public final class JsonFunctions {
    * @return true if object, false otherwise.
    */
   public static boolean IsObject(JsonElement element) {
-    if (element != null && element.isJsonObject()) {
-      return true;
-    }
-    return false;
+    return element != null && element.isJsonObject();
   }
 
   /**
@@ -115,10 +114,7 @@ public final class JsonFunctions {
    * @return true if array, false otherwise.
    */
   public static boolean IsArray(JsonElement element) {
-    if (element != null && element.isJsonArray()) {
-      return true;
-    }
-    return false;
+    return element != null && element.isJsonArray();
   }
 
   /**
@@ -133,18 +129,17 @@ public final class JsonFunctions {
     DocumentContext context = JsonPath.using(GSON_CONFIGURATION).parse(element);
     if (paths.length == 0) {
       return context.read(path);
-    } else {
-      JsonArray array = new JsonArray();
-      array.add((JsonElement) context.read(path));
-      for (String p : paths) {
-        array.add((JsonElement) context.read(p));
-      }
-      return array;
     }
+    JsonArray array = new JsonArray();
+    array.add((JsonElement) context.read(path));
+    for (String p : paths) {
+      array.add((JsonElement) context.read(p));
+    }
+    return array;
   }
 
   /**
-   * This method converts a JavaScript value to a JSON string.
+   * This method stringyfies json object.
    *
    * @param element the value to convert to JSON string
    * @return a JSON string.
@@ -159,6 +154,7 @@ public final class JsonFunctions {
   /**
    * @return Number of elements in the array.
    */
+  @Nullable
   public static int ArrayLength(JsonArray array) {
     if (array != null) {
       return array.size();

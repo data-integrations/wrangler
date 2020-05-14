@@ -1,4 +1,0 @@
-// This test is adding a default value to output field as well creating a field by concatinating other fields.
-out.rec2a = in.rec1.rec2.a + ':' + in.b;
-out.x = in.f;
-out.f = 3.4;

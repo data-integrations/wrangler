@@ -25,20 +25,14 @@ import io.cdap.functions.Global;
 import io.cdap.functions.JsonFunctions;
 import io.cdap.functions.Logical;
 import io.cdap.functions.NumberFunctions;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlInfo;
 import org.apache.commons.jexl3.JexlScript;
-import org.apache.commons.jexl3.internal.introspection.MethodExecutor;
-import org.apache.commons.jexl3.internal.introspection.Uberspect;
-import org.apache.commons.jexl3.introspection.JexlMethod;
-import org.apache.commons.jexl3.introspection.JexlUberspect;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.logging.Log;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,89 +47,6 @@ public final class EL {
   private final JexlEngine engine;
   private JexlScript script = null;
 
-  /**
-   * ELUberSpect intercepts the <code>getMethod</code> calls.
-   */
-  private class ELUberSpect extends Uberspect {
-    /**
-     * Creates a new Uberspect.
-     *
-     * @param runtimeLogger the logger used for all logging needs
-     * @param sty           the resolver strategy
-     */
-    public ELUberSpect(Log runtimeLogger, ResolverStrategy sty) {
-      super(runtimeLogger, sty);
-    }
-
-    /**
-     * Returns a JexlMethod.
-     *
-     * @param obj    the object
-     * @param name the method name
-     * @param args   method arguments
-     * @return a {@link JexlMethod}
-     */
-    @Override
-    public JexlMethod getMethod(Object obj, String name, Object... args) {
-      Method[] methods = ((Class) obj).getMethods();
-      List<Method> matchingMethods = new ArrayList<>();
-      for (Method method : methods) {
-        String methodName = method.getName();
-        if (methodName.equalsIgnoreCase(name)) {
-          matchingMethods.add(method);
-        }
-      }
-
-      if (matchingMethods.size() < 1) {
-        throw new RuntimeException(String.format("Method '%s' is not available in namespace", name));
-      }
-
-      boolean allMatch = false;
-      for (Method method : matchingMethods) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        boolean match = true;
-        for (int i = 0; i < args.length; ++i) {
-          Class<?> argsType = args[i].getClass();
-          if (ClassUtils.isPrimitiveWrapper(argsType)) {
-            Class<?>[] classes = ClassUtils.wrappersToPrimitives(argsType);
-          }
-          if(!parameterTypes[i].getSimpleName().equalsIgnoreCase(args[i].getClass().getSimpleName())) {
-            match = false;
-            break;
-          }
-        }
-        if (match) {
-          allMatch = true;
-          break;
-        }
-      }
-
-      if (!allMatch) {
-        throw new RuntimeException(
-          String.format("Method '%s' doesn't match any signatures [ %s ].", name, options(matchingMethods))
-        );
-      }
-      return MethodExecutor.discover(base(), obj, name, args);
-    }
-
-    private String options(List<Method> methods) {
-      StringBuilder sb = new StringBuilder();
-      for (Method method : methods) {
-        sb.append(method.getName())
-          .append("(");
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        for (int i = 0; i < parameterTypes.length; ++i) {
-          sb.append(parameterTypes[i].getSimpleName().toLowerCase());
-          if (i+1 < parameterTypes.length) {
-            sb.append(", ");
-          }
-        }
-        sb.append(") ");
-      }
-      return sb.toString();
-    }
-  }
-
   public EL(ELRegistration registration) {
     NullLogger nullLogger = new NullLogger();
     engine = new JexlBuilder()
@@ -143,7 +54,6 @@ public final class EL {
       .silent(false)
       .cache(1024 * 1024)
       .strict(true)
-      .uberspect(new ELUberSpect(nullLogger, JexlUberspect.JEXL_STRATEGY))
       .debug(true)
       .logger(nullLogger)
       .create();
@@ -164,6 +74,7 @@ public final class EL {
       functions.put("logical", Logical.class);
       functions.put("datetime", DateAndTime.class);
       functions.put("number", NumberFunctions.class);
+      functions.put("string", StringUtils.class);
       functions.put("math", Math.class);
       return functions;
     }
@@ -276,7 +187,7 @@ public final class EL {
     }
     JexlInfo info = e.getInfo();
     Throwable cause = e.getCause();
-    StringBuilder sb = new StringBuilder("");
+    StringBuilder sb = new StringBuilder();
     if (info != null) {
       if (info.getDetail() != null) {
         sb.append("Error evaluating expression '")
