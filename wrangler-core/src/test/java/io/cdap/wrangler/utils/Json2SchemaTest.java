@@ -102,7 +102,7 @@ public class Json2SchemaTest {
     Json2Schema json2Schema = new Json2Schema();
     Schema actual = json2Schema.toSchema("testRecord", testRow);
 
-    Schema expected = Schema.recordOf("expectedRecord",
+    Schema expected = Schema.recordOf("testRecord",
                                       Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
                                       Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
                                       Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.LogicalType.DATE))),
@@ -134,7 +134,7 @@ public class Json2SchemaTest {
     Json2Schema json2Schema = new Json2Schema();
     Schema actual = json2Schema.toSchema("testRecord", testRow);
 
-    Schema expected = Schema.recordOf("expectedRecord",
+    Schema expected = Schema.recordOf("testRecord",
                                       Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
                                       Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
                                       Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.LogicalType.DATE))),
