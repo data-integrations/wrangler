@@ -56,8 +56,6 @@ public class SendToErrorAndContinueTest {
     Assert.assertEquals(2, errors.size());
     Assert.assertEquals(1, results.size());
     Assert.assertEquals("1", errors.get(0).getRow().getValue("C"));
-    Assert.assertEquals("filtering records that dont have 4 columns (ecode: 1)", errors.get(0).getMessage());
-    Assert.assertEquals("filtering records that dont have 4 columns (ecode: 1)", errors.get(1).getMessage());
     Assert.assertEquals("2", results.get(0).getValue("C"));
   }
 

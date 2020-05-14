@@ -88,10 +88,28 @@ public class CsvParserTest {
       new Row("body", "14J456,78977876,Weasley,Fred,,,")
     );
 
+    List<Row> expected = Arrays.asList(
+      new Row("school_id", "14J456").add("student_id", "33445566").add("last_name", "Potter")
+        .add("first_name", "Harry"),
+      new Row("school_id", "14J456").add("student_id", "44333433").add("last_name", "Weasley")
+        .add("first_name", "Ron"),
+      new Row("school_id", "14J456").add("student_id", "65765566").add("last_name", "Granger")
+        .add("first_name", "Hermione"),
+      new Row("school_id", "14J456").add("student_id", "13233121").add("last_name", "Diggory")
+        .add("first_name", "Cedric"),
+      new Row("school_id", "14J456").add("student_id", "98786868").add("last_name", "Weasley")
+        .add("first_name", "George"),
+      new Row("school_id", "14J456").add("student_id", "78977876").add("last_name", "Weasley")
+        .add("first_name", "Fred")
+    );
+
     rows = TestingRig.execute(directives, rows);
     Assert.assertEquals(6, rows.size());
     for (int i = 0; i < rows.size(); ++i) {
       Assert.assertEquals(4, rows.get(i).width());
+      for (int j = 0; j < 4; j++) {
+        Assert.assertEquals(expected.get(i).getValue(j), rows.get(i).getValue(j));
+      }
     }
   }
 
