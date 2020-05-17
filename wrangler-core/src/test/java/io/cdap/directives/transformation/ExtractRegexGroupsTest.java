@@ -315,7 +315,7 @@ public class ExtractRegexGroupsTest {
     for (int i = 0; i < regexInputOutputs.length; i++) {
       RegexInputOutput regexInputOutput = regexInputOutputs[i];
 
-      Assert.assertEquals(regexInputOutput.input, regexInputOutput.output.length, rows.get(i).length() - 1);
+      Assert.assertEquals(regexInputOutput.input, regexInputOutput.output.length, rows.get(i).width() - 1);
       for (int j = 0; j < regexInputOutput.output.length; j++) {
         Assert.assertEquals(regexInputOutput.output[j], rows.get(i).getValue(j + 1));
       }

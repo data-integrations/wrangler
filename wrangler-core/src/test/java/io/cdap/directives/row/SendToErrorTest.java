@@ -31,6 +31,37 @@ import java.util.List;
  */
 public class SendToErrorTest {
 
+  /**
+   * This tests how to filter records that don't match specified number of columns.
+   */
+  @Test
+  public void testErrorBasedOnColumns() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body , true",
+      "drop :body",
+      "send-to-error exp:{ this.width() < 4} 'filtering records that dont have 4 columns'",
+      "set-column :env exp:{ ctx.name }",
+      "set-column :now exp:{ ctx.nano }"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A,B,C,D"),
+      new Row("body", "X,Y,1"), // has fewer columns.
+      new Row("body", "U,V,2,3.0")
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> results = pipeline.execute(rows);
+    List<ErrorRecord> errors = pipeline.errors();
+
+    Assert.assertEquals(1, errors.size());
+    Assert.assertEquals(1, results.size());
+    Assert.assertEquals("1", errors.get(0).getRow().getValue("C"));
+    Assert.assertEquals("filtering records that dont have 4 columns (ecode: 1, directive: send-to-error)",
+                        errors.get(0).getMessage());
+    Assert.assertEquals("2", results.get(0).getValue("C"));
+  }
+
   @Test
   public void testErrorConditionTrue() throws Exception {
     String[] directives = new String[] {
@@ -156,7 +187,7 @@ public class SendToErrorTest {
     List<ErrorRecord> errors = pipeline.errors();
 
     Assert.assertEquals(1, errors.size());
-    Assert.assertEquals("Error encountered while executing 'send-to-error' : Test Message", errors.get(0).getMessage());
+    Assert.assertEquals("Test Message (ecode: 1, directive: send-to-error)", errors.get(0).getMessage());
     Assert.assertEquals(2, results.size());
   }
 
@@ -177,7 +208,7 @@ public class SendToErrorTest {
     List<ErrorRecord> errors = pipeline.errors();
 
     Assert.assertEquals(1, errors.size());
-    Assert.assertEquals("Error encountered while executing 'send-to-error' : Test Message", errors.get(0).getMessage());
+    Assert.assertEquals("Test Message (ecode: 1, directive: send-to-error)", errors.get(0).getMessage());
     Assert.assertEquals(2, results.size());
   }
 

@@ -82,18 +82,7 @@ public class SetTransientVariable implements Directive {
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      ELContext ctx = new ELContext(context);
-      ctx.set("this", row);
-      for (String var : el.variables()) {
-        ctx.set(var, row.getValue(var));
-      }
-
-      // Transient variables are added.
-      if (context != null) {
-        for (String variable : context.getTransientStore().getVariables()) {
-          ctx.set(variable, context.getTransientStore().get(variable));
-        }
-      }
+      ELContext ctx = new ELContext(context, el, row);
 
       // Execution of the script / expression based on the row data
       // mapped into context.

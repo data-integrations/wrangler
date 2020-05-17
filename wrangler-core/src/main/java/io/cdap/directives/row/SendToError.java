@@ -101,11 +101,7 @@ public class SendToError implements Directive, Lineage {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      ELContext ctx = new ELContext(context);
-      ctx.set("this", row);
-      for (String var : el.variables()) {
-        ctx.set(var, row.getValue(var));
-      }
+      ELContext ctx = new ELContext(context, el, row);
 
       // Transient variables are added.
       if (context != null) {

@@ -17,10 +17,12 @@
 package io.cdap.wrangler.expression;
 
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.Row;
 import org.apache.commons.jexl3.JexlContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Manages variables which can be referenced in a JEXL expression.
@@ -37,6 +39,24 @@ public class ELContext implements JexlContext {
   private final Map<String, Object> values = new HashMap<>();
 
   /**
+   * Context object passed to every expression evaluation.
+   * All properties of this class are public to ensure they can be accessed with dot(.) format.
+   */
+  public static class Context {
+    private final String environment;
+    private final String name;
+    private final long nano;
+    private final long millis;
+
+    public Context(String environment, String name) {
+      this.environment = environment;
+      this.name = name;
+      this.nano = System.nanoTime();
+      this.millis = nano / 1000;
+    }
+  }
+
+  /**
    * No-op constructors that does nothing but create a instance of context.
    */
   public ELContext() {
@@ -45,24 +65,41 @@ public class ELContext implements JexlContext {
 
   /**
    * Constructor that extracts the {@link ExecutorContext} internals and turns them into variables.
-   * This method extracts the trasient variables, runtime arguments, environment it's running in and
+   * This method extracts the transient variables, runtime arguments, environment it's running in and
    * the context in which it is running as identifiers that can be used within JEXL expression.
    *
    * @param context to be examined to be extracted into JEXL expression variables.
    */
   public ELContext(ExecutorContext context) {
-    if (context == null) {
-      return;
-    }
+    init(context);
+  }
 
-    // Adds the transient store variables.
-    for (String variable : context.getTransientStore().getVariables()) {
-      values.put(variable, context.getTransientStore().get(variable));
+  /**
+   * Sets the context for EL, includes the required variables in expression, 'this' and 'ctx'.
+   *
+   * @param context to be examined to be extracted into JEXL expression variables.
+   * @param el the expression.
+   * @param row the row for 'this'.
+   */
+  public ELContext(ExecutorContext context, EL el, Row row) {
+    for (String var : el.variables()) {
+      set(var, row.getValue(var));
     }
+    // These two steps below has to always happen after el variables are loaded
+    // because, el variables might not be present in a row.
+    init(context);
+    set("this", row);
+  }
 
-    values.put("runtime", context.getProperties());
-    values.put("environment", context.getEnvironment().name());
-    values.put("context", context.getContextName());
+  @Nullable
+  private void init(ExecutorContext context) {
+    if (context != null) {
+      // Adds the transient store variables.
+      for (String variable : context.getTransientStore().getVariables()) {
+        set(variable, context.getTransientStore().get(variable));
+      }
+      set("ctx", new Context(context.getEnvironment().name(), context.getContextName()));
+    }
   }
 
   /**

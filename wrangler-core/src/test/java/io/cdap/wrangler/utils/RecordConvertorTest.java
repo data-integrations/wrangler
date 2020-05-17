@@ -97,7 +97,7 @@ public class RecordConvertorTest {
   private static Row createUberRecord(List<Row> rows) {
     Row uber = new Row();
     for (Row row : rows) {
-      for (int i = 0; i < row.length(); ++i) {
+      for (int i = 0; i < row.width(); ++i) {
         Object o = row.getValue(i);
         uber.addOrSet(row.getColumn(i), null);
         if (o != null) {

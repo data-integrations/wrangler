@@ -46,7 +46,7 @@ public class CopyTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertTrue(rows.size() == 3);
-    Assert.assertEquals(5, rows.get(0).length()); // should have copied to another column
+    Assert.assertEquals(5, rows.get(0).width()); // should have copied to another column
     Assert.assertEquals("A", rows.get(0).getValue("name")); // Should have copy of 'A'
     Assert.assertEquals("D", rows.get(1).getValue("name")); // Should have copy of 'D'
     Assert.assertEquals("G", rows.get(2).getValue("name")); // Should have copy of 'G'
@@ -87,7 +87,7 @@ public class CopyTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertTrue(rows.size() == 3);
-    Assert.assertEquals(4, rows.get(0).length()); // should have copied to another column
+    Assert.assertEquals(4, rows.get(0).width()); // should have copied to another column
     Assert.assertEquals("A", rows.get(0).getValue("body_2")); // Should have copy of 'A'
     Assert.assertEquals("D", rows.get(1).getValue("body_2")); // Should have copy of 'D'
     Assert.assertEquals("G", rows.get(2).getValue("body_2")); // Should have copy of 'G'

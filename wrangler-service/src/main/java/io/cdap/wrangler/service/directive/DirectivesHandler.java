@@ -616,7 +616,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
             break;
           }
 
-          Map<String, Object> value = new HashMap<>(row.length());
+          Map<String, Object> value = new HashMap<>(row.width());
 
           // Iterate through all the fields of the row.
           for (Pair<String, Object> field : row.getFields()) {
@@ -732,7 +732,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         // Iterate through columns to value a set
         Set<String> uniqueColumns = new HashSet<>();
         for (Row row : rows) {
-          for (int i = 0; i < row.length(); ++i) {
+          for (int i = 0; i < row.width(); ++i) {
             uniqueColumns.add(row.getColumn(i));
           }
         }
@@ -1211,7 +1211,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   private static Row createUberRecord(List<Row> rows) {
     Row uber = new Row();
     for (Row row : rows) {
-      for (int i = 0; i < row.length(); ++i) {
+      for (int i = 0; i < row.width(); ++i) {
         Object o = row.getValue(i);
         if (o != null) {
           int idx = uber.find(row.getColumn(i));

@@ -70,7 +70,7 @@ public class ColumnsReplace implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      for (int i = 0; i < row.length(); ++i) {
+      for (int i = 0; i < row.width(); ++i) {
         String name = row.getColumn(i);
         try {
           Unix4jCommandBuilder builder = Unix4j.echo(name).sed(sed);

@@ -37,6 +37,21 @@ import java.util.List;
 public class ExpressionTest {
 
   @Test
+  public void testRowNoOfColumns() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-csv body ','",
+      "set-column :cols exp:{ this.width() }"
+    };
+
+    List<Row> rows = Arrays.asList(new Row("body", "1098,Root,Joltie,01/26/1956,root@jolite.io,32,11.79," +
+      "150 Mars Ave,Palo Alto,CA,USA,32826"));
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals(13, rows.get(0).getValue("cols"));
+  }
+
+  @Test
   public void testApplyExpr() throws Exception {
     String[] directives = new String[] {
       "parse-as-csv __col ,",

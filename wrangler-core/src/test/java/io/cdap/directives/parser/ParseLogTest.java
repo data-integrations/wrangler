@@ -65,7 +65,7 @@ public class ParseLogTest {
 
     rows = TestingRig.execute(directives, rows);
     Assert.assertTrue(rows.size() == 1);
-    Assert.assertEquals(91, rows.get(0).length());
+    Assert.assertEquals(91, rows.get(0).width());
   }
 
   @Test
