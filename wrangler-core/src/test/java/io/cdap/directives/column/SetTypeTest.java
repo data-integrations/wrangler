@@ -45,7 +45,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i++) {
+    for (int i = 0; i < row.width(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Integer);
       Integer intValue = (Integer) object;
@@ -67,7 +67,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i++) {
+    for (int i = 0; i < row.width(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Short);
       Short value = (Short) object;
@@ -89,7 +89,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i++) {
+    for (int i = 0; i < row.width(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Long);
       Long value = (Long) object;
@@ -111,7 +111,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i++) {
+    for (int i = 0; i < row.width(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Float);
       Float value = (Float) object;
@@ -133,7 +133,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i++) {
+    for (int i = 0; i < row.width(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Double);
       Double value = (Double) object;
@@ -166,7 +166,7 @@ public class SetTypeTest {
     Row trueRow = trueResults.get(0);
     Row falseRow = falseResults.get(0);
 
-    for (int i = 0; i < trueRow.length(); i++) {
+    for (int i = 0; i < trueRow.width(); i++) {
       Object trueObject = trueRow.getValue(i);
       Object falseObject = falseRow.getValue(i);
       Assert.assertTrue(trueObject instanceof Boolean);
@@ -192,7 +192,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i++) {
+    for (int i = 0; i < row.width(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof String);
       String value = (String) object;
@@ -227,7 +227,7 @@ public class SetTypeTest {
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
 
-    for (int i = 0; i < row.length(); i++) {
+    for (int i = 0; i < row.width(); i++) {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof byte[]);
       byte [] value = (byte[]) object;

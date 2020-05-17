@@ -44,7 +44,7 @@ public class GenerateUUIDTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertTrue(rows.size() == 3);
-    Assert.assertEquals(2, rows.get(0).length());
+    Assert.assertEquals(2, rows.get(0).width());
     Assert.assertEquals("uuid", rows.get(1).getColumn(1));
     Assert.assertEquals("Should be fine", rows.get(2).getValue("value"));
   }

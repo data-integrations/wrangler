@@ -43,6 +43,6 @@ public class KeepTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertTrue(rows.size() == 1);
-    Assert.assertEquals(2, rows.get(0).length());
+    Assert.assertEquals(2, rows.get(0).width());
   }
 }

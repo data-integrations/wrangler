@@ -73,7 +73,7 @@ public class SetTransientVariableTest {
 
       @Override
       public Map<String, String> getProperties() {
-        return null;
+        return new HashMap<>();
       }
 
       @Override

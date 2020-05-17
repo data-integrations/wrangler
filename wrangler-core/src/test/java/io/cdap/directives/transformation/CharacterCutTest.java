@@ -48,7 +48,7 @@ public class CharacterCutTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertTrue(rows.size() == 1);
-    Assert.assertEquals(8, rows.get(0).length());
+    Assert.assertEquals(8, rows.get(0).width());
     Assert.assertEquals("one", rows.get(0).getValue("one"));
     Assert.assertEquals("two", rows.get(0).getValue("two"));
     Assert.assertEquals("three", rows.get(0).getValue("three"));

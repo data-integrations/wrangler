@@ -51,7 +51,7 @@ public class CatalogLookupTest {
     Assert.assertEquals("code_icd_10_2016_description", rows.get(0).getColumn(1));
     Assert.assertEquals("code_icd_10_2017_description", rows.get(0).getColumn(2));
     for (int i = 0; i < 6; ++i) {
-      Assert.assertEquals(3, rows.get(i).length());
+      Assert.assertEquals(3, rows.get(i).width());
     }
   }
 

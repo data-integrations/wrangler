@@ -16,9 +16,6 @@
 
 package io.cdap.wrangler.api;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Exception throw when the record needs to emitted to error collector.
  */
@@ -42,7 +39,7 @@ public class ErrorRowException extends Exception {
   }
 
   public ErrorRowException(String directiveName, String errorMessage, int code) {
-    this(String.format("Error encountered while executing '%s' : %s", directiveName, errorMessage), code);
+    this(String.format("%s (ecode: %d, directive: %s)", errorMessage, code, directiveName), code);
   }
 
   /**

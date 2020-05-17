@@ -47,7 +47,7 @@ public class Precondition {
 
   public boolean apply(Row row) throws PreconditionException {
     Bindings ctx = new SimpleBindings();
-    for (int i = 0; i < row.length(); ++i) {
+    for (int i = 0; i < row.width(); ++i) {
       ctx.put(row.getColumn(i), row.getValue(i));
     }
 

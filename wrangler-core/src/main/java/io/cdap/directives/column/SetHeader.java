@@ -74,7 +74,7 @@ public class SetHeader implements Directive, Lineage {
     for (Row row : rows) {
       int idx = 0;
       for (String name : columns) {
-        if (idx < row.length()) {
+        if (idx < row.width()) {
           row.setColumn(idx, name.trim());
         }
         idx++;

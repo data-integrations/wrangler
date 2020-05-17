@@ -82,11 +82,7 @@ public class Fail implements Directive, Lineage {
     throws DirectiveExecutionException {
     for (Row row : rows) {
       // Move the fields from the row into the context.
-      ELContext ctx = new ELContext(context);
-      ctx.set("this", row);
-      for (String var : el.variables()) {
-        ctx.set(var, row.getValue(var));
-      }
+      ELContext ctx = new ELContext(context, el, row);
 
       // Execution of the script / expression based on the row data
       // mapped into context.

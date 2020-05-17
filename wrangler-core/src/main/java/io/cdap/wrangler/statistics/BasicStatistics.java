@@ -40,7 +40,7 @@ public class BasicStatistics implements Statistics {
     Double count = new Double(0);
     for (Row row : rows) {
       ++count;
-      for (int i = 0; i < row.length(); ++i) {
+      for (int i = 0; i < row.width(); ++i) {
         String column = row.getColumn(i);
         Object object = row.getValue(i);
 

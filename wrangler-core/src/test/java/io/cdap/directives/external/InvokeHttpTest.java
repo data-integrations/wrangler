@@ -109,8 +109,8 @@ public class InvokeHttpTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertEquals(2, rows.size());
-    Assert.assertEquals(4, rows.get(0).length());
-    Assert.assertEquals(4, rows.get(1).length());
+    Assert.assertEquals(4, rows.get(0).width());
+    Assert.assertEquals(4, rows.get(1).width());
     Assert.assertEquals("1:2.000000", rows.get(0).getValue("c"));
     Assert.assertEquals("3:4.200000", rows.get(1).getValue("c"));
     Assert.assertEquals("3", rows.get(0).getValue("HeaderC"));
@@ -133,8 +133,8 @@ public class InvokeHttpTest {
     Assert.assertEquals(2, rows.size());
     Assert.assertEquals("1:2.000000", rows.get(0).getValue("c"));
     Assert.assertEquals("3:4.200000", rows.get(1).getValue("c"));
-    Assert.assertEquals(3, rows.get(0).length());
-    Assert.assertEquals(3, rows.get(1).length());
+    Assert.assertEquals(3, rows.get(0).width());
+    Assert.assertEquals(3, rows.get(1).width());
   }
 
   @Test

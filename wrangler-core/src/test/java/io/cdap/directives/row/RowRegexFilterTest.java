@@ -91,7 +91,7 @@ public class RowRegexFilterTest {
     directives.add("set-type :long long");
     directives.add("set-type :float float");
     directives.add("set-type :double double");
-    directives.add("filter-rows-on condition-false int =^ \"5\"");
+    directives.add("filter-rows-on condition-false int == 5005");
 
     List<Row> originalRows = Arrays.asList(
       new Row("__col", "1,san jose,1001,1,11,22.1,55.1"),

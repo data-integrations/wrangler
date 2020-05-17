@@ -78,7 +78,7 @@ public class WriteAsCSV implements Directive, Lineage {
         try (Writer out = new BufferedWriter(new OutputStreamWriter(bOut))) {
           CSVPrinter csvPrinter = new CSVPrinter(out, CSVFormat.DEFAULT);
 
-          for (int i = 0; i < row.length(); ++i) {
+          for (int i = 0; i < row.width(); ++i) {
             csvPrinter.print(row.getValue(i));
           }
           csvPrinter.flush();
