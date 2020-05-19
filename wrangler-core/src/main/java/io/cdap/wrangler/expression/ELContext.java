@@ -43,10 +43,10 @@ public class ELContext implements JexlContext {
    * All properties of this class are public to ensure they can be accessed with dot(.) format.
    */
   public static class Context {
-    private final String environment;
-    private final String name;
-    private final long nano;
-    private final long millis;
+    public final String environment;
+    public final String name;
+    public final long nano;
+    public final long millis;
 
     public Context(String environment, String name) {
       this.environment = environment;
