@@ -57,6 +57,7 @@ public final class Row implements Serializable {
    */
   public Row(List<String> columns) {
     this.columns = new ArrayList<>(columns);
+    this.values = new ArrayList<>(columns.size());
   }
 
   /**
@@ -66,8 +67,8 @@ public final class Row implements Serializable {
    * @param value for the column defined above.
    */
   public Row(String name, Object value) {
-    this.columns = new ArrayList<>();
-    this.values = new ArrayList<>();
+    this.columns = new ArrayList<>(1);
+    this.values = new ArrayList<>(1);
     this.columns.add(name);
     this.values.add(value);
   }
