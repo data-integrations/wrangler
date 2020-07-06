@@ -306,7 +306,12 @@ public class GCSHandler extends AbstractWranglerHandler {
           int numLines = 0;
           while (lineIter.hasNext() && numLines < maxSampleRows) {
             numLines++;
-            rows.add(new Row("body", lineIter.next()));
+            String line = lineIter.next();
+            // CDAP-17029 - ignore the last line if it is empty
+            if (line.isEmpty() && !lineIter.hasNext()) {
+              break;
+            }
+            rows.add(new Row("body", line));
           }
 
           // if the content was truncated and we didn't reach the maximum number of sample rows,
