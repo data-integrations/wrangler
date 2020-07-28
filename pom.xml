@@ -209,6 +209,7 @@
               </goals>
               <configuration>
                 <excludes>
+                  <exclude>cov-int/**</exclude>
                   <exclude>*.md</exclude>
                   <exclude>**/*.md</exclude>
                   <exclude>**/*.json</exclude>
