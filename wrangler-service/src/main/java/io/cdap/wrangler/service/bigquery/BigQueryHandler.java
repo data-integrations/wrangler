@@ -32,6 +32,7 @@ import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableResult;
 import com.google.common.annotations.VisibleForTesting;
@@ -101,6 +102,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   private static final String TABLE_ID = "id";
   private static final String SCHEMA = "schema";
   private static final String BUCKET = "bucket";
+  private static final String TABLE_TYPE = "tableType";
 
   @POST
   @Path("/contexts/{context}/connections/bigquery/test")
@@ -217,6 +219,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       String bucket = connectionProperties.get(BUCKET);
       TableId tableIdObject = TableId.of(datasetId.getProject(), datasetId.getDataset(), tableId);
       Pair<List<Row>, Schema> tableData = getData(connection, tableIdObject);
+      TableDefinition.Type tableType = GCPUtils.getBigQueryService(connection).getTable(tableIdObject)
+          .getDefinition().getType();
 
       Map<String, String> properties = new HashMap<>();
       properties.put(PropertyIds.NAME, tableId);
@@ -230,6 +234,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
       properties.put(SCHEMA, tableData.getSecond().toString());
       properties.put(BUCKET, bucket);
+      properties.put(TABLE_TYPE, tableType.toString());
 
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(tableId)
         .setScope(scope)
@@ -267,6 +272,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     respond(request, responder, namespace, ns -> {
       Map<String, String> config = getWorkspace(new NamespacedId(ns, workspaceId)).getProperties();
 
+      boolean isView = TableDefinition.Type.valueOf(config.get(TABLE_TYPE)).equals(
+          TableDefinition.Type.VIEW);
+
       Map<String, String> properties = new HashMap<>();
       String externalDatasetName =
         new StringJoiner(".").add(config.get(DATASET_ID)).add(config.get(TABLE_ID)).toString();
@@ -278,6 +286,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       properties.put("dataset", config.get(DATASET_ID));
       properties.put("table", config.get(TABLE_ID));
       properties.put("schema", config.get(SCHEMA));
+      properties.put("enableQueryingViews", String.valueOf(isView));
 
       PluginSpec pluginSpec = new PluginSpec("BigQueryTable", "source", properties);
       BigQuerySpec spec = new BigQuerySpec(pluginSpec);
@@ -297,7 +306,6 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     QueryJobConfiguration queryConfig = QueryJobConfiguration.newBuilder(query).build();
     JobId jobId = JobId.of(UUID.randomUUID().toString());
     Job queryJob = bigQuery.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build());
-
     // Wait for the job to finish
     queryJob = queryJob.waitFor();
 
