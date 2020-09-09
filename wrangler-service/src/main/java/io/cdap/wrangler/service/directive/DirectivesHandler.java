@@ -654,6 +654,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   /**
    * Automatically adds a load-directives pragma to the list of directives.
    */
+  @Nullable
   private String addLoadablePragmaDirectives(String namespace, Request request) {
     StringBuilder sb = new StringBuilder();
     // Validate the DSL by compiling the DSL. In case of macros being
@@ -664,6 +665,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       // Directives in this context).
       CompileStatus status = compiler.compile(new MigrateToV2(request.getRecipe().getDirectives()).migrate());
       RecipeSymbol symbols = status.getSymbols();
+      if (symbols == null) {
+        return null;
+      }
+
       Iterator<TokenGroup> iterator = symbols.iterator();
       List<String> userDirectives = new ArrayList<>();
       while (iterator.hasNext()) {
@@ -930,7 +935,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       if (dataModelInfo.getId() == null || dataModelInfo.getRevision().equals(DataModelInfo.INVALID_REVISION)) {
         throw new BadRequestException("data model or data model revision properties has not been set.");
       }
-      
+
       if (properties.get(DATA_MODEL_MODEL_PROPERTY) != null) {
         throw new ConflictException("model property already set.");
       }
