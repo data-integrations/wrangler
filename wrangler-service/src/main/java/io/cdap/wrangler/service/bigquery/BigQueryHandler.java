@@ -32,6 +32,7 @@ import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableResult;
 import com.google.common.annotations.VisibleForTesting;
@@ -101,6 +102,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   private static final String TABLE_ID = "id";
   private static final String SCHEMA = "schema";
   private static final String BUCKET = "bucket";
+  private static final String VIEW = "view";
 
   @POST
   @Path("/contexts/{context}/connections/bigquery/test")
@@ -230,6 +232,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       properties.put(GCPUtils.SERVICE_ACCOUNT_KEYFILE, path);
       properties.put(SCHEMA, tableData.getSecond().toString());
       properties.put(BUCKET, bucket);
+      properties.put(VIEW, ConnectionType.BIGQUERY.)
 
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(tableId)
         .setScope(scope)
@@ -297,7 +300,6 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     QueryJobConfiguration queryConfig = QueryJobConfiguration.newBuilder(query).build();
     JobId jobId = JobId.of(UUID.randomUUID().toString());
     Job queryJob = bigQuery.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build());
-
     // Wait for the job to finish
     queryJob = queryJob.waitFor();
 
