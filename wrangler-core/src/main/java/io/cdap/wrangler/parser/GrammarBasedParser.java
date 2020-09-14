@@ -77,7 +77,8 @@ public class GrammarBasedParser implements RecipeParser {
       CompileStatus status = compiler.compile(recipe);
       if (!status.isSuccess()) {
         Iterator<SyntaxError> errors = status.getErrors();
-        throw new DirectiveParseException(errors.next().getMessage(), errors);
+        String prefix = "Encountered syntax error, please ensure the directive is valid: ";
+        throw new DirectiveParseException(prefix + errors.next().getMessage(), errors);
       }
 
       Iterator<TokenGroup> tokenGroups = status.getSymbols().iterator();

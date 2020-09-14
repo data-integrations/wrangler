@@ -647,6 +647,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   /**
    * Automatically adds a load-directives pragma to the list of directives.
    */
+  @Nullable
   private String addLoadablePragmaDirectives(String namespace, Request request) {
     StringBuilder sb = new StringBuilder();
     // Validate the DSL by compiling the DSL. In case of macros being
@@ -657,6 +658,10 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       // Directives in this context).
       CompileStatus status = compiler.compile(new MigrateToV2(request.getRecipe().getDirectives()).migrate());
       RecipeSymbol symbols = status.getSymbols();
+      if (symbols == null) {
+        return null;
+      }
+
       Iterator<TokenGroup> iterator = symbols.iterator();
       List<String> userDirectives = new ArrayList<>();
       while (iterator.hasNext()) {
