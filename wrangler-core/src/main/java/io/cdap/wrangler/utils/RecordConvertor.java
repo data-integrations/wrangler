@@ -158,7 +158,9 @@ public final class RecordConvertor implements Serializable {
   }
 
   private StructuredRecord decodeRecord(String name, Object object, Schema schema) throws RecordConvertorException {
-    if (object instanceof Map) {
+    if (object instanceof StructuredRecord) {
+      return (StructuredRecord) object;
+    } else if (object instanceof Map) {
       return decodeRecord(name, (Map) object, schema);
     } else if (object instanceof JsonObject) {
       return decodeRecord(name, (JsonObject) object, schema);
