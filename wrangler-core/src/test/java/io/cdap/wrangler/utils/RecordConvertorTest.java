@@ -108,7 +108,7 @@ public class RecordConvertorTest {
     return uber;
   }
 
-  @Test 
+  @Test
   public void testEmptyString() throws Exception {
     Schema schema = Schema.recordOf("test",
                                     Schema.Field.of("value", Schema.of(Schema.Type.STRING))
@@ -131,7 +131,7 @@ public class RecordConvertorTest {
     Assert.assertEquals(0, errors.size());
     Assert.assertEquals("", results.get(0).get("value"));
     Assert.assertEquals("b", results.get(1).get("value"));
-  } 
+  }
 
   @Test
   public void testNullableEmptyField() throws Exception {
@@ -307,5 +307,35 @@ public class RecordConvertorTest {
     StructuredRecord actual = rc.decodeRecord(testRow, schema);
 
     Assert.assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testNestedRecordConversion() throws Exception {
+    Schema productSchema = Schema.recordOf("product",
+                                           Schema.Field.of("id",
+                                                           Schema.nullableOf(Schema.of(Schema.Type.INT))),
+                                           Schema.Field.of("name",
+                                                           Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+                                           Schema.Field.of("cost",
+                                                           Schema.nullableOf(Schema.of(Schema.Type.DOUBLE)))
+    );
+    Schema expectedSchema = Schema.recordOf("recordA",
+                                            Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+                                            Schema.Field.of("product", productSchema)
+    );
+    Row row = new Row();
+    row.add("name_a", "John");
+    row.add("product", StructuredRecord.builder(productSchema)
+      .set("id", 1)
+      .set("name", "Shovel")
+      .set("cost", 5.0)
+      .build());
+    String[] directives = new String[]{
+      "rename name_a name",
+    };
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<Row> records = Collections.singletonList(row);
+    List<StructuredRecord> results = pipeline.execute(records, expectedSchema);
+    Assert.assertEquals(expectedSchema, results.get(0).getSchema());
   }
 }
