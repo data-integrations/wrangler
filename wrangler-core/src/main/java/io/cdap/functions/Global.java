@@ -25,6 +25,9 @@ import com.google.common.base.Strings;
  * set-column column <expression>
  */
 public final class Global {
+  private Global() {
+  }
+
   /**
    * Converts String value to double.
    *

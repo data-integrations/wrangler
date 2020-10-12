@@ -33,6 +33,8 @@ import java.util.List;
  * GeoFencing check based on location and polygon
  */
 public final class GeoFences {
+  private GeoFences() {
+  }
 
   private static final Gson GSON = new GsonBuilder()
       .registerTypeAdapterFactory(new GeometryAdapterFactory())
