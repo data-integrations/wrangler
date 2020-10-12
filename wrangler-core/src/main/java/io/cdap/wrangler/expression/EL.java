@@ -24,7 +24,7 @@ import io.cdap.functions.DataQuality;
 import io.cdap.functions.Dates;
 import io.cdap.functions.GeoFences;
 import io.cdap.functions.Global;
-import io.cdap.functions.JSON;
+import io.cdap.functions.JsonFunctions;
 import io.cdap.functions.NumberFunctions;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
@@ -131,7 +131,7 @@ public final class EL {
       Map<String, Object> functions = new HashMap<>();
       functions.put(null, Global.class);
       functions.put("date", Dates.class);
-      functions.put("json", JSON.class);
+      functions.put("json", JsonFunctions.class);
       functions.put("math", Math.class);
       functions.put("string", StringUtils.class);
       functions.put("strings", Strings.class);

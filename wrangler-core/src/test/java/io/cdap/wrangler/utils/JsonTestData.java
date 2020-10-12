@@ -20,6 +20,12 @@ package io.cdap.wrangler.utils;
  * Class description here.
  */
 public final class JsonTestData {
+  public static final String MALFORMED_BASIC_JSON = "{\n" +
+    "  \"a\" : 1,\n" +
+    "  \"b\" : 2.0,\n" +
+    "  \"c\" : \"test\"\n" +
+    "  \"d\" : true\n" +
+    "}";
   public static final String BASIC = "{\n" +
     "  \"a\" : 1,\n" +
     "  \"b\" : 2.0,\n" +
