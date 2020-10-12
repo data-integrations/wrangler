@@ -241,7 +241,7 @@ public class ExpressionTest {
         "[-122.04608917236328,37.38175237839049],[-122.05870628356934,37.37943348292772]]]}}]}";
 
     String[] directives = new String[]{
-        "set column result geo:inFence(lat,lon,fences)"
+        "set column result geo:InFence(lat,lon,fences)"
     };
 
     List<Row> rows = Arrays.asList(
@@ -262,7 +262,7 @@ public class ExpressionTest {
         "[-122.04608917236328,37.38175237839049]]]}}]}";
 
     String[] directives = new String[]{
-        "set column result geo:inFence(lat,lon,fences)"
+        "set column result geo:InFence(lat,lon,fences)"
     };
 
     List<Row> rows = Arrays.asList(

@@ -36,8 +36,8 @@ public class GeoFenceTest {
         "[[[-122.05055236816405,37.36862239166385],[-122.04038143157959,37.36841775030572]," +
         "[-122.04141139984132,37.37312436031927],[-122.05055236816405,37.36862239166385]]]}}]}";
 
-    Assert.assertFalse(GeoFences.inFence(43.46089378008257, -462.49145507812494, geoJsonFence));
-    Assert.assertTrue(GeoFences.inFence(37.378990156513105, -122.05076694488525, geoJsonFence));
+    Assert.assertFalse(GeoFences.InFence(43.46089378008257, -462.49145507812494, geoJsonFence));
+    Assert.assertTrue(GeoFences.InFence(37.378990156513105, -122.05076694488525, geoJsonFence));
   }
 
   @Test
@@ -47,8 +47,8 @@ public class GeoFenceTest {
         "[-122.05724716186525,37.374727268782294],[-122.04634666442871,37.37493189292912]," +
         "[-122.04608917236328,37.38175237839049],[-122.05870628356934,37.37943348292772]]]}}]}";
 
-    Assert.assertFalse(GeoFences.inFence(43.46089378008257, -462.49145507812494, geoJsonFence));
-    Assert.assertTrue(GeoFences.inFence(37.378990156513105, -122.05076694488525, geoJsonFence));
+    Assert.assertFalse(GeoFences.InFence(43.46089378008257, -462.49145507812494, geoJsonFence));
+    Assert.assertTrue(GeoFences.InFence(37.378990156513105, -122.05076694488525, geoJsonFence));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -59,6 +59,6 @@ public class GeoFenceTest {
         "[-122.05724716186525,37.374727268782294],[-122.04634666442871,37.37493189292912]," +
         "[-122.04608917236328,37.38175237839049]]]}}]}";
 
-    GeoFences.inFence(43.46089378008257, -462.49145507812494, geoJsonFence);
+    GeoFences.InFence(43.46089378008257, -462.49145507812494, geoJsonFence);
   }
 }
