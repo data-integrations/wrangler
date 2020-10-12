@@ -21,6 +21,7 @@ import com.google.common.base.Strings;
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.functions.DDL;
 import io.cdap.functions.DataQuality;
+import io.cdap.functions.DateAndTime;
 import io.cdap.functions.Dates;
 import io.cdap.functions.GeoFences;
 import io.cdap.functions.Global;
@@ -129,6 +130,7 @@ public final class EL {
     public Map<String, Object> functions() {
       Map<String, Object> functions = new HashMap<>();
       functions.put(null, Global.class);
+      functions.put("datetime", DateAndTime.class);
       functions.put("date", Dates.class);
       functions.put("json", JSON.class);
       functions.put("math", Math.class);
