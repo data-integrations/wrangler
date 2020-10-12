@@ -25,6 +25,7 @@ import io.cdap.functions.Dates;
 import io.cdap.functions.GeoFences;
 import io.cdap.functions.Global;
 import io.cdap.functions.JSON;
+import io.cdap.functions.NumberFunctions;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -140,6 +141,7 @@ public final class EL {
       functions.put("dq", DataQuality.class);
       functions.put("ddl", DDL.class);
       functions.put("geo", GeoFences.class);
+      functions.put("number", NumberFunctions.class);
       return functions;
     }
 
