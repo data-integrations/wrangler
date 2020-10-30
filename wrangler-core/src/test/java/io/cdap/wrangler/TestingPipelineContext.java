@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler;
 
+import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.etl.api.Lookup;
 import io.cdap.cdap.etl.api.StageMetrics;
 import io.cdap.directives.aggregates.DefaultTransientStore;
@@ -26,6 +27,7 @@ import io.cdap.wrangler.proto.Contexts;
 import org.apache.commons.collections.map.HashedMap;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -80,6 +82,16 @@ class TestingPipelineContext implements ExecutorContext {
       @Override
       public void pipelineGauge(String s, long l) {
 
+      }
+
+      @Override
+      public Metrics child(Map<String, String> tags) {
+        return this;
+      }
+
+      @Override
+      public Map<String, String> getTags() {
+        return Collections.emptyMap();
       }
     };
   }
