@@ -41,21 +41,41 @@ public final class GeoFences {
   /**
    * Static method to be used with jexl
    * Checks if Point is inside any of the given polygonal geofences based on the winding number algorithm.
+   * @deprecated use {@link #InFence} instead
    *
    * @param latitude  latitude of the location to verify
    * @param longitude longitude of the location to verify
    * @param geofences GeoJson representation of the fence area
    * @return true if location is inside any of the given geofences, else false
    */
+  @Deprecated
   public static Boolean inFence(double latitude, double longitude, String geofences) {
+    return InFence(latitude, longitude, geofences);
+  }
+
+  /**
+   * Static method to be used with jexl
+   * Checks if the coordinate is inside any of the given polygonal geofences based on the winding number algorithm.
+   * If any of the inputs is null, this method will return false
+   *
+   * @param latitude  latitude of the location to verify
+   * @param longitude longitude of the location to verify
+   * @param geofences GeoJson representation of the fence area
+   * @return true if location is inside any of the given geofences, else false
+   */
+  public static Boolean InFence(Double latitude, Double longitude, String geofences) {
+    if (latitude == null || longitude == null || geofences == null) {
+      return false;
+    }
+
     Coordinates location = Coordinates.of(longitude, latitude);
-    Boolean inzone = false;
+    boolean inzone = false;
     FeatureCollection featureCollection;
     try {
       featureCollection = GSON.fromJson(geofences, FeatureCollection.class);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException(String.format("String %s is not a valid geoJson representation of fence",
-          geofences), e);
+                                                       geofences), e);
     } catch (JsonSyntaxException e) {
       throw new IllegalArgumentException(String.format("String %s is not a valid Json string", geofences), e);
     }
