@@ -36,6 +36,8 @@ import javax.annotation.Nullable;
  * Structured Row and Schema DDL.
  */
 public final class DDL {
+  private DDL() {
+  }
 
   /**
    * Given a JSON representation of schema, returns a {@link Schema} object.

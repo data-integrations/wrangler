@@ -31,6 +31,8 @@ import org.apache.commons.validator.routines.UrlValidator;
  * Data Quality Checks consolidated.
  */
 public class DataQuality extends Types {
+  private DataQuality() {
+  }
 
   /**
    * Given a row, finds the length of the row.
