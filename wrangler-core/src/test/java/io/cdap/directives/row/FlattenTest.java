@@ -26,12 +26,27 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Tests {@link Flatten}
  */
 public class FlattenTest {
+
+  @Test
+  public void testEmptyList() throws Exception {
+    String[] directives = new String[] {
+      "flatten x"
+    };
+
+    Row row = new Row("x", new ArrayList<>()).add("y", "y");
+    List<Row> output = TestingRig.execute(directives, Collections.singletonList(row));
+
+    Assert.assertEquals(1, output.size());
+    Assert.assertEquals("y", output.get(0).getValue("y"));
+    Assert.assertEquals(0, ((List) output.get(0).getValue("x")).size());
+  }
 
   /**
    * { col1, col2, col3}
