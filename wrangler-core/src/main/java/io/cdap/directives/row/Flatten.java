@@ -46,7 +46,7 @@ import java.util.List;
 @Plugin(type = Directive.TYPE)
 @Name(Flatten.NAME)
 @Categories(categories = { "row"})
-@Description("Separates array elements of one or more columns into indvidual records, copying the other columns.")
+@Description("Separates array elements of one or more columns into individual records, copying the other columns.")
 public class Flatten implements Directive, Lineage {
   public static final String NAME = "flatten";
   // Column within the input row that needs to be parsed as Json
@@ -107,6 +107,11 @@ public class Flatten implements Directive, Lineage {
             max = m;
           }
         }
+      }
+
+      if (max == 0) {
+        results.add(new Row(row));
+        continue;
       }
 
       // We iterate through the arrays and populate all the columns.
