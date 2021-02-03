@@ -70,6 +70,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -376,6 +377,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
           schemaType = Schema.of(Schema.Type.LONG);
           break;
         case DATETIME:
+          schemaType = Schema.of(Schema.LogicalType.DATETIME);
+          break;
         case STRING:
           schemaType = Schema.of(Schema.Type.STRING);
           break;
@@ -425,6 +428,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
         return decimal;
 
       case DATETIME:
+        return LocalDateTime.parse(fieldValue.getStringValue());
       case STRING:
         return fieldValue.getStringValue();
       case BOOL:

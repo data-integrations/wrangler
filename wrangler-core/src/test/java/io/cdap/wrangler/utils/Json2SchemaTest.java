@@ -31,6 +31,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -98,6 +99,7 @@ public class Json2SchemaTest {
     testRow.add("time", LocalTime.of(11, 11, 11));
     testRow.add("timestamp", ZonedDateTime.of(2018, 11 , 11 , 11, 11, 11, 0, ZoneId.of("UTC")));
     testRow.add("d", new BigDecimal(new BigInteger("123456"), 5));
+    testRow.add("datetime", LocalDateTime.now());
 
     Json2Schema json2Schema = new Json2Schema();
     Schema actual = json2Schema.toSchema("testRecord", testRow);
@@ -110,7 +112,9 @@ public class Json2SchemaTest {
                                         Schema.of(Schema.LogicalType.TIME_MICROS))),
                                       Schema.Field.of("timestamp", Schema.nullableOf(
                                         Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))),
-                                      Schema.Field.of("d", Schema.nullableOf(Schema.decimalOf(38, 5))));
+                                      Schema.Field.of("d", Schema.nullableOf(Schema.decimalOf(38, 5))),
+                                      Schema.Field
+                                        .of("datetime", Schema.nullableOf(Schema.of(Schema.LogicalType.DATETIME))));
 
     Assert.assertEquals(expected, actual);
   }

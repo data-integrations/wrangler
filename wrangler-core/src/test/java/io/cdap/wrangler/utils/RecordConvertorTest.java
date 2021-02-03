@@ -19,15 +19,18 @@ package io.cdap.wrangler.utils;
 import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.data.schema.Schema.LogicalType;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.Row;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -337,5 +340,17 @@ public class RecordConvertorTest {
     List<Row> records = Collections.singletonList(row);
     List<StructuredRecord> results = pipeline.execute(records, expectedSchema);
     Assert.assertEquals(expectedSchema, results.get(0).getSchema());
+  }
+
+  @Test
+  public void testDateTimeConversion() throws RecordConvertorException {
+    String fieldName = "field";
+    LocalDateTime value = LocalDateTime.now();
+    Schema schema = Schema.recordOf("test",
+        Schema.Field.of(fieldName, Schema.nullableOf(Schema.of(LogicalType.DATETIME))));
+    Row row = new Row();
+    row.add(fieldName, value);
+    StructuredRecord structuredRecord = new RecordConvertor().decodeRecord(row, schema);
+    Assert.assertEquals(value, structuredRecord.getDateTime(fieldName));
   }
 }
