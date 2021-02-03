@@ -453,6 +453,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           return input.getTimestamp(fieldName);
         case DECIMAL:
           return input.getDecimal(fieldName);
+        case DATETIME:
+          return input.getDateTime(fieldName);
         default:
           throw new UnexpectedFormatException("Field type " + logicalType + " is not supported.");
       }
