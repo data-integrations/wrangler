@@ -29,6 +29,11 @@ public class ErrorRowException extends Exception {
   private boolean showInWrangler;
 
   public ErrorRowException(String message, int code, boolean showInWrangler) {
+    this(message, code, showInWrangler, null);
+  }
+
+  public ErrorRowException(String message, int code, boolean showInWrangler, Throwable cause) {
+    super(message, cause);
     this.message = message;
     this.code = code;
     this.showInWrangler = showInWrangler;
@@ -39,7 +44,11 @@ public class ErrorRowException extends Exception {
   }
 
   public ErrorRowException(String directiveName, String errorMessage, int code) {
-    this(String.format("%s (ecode: %d, directive: %s)", errorMessage, code, directiveName), code);
+    this(directiveName, errorMessage, code, null);
+  }
+
+  public ErrorRowException(String directiveName, String errorMessage, int code, Throwable cause) {
+    this(String.format("%s (ecode: %d, directive: %s)", errorMessage, code, directiveName), code, false, cause);
   }
 
   /**

@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.data.schema.Schema.LogicalType;
 import io.cdap.cdap.api.data.schema.UnsupportedTypeException;
 import io.cdap.cdap.internal.guava.reflect.TypeToken;
 import io.cdap.cdap.internal.io.AbstractSchemaGenerator;
@@ -35,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -116,6 +118,10 @@ public final class Json2Schema {
 
     if (value instanceof ZonedDateTime) {
       return Schema.nullableOf(Schema.of(Schema.LogicalType.TIMESTAMP_MICROS));
+    }
+
+    if (value instanceof LocalDateTime) {
+      return Schema.nullableOf(Schema.of(LogicalType.DATETIME));
     }
 
     // TODO - remove all the instaces of java.util.Date once all the directives support LogicalType.

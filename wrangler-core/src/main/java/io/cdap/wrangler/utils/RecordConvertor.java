@@ -32,6 +32,7 @@ import io.cdap.wrangler.api.Row;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -91,6 +92,8 @@ public final class RecordConvertor implements Serializable {
           builder.setTimestamp(name, (ZonedDateTime) decodedObj);
         } else if (decodedObj instanceof BigDecimal) {
           builder.setDecimal(name, (BigDecimal) decodedObj);
+        } else if (decodedObj instanceof LocalDateTime) {
+          builder.setDateTime(name, (LocalDateTime) decodedObj);
         } else {
           builder.set(name, decodedObj);
         }
@@ -119,6 +122,7 @@ public final class RecordConvertor implements Serializable {
         case TIMESTAMP_MILLIS:
         case TIMESTAMP_MICROS:
         case DECIMAL:
+        case DATETIME:
           return object;
         default:
           throw new UnexpectedFormatException("field type " + logicalType + " is not supported.");

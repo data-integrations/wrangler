@@ -141,6 +141,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
           }
           results.addAll(cumulativeRows);
         } catch (ErrorRowException e) {
+          LOG.debug("Error while applying directives", e);
           messages.add(String.format("%s", e.getMessage()));
           collector
             .add(new ErrorRecord(rows.subList(i, i + 1).get(0), String.join(",", messages), e.getCode(),
