@@ -55,6 +55,7 @@ import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.TransientStore;
+import io.cdap.wrangler.api.parser.SyntaxError;
 import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.datamodel.DataModelGlossary;
@@ -431,7 +432,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         // Extract content.
         byte[] content = handler.getContent();
         if (content == null) {
-          throw new BadRequestException("Body not present, please post the file containing the "
+          throw new BadRequestException("Body is not present, upload file containing "
                                           + "records to be wrangled.");
         }
 
@@ -629,7 +630,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
               if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
                 value.put(fieldName, object.toString());
               } else {
-                value.put(fieldName, "Non-displayable object");
+                value.put(fieldName, "Non displayable object");
               }
             } else {
               value.put(fieldName, null);
@@ -664,6 +665,18 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       // Compile the directive extracting the loadable plugins (a.k.a
       // Directives in this context).
       CompileStatus status = compiler.compile(new MigrateToV2(request.getRecipe().getDirectives()).migrate());
+      if (!status.isSuccess()) {
+        StringBuilder eStr = new StringBuilder();
+        Iterator<SyntaxError> errors = status.getErrors();
+        while (errors.hasNext()) {
+          eStr.append(errors.next().getMessage());
+          if (errors.hasNext()) {
+            eStr.append(",");
+          }
+        }
+        throw new DirectiveParseException(eStr.toString());
+      }
+
       RecipeSymbol symbols = status.getSymbols();
       if (symbols == null) {
         return null;
@@ -1299,6 +1312,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         String migrate = migrator.migrate();
         RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
         recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
+
         try {
           executor.initialize(recipe, context);
           rows = executor.execute(sample.apply(rows));
@@ -1310,6 +1324,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           .stream()
           .filter(ErrorRecordBase::isShownInWrangler)
           .collect(Collectors.toList());
+
         if (errors.size() > 0) {
           throw new ErrorRecordsException(errors);
         }
