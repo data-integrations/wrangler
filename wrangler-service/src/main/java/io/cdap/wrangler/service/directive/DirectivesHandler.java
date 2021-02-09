@@ -96,12 +96,11 @@ import io.cdap.wrangler.registry.UserDirectiveRegistry;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.statistics.BasicStatistics;
 import io.cdap.wrangler.statistics.Statistics;
-import io.cdap.wrangler.utils.Json2Schema;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.validator.ColumnNameValidator;
 import io.cdap.wrangler.validator.Validator;
 import io.cdap.wrangler.validator.ValidatorException;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -608,6 +607,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
         List<Map<String, Object>> values = new ArrayList<>(rows.size());
         Map<String, String> types = new HashMap<>();
         Set<String> headers = new LinkedHashSet<>();
+        SchemaConverter convertor = new SchemaConverter();
 
         // Iterate through all the new rows.
         for (Row row : rows) {
@@ -625,7 +625,15 @@ public class DirectivesHandler extends AbstractWranglerHandler {
             Object object = field.getSecond();
 
             if (object != null) {
-              types.put(fieldName, object.getClass().getSimpleName());
+              Schema schema = convertor.getSchema(object, fieldName);
+              String type = object.getClass().getSimpleName();
+              if (schema != null) {
+                schema = schema.isNullable() ? schema.getNonNullable() : schema;
+                type = schema.getLogicalType() == null ? schema.getType().name() : schema.getLogicalType().name();
+                // for backward compatibility, make the characters except the first one to lower case
+                type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
+              }
+              types.put(fieldName, type);
               if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
                 value.put(fieldName, object.toString());
               } else {
@@ -813,8 +821,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       });
 
       // generate a schema based upon the first record
-      Json2Schema json2Schema = new Json2Schema();
-      Schema schema = json2Schema.toSchema("record", createUberRecord(rows));
+      SchemaConverter schemaConvertor = new SchemaConverter();
+      Schema schema = schemaConvertor.toSchema("record", createUberRecord(rows));
       if (schema.getType() != Schema.Type.RECORD) {
         schema = Schema.recordOf("array", Schema.Field.of("value", schema));
       }

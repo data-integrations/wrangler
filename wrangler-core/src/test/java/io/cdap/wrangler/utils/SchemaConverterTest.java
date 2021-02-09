@@ -39,9 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests {@link Json2Schema}
+ * Tests {@link SchemaConverter}
  */
-public class Json2SchemaTest {
+public class SchemaConverterTest {
   private static final String[] TESTS = new String[] {
     JsonTestData.BASIC,
     JsonTestData.SIMPLE_JSON_OBJECT,
@@ -61,7 +61,7 @@ public class Json2SchemaTest {
 
   @Test
   public void conversionTest() throws Exception {
-    Json2Schema converter = new Json2Schema();
+    SchemaConverter converter = new SchemaConverter();
     RecordConvertor recordConvertor = new RecordConvertor();
     JsonParser parser = new JsonParser();
     RecipePipeline executor = TestingRig.execute(directives);
@@ -101,8 +101,8 @@ public class Json2SchemaTest {
     testRow.add("d", new BigDecimal(new BigInteger("123456"), 5));
     testRow.add("datetime", LocalDateTime.now());
 
-    Json2Schema json2Schema = new Json2Schema();
-    Schema actual = json2Schema.toSchema("testRecord", testRow);
+    SchemaConverter schemaConvertor = new SchemaConverter();
+    Schema actual = schemaConvertor.toSchema("testRecord", testRow);
 
     Schema expected = Schema.recordOf("testRecord",
                                       Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
@@ -135,8 +135,8 @@ public class Json2SchemaTest {
     testRow.add("timestamp", ZonedDateTime.of(2018, 11, 11, 11, 11, 11, 0, ZoneId.of("UTC")));
     testRow.add("array", list);
 
-    Json2Schema json2Schema = new Json2Schema();
-    Schema actual = json2Schema.toSchema("testRecord", testRow);
+    SchemaConverter schemaConvertor = new SchemaConverter();
+    Schema actual = schemaConvertor.toSchema("testRecord", testRow);
 
     Schema expected = Schema.recordOf("testRecord",
                                       Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
