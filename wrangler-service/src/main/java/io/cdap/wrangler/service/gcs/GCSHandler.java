@@ -281,19 +281,16 @@ public class GCSHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId);
       properties.put("bucket", bucket);
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(file.getName())
-        .setScope(scope)
-        .setProperties(properties)
-        .build();
       if (blob.isDirectory()) {
         throw new BadRequestException(String.format("Path '%s' is not a file.", blob.getName()));
       }
 
       String sampleId = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
-        NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
         boolean shouldTruncate = blob.getSize() > FILE_SIZE;
         byte[] bytes = readGCSFile(blob, (int) (shouldTruncate ? FILE_SIZE : blob.getSize()));
+        DataType dataType;
+        byte[] result = bytes;
 
         String encoding = BytesDecoder.guessEncoding(bytes);
         if (contentType.equalsIgnoreCase("text/plain")
@@ -326,19 +323,26 @@ public class GCSHandler extends AbstractWranglerHandler {
           }
 
           ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-          byte[] records = serDe.toByteArray(rows);
-          ws.updateWorkspaceData(workspaceId, DataType.RECORDS, records);
+          result = serDe.toByteArray(rows);
+          dataType = DataType.RECORDS;
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/json")) {
-          ws.updateWorkspaceData(workspaceId, DataType.TEXT, bytes);
+          dataType = DataType.TEXT;
           properties.put(PropertyIds.FORMAT, Format.TEXT.name());
         } else if (contentType.equalsIgnoreCase("application/xml")) {
-          ws.updateWorkspaceData(workspaceId, DataType.TEXT, bytes);
+          dataType = DataType.TEXT;
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         } else {
-          ws.updateWorkspaceData(workspaceId, DataType.BINARY, bytes);
+          dataType = DataType.BINARY;
           properties.put(PropertyIds.FORMAT, Format.BLOB.name());
         }
+
+        WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(file.getName())
+                                        .setScope(scope)
+                                        .setProperties(properties)
+                                        .build();
+        NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
+        ws.updateWorkspaceData(workspaceId, dataType, result);
         return workspaceId.getId();
       });
 
