@@ -28,6 +28,8 @@ import io.cdap.functions.Global;
 import io.cdap.functions.JsonFunctions;
 import io.cdap.functions.Logical;
 import io.cdap.functions.NumberFunctions;
+import io.cdap.wrangler.utils.ArithmeticOperations;
+import io.cdap.wrangler.utils.DecimalTransform;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
@@ -136,6 +138,8 @@ public final class EL {
       functions.put("date", Dates.class);
       functions.put("json", JsonFunctions.class);
       functions.put("math", Math.class);
+      functions.put("decimal", DecimalTransform.class);
+      functions.put("arithmetic", ArithmeticOperations.class);
       functions.put("string", StringUtils.class);
       functions.put("strings", Strings.class);
       functions.put("escape", StringEscapeUtils.class);

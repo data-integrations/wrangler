@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,11 +36,12 @@ public class SetTypeTest {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
-        .add("bytes_col", new byte[]{0, 0, 39, 16})
+        .add("bytes_col", new byte[]{0, 0, 39, 16}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
-      "set-type str_col int", "set-type int_col i64", "set-type double_col integer",
-      "set-type short_col INT", "set-type long_col I64", "set-type float_col Integer", "set-type bytes_col INTEGER"
+      "set-type str_col int", "set-type int_col i64", "set-type double_col integer", "set-type short_col INT",
+      "set-type long_col I64", "set-type float_col Integer", "set-type bytes_col INTEGER",
+      "set-type decimal_col INTEGER"
     };
 
     List<Row> results = TestingRig.execute(directives, rows);
@@ -58,11 +60,11 @@ public class SetTypeTest {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
-        .add("bytes_col", new byte[]{39, 16})
+        .add("bytes_col", new byte[]{39, 16}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
-      "set-type str_col short", "set-type int_col i32", "set-type double_col Short",
-      "set-type short_col I32", "set-type long_col SHORT", "set-type float_col short", "set-type bytes_col short"
+      "set-type str_col short", "set-type int_col i32", "set-type double_col Short", "set-type short_col I32",
+      "set-type long_col SHORT", "set-type float_col short", "set-type bytes_col short", "set-type decimal_col SHORT"
     };
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
@@ -80,11 +82,11 @@ public class SetTypeTest {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
-        .add("bytes_col", new byte[]{0, 0, 0, 0 , 0, 0, 39, 16})
+        .add("bytes_col", new byte[]{0, 0, 0, 0 , 0, 0, 39, 16}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
-      "set-type str_col long", "set-type int_col Long", "set-type double_col LONG",
-      "set-type short_col long", "set-type long_col Long", "set-type float_col LONG", "set-type bytes_col long"
+      "set-type str_col long", "set-type int_col Long", "set-type double_col LONG", "set-type short_col long",
+      "set-type long_col Long", "set-type float_col LONG", "set-type bytes_col long", "set-type decimal_col long"
     };
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
@@ -102,11 +104,11 @@ public class SetTypeTest {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", 10000.00d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
-        .add("bytes_col", new byte[]{70, 28, 64, 0})
+        .add("bytes_col", new byte[]{70, 28, 64, 0}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
-      "set-type str_col float", "set-type int_col Float", "set-type double_col FLOAT",
-      "set-type short_col float", "set-type long_col Float", "set-type float_col FLOAT", "set-type bytes_col float"
+      "set-type str_col float", "set-type int_col Float", "set-type double_col FLOAT", "set-type short_col float",
+      "set-type long_col Float", "set-type float_col FLOAT", "set-type bytes_col float", "set-type decimal_col Float"
     };
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
@@ -124,11 +126,12 @@ public class SetTypeTest {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", 10000.00d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
-        .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0})
+        .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
-      "set-type str_col double", "set-type int_col Double", "set-type double_col DOUBLE",
-      "set-type short_col double", "set-type long_col Double", "set-type float_col DOUBLE", "set-type bytes_col double"
+      "set-type str_col double", "set-type int_col Double", "set-type double_col DOUBLE", "set-type short_col double",
+      "set-type long_col Double", "set-type float_col DOUBLE", "set-type bytes_col double",
+      "set-type decimal_col Double"
     };
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
@@ -142,23 +145,51 @@ public class SetTypeTest {
   }
 
   @Test
+  public void testToDecimal() throws Exception {
+    List<Row> rows = Collections.singletonList(
+      new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.00d)
+        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("bytes_col", new byte[] {0, 0, 0, 0, 39, 16}).add("decimal_col", new BigDecimal("10000"))
+    );
+    String[] directives = new String[] {
+      "set-type str_col decimal", "set-type int_col Decimal", "set-type double_col DECIMAL",
+      "set-type short_col DECIMAL", "set-type long_col Decimal", "set-type float_col DECIMAL",
+      "set-type bytes_col decimal", "set-type decimal_col decimal"
+    };
+    List<Row> results = TestingRig.execute(directives, rows);
+    Row row = results.get(0);
+    for (int i = 0; i < row.width(); i++) {
+      Object object = row.getValue(i);
+      Assert.assertTrue(object instanceof BigDecimal);
+      BigDecimal value = (BigDecimal) object;
+      if (i == 2 || i == 5) {
+        Assert.assertTrue(new BigDecimal("10000.0").equals(value));
+      } else {
+        Assert.assertTrue(new BigDecimal("10000").equals(value));
+      }
+    }
+  }
+
+  @Test
   public void testToBoolean() throws Exception {
     List<Row> trueRows = Collections.singletonList(
       new Row("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
         .add("int_col", 10000).add("double_col", 10000.00d)
         .add("short_col", new Short("10000")).add("long_col", 10000L)
-        .add("float_col", 10000.0f).add("true_col", true)
+        .add("float_col", 10000.0f).add("decimal_col", new BigDecimal("10000"))
+        .add("true_col", true)
     );
     List<Row> falseRows = Collections.singletonList(
       new Row("str_1", "false").add("str_2", "False").add("str_3", "FALSE")
         .add("int_col", -10000).add("double_col", -10000.00d)
         .add("short_col", new Short("-10000")).add("long_col", -10000L)
-        .add("float_col", -10000.0f).add("false_col", false)
+        .add("float_col", -10000.0f).add("decimal_col", new BigDecimal("10000").negate())
+        .add("false_col", false)
     );
     String[] directives = new String[] {
       "set-type str_1 bool", "set-type str_2 bool", "set-type str_3 bool", "set-type int_col Bool",
       "set-type double_col BOOL", "set-type short_col boolean", "set-type long_col Boolean",
-      "set-type float_col BOOLEAN", "set-type bytes_col bool"
+      "set-type float_col BOOLEAN", "set-type bytes_col bool", "set-type decimal_col Boolean"
     };
 
     List<Row> trueResults = TestingRig.execute(directives, trueRows);
@@ -183,11 +214,12 @@ public class SetTypeTest {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000f)
-        .add("bytes_col", new byte[]{49, 48, 48, 48, 48})
+        .add("bytes_col", new byte[]{49, 48, 48, 48, 48}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
-      "set-type str_col string", "set-type int_col String", "set-type double_col STRING",
-      "set-type short_col string", "set-type long_col String", "set-type float_col STRING", "set-type bytes_col string"
+      "set-type str_col string", "set-type int_col String", "set-type double_col STRING", "set-type short_col string",
+      "set-type long_col String", "set-type float_col STRING", "set-type bytes_col string",
+      "set-type decimal_col STRING"
     };
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
@@ -209,7 +241,7 @@ public class SetTypeTest {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.00d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
-        .add("bytes_col", new byte[] {64, -61, -120, 0, 0, 0, 0, 0})
+        .add("bytes_col", new byte[] {64, -61, -120, 0, 0, 0, 0, 0}).add("decimal_col", new BigDecimal("10000"))
     );
     byte[][] bytesResults = new byte[][] {
       new byte[] {49, 48, 48, 48, 48},
@@ -218,11 +250,12 @@ public class SetTypeTest {
       new byte[] {39, 16},
       new byte[] {0, 0, 0, 0, 0, 0, 39, 16},
       new byte[] {70, 28, 64, 0},
-      new byte[] {64, -61, -120, 0, 0, 0, 0, 0}
+      new byte[] {64, -61, -120, 0, 0, 0, 0, 0},
+      new byte[] {0, 0, 0, 0, 39, 16}
     };
     String[] directives = new String[] {
-      "set-type str_col bytes", "set-type int_col Bytes", "set-type double_col BYTES",
-      "set-type short_col bytes", "set-type long_col Bytes", "set-type float_col BYTES", "set-type bytes_col bytes"
+      "set-type str_col bytes", "set-type int_col Bytes", "set-type double_col BYTES", "set-type short_col bytes",
+      "set-type long_col Bytes", "set-type float_col BYTES", "set-type bytes_col bytes", "set-type decimal_col bytes"
     };
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
