@@ -19,6 +19,9 @@ import io.cdap.cdap.api.common.Bytes;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.Row;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 /**
  * Utility class that converts a {@link Row} column into another column.
  */
@@ -97,6 +100,8 @@ public final class ColumnConverter {
           return object;
         } else if (object instanceof Long) {
           return ((Long) object).intValue();
+        } else if (object instanceof BigDecimal) {
+          return ((BigDecimal) object).intValue();
         } else if (object instanceof byte[]) {
           return Bytes.toInt((byte[]) object);
         } else {
@@ -118,6 +123,8 @@ public final class ColumnConverter {
           return ((Integer) object).shortValue();
         } else if (object instanceof Long) {
           return ((Long) object).shortValue();
+        } else if (object instanceof BigDecimal) {
+          return ((BigDecimal) object).shortValue();
         } else if (object instanceof byte[]) {
           return Bytes.toShort((byte[]) object);
         } else {
@@ -138,6 +145,8 @@ public final class ColumnConverter {
           return ((Integer) object).longValue();
         } else if (object instanceof Long) {
           return object;
+        } else if (object instanceof BigDecimal) {
+          return ((BigDecimal) object).longValue();
         } else if (object instanceof byte[]) {
           return Bytes.toLong((byte[]) object);
         } else {
@@ -159,6 +168,8 @@ public final class ColumnConverter {
           return ((Integer) object) > 0 ? true : false;
         } else if (object instanceof Long) {
           return ((Long) object) > 0 ? true : false;
+        } else if (object instanceof BigDecimal) {
+          return ((BigDecimal) object).compareTo(BigDecimal.ZERO) > 0;
         } else if (object instanceof byte[]) {
           return Bytes.toBoolean((byte[]) object);
         } else {
@@ -179,6 +190,8 @@ public final class ColumnConverter {
           return Integer.toString((Integer) object);
         } else if (object instanceof Long) {
           return Long.toString((Long) object);
+        } else if (object instanceof BigDecimal) {
+          return object.toString();
         } else if (object instanceof byte[]) {
           return Bytes.toString((byte[]) object);
         } else if (object instanceof Boolean) {
@@ -201,8 +214,30 @@ public final class ColumnConverter {
           return ((Integer) object).floatValue();
         } else if (object instanceof Long) {
           return ((Long) object).floatValue();
+        } else if (object instanceof BigDecimal) {
+          return ((BigDecimal) object).floatValue();
         } else if (object instanceof byte[]) {
           return Bytes.toFloat((byte[]) object);
+        } else {
+          return object;
+        }
+      }
+
+      case "DECIMAL": {
+        if (object instanceof String) {
+          return new BigDecimal((String) object);
+        } else if (object instanceof Integer) {
+          return BigDecimal.valueOf((Integer) object);
+        } else if (object instanceof Short) {
+          return BigDecimal.valueOf((Short) object);
+        } else if (object instanceof Long) {
+          return BigDecimal.valueOf((Long) object);
+        } else if (object instanceof Float) {
+          return BigDecimal.valueOf((Float) object);
+        } else if (object instanceof Double) {
+          return BigDecimal.valueOf((Double) object);
+        } else if (object instanceof byte[]) {
+          return Bytes.toBigDecimal((byte[]) object);
         } else {
           return object;
         }
@@ -223,6 +258,8 @@ public final class ColumnConverter {
           return ((Long) object).doubleValue();
         } else if (object instanceof byte[]) {
           return Bytes.toDouble((byte[]) object);
+        } else if (object instanceof BigDecimal) {
+          return ((BigDecimal) object).doubleValue();
         } else {
           return object;
         }
@@ -241,6 +278,8 @@ public final class ColumnConverter {
           return Bytes.toBytes((Integer) object);
         } else if (object instanceof Long) {
           return Bytes.toBytes((Long) object);
+        } else if (object instanceof BigDecimal) {
+          return Bytes.toBytes((BigDecimal) object);
         } else if (object instanceof byte[]) {
           return object;
         } else {
@@ -251,7 +290,7 @@ public final class ColumnConverter {
       default:
         throw new DirectiveExecutionException(String.format(
           "Column '%s' is of unsupported type '%s'. Supported types are: " +
-            "int, short, long, double, boolean, string, bytes", col, toType));
+            "int, short, long, double, decimal, boolean, string, bytes", col, toType));
     }
   }
 }

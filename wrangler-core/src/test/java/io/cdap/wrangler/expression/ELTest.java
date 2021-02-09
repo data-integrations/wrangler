@@ -19,7 +19,10 @@ package io.cdap.wrangler.expression;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,5 +66,140 @@ public class ELTest {
     ctx.add("token", token);
     ELResult execute = el.execute(ctx);
     Assert.assertEquals(true, execute.getBoolean());
+  }
+
+  @Test
+  public void testDecimalTransform() throws Exception {
+    BigDecimal bd = new BigDecimal("123456789.123456789");
+    int n = 2;
+
+    List<String> directives = new ArrayList<>();
+    directives.add("precision");
+    directives.add("abs");
+    directives.add("scale");
+    directives.add("unscaled");
+    directives.add("negate");
+    directives.add("strip_zero");
+    directives.add("sign");
+
+    List<String> directives2 = new ArrayList<>();
+    directives2.add("pow");
+    directives2.add("decimal_left");
+    directives2.add("decimal_right");
+    directives2.add("add");
+    directives2.add("subtract");
+    directives2.add("multiply");
+    directives2.add("divideq");
+    directives2.add("divider");
+
+    for (String directive : directives) {
+      EL el = new EL(new EL.DefaultFunctions());
+
+      el.compile(String.format("decimal:%s(a)", directive));
+      ELResult execute = el.execute(new ELContext().add("a", bd));
+
+      Assert.assertNotNull(execute);
+
+      switch (directive) {
+        case "abs":
+          Assert.assertEquals(bd.abs(), execute.getObject());
+          break;
+        case "scale":
+          Assert.assertEquals(bd.scale(), execute.getObject());
+          break;
+        case "unscaled":
+          Assert.assertEquals(bd.unscaledValue(), execute.getObject());
+          break;
+        case "precision":
+          Assert.assertEquals(bd.precision(), execute.getObject());
+          break;
+        case "negate":
+          Assert.assertEquals(bd.negate(), execute.getObject());
+          break;
+        case "strip_zero":
+          Assert.assertEquals(bd.stripTrailingZeros(), execute.getObject());
+          break;
+        case "sign":
+          Assert.assertEquals(bd.signum(), execute.getObject());
+          break;
+      }
+    }
+
+    for (String directive : directives2) {
+      EL el = new EL(new EL.DefaultFunctions());
+
+      el.compile(String.format("decimal:%s(a, b)", directive));
+      ELResult execute = el.execute(new ELContext().add("a", bd).add("b", n));
+
+      Assert.assertNotNull(execute);
+
+      switch (directive) {
+        case "pow":
+          Assert.assertEquals(bd.pow(n), execute.getObject());
+          break;
+        case "decimal_left":
+          Assert.assertEquals(new BigDecimal("1234567.89123456789"), execute.getObject());
+          break;
+        case "decimal_right":
+          Assert.assertEquals(new BigDecimal("12345678912.3456789"), execute.getObject());
+          break;
+        case "add":
+          Assert.assertEquals(bd.add(BigDecimal.valueOf(n)), execute.getObject());
+          break;
+        case "subtract":
+          Assert.assertEquals(bd.subtract(BigDecimal.valueOf(n)), execute.getObject());
+          break;
+        case "multiply":
+          Assert.assertEquals(bd.multiply(BigDecimal.valueOf(n)), execute.getObject());
+          break;
+        case "divideq":
+          Assert.assertEquals(bd.divide(BigDecimal.valueOf(n), BigDecimal.ROUND_HALF_EVEN), execute.getObject());
+          break;
+        case "divider":
+          Assert.assertEquals(bd.remainder(BigDecimal.valueOf(n)), execute.getObject());
+          break;
+      }
+    }
+  }
+
+  @Test
+  public void testArithmeticOperations() throws Exception {
+    EL el = new EL(new EL.DefaultFunctions());
+    BigDecimal bd1 = new BigDecimal("123.123");
+    BigDecimal bd2 = new BigDecimal("456.456");
+    Integer i1 = 123;
+    Integer i2 = 456;
+    Double d1 = 123.123d;
+    Double d2 = 456.456d;
+    Float f1 = 123.123f;
+    Float f2 = 456.456f;
+
+    el.compile("arithmetic:add(a,b)");
+    ELResult execute = el.execute(new ELContext().add("a", bd1).add("b", bd2));
+    Assert.assertEquals(bd1.add(bd2), execute.getObject());
+    el.compile("arithmetic:minus(a,b)");
+    execute = el.execute(new ELContext().add("a", f1).add("b", f2));
+    Assert.assertEquals(f1 - f2, execute.getObject());
+    el.compile("arithmetic:multiply(a,b)");
+    execute = el.execute(new ELContext().add("a", d1).add("b", d2));
+    Assert.assertEquals(d1 * d2, execute.getObject());
+    el.compile("arithmetic:divideq(a,b)");
+    execute = el.execute(new ELContext().add("a", bd1).add("b", bd2));
+    Assert.assertEquals(bd1.divide(bd2, BigDecimal.ROUND_HALF_EVEN).stripTrailingZeros(), execute.getObject());
+    el.compile("arithmetic:divider(a,b)");
+    execute = el.execute(new ELContext().add("a", i1).add("b", i2));
+    Assert.assertEquals(i1 % i2, execute.getObject());
+    el.compile("arithmetic:lcm(a,b)");
+    execute = el.execute(new ELContext().add("a", bd1).add("b", bd2));
+    Assert.assertEquals(new BigDecimal("18714.696"), execute.getObject());
+    el.compile("arithmetic:equal(a,b)");
+    execute = el.execute(new ELContext().add("a", i1).add("b", i2));
+    Assert.assertEquals(false, execute.getObject());
+    el.compile("arithmetic:max(a,b)");
+    execute = el.execute(new ELContext().add("a", f1).add("b", f2));
+    Assert.assertEquals(f2, execute.getObject());
+    el.compile("arithmetic:min(a,b)");
+    execute = el.execute(new ELContext().add("a", d1).add("b", d2));
+    Assert.assertEquals(d1, execute.getObject());
   }
 }
