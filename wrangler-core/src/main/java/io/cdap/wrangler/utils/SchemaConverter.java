@@ -48,18 +48,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
- * Json to Schema translates a JSON string into a {@link Schema} schema.
- *
- * This class takes in JSON as a string or parsed JSON as {@link JsonElement} and converts it to the
- * {@link Schema}. It's recursive in nature and it creates multi-level of {@link Schema}.
+ * This class provides functionality to retrieve  {@link Schema} from a row or an object.
  */
-public final class Json2Schema {
-  // Parser to parse json if provided as string.
-  private final JsonParser parser;
-
-  public Json2Schema() {
-    this.parser = new JsonParser();
-  }
+public final class SchemaConverter {
 
   /**
    * Generates a {@link Schema} given a row.
@@ -89,8 +80,15 @@ public final class Json2Schema {
     return Schema.recordOf(id, fields);
   }
 
+  /**
+   * Get the schema of the given object
+   *
+   * @param value the value to retrieve schema
+   * @param name name of the field
+   * @return the schema of this object
+   */
   @Nullable
-  private Schema getSchema(Object value, String name) throws RecordConvertorException {
+  public Schema getSchema(Object value, String name) throws RecordConvertorException {
     // First, we check if object is of simple type.
     if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Short ||
       value instanceof Double || value instanceof Float || value instanceof Boolean || value instanceof byte[] ||

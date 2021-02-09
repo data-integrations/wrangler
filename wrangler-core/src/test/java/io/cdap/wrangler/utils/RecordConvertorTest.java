@@ -25,7 +25,6 @@ import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.Row;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -87,10 +86,10 @@ public class RecordConvertorTest {
     rows = TestingRig.execute(directives, rows);
     Row row = createUberRecord(rows);
 
-    Json2Schema json2Schema = new Json2Schema();
+    SchemaConverter schemaConvertor = new SchemaConverter();
     RecordConvertor convertor = new RecordConvertor();
 
-    Schema schema = json2Schema.toSchema("superrecord", row);
+    Schema schema = schemaConvertor.toSchema("superrecord", row);
     List<StructuredRecord> outputs = convertor.toStructureRecord(rows, schema);
 
     Assert.assertEquals(1, outputs.size());
