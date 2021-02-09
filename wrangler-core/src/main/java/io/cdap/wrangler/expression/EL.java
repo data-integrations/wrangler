@@ -75,9 +75,11 @@ public final class EL {
       // So instead use info object to get information about error message and create custom error message.
       JexlInfo info = e.getInfo();
       throw new ELException(
-        String.format("Error encountered while executing '%s' at line '%d' and column '%d'. " +
+        String.format("Error encountered while compiling '%s' at line '%d' and column '%d'. " +
                         "Make sure a valid jexl transformation is provided.",
-                      info.getDetail().toString(), info.getLine(), info.getColumn()), e);
+                      // here the detail can be null since there are multiple subclasses which extends this
+                      // JexlException, not all of them has this detail information
+                      info.getDetail() == null ? expression : info.getDetail(), info.getLine(), info.getColumn()), e);
     } catch (Exception e) {
       throw new ELException(e);
     }
@@ -106,7 +108,10 @@ public final class EL {
       throw new ELException(
         String.format("Error encountered while executing '%s', at line '%d' and column '%d'. " +
                         "Make sure a valid jexl transformation is provided.",
-                      info.getDetail().toString(), info.getLine(), info.getColumn()), e);
+                      // here the detail can be null since there are multiple subclasses which extends this
+                      // JexlException, not all of them has this detail information
+                      info.getDetail() == null ? script.getSourceText() : info.getDetail(),
+                      info.getLine(), info.getColumn()), e);
     } catch (NumberFormatException e) {
       throw new ELException("Type mismatch. Change type of constant " +
                               "or convert to right data type using conversion functions available. Reason : "
