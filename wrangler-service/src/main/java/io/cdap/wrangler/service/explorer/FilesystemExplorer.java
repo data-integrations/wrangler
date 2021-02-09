@@ -115,14 +115,16 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       if (header.equalsIgnoreCase("text/plain") || header.contains("text/")) {
         sample = loadSampleableFile(ns, scope, path, lines, fraction, sampler);
       } else if (header.equalsIgnoreCase("application/xml")) {
-        sample = loadFile(ns, scope, path, DataType.RECORDS);
+        // using BLOB to read xml file as it needs to read the entire content
+        sample = loadFile(ns, scope, path, DataType.RECORDS, Format.BLOB);
       } else if (header.equalsIgnoreCase("application/json")) {
-        sample = loadFile(ns, scope, path, DataType.TEXT);
+        // using TEXT format here since wrangler uses its own directive to parse json
+        sample = loadFile(ns, scope, path, DataType.TEXT, Format.TEXT);
       } else if (header.equalsIgnoreCase("application/avro")
         || header.equalsIgnoreCase("application/protobuf")
         || header.equalsIgnoreCase("application/excel")
         || header.contains("image/")) {
-        sample = loadFile(ns, scope, path, DataType.BINARY);
+        sample = loadFile(ns, scope, path, DataType.BINARY, Format.BLOB);
       } else {
         throw new BadRequestException("Currently doesn't support wrangling of this type of file.");
       }
@@ -172,7 +174,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
   }
 
   private FileConnectionSample loadFile(Namespace namespace, String scope, String path,
-                                        DataType type) throws ExplorerException, IOException {
+                                        DataType type, Format format) throws ExplorerException, IOException {
     Location location = explorer.getLocation(path);
     if (!location.exists()) {
       throw new BadRequestException(String.format("%s (No such file)", path));
@@ -190,7 +192,6 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
     properties.put(PropertyIds.FILE_PATH, location.toURI().getPath());
     properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.FILE.getType());
     properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.NONE.getMethod());
-    Format format = type == DataType.BINARY ? Format.BLOB : Format.TEXT;
     properties.put(PropertyIds.FORMAT, format.name());
     WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(name)
       .setScope(scope)
