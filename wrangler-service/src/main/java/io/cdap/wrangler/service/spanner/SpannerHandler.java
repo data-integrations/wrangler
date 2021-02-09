@@ -54,6 +54,7 @@ import io.cdap.wrangler.proto.spanner.SpannerTable;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.gcp.GCPUtils;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.ReferenceNames;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -231,7 +232,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
       SpannerSpecification conf =
         GSON.fromJson(config.get(PropertyIds.PLUGIN_SPECIFICATION), SpannerSpecification.class);
       Map<String, String> properties = new HashMap<>();
-      properties.put("referenceName", conf.getReferenceName());
+      properties.put("referenceName", ReferenceNames.cleanseReferenceName(conf.getReferenceName()));
       properties.put("serviceFilePath", conf.getServiceFilePath());
       properties.put("project", conf.getProject());
       properties.put("instance", conf.getInstance());
