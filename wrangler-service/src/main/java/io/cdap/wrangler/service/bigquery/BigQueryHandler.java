@@ -63,6 +63,7 @@ import io.cdap.wrangler.proto.connection.ConnectionType;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.gcp.GCPUtils;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.ReferenceNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -279,7 +280,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
       Map<String, String> properties = new HashMap<>();
       String externalDatasetName =
         new StringJoiner(".").add(config.get(DATASET_ID)).add(config.get(TABLE_ID)).toString();
-      properties.put("referenceName", externalDatasetName);
+      properties.put("referenceName", ReferenceNames.cleanseReferenceName(externalDatasetName));
       properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
       properties.put("bucket", config.get(BUCKET));
       properties.put("project", config.get(GCPUtils.PROJECT_ID));

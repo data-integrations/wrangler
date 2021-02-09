@@ -56,6 +56,7 @@ import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.common.Format;
 import io.cdap.wrangler.service.gcp.GCPUtils;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.ReferenceNames;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -386,11 +387,11 @@ public class GCSHandler extends AbstractWranglerHandler {
         String uri = config.get(PropertyIds.URI);
         String[] parts = uri.split("/");
         String filename = parts[parts.length - 1];
-        String externalDatasetName = new StringJoiner(".").add(config.get("bucket")).add(filename).toString();
+        String externalFileName = new StringJoiner(".").add(config.get("bucket")).add(filename).toString();
 
         Map<String, String> properties = new HashMap<>();
         properties.put("format", format.name().toLowerCase());
-        properties.put("referenceName", externalDatasetName);
+        properties.put("referenceName", ReferenceNames.cleanseReferenceName(externalFileName));
         properties.put("serviceFilePath", connection.getProperties().get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
         properties.put("project", GCPUtils.getProjectId(connection));
         properties.put("path", uri);

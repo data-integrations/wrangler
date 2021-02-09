@@ -40,6 +40,7 @@ import io.cdap.wrangler.proto.connection.ConnectionType;
 import io.cdap.wrangler.proto.kafka.KafkaSpec;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.ReferenceNames;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -198,7 +199,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
 
       Map<String, String> properties = new HashMap<>();
       properties.put("topic", topic);
-      properties.put("referenceName", topic);
+      properties.put("referenceName", ReferenceNames.cleanseReferenceName(topic));
       properties.put("brokers", connProperties.get(PropertyIds.BROKER));
       properties.put("kafkaBrokers", connProperties.get(PropertyIds.BROKER));
       properties.put("keyField", connProperties.get(PropertyIds.KEY_DESERIALIZER));

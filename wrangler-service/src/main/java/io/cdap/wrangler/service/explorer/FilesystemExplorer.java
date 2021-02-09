@@ -45,6 +45,7 @@ import io.cdap.wrangler.sampling.Reservoir;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.common.Format;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.ReferenceNames;
 import org.apache.twill.filesystem.Location;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -160,7 +161,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
         properties.put("format", format.name().toLowerCase());
         Location location = explorer.getLocation(path);
         properties.put("path", location.toURI().toString());
-        properties.put("referenceName", location.getName());
+        properties.put("referenceName", ReferenceNames.cleanseReferenceName(location.getName()));
         properties.put("ignoreNonExistingFolders", "false");
         properties.put("recursive", "false");
         properties.put("copyHeader", String.valueOf(shouldCopyHeader(ws, namespacedId)));
