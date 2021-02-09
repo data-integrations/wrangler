@@ -50,6 +50,7 @@ import io.cdap.wrangler.proto.db.JDBCDriverInfo;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.macro.ServiceMacroEvaluator;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.ReferenceNames;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
@@ -496,7 +497,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
 
       Map<String, String> properties = new HashMap<>();
       properties.put("connectionString", conn.getProperties().get("url"));
-      properties.put("referenceName", table);
+      properties.put("referenceName", ReferenceNames.cleanseReferenceName(table));
       properties.put("user", conn.getProperties().get("username"));
       properties.put("password", conn.getProperties().get("password"));
       properties.put("importQuery", String.format("SELECT * FROM %s WHERE $CONDITIONS", table));

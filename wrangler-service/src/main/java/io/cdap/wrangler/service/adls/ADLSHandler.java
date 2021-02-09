@@ -59,6 +59,7 @@ import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.common.Format;
 import io.cdap.wrangler.service.explorer.BoundedLineInputStream;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.ReferenceNames;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -412,7 +413,7 @@ public class ADLSHandler extends AbstractWranglerHandler {
       properties.put("format", format.name().toLowerCase());
       String pathURI = "adl://" + adlsConfiguration.getAccountFQDN() + path;
       properties.put("path", pathURI);
-      properties.put("referenceName", refName);
+      properties.put("referenceName", ReferenceNames.cleanseReferenceName(refName));
       properties.put("credentials", adlsConfiguration.getClientKey());
       properties.put("clientId", adlsConfiguration.getADLSClientID());
       properties.put("refreshTokenURL", adlsConfiguration.getEndpointURL());
