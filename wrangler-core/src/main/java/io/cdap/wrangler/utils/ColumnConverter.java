@@ -28,26 +28,33 @@ public final class ColumnConverter {
   }
 
   /**
-   * Renames a column.
+   * Renames a column. The renamed column must not exist in the row. The comparision is case insensitive.
    *
    * @param row source record to be modified.
    * @param column name of the column within source record.
    * @param toName the target name of the column.
-   * @throws DirectiveExecutionException when a column matching the target name already exists.
+   * @throws DirectiveExecutionException when a column matching the target name already exists or the given column
+   * does not exist
    */
   public static void rename(String directiveName, Row row, String column, String toName)
     throws DirectiveExecutionException {
     int idx = row.find(column);
     int existingColumn = row.find(toName);
-    if (idx != -1) {
-      if (existingColumn == -1) {
-        row.setColumn(idx, toName);
-      } else {
-        throw new DirectiveExecutionException(
-          directiveName, String.format("Column '%s' already exists. Apply the 'drop %s' directive before " +
-                                         "renaming '%s' to '%s'.",
-                                       toName, toName, column, toName));
-      }
+    if (idx == -1) {
+      throw new DirectiveExecutionException(
+        directiveName, String.format("Column '%s' does not exist. Please add the column '%s' before " +
+                                       "renaming '%s' to '%s'.",
+                                     column, column, column, toName));
+    }
+
+    // if the idx are the same, this means the renamed column is same with the original column except the casing
+    if (existingColumn == -1 || idx == existingColumn) {
+      row.setColumn(idx, toName);
+    } else {
+      throw new DirectiveExecutionException(
+        directiveName, String.format("Column '%s' already exists. Apply the 'drop %s' directive before " +
+                                       "renaming '%s' to '%s'.",
+                                     toName, toName, column, toName));
     }
   }
 
