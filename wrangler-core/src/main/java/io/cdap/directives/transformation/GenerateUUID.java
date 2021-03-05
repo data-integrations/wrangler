@@ -70,7 +70,7 @@ public class GenerateUUID implements Directive, Lineage {
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
       int idx = row.find(column);
-      UUID uuid = new UUID(random.nextLong(), random.nextLong());
+      UUID uuid = UUID.randomUUID();
       if (idx != -1) {
         row.setValue(idx, uuid.toString());
       } else {
