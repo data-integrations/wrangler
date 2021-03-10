@@ -35,6 +35,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -112,17 +113,34 @@ public final class RecordConvertor implements Serializable {
   private Object decode(String name, Object object, Schema schema) throws RecordConvertorException {
     // Extract the type of the field.
     Schema.Type type = schema.getType();
-    Schema.LogicalType logicalType = schema.getLogicalType();
+    Schema.LogicalType logicalType =
+        schema.isNullable() ? schema.getNonNullable().getLogicalType() :
+            schema.getLogicalType();
 
     if (logicalType != null) {
       switch (logicalType) {
+        case DATETIME:
+          if (schema.isNullable() && object == null || object instanceof LocalDateTime) {
+            return object;
+          }
+          if (object == null) {
+            throw new UnexpectedFormatException(
+                String.format("Datetime field %s should have a non null value", name));
+          }
+          try {
+            LocalDateTime.parse((String) object);
+          } catch (DateTimeParseException exception) {
+            throw new UnexpectedFormatException(
+                String.format("Datetime field '%s' with value '%s' is not in ISO-8601 format.",
+                    name, object), exception);
+          }
+          return object;
         case DATE:
         case TIME_MILLIS:
         case TIME_MICROS:
         case TIMESTAMP_MILLIS:
         case TIMESTAMP_MICROS:
         case DECIMAL:
-        case DATETIME:
           return object;
         default:
           throw new UnexpectedFormatException("field type " + logicalType + " is not supported.");

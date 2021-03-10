@@ -82,6 +82,7 @@ These directives are currently available:
 | [Parse as Simple Date](wrangler-docs/directives/parse-as-simple-date.md)        | Parses date strings                                              |
 | [Parse XML To JSON](wrangler-docs/directives/parse-xml-to-json.md)              | Parses an XML document into a JSON structure                     |
 | [Parse as Currency](wrangler-docs/directives/parse-as-currency.md)              | Parses a string representation of currency into a number.        |
+| [Parse as Datetime](wrangler-docs/directives/parse-as-datetime.md)              | Parses strings with datetime values to CDAP datetime type        |
 | **Output Formatters**                                                  |                                                                  |
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
@@ -115,6 +116,11 @@ These directives are currently available:
 | [Diff Date](wrangler-docs/directives/diff-date.md)                              | Calculates the difference between two dates                      |
 | [Format Date](wrangler-docs/directives/format-date.md)                          | Custom patterns for date-time formatting                         |
 | [Format Unix Timestamp](wrangler-docs/directives/format-unix-timestamp.md)      | Formats a UNIX timestamp as a date                               |
+| **DateTime Transformations**                                                    |                                                                  |
+| [Current DateTime](wrangler-docs/directives/current-datetime.md)                | Generates the current datetime using the given zone or UTC by default|
+| [Datetime To Timestamp](wrangler-docs/directives/datetime-to-timestamp.md)      | Converts a datetime value to timestamp with the given zone       |
+| [Format Datetime](wrangler-docs/directives/format-datetime.md)                  | Formats a datetime value to custom date time pattern strings     |
+| [Timestamp To Datetime](wrangler-docs/directives/timestamp-to-datetime.md)      | Converts a timestamp value to datetime                           |
 | **Lookups**                                                            |                                                                  |
 | [Catalog Lookup](wrangler-docs/directives/catalog-lookup.md)                    | Static catalog lookup of ICD-9, ICD-10-2016, ICD-10-2017 codes   |
 | [Table Lookup](wrangler-docs/directives/table-lookup.md)                        | Performs lookups into Table datasets                             |
