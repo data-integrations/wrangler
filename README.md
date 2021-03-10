@@ -110,7 +110,7 @@ These directives are currently available:
 | [Decode](wrangler-docs/directives/decode.md)                                    | Decodes a column value as one of `base32`, `base64`, or `hex`    |
 | [Encode](wrangler-docs/directives/encode.md)                                    | Encodes a column value as one of `base32`, `base64`, or `hex`    |
 | **Unique ID**                                                          |                                                                  |
-| [UUID Generation](wrangler-docs/directives/generate-uuid.md)                    | Generates a universally unique identifier (UUID)                 |
+| [UUID Generation](wrangler-docs/directives/generate-uuid.md)                    | Generates a universally unique identifier (UUID) .Recommended to use with Wrangler version 4.4.0 and above due to an important bug fix [CDAP-17732](https://cdap.atlassian.net/browse/CDAP-17732)             |
 | **Date Transformations**                                               |                                                                  |
 | [Diff Date](wrangler-docs/directives/diff-date.md)                              | Calculates the difference between two dates                      |
 | [Format Date](wrangler-docs/directives/format-date.md)                          | Custom patterns for date-time formatting                         |
