@@ -1,7 +1,7 @@
 # Generate UUID
 
 The GENERATE-UUID directive generates a universally unique identifier (UUID) of the record.
-
+**NOTE**: Recommended to use with Wrangler version 4.4.0 and above due to an important bug fix [CDAP-17732](https://cdap.atlassian.net/browse/CDAP-17732).
 
 ## Syntax
 ```
