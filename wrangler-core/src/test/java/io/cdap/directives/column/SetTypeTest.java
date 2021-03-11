@@ -23,6 +23,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -211,15 +213,17 @@ public class SetTypeTest {
 
   @Test
   public void testToString() throws Exception {
+    LocalDateTime now = LocalDateTime.now();
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000d)
         .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000f)
         .add("bytes_col", new byte[]{49, 48, 48, 48, 48}).add("decimal_col", new BigDecimal("10000"))
+        .add ("datetime_col", now)
     );
     String[] directives = new String[] {
       "set-type str_col string", "set-type int_col String", "set-type double_col STRING", "set-type short_col string",
       "set-type long_col String", "set-type float_col STRING", "set-type bytes_col string",
-      "set-type decimal_col STRING"
+      "set-type decimal_col STRING", "set-type datetime_col STRING"
     };
     List<Row> results = TestingRig.execute(directives, rows);
     Row row = results.get(0);
@@ -230,10 +234,28 @@ public class SetTypeTest {
       String value = (String) object;
       if (i == 2 || i == 5) {
         Assert.assertEquals("10000.0", value);
+      } else if (i == 8) {
+        Assert.assertEquals(now.toString(), value);
       } else {
         Assert.assertEquals("10000", value);
       }
     }
+  }
+
+  @Test
+  public void testTimestampToString() throws Exception {
+    ZonedDateTime zdt = ZonedDateTime.now();
+    List<Row> rows = Collections.singletonList(
+        new Row("timestamp_col", zdt)
+    );
+    String[] directives = new String[] {
+        "set-type timestamp_col string"
+    };
+    List<Row> results = TestingRig.execute(directives, rows);
+    Row row = results.get(0);
+    Object object = row.getValue(0);
+    Assert.assertTrue(object instanceof String);
+    Assert.assertEquals(zdt.toString(), object);
   }
 
   @Test
