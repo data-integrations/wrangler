@@ -92,7 +92,7 @@ public class ParseDateTimeTest {
     TestingRig.execute(directives, Collections.singletonList(row1));
   }
 
-  @Test(expected = RecipeException.class)
+  @Test
   public void testInvalidData() throws Exception {
     String pattern = "MM/dd/yyyy HH:mm";
     String colName = "col1";
@@ -102,6 +102,8 @@ public class ParseDateTimeTest {
     };
     Row row1 = new Row();
     row1.add(colName, datetime1);
-    TestingRig.execute(directives, Collections.singletonList(row1));
+    final List<Row> results = TestingRig.execute(directives, Collections.singletonList(row1));
+    //should be error collected
+    Assert.assertTrue(results.isEmpty());
   }
 }
