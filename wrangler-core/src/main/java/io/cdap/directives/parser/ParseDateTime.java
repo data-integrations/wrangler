@@ -20,8 +20,8 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -31,6 +31,7 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -73,7 +74,7 @@ public class ParseDateTime implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) throws ErrorRowException {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx == -1) {
@@ -89,11 +90,8 @@ public class ParseDateTime implements Directive, Lineage {
         LocalDateTime localDateTime = LocalDateTime.parse(value.toString(), formatter);
         row.setValue(idx, localDateTime);
       } catch (DateTimeParseException exception) {
-        throw new DirectiveExecutionException(NAME,
-            String.format(
-                "Value '%s' for column '%s' should be in format '%s' "
-                    + "and should have a date and time component.",
-                value.toString(), column, format), exception);
+        throw new ErrorRowException(NAME, String.format("Value %s for column %s is not in expected format %s",
+                                                        value.toString(), column, format), 2, exception);
       }
     }
     return rows;
