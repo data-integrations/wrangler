@@ -90,7 +90,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String APPLICATION_NAME = "dataprep";
   private static final String SERVICE_NAME = "service";
   private static final String CONFIG_METHOD = "config";
-  private static final String ON_ERROR_DEFAULT = "send-to-error-port";
+  private static final String ON_ERROR_DEFAULT = "fail-pipeline";
+  private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
 
   // Plugin configuration.
   private final Config config;
@@ -112,6 +113,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
   // Directive registry.
   private DirectiveRegistry registry;
+
+  // on error strategy
+  private String onErrorStrategy;
 
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
@@ -320,6 +324,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       );
     }
 
+    String defaultStrategy = context.getArguments().get(ERROR_STRATEGY_DEFAULT);
+    onErrorStrategy = (defaultStrategy != null && config.onError == null) ? defaultStrategy : config.getOnError();
     // Initialize the error counter.
     errorCounter = 0;
   }
@@ -386,13 +392,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     } catch (Exception e) {
       getContext().getMetrics().count("failure", 1);
-      if (config.getOnError().equalsIgnoreCase("send-to-error-port")) {
+      if (onErrorStrategy.equalsIgnoreCase("send-to-error-port")) {
         // Emit error record, if the Error flattener or error handlers are not connected, then
         // the record is automatically omitted.
         emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
         return;
       }
-      if (config.getOnError().equalsIgnoreCase("fail-pipeline")) {
+      if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
         emitter.emitAlert(ImmutableMap.of(
           "stage", getContext().getStageName(),
           "code", String.valueOf(1),
