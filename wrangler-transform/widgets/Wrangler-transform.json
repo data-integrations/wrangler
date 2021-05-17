@@ -55,7 +55,7 @@
           "widget-type": "radio-group",
           "widget-attributes": {
             "layout": "block",
-            "default": "skip-error",
+            "default": "fail-pipeline",
             "options": [
               {
                 "id": "skip-error",
