@@ -90,7 +90,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String APPLICATION_NAME = "dataprep";
   private static final String SERVICE_NAME = "service";
   private static final String CONFIG_METHOD = "config";
-  private static final String ON_ERROR_DEFAULT = "send-to-error-port";
+  private static final String ON_ERROR_DEFAULT = "fail-pipeline";
+  private static final String ON_ERROR_OLD_DEFAULT = "send-to-error-port";
 
   // Plugin configuration.
   private final Config config;
@@ -555,21 +556,30 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Nullable
     private final String onError;
 
+    // this is a hidden property which preserves some sort of 6.3 backward compatibility,
+    // if any user wants the "send-to-error-port" default, they can use this flag, but it won't be shown in UI.
+    private final Boolean keepOldErrorDefault;
+
     public Config(String precondition, String directives, String udds,
-                  String field, String schema, String onError) {
+                  String field, String schema, String onError, Boolean keepOldErrorDefault) {
       this.precondition = precondition;
       this.directives = directives;
       this.udds = udds;
       this.field = field;
       this.schema = schema;
       this.onError = onError;
+      this.keepOldErrorDefault = keepOldErrorDefault;
     }
 
     /**
      * @return if on-error is not specified returns default, else value.
      */
     public String getOnError() {
-      return onError == null ? ON_ERROR_DEFAULT : onError;
+      return onError == null ? (keepOldErrorDefault() ? ON_ERROR_OLD_DEFAULT : ON_ERROR_DEFAULT) : onError;
+    }
+
+    private boolean keepOldErrorDefault() {
+      return keepOldErrorDefault == null ? false : keepOldErrorDefault;
     }
   }
 }

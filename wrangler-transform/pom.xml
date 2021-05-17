@@ -65,6 +65,18 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-spark-core2_2.11</artifactId>
+      <version>${cdap.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-data-pipeline2_2.11</artifactId>
+      <version>${cdap.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
