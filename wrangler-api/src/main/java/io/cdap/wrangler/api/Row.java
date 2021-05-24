@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Row defines the schema and data on which the wrangler will operate upon.
@@ -230,5 +231,24 @@ public final class Row implements Serializable {
         values.add(index, value);
       }
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Row row = (Row) o;
+    return Objects.equals(columns, row.columns) &&
+             Objects.equals(values, row.values);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(columns, values);
   }
 }
