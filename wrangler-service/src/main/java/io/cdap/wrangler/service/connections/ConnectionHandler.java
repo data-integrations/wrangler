@@ -58,6 +58,7 @@ import javax.ws.rs.QueryParam;
 /**
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
  */
+@Deprecated
 public class ConnectionHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ConnectionHandler.class);
   private static final String CONNECTION_TYPE_CONFIG = "connectionTypeConfig";

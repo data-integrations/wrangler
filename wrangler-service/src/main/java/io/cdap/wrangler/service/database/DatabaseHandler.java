@@ -92,6 +92,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Class description here.
  */
+@Deprecated
 public class DatabaseHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseHandler.class);
   private static final List<String> MACRO_FIELDS = ImmutableList.of("username", "password");

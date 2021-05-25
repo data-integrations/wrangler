@@ -33,7 +33,6 @@ import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
-import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
@@ -45,16 +44,9 @@ import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRecordBase;
-import io.cdap.wrangler.api.ExecutorContext;
-import io.cdap.wrangler.api.GrammarMigrator;
-import io.cdap.wrangler.api.Pair;
-import io.cdap.wrangler.api.RecipeException;
-import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TokenGroup;
-import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.datamodel.DataModelGlossary;
@@ -63,22 +55,16 @@ import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
-import io.cdap.wrangler.executor.RecipePipelineExecutor;
-import io.cdap.wrangler.parser.ConfigDirectiveContext;
-import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.ConflictException;
-import io.cdap.wrangler.proto.ErrorRecordsException;
 import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.NotFoundException;
 import io.cdap.wrangler.proto.Request;
 import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.WorkspaceIdentifier;
 import io.cdap.wrangler.proto.connection.ConnectionType;
-import io.cdap.wrangler.proto.workspace.ColumnStatistics;
-import io.cdap.wrangler.proto.workspace.ColumnValidationResult;
 import io.cdap.wrangler.proto.workspace.DataModelInfo;
 import io.cdap.wrangler.proto.workspace.DirectiveArtifact;
 import io.cdap.wrangler.proto.workspace.DirectiveDescriptor;
@@ -87,20 +73,13 @@ import io.cdap.wrangler.proto.workspace.DirectiveUsage;
 import io.cdap.wrangler.proto.workspace.ModelInfo;
 import io.cdap.wrangler.proto.workspace.WorkspaceInfo;
 import io.cdap.wrangler.proto.workspace.WorkspaceSummaryResponse;
-import io.cdap.wrangler.proto.workspace.WorkspaceValidationResult;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
-import io.cdap.wrangler.service.common.AbstractWranglerHandler;
-import io.cdap.wrangler.statistics.BasicStatistics;
-import io.cdap.wrangler.statistics.Statistics;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.SchemaConverter;
-import io.cdap.wrangler.validator.ColumnNameValidator;
-import io.cdap.wrangler.validator.Validator;
-import io.cdap.wrangler.validator.ValidatorException;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -116,9 +95,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -138,15 +115,13 @@ import javax.ws.rs.QueryParam;
 /**
  * Service for managing workspaces and also application of directives on to the workspace.
  */
-public class DirectivesHandler extends AbstractWranglerHandler {
+@Deprecated
+public class DirectivesHandler extends AbstractDirectiveHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DirectivesHandler.class);
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final String resourceName = ".properties";
 
-  private static final String COLUMN_NAME = "body";
-  private static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
-  private static final String DELIMITER_HEADER = "delimiter";
   private static final String DATA_MODEL_PROPERTY = "dataModel";
   private static final String DATA_MODEL_REVISION_PROPERTY = "dataModelRevision";
   private static final String DATA_MODEL_MODEL_PROPERTY = "dataModelModel";
@@ -604,47 +579,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           return records.subList(0, min);
         });
 
-        List<Map<String, Object>> values = new ArrayList<>(rows.size());
-        Map<String, String> types = new HashMap<>();
-        Set<String> headers = new LinkedHashSet<>();
-        SchemaConverter convertor = new SchemaConverter();
-
-        // Iterate through all the new rows.
-        for (Row row : rows) {
-          // If output array has more than return result values, we terminate.
-          if (values.size() >= directiveRequest.getWorkspace().getResults()) {
-            break;
-          }
-
-          Map<String, Object> value = new HashMap<>(row.width());
-
-          // Iterate through all the fields of the row.
-          for (Pair<String, Object> field : row.getFields()) {
-            String fieldName = field.getFirst();
-            headers.add(fieldName);
-            Object object = field.getSecond();
-
-            if (object != null) {
-              Schema schema = convertor.getSchema(object, fieldName);
-              String type = object.getClass().getSimpleName();
-              if (schema != null) {
-                schema = schema.isNullable() ? schema.getNonNullable() : schema;
-                type = schema.getLogicalType() == null ? schema.getType().name() : schema.getLogicalType().name();
-                // for backward compatibility, make the characters except the first one to lower case
-                type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
-              }
-              types.put(fieldName, type);
-              if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
-                value.put(fieldName, object.toString());
-              } else {
-                value.put(fieldName, "Non-displayable object");
-              }
-            } else {
-              value.put(fieldName, null);
-            }
-          }
-          values.add(value);
-        }
+        io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionResponse response =
+          generateExecutionResponse(rows, directiveRequest.getWorkspace().getResults());
 
         // Save the recipes being executed.
         TransactionRunners.run(getContext(), context -> {
@@ -652,7 +588,8 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           ws.updateWorkspaceRequest(namespacedId, directiveRequest);
         });
 
-        return new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
+        return new DirectiveExecutionResponse(response.getValues(), response.getHeaders(), response.getTypes(),
+                                              directiveRequest.getRecipe().getDirectives());
       } catch (JsonParseException e) {
         throw new BadRequestException(e.getMessage(), e);
       }
@@ -738,61 +675,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
           return records.subList(0, min);
         });
 
-        // Validate Column names.
-        Validator<String> validator = new ColumnNameValidator();
-        validator.initialize();
-
-        // Iterate through columns to value a set
-        Set<String> uniqueColumns = new HashSet<>();
-        for (Row row : rows) {
-          for (int i = 0; i < row.width(); ++i) {
-            uniqueColumns.add(row.getColumn(i));
-          }
-        }
-
-        Map<String, ColumnValidationResult> columnValidationResults = new HashMap<>();
-        for (String name : uniqueColumns) {
-          try {
-            validator.validate(name);
-            columnValidationResults.put(name, new ColumnValidationResult(null));
-          } catch (ValidatorException e) {
-            columnValidationResults.put(name, new ColumnValidationResult(e.getMessage()));
-          }
-        }
-
-        // Generate General and Type related Statistics for each column.
-        Statistics statsGenerator = new BasicStatistics();
-        Row summary = statsGenerator.aggregate(rows);
-
-        Row stats = (Row) summary.getValue("stats");
-        Row types = (Row) summary.getValue("types");
-
-        List<Pair<String, Object>> fields = stats.getFields();
-        Map<String, ColumnStatistics> statistics = new HashMap<>();
-        for (Pair<String, Object> field : fields) {
-          List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-          Map<String, Float> generalStats = new HashMap<>();
-          for (Pair<String, Double> value : values) {
-            generalStats.put(value.getFirst(), value.getSecond().floatValue() * 100);
-          }
-          ColumnStatistics columnStatistics = new ColumnStatistics(generalStats, null);
-          statistics.put(field.getFirst(), columnStatistics);
-        }
-
-        fields = types.getFields();
-        for (Pair<String, Object> field : fields) {
-          List<Pair<String, Double>> values = (List<Pair<String, Double>>) field.getSecond();
-          Map<String, Float> typeStats = new HashMap<>();
-          for (Pair<String, Double> value : values) {
-            typeStats.put(value.getFirst(), value.getSecond().floatValue() * 100);
-          }
-          ColumnStatistics existingStats = statistics.get(field.getFirst());
-          Map<String, Float> generalStats = existingStats == null ? null : existingStats.getGeneral();
-          statistics.put(field.getFirst(), new ColumnStatistics(generalStats, typeStats));
-        }
-
-        WorkspaceValidationResult validationResult = new WorkspaceValidationResult(columnValidationResults, statistics);
-        return new WorkspaceSummaryResponse(validationResult);
+        return new WorkspaceSummaryResponse(getWorkspaceSummary(rows));
       } catch (JsonParseException | DirectiveParseException e) {
         throw new BadRequestException(e.getMessage(), e);
       }
@@ -1014,20 +897,7 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void capabilities(HttpServiceRequest request, HttpServiceResponder responder) {
     respond(request, responder, () -> {
-      ClassLoader loader = Thread.currentThread().getContextClassLoader();
-      Properties props = new Properties();
-      try (InputStream resourceStream = loader.getResourceAsStream(resourceName)) {
-        props.load(resourceStream);
-      } catch (IOException e) {
-        throw new IOException("There was problem reading the capability matrix. " +
-          "Please check the environment to ensure you have right verions of jar." + e.getMessage(), e);
-      }
-
-      Map<String, String> value = new HashMap<>();
-      for (String key : props.stringPropertyNames()) {
-        value.put(key, props.getProperty(key));
-      }
-      return new ServiceResponse<>(value);
+      return new ServiceResponse<>(PROJECT_PROPERTY_MAP);
     });
   }
 
@@ -1216,28 +1086,6 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   }
 
   /**
-   * Creates a uber record after iterating through all rows.
-   *
-   * @param rows list of all rows.
-   * @return A single record will rows merged across all columns.
-   */
-  private static Row createUberRecord(List<Row> rows) {
-    Row uber = new Row();
-    for (Row row : rows) {
-      for (int i = 0; i < row.width(); ++i) {
-        Object o = row.getValue(i);
-        if (o != null) {
-          int idx = uber.find(row.getColumn(i));
-          if (idx == -1) {
-            uber.add(row.getColumn(i), o);
-          }
-        }
-      }
-    }
-    return uber;
-  }
-
-  /**
    * Converts the data in workspace into records.
    *
    * @param workspace the workspace to get records from
@@ -1290,41 +1138,13 @@ public class DirectivesHandler extends AbstractWranglerHandler {
       throw new BadRequestException("Request is empty. Please check if the request is sent as HTTP POST body.");
     }
 
-    TransientStore store = new DefaultTransientStore();
     return TransactionRunners.run(getContext(), ctx -> {
       WorkspaceDataset ws = WorkspaceDataset.get(ctx);
 
       Workspace workspace = ws.getWorkspace(id);
       // Extract rows from the workspace.
       List<Row> rows = fromWorkspace(workspace);
-      // Execute the pipeline.
-      ExecutorContext context = new ServicePipelineContext(id.getNamespace().getName(),
-                                                           ExecutorContext.Environment.SERVICE, getContext(), store);
-      RecipePipelineExecutor executor = new RecipePipelineExecutor();
-      if (user.getRecipe().getDirectives().size() > 0) {
-        ConfigStore configStore = ConfigStore.get(ctx);
-        GrammarMigrator migrator = new MigrateToV2(user.getRecipe().getDirectives());
-        String migrate = migrator.migrate();
-        RecipeParser recipe = new GrammarBasedParser(id.getNamespace().getName(), migrate, composite);
-        recipe.initialize(new ConfigDirectiveContext(configStore.getConfig()));
-        try {
-          executor.initialize(recipe, context);
-          rows = executor.execute(sample.apply(rows));
-        } catch (RecipeException e) {
-          throw new BadRequestException(e.getMessage(), e);
-        }
-
-        List<ErrorRecordBase> errors = executor.errors()
-          .stream()
-          .filter(ErrorRecordBase::isShownInWrangler)
-          .collect(Collectors.toList());
-        if (errors.size() > 0) {
-          throw new ErrorRecordsException(errors);
-        }
-
-        executor.destroy();
-      }
-      return rows;
+      return executeDirectives(id.getNamespace().getName(), user.getRecipe().getDirectives(), sample.apply(rows));
     });
   }
 }

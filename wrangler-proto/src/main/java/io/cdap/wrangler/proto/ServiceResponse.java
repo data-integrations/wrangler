@@ -56,4 +56,16 @@ public class ServiceResponse<T> {
     this.values = values;
     this.truncated = Boolean.toString(truncated);
   }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public Integer getCount() {
+    return count;
+  }
+
+  public Collection<T> getValues() {
+    return values;
+  }
 }

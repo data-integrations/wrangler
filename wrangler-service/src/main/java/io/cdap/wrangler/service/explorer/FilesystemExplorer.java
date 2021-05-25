@@ -67,6 +67,7 @@ import javax.ws.rs.QueryParam;
  * A {@link FilesystemExplorer} is a HTTP Service handler for exploring the filesystem.
  * It provides capabilities for listing file(s) and directories. It also provides metadata.
  */
+@Deprecated
 public class FilesystemExplorer extends AbstractWranglerHandler {
   private Explorer explorer;
   private static final String COLUMN_NAME = "body";

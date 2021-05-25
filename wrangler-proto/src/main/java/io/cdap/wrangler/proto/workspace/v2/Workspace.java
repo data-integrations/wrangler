@@ -18,7 +18,9 @@
 package io.cdap.wrangler.proto.workspace.v2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
@@ -33,15 +35,19 @@ public class Workspace {
   private final long updatedTimeMillis;
   // this is null when the sample does not have a spec, currently only example is directly upload data to wrangler
   private final SampleSpec sampleSpec;
+  // this is here in case we want to have data model supported in the future
+  private final Map<String, String> properties;
 
   private Workspace(String workspaceName, String workspaceId, List<String> directives,
-                    long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec) {
+                    long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec,
+                    Map<String, String> properties) {
     this.workspaceName = workspaceName;
     this.workspaceId = workspaceId;
     this.directives = directives;
     this.createdTimeMillis = createdTimeMillis;
     this.updatedTimeMillis = updatedTimeMillis;
     this.sampleSpec = sampleSpec;
+    this.properties = properties;
   }
 
   public String getWorkspaceName() {
@@ -67,6 +73,10 @@ public class Workspace {
   @Nullable
   public SampleSpec getSampleSpec() {
     return sampleSpec;
+  }
+
+  public Map<String, String> getProperties() {
+    return properties;
   }
 
   @Override
@@ -113,11 +123,13 @@ public class Workspace {
     private long createdTimeMillis;
     private long updatedTimeMillis;
     private SampleSpec sampleSpec;
+    private Map<String, String> properties;
 
     Builder(String name, String workspaceId) {
       this.workspaceName = name;
       this.workspaceId = workspaceId;
       this.directives = new ArrayList<>();
+      this.properties = new HashMap<>();
     }
 
     public Builder setDirectives(List<String> directives) {
@@ -141,9 +153,15 @@ public class Workspace {
       return this;
     }
 
+    public Builder setProperties(Map<String, String> properties) {
+      this.properties.clear();
+      this.properties.putAll(properties);
+      return this;
+    }
+
     public Workspace build() {
       return new Workspace(workspaceName, workspaceId, directives, createdTimeMillis, updatedTimeMillis,
-                           sampleSpec);
+                           sampleSpec, properties);
     }
   }
 }

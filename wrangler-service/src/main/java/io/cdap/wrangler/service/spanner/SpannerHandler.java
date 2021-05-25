@@ -77,6 +77,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Spanner data prep connection service
  */
+@Deprecated
 public class SpannerHandler extends AbstractWranglerHandler {
   private static final String TABLE_NAME = "TableName";
   // Spanner queries for listing tables and listing schema of table are documented at

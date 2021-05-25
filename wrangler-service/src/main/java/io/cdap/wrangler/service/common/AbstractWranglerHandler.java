@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
@@ -162,6 +161,53 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
 
   /**
    * Utility method for executing an endpoint with common error handling and namespace checks built in.
+   *
+   * If the callable throws a {@link StatusCodeException}, the exception's status code and message will be used
+   * to create the response.
+   * If a {@link JsonSyntaxException} is thrown, a 400 response will be sent.
+   * If anything else if thrown, a 500 response will be sent.
+   * If nothing is thrown, the result of the callable will be sent as json.
+   *
+   * @param responder the http responder
+   * @param namespace the namespace to check for
+   * @param runnable the endpoint logic to run
+   */
+  protected void respond(HttpServiceResponder responder, String namespace,
+                         NamespacedResponderRunnable runnable) {
+    // system namespace does not officially exist, so don't check existence for system namespace.
+    NamespaceSummary namespaceSummary;
+    if (Contexts.SYSTEM.equals(namespace)) {
+      namespaceSummary = new NamespaceSummary(Contexts.SYSTEM, "", 0L);
+    } else {
+      try {
+        namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
+        if (namespaceSummary == null) {
+          responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
+                             new ServiceResponse<Void>(String.format("Namespace '%s' does not exist", namespace)));
+          return;
+        }
+      } catch (IOException e) {
+        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(e.getMessage()));
+        return;
+      }
+    }
+
+    try {
+      runnable.respond(namespaceSummary);
+    } catch (StatusCodeException e) {
+      responder.sendJson(e.getCode(), new ServiceResponse<>(e.getMessage()));
+    } catch (ErrorRecordsException e) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+                         new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
+    } catch (JsonSyntaxException e) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (Throwable t) {
+      responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getMessage()));
+    }
+  }
+
+  /**
+   * Utility method for executing an endpoint with common error handling and namespace checks built in.
    * A response will always be sent after this method is called so the http responder should not be used after this.
    * The endpoint logic should also not use the responder in any way.
    *
@@ -199,6 +245,7 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
     try {
       T results = callable.respond(new Namespace(namespaceSummary.getName(), namespaceSummary.getGeneration()));
       responder.sendJson(results);
+
     } catch (StatusCodeException e) {
       responder.sendJson(e.getCode(), new ServiceResponse<>(e.getMessage()));
     } catch (ErrorRecordsException e) {
@@ -219,5 +266,12 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    */
   protected interface NamespacedResponder<T> {
     T respond(Namespace namespace) throws Exception;
+  }
+
+  /**
+   * Responds to a request within a namespace.
+   */
+  protected interface NamespacedResponderRunnable {
+    void respond(NamespaceSummary namespace) throws Exception;
   }
 }
