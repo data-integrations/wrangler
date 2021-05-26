@@ -97,6 +97,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Service for testing, browsing, and reading using a BigQuery connection.
  */
+@Deprecated
 public class BigQueryHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(BigQueryHandler.class);
   private static final String DATASET_ID = "datasetId";

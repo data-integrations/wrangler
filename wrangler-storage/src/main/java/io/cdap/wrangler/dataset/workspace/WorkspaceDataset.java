@@ -61,6 +61,7 @@ import javax.annotation.Nullable;
  *
  * namespace, id, name, type, scope, created, updated, properties, data, and request
  */
+@Deprecated
 public class WorkspaceDataset {
   private static final Type MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
   private static final Gson GSON = new GsonBuilder()

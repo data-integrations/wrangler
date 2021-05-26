@@ -27,6 +27,7 @@ import io.cdap.wrangler.service.connections.ConnectionHandler;
 import io.cdap.wrangler.service.connections.ConnectionTypeConfig;
 import io.cdap.wrangler.service.database.DatabaseHandler;
 import io.cdap.wrangler.service.directive.DirectivesHandler;
+import io.cdap.wrangler.service.directive.WorkspaceHandler;
 import io.cdap.wrangler.service.explorer.FilesystemExplorer;
 import io.cdap.wrangler.service.gcs.GCSHandler;
 import io.cdap.wrangler.service.kafka.KafkaHandler;
@@ -69,5 +70,6 @@ public class DataPrepService extends AbstractSystemService {
     addHandler(new BigQueryHandler());
     addHandler(new SpannerHandler());
     addHandler(new DataModelHandler());
+    addHandler(new WorkspaceHandler());
   }
 }

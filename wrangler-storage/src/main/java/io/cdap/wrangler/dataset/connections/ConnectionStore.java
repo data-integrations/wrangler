@@ -55,6 +55,7 @@ import javax.annotation.Nullable;
  * The store is backed by a table with namespace, id, type, name, description, properties, created, and updated columns.
  * The primary key is the namespace and id.
  */
+@Deprecated
 public class ConnectionStore {
   private static final Gson GSON = new GsonBuilder()
     .registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();

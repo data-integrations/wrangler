@@ -61,6 +61,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Service for handling Kafka connections.
  */
+@Deprecated
 public final class KafkaHandler extends AbstractWranglerHandler {
 
   @POST

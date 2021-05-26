@@ -18,32 +18,35 @@
 package io.cdap.wrangler.proto.workspace.v2;
 
 import java.util.Objects;
-import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
- * Spec for the workspace sample
+ * An artifact.
  */
-public class SampleSpec {
-  private final String connectionName;
-  private final String path;
-  private final Set<StageSpec> relatedPlugins;
+public class Artifact {
+  private final String name;
+  private final String version;
+  private final String scope;
 
-  public SampleSpec(String connectionName, String path, Set<StageSpec> relatedPlugins) {
-    this.connectionName = connectionName;
-    this.path = path;
-    this.relatedPlugins = relatedPlugins;
+  public Artifact(String name, String version, String scope) {
+    this.name = name;
+    this.version = version;
+    this.scope = scope;
   }
 
-  public String getConnectionName() {
-    return connectionName;
+  @Nullable
+  public String getName() {
+    return name;
   }
 
-  public String getPath() {
-    return path;
+  @Nullable
+  public String getVersion() {
+    return version;
   }
 
-  public Set<StageSpec> getRelatedPlugins() {
-    return relatedPlugins;
+  @Nullable
+  public String getScope() {
+    return scope;
   }
 
   @Override
@@ -51,19 +54,17 @@ public class SampleSpec {
     if (this == o) {
       return true;
     }
-
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-
-    SampleSpec that = (SampleSpec) o;
-    return Objects.equals(connectionName, that.connectionName) &&
-             Objects.equals(path, that.path) &&
-             Objects.equals(relatedPlugins, that.relatedPlugins);
+    Artifact artifact = (Artifact) o;
+    return Objects.equals(name, artifact.name) &&
+             Objects.equals(version, artifact.version) &&
+             Objects.equals(scope, artifact.scope);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectionName, path, relatedPlugins);
+    return Objects.hash(name, version, scope);
   }
 }
