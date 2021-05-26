@@ -81,6 +81,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Service to explore ADLS Gen1 filesystem.
  */
+@Deprecated
 public class ADLSHandler extends AbstractWranglerHandler {
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;

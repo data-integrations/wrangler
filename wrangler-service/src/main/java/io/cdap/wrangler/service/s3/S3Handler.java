@@ -83,6 +83,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Service to explore S3 filesystem.
  */
+@Deprecated
 public class S3Handler extends AbstractWranglerHandler {
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;

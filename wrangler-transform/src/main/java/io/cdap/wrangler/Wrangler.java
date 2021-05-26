@@ -22,7 +22,6 @@ import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.format.StructuredRecord;
-import io.cdap.cdap.api.data.format.UnexpectedFormatException;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.api.plugin.PluginProperties;
@@ -62,6 +61,7 @@ import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
+import io.cdap.wrangler.utils.StructuredToRowTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -358,13 +358,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // Creates a row as starting point for input to the pipeline.
       Row row = new Row();
       if ("*".equalsIgnoreCase(config.field)) {
-        for (Schema.Field field : input.getSchema().getFields()) {
-          row.add(field.getName(), getValue(input, field.getName()));
-        }
+        row = StructuredToRowTransformer.transform(input);
       } else if ("#".equalsIgnoreCase(config.field)) {
         row.add(input.getSchema().getRecordName(), input);
       } else {
-        row.add(config.field, getValue(input, config.field));
+        row.add(config.field, StructuredToRowTransformer.getValue(input, config.field));
       }
 
       // If pre-condition is set, then evaluate the precondition
@@ -440,35 +438,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
       emitter.emit(builder.build());
     }
-  }
-
-  private Object getValue(StructuredRecord input, String fieldName) {
-    Schema fieldSchema = input.getSchema().getField(fieldName).getSchema();
-    fieldSchema = fieldSchema.isNullable() ? fieldSchema.getNonNullable() : fieldSchema;
-    Schema.LogicalType logicalType = fieldSchema.getLogicalType();
-
-    if (logicalType != null) {
-      switch (logicalType) {
-        case DATE:
-          return input.getDate(fieldName);
-        case TIME_MILLIS:
-        case TIME_MICROS:
-          return input.getTime(fieldName);
-        case TIMESTAMP_MILLIS:
-        case TIMESTAMP_MICROS:
-          return input.getTimestamp(fieldName);
-        case DECIMAL:
-          return input.getDecimal(fieldName);
-        case DATETIME:
-          return input.getDateTime(fieldName);
-        default:
-          throw new UnexpectedFormatException("Field type " + logicalType + " is not supported.");
-      }
-    }
-
-    // If the logical type is present in complex types, it will be retrieved as corresponding
-    // simple type (int/long).
-    return input.get(fieldName);
   }
 
   /**

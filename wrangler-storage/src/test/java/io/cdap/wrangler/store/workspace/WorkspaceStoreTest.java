@@ -20,7 +20,6 @@ package io.cdap.wrangler.store.workspace;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import io.cdap.cdap.api.NamespaceSummary;
-import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.test.SystemAppTestBase;
 import io.cdap.cdap.test.TestConfiguration;
@@ -78,9 +77,7 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
   public void testCRUD() {
     NamespaceSummary ns1 = new NamespaceSummary("n1", "", 10L);
     NamespaceSummary ns2 = new NamespaceSummary("n2", "", 10L);
-    SampleSpec dummySpec = new SampleSpec(
-      "conn", "/tmp", Schema.recordOf("test", Schema.Field.of("name", Schema.of(Schema.Type.STRING))),
-      Collections.emptyMap());
+    SampleSpec dummySpec = new SampleSpec("conn", "/tmp", ImmutableSet.of());
 
     // test writes
     WorkspaceId id1 = new WorkspaceId(ns1);

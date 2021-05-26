@@ -19,31 +19,27 @@ package io.cdap.wrangler.proto.workspace.v2;
 
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
- * Spec for the workspace sample
+ * Workspace specification
  */
-public class SampleSpec {
-  private final String connectionName;
-  private final String path;
-  private final Set<StageSpec> relatedPlugins;
+public class WorkspaceSpec {
+  private final Set<StageSpec> sources;
+  private final StageSpec wrangler;
 
-  public SampleSpec(String connectionName, String path, Set<StageSpec> relatedPlugins) {
-    this.connectionName = connectionName;
-    this.path = path;
-    this.relatedPlugins = relatedPlugins;
+  public WorkspaceSpec(Set<StageSpec> sources, StageSpec wrangler) {
+    this.sources = sources;
+    this.wrangler = wrangler;
   }
 
-  public String getConnectionName() {
-    return connectionName;
+  @Nullable
+  public Set<StageSpec> getSources() {
+    return sources;
   }
 
-  public String getPath() {
-    return path;
-  }
-
-  public Set<StageSpec> getRelatedPlugins() {
-    return relatedPlugins;
+  public StageSpec getWrangler() {
+    return wrangler;
   }
 
   @Override
@@ -56,14 +52,13 @@ public class SampleSpec {
       return false;
     }
 
-    SampleSpec that = (SampleSpec) o;
-    return Objects.equals(connectionName, that.connectionName) &&
-             Objects.equals(path, that.path) &&
-             Objects.equals(relatedPlugins, that.relatedPlugins);
+    WorkspaceSpec that = (WorkspaceSpec) o;
+    return Objects.equals(sources, that.sources) &&
+             Objects.equals(wrangler, that.wrangler);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectionName, path, relatedPlugins);
+    return Objects.hash(sources, wrangler);
   }
 }

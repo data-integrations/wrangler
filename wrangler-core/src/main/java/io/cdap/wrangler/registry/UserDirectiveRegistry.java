@@ -20,12 +20,14 @@ import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import io.cdap.cdap.api.artifact.ArtifactInfo;
 import io.cdap.cdap.api.artifact.ArtifactManager;
+import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.cdap.api.artifact.CloseableClassLoader;
 import io.cdap.cdap.api.plugin.PluginClass;
 import io.cdap.cdap.api.plugin.PluginConfigurer;
 import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.api.service.http.HttpServiceContext;
 import io.cdap.cdap.etl.api.StageContext;
+import io.cdap.cdap.etl.api.Transform;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
 
@@ -63,10 +65,13 @@ import javax.annotation.Nullable;
  * @see CompositeDirectiveRegistry
  */
 public final class UserDirectiveRegistry implements DirectiveRegistry {
+  private static final String WRANGLER_TRANSFORM = "wrangler-transform";
+  private static final String WRANGLER_PLUGIN = "Wrangler";
   private final Map<String, Map<String, DirectiveInfo>> registry = new ConcurrentSkipListMap<>();
   private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
   private StageContext context = null;
   private HttpServiceContext manager = null;
+  private ArtifactSummary wranglerArtifact;
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -156,7 +161,9 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     if (manager != null) {
       try {
         List<ArtifactInfo> artifacts = manager.listArtifacts(namespace);
+        ArtifactSummary latestWrangler = null;
         for (ArtifactInfo artifact : artifacts) {
+          boolean isWranglerArtifact = artifact.getName().equalsIgnoreCase(WRANGLER_TRANSFORM);
           Set<PluginClass> plugins = artifact.getClasses().getPlugins();
           for (PluginClass plugin : plugins) {
             if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
@@ -168,7 +175,20 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
               newRegistry.put(classz.name(), classz);
               classLoaders.add(closeableClassLoader);
             }
+
+            if (isWranglerArtifact && WRANGLER_PLUGIN.equals(plugin.getName()) &&
+                  Transform.PLUGIN_TYPE.equals(plugin.getType())) {
+              if (latestWrangler == null) {
+                latestWrangler = artifact;
+                continue;
+              }
+              latestWrangler = DirectiveRegistry.pickLatest(latestWrangler, artifact);
+            }
           }
+        }
+
+        if (latestWrangler != null) {
+          wranglerArtifact = latestWrangler;
         }
 
         MapDifference<String, DirectiveInfo> difference = Maps.difference(currentRegistry, newRegistry);
@@ -191,6 +211,12 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
         throw new DirectiveLoadException(e.getMessage(), e);
       }
     }
+  }
+
+  @Nullable
+  @Override
+  public ArtifactSummary getLatestWranglerArtifact() {
+    return wranglerArtifact;
   }
 
   /**

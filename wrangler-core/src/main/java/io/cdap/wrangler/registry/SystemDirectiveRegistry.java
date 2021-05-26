@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.registry;
 
+import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import org.reflections.Reflections;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
+import javax.annotation.Nullable;
 
 /**
  * This class is implementation of {@link DirectiveRegistry} for maintaining a registry
@@ -91,6 +93,12 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
   @Override
   public void reload(String namespace) {
     // No-op.
+  }
+
+  @Nullable
+  @Override
+  public ArtifactSummary getLatestWranglerArtifact() {
+    return null;
   }
 
   /**
