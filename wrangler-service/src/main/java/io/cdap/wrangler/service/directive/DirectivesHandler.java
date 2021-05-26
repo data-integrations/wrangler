@@ -31,6 +31,7 @@ import io.cdap.cdap.api.plugin.PluginClass;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.api.service.worker.RunnableTaskRequest;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.directives.aggregates.DefaultTransientStore;
@@ -60,6 +61,7 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.datamodel.DataModelGlossary;
 import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
+import io.cdap.wrangler.dataset.workspace.RequestDeserializer;
 import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
@@ -118,7 +120,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -141,7 +142,10 @@ import javax.ws.rs.QueryParam;
 public class DirectivesHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DirectivesHandler.class);
   private static final Gson GSON =
-    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+    new GsonBuilder().
+      registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).
+      registerTypeAdapter(Request.class, new RequestDeserializer()).
+      create();
   private static final String resourceName = ".properties";
 
   private static final String COLUMN_NAME = "body";
@@ -584,18 +588,52 @@ public class DirectivesHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace, @PathParam("id") String id) {
+
     respond(request, responder, namespace, ns -> {
       composite.reload(namespace);
       try {
         RequestExtractor handler = new RequestExtractor(request);
-        Request directiveRequest = handler.getContent("UTF-8", Request.class);
+        String content = handler.getContent("UTF-8");
+        LOG.info("In DirectivesHandler execute with request content {}", content);
+        Request directiveRequest =  content != null ? GSON.fromJson(content, Request.class) : null;
+        if (directiveRequest == null) {
+          throw new BadRequestException("Request body is empty.");
+        }
+        RemoteDirectiveRequest remoteDirectiveRequest = new RemoteDirectiveRequest(content,
+                                                                                   namespace, id);
+        NamespacedId namespacedId = new NamespacedId(ns, id);
+        fillRowsAndConfig(namespacedId, remoteDirectiveRequest);
+        long paramTime = System.nanoTime();
+        String param = GSON.toJson(remoteDirectiveRequest);
+        LOG.info("Time for converting remoteDirectiveRequest to JSON {}", System.nanoTime() - paramTime);
+        RunnableTaskRequest runnableTaskRequest = RunnableTaskRequest.getBuilder(
+          RemoteDirectiveExecutionTask.class.getName()).withParam(param).
+          withArtifact(getContext().getApplicationSpecification().getArtifactId()).
+          //TODO - fix the namespace
+          withNamespace(namespace).
+          build();
+        long remoteReqTime = System.nanoTime();
+        byte[] bytes = getContext().runTask(runnableTaskRequest);
+        LOG.info("Time for remote req to return {}", System.nanoTime() - remoteReqTime);
+        String stringResponse = new String(bytes);
+        //LOG.info("Received response in wrangler from remote {}", stringResponse);
+        long responseJsonTime = System.nanoTime();
+        DirectiveExecutionResponse directiveExecutionResponse = GSON
+          .fromJson(stringResponse, DirectiveExecutionResponse.class);
+        LOG.info("Time for reading object from JSON response{}", System.nanoTime() - responseJsonTime);
+        TransactionRunners.run(getContext(), context -> {
+          WorkspaceDataset ws = WorkspaceDataset.get(context);
+          ws.updateWorkspaceRequest(namespacedId, directiveRequest);
+        });
+        return directiveExecutionResponse;
+        /*Request directiveRequest = handler.getContent("UTF-8", Request.class);
         if (directiveRequest == null) {
           throw new BadRequestException("Request body is empty.");
         }
         directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(namespace, directiveRequest));
 
         int limit = directiveRequest.getSampling().getLimit();
-        NamespacedId namespacedId = new NamespacedId(ns, id);
+
         List<Row> rows = executeDirectives(namespacedId, directiveRequest, records -> {
           if (records == null) {
             return Collections.emptyList();
@@ -644,18 +682,30 @@ public class DirectivesHandler extends AbstractWranglerHandler {
             }
           }
           values.add(value);
-        }
+        }*/
 
         // Save the recipes being executed.
-        TransactionRunners.run(getContext(), context -> {
-          WorkspaceDataset ws = WorkspaceDataset.get(context);
-          ws.updateWorkspaceRequest(namespacedId, directiveRequest);
-        });
 
-        return new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
+
+        //return new DirectiveExecutionResponse(values, headers, types, directiveRequest.getRecipe().getDirectives());
       } catch (JsonParseException e) {
         throw new BadRequestException(e.getMessage(), e);
       }
+    });
+  }
+
+  private void fillRowsAndConfig(NamespacedId id, RemoteDirectiveRequest remoteDirectiveRequest) {
+    TransactionRunners.run(getContext(), ctx -> {
+      WorkspaceDataset ws = WorkspaceDataset.get(ctx);
+      Workspace workspace = ws.getWorkspace(id);
+      // Extract rows from the workspace.
+      //List<Row> rows = fromWorkspace(workspace);
+      ConfigStore configStore = ConfigStore.get(ctx);
+      DirectiveConfig config = configStore.getConfig();
+      remoteDirectiveRequest.setConfig(config);
+      remoteDirectiveRequest.setData(workspace.getData());
+      remoteDirectiveRequest.setDatatype(workspace.getType());
+
     });
   }
 

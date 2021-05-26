@@ -67,6 +67,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
   private StageContext context = null;
   private HttpServiceContext manager = null;
+  private ArtifactManager artifactManager;
+  private PluginConfigurer pluginConfigurer;
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -99,6 +101,16 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   }
 
   /**
+   * This constructor is used when creating from remote task
+   * @param pluginConfigurer
+   * @param artifactManager
+   */
+  public UserDirectiveRegistry(PluginConfigurer pluginConfigurer, ArtifactManager artifactManager) {
+    this.pluginConfigurer = pluginConfigurer;
+    this.artifactManager = artifactManager;
+  }
+
+  /**
    * This method provides information about the directive that is being requested.
    *
    * <p>First, the directive is checked for existence with the internal registry.
@@ -118,15 +130,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   public DirectiveInfo get(String namespace, String name) throws DirectiveLoadException {
     Class<? extends Directive> directive = null;
     try {
-      if (context != null) {
-        directive = context.loadPluginClass(name);
-      } else {
-        if (manager != null) {
-          PluginConfigurer configurer = manager.createPluginConfigurer(namespace);
-          directive = configurer.usePluginClass(Directive.TYPE, name, UUID.randomUUID().toString(),
-                                                PluginProperties.builder().build());
-        }
-      }
+      directive = getDirective(namespace, name, directive);
       if (directive == null) {
         throw new DirectiveLoadException(
           String.format("10-5 - Unable to load the user defined directive '%s'. " +
@@ -148,20 +152,38 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     }
   }
 
+  @Nullable
+  private Class<? extends Directive> getDirective(String namespace, String name, Class<? extends Directive> directive) {
+    if (context != null) {
+      return context.loadPluginClass(name);
+    }
+    if (manager != null) {
+      PluginConfigurer configurer = manager.createPluginConfigurer(namespace);
+      return configurer.usePluginClass(Directive.TYPE, name, UUID.randomUUID().toString(),
+                                       PluginProperties.builder().build());
+    }
+    if (pluginConfigurer != null) {
+      return pluginConfigurer.usePluginClass(Directive.TYPE, name, UUID.randomUUID().toString(),
+                                             PluginProperties.builder().build());
+    }
+    return null;
+  }
+
   @Override
   public void reload(String namespace) throws DirectiveLoadException {
     Map<String, DirectiveInfo> newRegistry = new TreeMap<>();
     Map<String, DirectiveInfo> currentRegistry = registry.computeIfAbsent(namespace, k -> new TreeMap<>());
 
-    if (manager != null) {
+    ArtifactManager artifactManager = getArtifactManager();
+    if (artifactManager != null) {
       try {
-        List<ArtifactInfo> artifacts = manager.listArtifacts(namespace);
+        List<ArtifactInfo> artifacts = artifactManager.listArtifacts(namespace);
         for (ArtifactInfo artifact : artifacts) {
           Set<PluginClass> plugins = artifact.getClasses().getPlugins();
           for (PluginClass plugin : plugins) {
             if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
               CloseableClassLoader closeableClassLoader
-                    = manager.createClassLoader(namespace, artifact, getClass().getClassLoader());
+                    = artifactManager.createClassLoader(namespace, artifact, getClass().getClassLoader());
               Class<? extends Directive> directive =
                 (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
               DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
@@ -191,6 +213,10 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
         throw new DirectiveLoadException(e.getMessage(), e);
       }
     }
+  }
+
+  private ArtifactManager getArtifactManager() {
+    return manager != null ? manager : artifactManager;
   }
 
   /**

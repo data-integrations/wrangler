@@ -17,6 +17,7 @@
 package io.cdap.wrangler.service.directive;
 
 import io.cdap.cdap.api.service.http.HttpServiceContext;
+import io.cdap.cdap.api.service.worker.RunnableTaskSystemAppContext;
 import io.cdap.cdap.etl.api.Lookup;
 import io.cdap.cdap.etl.api.StageMetrics;
 import io.cdap.cdap.etl.common.DatasetContextLookupProvider;
@@ -27,6 +28,7 @@ import io.cdap.wrangler.api.TransientStore;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Implementation of {@PipelineContext}, for use in Service.
@@ -36,15 +38,31 @@ class ServicePipelineContext implements ExecutorContext {
   // that we're executing in
   private final String namespace;
   private final Environment environment;
+  @Nullable
   private final HttpServiceContext serviceContext;
   private final DatasetContextLookupProvider lookupProvider;
   private final TransientStore store;
+  @Nullable
+  private final RunnableTaskSystemAppContext taskSystemAppContext;
 
-  ServicePipelineContext(String namespace, Environment environment,
-                         HttpServiceContext serviceContext, TransientStore store) {
+  ServicePipelineContext(String namespace, Environment environment, HttpServiceContext serviceContext,
+                         TransientStore store) {
+    this(namespace, environment, serviceContext, null, store);
+  }
+
+  ServicePipelineContext(String namespace, Environment environment, RunnableTaskSystemAppContext taskSystemAppContext,
+                         TransientStore store) {
+    this(namespace, environment, null, taskSystemAppContext, store);
+  }
+
+  private ServicePipelineContext(String namespace, Environment environment,
+                                 @Nullable HttpServiceContext serviceContext,
+                                 @Nullable RunnableTaskSystemAppContext taskSystemAppContext,
+                                 TransientStore store) {
     this.namespace = namespace;
     this.environment = environment;
     this.serviceContext = serviceContext;
+    this.taskSystemAppContext = taskSystemAppContext;
     this.lookupProvider = new DatasetContextLookupProvider(serviceContext);
     this.store = store;
   }
@@ -75,6 +93,9 @@ class ServicePipelineContext implements ExecutorContext {
    */
   @Override
   public String getContextName() {
+    if (taskSystemAppContext != null) {
+      return taskSystemAppContext.getServiceName();
+    }
     return serviceContext.getSpecification().getName();
   }
 
@@ -95,6 +116,9 @@ class ServicePipelineContext implements ExecutorContext {
    */
   @Override
   public URL getService(String applicationId, String serviceId) {
+    if (taskSystemAppContext != null) {
+      return taskSystemAppContext.getServiceDiscoverer().getServiceURL(applicationId, serviceId);
+    }
     return serviceContext.getServiceURL(applicationId, serviceId);
   }
 
