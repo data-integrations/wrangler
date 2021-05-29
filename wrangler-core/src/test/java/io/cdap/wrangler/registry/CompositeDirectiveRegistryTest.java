@@ -19,6 +19,7 @@ package io.cdap.wrangler.registry;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -91,6 +92,12 @@ public class CompositeDirectiveRegistryTest {
     @Override
     public void reload(String namespace) {
       // no-op
+    }
+
+    @Nullable
+    @Override
+    public ArtifactSummary getLatestWranglerArtifact() {
+      return null;
     }
 
     @Override

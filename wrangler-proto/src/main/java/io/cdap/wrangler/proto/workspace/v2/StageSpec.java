@@ -17,33 +17,30 @@
 
 package io.cdap.wrangler.proto.workspace.v2;
 
+import io.cdap.cdap.api.data.schema.Schema;
+
 import java.util.Objects;
-import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
- * Spec for the workspace sample
+ * Stage spec for a plugin
  */
-public class SampleSpec {
-  private final String connectionName;
-  private final String path;
-  private final Set<StageSpec> relatedPlugins;
+public class StageSpec {
+  private final Schema schema;
+  private final Plugin plugin;
 
-  public SampleSpec(String connectionName, String path, Set<StageSpec> relatedPlugins) {
-    this.connectionName = connectionName;
-    this.path = path;
-    this.relatedPlugins = relatedPlugins;
+  public StageSpec(@Nullable Schema schema, Plugin plugin) {
+    this.schema = schema;
+    this.plugin = plugin;
   }
 
-  public String getConnectionName() {
-    return connectionName;
+  @Nullable
+  public Schema getSchema() {
+    return schema;
   }
 
-  public String getPath() {
-    return path;
-  }
-
-  public Set<StageSpec> getRelatedPlugins() {
-    return relatedPlugins;
+  public Plugin getPlugin() {
+    return plugin;
   }
 
   @Override
@@ -56,14 +53,13 @@ public class SampleSpec {
       return false;
     }
 
-    SampleSpec that = (SampleSpec) o;
-    return Objects.equals(connectionName, that.connectionName) &&
-             Objects.equals(path, that.path) &&
-             Objects.equals(relatedPlugins, that.relatedPlugins);
+    StageSpec stageSpec = (StageSpec) o;
+    return Objects.equals(schema, stageSpec.schema) &&
+             Objects.equals(plugin, stageSpec.plugin);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectionName, path, relatedPlugins);
+    return Objects.hash(schema, plugin);
   }
 }

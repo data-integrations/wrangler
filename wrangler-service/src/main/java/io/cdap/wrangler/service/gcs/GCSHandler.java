@@ -88,6 +88,7 @@ import javax.ws.rs.QueryParam;
 /**
  * Service to explore <code>GCS</code> filesystem
  */
+@Deprecated
 public class GCSHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(GCSHandler.class);
   private static final String MAX_SAMPLE_ROWS = "wrangler.gcs.sampling.max.rows";

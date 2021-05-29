@@ -42,6 +42,7 @@ import java.util.Optional;
  * TODO: (CDAP-14619) check if the DirectiveConfig is used by anything/anyone. If so, see if it can be moved to app
  *   configuration instead of stored in a one row table.
  */
+@Deprecated
 public class ConfigStore {
   private static final Gson GSON = new Gson();
   private static final String KEY_COL = "key";
