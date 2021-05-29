@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2019 Cask Data, Inc.
+ * Copyright © 2021 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -12,15 +12,16 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
+ *
  */
 
-package io.cdap.wrangler.proto;
+package io.cdap.wrangler.proto.workspace.v2;
 
 import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Service response.
+ * Service response for v2 endpoints.
  *
  * @param <T> type of value returned by the response
  */
@@ -28,14 +29,11 @@ public class ServiceResponse<T> {
   private final String message;
   private final Integer count;
   private final Collection<T> values;
-  // TODO: (CDAP-14652) see if this is used by UI. It should be a boolean and not a string...
-  private final String truncated;
 
   public ServiceResponse(String message) {
     this.message = message;
     this.count = null;
     this.values = Collections.emptyList();
-    this.truncated = null;
   }
 
   public ServiceResponse(T value) {
@@ -43,18 +41,13 @@ public class ServiceResponse<T> {
   }
 
   public ServiceResponse(Collection<T> values) {
-    this(values, false);
+    this(values, "Success");
   }
 
-  public ServiceResponse(Collection<T> values, boolean truncated) {
-    this(values, truncated, "Success");
-  }
-
-  public ServiceResponse(Collection<T> values, boolean truncated, String message) {
+  public ServiceResponse(Collection<T> values, String message) {
     this.message = message;
     this.count = values.size();
     this.values = values;
-    this.truncated = Boolean.toString(truncated);
   }
 
   public String getMessage() {
@@ -69,3 +62,4 @@ public class ServiceResponse<T> {
     return values;
   }
 }
+
