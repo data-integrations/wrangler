@@ -241,7 +241,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
         GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(), DirectiveExecutionRequest.class);
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       WorkspaceDetail detail = store.getWorkspaceDetail(wsId);
-      List<Row> result = executeDirectives(ns.getName(), executionRequest.getDirectives(), detail.getSample());
+      List<Row> result = executeDirectives(
+        ns.getName(), executionRequest.getDirectives(), new ArrayList<>(detail.getSample()));
       DirectiveExecutionResponse response = generateExecutionResponse(result, executionRequest.getLimit());
 
       Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
