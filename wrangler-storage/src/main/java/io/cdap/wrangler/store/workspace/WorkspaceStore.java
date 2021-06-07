@@ -155,30 +155,17 @@ public class WorkspaceStore {
    * @param workspace workspace to create
    */
   public void saveWorkspace(WorkspaceId workspaceId, WorkspaceDetail workspace) {
-    TransactionRunners.run(transactionRunner, context -> {
-      StructuredTable table = context.getTable(TABLE_ID);
-      Workspace oldWorkspace  = getWorkspaceInternal(table, workspaceId, false);
-      Workspace newWorkspace = workspace.getWorkspace();
+    saveWorkspace(workspaceId, workspace.getWorkspace(), workspace.getSample(), false);
+  }
 
-      if (oldWorkspace != null) {
-        newWorkspace =
-          Workspace.builder(newWorkspace).setCreatedTimeMillis(oldWorkspace.getCreatedTimeMillis()).build();
-      }
-
-      Collection<Field<?>> fields = getWorkspaceKeys(workspaceId);
-      fields.add(Fields.longField(CREATED_COL, newWorkspace.getCreatedTimeMillis()));
-      fields.add(Fields.longField(UPDATED_COL, newWorkspace.getUpdatedTimeMillis()));
-      byte[] data;
-      try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-           ObjectOutput out = new ObjectOutputStream(bos)) {
-        out.writeObject(workspace.getSample());
-        out.flush();
-        data = bos.toByteArray();
-      }
-      fields.add(Fields.bytesField(SAMPLE_COL, data));
-      fields.add(Fields.stringField(WORKSPACE_INFO_COL, GSON.toJson(newWorkspace)));
-      table.upsert(fields);
-    });
+  /**
+   * Save the new workspace metadata
+   *
+   * @param workspaceId the workspace id
+   * @param workspace the new workspace meta to save
+   */
+  public void updateWorkspace(WorkspaceId workspaceId, Workspace workspace) {
+    saveWorkspace(workspaceId, workspace, null, true);
   }
 
   /**
@@ -201,6 +188,40 @@ public class WorkspaceStore {
     TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       table.deleteAll(Range.all());
+    });
+  }
+
+  private void saveWorkspace(WorkspaceId workspaceId, Workspace workspace, @Nullable List<Row> sample,
+                             boolean failIfNotFound) {
+    TransactionRunners.run(transactionRunner, context -> {
+      StructuredTable table = context.getTable(TABLE_ID);
+      Workspace oldWorkspace  = getWorkspaceInternal(table, workspaceId, failIfNotFound);
+      Workspace newWorkspace = workspace;
+
+      if (oldWorkspace != null) {
+        newWorkspace =
+          Workspace.builder(newWorkspace).setCreatedTimeMillis(oldWorkspace.getCreatedTimeMillis()).build();
+      }
+
+      Collection<Field<?>> fields = getWorkspaceKeys(workspaceId);
+      fields.add(Fields.longField(CREATED_COL, newWorkspace.getCreatedTimeMillis()));
+      fields.add(Fields.longField(UPDATED_COL, newWorkspace.getUpdatedTimeMillis()));
+      fields.add(Fields.stringField(WORKSPACE_INFO_COL, GSON.toJson(newWorkspace)));
+
+      if (sample == null) {
+        table.upsert(fields);
+        return;
+      }
+
+      byte[] data;
+      try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+           ObjectOutput out = new ObjectOutputStream(bos)) {
+        out.writeObject(sample);
+        out.flush();
+        data = bos.toByteArray();
+      }
+      fields.add(Fields.bytesField(SAMPLE_COL, data));
+      table.upsert(fields);
     });
   }
 

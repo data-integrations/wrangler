@@ -248,7 +248,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
                                  .setDirectives(executionRequest.getDirectives())
                                  .setUpdatedTimeMillis(System.currentTimeMillis()).build();
-      store.saveWorkspace(wsId, new WorkspaceDetail(newWorkspace, detail.getSample()));
+      store.updateWorkspace(wsId, newWorkspace);
       responder.sendJson(response);
     });
   }
