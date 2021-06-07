@@ -25,17 +25,23 @@ import java.util.Set;
  */
 public class SampleSpec {
   private final String connectionName;
+  private final String connectionType;
   private final String path;
   private final Set<StageSpec> relatedPlugins;
 
-  public SampleSpec(String connectionName, String path, Set<StageSpec> relatedPlugins) {
+  public SampleSpec(String connectionName, String connectionType, String path, Set<StageSpec> relatedPlugins) {
     this.connectionName = connectionName;
+    this.connectionType = connectionType;
     this.path = path;
     this.relatedPlugins = relatedPlugins;
   }
 
   public String getConnectionName() {
     return connectionName;
+  }
+
+  public String getConnectionType() {
+    return connectionType;
   }
 
   public String getPath() {
@@ -58,12 +64,13 @@ public class SampleSpec {
 
     SampleSpec that = (SampleSpec) o;
     return Objects.equals(connectionName, that.connectionName) &&
+             Objects.equals(connectionType, that.connectionType) &&
              Objects.equals(path, that.path) &&
              Objects.equals(relatedPlugins, that.relatedPlugins);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectionName, path, relatedPlugins);
+    return Objects.hash(connectionName, connectionType, path, relatedPlugins);
   }
 }
