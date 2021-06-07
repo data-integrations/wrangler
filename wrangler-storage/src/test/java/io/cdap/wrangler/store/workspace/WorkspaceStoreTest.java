@@ -77,7 +77,7 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
   public void testCRUD() {
     NamespaceSummary ns1 = new NamespaceSummary("n1", "", 10L);
     NamespaceSummary ns2 = new NamespaceSummary("n2", "", 10L);
-    SampleSpec dummySpec = new SampleSpec("conn", "/tmp", ImmutableSet.of());
+    SampleSpec dummySpec = new SampleSpec("conn", "dummy", "/tmp", ImmutableSet.of());
 
     // test writes
     WorkspaceId id1 = new WorkspaceId(ns1);
