@@ -120,7 +120,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
       ConnectorDetail detail = sampleResponse.getDetail();
       SampleSpec spec = new SampleSpec(
-        creationRequest.getConnection(), sampleRequest.getPath(),
+        creationRequest.getConnection(), creationRequest.getConnectionType(), sampleRequest.getPath(),
         detail.getRelatedPlugins().stream().map(plugin -> {
           ArtifactSelectorConfig artifact = plugin.getArtifact();
           Plugin pluginSpec = new Plugin(
@@ -248,7 +248,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
                                  .setDirectives(executionRequest.getDirectives())
                                  .setUpdatedTimeMillis(System.currentTimeMillis()).build();
-      store.saveWorkspace(wsId, new WorkspaceDetail(newWorkspace, detail.getSample()));
+      store.updateWorkspace(wsId, newWorkspace);
       responder.sendJson(response);
     });
   }

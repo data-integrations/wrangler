@@ -66,6 +66,13 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
     }
 
     try {
+      store.updateWorkspace(workspace, Workspace.builder("dummy", workspace.getWorkspaceId()).build());
+      Assert.fail();
+    } catch (WorkspaceNotFoundException e) {
+      // expected
+    }
+
+    try {
       store.deleteWorkspace(workspace);
       Assert.fail();
     } catch (WorkspaceNotFoundException e) {
@@ -77,7 +84,7 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
   public void testCRUD() {
     NamespaceSummary ns1 = new NamespaceSummary("n1", "", 10L);
     NamespaceSummary ns2 = new NamespaceSummary("n2", "", 10L);
-    SampleSpec dummySpec = new SampleSpec("conn", "/tmp", ImmutableSet.of());
+    SampleSpec dummySpec = new SampleSpec("conn", "dummy", "/tmp", ImmutableSet.of());
 
     // test writes
     WorkspaceId id1 = new WorkspaceId(ns1);
@@ -118,6 +125,19 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
     // creation time should not change
     Workspace expected = Workspace.builder(meta1).setCreatedTimeMillis(100L).build();
     Assert.assertEquals(expected, store.getWorkspace(id1));
+    Assert.assertEquals(new WorkspaceDetail(expected, detail1.getSample()), store.getWorkspaceDetail(id1));
+
+    // test update doesn't modify sample
+    meta1 = Workspace.builder("newname2", id1.getWorkspaceId())
+              .setSampleSpec(dummySpec)
+              .setCreatedTimeMillis(300L)
+              .setUpdatedTimeMillis(400L)
+              .setDirectives(ImmutableList.of("d1", "d2", "d3", "d4"))
+              .build();
+    store.updateWorkspace(id1, meta1);
+    expected = Workspace.builder(meta1).setCreatedTimeMillis(100L).build();
+    Assert.assertEquals(expected, store.getWorkspace(id1));
+    Assert.assertEquals(detail1.getSample(), store.getWorkspaceDetail(id1).getSample());
     Assert.assertEquals(new WorkspaceDetail(expected, detail1.getSample()), store.getWorkspaceDetail(id1));
 
     // test lists don't include from other namespaces

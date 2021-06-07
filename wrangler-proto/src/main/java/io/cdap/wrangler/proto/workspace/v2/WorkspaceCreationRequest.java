@@ -24,15 +24,21 @@ import io.cdap.cdap.etl.api.connector.SampleRequest;
  */
 public class WorkspaceCreationRequest {
   private final String connection;
+  private final String connectionType;
   private final SampleRequest sampleRequest;
 
-  public WorkspaceCreationRequest(String connection, SampleRequest sampleRequest) {
+  public WorkspaceCreationRequest(String connection, String connectionType, SampleRequest sampleRequest) {
     this.connection = connection;
+    this.connectionType = connectionType;
     this.sampleRequest = sampleRequest;
   }
 
   public String getConnection() {
     return connection;
+  }
+
+  public String getConnectionType() {
+    return connectionType;
   }
 
   public SampleRequest getSampleRequest() {
