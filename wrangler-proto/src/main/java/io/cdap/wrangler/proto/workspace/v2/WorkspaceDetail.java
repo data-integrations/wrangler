@@ -19,6 +19,7 @@ package io.cdap.wrangler.proto.workspace.v2;
 
 import io.cdap.wrangler.api.Row;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,10 +29,12 @@ import java.util.Objects;
 public class WorkspaceDetail {
   private final Workspace workspace;
   private final List<Row> sample;
+  private final byte[] sampleAsBytes;
 
-  public WorkspaceDetail(Workspace workspace, List<Row> sample) {
+  public WorkspaceDetail(Workspace workspace, List<Row> sample, byte[] sampleAsBytes) {
     this.workspace = workspace;
     this.sample = sample;
+    this.sampleAsBytes = sampleAsBytes;
   }
 
   public Workspace getWorkspace() {
@@ -40,6 +43,10 @@ public class WorkspaceDetail {
 
   public List<Row> getSample() {
     return sample;
+  }
+
+  public byte[] getSampleAsBytes() {
+    return sampleAsBytes;
   }
 
   @Override
@@ -54,11 +61,12 @@ public class WorkspaceDetail {
 
     WorkspaceDetail detail = (WorkspaceDetail) o;
     return Objects.equals(workspace, detail.workspace) &&
-             Objects.equals(sample, detail.sample);
+      Objects.equals(sample, detail.sample) &&
+      Arrays.equals(sampleAsBytes, detail.sampleAsBytes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(workspace, sample);
+    return Objects.hash(workspace, sample, sampleAsBytes);
   }
 }

@@ -26,6 +26,7 @@ import io.cdap.cdap.api.plugin.PluginClass;
 import io.cdap.cdap.api.plugin.PluginConfigurer;
 import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.api.service.http.HttpServiceContext;
+import io.cdap.cdap.api.service.worker.SystemAppTaskContext;
 import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.Transform;
 import io.cdap.wrangler.api.Directive;
@@ -72,6 +73,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   private StageContext context = null;
   private HttpServiceContext manager = null;
   private ArtifactSummary wranglerArtifact;
+  private SystemAppTaskContext systemAppTaskContext;
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -88,6 +90,14 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    */
   public UserDirectiveRegistry(HttpServiceContext manager) throws DirectiveLoadException {
     this.manager = manager;
+  }
+
+  /**
+   * This constructor is used when creating from remote task
+   * @param systemAppTaskContext {@link SystemAppTaskContext}
+   */
+  public UserDirectiveRegistry(SystemAppTaskContext systemAppTaskContext) {
+   this.systemAppTaskContext = systemAppTaskContext;
   }
 
   /**
@@ -123,15 +133,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   public DirectiveInfo get(String namespace, String name) throws DirectiveLoadException {
     Class<? extends Directive> directive = null;
     try {
-      if (context != null) {
-        directive = context.loadPluginClass(name);
-      } else {
-        if (manager != null) {
-          PluginConfigurer configurer = manager.createPluginConfigurer(namespace);
-          directive = configurer.usePluginClass(Directive.TYPE, name, UUID.randomUUID().toString(),
-                                                PluginProperties.builder().build());
-        }
-      }
+      directive = getDirective(namespace, name);
       if (directive == null) {
         throw new DirectiveLoadException(
           String.format("10-5 - Unable to load the user defined directive '%s'. " +
@@ -153,14 +155,26 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     }
   }
 
+  @Nullable
+  private Class<? extends Directive> getDirective(String namespace, String name) throws IOException {
+    if (context != null) {
+      return context.loadPluginClass(name);
+    }
+    PluginConfigurer configurer = manager != null ?
+      manager.createPluginConfigurer(namespace) : systemAppTaskContext.createPluginConfigurer(namespace);
+    return configurer.usePluginClass(Directive.TYPE, name, UUID.randomUUID().toString(),
+                                     PluginProperties.builder().build());
+  }
+
   @Override
   public void reload(String namespace) throws DirectiveLoadException {
     Map<String, DirectiveInfo> newRegistry = new TreeMap<>();
     Map<String, DirectiveInfo> currentRegistry = registry.computeIfAbsent(namespace, k -> new TreeMap<>());
 
-    if (manager != null) {
+    ArtifactManager artifactManager = getArtifactManager();
+    if (artifactManager != null) {
       try {
-        List<ArtifactInfo> artifacts = manager.listArtifacts(namespace);
+        List<ArtifactInfo> artifacts = artifactManager.listArtifacts(namespace);
         ArtifactSummary latestWrangler = null;
         for (ArtifactInfo artifact : artifacts) {
           boolean isWranglerArtifact = artifact.getName().equalsIgnoreCase(WRANGLER_TRANSFORM);
@@ -168,7 +182,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
           for (PluginClass plugin : plugins) {
             if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
               CloseableClassLoader closeableClassLoader
-                    = manager.createClassLoader(namespace, artifact, getClass().getClassLoader());
+                    = artifactManager.createClassLoader(namespace, artifact, getClass().getClassLoader());
               Class<? extends Directive> directive =
                 (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
               DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
@@ -211,6 +225,10 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
         throw new DirectiveLoadException(e.getMessage(), e);
       }
     }
+  }
+
+  private ArtifactManager getArtifactManager() {
+    return manager != null ? manager : systemAppTaskContext.getArtifactManager();
   }
 
   @Nullable
