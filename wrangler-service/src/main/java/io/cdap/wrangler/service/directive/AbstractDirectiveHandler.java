@@ -19,23 +19,11 @@ package io.cdap.wrangler.service.directive;
 
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
-import io.cdap.directives.aggregates.DefaultTransientStore;
-import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
-import io.cdap.wrangler.api.GrammarMigrator;
 import io.cdap.wrangler.api.Pair;
-import io.cdap.wrangler.api.RecipeException;
-import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientStore;
-import io.cdap.wrangler.executor.RecipePipelineExecutor;
-import io.cdap.wrangler.parser.ConfigDirectiveContext;
-import io.cdap.wrangler.parser.GrammarBasedParser;
-import io.cdap.wrangler.parser.MigrateToV2;
-import io.cdap.wrangler.proto.BadRequestException;
-import io.cdap.wrangler.proto.ErrorRecordsException;
 import io.cdap.wrangler.proto.workspace.ColumnStatistics;
 import io.cdap.wrangler.proto.workspace.ColumnValidationResult;
 import io.cdap.wrangler.proto.workspace.WorkspaceValidationResult;
@@ -62,7 +50,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * Abstract handler which contains common logic for v1 and v2 endpoints
@@ -104,34 +92,9 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
 
   protected List<Row> executeDirectives(String namespace, List<String> directives,
                                         List<Row> sample) throws DirectiveParseException {
-    TransientStore store = new DefaultTransientStore();
-    // Execute the pipeline.
-    ExecutorContext context = new ServicePipelineContext(namespace,
-                                                         ExecutorContext.Environment.SERVICE, getContext(), store);
-    RecipePipelineExecutor executor = new RecipePipelineExecutor();
-    if (!directives.isEmpty()) {
-      GrammarMigrator migrator = new MigrateToV2(directives);
-      String migrate = migrator.migrate();
-      RecipeParser recipe = new GrammarBasedParser(namespace, migrate, composite);
-      recipe.initialize(new ConfigDirectiveContext(DirectiveConfig.EMPTY));
-      try {
-        executor.initialize(recipe, context);
-        sample = executor.execute(sample);
-      } catch (RecipeException e) {
-        throw new BadRequestException(e.getMessage(), e);
-      }
-
-      List<ErrorRecordBase> errors = executor.errors()
-                                       .stream()
-                                       .filter(ErrorRecordBase::isShownInWrangler)
-                                       .collect(Collectors.toList());
-      if (errors.size() > 0) {
-        throw new ErrorRecordsException(errors);
-      }
-
-      executor.destroy();
-    }
-    return sample;
+    Function<TransientStore, ExecutorContext> contextProvider =
+      store -> new ServicePipelineContext(namespace, ExecutorContext.Environment.SERVICE, getContext(), store);
+    return new CommonDirectiveExecutor(contextProvider, composite).executeDirectives(namespace, directives, sample);
   }
 
   /**

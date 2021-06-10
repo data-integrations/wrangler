@@ -21,6 +21,7 @@ import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.api.service.worker.RemoteExecutionException;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.dataset.connections.ConnectionNotFoundException;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
@@ -205,10 +207,20 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
                          new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
+    } catch (RemoteExecutionException e) {
+      responder.sendJson(getErrorCode(e.getCause().getRemoteExceptionClassName()),
+                         new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
     } catch (Throwable t) {
       responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR,
                          new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>((t.getMessage())));
     }
+  }
+
+  private int getErrorCode(String exceptionName) {
+    boolean isBadRequest = Arrays
+      .asList(BadRequestException.class, ErrorRecordsException.class, JsonSyntaxException.class).
+        stream().anyMatch(e -> e.getName().equals(exceptionName));
+    return isBadRequest ? HttpURLConnection.HTTP_BAD_REQUEST : HttpURLConnection.HTTP_INTERNAL_ERROR;
   }
 
   /**
