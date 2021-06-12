@@ -17,10 +17,13 @@
 
 package io.cdap.wrangler.utils;
 
+import io.cdap.cdap.api.common.Bytes;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.format.UnexpectedFormatException;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Row;
+
+import java.nio.ByteBuffer;
 
 /**
  * Transformer to transform {@link StructuredRecord} to {@link Row}
@@ -72,6 +75,12 @@ public class StructuredToRowTransformer {
         default:
           throw new UnexpectedFormatException("Field type " + logicalType + " is not supported.");
       }
+    }
+
+    // if the type is bytes, need to make sure the value is byte array since byte buffer is not serializable
+    if (fieldSchema.getType().equals(Schema.Type.BYTES)) {
+      Object val = input.get(fieldName);
+      return val instanceof ByteBuffer ? Bytes.toBytes((ByteBuffer) val) : val;
     }
 
     // If the logical type is present in complex types, it will be retrieved as corresponding
