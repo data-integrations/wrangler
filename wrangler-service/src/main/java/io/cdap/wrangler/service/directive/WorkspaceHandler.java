@@ -50,6 +50,7 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceCreationRequest;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceDetail;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceSpec;
+import io.cdap.wrangler.proto.workspace.v2.WorkspaceUpdateRequest;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
 import io.cdap.wrangler.utils.SchemaConverter;
@@ -161,6 +162,32 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("Getting workspace in system namespace is currently not supported");
       }
       responder.sendString(GSON.toJson(store.getWorkspace(new WorkspaceId(ns, workspaceId))));
+    });
+  }
+
+  /**
+   * Update the workspace
+   */
+  @POST
+  @Path("v2/contexts/{context}/workspaces/{id}")
+  public void updateWorkspace(HttpServiceRequest request, HttpServiceResponder responder,
+                              @PathParam("context") String namespace,
+                              @PathParam("id") String workspaceId) {
+    respond(responder, namespace, ns -> {
+      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
+        throw new BadRequestException("Updating workspace in system namespace is currently not supported");
+      }
+
+      WorkspaceUpdateRequest updateRequest =
+        GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(), WorkspaceUpdateRequest.class);
+
+      WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
+      Workspace newWorkspace = Workspace.builder(store.getWorkspace(wsId))
+                                 .setDirectives(updateRequest.getDirectives())
+                                 .setInsights(updateRequest.getInsights())
+                                 .setUpdatedTimeMillis(System.currentTimeMillis()).build();
+      store.updateWorkspace(wsId, newWorkspace);
+      responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
   }
 
