@@ -17,6 +17,8 @@
 
 package io.cdap.wrangler.proto.workspace.v2;
 
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -33,15 +35,19 @@ public class Workspace {
   private final long updatedTimeMillis;
   // this is null when the sample does not have a spec, currently only example is directly upload data to wrangler
   private final SampleSpec sampleSpec;
+  // this is for insights page in UI
+  private final JsonObject insights;
 
   private Workspace(String workspaceName, String workspaceId, List<String> directives,
-                    long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec) {
+                    long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec,
+                    JsonObject insights) {
     this.workspaceName = workspaceName;
     this.workspaceId = workspaceId;
     this.directives = directives;
     this.createdTimeMillis = createdTimeMillis;
     this.updatedTimeMillis = updatedTimeMillis;
     this.sampleSpec = sampleSpec;
+    this.insights = insights;
   }
 
   public String getWorkspaceName() {
@@ -67,6 +73,10 @@ public class Workspace {
   @Nullable
   public SampleSpec getSampleSpec() {
     return sampleSpec;
+  }
+
+  public JsonObject getInsights() {
+    return insights;
   }
 
   @Override
@@ -100,7 +110,8 @@ public class Workspace {
              .setDirectives(existing.getDirectives())
              .setCreatedTimeMillis(existing.getCreatedTimeMillis())
              .setUpdatedTimeMillis(existing.getUpdatedTimeMillis())
-             .setSampleSpec(existing.getSampleSpec());
+             .setSampleSpec(existing.getSampleSpec())
+             .setInsights(existing.getInsights());
   }
 
   /**
@@ -113,11 +124,13 @@ public class Workspace {
     private long createdTimeMillis;
     private long updatedTimeMillis;
     private SampleSpec sampleSpec;
+    private JsonObject insights;
 
     Builder(String name, String workspaceId) {
       this.workspaceName = name;
       this.workspaceId = workspaceId;
       this.directives = new ArrayList<>();
+      this.insights = new JsonObject();
     }
 
     public Builder setDirectives(List<String> directives) {
@@ -141,8 +154,14 @@ public class Workspace {
       return this;
     }
 
+    public Builder setInsights(JsonObject insights) {
+      this.insights = insights;
+      return this;
+    }
+
     public Workspace build() {
-      return new Workspace(workspaceName, workspaceId, directives, createdTimeMillis, updatedTimeMillis, sampleSpec);
+      return new Workspace(workspaceName, workspaceId, directives, createdTimeMillis, updatedTimeMillis, sampleSpec,
+                           insights);
     }
   }
 }
