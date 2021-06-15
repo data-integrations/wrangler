@@ -39,11 +39,8 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceDetail;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -124,7 +121,7 @@ public class WorkspaceStore {
         }
       }
 
-      return new WorkspaceDetail(workspace, rows);
+      return new WorkspaceDetail(workspace, rows, sample);
     }, WorkspaceNotFoundException.class);
   }
 
@@ -155,7 +152,7 @@ public class WorkspaceStore {
    * @param workspace workspace to create
    */
   public void saveWorkspace(WorkspaceId workspaceId, WorkspaceDetail workspace) {
-    saveWorkspace(workspaceId, workspace.getWorkspace(), workspace.getSample(), false);
+    saveWorkspace(workspaceId, workspace.getWorkspace(), workspace.getSampleAsBytes(), false);
   }
 
   /**
@@ -191,7 +188,7 @@ public class WorkspaceStore {
     });
   }
 
-  private void saveWorkspace(WorkspaceId workspaceId, Workspace workspace, @Nullable List<Row> sample,
+  private void saveWorkspace(WorkspaceId workspaceId, Workspace workspace, @Nullable byte[] sample,
                              boolean failIfNotFound) {
     TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
@@ -213,14 +210,7 @@ public class WorkspaceStore {
         return;
       }
 
-      byte[] data;
-      try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-           ObjectOutput out = new ObjectOutputStream(bos)) {
-        out.writeObject(sample);
-        out.flush();
-        data = bos.toByteArray();
-      }
-      fields.add(Fields.bytesField(SAMPLE_COL, data));
+      fields.add(Fields.bytesField(SAMPLE_COL, sample));
       table.upsert(fields);
     });
   }

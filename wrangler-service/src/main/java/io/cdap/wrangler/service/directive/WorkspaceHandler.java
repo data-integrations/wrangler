@@ -27,6 +27,7 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.api.service.worker.RunnableTaskRequest;
 import io.cdap.cdap.etl.api.connector.SampleRequest;
 import io.cdap.cdap.etl.proto.ArtifactSelectorConfig;
 import io.cdap.cdap.etl.proto.connection.ConnectorDetail;
@@ -35,6 +36,8 @@ import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
+import io.cdap.wrangler.api.DirectiveLoadException;
+import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.workspace.v2.Artifact;
@@ -53,6 +56,7 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceSpec;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceUpdateRequest;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
+import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -79,6 +83,7 @@ import javax.ws.rs.PathParam;
 public class WorkspaceHandler extends AbstractDirectiveHandler {
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+
   private WorkspaceStore store;
   private ConnectionDiscoverer discoverer;
 
@@ -135,7 +140,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       Workspace workspace = Workspace.builder(generateWorkspaceName(wsId, creationRequest.getSampleRequest().getPath()),
                                               wsId.getWorkspaceId())
                               .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).setSampleSpec(spec).build();
-      store.saveWorkspace(wsId, new WorkspaceDetail(workspace, rows));
+
+      store.saveWorkspace(wsId, new WorkspaceDetail(workspace, rows, new ObjectSerDe<List<Row>>().toByteArray(rows)));
       responder.sendJson(wsId.getWorkspaceId());
     });
   }
@@ -244,7 +250,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       long now = System.currentTimeMillis();
       Workspace workspace = Workspace.builder(name, id.getWorkspaceId())
                               .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).build();
-      store.saveWorkspace(id, new WorkspaceDetail(workspace, sample));
+      store.saveWorkspace(id, new WorkspaceDetail(workspace, sample, new ObjectSerDe<List<Row>>().toByteArray(sample)));
       responder.sendJson(id.getWorkspaceId());
     });
   }
@@ -259,25 +265,44 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                       @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
       if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Executing directives in system namespace is currently not supported");
+        throw new BadRequestException(
+          "Executing directives in system namespace is currently not supported");
       }
-      // load the udd
-      composite.reload(namespace);
 
       DirectiveExecutionRequest executionRequest =
-        GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(), DirectiveExecutionRequest.class);
+        GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(),
+                      DirectiveExecutionRequest.class);
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       WorkspaceDetail detail = store.getWorkspaceDetail(wsId);
-      List<Row> result = executeDirectives(
-        ns.getName(), executionRequest.getDirectives(), new ArrayList<>(detail.getSample()));
-      DirectiveExecutionResponse response = generateExecutionResponse(result, executionRequest.getLimit());
-
+      List<Row> result = getContext().isRemoteTaskEnabled() ?
+        executeRemotely(ns.getName(), executionRequest.getDirectives(), detail) :
+        executeLocally(ns.getName(), executionRequest.getDirectives(), detail);
+      DirectiveExecutionResponse response = generateExecutionResponse(result,
+                                                                      executionRequest.getLimit());
       Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
                                  .setDirectives(executionRequest.getDirectives())
                                  .setUpdatedTimeMillis(System.currentTimeMillis()).build();
       store.updateWorkspace(wsId, newWorkspace);
       responder.sendJson(response);
     });
+  }
+
+  private List<Row> executeLocally(String namespace, List<String> directives,
+                                   WorkspaceDetail detail) throws DirectiveLoadException, DirectiveParseException {
+    // load the udd
+    composite.reload(namespace);
+    return executeDirectives(namespace, directives, new ArrayList<>(detail.getSample()));
+  }
+
+
+  private List<Row> executeRemotely(String namespace, List<String> directives,
+                                    WorkspaceDetail detail) throws Exception {
+    RemoteDirectiveRequest directiveRequest = new RemoteDirectiveRequest(directives,
+                                                                         namespace, detail.getSampleAsBytes());
+    RunnableTaskRequest runnableTaskRequest = RunnableTaskRequest.getBuilder(RemoteExecutionTask.class.getName()).
+      withParam(GSON.toJson(directiveRequest)).build();
+    byte[] bytes = getContext().runTask(runnableTaskRequest);
+    return new ObjectSerDe<List<Row>>().toObject(bytes);
   }
 
   /**
@@ -319,7 +344,9 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       WorkspaceDetail detail = store.getWorkspaceDetail(wsId);
       List<String> directives = detail.getWorkspace().getDirectives();
-      List<Row> result = executeDirectives(ns.getName(), directives, detail.getSample());
+      List<Row> result = getContext().isRemoteTaskEnabled() ?
+        executeRemotely(ns.getName(), directives, detail) :
+        executeLocally(ns.getName(), directives, detail);
 
       SchemaConverter schemaConvertor = new SchemaConverter();
       Schema schema = schemaConvertor.toSchema("record", createUberRecord(result));
