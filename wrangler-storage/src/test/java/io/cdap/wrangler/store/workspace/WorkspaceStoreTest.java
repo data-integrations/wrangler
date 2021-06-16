@@ -29,7 +29,6 @@ import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
 import io.cdap.wrangler.proto.workspace.v2.Workspace;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceDetail;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
-import io.cdap.wrangler.utils.ObjectSerDe;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -39,7 +38,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 
 public class WorkspaceStoreTest extends SystemAppTestBase {
 
@@ -96,8 +94,8 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
                         .setCreatedTimeMillis(100L)
                         .setUpdatedTimeMillis(100L)
                         .build();
-    List<Row> sample = Collections.singletonList(new Row(ImmutableList.of("k1", "k2")));
-    WorkspaceDetail detail1 = new WorkspaceDetail(meta1, sample, new ObjectSerDe<List<Row>>().toByteArray(sample));
+    WorkspaceDetail detail1 = new WorkspaceDetail(meta1,
+                                                  Collections.singletonList(new Row(ImmutableList.of("k1", "k2"))));
     store.saveWorkspace(id1, detail1);
 
     WorkspaceId id2 = new WorkspaceId(ns2);
@@ -106,8 +104,8 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
                         .setCreatedTimeMillis(200L)
                         .setUpdatedTimeMillis(400L)
                         .build();
-    List<Row> sample1 = Collections.singletonList(new Row(ImmutableList.of("k3", "k4")));
-    WorkspaceDetail detail2 = new WorkspaceDetail(meta2, sample1, new ObjectSerDe<List<Row>>().toByteArray(sample1));
+    WorkspaceDetail detail2 = new WorkspaceDetail(meta2,
+                                                  Collections.singletonList(new Row(ImmutableList.of("k3", "k4"))));
     store.saveWorkspace(id2, detail2);
 
     Assert.assertEquals(meta1, store.getWorkspace(id1));
@@ -122,15 +120,13 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
               .setUpdatedTimeMillis(300L)
               .setDirectives(ImmutableList.of("d1", "d2", "d3"))
               .build();
-    List<Row> sample2 = Collections.singletonList(new Row(ImmutableList.of("k5", "k6")));
-    detail1 = new WorkspaceDetail(meta1, sample2, new ObjectSerDe<List<Row>>().toByteArray(sample2));
+    detail1 = new WorkspaceDetail(meta1, Collections.singletonList(new Row(ImmutableList.of("k5", "k6"))));
     store.saveWorkspace(id1, detail1);
 
     // creation time should not change
     Workspace expected = Workspace.builder(meta1).setCreatedTimeMillis(100L).build();
     Assert.assertEquals(expected, store.getWorkspace(id1));
-    Assert.assertEquals(new WorkspaceDetail(expected, detail1.getSample(), detail1.getSampleAsBytes()),
-                        store.getWorkspaceDetail(id1));
+    Assert.assertEquals(new WorkspaceDetail(expected, detail1.getSample()), store.getWorkspaceDetail(id1));
 
     // test update doesn't modify sample
     meta1 = Workspace.builder("newname2", id1.getWorkspaceId())
@@ -143,8 +139,7 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
     expected = Workspace.builder(meta1).setCreatedTimeMillis(100L).build();
     Assert.assertEquals(expected, store.getWorkspace(id1));
     Assert.assertEquals(detail1.getSample(), store.getWorkspaceDetail(id1).getSample());
-    Assert.assertEquals(new WorkspaceDetail(expected, detail1.getSample(), detail1.getSampleAsBytes()),
-                        store.getWorkspaceDetail(id1));
+    Assert.assertEquals(new WorkspaceDetail(expected, detail1.getSample()), store.getWorkspaceDetail(id1));
 
     // test lists don't include from other namespaces
     Assert.assertEquals(Collections.singletonList(meta1), store.listWorkspaces(ns1));
@@ -157,8 +152,8 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
                         .setCreatedTimeMillis(2000L)
                         .setUpdatedTimeMillis(4000L)
                         .build();
-    List<Row> sample3 = Collections.singletonList(new Row(ImmutableList.of("k7", "k8")));
-    WorkspaceDetail detail3 = new WorkspaceDetail(meta3, sample3, new ObjectSerDe<List<Row>>().toByteArray(sample3));
+    WorkspaceDetail detail3 = new WorkspaceDetail(meta3,
+                                                  Collections.singletonList(new Row(ImmutableList.of("k7", "k8"))));
     store.saveWorkspace(id3, detail3);
     // order can be different because of different id
     Assert.assertEquals(ImmutableSet.of(expected, meta3), new HashSet<>(store.listWorkspaces(ns1)));
@@ -185,7 +180,7 @@ public class WorkspaceStoreTest extends SystemAppTestBase {
                         .setCreatedTimeMillis(0L)
                         .setUpdatedTimeMillis(0L)
                         .build();
-    store.saveWorkspace(id1, new WorkspaceDetail(meta1, Collections.emptyList(), new byte[]{}));
+    store.saveWorkspace(id1, new WorkspaceDetail(meta1, Collections.emptyList()));
 
     // test that fetching with a different generation doesn't include the workspace
     try {
