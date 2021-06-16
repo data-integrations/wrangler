@@ -121,7 +121,7 @@ public class WorkspaceStore {
         }
       }
 
-      return new WorkspaceDetail(workspace, rows, sample);
+      return new WorkspaceDetail(workspace, rows);
     }, WorkspaceNotFoundException.class);
   }
 
