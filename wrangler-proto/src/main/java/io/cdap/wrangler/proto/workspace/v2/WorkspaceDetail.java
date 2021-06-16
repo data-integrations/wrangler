@@ -19,6 +19,9 @@ package io.cdap.wrangler.proto.workspace.v2;
 
 import io.cdap.wrangler.api.Row;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -31,10 +34,21 @@ public class WorkspaceDetail {
   private final List<Row> sample;
   private final byte[] sampleAsBytes;
 
-  public WorkspaceDetail(Workspace workspace, List<Row> sample, byte[] sampleAsBytes) {
+  public WorkspaceDetail(Workspace workspace, List<Row> sample) {
     this.workspace = workspace;
     this.sample = sample;
-    this.sampleAsBytes = sampleAsBytes;
+    this.sampleAsBytes = convertToBytes(sample);
+  }
+
+  private byte[] convertToBytes(List<Row> sample) {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+         ObjectOutput out = new ObjectOutputStream(bos)) {
+      out.writeObject(sample);
+      out.flush();
+      return bos.toByteArray();
+    } catch (Exception e) {
+      throw new RuntimeException("Error getting bytes from sample", e);
+    }
   }
 
   public Workspace getWorkspace() {

@@ -140,7 +140,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                                               wsId.getWorkspaceId())
                               .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).setSampleSpec(spec).build();
 
-      store.saveWorkspace(wsId, new WorkspaceDetail(workspace, rows, new ObjectSerDe<List<Row>>().toByteArray(rows)));
+      store.saveWorkspace(wsId, new WorkspaceDetail(workspace, rows));
       responder.sendJson(wsId.getWorkspaceId());
     });
   }
@@ -223,7 +223,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       long now = System.currentTimeMillis();
       Workspace workspace = Workspace.builder(name, id.getWorkspaceId())
                               .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).build();
-      store.saveWorkspace(id, new WorkspaceDetail(workspace, sample, new ObjectSerDe<List<Row>>().toByteArray(sample)));
+      store.saveWorkspace(id, new WorkspaceDetail(workspace, sample));
       responder.sendJson(id.getWorkspaceId());
     });
   }
