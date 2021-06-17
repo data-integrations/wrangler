@@ -350,7 +350,10 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
       SchemaConverter schemaConvertor = new SchemaConverter();
       Schema schema = schemaConvertor.toSchema("record", createUberRecord(result));
-      Map<String, String> properties = ImmutableMap.of("directives", String.join("\n", directives));
+      Map<String, String> properties = ImmutableMap.of("directives", String.join("\n", directives),
+                                                       "field", "*",
+                                                       "precondition", "false",
+                                                       "workspaceId", workspaceId);
 
       Set<StageSpec> srcSpecs = getSourceSpecs(detail, directives);
 
