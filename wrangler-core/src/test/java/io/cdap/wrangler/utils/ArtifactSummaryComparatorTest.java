@@ -15,28 +15,25 @@
  *
  */
 
-package io.cdap.wrangler.registry;
+package io.cdap.wrangler.utils;
 
 import io.cdap.cdap.api.artifact.ArtifactScope;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Test for directive registry
- */
-public class DirectiveRegistryTest {
+public class ArtifactSummaryComparatorTest {
 
   @Test
   public void testArtifactCompare() throws Exception {
     ArtifactSummary summary1 = new ArtifactSummary("wrangler-transform", "1.0.0", ArtifactScope.USER);
     ArtifactSummary summary2 = new ArtifactSummary("wrangler-transform", "1.0.1", ArtifactScope.SYSTEM);
-    Assert.assertEquals(summary2, DirectiveRegistry.pickLatest(summary1, summary2));
+    Assert.assertEquals(summary2, ArtifactSummaryComparator.pickLatest(summary1, summary2));
 
     summary2 = new ArtifactSummary("wrangler-transform", "1.0.0", ArtifactScope.SYSTEM);
-    Assert.assertEquals(summary1, DirectiveRegistry.pickLatest(summary1, summary2));
+    Assert.assertEquals(summary1, ArtifactSummaryComparator.pickLatest(summary1, summary2));
 
     summary1 = new ArtifactSummary("wrangler-transform", "2.0.0", ArtifactScope.SYSTEM);
-    Assert.assertEquals(summary1, DirectiveRegistry.pickLatest(summary1, summary2));
+    Assert.assertEquals(summary1, ArtifactSummaryComparator.pickLatest(summary1, summary2));
   }
 }

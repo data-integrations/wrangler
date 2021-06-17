@@ -19,6 +19,7 @@ package io.cdap.wrangler.dataset.workspace;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.CloseableIterator;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
@@ -201,6 +202,29 @@ public class WorkspaceDataset {
         Workspace workspace = readWorkspace(row);
         if (scope.equals(workspace.getScope())) {
           values.add(new WorkspaceIdentifier(workspace.getNamespacedId().getId(), workspace.getName()));
+        }
+      }
+    }
+    return values;
+  }
+
+  /**
+   * LLists all the workspaces before timestamp.
+   *
+   * @return List of workspaces.
+   */
+  public List<Workspace> listWorkspaces(NamespaceSummary namespace, long timestampSeconds) throws IOException {
+    List<Workspace> values = new ArrayList<>();
+    List<Field<?>> namespaceKey = new ArrayList<>(2);
+    namespaceKey.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
+    namespaceKey.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
+    Range range = Range.singleton(namespaceKey);
+    try (CloseableIterator<StructuredRow> rowIter = table.scan(range, Integer.MAX_VALUE)) {
+      while (rowIter.hasNext()) {
+        StructuredRow row = rowIter.next();
+        Workspace workspace = readWorkspace(row);
+        if (workspace.getCreated() < timestampSeconds) {
+          values.add(workspace);
         }
       }
     }
