@@ -18,6 +18,7 @@ package io.cdap.wrangler.utils;
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.Row;
+
 import java.math.BigDecimal;
 
 /**
@@ -34,18 +35,14 @@ public final class ColumnConverter {
    * @param row source record to be modified.
    * @param column name of the column within source record.
    * @param toName the target name of the column.
-   * @throws DirectiveExecutionException when a column matching the target name already exists or the given column
-   * does not exist
+   * @throws DirectiveExecutionException when a column matching the target name already exists
    */
   public static void rename(String directiveName, Row row, String column, String toName)
     throws DirectiveExecutionException {
     int idx = row.find(column);
     int existingColumn = row.find(toName);
     if (idx == -1) {
-      throw new DirectiveExecutionException(
-        directiveName, String.format("Column '%s' does not exist. Please add the column '%s' before " +
-                                       "renaming '%s' to '%s'.",
-                                     column, column, column, toName));
+      return;
     }
 
     // if the idx are the same, this means the renamed column is same with the original column except the casing

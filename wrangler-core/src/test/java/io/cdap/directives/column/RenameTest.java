@@ -77,4 +77,27 @@ public class RenameTest {
     Assert.assertEquals("D", row.getValue("C4"));
     Assert.assertEquals("E", row.getValue("C5"));
   }
+
+  @Test
+  public void testRenameNonExistingCols() throws Exception {
+    String[] directives = new String[] {
+      "rename body_10 body_3",
+      "rename body_3 BODY_3"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("body", "A").add("body_1", "B").add("body_2", "C"),
+      new Row("body", "D").add("body_1", "E").add("body_2", "F").add("body_10", "G"),
+      new Row("body", "H").add("body_1", "I").add("body_2", "J"),
+      new Row("body", "K").add("body_1", "L").add("body_2", "M").add("body_10", "N"));
+
+    List<Row> result = TestingRig.execute(directives, rows);
+
+    // here create new row and compare individual row since row is not immutable during execution
+    Assert.assertEquals(4, result.size());
+    Assert.assertEquals(new Row("body", "A").add("body_1", "B").add("body_2", "C"), result.get(0));
+    Assert.assertEquals(new Row("body", "D").add("body_1", "E").add("body_2", "F").add("BODY_3", "G"), result.get(1));
+    Assert.assertEquals(new Row("body", "H").add("body_1", "I").add("body_2", "J"), result.get(2));
+    Assert.assertEquals(new Row("body", "K").add("body_1", "L").add("body_2", "M").add("BODY_3", "N"), result.get(3));
+  }
 }
