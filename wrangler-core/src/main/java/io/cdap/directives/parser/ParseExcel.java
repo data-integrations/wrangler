@@ -28,6 +28,7 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
+import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
@@ -186,6 +187,16 @@ public class ParseExcel implements Directive, Lineage {
               if (firstRowAsHeader && rows == 0) {
                 rows++;
                 continue;
+              }
+
+              // add old columns to the new row
+              for (Pair<String, Object> field : record.getFields()) {
+                String colName = field.getFirst();
+                // if new row does not contain this column and this column is not the blob column that contains
+                // the excel data.
+                if (newRow.getValue(colName) == null && !colName.equals(column)) {
+                  newRow.add(colName, field.getSecond());
+                }
               }
               results.add(newRow);
               rows++;
