@@ -42,6 +42,7 @@ import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
+import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.BadRequestException;
@@ -85,6 +86,9 @@ import javax.ws.rs.QueryParam;
  */
 @Deprecated
 public class S3Handler extends AbstractWranglerHandler {
+  private static final String PATH_FORMAT = "s3n://%s/%s";
+  private static final String BUCKET_NAME = "bucket-name";
+  private static final String KEY = "key";
   private static final String COLUMN_NAME = "body";
   private static final int FILE_SIZE = 10 * 1024 * 1024;
   private static final List<String> MACRO_FIELDS = ImmutableList.of("accessKeyId", "accessSecretKey");
@@ -279,6 +283,20 @@ public class S3Handler extends AbstractWranglerHandler {
     }));
   }
 
+  public static Map<String, String> getConnectorProperties(Map<String, String> config) {
+    Map<String, String> properties = new HashMap<>();
+    S3Configuration s3Configuration = new S3Configuration(config);
+    properties.put("accessID", s3Configuration.getAWSAccessKeyId());
+    properties.put("accessKey", s3Configuration.getAWSSecretKey());
+    properties.put("authenticationMethod", "Access Credentials");
+    properties.put("region", s3Configuration.getRegion());
+    return properties;
+  }
+
+  public static String getPath(Workspace workspace) {
+    return String.format(PATH_FORMAT, workspace.getProperties().get(BUCKET_NAME), workspace.getProperties().get(KEY));
+  }
+
   private S3ConnectionSample loadSamplableFile(NamespacedId connectionId, String scope, InputStream inputStream,
                                                S3Object s3Object, int lines, double fraction,
                                                String sampler) throws IOException {
@@ -298,8 +316,8 @@ public class S3Handler extends AbstractWranglerHandler {
       properties.put(PropertyIds.CONNECTION_TYPE, ConnectionType.S3.getType());
       properties.put(PropertyIds.SAMPLER_TYPE, samplingMethod.getMethod());
       properties.put(PropertyIds.CONNECTION_ID, connectionId.getId());
-      properties.put("bucket-name", s3Object.getBucketName());
-      properties.put("key", s3Object.getKey());
+      properties.put(BUCKET_NAME, s3Object.getBucketName());
+      properties.put(KEY, s3Object.getKey());
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
         .setScope(scope)
         .setProperties(properties)
@@ -362,8 +380,8 @@ public class S3Handler extends AbstractWranglerHandler {
     properties.put(PropertyIds.FORMAT, format.name());
 
     // S3 specific properties.
-    properties.put("bucket-name", s3Object.getBucketName());
-    properties.put("key", s3Object.getKey());
+    properties.put(BUCKET_NAME, s3Object.getBucketName());
+    properties.put(KEY, s3Object.getKey());
     WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
       .setScope(scope)
       .setProperties(properties)

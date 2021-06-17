@@ -81,16 +81,16 @@ import javax.ws.rs.PathParam;
  * V2 endpoints for workspace
  */
 public class WorkspaceHandler extends AbstractDirectiveHandler {
+
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
-
-  private WorkspaceStore store;
+  private WorkspaceStore wsStore;
   private ConnectionDiscoverer discoverer;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
-    store = new WorkspaceStore(context);
+    wsStore = new WorkspaceStore(context);
     discoverer = new ConnectionDiscoverer(context);
   }
 
@@ -140,8 +140,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       Workspace workspace = Workspace.builder(generateWorkspaceName(wsId, creationRequest.getSampleRequest().getPath()),
                                               wsId.getWorkspaceId())
                               .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).setSampleSpec(spec).build();
-
-      store.saveWorkspace(wsId, new WorkspaceDetail(workspace, rows));
+      wsStore.saveWorkspace(wsId, new WorkspaceDetail(workspace, rows));
       responder.sendJson(wsId.getWorkspaceId());
     });
   }
@@ -154,7 +153,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
         throw new BadRequestException("Listing workspaces in system namespace is currently not supported");
       }
-      responder.sendString(GSON.toJson(new ServiceResponse<>(store.listWorkspaces(ns))));
+      responder.sendString(GSON.toJson(new ServiceResponse<>(wsStore.listWorkspaces(ns))));
     });
   }
 
@@ -167,7 +166,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
         throw new BadRequestException("Getting workspace in system namespace is currently not supported");
       }
-      responder.sendString(GSON.toJson(store.getWorkspace(new WorkspaceId(ns, workspaceId))));
+      responder.sendString(GSON.toJson(wsStore.getWorkspace(new WorkspaceId(ns, workspaceId))));
     });
   }
 
@@ -188,11 +187,11 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
         GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(), WorkspaceUpdateRequest.class);
 
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      Workspace newWorkspace = Workspace.builder(store.getWorkspace(wsId))
+      Workspace newWorkspace = Workspace.builder(wsStore.getWorkspace(wsId))
                                  .setDirectives(updateRequest.getDirectives())
                                  .setInsights(updateRequest.getInsights())
                                  .setUpdatedTimeMillis(System.currentTimeMillis()).build();
-      store.updateWorkspace(wsId, newWorkspace);
+      wsStore.updateWorkspace(wsId, newWorkspace);
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
   }
@@ -206,7 +205,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
         throw new BadRequestException("Deleting workspace in system namespace is currently not supported");
       }
-      store.deleteWorkspace(new WorkspaceId(ns, workspaceId));
+      wsStore.deleteWorkspace(new WorkspaceId(ns, workspaceId));
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
   }
@@ -250,7 +249,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       long now = System.currentTimeMillis();
       Workspace workspace = Workspace.builder(name, id.getWorkspaceId())
                               .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).build();
-      store.saveWorkspace(id, new WorkspaceDetail(workspace, sample));
+      wsStore.saveWorkspace(id, new WorkspaceDetail(workspace, sample));
       responder.sendJson(id.getWorkspaceId());
     });
   }
@@ -273,7 +272,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
         GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(),
                       DirectiveExecutionRequest.class);
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      WorkspaceDetail detail = store.getWorkspaceDetail(wsId);
+      WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
       List<Row> result = getContext().isRemoteTaskEnabled() ?
         executeRemotely(ns.getName(), executionRequest.getDirectives(), detail) :
         executeLocally(ns.getName(), executionRequest.getDirectives(), detail);
@@ -282,7 +281,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
                                  .setDirectives(executionRequest.getDirectives())
                                  .setUpdatedTimeMillis(System.currentTimeMillis()).build();
-      store.updateWorkspace(wsId, newWorkspace);
+      wsStore.updateWorkspace(wsId, newWorkspace);
       responder.sendJson(response);
     });
   }
@@ -342,14 +341,16 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       composite.reload(namespace);
 
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      WorkspaceDetail detail = store.getWorkspaceDetail(wsId);
+      WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
       List<String> directives = detail.getWorkspace().getDirectives();
       List<Row> result = getContext().isRemoteTaskEnabled() ?
         executeRemotely(ns.getName(), directives, detail) :
         executeLocally(ns.getName(), directives, detail);
 
       SchemaConverter schemaConvertor = new SchemaConverter();
-      Schema schema = schemaConvertor.toSchema("record", createUberRecord(result));
+      // check if the rows are empty before going to create a record schema, it will result in a 400 if empty fields
+      // are passed to a record type schema
+      Schema schema = result.isEmpty() ? null : schemaConvertor.toSchema("record", createUberRecord(result));
       Map<String, String> properties = ImmutableMap.of("directives", String.join("\n", directives),
                                                        "field", "*",
                                                        "precondition", "false",

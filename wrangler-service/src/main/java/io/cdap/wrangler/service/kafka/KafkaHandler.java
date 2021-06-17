@@ -28,6 +28,7 @@ import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
+import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.ConnectionSample;
@@ -210,5 +211,16 @@ public final class KafkaHandler extends AbstractWranglerHandler {
       KafkaSpec kafkaSpec = new KafkaSpec(pluginSpec);
       return new ServiceResponse<>(kafkaSpec);
     });
+  }
+
+  public static Map<String, String> getConnectorProperties(Map<String, String> config) {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("brokers", config.get(PropertyIds.BROKER));
+    properties.put("kafkaBrokers", config.get(PropertyIds.BROKER));
+    return properties;
+  }
+
+  public static String getPath(Workspace workspace) {
+    return workspace.getProperties().get(PropertyIds.TOPIC);
   }
 }
