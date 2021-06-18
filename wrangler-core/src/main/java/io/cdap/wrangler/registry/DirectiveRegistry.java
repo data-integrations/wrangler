@@ -16,10 +16,7 @@
 
 package io.cdap.wrangler.registry;
 
-import com.google.common.annotations.VisibleForTesting;
-import io.cdap.cdap.api.artifact.ArtifactScope;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
-import io.cdap.cdap.api.artifact.ArtifactVersion;
 import io.cdap.wrangler.api.DirectiveLoadException;
 
 import java.io.Closeable;
@@ -70,23 +67,4 @@ public interface DirectiveRegistry extends Closeable {
    */
   @Nullable
   ArtifactSummary getLatestWranglerArtifact();
-
-  /**
-   * Pick up the latest artifact, this method assumes the name of the artifact is same
-   */
-  @VisibleForTesting
-  static ArtifactSummary pickLatest(ArtifactSummary artifact1, ArtifactSummary artifact2) {
-    // first compare the artifact
-    int cmp = new ArtifactVersion(artifact1.getVersion()).compareTo(new ArtifactVersion(artifact2.getVersion()));
-    if (cmp > 0) {
-      return artifact1;
-    }
-
-    if (cmp < 0) {
-      return artifact2;
-    }
-
-    // if scope is differnt, whoever has user scope is latest
-    return artifact1.getScope().equals(ArtifactScope.USER) ? artifact1 : artifact2;
-  }
 }

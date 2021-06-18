@@ -39,6 +39,7 @@ import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
+import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.ConnectionSample;
@@ -65,6 +66,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import javax.ws.rs.DefaultValue;
@@ -79,6 +81,7 @@ import javax.ws.rs.QueryParam;
  */
 @Deprecated
 public class SpannerHandler extends AbstractWranglerHandler {
+  private static final String PATH_FORMAT = "/%s/%s/%s";
   private static final String TABLE_NAME = "TableName";
   // Spanner queries for listing tables and listing schema of table are documented at
   // https://cloud.google.com/spanner/docs/information-schema
@@ -243,6 +246,21 @@ public class SpannerHandler extends AbstractWranglerHandler {
       PluginSpec pluginSpec = new PluginSpec("Spanner", "source", properties);
       return new ServiceResponse<>(new SpannerSpec(pluginSpec));
     });
+  }
+
+  public static Map<String, String> getConnectorProperties(Map<String, String> config) {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("serviceAccountType", "filePath");
+    properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+    properties.put("project", config.get(GCPUtils.PROJECT_ID));
+    properties.values().removeIf(Objects::isNull);
+    return properties;
+  }
+
+  public static String getPath(Workspace workspace) {
+    SpannerSpecification conf =
+      GSON.fromJson(workspace.getProperties().get(PropertyIds.PLUGIN_SPECIFICATION), SpannerSpecification.class);
+    return String.format(PATH_FORMAT, conf.getInstance(), conf.getDatabase(), conf.getTable());
   }
 
   private Schema getTableSchema(Connection connection,

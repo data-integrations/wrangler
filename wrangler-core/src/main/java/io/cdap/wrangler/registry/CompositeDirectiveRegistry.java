@@ -19,6 +19,7 @@ package io.cdap.wrangler.registry;
 import com.google.common.collect.Iterables;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.wrangler.api.DirectiveLoadException;
+import io.cdap.wrangler.utils.ArtifactSummaryComparator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
       if (latestArtifact == null) {
         latestArtifact = artifact;
       } else {
-        latestArtifact = DirectiveRegistry.pickLatest(latestArtifact, artifact);
+        latestArtifact = ArtifactSummaryComparator.pickLatest(latestArtifact, artifact);
       }
     }
     return latestArtifact;

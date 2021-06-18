@@ -1089,7 +1089,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
    * @param workspace the workspace to get records from
    * @return list of records.
    */
-  private List<Row> fromWorkspace(Workspace workspace) throws IOException, ClassNotFoundException {
+  public static List<Row> fromWorkspace(Workspace workspace) throws IOException, ClassNotFoundException {
     DataType type = workspace.getType();
     List<Row> rows = new ArrayList<>();
 

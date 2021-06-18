@@ -27,11 +27,15 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.retry.RetryableException;
 import io.cdap.cdap.etl.api.connector.SampleRequest;
 import io.cdap.cdap.etl.common.Constants;
+import io.cdap.cdap.etl.proto.connection.ConnectionCreationRequest;
+import io.cdap.cdap.etl.proto.connection.ConnectorDetail;
 import io.cdap.cdap.etl.proto.connection.SampleResponse;
 import io.cdap.cdap.etl.proto.connection.SampleResponseCodec;
+import io.cdap.cdap.etl.proto.connection.SpecGenerationRequest;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.wrangler.proto.BadRequestException;
+import io.cdap.wrangler.proto.ConflictException;
 import io.cdap.wrangler.proto.NotFoundException;
 
 import java.io.IOException;
@@ -43,6 +47,7 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * Discover for connection related operations
@@ -65,6 +70,34 @@ public class ConnectionDiscoverer {
     this.serviceDiscoverer = serviceDiscoverer;
   }
 
+  public void addConnection(String namespace, String connectionName,
+                            ConnectionCreationRequest request) throws IOException, InterruptedException {
+    String url = String.format("v1/contexts/%s/connections/%s", namespace, connectionName);
+    execute(namespace, connectionName, url, urlConn -> {
+      urlConn.setRequestMethod("PUT");
+      urlConn.setDoOutput(true);
+      try (OutputStream os = urlConn.getOutputStream();
+           OutputStreamWriter writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+        writer.write(GSON.toJson(request));
+        writer.flush();
+      }
+    }, null);
+  }
+
+  public ConnectorDetail getSpecification(String namespace, String connectionName,
+                                          SpecGenerationRequest request) throws IOException, InterruptedException {
+    String url = String.format("v1/contexts/%s/connections/%s/specification", namespace, connectionName);
+    return execute(namespace, connectionName, url, urlConn -> {
+      urlConn.setRequestMethod("POST");
+      urlConn.setDoOutput(true);
+      try (OutputStream os = urlConn.getOutputStream();
+           OutputStreamWriter writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+        writer.write(GSON.toJson(request));
+        writer.flush();
+      }
+    }, ConnectorDetail.class);
+  }
+
   public SampleResponse retrieveSample(String namespace, String connectionName,
                                        SampleRequest sampleRequest) throws IOException, InterruptedException {
     String url = String.format("v1/contexts/%s/connections/%s/sample", namespace, connectionName);
@@ -83,7 +116,7 @@ public class ConnectionDiscoverer {
    * Execute the url provided, and return the response based on given type.
    */
   private <T> T execute(String namespace, String connectionName, String url,
-                        URLConfigurer configurer, Class<T> type) throws IOException, InterruptedException {
+                        URLConfigurer configurer, @Nullable Class<T> type) throws IOException, InterruptedException {
     // Make call with exponential delay on failure retry.
     long delay = RETRY_BASE_DELAY_MILLIS;
     double minMultiplier = RETRY_DELAY_MULTIPLIER - RETRY_DELAY_MULTIPLIER * RETRY_RANDOMIZE_FACTOR;
@@ -135,7 +168,7 @@ public class ConnectionDiscoverer {
    * @param urlConn url connection to get result
    * @param type the expected return type for this call
    */
-  private <T> T retrieveResult(HttpURLConnection urlConn, Class<T> type) throws IOException {
+  private <T> T retrieveResult(HttpURLConnection urlConn, @Nullable Class<T> type) throws IOException {
     int responseCode = urlConn.getResponseCode();
     if (responseCode != HttpURLConnection.HTTP_OK) {
       switch (responseCode) {
@@ -147,11 +180,17 @@ public class ConnectionDiscoverer {
           throw new BadRequestException(getError(urlConn));
         case HttpURLConnection.HTTP_NOT_FOUND:
           throw new NotFoundException(getError(urlConn));
+        case HttpURLConnection.HTTP_CONFLICT:
+          throw new ConflictException(getError(urlConn));
       }
       throw new IOException("Failed to call connection service with status " + responseCode + ": " +
                               getError(urlConn));
     }
 
+    if (type == null) {
+      urlConn.disconnect();
+      return null;
+    }
     try (Reader reader = new InputStreamReader(urlConn.getInputStream(), StandardCharsets.UTF_8)) {
       return GSON.fromJson(CharStreams.toString(reader), type);
     } finally {

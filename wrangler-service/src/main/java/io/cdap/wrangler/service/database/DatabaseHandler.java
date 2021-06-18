@@ -33,6 +33,7 @@ import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
+import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.ConnectionSample;
@@ -49,6 +50,7 @@ import io.cdap.wrangler.proto.db.DBSpec;
 import io.cdap.wrangler.proto.db.JDBCDriverInfo;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.macro.ServiceMacroEvaluator;
+import io.cdap.wrangler.service.s3.S3Configuration;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.ReferenceNames;
 import org.apache.commons.lang3.text.StrLookup;
@@ -511,6 +513,22 @@ public class DatabaseHandler extends AbstractWranglerHandler {
 
       return new ServiceResponse<>(spec);
     });
+  }
+
+  public static Map<String, String> getConnectorProperties(Map<String, String> config) {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("connectionString", config.get("url"));
+    properties.put("user", config.get("username"));
+    properties.put("password", config.get("password"));
+    properties.put("jdbcPluginType", config.get("type"));
+    properties.put("jdbcPluginName", config.get("name"));
+    return properties;
+  }
+
+  // TODO: this path will not work with current db connector if the database type supports schema,
+  //  but it should still give back the related source information.
+  public static String getPath(Workspace workspace) {
+    return workspace.getProperties().get(PropertyIds.NAME);
   }
 
   /**
