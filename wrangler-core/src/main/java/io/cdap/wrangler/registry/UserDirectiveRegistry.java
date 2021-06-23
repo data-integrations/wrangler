@@ -228,8 +228,10 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
     }
   }
 
+  @Nullable
   private ArtifactManager getArtifactManager() {
-    return manager != null ? manager : systemAppTaskContext.getArtifactManager();
+    return manager != null ? manager :
+      systemAppTaskContext != null ? systemAppTaskContext.getArtifactManager() : null;
   }
 
   @Nullable
