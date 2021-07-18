@@ -31,6 +31,7 @@ import java.util.Objects;
 @PublicEvolving
 public final class Row implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(Row.class);
+  private static final long serialVersionUID = -7505703059736709602L;
 
   // Name of the columns held by the row.
   private List<String> columns = new ArrayList<>();
