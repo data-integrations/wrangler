@@ -154,6 +154,8 @@ public class ConnectionDiscoverer {
   }
 
   private HttpURLConnection retrieveConnectionUrl(String url) throws IOException {
+    // escape the space in url since connection name can contain space
+    url = url.replace(" ", "%20");
     HttpURLConnection urlConn = serviceDiscoverer.openConnection(
       NamespaceId.SYSTEM.getNamespace(), Constants.PIPELINEID, Constants.STUDIO_SERVICE_NAME, url);
 
