@@ -21,8 +21,10 @@ import org.apache.commons.jexl3.scripting.JexlScriptEngine;
 
 import javax.script.Bindings;
 import javax.script.CompiledScript;
+import javax.script.ScriptContext;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
+import javax.script.SimpleScriptContext;
 
 /**
  * A precondition expression that filters data into the directives.
@@ -30,6 +32,8 @@ import javax.script.SimpleBindings;
 public class Precondition {
   private final String condition;
   private final CompiledScript script;
+  // SimpleScriptContext is pretty expensive to construct due to all PrintWriter creation, so let's cache it
+  private final ThreadLocal<ScriptContext> contextCache = ThreadLocal.withInitial(this::createContext);
 
   public Precondition(String condition) throws PreconditionException {
     this.condition = condition;
@@ -45,14 +49,28 @@ public class Precondition {
     }
   }
 
+  public ScriptContext createContext() {
+    ScriptContext parent = script.getEngine().getContext();
+
+    SimpleScriptContext context = new SimpleScriptContext();
+    context.setBindings(parent.getBindings(ScriptContext.GLOBAL_SCOPE),
+                         ScriptContext.GLOBAL_SCOPE);
+    context.setWriter(parent.getWriter());
+    context.setReader(parent.getReader());
+    context.setErrorWriter(parent.getErrorWriter());
+    return context;
+  }
+
   public boolean apply(Row row) throws PreconditionException {
-    Bindings ctx = new SimpleBindings();
+    Bindings bindings = new SimpleBindings();
     for (int i = 0; i < row.width(); ++i) {
-      ctx.put(row.getColumn(i), row.getValue(i));
+      bindings.put(row.getColumn(i), row.getValue(i));
     }
 
     try {
-      Object result = script.eval(ctx);
+      ScriptContext scriptContext = contextCache.get();
+      scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
+      Object result = script.eval(scriptContext);
       if (!(result instanceof Boolean)) {
         throw new PreconditionException(
           String.format("Precondition '%s' does not result in true or false.", condition)
