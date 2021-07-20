@@ -22,7 +22,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -35,6 +38,9 @@ public final class Row implements Serializable {
 
   // Name of the columns held by the row.
   private List<String> columns = new ArrayList<>();
+
+  // Map of lower case column names to speed up lookup
+  private transient Map<String, Integer> nameIndex;
 
   // Values held by the row.
   private List<Object> values = new ArrayList<>();
@@ -50,6 +56,7 @@ public final class Row implements Serializable {
   public Row(Row row) {
     this.values = new ArrayList<>(row.values);
     this.columns = new ArrayList<>(row.columns);
+    this.nameIndex = row.nameIndex == null ? null : new HashMap<>(row.nameIndex);
   }
 
   /**
@@ -93,6 +100,7 @@ public final class Row implements Serializable {
    */
   public void setColumn(int idx, String name) {
     columns.set(idx, name);
+    nameIndex = null;
   }
 
   /**
@@ -141,6 +149,9 @@ public final class Row implements Serializable {
   public Row add(String name, Object value) {
     columns.add(name);
     values.add(value);
+    if (nameIndex != null && name != null) {
+      nameIndex.putIfAbsent(name.toLowerCase(Locale.ENGLISH), columns.size() - 1);
+    }
     return this;
   }
 
@@ -152,6 +163,7 @@ public final class Row implements Serializable {
   public Row remove(int idx) {
     columns.remove(idx);
     values.remove(idx);
+    nameIndex = null;
     return this;
   }
 
@@ -162,14 +174,17 @@ public final class Row implements Serializable {
    * @return null if not present, else the index at which the column is found.
    */
   public int find(String col) {
-    int idx = 0;
-    for (String name : columns) {
-      if (col.equalsIgnoreCase(name)) {
-        return idx;
+    if (nameIndex == null) {
+      nameIndex = new HashMap<>();
+      //We may have duplicate names, start from end to get the first index retained in the map
+      for (int i = columns.size() - 1; i >= 0; i--) {
+        String name = columns.get(i);
+        if (name != null) {
+          nameIndex.put(name.toLowerCase(Locale.ENGLISH), i);
+        }
       }
-      idx++;
     }
-    return -1;
+    return nameIndex.getOrDefault(col.toLowerCase(Locale.ENGLISH), -1);
   }
 
   /**
@@ -230,6 +245,7 @@ public final class Row implements Serializable {
       if (index < columns.size() && index < values.size()) {
         columns.add(index, name);
         values.add(index, value);
+        nameIndex = null;
       }
     }
   }
