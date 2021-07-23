@@ -78,11 +78,27 @@ public final class RecordConvertor implements Serializable {
     }
     StructuredRecord.Builder builder = StructuredRecord.builder(schema);
     List<Schema.Field> fields = schema.getFields();
+    // We optimize for use case where wrangler list of fields is equal to the output schema one
+    // This value would hold first row field index that we did not map to schema yet
+    int firstUnclaimedField = 0;
     for (Schema.Field field : fields) {
       Schema fSchema = field.getSchema();
       boolean isNullable = fSchema.isNullable();
       String name = field.getName();
-      Object value = row.getValue(name);
+      Object value = null;
+      int idx = -1;
+      if (name.equals(row.getColumn(firstUnclaimedField))) {
+        idx = firstUnclaimedField;
+        firstUnclaimedField++;
+      } else {
+        idx = row.find(name, firstUnclaimedField);
+        if (idx == firstUnclaimedField) {
+          firstUnclaimedField++;
+        }
+      }
+      if (idx != -1) {
+        value = row.getValue(idx);
+      }
       try {
         Object decodedObj = decode(name, value, field.getSchema());
         if (decodedObj instanceof LocalDate) {
