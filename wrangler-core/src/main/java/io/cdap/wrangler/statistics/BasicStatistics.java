@@ -23,9 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by nitin on 2/4/17.
+ * Basic class to compute summary from a list of rows
  */
 public class BasicStatistics implements Statistics {
+  // default time out be 10s
+  private static final long TIME_OUT_MILLIS = 10000;
   private final FinderEngine engine;
 
   public BasicStatistics() throws Exception {
@@ -37,6 +39,7 @@ public class BasicStatistics implements Statistics {
     ColumnMetric types = new ColumnMetric();
     ColumnMetric stats = new ColumnMetric();
 
+    long startTime = System.currentTimeMillis();
     Double count = new Double(0);
     for (Row row : rows) {
       ++count;
@@ -55,9 +58,14 @@ public class BasicStatistics implements Statistics {
           if (value.isEmpty()) {
             stats.increment(column, "empty");
           } else {
+            // this call is very expensive for string > 2000 characters, took seconds to return
             Map<String, List<String>> finds = engine.findWithType(value);
             for (String find : finds.keySet()) {
               types.increment(column, find);
+            }
+            // TODO: this is a workaround for CDAP-18262, to proper fix we should revisit this computation logic
+            if (System.currentTimeMillis() - startTime > TIME_OUT_MILLIS) {
+              break;
             }
           }
         }
