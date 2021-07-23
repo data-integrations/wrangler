@@ -307,6 +307,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
     properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
     properties.put(DATASET_PROJECT, config.get(DATASET_PROJECT));
     properties.put("project", config.get(GCPUtils.PROJECT_ID));
+    properties.put("showHiddenDatasets", "true");
     properties.values().removeIf(Objects::isNull);
     return properties;
   }
