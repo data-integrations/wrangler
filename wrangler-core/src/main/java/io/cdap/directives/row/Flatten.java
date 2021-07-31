@@ -110,6 +110,11 @@ public class Flatten implements Directive, Lineage {
       }
 
       if (max == 0) {
+        for (int i = 0; i < count; ++i) {
+          if (locations[i] != -1) {
+            row.setValue(locations[i], null);
+          }
+        }
         results.add(new Row(row));
         continue;
       }
