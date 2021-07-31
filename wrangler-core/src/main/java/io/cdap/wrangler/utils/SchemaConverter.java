@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.data.schema.Schema.Field;
 import io.cdap.cdap.api.data.schema.Schema.LogicalType;
 import io.cdap.cdap.api.data.schema.UnsupportedTypeException;
 import io.cdap.cdap.internal.guava.reflect.TypeToken;
@@ -30,6 +31,7 @@ import io.cdap.directives.parser.JsParser;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import org.json.JSONException;
+
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -45,6 +47,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 /**
@@ -152,6 +155,16 @@ public final class SchemaConverter {
       }
     }
 
+    if (value instanceof Row) {
+      ArrayList<Field> fields = new ArrayList<>();
+      for (Pair<String, Object> field: ((Row) value).getFields()) {
+        if (field.getSecond() != null) {
+          fields.add(Field.of(field.getFirst(), getSchema(field.getSecond(), field.getFirst())));
+        }
+      }
+      return Schema.nullableOf(Schema.recordOf(UUID.randomUUID().toString().replace("-", ""), fields));
+    }
+
     return null;
   }
 
@@ -225,7 +238,7 @@ public final class SchemaConverter {
     if (fields.size() == 0) {
       return Schema.nullableOf(Schema.arrayOf(Schema.of(Schema.Type.NULL)));
     }
-    return Schema.recordOf(name, fields);
+    return Schema.recordOf(UUID.randomUUID().toString().replace("-", ""), fields);
   }
 
   private Schema toComplexSchema(String name, JsonElement element) throws RecordConvertorException {
