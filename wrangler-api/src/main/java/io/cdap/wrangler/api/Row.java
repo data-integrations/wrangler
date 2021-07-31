@@ -159,7 +159,7 @@ public final class Row implements Serializable {
    * Finds a column index based on the name of the column. The col name is case insensitive.
    *
    * @param col to be searched within the row.
-   * @return null if not present, else the index at which the column is found.
+   * @return -1 if not present, else the index at which the column is found.
    */
   public int find(String col) {
     return find(col, 0);
@@ -171,7 +171,7 @@ public final class Row implements Serializable {
    *
    * @param col to be searched within the row.
    * @param firstIdx first index to check
-   * @return null if not present, else the index at which the column is found.
+   * @return -1 if not present, else the index at which the column is found.
    */
   public int find(String col, int firstIdx) {
     for (int i = firstIdx, columnsSize = columns.size(); i < columnsSize; i++) {
