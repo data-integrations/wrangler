@@ -24,6 +24,7 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Row;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 /**
  * Transformer to transform {@link StructuredRecord} to {@link Row}
@@ -77,14 +78,36 @@ public class StructuredToRowTransformer {
       }
     }
 
-    // if the type is bytes, need to make sure the value is byte array since byte buffer is not serializable
-    if (fieldSchema.getType().equals(Schema.Type.BYTES)) {
-      Object val = input.get(fieldName);
-      return val instanceof ByteBuffer ? Bytes.toBytes((ByteBuffer) val) : val;
-    }
+    Object val = input.get(fieldName);
+    return processValue(val, fieldSchema);
+  }
 
-    // If the logical type is present in complex types, it will be retrieved as corresponding
-    // simple type (int/long).
-    return input.get(fieldName);
+  private static Object processValue(Object val, Schema schema) {
+    switch(schema.getType()) {
+      // if the type is bytes, need to make sure the value is byte array since byte buffer is not serializable
+      case BYTES:
+        return val instanceof ByteBuffer ? Bytes.toBytes((ByteBuffer) val) : val;
+      // Recursively process structured records.
+      case RECORD:
+        return val instanceof StructuredRecord ? transform((StructuredRecord) val) : val;
+      case ARRAY:
+        if (val instanceof Iterable) {
+          ArrayList<Object> rowList = new ArrayList<>();
+          for (Object item : (Iterable<?>) val) {
+            if ((item != null) && (schema.getComponentSchema() != null)) {
+              rowList.add(processValue(item, schema.getComponentSchema()));
+            } else {
+              rowList.add(item);
+            }
+          }
+          return rowList;
+        } else {
+          return val;
+        }
+      default:
+        // If the logical type is present in complex types, it will be retrieved as corresponding
+        // simple type (int/long).
+        return val;
+    }
   }
 }
