@@ -17,6 +17,14 @@
 
 package io.cdap.wrangler.service.directive;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.wrangler.api.DirectiveParseException;
@@ -39,6 +47,7 @@ import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.validator.ColumnNameValidator;
 import io.cdap.wrangler.validator.Validator;
 import io.cdap.wrangler.validator.ValidatorException;
+import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+
 
 /**
  * Abstract handler which contains common logic for v1 and v2 endpoints
@@ -97,6 +107,76 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     return new CommonDirectiveExecutor(contextProvider, composite).executeDirectives(namespace, directives, sample);
   }
 
+
+  /**
+   * Formats Structure and Array records in a "pseudojson" in which it collapses
+   * complex types by callint toString().  This is done so the complex types are shown
+   * in a similar way inside and outside the structure records.
+   */
+  private static class WranglerDisplaySerializer implements TypeAdapterFactory {
+    @Override
+    public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+      // Let GSON Handle primitives and collections
+      if (ClassUtils.isPrimitiveOrWrapper(type.getRawType())
+          || (Iterable.class.isAssignableFrom(type.getRawType()))) {
+        return null;
+      }
+      if (Row.class.isAssignableFrom(type.getRawType())) {
+        return (TypeAdapter<T>) rowClassAdapter(gson);
+      }
+
+      return (TypeAdapter<T>) defaultClassAdapter(gson);
+    }
+
+    private TypeAdapter<Row> rowClassAdapter(Gson gson) {
+      return new TypeAdapter<Row>() {
+        @Override
+        public void write(JsonWriter out, Row value) throws IOException {
+          if (value == null) {
+            return;
+          }
+          final TypeAdapter<Object> elementAdapter = gson.getAdapter(Object.class);
+          out.beginObject();
+          for (Pair<String, Object> field : value.getFields()) {
+            out.name(field.getFirst());
+            elementAdapter.write(out, field.getSecond());
+          }
+          out.endObject();
+        }
+
+        @Override public
+        Row read(JsonReader in) throws IOException {
+          throw new UnsupportedOperationException("Reading Rows from Wrangler display format not implemented");
+        }
+      };
+    }
+
+    private TypeAdapter<Object> defaultClassAdapter(Gson gson) {
+      final TypeAdapter<Object> elementAdapter = gson.getAdapter(Object.class);
+      return new TypeAdapter<Object>() {
+        @Override
+        public void write(JsonWriter out, Object value) throws IOException {
+          try {
+            if ((value.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
+              out.value(value.toString());
+            } else {
+              out.value("Non-displayable object");
+            }
+          } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            out.value("Non-displayable object");
+          }
+        }
+
+        @Override public
+        Row read(JsonReader in) throws IOException {
+          throw new UnsupportedOperationException("Can't read object from it's string implementation");
+        }
+      };
+    }
+  }
+
+
   /**
    * Transform the rows to response that is user friendly. Also generates the summary from the rows.
    */
@@ -106,6 +186,9 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     Map<String, String> types = new HashMap<>();
     Set<String> headers = new LinkedHashSet<>();
     SchemaConverter convertor = new SchemaConverter();
+
+
+    Gson gson = new GsonBuilder().registerTypeAdapterFactory(new WranglerDisplaySerializer()).create();
 
     // Iterate through all the new rows.
     for (Row row : rows) {
@@ -127,16 +210,25 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
           String type = object.getClass().getSimpleName();
           if (schema != null) {
             schema = schema.isNullable() ? schema.getNonNullable() : schema;
-            type = schema.getLogicalType() == null ? schema.getType().name() : schema.getLogicalType().name();
+            type = schema.getLogicalType() == null ? schema.getType().name()
+                : schema.getLogicalType().name();
             // for backward compatibility, make the characters except the first one to lower case
             type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
           }
           types.put(fieldName, type);
-          if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
-            value.put(fieldName, object.toString());
+
+          if ((object instanceof StructuredRecord)
+              || (object instanceof Iterable)
+              || (object instanceof Row)) {
+            value.put(fieldName, gson.toJson(object));
           } else {
-            value.put(fieldName, "Non-displayable object");
+            if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
+              value.put(fieldName, object.toString());
+            } else {
+              value.put(fieldName, "Non-displayable object");
+            }
           }
+
         } else {
           value.put(fieldName, null);
         }
@@ -145,6 +237,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     }
     return new DirectiveExecutionResponse(values, headers, types, getWorkspaceSummary(rows));
   }
+
 
   /**
    * Get the summary for the workspace rows
