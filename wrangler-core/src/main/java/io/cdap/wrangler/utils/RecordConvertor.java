@@ -69,6 +69,9 @@ public final class RecordConvertor implements Serializable {
    * @return Populated {@link StructuredRecord}
    */
   public StructuredRecord decodeRecord(Row row, Schema schema) throws RecordConvertorException {
+    if (row == null) {
+      return null;
+    }
     // TODO: This is a hack to workaround StructuredRecord processing. NEED TO RETHINK.
     if (row.getFields().size() == 1) {
       Object cell = row.getValue(0);
@@ -87,7 +90,7 @@ public final class RecordConvertor implements Serializable {
       String name = field.getName();
       Object value = null;
       int idx = -1;
-      if (name.equals(row.getColumn(firstUnclaimedField))) {
+      if ((firstUnclaimedField < row.width()) && (name.equals(row.getColumn(firstUnclaimedField)))) {
         idx = firstUnclaimedField;
         firstUnclaimedField++;
       } else {
@@ -196,8 +199,14 @@ public final class RecordConvertor implements Serializable {
   }
 
   private StructuredRecord decodeRecord(String name, Object object, Schema schema) throws RecordConvertorException {
+    if (object == null) {
+      return null;
+    }
+
     if (object instanceof StructuredRecord) {
       return (StructuredRecord) object;
+    } else if (object instanceof Row) {
+      return  decodeRecord((Row) object, schema);
     } else if (object instanceof Map) {
       return decodeRecord(name, (Map) object, schema);
     } else if (object instanceof JsonObject) {
