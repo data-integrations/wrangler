@@ -45,7 +45,7 @@ public class FlattenTest {
 
     Assert.assertEquals(1, output.size());
     Assert.assertEquals("y", output.get(0).getValue("y"));
-    Assert.assertEquals(0, ((List) output.get(0).getValue("x")).size());
+    Assert.assertNull(((List) output.get(0).getValue("x")));
   }
 
   /**
