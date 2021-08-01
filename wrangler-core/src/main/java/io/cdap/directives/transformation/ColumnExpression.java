@@ -38,9 +38,7 @@ import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A directive for apply an expression to store the result in a column.
@@ -64,9 +62,7 @@ public class ColumnExpression implements Directive, Lineage {
   private String column;
   // The actual expression
   private String expression;
-  // Properties associated with pipeline
-  private final Map<String, Object> properties = new HashMap<>();
-  private final EL el = new EL(new EL.DefaultFunctions());
+  private EL el;
 
   @Override
   public UsageDefinition define() {
@@ -81,7 +77,7 @@ public class ColumnExpression implements Directive, Lineage {
     this.column = ((ColumnName) args.value("column")).value();
     this.expression = ((Expression) args.value("expression")).value();
     try {
-      el.compile(expression);
+      el = EL.compile(expression);
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }

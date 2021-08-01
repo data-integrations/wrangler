@@ -40,12 +40,11 @@ public final class ObjectSerDe<T> {
    * @return byte array of serialized object.
    */
   public byte[] toByteArray(T object) throws IOException {
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         ObjectOutput out = new ObjectOutputStream(bos)) {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    try (ObjectOutput out = new ObjectOutputStream(bos)) {
       out.writeObject(object);
-      out.flush();
-      return bos.toByteArray();
     }
+    return bos.toByteArray();
   }
 
   /**
@@ -56,8 +55,7 @@ public final class ObjectSerDe<T> {
    * @see ObjectSerDe#toByteArray(Object)
    */
   public T toObject(byte[] bytes) throws IOException, ClassNotFoundException {
-    try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-         ObjectInputStream in = new ObjectInputStream(bis)) {
+    try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
       return (T) in.readObject();
     }
   }

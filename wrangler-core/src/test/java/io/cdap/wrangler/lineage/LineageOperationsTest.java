@@ -22,12 +22,10 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.lineage.field.FieldOperation;
 import io.cdap.cdap.etl.api.lineage.field.FieldTransformOperation;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
-import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import org.junit.Assert;
@@ -213,15 +211,8 @@ public class LineageOperationsTest {
     return lineageOperations.generate();
   }
 
-  private RecipeParser getRecipeParser(List<String> directives)
-    throws DirectiveLoadException, DirectiveParseException {
-    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry());
-    RecipeParser recipe = new GrammarBasedParser(
-      "default",
-      new MigrateToV2(directives).migrate(),
-      registry
-    );
-    recipe.initialize(new NoOpDirectiveContext());
-    return recipe;
+  private RecipeParser getRecipeParser(List<String> directives) throws DirectiveParseException {
+    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE);
+    return new GrammarBasedParser("default", new MigrateToV2(directives).migrate(), registry);
   }
 }

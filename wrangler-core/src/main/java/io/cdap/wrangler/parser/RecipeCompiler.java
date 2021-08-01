@@ -27,15 +27,13 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.GrammarParserInterpreter;
 import org.apache.twill.filesystem.Location;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 /**
  * Class description here.
  */
 public final class RecipeCompiler implements Compiler {
-  public RecipeCompiler() {
-  }
 
   @Override
   public CompileStatus compile(String recipe) throws CompileException {
@@ -44,10 +42,8 @@ public final class RecipeCompiler implements Compiler {
 
   @Override
   public CompileStatus compile(Location location) throws CompileException {
-    try {
-      return compile(CharStreams.fromStream(location.getInputStream()));
-    } catch (IOException e) {
-      throw new CompileException(e.getMessage(), e);
+    try (InputStream is = location.getInputStream()) {
+      return compile(CharStreams.fromStream(is));
     } catch (Exception e) {
       throw new CompileException(e.getMessage(), e);
     }
@@ -57,8 +53,6 @@ public final class RecipeCompiler implements Compiler {
   public CompileStatus compile(Path path) throws CompileException {
     try {
       return compile(CharStreams.fromPath(path));
-    } catch (IOException e) {
-      throw new CompileException(e.getMessage(), e);
     } catch (Exception e) {
       throw new CompileException(e.getMessage(), e);
     }

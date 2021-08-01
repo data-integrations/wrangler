@@ -16,16 +16,18 @@
 
 package io.cdap.wrangler.registry;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import org.reflections.Reflections;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListMap;
 import javax.annotation.Nullable;
 
 /**
@@ -47,11 +49,24 @@ import javax.annotation.Nullable;
  * @see DirectiveInfo
  */
 public final class SystemDirectiveRegistry implements DirectiveRegistry {
+
+  public static final SystemDirectiveRegistry INSTANCE;
+
+  static {
+    try {
+      INSTANCE = new SystemDirectiveRegistry();
+    } catch (DirectiveLoadException e) {
+      // This shouldn't happen
+      throw new RuntimeException("Failed to load system directives", e);
+    }
+  }
+
   // This is the default package in which the directives are searched for.
   private static final String PACKAGE = "io.cdap.directives";
   private final Map<String, DirectiveInfo> registry;
 
-  public SystemDirectiveRegistry() throws DirectiveLoadException {
+  @VisibleForTesting
+  SystemDirectiveRegistry() throws DirectiveLoadException {
     this(new ArrayList<>());
   }
 
@@ -63,20 +78,21 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
    * @throws DirectiveLoadException thrown if there are any issue loading the directive.
    */
   public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
-    this.registry = new ConcurrentSkipListMap<>();
+    Map<String, DirectiveInfo> registry = new HashMap<>();
     namespaces.add(PACKAGE);
     for (String namespace : namespaces) {
       try {
         Reflections reflections = new Reflections(namespace);
         Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
         for (Class<? extends Directive> directive : system) {
-          DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.SYSTEM, directive);
-          registry.put(classz.name(), classz);
+          DirectiveInfo info = DirectiveInfo.fromSystem(directive);
+          registry.put(info.name(), info);
         }
       } catch (InstantiationException | IllegalAccessException e) {
         throw new DirectiveLoadException(e.getMessage(), e);
       }
     }
+    this.registry = Collections.unmodifiableMap(registry);
   }
 
   /**
@@ -87,6 +103,18 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
    */
   @Override
   public DirectiveInfo get(String namespace, String name) {
+    return get(name);
+  }
+
+  /**
+   * Given the name of the directive, returns the information related to the directive.
+   * This method is specific to system registry as system registry does not need namespace
+   * parameter.
+   *
+   * @param name of the directive to be retrieved from the registry.
+   * @return an instance of {@link DirectiveInfo} if found, else null.
+   */
+  public DirectiveInfo get(String name) {
     return registry.get(name);
   }
 
@@ -107,7 +135,7 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
    */
   @Override
   public Iterable<DirectiveInfo> list(String namespace) {
-    return registry.values();
+    return Collections.unmodifiableCollection(registry.values());
   }
 
   /**
