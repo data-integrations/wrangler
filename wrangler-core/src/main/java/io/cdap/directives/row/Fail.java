@@ -48,7 +48,7 @@ import java.util.List;
 public class Fail implements Directive, Lineage {
   public static final String NAME = "fail";
   private String condition;
-  private final EL el = new EL(new EL.DefaultFunctions());
+  private EL el;
 
   @Override
   public UsageDefinition define() {
@@ -66,7 +66,7 @@ public class Fail implements Directive, Lineage {
     }
     condition = expression.value();
     try {
-      el.compile(condition);
+      el = EL.compile(condition);
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }

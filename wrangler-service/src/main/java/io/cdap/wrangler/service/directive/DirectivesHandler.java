@@ -37,26 +37,17 @@ import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.ServiceUtils;
-import io.cdap.wrangler.api.CompileException;
-import io.cdap.wrangler.api.CompileStatus;
-import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
-import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.api.TokenGroup;
-import io.cdap.wrangler.api.parser.Token;
-import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.datamodel.DataModelGlossary;
 import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
-import io.cdap.wrangler.parser.MigrateToV2;
-import io.cdap.wrangler.parser.RecipeCompiler;
+import io.cdap.wrangler.parser.GrammarWalker.Visitor;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.ConflictException;
 import io.cdap.wrangler.proto.NamespacedId;
@@ -82,7 +73,6 @@ import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.ProjectInfo;
 import io.cdap.wrangler.utils.SchemaConverter;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,13 +85,12 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -130,7 +119,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     composite = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(),
+      SystemDirectiveRegistry.INSTANCE,
       new UserDirectiveRegistry(context)
     );
   }
@@ -145,8 +134,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       composite.close();
     } catch (IOException e) {
       // If something bad happens here, you might see a a lot of open file handles.
-      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.",
-               e.getMessage());
+      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.", e);
     }
   }
 
@@ -565,17 +553,19 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         if (directiveRequest == null) {
           throw new BadRequestException("Request body is empty.");
         }
-        directiveRequest.getRecipe().setPragma(addLoadablePragmaDirectives(namespace, directiveRequest));
+        List<String> directives = new ArrayList<>(directiveRequest.getRecipe().getDirectives());
 
         int limit = directiveRequest.getSampling().getLimit();
         NamespacedId namespacedId = new NamespacedId(ns, id);
-        List<Row> rows = executeDirectives(namespacedId, directiveRequest, records -> {
+        UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
+        List<Row> rows = executeDirectives(namespacedId, directives, records -> {
           if (records == null) {
             return Collections.emptyList();
           }
           int min = Math.min(records.size(), limit);
           return records.subList(0, min);
-        });
+        }, userDirectivesCollector);
+        userDirectivesCollector.addLoadDirectivesPragma(directives);
 
         io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionResponse response =
           generateExecutionResponse(rows, directiveRequest.getWorkspace().getResults());
@@ -586,62 +576,12 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
           ws.updateWorkspaceRequest(namespacedId, directiveRequest);
         });
 
-        return new DirectiveExecutionResponse(response.getValues(), response.getHeaders(), response.getTypes(),
-                                              directiveRequest.getRecipe().getDirectives());
+        return new DirectiveExecutionResponse(response.getValues(), response.getHeaders(),
+                                              response.getTypes(), directives);
       } catch (JsonParseException e) {
         throw new BadRequestException(e.getMessage(), e);
       }
     });
-  }
-
-  /**
-   * Automatically adds a load-directives pragma to the list of directives.
-   */
-  @Nullable
-  private String addLoadablePragmaDirectives(String namespace, Request request) {
-    StringBuilder sb = new StringBuilder();
-    // Validate the DSL by compiling the DSL. In case of macros being
-    // specified, the compilation will them at this phase.
-    Compiler compiler = new RecipeCompiler();
-    try {
-      // Compile the directive extracting the loadable plugins (a.k.a
-      // Directives in this context).
-      CompileStatus status = compiler.compile(new MigrateToV2(request.getRecipe().getDirectives()).migrate());
-      RecipeSymbol symbols = status.getSymbols();
-      if (symbols == null) {
-        return null;
-      }
-
-      Iterator<TokenGroup> iterator = symbols.iterator();
-      List<String> userDirectives = new ArrayList<>();
-      while (iterator.hasNext()) {
-        TokenGroup next = iterator.next();
-        if (next == null || next.size() < 1) {
-          continue;
-        }
-        Token token = next.get(0);
-        if (token.type() == TokenType.DIRECTIVE_NAME) {
-          String directive = (String) token.value();
-          try {
-            DirectiveInfo.Scope scope = composite.get(namespace, directive).scope();
-            if (scope == DirectiveInfo.Scope.USER) {
-              userDirectives.add(directive);
-            }
-          } catch (DirectiveLoadException e) {
-            // no-op.
-          }
-        }
-      }
-      if (userDirectives.size() > 0) {
-        sb.append("#pragma load-directives ");
-        String directives = StringUtils.join(userDirectives, ",");
-        sb.append(directives).append(";");
-        return sb.toString();
-      }
-    } catch (CompileException | DirectiveParseException e) {
-      throw new IllegalArgumentException(e.getMessage(), e);
-    }
-    return null;
   }
 
   /**
@@ -665,7 +605,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
           throw new BadRequestException("Request body is empty.");
         }
         int limit = directiveRequest.getSampling().getLimit();
-        List<Row> rows = executeDirectives(new NamespacedId(ns, id), directiveRequest, records -> {
+        List<String> directives = new LinkedList<>(directiveRequest.getRecipe().getDirectives());
+        List<Row> rows = executeDirectives(new NamespacedId(ns, id), directives, records -> {
           if (records == null) {
             return Collections.emptyList();
           }
@@ -693,7 +634,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("Request body is empty.");
       }
       int limit = user.getSampling().getLimit();
-      List<Row> rows = executeDirectives(new NamespacedId(ns, id), user, records -> {
+      List<String> directives = new LinkedList<>(user.getRecipe().getDirectives());
+      List<Row> rows = executeDirectives(new NamespacedId(ns, id), directives, records -> {
         if (records == null) {
           return Collections.emptyList();
         }
@@ -814,7 +756,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       }
 
       Map<String, String> properties = new HashMap<>(workspace.getProperties());
-      Long revision = null;
+      long revision;
       try {
         revision = Long.parseLong(properties.get(DATA_MODEL_REVISION_PROPERTY));
       } catch (NumberFormatException e) {
@@ -894,9 +836,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("info")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void capabilities(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> {
-      return new ServiceResponse<>(ProjectInfo.getProperties());
-    });
+    respond(request, responder, () -> new ServiceResponse<>(ProjectInfo.getProperties()));
   }
 
   /**
@@ -1126,23 +1066,35 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
    * Executes directives by extracting them from request.
    *
    * @param id data to be used for executing directives.
-   * @param user request passed on http.
+   * @param directives the list of directives to execute
    * @param sample sampling function.
    * @return records generated from the directives.
    */
-  private List<Row> executeDirectives(NamespacedId id, @Nullable Request user,
+  private List<Row> executeDirectives(NamespacedId id, List<String> directives,
                                       Function<List<Row>, List<Row>> sample) {
-    if (user == null) {
-      throw new BadRequestException("Request is empty. Please check if the request is sent as HTTP POST body.");
-    }
+    return executeDirectives(id, directives, sample, (a, b) -> { });
+  }
 
+  /**
+   * Executes directives by extracting them from request.
+   *
+   * @param id data to be used for executing directives.
+   * @param directives the list of directives to execute
+   * @param sample sampling function.
+   * @param grammarVisitor visitor to call while parsing directives
+   * @return records generated from the directives.
+   */
+  private <E extends Exception> List<Row> executeDirectives(NamespacedId id, List<String> directives,
+                                                            Function<List<Row>, List<Row>> sample,
+                                                            Visitor<E> grammarVisitor) {
     return TransactionRunners.run(getContext(), ctx -> {
       WorkspaceDataset ws = WorkspaceDataset.get(ctx);
 
       Workspace workspace = ws.getWorkspace(id);
       // Extract rows from the workspace.
       List<Row> rows = fromWorkspace(workspace);
-      return executeDirectives(id.getNamespace().getName(), user.getRecipe().getDirectives(), sample.apply(rows));
+      return executeDirectives(id.getNamespace().getName(), directives, sample.apply(rows),
+                               grammarVisitor);
     });
   }
 }

@@ -19,17 +19,36 @@ import com.google.gson.Gson;
 import io.cdap.cdap.api.service.worker.RunnableTask;
 import io.cdap.cdap.api.service.worker.RunnableTaskContext;
 import io.cdap.cdap.api.service.worker.SystemAppTaskContext;
+import io.cdap.directives.aggregates.DefaultTransientStore;
+import io.cdap.wrangler.api.Arguments;
+import io.cdap.wrangler.api.CompileException;
+import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveLoadException;
+import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.api.TransientStore;
-import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
-import io.cdap.wrangler.registry.DirectiveRegistry;
-import io.cdap.wrangler.registry.SystemDirectiveRegistry;
+import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.executor.RecipePipelineExecutor;
+import io.cdap.wrangler.expression.EL;
+import io.cdap.wrangler.parser.ConfigDirectiveContext;
+import io.cdap.wrangler.parser.DirectiveClass;
+import io.cdap.wrangler.parser.GrammarWalker;
+import io.cdap.wrangler.parser.MapArguments;
+import io.cdap.wrangler.parser.RecipeCompiler;
+import io.cdap.wrangler.proto.BadRequestException;
+import io.cdap.wrangler.proto.ErrorRecordsException;
+import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
 import io.cdap.wrangler.utils.ObjectSerDe;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Task for remote execution of directives
@@ -40,22 +59,71 @@ public class RemoteExecutionTask implements RunnableTask {
 
   @Override
   public void run(RunnableTaskContext runnableTaskContext) throws Exception {
-    RemoteDirectiveRequest directiveRequest = GSON
-      .fromJson(runnableTaskContext.getParam(), RemoteDirectiveRequest.class);
+    RemoteDirectiveRequest directiveRequest = GSON.fromJson(runnableTaskContext.getParam(),
+                                                            RemoteDirectiveRequest.class);
+
     SystemAppTaskContext systemAppContext = runnableTaskContext.getRunnableTaskSystemAppContext();
     String namespace = directiveRequest.getPluginNameSpace();
-    try (DirectiveRegistry composite = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(),
-      new UserDirectiveRegistry(systemAppContext))) {
-      composite.reload(namespace);
-      Function<TransientStore, ExecutorContext> contextProvider =
-        store -> new ServicePipelineContext(namespace, ExecutorContext.Environment.SERVICE, systemAppContext, store);
-      CommonDirectiveExecutor commonDirectiveExecutor = new CommonDirectiveExecutor(contextProvider, composite);
+    Map<String, DirectiveClass> systemDirectives = directiveRequest.getSystemDirectives();
+    AtomicBoolean hasUDD = new AtomicBoolean();
+
+    // Collect directives.
+    try (UserDirectiveRegistry userDirectiveRegistry = new UserDirectiveRegistry(systemAppContext)) {
+      List<Directive> directives = new ArrayList<>();
+      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+      walker.walk(directiveRequest.getRecipe(), (command, tokenGroup) -> {
+        DirectiveInfo info;
+        DirectiveClass directiveClass = systemDirectives.get(command);
+        if (directiveClass == null) {
+          info = userDirectiveRegistry.get(namespace, command);
+          hasUDD.set(true);
+        } else {
+          // For system directives, we can load it directly from the classloader.
+          try {
+            info = DirectiveInfo.fromSystem((Class<? extends Directive>) Class.forName(directiveClass.getClassName()));
+          } catch (ClassNotFoundException e) {
+            throw new DirectiveLoadException("Failed to load system directive " + directiveClass.getName(), e);
+          }
+        }
+
+        Directive directive = info.instance();
+        UsageDefinition definition = directive.define();
+        Arguments arguments = new MapArguments(definition, tokenGroup);
+        directive.initialize(arguments);
+        directives.add(directive);
+      });
+
+      // If there is no directives, there is nothing to execute
+      if (directives.isEmpty()) {
+        runnableTaskContext.writeResult(directiveRequest.getData());
+        return;
+      }
+
       ObjectSerDe<List<Row>> objectSerDe = new ObjectSerDe<>();
-      List<Row> inputRows = objectSerDe.toObject(directiveRequest.getData());
-      List<Row> rows = commonDirectiveExecutor
-        .executeDirectives(namespace, directiveRequest.getDirectives(), inputRows);
+      List<Row> rows = objectSerDe.toObject(directiveRequest.getData());
+
+      try (RecipePipelineExecutor executor = new RecipePipelineExecutor(() -> directives,
+                                                                        new ServicePipelineContext(
+                                                                          namespace,
+                                                                          ExecutorContext.Environment.SERVICE,
+                                                                          systemAppContext,
+                                                                          new DefaultTransientStore()))) {
+        rows = executor.execute(rows);
+        List<ErrorRecordBase> errors = executor.errors().stream()
+            .filter(ErrorRecordBase::isShownInWrangler)
+            .collect(Collectors.toList());
+
+        if (!errors.isEmpty()) {
+          throw new ErrorRecordsException(errors);
+        }
+      } catch (RecipeException e) {
+        throw new BadRequestException(e.getMessage(), e);
+      }
+
+      runnableTaskContext.setTerminateOnComplete(hasUDD.get() || EL.isUsed());
       runnableTaskContext.writeResult(objectSerDe.toByteArray(rows));
+    } catch (DirectiveParseException | ClassNotFoundException | CompileException e) {
+      throw new BadRequestException(e.getMessage(), e);
     }
   }
 }

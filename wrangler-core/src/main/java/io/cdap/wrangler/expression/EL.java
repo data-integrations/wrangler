@@ -40,6 +40,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,28 +51,53 @@ import java.util.Set;
  * This class <code>EL</code> is a Expression Language Handler.
  */
 public final class EL {
-  private Set<String> variables = new HashSet<>();
-  private final JexlEngine engine;
-  private JexlScript script = null;
 
-  public EL(ELRegistration registration) {
-    engine = new JexlBuilder()
+  private static volatile boolean used;
+
+  private final Set<String> variables;
+  private final JexlScript script;
+
+  /**
+   * Returns {@code true} if this class has been used to execute JEXL script.
+   */
+  public static boolean isUsed() {
+    return used;
+  }
+
+  /**
+   * Same as calling {@link #compile(ELRegistration, String)} using {@link DefaultFunctions}.
+   */
+  public static EL compile(String expression) throws ELException {
+    return compile(new DefaultFunctions(), expression);
+  }
+
+  /**
+   * Compiles the given expressions and return an {@link EL} for script execution.
+   *
+   * @param registration extra objects available for the script to use
+   * @param expression the JEXL expresion
+   * @return an {@link EL} instance
+   * @throws ELException if failed to compile the expression
+   */
+  public static EL compile(ELRegistration registration, String expression) throws ELException {
+    used = true;
+    JexlEngine engine = new JexlBuilder()
       .namespaces(registration.functions())
       .silent(false)
       .cache(1024)
       .strict(true)
       .logger(new NullLogger())
       .create();
-  }
 
-  public void compile(String expression) throws ELException {
-    variables.clear();
     try {
-      script = engine.createScript(expression);
+      Set<String> variables = new HashSet<>();
+      JexlScript script = engine.createScript(expression);
       Set<List<String>> varSet = script.getVariables();
       for (List<String> vars : varSet) {
         variables.add(Joiner.on(".").join(vars));
       }
+
+      return new EL(script, variables);
     } catch (JexlException e) {
       // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
       // So instead use info object to get information about error message and create custom error message.
@@ -85,24 +111,28 @@ public final class EL {
     } catch (Exception e) {
       throw new ELException(e);
     }
+
+  }
+
+  private EL(JexlScript script, Set<String> variables) {
+    this.script = script;
+    this.variables = Collections.unmodifiableSet(variables);
   }
 
   public Set<String> variables() {
     return variables;
   }
 
-  public ELResult execute(ELContext context, boolean nullMissingFields) throws ELException {
+  public ELResult execute(ELContext context) throws ELException {
     try {
-      if (nullMissingFields) {
-        for (String variable : variables) {
-          if (!context.has(variable)) {
-            context.add(variable, null);
-          }
+      // Null the missing fields
+      for (String variable : variables) {
+        if (!context.has(variable)) {
+          context.add(variable, null);
         }
       }
       Object value = script.execute(context);
-      ELResult variable = new ELResult(value);
-      return variable;
+      return new ELResult(value);
     } catch (JexlException e) {
       // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
       // So instead use info object to get information about error message and create custom error message.
@@ -125,10 +155,6 @@ public final class EL {
         throw new ELException(e);
       }
     }
-  }
-
-  public ELResult execute(ELContext context) throws ELException {
-    return execute(context, true);
   }
 
   /**
@@ -160,7 +186,7 @@ public final class EL {
 
   }
 
-  private final class NullLogger implements Log {
+  private static final class NullLogger implements Log {
     @Override
     public void debug(Object o) {
 

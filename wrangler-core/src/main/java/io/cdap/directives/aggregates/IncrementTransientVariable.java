@@ -51,8 +51,7 @@ public class IncrementTransientVariable implements Directive {
   public static final String NAME = "increment-variable";
   private String variable;
   private long incrementBy;
-  private String expression;
-  private final EL el = new EL(new EL.DefaultFunctions());
+  private EL el;
 
   @Override
   public UsageDefinition define() {
@@ -66,10 +65,10 @@ public class IncrementTransientVariable implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.variable = ((Identifier) args.value("variable")).value();
-    this.expression = ((Expression) args.value("condition")).value();
     this.incrementBy = ((Numeric) args.value("value")).value().longValue();
+    String expression = ((Expression) args.value("condition")).value();
     try {
-      el.compile(expression);
+      el = EL.compile(expression);
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }

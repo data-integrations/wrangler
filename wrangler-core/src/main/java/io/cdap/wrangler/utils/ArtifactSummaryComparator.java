@@ -31,14 +31,14 @@ public class ArtifactSummaryComparator implements Comparator<ArtifactSummary> {
 
   @Override
   public int compare(ArtifactSummary summary1, ArtifactSummary summary2) {
-    // first compare the artifact
-    int cmp = new ArtifactVersion(summary1.getVersion()).compareTo(new ArtifactVersion(summary2.getVersion()));
-    if (cmp > 0) {
-      return 1;
+    if (summary1.equals(summary2)) {
+      return 0;
     }
 
-    if (cmp < 0) {
-      return -1;
+    // first compare the artifact
+    int cmp = new ArtifactVersion(summary1.getVersion()).compareTo(new ArtifactVersion(summary2.getVersion()));
+    if (cmp != 0) {
+      return cmp;
     }
 
     // if scope is different, whoever has user scope is latest
