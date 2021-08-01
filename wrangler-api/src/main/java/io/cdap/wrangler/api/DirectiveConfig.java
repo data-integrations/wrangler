@@ -49,10 +49,10 @@ import java.util.Set;
 public final class DirectiveConfig {
   public static final DirectiveConfig EMPTY = new DirectiveConfig();
   // RecipeParser to be excluded or made non-accessible.
-  private Set<String> exclusions = new HashSet<>();
+  private final Set<String> exclusions = new HashSet<>();
 
   // RecipeParser to be aliased.
-  private Map<String, String> aliases = new HashMap<>();
+  private final Map<String, String> aliases = new HashMap<>();
 
 
   /**
@@ -62,10 +62,7 @@ public final class DirectiveConfig {
    * @return
    */
   public boolean hasAlias(String directive) {
-    if (aliases != null && aliases.containsKey(directive)) {
-      return true;
-    }
-    return false;
+    return aliases.containsKey(directive);
   }
 
   /**
@@ -80,9 +77,6 @@ public final class DirectiveConfig {
 
   public Map<String, List<String>> getReverseAlias() {
     Map<String, List<String>> reverse = new HashMap<>();
-    if (aliases == null) {
-      return reverse;
-    }
     for (Map.Entry<String, String> alias : aliases.entrySet()) {
       List<String> list;
       if (reverse.containsKey(alias.getValue())) {
@@ -103,10 +97,7 @@ public final class DirectiveConfig {
    * @return true if directive is excluded, false otherwise.
    */
   public boolean isExcluded(String directive) {
-    if (exclusions != null && exclusions.contains(directive)) {
-      return true;
-    }
-    return false;
+    return exclusions.contains(directive);
   }
 
   /**

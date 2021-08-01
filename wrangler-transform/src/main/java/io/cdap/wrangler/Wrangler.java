@@ -38,7 +38,6 @@ import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecord;
@@ -66,7 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -178,10 +177,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           // it.
           if (!config.containsMacro(Config.NAME_DIRECTIVES)) {
             // Create the registry that only interacts with system directives.
-            registry = new SystemDirectiveRegistry();
+            registry = SystemDirectiveRegistry.INSTANCE;
 
             Iterator<TokenGroup> iterator = symbols.iterator();
-            while (iterator != null && iterator.hasNext()) {
+            while (iterator.hasNext()) {
               TokenGroup group = iterator.next();
               if (group != null) {
                 String directive = (String) group.get(0).value();
@@ -316,12 +315,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
 
     try {
       // Create the pipeline executor with context being set.
-      pipeline = new RecipePipelineExecutor();
-      pipeline.initialize(recipe, ctx);
+      pipeline = new RecipePipelineExecutor(recipe, ctx);
     } catch (Exception e) {
-      throw new Exception(
-        String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage()), e
-      );
+      throw new Exception(String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage()), e);
     }
 
     String defaultStrategy = context.getArguments().get(ERROR_STRATEGY_DEFAULT);
@@ -333,12 +329,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   @Override
   public void destroy() {
     super.destroy();
-    pipeline.destroy();
+    pipeline.close();
     try {
       registry.close();
     } catch (IOException e) {
-      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.",
-               e.getMessage());
+      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.", e);
     }
   }
 
@@ -379,7 +374,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       store.reset(TransientVariableScope.LOCAL);
 
       start = System.nanoTime();
-      records = pipeline.execute(Arrays.asList(row), oSchema);
+      records = pipeline.execute(Collections.singletonList(row), oSchema);
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
@@ -404,13 +399,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
                                    getContext().getStageName(), e.getMessage()),
           "value", String.valueOf(errorCounter)
         ));
-        if (e instanceof DirectiveExecutionException) {
-          throw new Exception(String.format("Stage:%s - Failing pipeline due to error : %s",
-                                            getContext().getStageName(), e.getMessage()));
-        } else {
-          throw new Exception(String.format("Stage:%s - Failing pipeline due to error : %s",
-                                            getContext().getStageName(), e.getMessage()), e);
-        }
+        throw new Exception(String.format("Stage:%s - Failing pipeline due to error : %s",
+                                          getContext().getStageName(), e.getMessage()), e);
       }
       // If it's 'skip-on-error' we continue processing and don't emit any error records.
       return;
@@ -469,7 +459,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private RecipeParser getRecipeParser(StageContext context)
     throws DirectiveLoadException, DirectiveParseException {
 
-    registry = new CompositeDirectiveRegistry(new SystemDirectiveRegistry(), new UserDirectiveRegistry(context));
+    registry = new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE, new UserDirectiveRegistry(context));
     registry.reload(context.getNamespace());
 
     String directives = config.directives;
@@ -477,14 +467,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       directives = String.format("#pragma load-directives %s;%s", config.udds, config.directives);
     }
 
-    RecipeParser recipe = new GrammarBasedParser(
-      context.getNamespace(),
-      new MigrateToV2(directives).migrate(),
-      registry
-    );
-
-    recipe.initialize(new NoOpDirectiveContext());
-    return recipe;
+    return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(), registry);
   }
 
   /**

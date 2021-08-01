@@ -30,14 +30,7 @@ import java.util.List;
  * @param <E> type of error object
  */
 @PublicEvolving
-public interface RecipePipeline<I, O, E> extends Serializable {
-  /**
-   * Initializes the wrangle pipeline using the directives.
-   *
-   * @param directives Wrangle directives.
-   * @param context
-   */
-  void initialize(RecipeParser directives, ExecutorContext context) throws RecipeException;
+public interface RecipePipeline<I, O, E> extends Serializable, AutoCloseable {
 
   /**
    * Executes the pipeline on the input.
@@ -66,7 +59,8 @@ public interface RecipePipeline<I, O, E> extends Serializable {
   /**
    * Destroys the pipeline.
    */
-  void destroy();
+  @Override
+  void close();
 }
 
 

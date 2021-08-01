@@ -50,9 +50,8 @@ import java.util.List;
 @Description("Sets the value for a transient variable for the record being processed.")
 public class SetTransientVariable implements Directive {
   public static final String NAME = "set-variable";
-  private final EL el = new EL(new EL.DefaultFunctions());
+  private EL el;
   private String variable;
-  private String expression;
 
   @Override
   public UsageDefinition define() {
@@ -65,9 +64,9 @@ public class SetTransientVariable implements Directive {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     this.variable = ((Identifier) args.value("variable")).value();
-    this.expression = ((Expression) args.value("condition")).value();
+    String expression = ((Expression) args.value("condition")).value();
     try {
-      el.compile(expression);
+      el = EL.compile(expression);
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }

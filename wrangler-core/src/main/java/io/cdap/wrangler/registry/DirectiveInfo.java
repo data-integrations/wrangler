@@ -16,12 +16,15 @@
 
 package io.cdap.wrangler.registry;
 
-import com.google.gson.annotations.SerializedName;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
+import io.cdap.cdap.api.artifact.ArtifactId;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.parser.DirectiveClass;
+
+import javax.annotation.Nullable;
 
 /**
  * This class <code>DirectiveInfo</code> contains information about each individual
@@ -36,27 +39,29 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
  * @since 3.0
  */
 public final class DirectiveInfo {
-  private final String plugin;
-  private final String usage;
+  private final DirectiveClass directiveClass;
   private final String description;
-
-  @SerializedName("class")
-  private final String directiveClass;
-
-  private final UsageDefinition definition;
-  private final Scope scope;
   private final boolean deprecated;
   private final String[] categories;
-
-  // transient so it doesn't get included in the REST responses
-  private final transient Class<?> directive;
+  private final Class<? extends Directive> directive;
+  private volatile boolean definitionLoaded;
+  private UsageDefinition definition;
+  private volatile String usage;
 
   /**
-   * Scope of the directive
+   * Creates a {@link DirectiveInfo} of the given class coming from the {@link DirectiveScope#SYSTEM} scope.
    */
-  public enum Scope {
-    SYSTEM,
-    USER
+  public static DirectiveInfo fromSystem(Class<? extends Directive> cls)
+    throws InstantiationException, IllegalAccessException {
+    return new DirectiveInfo(DirectiveScope.SYSTEM, cls, null);
+  }
+
+  /**
+   * Creates a {@link DirectiveInfo} of the given class coming from the {@link DirectiveScope#USER} scope.
+   */
+  public static DirectiveInfo fromUser(Class<? extends Directive> cls, @Nullable ArtifactId artifactId)
+    throws InstantiationException, IllegalAccessException {
+    return new DirectiveInfo(DirectiveScope.USER, cls, artifactId);
   }
 
   /**
@@ -64,25 +69,12 @@ public final class DirectiveInfo {
    *
    * @param scope of the directive.
    * @param directive a class of type directive.
-   * @throws IllegalAccessException thrown when an application tries to reflectively create an instance
-   * @throws InstantiationException Thrown when an application tries to create an instance of a class
-   * using the {@code newInstance} method in class {@code Class}
    */
-  public DirectiveInfo(Scope scope, Class<? extends Directive> directive)
-    throws IllegalAccessException, InstantiationException {
-    this.scope = scope;
+  private DirectiveInfo(DirectiveScope scope, Class<? extends Directive> directive, @Nullable ArtifactId artifactId) {
     this.directive = directive;
+    this.directiveClass = new DirectiveClass(directive.getAnnotation(Name.class).value(),
+                                             directive.getName(), scope, artifactId);
 
-    // Create an instance of directive and extract all the annotations
-    Object object = directive.newInstance();
-    this.definition = ((Directive) object).define();
-    if (definition != null) {
-      this.usage = definition.toString();
-    } else {
-      this.usage = "No definition available for directive '" + directive + "'";
-    }
-
-    this.plugin = directive.getAnnotation(Name.class).value();
     Description desc = directive.getAnnotation(Description.class);
     if (desc == null) {
       this.description = "No description specified for directive class '" + directive.getSimpleName() + "'";
@@ -90,12 +82,7 @@ public final class DirectiveInfo {
       this.description = desc.value();
     }
 
-    Deprecated annotation = directive.getAnnotation(Deprecated.class);
-    if (annotation == null) {
-      deprecated = false;
-    } else {
-      deprecated = true;
-    }
+    this.deprecated = directive.isAnnotationPresent(Deprecated.class);
 
     Categories category = directive.getAnnotation(Categories.class);
     if (category == null) {
@@ -103,7 +90,13 @@ public final class DirectiveInfo {
     } else {
       categories = category.categories();
     }
-    directiveClass = directive.getCanonicalName();
+  }
+
+  /**
+   * @return a {@link DirectiveClass} which contains the class information of this directive.
+   */
+  public DirectiveClass getDirectiveClass() {
+    return directiveClass;
   }
 
   /**
@@ -116,21 +109,30 @@ public final class DirectiveInfo {
   /**
    * @return a <code>Scope</code> type specifying either USER or SYSTEM scope the directive is deployed in.
    */
-  public Scope scope() {
-    return scope;
+  public DirectiveScope scope() {
+    return directiveClass.getScope();
   }
 
   /**
    * @return a <code>String</code> type specifying the name of the directive.
    */
   public String name() {
-    return plugin;
+    return directiveClass.getName();
   }
 
   /**
    * @return a <code>String</code> type containing the usage information of the directive.
    */
   public String usage() {
+    if (usage != null) {
+      return usage;
+    }
+    UsageDefinition definition = definition();
+    if (definition != null) {
+      usage = definition.toString();
+    } else {
+      usage = "No definition available for directive '" + directive + "'";
+    }
     return usage;
   }
 
@@ -145,6 +147,21 @@ public final class DirectiveInfo {
    * @return a <code>String</code> type specifying the definition information of directive.
    */
   public UsageDefinition definition() {
+    if (definitionLoaded) {
+      return definition;
+    }
+
+    synchronized (this) {
+      if (definitionLoaded) {
+        return definition;
+      }
+      try {
+        definition = instance().define();
+      } catch (IllegalAccessException | InstantiationException e) {
+        throw new IllegalStateException(e);
+      }
+      definitionLoaded = true;
+    }
     return definition;
   }
 
@@ -164,6 +181,6 @@ public final class DirectiveInfo {
    * using the {@code newInstance} method in class {@code Class}
    */
   public Directive instance() throws IllegalAccessException, InstantiationException {
-    return (Directive) directive.newInstance();
+    return directive.newInstance();
   }
 }
