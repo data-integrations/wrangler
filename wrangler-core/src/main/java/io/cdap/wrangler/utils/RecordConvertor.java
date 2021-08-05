@@ -87,7 +87,7 @@ public final class RecordConvertor implements Serializable {
       String name = field.getName();
       Object value = null;
       int idx = -1;
-      if (name.equals(row.getColumn(firstUnclaimedField))) {
+      if ((firstUnclaimedField < row.width()) && (name.equals(row.getColumn(firstUnclaimedField)))) {
         idx = firstUnclaimedField;
         firstUnclaimedField++;
       } else {
