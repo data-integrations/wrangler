@@ -84,7 +84,7 @@ public final class SchemaConverter {
   }
 
   /**
-   * Get the schema of the given object
+   * Generates the CDAP Schema for the given object
    *
    * @param value the value to retrieve schema
    * @param name name of the field
@@ -92,6 +92,19 @@ public final class SchemaConverter {
    */
   @Nullable
   public Schema getSchema(Object value, String name) throws RecordConvertorException {
+    return getSchema(value, name, null);
+  }
+
+  /**
+   * Generates the CDAP Schema for the given object
+   *
+   * @param value the value to retrieve schema
+   * @param name name of the field
+   * @param recordPrefix prefix to append at the beginning of a custom record
+   * @return the schema of this object
+   */
+  @Nullable
+  public Schema getSchema(Object value, String name, String recordPrefix) throws RecordConvertorException {
     // First, we check if object is of simple type.
     if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Short ||
       value instanceof Double || value instanceof Float || value instanceof Boolean || value instanceof byte[] ||
@@ -146,7 +159,7 @@ public final class SchemaConverter {
           continue;
         }
 
-        Schema schema = getSchema(listObject, name);
+        Schema schema = getSchema(listObject, name, recordPrefix);
         // this means schema is unknown and is not supported.
         if (schema == null) {
           return null;
@@ -157,12 +170,19 @@ public final class SchemaConverter {
 
     if (value instanceof Row) {
       ArrayList<Field> fields = new ArrayList<>();
+      String recordTypeName = "";
+      if (recordPrefix != null) {
+        recordTypeName = recordPrefix + ".";
+      }
+      recordTypeName = recordTypeName + name;
       for (Pair<String, Object> field: ((Row) value).getFields()) {
         if (field.getSecond() != null) {
-          fields.add(Field.of(field.getFirst(), getSchema(field.getSecond(), field.getFirst())));
+          fields.add(Field.of(field.getFirst(), getSchema(field.getSecond(), field.getFirst(), recordTypeName)));
         }
       }
-      return Schema.nullableOf(Schema.recordOf(UUID.randomUUID().toString().replace("-", ""), fields));
+      Schema namingSchema = Schema.recordOf(fields);
+      recordTypeName = recordTypeName + namingSchema.getRecordName();
+      return Schema.nullableOf(Schema.recordOf(recordTypeName, fields));
     }
 
     return null;
@@ -185,6 +205,10 @@ public final class SchemaConverter {
   }
 
   private Schema toSchema(String name, JsonArray array) throws RecordConvertorException {
+    return toSchema(name, array, null);
+  }
+
+  private Schema toSchema(String name, JsonArray array, String recordPrefix) throws RecordConvertorException {
     int[] types = new int[3];
     types[0] = types[1] = types[2] = 0;
     for (int i = 0; i < array.size(); ++i) {
@@ -202,7 +226,7 @@ public final class SchemaConverter {
     if (sum > 0) {
       JsonElement child = array.get(0);
       if (types[2] > 0 || types[1] > 0) {
-        return Schema.nullableOf(Schema.arrayOf(toComplexSchema(name, child)));
+        return Schema.nullableOf(Schema.arrayOf(toComplexSchema(name, child, recordPrefix)));
       } else if (types[0] > 0) {
         return Schema.nullableOf(Schema.arrayOf(toSchema(name, child.getAsJsonPrimitive())));
       }
@@ -221,13 +245,25 @@ public final class SchemaConverter {
   }
 
   private Schema toSchema(String name, JsonObject object) throws RecordConvertorException {
+    return toSchema(name, object, null);
+  }
+
+  private Schema toSchema(String name,
+                        JsonObject object, String recordPrefix) throws RecordConvertorException {
     List<Schema.Field> fields = new ArrayList<>();
+
+    String recordTypeName = "";
+    if (recordPrefix != null) {
+      recordTypeName = recordPrefix + ".";
+    }
+    recordTypeName = recordTypeName + name;
+
     for (Map.Entry<String, JsonElement> next : object.entrySet()) {
       String key = next.getKey();
       JsonElement child = next.getValue();
       Schema schema = null;
       if (child.isJsonObject() || child.isJsonArray()) {
-        schema = toComplexSchema(key, child);
+        schema = toComplexSchema(key, child, recordTypeName);
       } else if (child.isJsonPrimitive()) {
         schema = toSchema(key, child.getAsJsonPrimitive());
       }
@@ -238,14 +274,21 @@ public final class SchemaConverter {
     if (fields.size() == 0) {
       return Schema.nullableOf(Schema.arrayOf(Schema.of(Schema.Type.NULL)));
     }
-    return Schema.recordOf(UUID.randomUUID().toString().replace("-", ""), fields);
+    Schema namingSchema = Schema.recordOf(fields);
+    recordTypeName = recordTypeName + namingSchema.getRecordName();
+    return Schema.recordOf(recordTypeName, fields);
   }
 
   private Schema toComplexSchema(String name, JsonElement element) throws RecordConvertorException {
+    return toComplexSchema(name, element, null);
+  }
+
+  private Schema toComplexSchema(String name,
+                                 JsonElement element, @Nullable String recordPrefix) throws RecordConvertorException {
     if (element.isJsonObject()) {
-      return toSchema(name, element.getAsJsonObject());
+      return toSchema(name, element.getAsJsonObject(), recordPrefix);
     } else if (element.isJsonArray()) {
-      return toSchema(name, element.getAsJsonArray());
+      return toSchema(name, element.getAsJsonArray(), recordPrefix);
     } else if (element.isJsonPrimitive()) {
       return toSchema(name, element.getAsJsonPrimitive());
     }
