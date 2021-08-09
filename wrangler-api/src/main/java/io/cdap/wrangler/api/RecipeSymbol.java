@@ -48,13 +48,13 @@ public final class RecipeSymbol {
   /**
    * Version if specified, else defaults to 1.0
    */
-  private String version;
+  private final String version;
 
   /**
    * Set of directives or plugins that have to loaded
    * during the configuration phase of <code>RecipePipeline.</code>
    */
-  private Set<String> loadableDirectives = new TreeSet<>();
+  private final Set<String> loadableDirectives;
 
   /**
    * This maintains a list of tokens for each directive parsed.
@@ -133,10 +133,9 @@ public final class RecipeSymbol {
     output.addProperty("class", this.getClass().getSimpleName());
     output.addProperty("count", tokens.size());
     JsonArray array = new JsonArray();
-    Iterator<TokenGroup> iterator = tokens.iterator();
-    while (iterator.hasNext()) {
+    for (TokenGroup token : tokens) {
       JsonArray darray = new JsonArray();
-      Iterator<Token> it = iterator.next().iterator();
+      Iterator<Token> it = token.iterator();
       while (it.hasNext()) {
         Token tok = it.next();
         JsonObject object = new JsonObject();
@@ -169,10 +168,9 @@ public final class RecipeSymbol {
    */
   public static final class Builder {
     private final List<TokenGroup> groups = new ArrayList<>();
+    private final Set<String> loadableDirectives = new TreeSet<>();
     private TokenGroup group = null;
-    private Set<String> loadableDirectives = new TreeSet<>();
     private String version = "1.0";
-    private SourceInfo info = null;
 
     /**
      * <code>TokenGroup</code> is created for each directive in

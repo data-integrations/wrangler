@@ -19,11 +19,25 @@ package io.cdap.wrangler.service.directive;
 
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.directives.aggregates.DefaultTransientStore;
+import io.cdap.wrangler.api.CompileException;
+import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.GrammarMigrator;
 import io.cdap.wrangler.api.Pair;
+import io.cdap.wrangler.api.RecipeException;
+import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.api.TransientStore;
+import io.cdap.wrangler.executor.RecipePipelineExecutor;
+import io.cdap.wrangler.parser.ConfigDirectiveContext;
+import io.cdap.wrangler.parser.GrammarBasedParser;
+import io.cdap.wrangler.parser.GrammarWalker;
+import io.cdap.wrangler.parser.MigrateToV2;
+import io.cdap.wrangler.parser.RecipeCompiler;
+import io.cdap.wrangler.proto.BadRequestException;
+import io.cdap.wrangler.proto.ErrorRecordsException;
 import io.cdap.wrangler.proto.workspace.ColumnStatistics;
 import io.cdap.wrangler.proto.workspace.ColumnValidationResult;
 import io.cdap.wrangler.proto.workspace.WorkspaceValidationResult;
@@ -50,7 +64,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Abstract handler which contains common logic for v1 and v2 endpoints
@@ -70,7 +84,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     composite = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(),
+      SystemDirectiveRegistry.INSTANCE,
       new UserDirectiveRegistry(context)
     );
   }
@@ -85,16 +99,51 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       composite.close();
     } catch (IOException e) {
       // If something bad happens here, you might see a a lot of open file handles.
-      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.",
-               e.getMessage());
+      LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.", e);
     }
   }
 
-  protected List<Row> executeDirectives(String namespace, List<String> directives,
-                                        List<Row> sample) throws DirectiveParseException {
-    Function<TransientStore, ExecutorContext> contextProvider =
-      store -> new ServicePipelineContext(namespace, ExecutorContext.Environment.SERVICE, getContext(), store);
-    return new CommonDirectiveExecutor(contextProvider, composite).executeDirectives(namespace, directives, sample);
+  protected <E extends Exception> List<Row> executeDirectives(
+      String namespace,
+      List<String> directives,
+      List<Row> sample,
+      GrammarWalker.Visitor<E> grammarVisitor) throws DirectiveParseException, E {
+
+    if (directives.isEmpty()) {
+      return sample;
+    }
+
+    GrammarMigrator migrator = new MigrateToV2(directives);
+    String recipe = migrator.migrate();
+
+    // Parse and call grammar visitor
+    try {
+      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+      walker.walk(recipe, grammarVisitor);
+    } catch (CompileException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+
+    RecipeParser parser = new GrammarBasedParser(namespace, recipe, composite,
+                                                 new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+    try (RecipePipelineExecutor executor = new RecipePipelineExecutor(parser,
+                                                                      new ServicePipelineContext(
+                                                                        namespace, ExecutorContext.Environment.SERVICE,
+                                                                        getContext(), new DefaultTransientStore()))) {
+      List<Row> result = executor.execute(sample);
+
+      List<ErrorRecordBase> errors = executor.errors()
+        .stream()
+        .filter(ErrorRecordBase::isShownInWrangler)
+        .collect(Collectors.toList());
+
+      if (!errors.isEmpty()) {
+        throw new ErrorRecordsException(errors);
+      }
+      return result;
+    } catch (RecipeException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
   }
 
   /**

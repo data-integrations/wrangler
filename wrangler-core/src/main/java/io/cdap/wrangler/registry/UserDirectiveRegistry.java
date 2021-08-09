@@ -18,9 +18,11 @@ package io.cdap.wrangler.registry;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import io.cdap.cdap.api.artifact.ArtifactId;
 import io.cdap.cdap.api.artifact.ArtifactInfo;
 import io.cdap.cdap.api.artifact.ArtifactManager;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
+import io.cdap.cdap.api.artifact.ArtifactVersion;
 import io.cdap.cdap.api.artifact.CloseableClassLoader;
 import io.cdap.cdap.api.plugin.PluginClass;
 import io.cdap.cdap.api.plugin.PluginConfigurer;
@@ -38,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -71,8 +74,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   private static final String WRANGLER_PLUGIN = "Wrangler";
   private final Map<String, Map<String, DirectiveInfo>> registry = new ConcurrentSkipListMap<>();
   private final List<CloseableClassLoader> classLoaders = new ArrayList<>();
-  private StageContext context = null;
-  private HttpServiceContext manager = null;
+  private StageContext context;
+  private HttpServiceContext manager;
   private ArtifactSummary wranglerArtifact;
   private SystemAppTaskContext systemAppTaskContext;
 
@@ -87,9 +90,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * an instance of the plugin is created to extract the annotated and basic information.</p>
    *
    * @param manager an instance of {@link ArtifactManager}.
-   * @throws DirectiveLoadException thrown if there are issues loading the plugin.
    */
-  public UserDirectiveRegistry(HttpServiceContext manager) throws DirectiveLoadException {
+  public UserDirectiveRegistry(HttpServiceContext manager) {
     this.manager = manager;
   }
 
@@ -98,7 +100,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @param systemAppTaskContext {@link SystemAppTaskContext}
    */
   public UserDirectiveRegistry(SystemAppTaskContext systemAppTaskContext) {
-   this.systemAppTaskContext = systemAppTaskContext;
+    this.systemAppTaskContext = systemAppTaskContext;
   }
 
   /**
@@ -129,10 +131,14 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @param name of the directive to be retrived from the registry.
    * @return an instance of {@link DirectiveInfo} if found, else null.
    */
-  @Nullable
   @Override
   public DirectiveInfo get(String namespace, String name) throws DirectiveLoadException {
-    Class<? extends Directive> directive = null;
+    DirectiveInfo directiveInfo = registry.getOrDefault(namespace, Collections.emptyMap()).get(name);
+    if (directiveInfo != null) {
+      return directiveInfo;
+    }
+
+    Class<? extends Directive> directive;
     try {
       directive = getDirective(namespace, name);
       if (directive == null) {
@@ -141,10 +147,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
                           "Please check if the artifact containing UDD is still present.", name)
         );
       }
-      DirectiveInfo directiveInfo = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
-      return directiveInfo;
-    } catch (IllegalAccessException | InstantiationException e) {
-      throw new DirectiveLoadException(e.getMessage(), e);
+      // We don't know about the artifactId if the registry is empty, meaning the reload method was not called.
+      return DirectiveInfo.fromUser(directive, null);
     } catch (IllegalArgumentException e) {
       throw new DirectiveLoadException(
         String.format("Directive '%s' not found. Check if the directive is spelled correctly or artifact " +
@@ -170,7 +174,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   @Override
   public void reload(String namespace) throws DirectiveLoadException {
     Map<String, DirectiveInfo> newRegistry = new TreeMap<>();
-    Map<String, DirectiveInfo> currentRegistry = registry.computeIfAbsent(namespace, k -> new TreeMap<>());
+    Map<String, DirectiveInfo> currentRegistry = registry.computeIfAbsent(namespace,
+                                                                          k -> new ConcurrentSkipListMap<>());
 
     ArtifactManager artifactManager = getArtifactManager();
     if (artifactManager != null) {
@@ -180,24 +185,33 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
         for (ArtifactInfo artifact : artifacts) {
           boolean isWranglerArtifact = artifact.getName().equalsIgnoreCase(WRANGLER_TRANSFORM);
           Set<PluginClass> plugins = artifact.getClasses().getPlugins();
+          CloseableClassLoader artifactClassLoader = null;
+
           for (PluginClass plugin : plugins) {
             if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
-              CloseableClassLoader closeableClassLoader
-                    = artifactManager.createClassLoader(namespace, artifact, getClass().getClassLoader());
-              Class<? extends Directive> directive =
-                (Class<? extends Directive>) closeableClassLoader.loadClass(plugin.getClassName());
-              DirectiveInfo classz = new DirectiveInfo(DirectiveInfo.Scope.USER, directive);
-              newRegistry.put(classz.name(), classz);
-              classLoaders.add(closeableClassLoader);
+              if (artifactClassLoader == null) {
+                artifactClassLoader = artifactManager.createClassLoader(namespace, artifact,
+                                                                        getClass().getClassLoader());
+                classLoaders.add(artifactClassLoader);
+              }
+
+              Class<?> cls = artifactClassLoader.loadClass(plugin.getClassName());
+              if (!Directive.class.isAssignableFrom(cls)) {
+                throw new DirectiveLoadException("Plugin class " + plugin.getClassName() + " does not implement the "
+                                                   + Directive.class.getName() + " interface");
+              }
+              DirectiveInfo info = DirectiveInfo.fromUser((Class<? extends Directive>) cls,
+                                                          new ArtifactId(artifact.getName(),
+                                                                         new ArtifactVersion(artifact.getVersion()),
+                                                                         artifact.getScope()));
+              newRegistry.put(info.name(), info);
             }
 
-            if (isWranglerArtifact && WRANGLER_PLUGIN.equals(plugin.getName()) &&
-                  Transform.PLUGIN_TYPE.equals(plugin.getType())) {
-              if (latestWrangler == null) {
-                latestWrangler = artifact;
-                continue;
-              }
-              latestWrangler = ArtifactSummaryComparator.pickLatest(latestWrangler, artifact);
+            if (isWranglerArtifact && WRANGLER_PLUGIN.equals(plugin.getName())
+                && Transform.PLUGIN_TYPE.equals(plugin.getType())) {
+              latestWrangler = Optional.ofNullable(latestWrangler)
+                .map(l -> ArtifactSummaryComparator.pickLatest(l, artifact))
+                .orElse(artifact);
             }
           }
         }

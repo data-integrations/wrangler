@@ -56,10 +56,7 @@ public final class TestingRig {
 
     String migrate = new MigrateToV2(recipe.toArray()).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
-    parser.initialize(null);
-    RecipePipeline pipeline = new RecipePipelineExecutor();
-    pipeline.initialize(parser, null);
-    return pipeline;
+    return new RecipePipelineExecutor(parser, null);
   }
 
   public static RecipeParser parser(Class<? extends Directive> directive, String[] recipe)
@@ -68,13 +65,11 @@ public final class TestingRig {
     List<String> packages = new ArrayList<>();
     packages.add(directive.getCanonicalName());
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry()
+      SystemDirectiveRegistry.INSTANCE
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
-    parser.initialize(null);
-    return parser;
+    return new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
   }
 
   private static void verify(Class<? extends Directive> directive) {

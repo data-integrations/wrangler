@@ -36,9 +36,16 @@ import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
+import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.GrammarMigrator;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.parser.ConfigDirectiveContext;
+import io.cdap.wrangler.parser.DirectiveClass;
+import io.cdap.wrangler.parser.GrammarWalker;
+import io.cdap.wrangler.parser.MigrateToV2;
+import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.workspace.v2.Artifact;
 import io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionRequest;
@@ -55,11 +62,14 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceSpec;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceUpdateRequest;
 import io.cdap.wrangler.registry.DirectiveInfo;
+import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
@@ -69,6 +79,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
@@ -84,6 +96,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+  private static final Pattern PRAGMA_PATTERN = Pattern.compile("^\\s*#pragma\\s+load-directives\\s+");
+
   private WorkspaceStore wsStore;
   private ConnectionDiscoverer discoverer;
 
@@ -271,37 +285,23 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       DirectiveExecutionRequest executionRequest =
         GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(),
                       DirectiveExecutionRequest.class);
+
+      List<String> directives = new ArrayList<>(executionRequest.getDirectives());
+
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
-      List<Row> result = getContext().isRemoteTaskEnabled() ?
-        executeRemotely(ns.getName(), executionRequest.getDirectives(), detail) :
-        executeLocally(ns.getName(), executionRequest.getDirectives(), detail);
+      UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
+      List<Row> result = executeDirectives(ns.getName(), directives, detail,
+                                           userDirectivesCollector);
       DirectiveExecutionResponse response = generateExecutionResponse(result,
                                                                       executionRequest.getLimit());
+      userDirectivesCollector.addLoadDirectivesPragma(directives);
       Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
-                                 .setDirectives(executionRequest.getDirectives())
+                                 .setDirectives(directives)
                                  .setUpdatedTimeMillis(System.currentTimeMillis()).build();
       wsStore.updateWorkspace(wsId, newWorkspace);
       responder.sendJson(response);
     });
-  }
-
-  private List<Row> executeLocally(String namespace, List<String> directives,
-                                   WorkspaceDetail detail) throws DirectiveLoadException, DirectiveParseException {
-    // load the udd
-    composite.reload(namespace);
-    return executeDirectives(namespace, directives, new ArrayList<>(detail.getSample()));
-  }
-
-
-  private List<Row> executeRemotely(String namespace, List<String> directives,
-                                    WorkspaceDetail detail) throws Exception {
-    RemoteDirectiveRequest directiveRequest = new RemoteDirectiveRequest(directives,
-                                                                         namespace, detail.getSampleAsBytes());
-    RunnableTaskRequest runnableTaskRequest = RunnableTaskRequest.getBuilder(RemoteExecutionTask.class.getName()).
-      withParam(GSON.toJson(directiveRequest)).build();
-    byte[] bytes = getContext().runTask(runnableTaskRequest);
-    return new ObjectSerDe<List<Row>>().toObject(bytes);
   }
 
   /**
@@ -342,10 +342,11 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
-      List<String> directives = detail.getWorkspace().getDirectives();
-      List<Row> result = getContext().isRemoteTaskEnabled() ?
-        executeRemotely(ns.getName(), directives, detail) :
-        executeLocally(ns.getName(), directives, detail);
+      List<String> directives = new ArrayList<>(detail.getWorkspace().getDirectives());
+      UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
+      List<Row> result = executeDirectives(ns.getName(), directives, detail,
+                                           userDirectivesCollector);
+      userDirectivesCollector.addLoadDirectivesPragma(directives);
 
       SchemaConverter schemaConvertor = new SchemaConverter();
       // check if the rows are empty before going to create a record schema, it will result in a 400 if empty fields
@@ -414,5 +415,90 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     }
     // if not, check if path is empty or not
     return path.isEmpty() ? id.getWorkspaceId() : path;
+  }
+
+  /**
+   * Executes the given list of directives on the given workspace.
+   *
+   * @param namespace the namespace to operate on for finding user defined directives
+   * @param directives the list of directives to apply. The list provided must be a mutable list for the addition of
+   *                   {@code #pragma} directives for loading UDDs.
+   * @param detail the workspace to operate on
+   * @param grammarVisitor visitor to call while parsing directives
+   * @return the resulting rows after applying the directives
+   */
+  private <E extends Exception> List<Row> executeDirectives(String namespace,
+                                                            List<String> directives,
+                                                            WorkspaceDetail detail,
+                                                            GrammarWalker.Visitor<E> grammarVisitor) throws Exception {
+    // Remove all the #pragma from the existing directives. New ones will be generated.
+    directives.removeIf(d -> PRAGMA_PATTERN.matcher(d).find());
+
+    return getContext().isRemoteTaskEnabled() ?
+      executeRemotely(namespace, directives, detail, grammarVisitor) :
+      executeLocally(namespace, directives, detail, grammarVisitor);
+  }
+
+  /**
+   * Executes the given list of directives on the given workspace locally in the same JVM.
+   *
+   * @param namespace the namespace to operate on for finding user defined directives
+   * @param directives the list of directives to apply. The list provided must be a mutable list for the addition of
+   *                   {@code #pragma} directives for loading UDDs.
+   * @param detail the workspace to operate on
+   * @param grammarVisitor visitor to call while parsing directives
+   * @return the resulting rows after applying the directives
+   */
+  private <E extends Exception> List<Row> executeLocally(String namespace, List<String> directives,
+                                   WorkspaceDetail detail, GrammarWalker.Visitor<E> grammarVisitor)
+    throws DirectiveLoadException, DirectiveParseException, E {
+
+    // load the udd
+    composite.reload(namespace);
+    return executeDirectives(namespace, directives, new ArrayList<>(detail.getSample()),
+                             grammarVisitor);
+  }
+
+  /**
+   * Executes the given list of directives on the given workspace remotely using the task worker framework.
+   *
+   * @param namespace the namespace to operate on for finding user defined directives
+   * @param directives the list of directives to apply. The list provided must be a mutable list for the addition of
+   *                   {@code #pragma} directives for loading UDDs.
+   * @param detail the workspace to operate on
+   * @param grammarVisitor visitor to call while parsing directives
+   * @return the resulting rows after applying the directives
+   */
+  private <E extends Exception> List<Row> executeRemotely(String namespace, List<String> directives,
+                                    WorkspaceDetail detail, GrammarWalker.Visitor<E> grammarVisitor) throws Exception {
+
+    GrammarMigrator migrator = new MigrateToV2(directives);
+    String recipe = migrator.migrate();
+    Map<String, DirectiveClass> systemDirectives = new HashMap<>();
+
+    // Gather system directives and call additional visitor.
+    GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+    AtomicBoolean hasDirectives = new AtomicBoolean();
+    walker.walk(recipe, (command, tokenGroup) -> {
+      DirectiveInfo info = SystemDirectiveRegistry.INSTANCE.get(command);
+      if (info != null) {
+        systemDirectives.put(command, info.getDirectiveClass());
+      }
+      grammarVisitor.visit(command, tokenGroup);
+      hasDirectives.set(true);
+    });
+
+    // If no directives to execute, just return
+    if (!hasDirectives.get()) {
+      return detail.getSample();
+    }
+
+    RemoteDirectiveRequest directiveRequest = new RemoteDirectiveRequest(recipe, systemDirectives,
+                                                                         namespace, detail.getSampleAsBytes());
+    RunnableTaskRequest runnableTaskRequest = RunnableTaskRequest.getBuilder(RemoteExecutionTask.class.getName())
+      .withParam(GSON.toJson(directiveRequest))
+      .build();
+    byte[] bytes = getContext().runTask(runnableTaskRequest);
+    return new ObjectSerDe<List<Row>>().toObject(bytes);
   }
 }
