@@ -120,7 +120,7 @@ public class Workspace {
   public static class Builder {
     private final String workspaceName;
     private final String workspaceId;
-    private List<String> directives;
+    private final List<String> directives;
     private long createdTimeMillis;
     private long updatedTimeMillis;
     private SampleSpec sampleSpec;

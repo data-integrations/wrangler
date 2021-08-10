@@ -55,8 +55,7 @@ import java.util.List;
 @Description("Filters rows based on condition type specified.")
 public class RecordConditionFilter implements Directive, Lineage {
   public static final String NAME = "filter-row";
-  private String condition;
-  private final EL el = new EL(new EL.DefaultFunctions());
+  private EL el;
   private boolean isTrue;
 
   @Override
@@ -73,9 +72,9 @@ public class RecordConditionFilter implements Directive, Lineage {
     if (args.contains("type")) {
       isTrue = ((Bool) args.value("type")).value();
     }
-    condition = ((Expression) args.value("condition")).value();
+    String condition = ((Expression) args.value("condition")).value();
     try {
-      el.compile(condition);
+      el = EL.compile(condition);
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }

@@ -43,7 +43,6 @@ public class GrammarBasedParserTest {
     };
 
     RecipeParser parser = TestingRig.parse(recipe);
-    parser.initialize(null);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(2, directives.size());
   }
@@ -72,7 +71,6 @@ public class GrammarBasedParserTest {
     };
 
     RecipeParser parser = TestingRig.parse(recipe);
-    parser.initialize(null);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
   }

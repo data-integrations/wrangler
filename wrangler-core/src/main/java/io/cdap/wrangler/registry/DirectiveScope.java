@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2019 Cask Data, Inc.
+ * Copyright © 2021 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,21 +14,12 @@
  * the License.
  */
 
-package io.cdap.wrangler.api;
-
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
-import java.util.List;
+package io.cdap.wrangler.registry;
 
 /**
- * A specification for how {@link RecipePipeline} will process.
+ * Enum to represent the scope of a directive
  */
-@PublicEvolving
-public interface RecipeParser {
-  /**
-   * Generates a configured set of {@link Executor} to be executed.
-   *
-   * @return List of {@link Executor}.
-   */
-  List<Directive> parse() throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException;
+public enum DirectiveScope {
+  SYSTEM,
+  USER
 }
