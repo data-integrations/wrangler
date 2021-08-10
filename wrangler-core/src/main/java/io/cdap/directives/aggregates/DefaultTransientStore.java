@@ -69,16 +69,8 @@ public class DefaultTransientStore implements TransientStore {
    */
   @Override
   public Set<String> getVariables() {
-    Set<String> vars = new HashSet<>();
-    if (global == null && local == null) {
-      return new HashSet<>();
-    }
-    if (global != null) {
-      vars.addAll(global.keySet());
-    }
-    if (local != null) {
-      vars.addAll(local.keySet());
-    }
+    Set<String> vars = new HashSet<>(global.keySet());
+    vars.addAll(local.keySet());
     return vars;
   }
 

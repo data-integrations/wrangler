@@ -45,7 +45,7 @@ import java.util.List;
 public final class UsageDefinition implements Serializable {
   // transient so it doesn't show up when serialized using gson in service endpoint responses
   private final transient int optionalCnt;
-  private String directive;
+  private final String directive;
   private final List<TokenDefinition> tokens;
 
   private UsageDefinition(String directive, int optionalCnt, List<TokenDefinition> tokens) {
@@ -163,7 +163,7 @@ public final class UsageDefinition implements Serializable {
    * for each token used within the usage of a directive.
    */
   public static final class Builder {
-    private String directive;
+    private final String directive;
     private final List<TokenDefinition> tokens;
     private int currentOrdinal;
     private int optionalCnt;

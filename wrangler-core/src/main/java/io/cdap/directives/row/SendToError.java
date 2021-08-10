@@ -58,7 +58,7 @@ import java.util.List;
 @Description("Send records that match condition to the error collector.")
 public class SendToError implements Directive, Lineage {
   public static final String NAME = "send-to-error";
-  private final EL el = new EL(new EL.DefaultFunctions());
+  private EL el;
   private String condition;
   private String metric = null;
   private String message = null;
@@ -76,7 +76,7 @@ public class SendToError implements Directive, Lineage {
   public void initialize(Arguments args) throws DirectiveParseException {
     condition = ((Expression) args.value("condition")).value();
     try {
-      el.compile(condition);
+      el = EL.compile(condition);
     } catch (ELException e) {
       throw new DirectiveParseException(
         NAME, String.format(" Invalid condition '%s'.", condition)

@@ -15,29 +15,39 @@
  */
 package io.cdap.wrangler.service.directive;
 
-import java.util.List;
+import io.cdap.wrangler.parser.DirectiveClass;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Request for remote execution of directives
  */
 public class RemoteDirectiveRequest {
 
-  private final List<String> directives;
+  private final String recipe;
+  private final Map<String, DirectiveClass> systemDirectives;
   private final String pluginNameSpace;
   private final byte[] data;
 
-  RemoteDirectiveRequest(List<String> directives, String pluginNameSpace, byte[] data) {
-    this.directives = directives;
+  RemoteDirectiveRequest(String recipe, Map<String, DirectiveClass> systemDirectives,
+                         String pluginNameSpace, byte[] data) {
+    this.recipe = recipe;
+    this.systemDirectives = new HashMap<>(systemDirectives);
     this.pluginNameSpace = pluginNameSpace;
     this.data = data;
   }
 
-  public byte[] getData() {
-    return data;
+  public String getRecipe() {
+    return recipe;
   }
 
-  public List<String> getDirectives() {
-    return directives;
+  public Map<String, DirectiveClass> getSystemDirectives() {
+    return systemDirectives;
+  }
+
+  public byte[] getData() {
+    return data;
   }
 
   public String getPluginNameSpace() {

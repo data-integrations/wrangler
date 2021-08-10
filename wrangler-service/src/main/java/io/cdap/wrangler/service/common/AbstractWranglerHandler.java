@@ -44,9 +44,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -217,9 +217,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   }
 
   private int getErrorCode(String exceptionName) {
-    boolean isBadRequest = Arrays
-      .asList(BadRequestException.class, ErrorRecordsException.class, JsonSyntaxException.class).
-        stream().anyMatch(e -> e.getName().equals(exceptionName));
+    boolean isBadRequest = Stream.of(BadRequestException.class, ErrorRecordsException.class, JsonSyntaxException.class)
+      .anyMatch(e -> e.getName().equals(exceptionName));
     return isBadRequest ? HttpURLConnection.HTTP_BAD_REQUEST : HttpURLConnection.HTTP_INTERNAL_ERROR;
   }
 

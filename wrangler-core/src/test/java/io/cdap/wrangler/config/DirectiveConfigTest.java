@@ -64,36 +64,36 @@ public class DirectiveConfigTest {
   private static final String EMPTY = "{}";
 
   @Test
-  public void testParsingOfConfiguration() throws Exception {
+  public void testParsingOfConfiguration() {
     DirectiveConfig config = new Gson().fromJson(SPECIFICATION, DirectiveConfig.class);
     Assert.assertNotNull(config);
-    Assert.assertEquals(true, config.isExcluded("parse-as-csv"));
-    Assert.assertEquals(false, config.isExcluded("parse-as-json"));
+    Assert.assertTrue(config.isExcluded("parse-as-csv"));
+    Assert.assertFalse(config.isExcluded("parse-as-json"));
     Assert.assertEquals("parse-as-json", config.getAliasName("json-parser"));
   }
 
   @Test
-  public void testParsingOnlyExclusions() throws Exception {
+  public void testParsingOnlyExclusions() {
     DirectiveConfig config = new Gson().fromJson(ONLY_EXCLUSIONS, DirectiveConfig.class);
     Assert.assertNotNull(config);
-    Assert.assertEquals(true, config.isExcluded("parse-as-csv"));
-    Assert.assertEquals(false, config.isExcluded("parse-as-json"));
-    Assert.assertEquals(null, config.getAliasName("json-parser"));
+    Assert.assertTrue(config.isExcluded("parse-as-csv"));
+    Assert.assertFalse(config.isExcluded("parse-as-json"));
+    Assert.assertNull(config.getAliasName("json-parser"));
   }
 
   @Test
-  public void testParsingOnlyAliases() throws Exception {
+  public void testParsingOnlyAliases() {
     DirectiveConfig config = new Gson().fromJson(ONLY_ALIASES, DirectiveConfig.class);
     Assert.assertNotNull(config);
-    Assert.assertEquals(false, config.isExcluded("parse-as-csv"));
+    Assert.assertFalse(config.isExcluded("parse-as-csv"));
     Assert.assertEquals("parse-as-json", config.getAliasName("json-parser"));
   }
 
   @Test
-  public void testParsingEmpty() throws Exception {
+  public void testParsingEmpty() {
     DirectiveConfig config = new Gson().fromJson(EMPTY, DirectiveConfig.class);
     Assert.assertNotNull(config);
-    Assert.assertEquals(false, config.isExcluded("parse-as-csv"));
-    Assert.assertEquals(null, config.getAliasName("json-parser"));
+    Assert.assertFalse(config.isExcluded("parse-as-csv"));
+    Assert.assertNull(config.getAliasName("json-parser"));
   }
 }
