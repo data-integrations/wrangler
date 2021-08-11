@@ -162,6 +162,31 @@ public class RecordConvertorTest {
     Assert.assertEquals(0, errors.size());
   }
 
+  @Test
+  public void testNullableEmptyArray() throws Exception {
+    Schema schema = Schema.recordOf("test",
+            Schema.Field.of("test_id", Schema.of(Schema.Type.STRING)),
+            Schema.Field.of("values", Schema.nullableOf(
+                    Schema.arrayOf(Schema.nullableOf(Schema.of(Schema.Type.INT))))));
+
+    String[] directives = new String[] {
+    };
+
+    List<Row> rows = Arrays.asList(
+            new Row().add("test_id", "a").add("values",ImmutableList.of(1)),
+            new Row().add("test_id", "b").add("values",null),
+            new Row().add("test_id", "c"),
+            new Row().add("test_id", "d").add("values",ImmutableList.of()),
+            new Row().add("test_id", "e").add("values",ImmutableList.of(1, 2, 3))
+    );
+
+    RecipePipeline pipeline = TestingRig.execute(directives);
+    List<StructuredRecord> results = pipeline.execute(rows, schema);
+    List<ErrorRecord> errors = pipeline.errors();
+    Assert.assertEquals(5, results.size());
+    Assert.assertEquals(0, errors.size());
+  }
+
   @Test(expected = RecipeException.class)
   public void testNonNullableEmptyField() throws Exception {
     Schema schema = Schema.recordOf("test",
