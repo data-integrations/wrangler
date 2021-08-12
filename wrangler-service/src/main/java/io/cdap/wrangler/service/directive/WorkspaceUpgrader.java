@@ -18,16 +18,22 @@
 package io.cdap.wrangler.service.directive;
 
 import io.cdap.cdap.api.NamespaceSummary;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.SystemServiceContext;
 import io.cdap.cdap.etl.proto.ArtifactSelectorConfig;
 import io.cdap.cdap.etl.proto.connection.ConnectorDetail;
+import io.cdap.cdap.etl.proto.connection.PluginDetail;
 import io.cdap.cdap.etl.proto.connection.SpecGenerationRequest;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
+import io.cdap.wrangler.proto.Namespace;
+import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.NotFoundException;
+import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionType;
 import io.cdap.wrangler.proto.workspace.v2.Artifact;
 import io.cdap.wrangler.proto.workspace.v2.Plugin;
@@ -35,16 +41,21 @@ import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
 import io.cdap.wrangler.proto.workspace.v2.StageSpec;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceDetail;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
+import io.cdap.wrangler.service.database.DatabaseHandler;
 import io.cdap.wrangler.store.upgrade.UpgradeEntityType;
 import io.cdap.wrangler.store.upgrade.UpgradeState;
 import io.cdap.wrangler.store.upgrade.UpgradeStore;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
+import io.cdap.wrangler.utils.RecordConvertorException;
+import io.cdap.wrangler.utils.SchemaConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Upgrader for workspaces. This upgrade should be run after the {@link ConnectionUpgrader}
@@ -129,15 +140,46 @@ public class WorkspaceUpgrader {
         ConnectorDetail detail = discoverer.getSpecification(namespace.getName(), connection,
                                                              new SpecGenerationRequest(path, Collections.emptyMap()));
 
-        SampleSpec spec = new SampleSpec(
-          connection, connectorName, path,
-          detail.getRelatedPlugins().stream().map(plugin -> {
-            ArtifactSelectorConfig artifact = plugin.getArtifact();
-            Plugin pluginSpec = new Plugin(
-              plugin.getName(), plugin.getType(), plugin.getProperties(),
-              new Artifact(artifact.getName(), artifact.getVersion(), artifact.getScope()));
-            return new StageSpec(plugin.getSchema(), pluginSpec);
-          }).collect(Collectors.toSet()));
+        // special handle of the database type, the current db connector supports browsing from schema/table depending
+        // on the database type, here it is safe to just use the old way to generate spec since:
+        // 1. the old db connection might not contain database in connection string
+        // 2. it does not support schema, so db type which supports schema can easily get messed up due to the path
+        //    not set up correctly. For example, for mysql, the getspec call will return the source schema since it
+        //    mysql itself does not support schema. But SqlServer will not return source schema because it supports
+        //    schema and the original workspace does not have this information. To make sure, the path does not mess up,
+        //    the above path for db connection will always be "/".
+        // 3. Using the old properties will ensure the old behavior get reserved for the db connectors
+        Schema dbSchema = null;
+        Map<String, String> dbProperties = Collections.emptyMap();
+        if (connectionType.equals(ConnectionType.DATABASE)) {
+          SchemaConverter schemaConvertor = new SchemaConverter();
+          try {
+            dbSchema = sample.isEmpty() ? null :
+                         schemaConvertor.toSchema("record", AbstractDirectiveHandler.createUberRecord(sample));
+          } catch (RecordConvertorException e) {
+            LOG.warn("Unable to get the source schema for workspace {}, the generated spec will not contain schema.",
+                     workspace.getName());
+          }
+          Connection conn = TransactionRunners.run(context, ctx -> {
+            ConnectionStore connStore = ConnectionStore.get(ctx);
+            return connStore.get(new NamespacedId(new Namespace(namespace.getName(), namespace.getGeneration()),
+                                                  connection));
+          });
+          dbProperties = DatabaseHandler.getSpecification(conn, workspace.getName());
+        }
+
+        Set<StageSpec> relatedPlugins = new HashSet<>();
+        for (PluginDetail plugin : detail.getRelatedPlugins()) {
+          Schema schema = connectionType.equals(ConnectionType.DATABASE) ? dbSchema : plugin.getSchema();
+          Map<String, String> properties =
+            connectionType.equals(ConnectionType.DATABASE) ? dbProperties : plugin.getProperties();
+          ArtifactSelectorConfig artifact = plugin.getArtifact();
+          Plugin pluginSpec = new Plugin(
+            plugin.getName(), plugin.getType(), properties,
+            new Artifact(artifact.getName(), artifact.getVersion(), artifact.getScope()));
+          relatedPlugins.add(new StageSpec(schema, pluginSpec));
+        }
+        SampleSpec spec = new SampleSpec(connection, connectorName, path, relatedPlugins);
         wsStore.saveWorkspace(workspaceId, new WorkspaceDetail(ws.setSampleSpec(spec).build(), sample));
       } catch (NotFoundException e) {
         LOG.warn("Connection {} related to workspace {} does not exist. " +
