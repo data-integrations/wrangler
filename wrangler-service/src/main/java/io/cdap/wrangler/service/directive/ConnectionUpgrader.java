@@ -74,10 +74,6 @@ public class ConnectionUpgrader {
                             connection -> connection.getCreated() < upgradeBeforeTsSecs);
     });
 
-    if (connections.isEmpty()) {
-      return;
-    }
-
     for (Connection connection : connections) {
       // do not upgrade pre configured connection
       if (connection.isPreconfigured()) {
