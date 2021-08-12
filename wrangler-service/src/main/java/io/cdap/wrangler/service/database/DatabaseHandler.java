@@ -50,7 +50,6 @@ import io.cdap.wrangler.proto.db.DBSpec;
 import io.cdap.wrangler.proto.db.JDBCDriverInfo;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.macro.ServiceMacroEvaluator;
-import io.cdap.wrangler.service.s3.S3Configuration;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.ReferenceNames;
 import org.apache.commons.lang3.text.StrLookup;
@@ -498,21 +497,25 @@ public class DatabaseHandler extends AbstractWranglerHandler {
     respond(request, responder, namespace, ns -> {
       Connection conn = getConnection(new NamespacedId(ns, id));
 
-      Map<String, String> properties = new HashMap<>();
-      properties.put("connectionString", conn.getProperties().get("url"));
-      properties.put("referenceName", ReferenceNames.cleanseReferenceName(table));
-      properties.put("user", conn.getProperties().get("username"));
-      properties.put("password", conn.getProperties().get("password"));
-      properties.put("importQuery", String.format("SELECT * FROM %s WHERE $CONDITIONS", table));
-      properties.put("numSplits", "1");
-      properties.put("jdbcPluginName", conn.getProperties().get("name"));
-      properties.put("jdbcPluginType", conn.getProperties().get("type"));
-
-      PluginSpec pluginSpec = new PluginSpec(String.format("Database - %s", table), "source", properties);
+      PluginSpec pluginSpec = new PluginSpec(String.format("Database - %s", table), "source",
+                                             getSpecification(conn, table));
       DBSpec spec = new DBSpec(pluginSpec);
 
       return new ServiceResponse<>(spec);
     });
+  }
+
+  public static Map<String, String> getSpecification(Connection conn, String table) {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("connectionString", conn.getProperties().get("url"));
+    properties.put("referenceName", ReferenceNames.cleanseReferenceName(table));
+    properties.put("user", conn.getProperties().get("username"));
+    properties.put("password", conn.getProperties().get("password"));
+    properties.put("importQuery", String.format("SELECT * FROM %s WHERE $CONDITIONS", table));
+    properties.put("numSplits", "1");
+    properties.put("jdbcPluginName", conn.getProperties().get("name"));
+    properties.put("jdbcPluginType", conn.getProperties().get("type"));
+    return properties;
   }
 
   public static Map<String, String> getConnectorProperties(Map<String, String> config) {
@@ -526,9 +529,10 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   }
 
   // TODO: this path will not work with current db connector if the database type supports schema,
-  //  but it should still give back the related source information.
+  //  but it should still give back the related source information. Passing a root path so it will not interact with
+  //  the actual database due to messed schema/table name
   public static String getPath(Workspace workspace) {
-    return workspace.getProperties().get(PropertyIds.NAME);
+    return "/";
   }
 
   /**
