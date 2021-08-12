@@ -20,6 +20,7 @@ package io.cdap.wrangler.service.directive;
 import com.google.common.base.Stopwatch;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
+import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.cdap.cdap.api.ServiceDiscoverer;
@@ -45,7 +46,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -156,7 +156,8 @@ public class ConnectionDiscoverer {
 
   private HttpURLConnection retrieveConnectionUrl(String url) throws IOException {
     // encode the url since connection name can contain space, and other special characters
-    url = URLEncoder.encode(url, StandardCharsets.UTF_8.name());
+    // use guava url escaper since URLEncoder will encode space to plus, which is wrong for the connection name
+    url = UrlEscapers.urlFragmentEscaper().escape(url);
     HttpURLConnection urlConn = serviceDiscoverer.openConnection(
       NamespaceId.SYSTEM.getNamespace(), Constants.PIPELINEID, Constants.STUDIO_SERVICE_NAME, url);
 
