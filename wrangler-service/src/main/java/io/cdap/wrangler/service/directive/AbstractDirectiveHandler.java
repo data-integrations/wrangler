@@ -261,7 +261,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
    * @param rows list of all rows.
    * @return A single record will rows merged across all columns.
    */
-  protected static Row createUberRecord(List<Row> rows) {
+  public static Row createUberRecord(List<Row> rows) {
     Row uber = new Row();
     for (Row row : rows) {
       for (int i = 0; i < row.width(); ++i) {
