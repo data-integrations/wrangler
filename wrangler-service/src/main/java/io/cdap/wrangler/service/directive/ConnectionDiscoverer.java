@@ -64,6 +64,7 @@ public class ConnectionDiscoverer {
   private static final long RETRY_MAX_DELAY_MILLIS = TimeUnit.SECONDS.toMillis(5);
   private static final double RETRY_DELAY_MULTIPLIER = 1.2d;
   private static final double RETRY_RANDOMIZE_FACTOR = 0.1d;
+  private static final int URL_READ_TIMEOUT_MILLIS = 120000;
 
   private final ServiceDiscoverer serviceDiscoverer;
 
@@ -164,6 +165,7 @@ public class ConnectionDiscoverer {
     if (urlConn == null) {
       throw new RetryableException("Connection service is not available");
     }
+    urlConn.setReadTimeout(URL_READ_TIMEOUT_MILLIS);
     return urlConn;
   }
 
