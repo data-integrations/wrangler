@@ -56,7 +56,7 @@ public class SparkWrangler extends SparkCompute<StructuredRecord, StructuredReco
     Schema outputSchema = context.getOutputSchema();
     JavaRDD<Row> rowRDD = input.map(record -> DataFrames.toRow(record, inputSchema));
     Dataset<Row> df = session.createDataFrame(rowRDD, inputSchema);
-    Dataset<Row> result = df.filter(config.getPrecondition());
+    Dataset<Row> result = df.filter("!(" + config.getPrecondition() + ")");
     return result.javaRDD()
         .map(r -> DataFrames.fromRow(r, outputSchema));
   }
