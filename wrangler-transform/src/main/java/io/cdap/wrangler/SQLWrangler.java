@@ -53,6 +53,6 @@ public class SQLWrangler implements SimpleDLPluginRuntimeImplementation {
   public DLDataSet transform(DLPluginContext context, DLDataSet input) {
     DLExpressionFactory expressionFactory = context.getDLContext()
         .getExpressionFactory(StandardSQLCapabilities.SQL).get();
-    return input.filter(expressionFactory.compile(config.getPrecondition()));
+    return input.filter(expressionFactory.compile("not (" + config.getPrecondition() + ")"));
   }
 }
