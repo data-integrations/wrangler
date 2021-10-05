@@ -21,6 +21,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.cdap.cdap.api.annotation.TransactionControl;
+import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
@@ -109,6 +111,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   }
 
   @POST
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces")
   public void createWorkspace(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("context") String namespace) {
@@ -160,6 +163,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   }
 
   @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces")
   public void listWorkspaces(HttpServiceRequest request, HttpServiceResponder responder,
                              @PathParam("context") String namespace) {
@@ -172,6 +176,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   }
 
   @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces/{id}")
   public void getWorkspace(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace,
@@ -188,6 +193,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
    * Update the workspace
    */
   @POST
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces/{id}")
   public void updateWorkspace(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("context") String namespace,
@@ -211,6 +217,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   }
 
   @DELETE
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces/{id}")
   public void deleteWorkspace(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("context") String namespace,
@@ -228,6 +235,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
    * Upload data to the workspace, the workspace is created automatically on fly.
    */
   @POST
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces/upload")
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
@@ -272,6 +280,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
    * Executes the directives on the record.
    */
   @POST
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces/{id}/execute")
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace,
@@ -308,6 +317,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
    * Retrieve the directives available in the namespace
    */
   @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/directives")
   public void getDirectives(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace) {
@@ -329,6 +339,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
    * Get the specification for the workspace
    */
   @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/workspaces/{id}/specification")
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace,
