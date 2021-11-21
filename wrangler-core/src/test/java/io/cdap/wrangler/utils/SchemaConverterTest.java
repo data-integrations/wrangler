@@ -36,6 +36,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -150,4 +151,51 @@ public class SchemaConverterTest {
                                         Schema.arrayOf(Schema.nullableOf(Schema.of(Schema.Type.INT))))));
     Assert.assertEquals(expected, actual);
   }
+
+
+  @Test
+  public void testRecordType() throws Exception {
+    List<Integer> list = new ArrayList<>();
+    list.add(null);
+    list.add(null);
+    list.add(1);
+    list.add(2);
+
+    Row memberRow = new Row();
+    memberRow.add("id", 1);
+    memberRow.add("name", "abc");
+    memberRow.add("date", LocalDate.of(2018, 11, 11));
+    memberRow.add("time", LocalTime.of(11, 11, 11));
+    memberRow.add("timestamp", ZonedDateTime.of(2018, 11, 11, 11, 11, 11, 0, ZoneId.of("UTC")));
+    memberRow.add("array", list);
+
+
+    String recordTypeName = "struct";
+    Row testRow = new Row(recordTypeName, memberRow);
+
+
+    String topRecord = "testRecord";
+    SchemaConverter schemaConvertor = new SchemaConverter();
+    Schema actual = schemaConvertor.toSchema(topRecord, testRow);
+
+    List<Schema.Field> fields = Arrays.asList(
+      Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+      Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.LogicalType.DATE))),
+      Schema.Field.of("time", Schema.nullableOf(
+        Schema.of(Schema.LogicalType.TIME_MICROS))),
+      Schema.Field.of("timestamp", Schema.nullableOf(
+        Schema.of(Schema.LogicalType.TIMESTAMP_MICROS))),
+      Schema.Field.of("array", Schema.nullableOf(
+        Schema.arrayOf(Schema.nullableOf(Schema.of(Schema.Type.INT)))))
+    );
+
+    Schema namingSchema = Schema.recordOf(fields);
+    String newRecordTypeName = recordTypeName + namingSchema.getRecordName();
+    Schema memberSchema = Schema.nullableOf(Schema.recordOf(newRecordTypeName, fields));
+
+    Schema expected = Schema.recordOf("testRecord", Schema.Field.of(recordTypeName, memberSchema));
+    Assert.assertEquals(expected, actual);
+  }
+
 }
