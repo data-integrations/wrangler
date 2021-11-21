@@ -39,6 +39,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Converts {@link Row} to {@link StructuredRecord}.
@@ -48,7 +49,7 @@ public final class RecordConvertor implements Serializable {
   /**
    * Converts a list of {@link Row} into populated list of {@link StructuredRecord}
    *
-   * @param rows Collection of rows.
+   * @param rows   Collection of rows.
    * @param schema Schema associated with {@link StructuredRecord}
    * @return Populated list of {@link StructuredRecord}
    */
@@ -64,11 +65,15 @@ public final class RecordConvertor implements Serializable {
   /**
    * Converts a Wrangler {@link Row} into a {@link StructuredRecord}.
    *
-   * @param row defines a single {@link Row}
+   * @param row    defines a single {@link Row}
    * @param schema Schema associated with {@link StructuredRecord}
    * @return Populated {@link StructuredRecord}
    */
-  public StructuredRecord decodeRecord(Row row, Schema schema) throws RecordConvertorException {
+  @Nullable
+  public StructuredRecord decodeRecord(@Nullable Row row, Schema schema) throws RecordConvertorException {
+    if (row == null) {
+      return null;
+    }
     // TODO: This is a hack to workaround StructuredRecord processing. NEED TO RETHINK.
     if (row.getFields().size() == 1) {
       Object cell = row.getValue(0);
@@ -130,8 +135,8 @@ public final class RecordConvertor implements Serializable {
     // Extract the type of the field.
     Schema.Type type = schema.getType();
     Schema.LogicalType logicalType =
-        schema.isNullable() ? schema.getNonNullable().getLogicalType() :
-            schema.getLogicalType();
+      schema.isNullable() ? schema.getNonNullable().getLogicalType() :
+        schema.getLogicalType();
 
     if (logicalType != null) {
       switch (logicalType) {
@@ -141,14 +146,14 @@ public final class RecordConvertor implements Serializable {
           }
           if (object == null) {
             throw new UnexpectedFormatException(
-                String.format("Datetime field %s should have a non null value", name));
+              String.format("Datetime field %s should have a non null value", name));
           }
           try {
             LocalDateTime.parse((String) object);
           } catch (DateTimeParseException exception) {
             throw new UnexpectedFormatException(
-                String.format("Datetime field '%s' with value '%s' is not in ISO-8601 format.",
-                    name, object), exception);
+              String.format("Datetime field '%s' with value '%s' is not in ISO-8601 format.",
+                            name, object), exception);
           }
           return object;
         case DATE:
@@ -195,9 +200,17 @@ public final class RecordConvertor implements Serializable {
     );
   }
 
-  private StructuredRecord decodeRecord(String name, Object object, Schema schema) throws RecordConvertorException {
+  @Nullable
+  private StructuredRecord decodeRecord(String name,
+                                        @Nullable Object object, Schema schema) throws RecordConvertorException {
+    if (object == null) {
+      return null;
+    }
+
     if (object instanceof StructuredRecord) {
       return (StructuredRecord) object;
+    } else if (object instanceof Row) {
+      return decodeRecord((Row) object, schema);
     } else if (object instanceof Map) {
       return decodeRecord(name, (Map) object, schema);
     } else if (object instanceof JsonObject) {
