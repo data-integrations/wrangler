@@ -24,6 +24,9 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Row;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Transformer to transform {@link StructuredRecord} to {@link Row}
@@ -53,6 +56,7 @@ public class StructuredToRowTransformer {
    * @param fieldName field name to get value from
    * @return the value of the field in the row
    */
+  @Nullable
   public static Object getValue(StructuredRecord input, String fieldName) {
     Schema fieldSchema = input.getSchema().getField(fieldName).getSchema();
     fieldSchema = fieldSchema.isNullable() ? fieldSchema.getNonNullable() : fieldSchema;
@@ -77,14 +81,40 @@ public class StructuredToRowTransformer {
       }
     }
 
-    // if the type is bytes, need to make sure the value is byte array since byte buffer is not serializable
-    if (fieldSchema.getType().equals(Schema.Type.BYTES)) {
-      Object val = input.get(fieldName);
-      return val instanceof ByteBuffer ? Bytes.toBytes((ByteBuffer) val) : val;
-    }
+    Object val = input.get(fieldName);
+    return processValue(val, fieldSchema, fieldName);
+  }
 
-    // If the logical type is present in complex types, it will be retrieved as corresponding
-    // simple type (int/long).
-    return input.get(fieldName);
+  @Nullable
+  private static Object processValue(@Nullable Object val, Schema schema, String fieldName) {
+    if (val == null) {
+      return null;
+    }
+    switch(schema.getType()) {
+      // if the type is bytes, need to make sure the value is byte array since byte buffer is not serializable
+      case BYTES:
+        return val instanceof ByteBuffer ? Bytes.toBytes((ByteBuffer) val) : val;
+      // Recursively process structured records.
+      case RECORD:
+        return transform((StructuredRecord) val);
+      case ARRAY:
+        if (val instanceof Iterable) {
+          List<Object> rowList = new ArrayList<>();
+          for (Object item : (Iterable<?>) val) {
+            if ((item != null) && (schema.getComponentSchema() != null)) {
+              rowList.add(processValue(item, schema.getComponentSchema(), fieldName));
+            } else {
+              rowList.add(item);
+            }
+          }
+          return rowList;
+        } else {
+          throw new IllegalArgumentException("Field " + fieldName + " expected an array but received an invalid value");
+        }
+      default:
+        // If the logical type is present in complex types, it will be retrieved as corresponding
+        // simple type (int/long).
+        return val;
+    }
   }
 }

@@ -17,6 +17,9 @@
 
 package io.cdap.wrangler.service.directive;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.directives.aggregates.DefaultTransientStore;
@@ -73,6 +76,8 @@ import java.util.stream.Collectors;
  */
 public class AbstractDirectiveHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractDirectiveHandler.class);
+  private static final Gson  GSON = new GsonBuilder().registerTypeAdapterFactory(
+    new WranglerDisplaySerializer()).create();
 
   protected static final String COLUMN_NAME = "body";
   protected static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
@@ -181,11 +186,18 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
             type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
           }
           types.put(fieldName, type);
-          if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
-            value.put(fieldName, object.toString());
+
+          if ((object instanceof Iterable)
+              || (object instanceof Row)) {
+            value.put(fieldName, GSON.toJson(object));
           } else {
-            value.put(fieldName, "Non-displayable object");
+            if ((object.getClass().getMethod("toString").getDeclaringClass() != Object.class)) {
+              value.put(fieldName, object.toString());
+            } else {
+              value.put(fieldName, WranglerDisplaySerializer.NONDISPLAYABLE_STRING);
+            }
           }
+
         } else {
           value.put(fieldName, null);
         }
