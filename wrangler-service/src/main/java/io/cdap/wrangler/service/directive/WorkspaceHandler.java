@@ -26,11 +26,13 @@ import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.api.service.worker.RunnableTaskRequest;
 import io.cdap.cdap.etl.api.connector.SampleRequest;
+import io.cdap.cdap.etl.common.Constants;
 import io.cdap.cdap.etl.proto.ArtifactSelectorConfig;
 import io.cdap.cdap.etl.proto.connection.ConnectorDetail;
 import io.cdap.cdap.etl.proto.connection.SampleResponse;
@@ -70,8 +72,6 @@ import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
@@ -99,9 +99,15 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final Pattern PRAGMA_PATTERN = Pattern.compile("^\\s*#pragma\\s+load-directives\\s+");
+  private static final String UPLOAD_COUNT = "upload.file.count";
+  private static final String CONNECTION_TYPE = "upload";
 
   private WorkspaceStore wsStore;
   private ConnectionDiscoverer discoverer;
+
+  // Injected by CDAP
+  @SuppressWarnings("unused")
+  private Metrics metrics;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
@@ -272,6 +278,11 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       Workspace workspace = Workspace.builder(name, id.getWorkspaceId())
                               .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).build();
       wsStore.saveWorkspace(id, new WorkspaceDetail(workspace, sample));
+      Metrics child = metrics.child(ImmutableMap.of(Constants.Metrics.Tag.APP_ENTITY_TYPE,
+                                                    Constants.CONNECTION_SERVICE_NAME,
+                                                    Constants.Metrics.Tag.APP_ENTITY_TYPE_NAME,
+                                                    CONNECTION_TYPE));
+      child.count(UPLOAD_COUNT, 1);
       responder.sendJson(id.getWorkspaceId());
     });
   }
