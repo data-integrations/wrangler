@@ -119,9 +119,7 @@ public final class RecordConvertor implements Serializable {
 
     // Extract the type of the field.
     Schema.Type type = schema.getType();
-    Schema.LogicalType logicalType =
-            isNullable ? schema.getNonNullable().getLogicalType() :
-            schema.getLogicalType();
+    Schema.LogicalType logicalType = isNullable ? schema.getNonNullable().getLogicalType() : schema.getLogicalType();
 
     if (logicalType != null) {
       switch (logicalType) {
