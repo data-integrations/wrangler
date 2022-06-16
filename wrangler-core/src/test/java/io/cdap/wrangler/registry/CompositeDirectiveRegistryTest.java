@@ -19,7 +19,10 @@ package io.cdap.wrangler.registry;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.artifact.ArtifactId;
+import io.cdap.cdap.api.artifact.ArtifactScope;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
+import io.cdap.cdap.api.artifact.ArtifactVersion;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -75,7 +78,9 @@ public class CompositeDirectiveRegistryTest {
     private Map<String, DirectiveInfo> registry = new HashMap<>();
 
     public TestDirectiveRegistry() throws InstantiationException, IllegalAccessException {
-      registry.put("my-test", new DirectiveInfo(DirectiveInfo.Scope.USER, MyTest.class));
+      registry.put("my-test", DirectiveInfo.fromUser(MyTest.class,
+                                                     new ArtifactId("dummy", new ArtifactVersion("1.0"),
+                                                                    ArtifactScope.USER)));
     }
 
     @Override
@@ -109,7 +114,7 @@ public class CompositeDirectiveRegistryTest {
   @Test
   public void testIteratorUsage() throws Exception {
     DirectiveRegistry registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(),
+      SystemDirectiveRegistry.INSTANCE,
       new TestDirectiveRegistry()
     );
 
@@ -119,7 +124,7 @@ public class CompositeDirectiveRegistryTest {
       iterator.next();
       count++;
     }
-    Assert.assertEquals(83, count);
+    Assert.assertEquals(85, count);
 
     registry.reload("");
 
@@ -129,7 +134,7 @@ public class CompositeDirectiveRegistryTest {
       iterator.next();
       count++;
     }
-    Assert.assertEquals(83, count);
+    Assert.assertEquals(85, count);
 
   }
 }

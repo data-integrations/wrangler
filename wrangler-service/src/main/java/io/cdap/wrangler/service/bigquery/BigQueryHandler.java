@@ -48,6 +48,7 @@ import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.DataType;
+import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.ConnectionSample;
@@ -83,6 +84,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -100,6 +102,7 @@ import javax.ws.rs.QueryParam;
 @Deprecated
 public class BigQueryHandler extends AbstractWranglerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(BigQueryHandler.class);
+  private static final String PATH_FORMAT = "/%s/%s";
   private static final String DATASET_ID = "datasetId";
   private static final String DATASET_PROJECT = "datasetProject";
   private static final String TABLE_ID = "id";
@@ -296,6 +299,22 @@ public class BigQueryHandler extends AbstractWranglerHandler {
 
       return new ServiceResponse<>(spec);
     });
+  }
+
+  public static Map<String, String> getConnectorProperties(Map<String, String> config) {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("serviceAccountType", "filePath");
+    properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+    properties.put(DATASET_PROJECT, config.get(DATASET_PROJECT));
+    properties.put("project", config.get(GCPUtils.PROJECT_ID));
+    properties.put("showHiddenDatasets", "true");
+    properties.values().removeIf(Objects::isNull);
+    return properties;
+  }
+
+  public static String getPath(Workspace workspace) {
+    Map<String, String> properties = workspace.getProperties();
+    return String.format(PATH_FORMAT, properties.get(DATASET_ID), properties.get(TABLE_ID));
   }
 
   private Pair<List<Row>, Schema> getData(Connection connection, TableId tableId)

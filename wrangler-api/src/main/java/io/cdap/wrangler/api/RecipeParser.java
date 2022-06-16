@@ -18,25 +18,17 @@ package io.cdap.wrangler.api;
 
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * A specification for how {@link RecipePipeline} will process.
  */
 @PublicEvolving
-public interface RecipeParser extends Serializable {
+public interface RecipeParser {
   /**
    * Generates a configured set of {@link Executor} to be executed.
    *
    * @return List of {@link Executor}.
    */
   List<Directive> parse() throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException;
-
-  /**
-   * Initialises the directive with a {@link DirectiveContext}.
-   *
-   * @param context instance of context object or null.
-   */
-  void initialize(DirectiveContext context);
 }

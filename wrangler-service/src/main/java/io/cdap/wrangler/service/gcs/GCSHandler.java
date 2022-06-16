@@ -38,6 +38,7 @@ import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
+import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.dataset.workspace.WorkspaceMeta;
 import io.cdap.wrangler.proto.BadRequestException;
@@ -75,6 +76,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
@@ -406,6 +408,19 @@ public class GCSHandler extends AbstractWranglerHandler {
       });
 
     });
+  }
+
+  public static Map<String, String> getConnectorProperties(Map<String, String> config) {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("serviceAccountType", "filePath");
+    properties.put("serviceFilePath", config.get(GCPUtils.SERVICE_ACCOUNT_KEYFILE));
+    properties.put("project", config.get(GCPUtils.PROJECT_ID));
+    properties.values().removeIf(Objects::isNull);
+    return properties;
+  }
+
+  public static String getPath(Workspace workspace) {
+    return workspace.getProperties().get(PropertyIds.URI);
   }
 
   private Set<String> getBucketWhitelist(Connection connection) {

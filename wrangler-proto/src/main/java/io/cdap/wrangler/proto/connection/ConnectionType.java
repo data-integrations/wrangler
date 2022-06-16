@@ -17,6 +17,9 @@
 package io.cdap.wrangler.proto.connection;
 
 
+import java.util.EnumSet;
+import javax.annotation.Nullable;
+
 /**
  * This class {@link ConnectionType} defines different connections from which the data is extracted.
  *
@@ -26,19 +29,32 @@ package io.cdap.wrangler.proto.connection;
 public enum ConnectionType {
   UPLOAD("upload"),
   FILE("file"),
-  DATABASE("database"),
+  DATABASE("database", "Database"),
   TABLE("table"),
-  S3("s3"),
-  GCS("gcs"),
+  S3("s3", "S3"),
+  GCS("gcs", "GCS"),
   ADLS("adls"),
-  BIGQUERY("bigquery"),
-  KAFKA("kafka"),
-  SPANNER("spanner");
+  BIGQUERY("bigquery", "BigQuery"),
+  KAFKA("kafka", "Kafka"),
+  SPANNER("spanner", "Spanner");
 
-  private String type;
+  // file won't be upgraded since file connection type is meant for local file system and not packaged in distributed
+  // cdap
+  public static final EnumSet CONN_UPGRADABLE_TYPES = EnumSet.of(DATABASE, S3, GCS, BIGQUERY, KAFKA, SPANNER);
+  // upload is upgradable and it will get translates to a no-source pipeline in studio
+  public static final EnumSet WORKSPACE_UPGRADABLE_TYPES =
+    EnumSet.of(DATABASE, S3, GCS, BIGQUERY, KAFKA, SPANNER, UPLOAD);
+
+  private final String type;
+  private final String connectorName;
 
   ConnectionType(String type) {
+    this(type, null);
+  }
+
+  ConnectionType(String type, @Nullable String connectorName) {
     this.type = type;
+    this.connectorName = connectorName;
   }
 
   /**
@@ -48,4 +64,8 @@ public enum ConnectionType {
     return type;
   }
 
+  @Nullable
+  public String getConnectorName() {
+    return connectorName;
+  }
 }

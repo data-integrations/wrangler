@@ -19,6 +19,7 @@ package io.cdap.wrangler.proto.workspace.v2;
 
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Spec for the workspace sample
@@ -29,7 +30,8 @@ public class SampleSpec {
   private final String path;
   private final Set<StageSpec> relatedPlugins;
 
-  public SampleSpec(String connectionName, String connectionType, String path, Set<StageSpec> relatedPlugins) {
+  public SampleSpec(String connectionName, String connectionType, @Nullable String path,
+                    Set<StageSpec> relatedPlugins) {
     this.connectionName = connectionName;
     this.connectionType = connectionType;
     this.path = path;
@@ -44,6 +46,8 @@ public class SampleSpec {
     return connectionType;
   }
 
+  // path is not there for an upgraded workspace
+  @Nullable
   public String getPath() {
     return path;
   }

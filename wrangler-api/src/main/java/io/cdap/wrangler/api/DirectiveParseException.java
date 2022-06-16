@@ -31,6 +31,11 @@ public class DirectiveParseException extends Exception {
     this.errors = errors;
   }
 
+  public DirectiveParseException(String message, Iterator<SyntaxError> errors, Throwable cause) {
+    super(message, cause);
+    this.errors = errors;
+  }
+
   public DirectiveParseException(String message, Throwable e) {
     super(message, e);
   }

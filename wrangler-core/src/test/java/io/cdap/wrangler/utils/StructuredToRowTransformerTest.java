@@ -20,6 +20,7 @@ package io.cdap.wrangler.utils;
 import com.google.common.base.Charsets;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,6 +32,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Structured to row transform test
@@ -38,8 +42,7 @@ import java.time.ZonedDateTime;
 public class StructuredToRowTransformerTest {
   @Test
   public void testStructuredRecordToRow() {
-    Schema schema = Schema.recordOf(
-      "schema",
+    List<Schema.Field> fields = Arrays.asList(
       Schema.Field.of("f1", Schema.of(Schema.Type.INT)),
       Schema.Field.of("f2", Schema.of(Schema.Type.STRING)),
       Schema.Field.of("f3", Schema.of(Schema.Type.LONG)),
@@ -53,17 +56,43 @@ public class StructuredToRowTransformerTest {
       Schema.Field.of("f11", Schema.of(Schema.LogicalType.TIME_MICROS)),
       Schema.Field.of("f12", Schema.of(Schema.LogicalType.TIME_MILLIS)),
       Schema.Field.of("f13", Schema.decimalOf(3, 2)),
-      Schema.Field.of("f14", Schema.of(Schema.LogicalType.DATETIME)));
+      Schema.Field.of("f14", Schema.of(Schema.LogicalType.DATETIME)),
+      Schema.Field.of("f16", Schema.arrayOf(Schema.of(Schema.Type.STRING)))
+    );
 
-    StructuredRecord record =
-      StructuredRecord.builder(schema)
+    Schema memberSchema = Schema.recordOf(
+      "memberSchema", fields
+    );
+
+    List<Schema.Field> recordFields = new ArrayList<>(fields);
+    recordFields.add(Schema.Field.of("f15", memberSchema));
+
+    Schema schema = Schema.recordOf("schema", recordFields);
+
+    StructuredRecord memberRecord =
+      StructuredRecord.builder(memberSchema)
         .set("f1", 1).set("f2", "aaa").set("f3", 1L).set("f4", 0d)
         .set("f5", ByteBuffer.wrap("test".getBytes(Charsets.UTF_8)))
         .set("f6", true).set("f7", 0f).setDate("f8", LocalDate.now()).setTimestamp("f9", ZonedDateTime.now())
         .setTimestamp("f10", ZonedDateTime.now()).setTime("f11", LocalTime.now()).setTime("f12", LocalTime.now())
         .set("f13", ByteBuffer.wrap(new BigDecimal(new BigInteger("111"), 2).unscaledValue().toByteArray()))
-        .setDateTime("f14", LocalDateTime.now())
+        .setDateTime("f14", LocalDateTime.now()).set("f16", Arrays.asList("A", "B", "C"))
         .build();
+
+    StructuredRecord record = StructuredRecord.builder(schema)
+      .set("f1", 1).set("f2", "aaa").set("f3", 1L).set("f4", 0d)
+      .set("f5", ByteBuffer.wrap("test".getBytes(Charsets.UTF_8)))
+      .set("f6", true).set("f7", 0f)
+      .setDate("f8", memberRecord.getDate("f8"))
+      .setTimestamp("f9", memberRecord.getTimestamp("f9"))
+      .setTimestamp("f10", memberRecord.getTimestamp("f10"))
+      .setTime("f11", memberRecord.getTime("f11"))
+      .setTime("f12", memberRecord.getTime("f12"))
+      .set("f13", ByteBuffer.wrap(new BigDecimal(new BigInteger("111"), 2).unscaledValue().toByteArray()))
+      .setDateTime("f14", memberRecord.getDateTime("f14"))
+      .set("f15", memberRecord)
+      .set("f16", Arrays.asList("A", "B", "C"))
+      .build();
 
     Row row = StructuredToRowTransformer.transform(record);
 
@@ -72,22 +101,30 @@ public class StructuredToRowTransformerTest {
     Assert.assertArrayEquals("test".getBytes(Charsets.UTF_8), (byte[]) row.getValue("f5"));
     // set it to byte buffer to compare all values
     row.addOrSet("f5", ByteBuffer.wrap((byte[]) row.getValue("f5")));
+    ((Row) row.getValue("f15"))
+      .addOrSet("f5", ByteBuffer.wrap((byte[]) ((Row) row.getValue("f15")).getValue("f5")));
 
-    Row expected = new Row();
-    expected.add("f1", 1);
-    expected.add("f2", "aaa");
-    expected.add("f3", 1L);
-    expected.add("f4", 0d);
-    expected.add("f5", ByteBuffer.wrap("test".getBytes(Charsets.UTF_8)));
-    expected.add("f6", true);
-    expected.add("f7", 0f);
-    expected.add("f8", record.getDate("f8"));
-    expected.add("f9", record.getTimestamp("f9"));
-    expected.add("f10", record.getTimestamp("f10"));
-    expected.add("f11", record.getTime("f11"));
-    expected.add("f12", record.getTime("f12"));
-    expected.add("f13", record.getDecimal("f13"));
-    expected.add("f14", record.getDateTime("f14"));
+
+    Row memberExpected = new Row();
+    memberExpected.add("f1", 1);
+    memberExpected.add("f2", "aaa");
+    memberExpected.add("f3", 1L);
+    memberExpected.add("f4", 0d);
+    memberExpected.add("f5", ByteBuffer.wrap("test".getBytes(Charsets.UTF_8)));
+    memberExpected.add("f6", true);
+    memberExpected.add("f7", 0f);
+    memberExpected.add("f8", record.getDate("f8"));
+    memberExpected.add("f9", record.getTimestamp("f9"));
+    memberExpected.add("f10", record.getTimestamp("f10"));
+    memberExpected.add("f11", record.getTime("f11"));
+    memberExpected.add("f12", record.getTime("f12"));
+    memberExpected.add("f13", record.getDecimal("f13"));
+    memberExpected.add("f14", record.getDateTime("f14"));
+    memberExpected.add("f16", Arrays.asList("A", "B", "C"));
+    Row expected = new Row(memberExpected);
+    expected.add("f15", memberExpected);
+
+    Assert.assertEquals(expected.getValue("f15"), row.getValue("f15"));
     Assert.assertEquals(expected, row);
   }
 }

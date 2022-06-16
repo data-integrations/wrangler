@@ -17,8 +17,6 @@
 package io.cdap.wrangler.api;
 
 import io.cdap.wrangler.api.annotations.PublicEvolving;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -30,7 +28,7 @@ import java.util.Objects;
  */
 @PublicEvolving
 public final class Row implements Serializable {
-  private static final Logger LOG = LoggerFactory.getLogger(Row.class);
+  private static final long serialVersionUID = -7505703059736709602L;
 
   // Name of the columns held by the row.
   private List<String> columns = new ArrayList<>();
@@ -158,15 +156,26 @@ public final class Row implements Serializable {
    * Finds a column index based on the name of the column. The col name is case insensitive.
    *
    * @param col to be searched within the row.
-   * @return null if not present, else the index at which the column is found.
+   * @return -1 if not present, else the index at which the column is found.
    */
   public int find(String col) {
-    int idx = 0;
-    for (String name : columns) {
+    return find(col, 0);
+  }
+
+  /**
+   * Finds a column index based on the name of the column. Starts the search from firstIdx index.
+   * The col name is case insensitive.
+   *
+   * @param col to be searched within the row.
+   * @param firstIdx first index to check
+   * @return -1 if not present, else the index at which the column is found.
+   */
+  public int find(String col, int firstIdx) {
+    for (int i = firstIdx, columnsSize = columns.size(); i < columnsSize; i++) {
+      String name = columns.get(i);
       if (col.equalsIgnoreCase(name)) {
-        return idx;
+        return i;
       }
-      idx++;
     }
     return -1;
   }
@@ -244,7 +253,7 @@ public final class Row implements Serializable {
 
     Row row = (Row) o;
     return Objects.equals(columns, row.columns) &&
-             Objects.equals(values, row.values);
+        Objects.equals(values, row.values);
   }
 
   @Override
