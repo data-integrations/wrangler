@@ -19,6 +19,7 @@ package io.cdap.wrangler.dataset.connections;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.Predicate;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.CloseableIterator;
@@ -205,6 +206,17 @@ public class ConnectionStore {
       }
       return result;
     }
+  }
+
+  /**
+   * Delete all connection with the namespace and generation id
+   */
+  public void deleteAll(NamespaceSummary namespace) throws IOException {
+    List<Field<?>> key = new ArrayList<>(2);
+    key.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
+    key.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
+    Range range = Range.singleton(key);
+    table.deleteAll(range);
   }
 
   /**

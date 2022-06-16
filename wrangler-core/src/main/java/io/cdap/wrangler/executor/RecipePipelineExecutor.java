@@ -16,7 +16,6 @@
 
 package io.cdap.wrangler.executor;
 
-import com.google.common.collect.Lists;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Directive;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * The class <code>RecipePipelineExecutor</code> compiles the recipe and executes the directives.
@@ -48,38 +48,31 @@ import java.util.List;
 public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
 
   private static final Logger LOG = LoggerFactory.getLogger(RecipePipelineExecutor.class);
-  private ExecutorContext context;
-  private List<Directive> directives;
-  private final ErrorRecordCollector collector = new ErrorRecordCollector();
-  private RecordConvertor convertor = new RecordConvertor();
 
-  /**
-   * Configures the pipeline based on the directives. It parses the recipe, converting it into executable directives.
-   *
-   * @param parser Wrangle directives parser.
-   */
-  @Override
-  public void initialize(RecipeParser parser, ExecutorContext context) throws RecipeException {
+  private final ErrorRecordCollector collector = new ErrorRecordCollector();
+  private final RecordConvertor convertor = new RecordConvertor();
+  private final RecipeParser recipeParser;
+  private final ExecutorContext context;
+  private List<Directive> directives;
+
+  public RecipePipelineExecutor(RecipeParser recipeParser, @Nullable ExecutorContext context) {
     this.context = context;
-    try {
-      this.directives = parser.parse();
-    } catch (DirectiveParseException e) {
-      throw new RecipeException(e.getMessage());
-    } catch (DirectiveNotFoundException | DirectiveLoadException e) {
-      throw new RecipeException(e.getMessage(), e);
-    }
+    this.recipeParser = recipeParser;
   }
 
   /**
    * Invokes each directives destroy method to perform any cleanup required by each individual directive.
    */
   @Override
-  public void destroy() {
-    for (Executor directive : directives) {
+  public void close() {
+    if (directives == null) {
+      return;
+    }
+    for (Directive directive : directives) {
       try {
         directive.destroy();
       } catch (Throwable t) {
-        LOG.warn(t.getMessage());
+        LOG.warn(t.getMessage(), t);
       }
     }
   }
@@ -92,12 +85,9 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
    * @return Parsed output list of record of type O
    */
   @Override
-  public List<StructuredRecord> execute(List<Row> rows, Schema schema)
-    throws RecipeException {
-    rows = execute(rows);
+  public List<StructuredRecord> execute(List<Row> rows, Schema schema) throws RecipeException {
     try {
-      List<StructuredRecord> output = convertor.toStructureRecord(rows, schema);
-      return output;
+      return convertor.toStructureRecord(execute(rows), schema);
     } catch (RecordConvertorException e) {
       throw new RecipeException("Problem converting into output record. Reason : " + e.getMessage(), e);
     }
@@ -111,8 +101,9 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
    */
   @Override
   public List<Row> execute(List<Row> rows) throws RecipeException {
+    List<Directive> directives = getDirectives();
     List<String> messages = new ArrayList<>();
-    List<Row> results = Lists.newArrayList();
+    List<Row> results = new ArrayList<>();
     try {
       int i = 0;
       collector.reset();
@@ -141,7 +132,6 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
           }
           results.addAll(cumulativeRows);
         } catch (ErrorRowException e) {
-          LOG.debug("Error while applying directives", e);
           messages.add(String.format("%s", e.getMessage()));
           collector
             .add(new ErrorRecord(rows.subList(i, i + 1).get(0), String.join(",", messages), e.getCode(),
@@ -163,5 +153,16 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
   @Override
   public List<ErrorRecord> errors() {
     return collector.get();
+  }
+
+  private List<Directive> getDirectives() throws RecipeException {
+    if (directives == null) {
+      try {
+        this.directives = recipeParser.parse();
+      } catch (DirectiveParseException | DirectiveNotFoundException | DirectiveLoadException e) {
+        throw new RecipeException(e.getMessage(), e);
+      }
+    }
+    return directives;
   }
 }

@@ -19,6 +19,7 @@ package io.cdap.wrangler.registry;
 import com.google.common.collect.Iterables;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.wrangler.api.DirectiveLoadException;
+import io.cdap.wrangler.utils.ArtifactSummaryComparator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,8 +54,8 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
   @Nullable
   @Override
   public DirectiveInfo get(String namespace, String directive) throws DirectiveLoadException {
-    for (int i = 0; i < registries.length; ++i) {
-      DirectiveInfo info = registries[i].get(namespace, directive);
+    for (DirectiveRegistry registry : registries) {
+      DirectiveInfo info = registry.get(namespace, directive);
       if (info != null) {
         return info;
       }
@@ -64,8 +65,8 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
 
   @Override
   public void reload(String namespace) throws DirectiveLoadException {
-    for (int idx = 0; idx < registries.length; ++idx) {
-      registries[idx].reload(namespace);
+    for (DirectiveRegistry registry : registries) {
+      registry.reload(namespace);
     }
   }
 
@@ -81,7 +82,7 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
       if (latestArtifact == null) {
         latestArtifact = artifact;
       } else {
-        latestArtifact = DirectiveRegistry.pickLatest(latestArtifact, artifact);
+        latestArtifact = ArtifactSummaryComparator.pickLatest(latestArtifact, artifact);
       }
     }
     return latestArtifact;
@@ -105,9 +106,8 @@ public final class CompositeDirectiveRegistry implements DirectiveRegistry {
    */
   @Override
   public void close() throws IOException {
-    for (int idx = 0; idx < registries.length; ++idx) {
-      registries[idx].close();
+    for (DirectiveRegistry registry : registries) {
+      registry.close();
     }
   }
-
 }

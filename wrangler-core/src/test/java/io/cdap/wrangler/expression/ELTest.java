@@ -32,27 +32,24 @@ public class ELTest {
 
   @Test
   public void testBasicFunctionality() throws Exception {
-    EL el = new EL(new EL.DefaultFunctions());
-    el.compile("a + b");
+    EL el = EL.compile("a + b");
     ELResult execute = el.execute(new ELContext().add("a", 1).add("b", 2));
     Assert.assertNotNull(execute);
     Assert.assertEquals(new Integer(3), execute.getInteger());
-    Assert.assertEquals(true, el.variables().contains("a"));
-    Assert.assertEquals(false, el.variables().contains("c"));
+    Assert.assertTrue(el.variables().contains("a"));
+    Assert.assertFalse(el.variables().contains("c"));
   }
 
   @Test(expected = ELException.class)
   public void testUndefinedVariableException() throws Exception {
-    EL el = new EL(new EL.DefaultFunctions());
-    el.compile("a + b + c");
+    EL el = EL.compile("a + b + c");
     el.execute(new ELContext().add("a", 1).add("b", 2));
   }
 
   @Test
   public void testArrays() throws Exception {
-    EL el = new EL(new EL.DefaultFunctions());
-    el.compile("runtime['map'] > token['ABC.EDFG']['input'] " +
-                 "&& math:max(toDouble(runtime['map']), toDouble(token['ABC.EDFG']['input'])) > 9");
+    EL el = EL.compile("runtime['map'] > token['ABC.EDFG']['input'] " +
+                         "&& math:max(toDouble(runtime['map']), toDouble(token['ABC.EDFG']['input'])) > 9");
 
     Map<String, Object> runtime = new HashMap<>();
     runtime.put("map", "10");
@@ -93,9 +90,7 @@ public class ELTest {
     directives2.add("divider");
 
     for (String directive : directives) {
-      EL el = new EL(new EL.DefaultFunctions());
-
-      el.compile(String.format("decimal:%s(a)", directive));
+      EL el = EL.compile(String.format("decimal:%s(a)", directive));
       ELResult execute = el.execute(new ELContext().add("a", bd));
 
       Assert.assertNotNull(execute);
@@ -126,9 +121,7 @@ public class ELTest {
     }
 
     for (String directive : directives2) {
-      EL el = new EL(new EL.DefaultFunctions());
-
-      el.compile(String.format("decimal:%s(a, b)", directive));
+      EL el = EL.compile(String.format("decimal:%s(a, b)", directive));
       ELResult execute = el.execute(new ELContext().add("a", bd).add("b", n));
 
       Assert.assertNotNull(execute);
@@ -164,7 +157,6 @@ public class ELTest {
 
   @Test
   public void testArithmeticOperations() throws Exception {
-    EL el = new EL(new EL.DefaultFunctions());
     BigDecimal bd1 = new BigDecimal("123.123");
     BigDecimal bd2 = new BigDecimal("456.456");
     Integer i1 = 123;
@@ -174,31 +166,31 @@ public class ELTest {
     Float f1 = 123.123f;
     Float f2 = 456.456f;
 
-    el.compile("arithmetic:add(a,b)");
+    EL el = EL.compile("arithmetic:add(a,b)");
     ELResult execute = el.execute(new ELContext().add("a", bd1).add("b", bd2));
     Assert.assertEquals(bd1.add(bd2), execute.getObject());
-    el.compile("arithmetic:minus(a,b)");
+    el = EL.compile("arithmetic:minus(a,b)");
     execute = el.execute(new ELContext().add("a", f1).add("b", f2));
     Assert.assertEquals(f1 - f2, execute.getObject());
-    el.compile("arithmetic:multiply(a,b)");
+    el = EL.compile("arithmetic:multiply(a,b)");
     execute = el.execute(new ELContext().add("a", d1).add("b", d2));
     Assert.assertEquals(d1 * d2, execute.getObject());
-    el.compile("arithmetic:divideq(a,b)");
+    el = EL.compile("arithmetic:divideq(a,b)");
     execute = el.execute(new ELContext().add("a", bd1).add("b", bd2));
     Assert.assertEquals(bd1.divide(bd2, BigDecimal.ROUND_HALF_EVEN).stripTrailingZeros(), execute.getObject());
-    el.compile("arithmetic:divider(a,b)");
+    el = EL.compile("arithmetic:divider(a,b)");
     execute = el.execute(new ELContext().add("a", i1).add("b", i2));
     Assert.assertEquals(i1 % i2, execute.getObject());
-    el.compile("arithmetic:lcm(a,b)");
+    el = EL.compile("arithmetic:lcm(a,b)");
     execute = el.execute(new ELContext().add("a", bd1).add("b", bd2));
     Assert.assertEquals(new BigDecimal("18714.696"), execute.getObject());
-    el.compile("arithmetic:equal(a,b)");
+    el = EL.compile("arithmetic:equal(a,b)");
     execute = el.execute(new ELContext().add("a", i1).add("b", i2));
     Assert.assertEquals(false, execute.getObject());
-    el.compile("arithmetic:max(a,b)");
+    el = EL.compile("arithmetic:max(a,b)");
     execute = el.execute(new ELContext().add("a", f1).add("b", f2));
     Assert.assertEquals(f2, execute.getObject());
-    el.compile("arithmetic:min(a,b)");
+    el = EL.compile("arithmetic:min(a,b)");
     execute = el.execute(new ELContext().add("a", d1).add("b", d2));
     Assert.assertEquals(d1, execute.getObject());
   }
