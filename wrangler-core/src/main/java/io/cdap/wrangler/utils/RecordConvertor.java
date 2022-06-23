@@ -132,16 +132,20 @@ public final class RecordConvertor implements Serializable {
   }
 
   private Object decode(String name, Object object, Schema schema) throws RecordConvertorException {
+    boolean isNullable = schema.isNullable();
+
+    if (object == null && isNullable) {
+      return null;
+    }
+
     // Extract the type of the field.
     Schema.Type type = schema.getType();
-    Schema.LogicalType logicalType =
-      schema.isNullable() ? schema.getNonNullable().getLogicalType() :
-        schema.getLogicalType();
+    Schema.LogicalType logicalType = isNullable ? schema.getNonNullable().getLogicalType() : schema.getLogicalType();
 
     if (logicalType != null) {
       switch (logicalType) {
         case DATETIME:
-          if (schema.isNullable() && object == null || object instanceof LocalDateTime) {
+          if (isNullable && object == null || object instanceof LocalDateTime) {
             return object;
           }
           if (object == null) {
