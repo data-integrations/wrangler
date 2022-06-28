@@ -170,11 +170,11 @@ public class RecordConvertorTest {
     String[] directives = new String[] {};
 
     List<Row> rows = Arrays.asList(
-      new Row().add("test_id", "a").add("values",ImmutableList.of(1)),
-      new Row().add("test_id", "b").add("values",null),
+      new Row().add("test_id", "a").add("values", ImmutableList.of(1)),
+      new Row().add("test_id", "b").add("values", null),
       new Row().add("test_id", "c"),
-      new Row().add("test_id", "d").add("values",ImmutableList.of()),
-      new Row().add("test_id", "e").add("values",ImmutableList.of(1, 2, 3))
+      new Row().add("test_id", "d").add("values", ImmutableList.of()),
+      new Row().add("test_id", "e").add("values", ImmutableList.of(1, 2, 3))
     );
 
     RecipePipeline pipeline = TestingRig.execute(directives);
