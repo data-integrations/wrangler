@@ -14,15 +14,18 @@
  *  the License.
  */
 package io.cdap.wrangler.utils;
+import io.cdap.wrangler.api.DirectiveExecutionException;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 /**
  * Cross-column operations for arithmetic
  */
 public class ArithmeticOperations {
   /**
-   Arithmetic operation - Add two columns.
+   * Arithmetic operation - Add two columns.
    */
   public static Integer add(Integer x, Integer y) {
     if (x == null || y == null) {
@@ -32,7 +35,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Add two columns.
+   * Arithmetic operation - Add two columns.
    */
   public static Double add(Double x, Double y) {
     if (x == null || y == null) {
@@ -42,7 +45,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Add two columns.
+   * Arithmetic operation - Add two columns.
    */
   public static Float add(Float x, Float y) {
     if (x == null || y == null) {
@@ -52,7 +55,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Add two columns.
+   * Arithmetic operation - Add two columns.
    */
   public static BigDecimal add(BigDecimal x, BigDecimal y) {
     if (x == null || y == null) {
@@ -62,7 +65,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Subtract a column from another column.
+   * Arithmetic operation - Subtract a column from another column.
    */
   public static Integer minus(Integer x, Integer y) {
     if (x == null || y == null) {
@@ -72,7 +75,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Subtract a column from another column.
+   * Arithmetic operation - Subtract a column from another column.
    */
   public static Double minus(Double x, Double y) {
     if (x == null || y == null) {
@@ -82,7 +85,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Subtract a column from another column.
+   * Arithmetic operation - Subtract a column from another column.
    */
   public static Float minus(Float x, Float y) {
     if (x == null || y == null) {
@@ -92,7 +95,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Subtract a column from another column.
+   * Arithmetic operation - Subtract a column from another column.
    */
   public static BigDecimal minus(BigDecimal x, BigDecimal y) {
     if (x == null || y == null) {
@@ -112,7 +115,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Multiply a column with another column.
+   * Arithmetic operation - Multiply a column with another column.
    */
   public static Double multiply(Double x, Double y) {
     if (x == null || y == null) {
@@ -122,7 +125,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Multiply a column with another column.
+   * Arithmetic operation - Multiply a column with another column.
    */
   public static Float multiply(Float x, Float y) {
     if (x == null || y == null) {
@@ -132,7 +135,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Multiply a column with another column.
+   * Arithmetic operation - Multiply a column with another column.
    */
   public static BigDecimal multiply(BigDecimal x, BigDecimal y) {
     if (x == null || y == null) {
@@ -142,7 +145,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the quotient.
+   * Arithmetic operation - Divide a column by another and return the quotient.
    */
   public static Integer divideq(Integer x, Integer y) {
     if (x == null || y == null || y == 0) {
@@ -152,7 +155,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the quotient.
+   * Arithmetic operation - Divide a column by another and return the quotient.
    */
   public static Double divideq(Double x, Double y) {
     if (x == null || y == null || y == 0) {
@@ -162,7 +165,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the quotient.
+   * Arithmetic operation - Divide a column by another and return the quotient.
    */
   public static Float divideq(Float x, Float y) {
     if (x == null || y == null || y == 0) {
@@ -172,7 +175,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the quotient.
+   * Arithmetic operation - Divide a column by another and return the quotient.
    */
   public static BigDecimal divideq(BigDecimal x, BigDecimal y) {
     if (x == null || y == null || y.equals(BigDecimal.valueOf(0))) {
@@ -182,7 +185,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the remainder.
+   * Arithmetic operation - Divide a column by another and return the remainder.
    */
   public static Integer divider(Integer x, Integer y) {
     if (x == null || y == null || y == 0) {
@@ -192,7 +195,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the remainder.
+   * Arithmetic operation - Divide a column by another and return the remainder.
    */
   public static Double divider(Double x, Double y) {
     if (x == null || y == null || y == 0) {
@@ -202,7 +205,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the remainder.
+   * Arithmetic operation - Divide a column by another and return the remainder.
    */
   public static Float divider(Float x, Float y) {
     if (x == null || y == null || y == 0) {
@@ -212,7 +215,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Divide a column by another and return the remainder.
+   * Arithmetic operation - Divide a column by another and return the remainder.
    */
   public static BigDecimal divider(BigDecimal x, BigDecimal y) {
     if (x == null || y == null || y.equals(BigDecimal.valueOf(0))) {
@@ -222,7 +225,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - calculate LCM of two columns.
+   * Arithmetic operation - calculate LCM of two columns.
    */
   public static Integer lcm(Integer i1, Integer i2) {
     if (i1 == null || i2 == null) {
@@ -235,7 +238,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - calculate LCM of two columns.
+   * Arithmetic operation - calculate LCM of two columns.
    */
   public static Double lcm(Double d1, Double d2) {
     if (d1 == null || d2 == null) {
@@ -247,7 +250,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - calculate LCM of two columns.
+   * Arithmetic operation - calculate LCM of two columns.
    */
   public static Float lcm(Float f1, Float f2) {
     if (f1 == null || f2 == null) {
@@ -259,7 +262,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - calculate LCM of two columns.
+   * Arithmetic operation - calculate LCM of two columns.
    */
   public static BigDecimal lcm(BigDecimal bd1, BigDecimal bd2) {
     if (bd1 == null || bd2 == null) {
@@ -278,7 +281,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Check if a value is equal to another column.
+   * Arithmetic operation - Check if a value is equal to another column.
    */
   public static Boolean equal(Integer i1, Integer i2) {
     if (i1 == null || i2 == null) {
@@ -288,7 +291,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Check if a value is equal to another column.
+   * Arithmetic operation - Check if a value is equal to another column.
    */
   public static Boolean equal(Double d1, Double d2) {
     if (d1 == null || d2 == null) {
@@ -298,7 +301,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Check if a value is equal to another column.
+   * Arithmetic operation - Check if a value is equal to another column.
    */
   public static Boolean equal(Float f1, Float f2) {
     if (f1 == null || f2 == null) {
@@ -308,7 +311,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Check if a value is equal to another column.
+   * Arithmetic operation - Check if a value is equal to another column.
    */
   public static Boolean equal(BigDecimal bd1, BigDecimal bd2) {
     if (bd1 == null || bd2 == null) {
@@ -318,7 +321,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the maximum of two columns.
+   * Arithmetic operation - Find the maximum of two columns.
    */
   public static Integer max(Integer i1, Integer i2) {
     if (i1 == null || i2 == null) {
@@ -328,7 +331,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the maximum of two columns.
+   * Arithmetic operation - Find the maximum of two columns.
    */
   public static Double max(Double d1, Double d2) {
     if (d1 == null || d2 == null) {
@@ -338,7 +341,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the maximum of two columns.
+   * Arithmetic operation - Find the maximum of two columns.
    */
   public static Float max(Float f1, Float f2) {
     if (f1 == null || f2 == null) {
@@ -348,7 +351,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the maximum of two columns.
+   * Arithmetic operation - Find the maximum of two columns.
    */
   public static BigDecimal max(BigDecimal bd1, BigDecimal bd2) {
     if (bd1 == null || bd2 == null) {
@@ -358,7 +361,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the minimum of two columns.
+   * Arithmetic operation - Find the minimum of two columns.
    */
   public static Integer min(Integer i1, Integer i2) {
     if (i1 == null || i2 == null) {
@@ -368,7 +371,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the minimum of two columns.
+   * Arithmetic operation - Find the minimum of two columns.
    */
   public static Double min(Double d1, Double d2) {
     if (d1 == null || d2 == null) {
@@ -378,7 +381,7 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the minimum of two columns.
+   * Arithmetic operation - Find the minimum of two columns.
    */
   public static Float min(Float f1, Float f2) {
     if (f1 == null || f2 == null) {
@@ -388,12 +391,64 @@ public class ArithmeticOperations {
   }
 
   /**
-   Arithmetic operation - Find the minimum of two columns.
+   * Arithmetic operation - Find the minimum of two columns.
    */
   public static BigDecimal min(BigDecimal bd1, BigDecimal bd2) {
     if (bd1 == null || bd2 == null) {
       return null;
     }
     return bd1.min(bd2);
+  }
+
+  /**
+   * Arithmetic operation - calculate average of any number of columns.
+   * Returns Number - BigDecimal if any column is of type BigDecimal, double otherwise.
+   * HALF_EVEN rounding mode chosen for high precision in the long run.
+   */
+  public static Number average(Number... nums) throws DirectiveExecutionException {
+    // Note that this algorithm avoids overflow
+    Number avg = 0.0;
+    int t = 1;
+    boolean allNull = true;
+    boolean containsBigDecimal = false;
+    for (Number num : nums) {
+      // Check for null input
+      if (num == null) {
+        continue;
+      } else {
+        allNull = false;
+      }
+      // Check for invalid input
+      if (num instanceof Byte) {
+        throw new DirectiveExecutionException("Input cannot be of type 'Byte'.");
+      }
+      // Switch to BigDecimal computation if necessary
+      if (!containsBigDecimal && num instanceof BigDecimal) {
+        if (t > 1) {
+          avg = BigDecimal.valueOf((double) avg);
+        } else {
+          avg = BigDecimal.ZERO;
+        }
+        containsBigDecimal = true;
+      }
+      // Compute average
+      if (containsBigDecimal) {
+        BigDecimal numer;
+        if (num instanceof BigDecimal) {
+          numer = ((BigDecimal) num).subtract((BigDecimal) avg);
+        } else {
+          numer = BigDecimal.valueOf(num.doubleValue()).subtract((BigDecimal) avg);
+        }
+        BigDecimal denom = BigDecimal.valueOf(t);
+        avg = ((BigDecimal) avg).add(numer.divide(denom, RoundingMode.HALF_EVEN));
+      } else {
+        avg = (double) avg + (num.doubleValue() - (double) avg) / t;
+      }
+      t++;
+    }
+    if (allNull) {
+      return null;
+    }
+    return avg;
   }
 }
