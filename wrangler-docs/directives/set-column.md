@@ -62,6 +62,21 @@ would result in this record:
 
 ## Arithmetic and decimal operations example 
 
+Arithmetic operations can be used in several ways. 
+- To apply a simple arithmetic operation to a single, non-Decimal column, mathematical notation can be used, e.g. 
+```
+set-column :output wage1 * 2
+```
+- To apply an operation to a single column of type Decimal, use the `decimal` operations, e.g. 
+```
+set-column :decimal_op_1 decimal:add(wage_1,25)
+```
+- To apply operations to multiple columns (of any time), use the `arithmetic` operations, e.g. 
+```
+set-column :arithmetic_op_1 arithmetic:add(wage_1,wage_2)
+```
+For more information on working with numbers in Wrangler, consult [this Wiki page](https://cdap.atlassian.net/wiki/spaces/DOCS/pages/413466692/Working+with+numbers).
+
 Using this record as an example:
 ```
 {
@@ -82,31 +97,31 @@ Using this record as an example:
 ```
 Applying these directives:
 ```
-set-column arithmetic_op_1 arithmetic:add(wage_1,wage_2)
-set-column arithmetic_op_2 arithmetic:minus(wage_4,wage_3)
-set-column arithmetic_op_3 arithmetic:multiply(wage_3,wage_4)
-set-column arithmetic_op_4 arithmetic:divideq(wage_4,wage_5)
-set-column arithmetic_op_5 arithmetic:divider(wage_5,wage_6)
-set-column arithmetic_op_6 arithmetic:lcm(wage_6,wage_7)
-set-column arithmetic_op_7 arithmetic:equal(wage_7,wage_8)
-set-column arithmetic_op_8 arithmetic:max(wage_7,wage_8)
-set-column arithmetic_op_9 arithmetic:min(wage_7,wage_8)
-set-column decimal_op_1 decimal:add(wage_1,25)
-set-column decimal_op_2 decimal:subtract(wage_2,1000)
-set-column decimal_op_3 decimal:multiply(wage_3,3)
-set-column decimal_op_4 decimal:divideq(wage_4,2)
-set-column decimal_op_5 decimal:divider(wage_5,5)
-set-column decimal_op_6 decimal:abs(wage_6)
-set-column decimal_op_7 decimal:precision(wage_7)
-set-column decimal_op_8 decimal:scale(wage_7)
-set-column decimal_op_9 decimal:unscaled(wage_7)
-set-column decimal_op_10 decimal:decimal_left(wage_7,1)
-set-column decimal_op_11 decimal:decimal_right(wage_7,1)
-set-column decimal_op_12 decimal:pow(wage_8,2)
-set-column decimal_op_13 decimal:negate(wage_8)
-set-column decimal_op_14 decimal:strip_zero(wage_9)
-set-column decimal_op_15 decimal:sign(wage_9)
-set-type wage_2 decimal
+set-column :arithmetic_op_1 arithmetic:add(wage_1,wage_2)
+set-column :arithmetic_op_2 arithmetic:minus(wage_4,wage_3)
+set-column :arithmetic_op_3 arithmetic:multiply(wage_3,wage_4)
+set-column :arithmetic_op_4 arithmetic:divideq(wage_4,wage_5)
+set-column :arithmetic_op_5 arithmetic:divider(wage_5,wage_6)
+set-column :arithmetic_op_6 arithmetic:lcm(wage_6,wage_7)
+set-column :arithmetic_op_7 arithmetic:equal(wage_7,wage_8)
+set-column :arithmetic_op_8 arithmetic:max(wage_7,wage_8)
+set-column :arithmetic_op_9 arithmetic:min(wage_7,wage_8)
+set-column :decimal_op_1 decimal:add(wage_1,25)
+set-column :decimal_op_2 decimal:subtract(wage_2,1000)
+set-column :decimal_op_3 decimal:multiply(wage_3,3)
+set-column :decimal_op_4 decimal:divideq(wage_4,2)
+set-column :decimal_op_5 decimal:divider(wage_5,5)
+set-column :decimal_op_6 decimal:abs(wage_6)
+set-column :decimal_op_7 decimal:precision(wage_7)
+set-column :decimal_op_8 decimal:scale(wage_7)
+set-column :decimal_op_9 decimal:unscaled(wage_7)
+set-column :decimal_op_10 decimal:decimal_left(wage_7,1)
+set-column :decimal_op_11 decimal:decimal_right(wage_7,1)
+set-column :decimal_op_12 decimal:pow(wage_8,2)
+set-column :decimal_op_13 decimal:negate(wage_8)
+set-column :decimal_op_14 decimal:strip_zero(wage_9)
+set-column :decimal_op_15 decimal:sign(wage_9)
+set-type :wage_2 decimal
 ```
 would result in this record:
 ```
