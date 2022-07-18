@@ -71,7 +71,7 @@ set-column :output wage1 * 2
 ```
 set-column :decimal_op_1 decimal:add(wage_1,25)
 ```
-- To apply operations to multiple columns (of any time), use the `arithmetic` operations, e.g. 
+- To apply operations to multiple columns (of any type), use the `arithmetic` operations, e.g. 
 ```
 set-column :arithmetic_op_1 arithmetic:add(wage_1,wage_2)
 ```
