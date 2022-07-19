@@ -63,11 +63,11 @@ would result in this record:
 ## Arithmetic and decimal operations example 
 
 Arithmetic operations can be used in several ways. 
-- To apply a simple arithmetic operation to a single, non-Decimal column, mathematical notation can be used, e.g. 
+- To apply a simple arithmetic operation to a single, non-Decimal column, use mathematical notation; for example,
 ```
 set-column :output wage1 * 2
 ```
-- To apply an operation to a single column of type Decimal, use the `decimal` operations, e.g. 
+- To apply an operation to a single column of type Decimal, use the `decimal` operations; for example,
 ```
 set-column :decimal_op_1 decimal:add(wage_1,25)
 ```
@@ -75,7 +75,7 @@ set-column :decimal_op_1 decimal:add(wage_1,25)
 ```
 set-column :arithmetic_op_1 arithmetic:add(wage_1,wage_2)
 ```
-For more information on working with numbers in Wrangler, consult [this Wiki page](https://cdap.atlassian.net/wiki/spaces/DOCS/pages/413466692/Working+with+numbers).
+For more information on working with numbers in Wrangler, see https://cdap.atlassian.net/wiki/spaces/DOCS/pages/413466692/Working+with+numbers.
 
 Using this record as an example:
 ```
