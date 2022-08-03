@@ -67,7 +67,7 @@ public class ArithmeticOperations {
       } else if (num instanceof Double && NumberType.DOUBLE.getPriority() > outputType.getPriority()) {
         outputType = NumberType.DOUBLE;
       } else if (num instanceof BigDecimal) {
-        return NumberType.BIGDECIMAL;
+        outputType = NumberType.BIGDECIMAL;
       }
     }
     return outputType;
