@@ -146,10 +146,10 @@ public class WorkspaceStore {
   }
 
   /**
-   * Create the workspace from given workspace.
+   * Create/update the workspace from given workspace.
    *
    * @param workspaceId the id of the workspace
-   * @param workspace workspace to create
+   * @param workspace workspace to create/update
    */
   public void saveWorkspace(WorkspaceId workspaceId, WorkspaceDetail workspace) {
     saveWorkspace(workspaceId, workspace.getWorkspace(), workspace.getSampleAsBytes(), false);
