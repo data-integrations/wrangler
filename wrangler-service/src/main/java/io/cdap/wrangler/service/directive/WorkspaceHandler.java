@@ -21,6 +21,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
@@ -140,12 +142,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
       SampleResponse sampleResponse = discoverer.retrieveSample(namespace, creationRequest.getConnection(),
                                                                 sampleRequest);
-      List<Row> rows = new ArrayList<>();
-      if (!sampleResponse.getSample().isEmpty()) {
-        for (StructuredRecord record : sampleResponse.getSample()) {
-          rows.add(StructuredToRowTransformer.transform(record));
-        }
-      }
+      List<Row> rows = getSample(sampleResponse);
 
       ConnectorDetail detail = sampleResponse.getDetail();
       SampleSpec spec = new SampleSpec(
@@ -156,7 +153,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
             plugin.getName(), plugin.getType(), plugin.getProperties(),
             new Artifact(artifact.getName(), artifact.getVersion(), artifact.getScope()));
           return new StageSpec(plugin.getSchema(), pluginSpec);
-        }).collect(Collectors.toSet()));
+        }).collect(Collectors.toSet()), detail.getSupportedSampleTypes(), sampleRequest);
 
       WorkspaceId wsId = new WorkspaceId(ns);
       long now = System.currentTimeMillis();
@@ -196,7 +193,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   }
 
   /**
-   * Update the workspace
+   * Update the workspace's directives and initiatives
    */
   @POST
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
@@ -218,6 +215,55 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                                  .setInsights(updateRequest.getInsights())
                                  .setUpdatedTimeMillis(System.currentTimeMillis()).build();
       wsStore.updateWorkspace(wsId, newWorkspace);
+      responder.sendStatus(HttpURLConnection.HTTP_OK);
+    });
+  }
+
+  /**
+   * Resample the workspace using a new sample request. Keeps all previously-applied directives.
+   */
+  @POST
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/workspaces/{id}/resample")
+  public void resampleWorkspace(HttpServiceRequest request, HttpServiceResponder responder,
+                                @PathParam("context") String namespace,
+                                @PathParam("id") String workspaceId) {
+    respond(responder, namespace, ns -> {
+      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
+        throw new BadRequestException("Resampling workspace in system namespace is currently not supported");
+      }
+
+      WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
+      Workspace currentWorkspace = wsStore.getWorkspace(wsId);
+
+      String connectionName = currentWorkspace.getSampleSpec() == null ? null :
+        currentWorkspace.getSampleSpec().getConnectionName();
+      if (connectionName == null) {
+        throw new BadRequestException("Connection name has to exist to resample a workspace");
+      }
+
+      String sampleRequestString = StandardCharsets.UTF_8.decode(request.getContent()).toString();
+      // sampleRequestString looks like {"sampleRequest": {...}}, so to parse it into SampleRequest.class
+      // we first have to extract the inner object
+      JsonElement sampleRequestJson =
+        new JsonParser().parse(sampleRequestString).getAsJsonObject().get("sampleRequest");
+      SampleRequest sampleRequest = GSON.fromJson(sampleRequestJson, SampleRequest.class);
+      if (sampleRequest == null) {
+        throw new BadRequestException("Sample request has to be provided to resample a workspace");
+      }
+
+      SampleResponse sampleResponse = discoverer.retrieveSample(namespace, connectionName,
+                                                                sampleRequest);
+      List<Row> rows = getSample(sampleResponse);
+
+      SampleSpec oldSpec = currentWorkspace.getSampleSpec();
+      SampleSpec newSpec = new SampleSpec(oldSpec.getConnectionName(), oldSpec.getConnectionType(), oldSpec.getPath(),
+              oldSpec.getRelatedPlugins(), oldSpec.getSupportedSampleTypes(), sampleRequest);
+
+      Workspace newWorkspace = Workspace.builder(currentWorkspace)
+        .setUpdatedTimeMillis(System.currentTimeMillis())
+        .setSampleSpec(newSpec).build();
+      wsStore.saveWorkspace(wsId, new WorkspaceDetail(newWorkspace, rows));
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
   }
@@ -522,5 +568,15 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       .build();
     byte[] bytes = getContext().runTask(runnableTaskRequest);
     return new ObjectSerDe<List<Row>>().toObject(bytes);
+  }
+
+  private List<Row> getSample(SampleResponse sampleResponse) {
+    List<Row> rows = new ArrayList<>();
+    if (!sampleResponse.getSample().isEmpty()) {
+      for (StructuredRecord record : sampleResponse.getSample()) {
+        rows.add(StructuredToRowTransformer.transform(record));
+      }
+    }
+    return rows;
   }
 }
