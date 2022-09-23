@@ -69,6 +69,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -378,9 +379,15 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       // We now extract errors from the execution and pass it on to the error emitter.
       List<ErrorRecord> errors = pipeline.errors();
       if (errors.size() > 0) {
+        StringJoiner errorMessages = new StringJoiner(",");
         getContext().getMetrics().count("errors", errors.size());
         for (ErrorRecord error : errors) {
           emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
+          errorMessages.add(error.getMessage());
+        }
+        if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
+          throw new Exception(
+              String.format("Errors in Wrangler Directive execution - %s", errorMessages.toString()));
         }
       }
     } catch (Exception e) {
