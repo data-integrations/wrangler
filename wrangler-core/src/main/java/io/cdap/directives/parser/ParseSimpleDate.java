@@ -1,17 +1,17 @@
 /*
- *  Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2022 Cask Data, Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package io.cdap.directives.parser;
@@ -40,6 +40,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -48,7 +49,7 @@ import java.util.TimeZone;
  */
 @Plugin(type = Directive.TYPE)
 @Name("parse-as-simple-date")
-@Categories(categories = { "parser", "date"})
+@Categories(categories = {"parser", "date"})
 @Description("Parses a column as date using format.")
 public class ParseSimpleDate implements Directive, Lineage {
   public static final String NAME = "parse-as-simple-date";
@@ -68,7 +69,10 @@ public class ParseSimpleDate implements Directive, Lineage {
     this.column = ((ColumnName) args.value("column")).value();
     String format = ((Text) args.value("format")).value();
     this.formatter = new SimpleDateFormat(format);
-    formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    // CDAP-19615 Use pure Gregorian Calendar to avoid Julian date precision loss
+    GregorianCalendar gc = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    gc.setGregorianChange(new Date(Long.MIN_VALUE));
+    formatter.setCalendar(gc);
   }
 
   @Override
