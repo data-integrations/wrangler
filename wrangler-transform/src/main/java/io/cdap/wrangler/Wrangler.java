@@ -387,7 +387,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         }
         if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
           throw new Exception(
-              String.format("Errors in Wrangler Directive execution - %s", errorMessages.toString()));
+            String.format("Errors in Wrangler Transformation - %s", errorMessages));
         }
       }
     } catch (Exception e) {
