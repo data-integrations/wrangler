@@ -25,6 +25,7 @@ import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
+import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeCreationRequest;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
@@ -70,10 +71,17 @@ public class RecipeHandler extends AbstractWranglerHandler {
         StandardCharsets.UTF_8.decode(request.getContent()).toString(), RecipeCreationRequest.class);
 
       List<String> directives = new ArrayList<>(creationRequest.getDirectives());
-      Recipe recipe = Recipe.builder(creationRequest.getRecipeName(), recipeId.getRecipeId())
-        .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).setDirectives(directives).build();
+      Recipe recipe = Recipe.builder(recipeId.getRecipeId())
+        .setRecipeName(creationRequest.getRecipeName())
+        .setCreatedTimeMillis(now)
+        .setUpdatedTimeMillis(now)
+        .setDirectives(directives)
+        .setRecipeStepsCount(directives.size())
+        .build();
 
-      recipeStore.saveRecipe(recipeId, recipe);
+      RecipeRow recipeRow = RecipeRow.builder(recipe).build();
+
+      recipeStore.saveRecipe(recipeId, recipeRow);
       responder.sendJson(recipeId.getRecipeId());
     });
   }
@@ -88,6 +96,8 @@ public class RecipeHandler extends AbstractWranglerHandler {
       responder.sendString(GSON.toJson(recipeStore.getRecipe(new RecipeId(ns, recipeId))));
     });
   }
+
+  // TODO: getRecipeByName API
 
   @DELETE
   @TransactionPolicy(value = TransactionControl.EXPLICIT)

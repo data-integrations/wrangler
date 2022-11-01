@@ -26,17 +26,21 @@ import java.util.Objects;
 public class Recipe {
   private final String recipeName;
   private final String recipeId;
+  private final String description;
   private final List<String> directives;
   private final long createdTimeMillis;
   private final long updatedTimeMillis;
+  private final int recipeStepsCount;
 
-  private Recipe(String recipeName, String recipeId, List<String> directives,
-                 long createdTimeMillis, long updatedTimeMillis) {
+  private Recipe(String recipeName, String recipeId, String description, List<String> directives,
+                 long createdTimeMillis, long updatedTimeMillis, int recipeStepsCount) {
     this.recipeName = recipeName;
     this.recipeId = recipeId;
+    this.description = description;
     this.directives = directives;
     this.createdTimeMillis = createdTimeMillis;
     this.updatedTimeMillis = updatedTimeMillis;
+    this.recipeStepsCount = recipeStepsCount;
   }
 
   public String getRecipeName() {
@@ -45,6 +49,10 @@ public class Recipe {
 
   public String getRecipeId() {
     return recipeId;
+  }
+
+  public String getDescription() {
+    return description;
   }
 
   public List<String> getDirectives() {
@@ -57,6 +65,10 @@ public class Recipe {
 
   public long getUpdatedTimeMillis() {
     return updatedTimeMillis;
+  }
+
+  public int getRecipeStepsCount() {
+    return recipeStepsCount;
   }
 
   @Override
@@ -80,31 +92,45 @@ public class Recipe {
     return Objects.hash(recipeName, recipeId, directives);
   }
 
-  public static Builder builder(String recipeName, String recipeId) {
-    return new Builder(recipeName, recipeId);
+  public static Builder builder(String recipeId) {
+    return new Builder(recipeId);
   }
 
   public static Builder builder(Recipe existing) {
-    return new Builder(existing.getRecipeName(), existing.getRecipeId())
+    return new Builder(existing.getRecipeId())
+      .setRecipeName(existing.getRecipeName())
+      .setDescription(existing.getDescription())
       .setDirectives(existing.getDirectives())
       .setCreatedTimeMillis(existing.getCreatedTimeMillis())
-      .setUpdatedTimeMillis(existing.getUpdatedTimeMillis());
+      .setUpdatedTimeMillis(existing.getUpdatedTimeMillis())
+      .setRecipeStepsCount(existing.getRecipeStepsCount());
   }
 
   /**
    * Creates a Recipe meta object
    */
   public static class Builder {
-    private final String recipeName;
     private final String recipeId;
-    private final List<String> directives;
+    private String recipeName;
+    private String description;
+    private List<String> directives;
     private long createdTimeMillis;
     private long updatedTimeMillis;
+    private int recipeStepsCount;
 
-    Builder(String recipeName, String recipeId) {
-      this.recipeName = recipeName;
+    Builder(String recipeId) {
       this.recipeId = recipeId;
       this.directives = new ArrayList<>();
+    }
+
+    public Builder setRecipeName(String recipeName) {
+      this.recipeName = recipeName;
+      return this;
+    }
+
+    public Builder setDescription(String description) {
+      this.description = description;
+      return this;
     }
 
     public Builder setDirectives(List<String> directives) {
@@ -123,8 +149,14 @@ public class Recipe {
       return this;
     }
 
+    public Builder setRecipeStepsCount(int recipeStepsCount) {
+      this.recipeStepsCount = recipeStepsCount;
+      return this;
+    }
+
     public Recipe build() {
-      return new Recipe(recipeName, recipeId, directives, createdTimeMillis, updatedTimeMillis);
+      return new Recipe(recipeName, recipeId, description, directives,
+                        createdTimeMillis, updatedTimeMillis, recipeStepsCount);
     }
   }
 }

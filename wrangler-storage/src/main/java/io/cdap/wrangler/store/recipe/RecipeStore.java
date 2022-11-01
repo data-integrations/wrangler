@@ -30,9 +30,11 @@ import io.cdap.cdap.spi.data.table.field.Fields;
 import io.cdap.cdap.spi.data.transaction.TransactionRunner;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
+import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,6 +48,7 @@ public class RecipeStore {
   private static final String NAMESPACE_FIELD = "namespace";
   private static final String GENERATION_COL = "generation";
   private static final String RECIPE_ID_FIELD = "recipe_id";
+  private static final String RECIPE_NAME_FIELD = "recipe_name";
   private static final String CREATE_TIME_COL = "create_time";
   private static final String UPDATE_TIME_COL = "update_time";
   private static final String RECIPE_INFO_COL = "recipe_info";
@@ -56,10 +59,12 @@ public class RecipeStore {
       .withFields(Fields.stringType(NAMESPACE_FIELD),
                   Fields.longType(GENERATION_COL),
                   Fields.stringType(RECIPE_ID_FIELD),
+                  Fields.stringType(RECIPE_NAME_FIELD),
                   Fields.longType(CREATE_TIME_COL),
                   Fields.longType(UPDATE_TIME_COL),
                   Fields.stringType(RECIPE_INFO_COL))
       .withPrimaryKeys(NAMESPACE_FIELD, GENERATION_COL, RECIPE_ID_FIELD)
+      .withIndexes(RECIPE_NAME_FIELD)
       .build();
 
   private static final Gson GSON = new GsonBuilder()
@@ -74,10 +79,10 @@ public class RecipeStore {
   /**
    * Create a new recipe
    * @param recipeId id of the recipe
-   * @param recipe recipe to create/update
+   * @param recipeRow recipe to create/update
    */
-  public void saveRecipe(RecipeId recipeId, Recipe recipe) {
-    saveRecipe(recipeId, recipe, false);
+  public void saveRecipe(RecipeId recipeId, RecipeRow recipeRow) {
+    saveRecipe(recipeId, recipeRow, false);
   }
 
   /**
@@ -89,7 +94,8 @@ public class RecipeStore {
   public Recipe getRecipe(RecipeId recipeId) throws RecipeNotFoundException {
     return TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
-      return getRecipeInternal(table, recipeId, true);
+      RecipeRow recipeRow = getRecipeInternal(table, recipeId, true);
+      return recipeRow.getRecipe();
       }, RecipeNotFoundException.class);
   }
 
@@ -107,25 +113,28 @@ public class RecipeStore {
   }
 
   // Create or update a recipe
-  private void saveRecipe(RecipeId recipeId, Recipe recipe, boolean failIfNotFound) {
+  private void saveRecipe(RecipeId recipeId, RecipeRow recipeRow, boolean failIfNotFound) {
     TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
-      Recipe oldRecipe = getRecipeInternal(table, recipeId, failIfNotFound);
-      Recipe newRecipe = recipe;
+      RecipeRow oldRecipe = getRecipeInternal(table, recipeId, failIfNotFound);
+      RecipeRow newRecipe = recipeRow;
 
       if (oldRecipe != null) {
-        newRecipe = Recipe.builder(newRecipe).setCreatedTimeMillis(oldRecipe.getCreatedTimeMillis()).build();
+        Recipe updatedRecipe = Recipe.builder(newRecipe.getRecipe())
+          .setCreatedTimeMillis(oldRecipe.getRecipe().getCreatedTimeMillis()).build();
+        newRecipe = RecipeRow.builder(updatedRecipe).build();
       }
       Collection<Field<?>> fields = getRecipeKeys(recipeId);
-      fields.add(Fields.longField(CREATE_TIME_COL, newRecipe.getCreatedTimeMillis()));
-      fields.add(Fields.longField(UPDATE_TIME_COL, newRecipe.getUpdatedTimeMillis()));
+      fields.add(Fields.longField(CREATE_TIME_COL, newRecipe.getRecipe().getCreatedTimeMillis()));
+      fields.add(Fields.longField(UPDATE_TIME_COL, newRecipe.getRecipe().getUpdatedTimeMillis()));
       fields.add(Fields.stringField(RECIPE_INFO_COL, GSON.toJson(newRecipe)));
 
       table.upsert(fields);
     });
   }
 
-  private Recipe getRecipeInternal(StructuredTable table, RecipeId recipeId, boolean failIfNotFound) throws Exception {
+  private RecipeRow getRecipeInternal(StructuredTable table, RecipeId recipeId, boolean failIfNotFound)
+    throws RecipeNotFoundException, IOException {
     Optional<StructuredRow> row = table.read(getRecipeKeys(recipeId));
     if (!row.isPresent()) {
       if (!failIfNotFound) {
@@ -133,7 +142,7 @@ public class RecipeStore {
       }
       throw new RecipeNotFoundException(String.format("Recipe %s does not exist", recipeId.getRecipeId()));
     }
-    return GSON.fromJson(row.get().getString(RECIPE_INFO_COL), Recipe.class);
+    return GSON.fromJson(row.get().getString(RECIPE_INFO_COL), RecipeRow.class);
   }
 
   private Collection<Field<?>> getRecipeKeys(RecipeId recipeId) {
