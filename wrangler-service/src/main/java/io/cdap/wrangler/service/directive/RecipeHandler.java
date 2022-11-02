@@ -25,6 +25,8 @@ import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
+import io.cdap.cdap.spi.data.table.field.Field;
+import io.cdap.cdap.spi.data.table.field.Fields;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeCreationRequest;
@@ -41,6 +43,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 /**
  * v2 endpoints for recipe
@@ -73,6 +76,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
       List<String> directives = new ArrayList<>(creationRequest.getDirectives());
       Recipe recipe = Recipe.builder(recipeId.getRecipeId())
         .setRecipeName(creationRequest.getRecipeName())
+        .setDescription(creationRequest.getDescription())
         .setCreatedTimeMillis(now)
         .setUpdatedTimeMillis(now)
         .setDirectives(directives)
@@ -98,6 +102,23 @@ public class RecipeHandler extends AbstractWranglerHandler {
   }
 
   // TODO: getRecipeByName API
+
+  @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes")
+  public void listRecipes(HttpServiceRequest request, HttpServiceResponder responder,
+                          @PathParam("context") String namespace,
+                          @QueryParam("sortBy")String sortBy,
+                          @QueryParam("pageSize") Integer pageSize,
+                          @QueryParam("pageToken") String pageToken) {
+    if (pageToken == null) {
+      throw new IllegalArgumentException("pageToken missing in request.");
+    }
+
+    respond(responder, namespace, ns -> {
+      responder.sendString(GSON.toJson(recipeStore.listRecipes(ns, pageSize, pageToken, sortBy)));
+    });
+  }
 
   @DELETE
   @TransactionPolicy(value = TransactionControl.EXPLICIT)

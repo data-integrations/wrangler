@@ -20,24 +20,29 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.dataset.lib.CloseableIterator;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
+import io.cdap.cdap.spi.data.SortOrder;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
 import io.cdap.cdap.spi.data.table.StructuredTableId;
 import io.cdap.cdap.spi.data.table.StructuredTableSpecification;
 import io.cdap.cdap.spi.data.table.field.Field;
 import io.cdap.cdap.spi.data.table.field.Fields;
+import io.cdap.cdap.spi.data.table.field.Range;
 import io.cdap.cdap.spi.data.transaction.TransactionRunner;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
+import io.cdap.wrangler.proto.recipe.v2.RecipeListResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -64,7 +69,7 @@ public class RecipeStore {
                   Fields.longType(UPDATE_TIME_COL),
                   Fields.stringType(RECIPE_INFO_COL))
       .withPrimaryKeys(NAMESPACE_FIELD, GENERATION_COL, RECIPE_ID_FIELD)
-      .withIndexes(RECIPE_NAME_FIELD)
+      .withIndexes(RECIPE_NAME_FIELD, UPDATE_TIME_COL)
       .build();
 
   private static final Gson GSON = new GsonBuilder()
@@ -99,6 +104,52 @@ public class RecipeStore {
       }, RecipeNotFoundException.class);
   }
 
+  public RecipeListResponse listRecipes(NamespaceSummary namespace, Integer pageSize, String pageToken, String sortBy)
+    throws IllegalArgumentException {
+    return TransactionRunners.run(transactionRunner, context -> {
+      List<Recipe> recipes = new ArrayList<>();
+      StructuredTable table = context.getTable(TABLE_ID);
+
+      Field sortByField;
+      SortOrder sortOrder = SortOrder.ASC;
+      switch (sortBy) {
+        case "name":
+          sortByField = Fields.stringField(RECIPE_NAME_FIELD, pageToken);
+          break;
+        case "updated":
+          sortByField = Fields.longField(UPDATE_TIME_COL, !pageToken.equals("") ? Long.parseLong(pageToken) : 0);
+          sortOrder = SortOrder.DESC;
+          break;
+        default:
+          throw new IllegalArgumentException("sortBy field not specified in request or not supported.");
+      }
+
+      Collection<Field<?>> begin = getNamespaceKeys(namespace);
+      begin.add(sortByField);
+
+      Range range = Range.create(begin, Range.Bound.INCLUSIVE, getNamespaceKeys(namespace), Range.Bound.INCLUSIVE);
+
+      try (CloseableIterator<StructuredRow> iterator = table.scan(range, pageSize + 1,
+                                                                  sortByField.getName(), sortOrder)) {
+        iterator.forEachRemaining(
+          structuredRow ->
+            recipes.add(GSON.fromJson(structuredRow.getString(RECIPE_INFO_COL), RecipeRow.class).getRecipe())
+          );
+      }
+      String nextPageToken = "";
+      if (recipes.size() > pageSize) {
+        switch (sortByField.getName()) {
+          case RECIPE_NAME_FIELD:
+            nextPageToken = (recipes.remove(recipes.size() - 1)).getRecipeName();
+            break;
+          case UPDATE_TIME_COL:
+            nextPageToken = String.valueOf((recipes.remove(recipes.size() - 1)).getUpdatedTimeMillis());
+        }
+      }
+      return new RecipeListResponse(recipes, nextPageToken);
+    });
+  }
+
   /**
    * Delete the given Recipe
    * @param recipeId id of the recipe to delete
@@ -125,6 +176,7 @@ public class RecipeStore {
         newRecipe = RecipeRow.builder(updatedRecipe).build();
       }
       Collection<Field<?>> fields = getRecipeKeys(recipeId);
+      fields.add(Fields.stringField(RECIPE_NAME_FIELD, newRecipe.getRecipe().getRecipeName()));
       fields.add(Fields.longField(CREATE_TIME_COL, newRecipe.getRecipe().getCreatedTimeMillis()));
       fields.add(Fields.longField(UPDATE_TIME_COL, newRecipe.getRecipe().getUpdatedTimeMillis()));
       fields.add(Fields.stringField(RECIPE_INFO_COL, GSON.toJson(newRecipe)));
