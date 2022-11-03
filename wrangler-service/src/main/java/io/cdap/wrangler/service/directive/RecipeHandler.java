@@ -25,8 +25,6 @@ import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
-import io.cdap.cdap.spi.data.table.field.Field;
-import io.cdap.cdap.spi.data.table.field.Fields;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeCreationRequest;
@@ -45,11 +43,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
+import static io.cdap.wrangler.store.recipe.RecipeStore.SORT_BY_NAME;
+import static io.cdap.wrangler.store.recipe.RecipeStore.SORT_BY_UPDATE_TIME;
+
 /**
  * v2 endpoints for recipe
  */
 public class RecipeHandler extends AbstractWranglerHandler {
-
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
 
@@ -111,12 +111,17 @@ public class RecipeHandler extends AbstractWranglerHandler {
                           @QueryParam("sortBy")String sortBy,
                           @QueryParam("pageSize") Integer pageSize,
                           @QueryParam("pageToken") String pageToken) {
-    if (pageToken == null) {
-      throw new IllegalArgumentException("pageToken missing in request.");
+    if (sortBy != null && !(sortBy.equals(SORT_BY_NAME) || sortBy.equals(SORT_BY_UPDATE_TIME))) {
+      throw new IllegalArgumentException("Specified sortBy field not supported.");
     }
 
+    // Default values when not specified
+    Integer finalPageSize = pageSize == null ? 10 : pageSize;
+    String finalPageToken = (pageToken == null) ? "" : pageToken;
+    String finalSortBy = (sortBy == null) ? SORT_BY_NAME : sortBy;
+
     respond(responder, namespace, ns -> {
-      responder.sendString(GSON.toJson(recipeStore.listRecipes(ns, pageSize, pageToken, sortBy)));
+      responder.sendString(GSON.toJson(recipeStore.listRecipes(ns, finalPageSize, finalPageToken, finalSortBy)));
     });
   }
 

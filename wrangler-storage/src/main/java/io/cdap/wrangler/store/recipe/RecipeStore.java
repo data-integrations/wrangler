@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -57,6 +56,8 @@ public class RecipeStore {
   private static final String CREATE_TIME_COL = "create_time";
   private static final String UPDATE_TIME_COL = "update_time";
   private static final String RECIPE_INFO_COL = "recipe_info";
+  public static final String SORT_BY_NAME = "name";
+  public static final String SORT_BY_UPDATE_TIME = "updated";
 
   public static final StructuredTableSpecification RECIPE_TABLE_SPEC =
     new StructuredTableSpecification.Builder()
@@ -104,30 +105,27 @@ public class RecipeStore {
       }, RecipeNotFoundException.class);
   }
 
-  public RecipeListResponse listRecipes(NamespaceSummary namespace, Integer pageSize, String pageToken, String sortBy)
-    throws IllegalArgumentException {
+  public RecipeListResponse listRecipes(NamespaceSummary namespace, Integer pageSize, String pageToken, String sortBy) {
     return TransactionRunners.run(transactionRunner, context -> {
       List<Recipe> recipes = new ArrayList<>();
       StructuredTable table = context.getTable(TABLE_ID);
 
-      Field sortByField;
+      // By default, sort by recipe name
+      Field sortByField = Fields.stringField(RECIPE_NAME_FIELD, pageToken);
       SortOrder sortOrder = SortOrder.ASC;
-      switch (sortBy) {
-        case "name":
-          sortByField = Fields.stringField(RECIPE_NAME_FIELD, pageToken);
-          break;
-        case "updated":
-          sortByField = Fields.longField(UPDATE_TIME_COL, !pageToken.equals("") ? Long.parseLong(pageToken) : 0);
-          sortOrder = SortOrder.DESC;
-          break;
-        default:
-          throw new IllegalArgumentException("sortBy field not specified in request or not supported.");
+      Collection<Field<?>> begin = getNamespaceKeys(namespace);
+      Collection<Field<?>> end = getNamespaceKeys(namespace);
+
+      if (sortBy.equals(SORT_BY_UPDATE_TIME)) {
+        sortByField = Fields.longField(UPDATE_TIME_COL,
+                                       !pageToken.equals("") ? Long.parseLong(pageToken) : Long.MAX_VALUE);
+        sortOrder = SortOrder.DESC;
+        end.add(sortByField);
+      } else {
+        begin.add(sortByField);
       }
 
-      Collection<Field<?>> begin = getNamespaceKeys(namespace);
-      begin.add(sortByField);
-
-      Range range = Range.create(begin, Range.Bound.INCLUSIVE, getNamespaceKeys(namespace), Range.Bound.INCLUSIVE);
+      Range range = Range.create(begin, Range.Bound.INCLUSIVE, end, Range.Bound.INCLUSIVE);
 
       try (CloseableIterator<StructuredRow> iterator = table.scan(range, pageSize + 1,
                                                                   sortByField.getName(), sortOrder)) {
@@ -138,12 +136,10 @@ public class RecipeStore {
       }
       String nextPageToken = "";
       if (recipes.size() > pageSize) {
-        switch (sortByField.getName()) {
-          case RECIPE_NAME_FIELD:
-            nextPageToken = (recipes.remove(recipes.size() - 1)).getRecipeName();
-            break;
-          case UPDATE_TIME_COL:
-            nextPageToken = String.valueOf((recipes.remove(recipes.size() - 1)).getUpdatedTimeMillis());
+        if (sortByField.getName().equals(UPDATE_TIME_COL)) {
+          nextPageToken = String.valueOf((recipes.remove(recipes.size() - 1)).getUpdatedTimeMillis());
+        } else {
+          nextPageToken = (recipes.remove(recipes.size() - 1)).getRecipeName();
         }
       }
       return new RecipeListResponse(recipes, nextPageToken);
