@@ -21,6 +21,7 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.annotation.RuntimeImplementation;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.plugin.PluginConfig;
@@ -83,6 +84,7 @@ import javax.annotation.Nullable;
 @Plugin(type = "transform")
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
+@RuntimeImplementation(pluginClass = Wrangler.class, order = Wrangler.ORDER_TRANSFORM)
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
 
@@ -92,6 +94,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String CONFIG_METHOD = "config";
   private static final String ON_ERROR_DEFAULT = "fail-pipeline";
   private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
+
+  static final int ORDER_SQL = 1;
+  static final int ORDER_SPARK = 2;
+  static final int ORDER_TRANSFORM = 3;
 
   // Plugin configuration.
   private final Config config;
@@ -288,6 +294,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   @Override
   public void initialize(TransformContext context) throws Exception {
     super.initialize(context);
+
+    if (Config.EL_SQL.equalsIgnoreCase(config.getExpressionLanguage())) {
+      throw new IllegalStateException("SQL is not supported in MR implementation");
+    }
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
@@ -487,6 +497,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     static final String NAME_UDD = "udd";
     static final String NAME_SCHEMA = "schema";
     static final String NAME_ON_ERROR = "on-error";
+    static final String NAME_EL = "expression-language";
+
+    static final String EL_SQL = "sql";
 
     @Name(NAME_PRECONDITION)
     @Description("Precondition expression specifying filtering before applying directives (true to filter)")
@@ -520,14 +533,21 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     @Nullable
     private final String onError;
 
+    @Name(NAME_EL)
+    @Description("Expression language to use (jexl, sql). Currently applies to precondition only.")
+    @Macro
+    @Nullable
+    private String expressionLanguage;
+
     public Config(String precondition, String directives, String udds,
-                  String field, String schema, String onError) {
+                  String field, String schema, String onError, String expressionLanguage) {
       this.precondition = precondition;
       this.directives = directives;
       this.udds = udds;
       this.field = field;
       this.schema = schema;
       this.onError = onError;
+      this.expressionLanguage = expressionLanguage;
     }
 
     /**
@@ -535,6 +555,20 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
      */
     public String getOnError() {
       return onError == null ? ON_ERROR_DEFAULT : onError;
+    }
+
+    @Nullable
+    public String getExpressionLanguage() {
+      return expressionLanguage;
+    }
+
+    public String getPrecondition() {
+      return precondition;
+    }
+
+    @Nullable
+    public String getDirectives() {
+      return directives;
     }
   }
 }
