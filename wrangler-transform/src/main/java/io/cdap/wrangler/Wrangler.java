@@ -16,6 +16,8 @@
 
 package io.cdap.wrangler;
 
+import static io.cdap.cdap.features.Feature.WRANGLER_FAIL_PIPELINE_FOR_ERROR;
+
 import com.google.common.collect.ImmutableMap;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -385,9 +387,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
           errorMessages.add(error.getMessage());
         }
-        if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
-          throw new Exception(
-            String.format("Errors in Wrangler Transformation - %s", errorMessages));
+        if (WRANGLER_FAIL_PIPELINE_FOR_ERROR.isEnabled(getContext())) {
+          if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
+            throw new Exception(
+                String.format("Errors in Wrangler Transformation - %s", errorMessages));
+          }
         }
       }
     } catch (Exception e) {
