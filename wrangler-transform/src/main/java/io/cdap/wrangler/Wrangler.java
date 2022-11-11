@@ -93,6 +93,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String SERVICE_NAME = "service";
   private static final String CONFIG_METHOD = "config";
   private static final String ON_ERROR_DEFAULT = "fail-pipeline";
+  private static final String ON_ERROR_FAIL_PIPELINE = "fail-pipeline";
+  private static final String ON_ERROR_PROCEED = "send-to-error-port";
   private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
 
   // Plugin configuration.
@@ -388,7 +390,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           errorMessages.add(error.getMessage());
         }
         if (WRANGLER_FAIL_PIPELINE_FOR_ERROR.isEnabled(getContext())) {
-          if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
+          if (onErrorStrategy.equalsIgnoreCase(ON_ERROR_FAIL_PIPELINE)) {
             throw new Exception(
                 String.format("Errors in Wrangler Transformation - %s", errorMessages));
           }
@@ -396,13 +398,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     } catch (Exception e) {
       getContext().getMetrics().count("failure", 1);
-      if (onErrorStrategy.equalsIgnoreCase("send-to-error-port")) {
+      if (onErrorStrategy.equalsIgnoreCase(ON_ERROR_PROCEED)) {
         // Emit error record, if the Error flattener or error handlers are not connected, then
         // the record is automatically omitted.
         emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
         return;
       }
-      if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
+      if (onErrorStrategy.equalsIgnoreCase(ON_ERROR_FAIL_PIPELINE)) {
         emitter.emitAlert(ImmutableMap.of(
           "stage", getContext().getStageName(),
           "code", String.valueOf(1),
