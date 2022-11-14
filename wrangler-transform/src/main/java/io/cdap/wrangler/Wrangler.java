@@ -16,6 +16,8 @@
 
 package io.cdap.wrangler;
 
+import static io.cdap.cdap.features.Feature.WRANGLER_FAIL_PIPELINE_FOR_ERROR;
+
 import com.google.common.collect.ImmutableMap;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -61,9 +63,6 @@ import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
@@ -72,6 +71,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wrangler - A interactive tool for data cleansing and transformation.
@@ -91,6 +92,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String SERVICE_NAME = "service";
   private static final String CONFIG_METHOD = "config";
   private static final String ON_ERROR_DEFAULT = "fail-pipeline";
+  private static final String ON_ERROR_FAIL_PIPELINE = "fail-pipeline";
+  private static final String ON_ERROR_PROCEED = "send-to-error-port";
   private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
 
   // Plugin configuration.
@@ -385,20 +388,21 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
           emitter.emitError(new InvalidEntry<>(error.getCode(), error.getMessage(), input));
           errorMessages.add(error.getMessage());
         }
-        if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
+        if (WRANGLER_FAIL_PIPELINE_FOR_ERROR.isEnabled(getContext())
+            && onErrorStrategy.equalsIgnoreCase(ON_ERROR_FAIL_PIPELINE)) {
           throw new Exception(
-            String.format("Errors in Wrangler Transformation - %s", errorMessages));
+              String.format("Errors in Wrangler Transformation - %s", errorMessages));
         }
       }
     } catch (Exception e) {
       getContext().getMetrics().count("failure", 1);
-      if (onErrorStrategy.equalsIgnoreCase("send-to-error-port")) {
+      if (onErrorStrategy.equalsIgnoreCase(ON_ERROR_PROCEED)) {
         // Emit error record, if the Error flattener or error handlers are not connected, then
         // the record is automatically omitted.
         emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
         return;
       }
-      if (onErrorStrategy.equalsIgnoreCase("fail-pipeline")) {
+      if (onErrorStrategy.equalsIgnoreCase(ON_ERROR_FAIL_PIPELINE)) {
         emitter.emitAlert(ImmutableMap.of(
           "stage", getContext().getStageName(),
           "code", String.valueOf(1),
