@@ -16,8 +16,6 @@
 
 package io.cdap.wrangler;
 
-import static io.cdap.cdap.features.Feature.WRANGLER_FAIL_PIPELINE_FOR_ERROR;
-
 import com.google.common.collect.ImmutableMap;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -74,6 +72,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+
+import static io.cdap.cdap.features.Feature.WRANGLER_FAIL_PIPELINE_FOR_ERROR;
 
 /**
  * Wrangler - A interactive tool for data cleansing and transformation.
