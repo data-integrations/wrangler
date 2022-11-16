@@ -37,6 +37,7 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -434,10 +435,9 @@ public final class RecordConvertor implements Serializable {
       return decodeArray(name, (List) object, schema);
     } else if (object instanceof JsonArray) {
       return decodeArray(name, (JsonArray) object, schema);
+    } else {
+      return decodeArray(name, Collections.singletonList(object), schema);
     }
-    throw new RecordConvertorException(
-      String.format("Unable to decode array '%s'", name)
-    );
   }
 
   private List<Object> decodeArray(String name, JsonArray list, Schema schema) throws RecordConvertorException {
