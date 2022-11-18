@@ -75,10 +75,10 @@ public class RecipeHandler extends AbstractWranglerHandler {
         .setRecipeStepsCount(directives.size())
         .build();
 
-      RecipeRow recipeRow = RecipeRow.builder(recipe).build();
+      RecipeRow recipeRow = RecipeRow.builder(ns, recipe).build();
 
       recipeStore.saveRecipe(recipeId, recipeRow);
-      responder.sendString("recipe added successfully");
+      responder.sendJson(GSON.toJson(recipe));
     });
   }
 }

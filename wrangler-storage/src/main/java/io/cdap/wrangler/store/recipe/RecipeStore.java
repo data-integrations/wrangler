@@ -105,7 +105,7 @@ public class RecipeStore {
       if (oldRecipe != null) {
         Recipe updatedRecipe = Recipe.builder(newRecipe.getRecipe())
           .setCreatedTimeMillis(oldRecipe.getRecipe().getCreatedTimeMillis()).build();
-        newRecipe = RecipeRow.builder(updatedRecipe).build();
+        newRecipe = RecipeRow.builder(recipeId.getNamespace(), updatedRecipe).build();
       }
 
       Collection<Field<?>> fields = getRecipeKeys(recipeId);
