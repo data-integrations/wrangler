@@ -82,7 +82,8 @@ public class RecipeStore {
 
   /**
    * Create a new recipe
-   * @param recipeId id of the recipe
+   *
+   * @param recipeId  id of the recipe
    * @param recipeRow recipe to create/update
    */
   public void saveRecipe(RecipeId recipeId, RecipeRow recipeRow) {
@@ -117,6 +118,14 @@ public class RecipeStore {
 
       table.upsert(fields);
     });
+  }
+
+  public Recipe getRecipe(RecipeId recipeId) throws RecipeNotFoundException {
+    return TransactionRunners.run(transactionRunner, context -> {
+      StructuredTable table = context.getTable(TABLE_ID);
+      RecipeRow recipeRow = getRecipeInternal(table, recipeId, true);
+      return recipeRow.getRecipe();
+    }, RecipeNotFoundException.class);
   }
 
   private RecipeRow getRecipeInternal(StructuredTable table, RecipeId recipeId, boolean failIfNotFound)
