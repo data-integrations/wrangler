@@ -34,6 +34,7 @@ import io.cdap.wrangler.store.recipe.RecipeStore;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -55,7 +56,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
 
   @POST
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("v2/contexts/{context}/recipe")
+  @Path("v2/contexts/{context}/recipes")
   public void createRecipe(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
@@ -79,6 +80,17 @@ public class RecipeHandler extends AbstractWranglerHandler {
 
       recipeStore.saveRecipe(recipeId, recipeRow);
       responder.sendJson(GSON.toJson(recipe));
+    });
+  }
+
+  @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes/{id}")
+  public void getRecipe(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("context") String namespace,
+                        @PathParam("id") String recipeId) {
+    respond(responder, namespace, ns -> {
+      responder.sendString(GSON.toJson(recipeStore.getRecipe(new RecipeId(ns, recipeId))));
     });
   }
 }
