@@ -59,7 +59,7 @@ public class RecipeStoreTest extends SystemAppTestBase {
       .setUpdatedTimeMillis(100L)
       .setDirectives(directives)
       .build();
-    RecipeRow recipeRow = RecipeRow.builder(recipe).build();
+    RecipeRow recipeRow = RecipeRow.builder(summary, recipe).build();
     store.saveRecipe(recipeId, recipeRow);
   }
 
@@ -68,12 +68,12 @@ public class RecipeStoreTest extends SystemAppTestBase {
     NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
     RecipeId recipeId = new RecipeId(summary);
     Recipe recipe = Recipe.builder(recipeId.getRecipeId()).setRecipeName("duplicate-name").build();
-    RecipeRow recipeRow = RecipeRow.builder(recipe).build();
+    RecipeRow recipeRow = RecipeRow.builder(summary, recipe).build();
     store.saveRecipe(recipeId, recipeRow);
 
     RecipeId newRecipeId = new RecipeId(summary);
     Recipe newRecipe = Recipe.builder(newRecipeId.getRecipeId()).setRecipeName("duplicate-name").build();
-    RecipeRow newRecipeRow = RecipeRow.builder(newRecipe).build();
+    RecipeRow newRecipeRow = RecipeRow.builder(summary, newRecipe).build();
     try {
       store.saveRecipe(newRecipeId, newRecipeRow);
       Assert.fail();

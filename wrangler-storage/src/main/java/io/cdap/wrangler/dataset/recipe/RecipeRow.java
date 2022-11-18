@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.dataset.recipe;
 
+import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import java.util.Objects;
 
@@ -24,9 +25,11 @@ import java.util.Objects;
  * {@link Recipe} contains fields that are exposed to users.
  */
 public class RecipeRow {
+  private final NamespaceSummary namespaceSummary;
   private final Recipe recipe;
 
-  private RecipeRow(Recipe recipe) {
+  private RecipeRow(NamespaceSummary namespaceSummary, Recipe recipe) {
+    this.namespaceSummary = namespaceSummary;
     this.recipe = recipe;
   }
 
@@ -45,7 +48,7 @@ public class RecipeRow {
     }
 
     RecipeRow other = (RecipeRow) o;
-    return Objects.equals(recipe, other.recipe);
+    return Objects.equals(namespaceSummary, other.namespaceSummary) && Objects.equals(recipe, other.recipe);
   }
 
   @Override
@@ -53,26 +56,28 @@ public class RecipeRow {
     return Objects.hash(recipe);
   }
 
-  public static Builder builder(Recipe recipe) {
-    return new Builder(recipe);
+  public static Builder builder(NamespaceSummary namespaceSummary, Recipe recipe) {
+    return new Builder(namespaceSummary, recipe);
   }
 
-  public static Builder builder(RecipeRow existing) {
-    return new Builder(existing.getRecipe());
+  public static Builder builder(NamespaceSummary namespaceSummary, RecipeRow existing) {
+    return new Builder(namespaceSummary, existing.getRecipe());
   }
 
   /**
    * Creates a RecipeRow storage object
    */
   public static class Builder {
+    private final NamespaceSummary namespaceSummary;
     private final Recipe recipe;
 
-    Builder(Recipe recipe) {
+    Builder(NamespaceSummary namespaceSummary, Recipe recipe) {
+      this.namespaceSummary = namespaceSummary;
       this.recipe = recipe;
     }
 
     public RecipeRow build() {
-      return new RecipeRow(recipe);
+      return new RecipeRow(namespaceSummary, recipe);
     }
   }
 }
