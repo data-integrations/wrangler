@@ -83,9 +83,7 @@ public class Recipe {
     }
 
     Recipe other = (Recipe) o;
-    return Objects.equals(recipeId, other.recipeId) &&
-      Objects.equals(recipeName, other.recipeName) &&
-      Objects.equals(directives, other.directives);
+    return Objects.equals(recipeId, other.recipeId);
   }
 
   @Override
