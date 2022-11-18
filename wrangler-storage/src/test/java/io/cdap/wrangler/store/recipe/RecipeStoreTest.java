@@ -22,6 +22,7 @@ import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.test.SystemAppTestBase;
 import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.wrangler.dataset.recipe.RecipeAlreadyExistsException;
+import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
@@ -48,7 +49,7 @@ public class RecipeStoreTest extends SystemAppTestBase {
   }
 
   @Test
-  public void testSaveNewRecipe() {
+  public void testSaveAndGetNewRecipe() {
     NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
     RecipeId recipeId = new RecipeId(summary);
     ImmutableList<String> directives = ImmutableList.of("dir1", "dir2");
@@ -61,9 +62,12 @@ public class RecipeStoreTest extends SystemAppTestBase {
       .build();
     RecipeRow recipeRow = RecipeRow.builder(recipe).build();
     store.saveRecipe(recipeId, recipeRow);
+
+    Recipe savedRecipeRow = store.getRecipe(recipeId);
+    Assert.assertEquals(recipeRow.getRecipe(), savedRecipeRow);
   }
 
-  @Test
+  @Test(expected = RecipeAlreadyExistsException.class)
   public void testSaveRecipeWithDuplicateName() {
     NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
     RecipeId recipeId = new RecipeId(summary);
@@ -74,11 +78,13 @@ public class RecipeStoreTest extends SystemAppTestBase {
     RecipeId newRecipeId = new RecipeId(summary);
     Recipe newRecipe = Recipe.builder(newRecipeId).setRecipeName("duplicate-name").build();
     RecipeRow newRecipeRow = RecipeRow.builder(newRecipe).build();
-    try {
-      store.saveRecipe(newRecipeId, newRecipeRow);
-      Assert.fail();
-    } catch (RecipeAlreadyExistsException e) {
-      // expected
-    }
+    store.saveRecipe(newRecipeId, newRecipeRow);
+  }
+
+  @Test(expected = RecipeNotFoundException.class)
+  public void testGetRecipeDoesNotExist() {
+    NamespaceSummary summary = new NamespaceSummary("n100", "", 40L);
+    RecipeId recipeId = new RecipeId(summary, "non-existent-recipe-id");
+    store.getRecipe(recipeId);
   }
 }

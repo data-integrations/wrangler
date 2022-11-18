@@ -29,8 +29,13 @@ public class RecipeId {
   private final String recipeId;
 
   public RecipeId(NamespaceSummary namespace) {
+    this(namespace, UUID.randomUUID().toString());
+  }
+
+  public RecipeId(NamespaceSummary namespace, String recipeId) {
+    // Set namespace description to null - to avoid duplicate storage of large descriptions
     this.namespace = new NamespaceSummary(namespace.getName(), null, namespace.getGeneration());
-    this.recipeId = UUID.randomUUID().toString();
+    this.recipeId = recipeId;
   }
 
   public NamespaceSummary getNamespace() {
