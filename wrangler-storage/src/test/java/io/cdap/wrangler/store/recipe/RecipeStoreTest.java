@@ -52,14 +52,14 @@ public class RecipeStoreTest extends SystemAppTestBase {
     NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
     RecipeId recipeId = new RecipeId(summary);
     ImmutableList<String> directives = ImmutableList.of("dir1", "dir2");
-    Recipe recipe = Recipe.builder(recipeId.getRecipeId())
+    Recipe recipe = Recipe.builder(recipeId)
       .setRecipeName("dummy-name")
       .setDescription("dummy description")
       .setCreatedTimeMillis(100L)
       .setUpdatedTimeMillis(100L)
       .setDirectives(directives)
       .build();
-    RecipeRow recipeRow = RecipeRow.builder(summary, recipe).build();
+    RecipeRow recipeRow = RecipeRow.builder(recipe).build();
     store.saveRecipe(recipeId, recipeRow);
   }
 
@@ -67,13 +67,13 @@ public class RecipeStoreTest extends SystemAppTestBase {
   public void testSaveRecipeWithDuplicateName() {
     NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
     RecipeId recipeId = new RecipeId(summary);
-    Recipe recipe = Recipe.builder(recipeId.getRecipeId()).setRecipeName("duplicate-name").build();
-    RecipeRow recipeRow = RecipeRow.builder(summary, recipe).build();
+    Recipe recipe = Recipe.builder(recipeId).setRecipeName("duplicate-name").build();
+    RecipeRow recipeRow = RecipeRow.builder(recipe).build();
     store.saveRecipe(recipeId, recipeRow);
 
     RecipeId newRecipeId = new RecipeId(summary);
-    Recipe newRecipe = Recipe.builder(newRecipeId.getRecipeId()).setRecipeName("duplicate-name").build();
-    RecipeRow newRecipeRow = RecipeRow.builder(summary, newRecipe).build();
+    Recipe newRecipe = Recipe.builder(newRecipeId).setRecipeName("duplicate-name").build();
+    RecipeRow newRecipeRow = RecipeRow.builder(newRecipe).build();
     try {
       store.saveRecipe(newRecipeId, newRecipeRow);
       Assert.fail();

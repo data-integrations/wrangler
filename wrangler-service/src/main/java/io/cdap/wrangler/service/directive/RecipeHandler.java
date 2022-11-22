@@ -64,9 +64,9 @@ public class RecipeHandler extends AbstractWranglerHandler {
 
       RecipeCreationRequest creationRequest = GSON.fromJson(
         StandardCharsets.UTF_8.decode(request.getContent()).toString(), RecipeCreationRequest.class);
-
       List<String> directives = creationRequest.getDirectives();
-      Recipe recipe = Recipe.builder(recipeId.getRecipeId())
+
+      Recipe recipe = Recipe.builder(recipeId)
         .setRecipeName(creationRequest.getRecipeName())
         .setDescription(creationRequest.getDescription())
         .setCreatedTimeMillis(now)
@@ -75,7 +75,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
         .setRecipeStepsCount(directives.size())
         .build();
 
-      RecipeRow recipeRow = RecipeRow.builder(ns, recipe).build();
+      RecipeRow recipeRow = RecipeRow.builder(recipe).build();
 
       recipeStore.saveRecipe(recipeId, recipeRow);
       responder.sendJson(GSON.toJson(recipe));
