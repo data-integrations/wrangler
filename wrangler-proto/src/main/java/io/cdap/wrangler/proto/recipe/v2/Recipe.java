@@ -25,15 +25,15 @@ import java.util.Objects;
  * Metadata information about a Recipe
  */
 public class Recipe {
+  private final RecipeId recipeId;
   private final String recipeName;
-  private final String recipeId;
   private final String description;
   private final List<String> directives;
   private final long createdTimeMillis;
   private final long updatedTimeMillis;
   private final int recipeStepsCount;
 
-  private Recipe(String recipeName, String recipeId, String description, List<String> directives,
+  private Recipe(RecipeId recipeId, String recipeName, String description, List<String> directives,
                  long createdTimeMillis, long updatedTimeMillis, int recipeStepsCount) {
     this.recipeName = recipeName;
     this.recipeId = recipeId;
@@ -48,7 +48,7 @@ public class Recipe {
     return recipeName;
   }
 
-  public String getRecipeId() {
+  public RecipeId getRecipeId() {
     return recipeId;
   }
 
@@ -91,7 +91,7 @@ public class Recipe {
     return Objects.hash(recipeName, recipeId, directives);
   }
 
-  public static Builder builder(String recipeId) {
+  public static Builder builder(RecipeId recipeId) {
     return new Builder(recipeId);
   }
 
@@ -109,7 +109,7 @@ public class Recipe {
    * Creates a Recipe meta object
    */
   public static class Builder {
-    private final String recipeId;
+    private final RecipeId recipeId;
     private String recipeName;
     private String description;
     private List<String> directives;
@@ -117,7 +117,7 @@ public class Recipe {
     private long updatedTimeMillis;
     private int recipeStepsCount;
 
-    Builder(String recipeId) {
+    Builder(RecipeId recipeId) {
       this.recipeId = recipeId;
       this.directives = new ArrayList<>();
     }
@@ -154,7 +154,7 @@ public class Recipe {
     }
 
     public Recipe build() {
-      return new Recipe(recipeName, recipeId, description, directives,
+      return new Recipe(recipeId, recipeName, description, directives,
                         createdTimeMillis, updatedTimeMillis, recipeStepsCount);
     }
   }

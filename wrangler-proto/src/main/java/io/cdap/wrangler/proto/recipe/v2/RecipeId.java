@@ -29,7 +29,7 @@ public class RecipeId {
   private final String recipeId;
 
   public RecipeId(NamespaceSummary namespace) {
-    this.namespace = namespace;
+    this.namespace = new NamespaceSummary(namespace.getName(), null, namespace.getGeneration());
     this.recipeId = UUID.randomUUID().toString();
   }
 

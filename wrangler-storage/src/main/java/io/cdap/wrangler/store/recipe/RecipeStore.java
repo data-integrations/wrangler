@@ -36,6 +36,7 @@ import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
+import io.cdap.wrangler.store.utils.Stores;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -105,7 +106,7 @@ public class RecipeStore {
       if (oldRecipe != null) {
         Recipe updatedRecipe = Recipe.builder(newRecipe.getRecipe())
           .setCreatedTimeMillis(oldRecipe.getRecipe().getCreatedTimeMillis()).build();
-        newRecipe = RecipeRow.builder(recipeId.getNamespace(), updatedRecipe).build();
+        newRecipe = RecipeRow.builder(updatedRecipe).build();
       }
 
       Collection<Field<?>> fields = getRecipeKeys(recipeId);
@@ -132,7 +133,7 @@ public class RecipeStore {
 
   private RecipeRow getRecipeByName(StructuredTable table, String recipeName,
                                     NamespaceSummary summary, boolean failIfNotFound) throws IOException {
-    Collection<Field<?>> keys = getNamespaceKeys(summary);
+    Collection<Field<?>> keys = Stores.getNamespaceKeys(NAMESPACE_FIELD, GENERATION_COL, summary);
     keys.add(Fields.stringField(RECIPE_NAME_FIELD, recipeName));
     Range range = Range.singleton(keys);
     CloseableIterator<StructuredRow> iterator = table.scan(range, 1);
@@ -146,15 +147,9 @@ public class RecipeStore {
   }
 
   private Collection<Field<?>> getRecipeKeys(RecipeId recipeId) {
-    List<Field<?>> keys = new ArrayList<>(getNamespaceKeys(recipeId.getNamespace()));
+    List<Field<?>> keys = new ArrayList<>(Stores.getNamespaceKeys(
+      NAMESPACE_FIELD, GENERATION_COL, recipeId.getNamespace()));
     keys.add(Fields.stringField(RECIPE_ID_FIELD, recipeId.getRecipeId()));
-    return keys;
-  }
-
-  private Collection<Field<?>> getNamespaceKeys(NamespaceSummary namespace) {
-    List<Field<?>> keys = new ArrayList<>();
-    keys.add(Fields.stringField(NAMESPACE_FIELD, namespace.getName()));
-    keys.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
     return keys;
   }
 
