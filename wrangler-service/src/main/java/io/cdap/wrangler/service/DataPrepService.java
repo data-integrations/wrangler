@@ -29,6 +29,7 @@ import io.cdap.wrangler.service.connections.ConnectionTypeConfig;
 import io.cdap.wrangler.service.database.DatabaseHandler;
 import io.cdap.wrangler.service.directive.ConnectionUpgrader;
 import io.cdap.wrangler.service.directive.DirectivesHandler;
+import io.cdap.wrangler.service.directive.RecipeHandler;
 import io.cdap.wrangler.service.directive.WorkspaceHandler;
 import io.cdap.wrangler.service.directive.WorkspaceUpgrader;
 import io.cdap.wrangler.service.explorer.FilesystemExplorer;
@@ -38,6 +39,7 @@ import io.cdap.wrangler.service.s3.S3Handler;
 import io.cdap.wrangler.service.schema.DataModelHandler;
 import io.cdap.wrangler.service.schema.SchemaRegistryHandler;
 import io.cdap.wrangler.service.spanner.SpannerHandler;
+import io.cdap.wrangler.store.recipe.RecipeStore;
 import io.cdap.wrangler.store.upgrade.UpgradeEntityType;
 import io.cdap.wrangler.store.upgrade.UpgradeState;
 import io.cdap.wrangler.store.upgrade.UpgradeStore;
@@ -71,6 +73,7 @@ public class DataPrepService extends AbstractSystemService {
     createTable(WorkspaceDataset.TABLE_SPEC);
     createTable(WorkspaceStore.WORKSPACE_TABLE_SPEC);
     createTable(UpgradeStore.UPGRADE_TABLE_SPEC);
+    createTable(RecipeStore.RECIPE_TABLE_SPEC);
 
     addHandler(new DirectivesHandler());
     addHandler(new SchemaRegistryHandler());
@@ -85,6 +88,7 @@ public class DataPrepService extends AbstractSystemService {
     addHandler(new SpannerHandler());
     addHandler(new DataModelHandler());
     addHandler(new WorkspaceHandler());
+    addHandler(new RecipeHandler());
   }
 
   @Override
