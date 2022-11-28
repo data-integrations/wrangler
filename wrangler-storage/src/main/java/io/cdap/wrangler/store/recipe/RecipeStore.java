@@ -82,7 +82,6 @@ public class RecipeStore {
 
   /**
    * Create a new recipe
-   *
    * @param recipeId  id of the recipe
    * @param recipeRow recipe to create/update
    */
