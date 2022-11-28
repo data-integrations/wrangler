@@ -124,7 +124,7 @@ public class RecipeStore {
    * Get the Recipe associated with given recipe name
    * @param recipeId id of the recipe to fetch
    * @return {@link Recipe} metadata for given recipe id
-   * @throws {@link RecipeNotFoundException} if recipe is not found
+   * @throws RecipeNotFoundException if recipe is not found
    */
   public Recipe getRecipe(RecipeId recipeId) throws RecipeNotFoundException {
     return TransactionRunners.run(transactionRunner, context -> {

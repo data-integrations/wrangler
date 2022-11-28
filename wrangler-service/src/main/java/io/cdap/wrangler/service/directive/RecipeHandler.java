@@ -34,6 +34,7 @@ import io.cdap.wrangler.store.recipe.RecipeStore;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -61,11 +62,16 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
       RecipeId recipeId = new RecipeId(ns);
-      long now = System.currentTimeMillis();
-
       RecipeCreationRequest creationRequest = GSON.fromJson(
         StandardCharsets.UTF_8.decode(request.getContent()).toString(), RecipeCreationRequest.class);
+
+      Pattern pattern = Pattern.compile("[a-zA-Z0-9 ]*");
+      if (!pattern.matcher(creationRequest.getRecipeName()).matches()) {
+        throw new IllegalArgumentException("recipe name should contain only alphanumeric characters or spaces");
+      }
+
       List<String> directives = creationRequest.getDirectives();
+      long now = System.currentTimeMillis();
 
       Recipe recipe = Recipe.builder(recipeId)
         .setRecipeName(creationRequest.getRecipeName())
