@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Metadata information about a Recipe
+ * Metadata information about a Recipe with only fields necessary for API user
  */
 public class Recipe {
   private final RecipeId recipeId;

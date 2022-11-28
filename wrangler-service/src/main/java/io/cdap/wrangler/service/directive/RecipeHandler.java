@@ -34,6 +34,8 @@ import io.cdap.wrangler.store.recipe.RecipeStore;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Pattern;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -55,16 +57,21 @@ public class RecipeHandler extends AbstractWranglerHandler {
 
   @POST
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("v2/contexts/{context}/recipe")
+  @Path("v2/contexts/{context}/recipes")
   public void createRecipe(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
       RecipeId recipeId = new RecipeId(ns);
-      long now = System.currentTimeMillis();
-
       RecipeCreationRequest creationRequest = GSON.fromJson(
         StandardCharsets.UTF_8.decode(request.getContent()).toString(), RecipeCreationRequest.class);
+
+      Pattern pattern = Pattern.compile("[a-zA-Z0-9 ]*");
+      if (!pattern.matcher(creationRequest.getRecipeName()).matches()) {
+        throw new IllegalArgumentException("recipe name should contain only alphanumeric characters or spaces");
+      }
+
       List<String> directives = creationRequest.getDirectives();
+      long now = System.currentTimeMillis();
 
       Recipe recipe = Recipe.builder(recipeId)
         .setRecipeName(creationRequest.getRecipeName())
@@ -79,6 +86,17 @@ public class RecipeHandler extends AbstractWranglerHandler {
 
       recipeStore.saveRecipe(recipeId, recipeRow);
       responder.sendJson(GSON.toJson(recipe));
+    });
+  }
+
+  @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes/{id}")
+  public void getRecipe(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("context") String namespace,
+                        @PathParam("id") String recipeId) {
+    respond(responder, namespace, ns -> {
+      responder.sendString(GSON.toJson(recipeStore.getRecipe(new RecipeId(ns, recipeId))));
     });
   }
 }
