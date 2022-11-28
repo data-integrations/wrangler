@@ -34,6 +34,7 @@ import io.cdap.wrangler.store.recipe.RecipeStore;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import javax.ws.rs.GET;
 import java.util.regex.Pattern;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
