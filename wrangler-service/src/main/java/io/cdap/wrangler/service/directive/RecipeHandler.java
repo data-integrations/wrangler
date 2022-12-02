@@ -25,6 +25,7 @@ import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
+import io.cdap.wrangler.dataset.recipe.RecipePageRequest;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeCreationRequest;
@@ -39,6 +40,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 /**
  * v2 endpoints for recipe
@@ -61,7 +63,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
   public void createRecipe(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
-      RecipeId recipeId = new RecipeId(ns);
+      RecipeId recipeId = RecipeId.builder(ns).build();
       RecipeCreationRequest creationRequest = GSON.fromJson(
         StandardCharsets.UTF_8.decode(request.getContent()).toString(), RecipeCreationRequest.class);
 
@@ -96,7 +98,28 @@ public class RecipeHandler extends AbstractWranglerHandler {
                         @PathParam("context") String namespace,
                         @PathParam("id") String recipeId) {
     respond(responder, namespace, ns -> {
-      responder.sendString(GSON.toJson(recipeStore.getRecipe(new RecipeId(ns, recipeId))));
+      RecipeId id = RecipeId.builder(ns).setRecipeId(recipeId).build();
+      responder.sendString(GSON.toJson(recipeStore.getRecipe(id)));
+    });
+  }
+
+  @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes")
+  public void listRecipes(HttpServiceRequest request, HttpServiceResponder responder,
+                          @PathParam("context") String namespace,
+                          @QueryParam("pageSize") Integer pageSize,
+                          @QueryParam("pageToken") String pageToken,
+                          @QueryParam("sortBy")String sortBy,
+                          @QueryParam("sortOrder") String sortOrder) {
+    respond(responder, namespace, ns -> {
+      RecipePageRequest pageRequest = RecipePageRequest.builder(ns)
+        .setPageSize(pageSize)
+        .setPageToken(pageToken)
+        .setSortBy(sortBy)
+        .setSortOrder(sortOrder)
+        .build();
+      responder.sendString(GSON.toJson(recipeStore.listRecipes(pageRequest)));
     });
   }
 }

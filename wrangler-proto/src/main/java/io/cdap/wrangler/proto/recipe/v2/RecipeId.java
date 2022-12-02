@@ -28,13 +28,8 @@ public class RecipeId {
   private final NamespaceSummary namespace;
   private final String recipeId;
 
-  public RecipeId(NamespaceSummary namespace) {
-    this(namespace, UUID.randomUUID().toString());
-  }
-
-  public RecipeId(NamespaceSummary namespace, String recipeId) {
-    // Set namespace description to null - to avoid duplicate storage of large descriptions
-    this.namespace = new NamespaceSummary(namespace.getName(), null, namespace.getGeneration());
+  private RecipeId(NamespaceSummary namespace, String recipeId) {
+    this.namespace = namespace;
     this.recipeId = recipeId;
   }
 
@@ -64,5 +59,35 @@ public class RecipeId {
   @Override
   public int hashCode() {
     return Objects.hash(namespace, recipeId);
+  }
+
+  public static Builder builder(NamespaceSummary namespace) {
+    return new Builder(namespace);
+  }
+
+  public static Builder builder(RecipeId existing) {
+    return new Builder(existing.getNamespace()).setRecipeId(existing.getRecipeId());
+  }
+
+  /**
+   * Creates a Recipe id object
+   */
+  public static class Builder {
+    private final NamespaceSummary namespace;
+    private String recipeId;
+
+    Builder(NamespaceSummary namespace) {
+      this.namespace = new NamespaceSummary(namespace.getName(), null, namespace.getGeneration());
+      this.recipeId = UUID.randomUUID().toString();
+    }
+
+    public Builder setRecipeId(String recipeId) {
+      this.recipeId = recipeId;
+      return this;
+    }
+
+    public RecipeId build() {
+      return new RecipeId(namespace, recipeId);
+    }
   }
 }
