@@ -176,4 +176,22 @@ public class RecipeStoreTest extends SystemAppTestBase {
     Assert.assertEquals(values.get(0), recipeRow3.getRecipe());
     Assert.assertEquals(page2.getNextPageToken(), "");
   }
+
+  @Test(expected = RecipeNotFoundException.class)
+  public void testDeleteRecipe() {
+    NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
+    RecipeId recipeId = RecipeId.builder(summary).build();
+    RecipeRow recipeRow = RecipeRow.builder(Recipe.builder(recipeId).setRecipeName("deleted").build()).build();
+    store.saveRecipe(recipeId, recipeRow);
+
+    store.deleteRecipe(recipeId);
+    store.getRecipe(recipeId);
+  }
+
+  @Test(expected = RecipeNotFoundException.class)
+  public void testDeleteRecipeDoesNotExist() {
+    NamespaceSummary summary = new NamespaceSummary("n100", "", 40L);
+    RecipeId recipeId = RecipeId.builder(summary).setRecipeId("non-existent-recipe-id").build();
+    store.deleteRecipe(recipeId);
+  }
 }
