@@ -33,10 +33,11 @@ import io.cdap.cdap.spi.data.transaction.TransactionRunner;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.dataset.recipe.RecipeAlreadyExistsException;
 import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
+import io.cdap.wrangler.dataset.recipe.RecipePageRequest;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
-import io.cdap.wrangler.store.utils.Stores;
+import io.cdap.wrangler.proto.recipe.v2.RecipeListResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,18 +45,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static io.cdap.wrangler.store.utils.Stores.getNamespaceKeys;
+
 /**
  * Recipe store for v2 endpoint
  */
 public class RecipeStore {
   private static final StructuredTableId TABLE_ID = new StructuredTableId("recipes_store");
-  private static final String NAMESPACE_FIELD = "namespace";
-  private static final String GENERATION_COL = "generation";
-  private static final String RECIPE_ID_FIELD = "recipe_id";
-  private static final String RECIPE_NAME_FIELD = "recipe_name";
-  private static final String CREATE_TIME_COL = "create_time";
-  private static final String UPDATE_TIME_COL = "update_time";
-  private static final String RECIPE_INFO_COL = "recipe_info";
+  public static final String NAMESPACE_FIELD = "namespace";
+  public static final String GENERATION_COL = "generation";
+  public static final String RECIPE_ID_FIELD = "recipe_id";
+  public static final String RECIPE_NAME_FIELD = "recipe_name";
+  public static final String CREATE_TIME_COL = "create_time";
+  public static final String UPDATE_TIME_COL = "update_time";
+  public static final String RECIPE_INFO_COL = "recipe_info";
 
   public static final StructuredTableSpecification RECIPE_TABLE_SPEC =
     new StructuredTableSpecification.Builder()
@@ -133,6 +136,31 @@ public class RecipeStore {
     }, RecipeNotFoundException.class);
   }
 
+  /**
+   * Get a paginated list of recipes in given namespace
+   * @param request {@link RecipePageRequest} that contains necessary query parameters
+   * @return {@link RecipeListResponse} that contains a page of results and nextPageToken
+   */
+  public RecipeListResponse listRecipes(RecipePageRequest request) {
+    return TransactionRunners.run(transactionRunner, context -> {
+      List<Recipe> recipes = new ArrayList<>();
+      StructuredTable table = context.getTable(TABLE_ID);
+
+      Range range = request.getScanRange();
+      try (CloseableIterator<StructuredRow> iterator = table.scan(range, request.getPageSize() + 1,
+                                                                  request.getSortBy(), request.getSortOrder())) {
+        iterator.forEachRemaining(
+          structuredRow ->
+            recipes.add(GSON.fromJson(structuredRow.getString(RECIPE_INFO_COL), RecipeRow.class).getRecipe())
+        );
+      }
+      String nextPageToken = recipes.size() > request.getPageSize() ?
+        request.getNextPageToken(recipes.remove(recipes.size() - 1)) : "";
+
+      return new RecipeListResponse(recipes, nextPageToken);
+    });
+  }
+
   private RecipeRow getRecipeInternal(StructuredTable table, RecipeId recipeId, boolean failIfNotFound)
     throws RecipeNotFoundException, IOException {
     Optional<StructuredRow> row = table.read(getRecipeKeys(recipeId));
@@ -147,7 +175,7 @@ public class RecipeStore {
 
   private RecipeRow getRecipeByName(StructuredTable table, String recipeName,
                                     NamespaceSummary summary, boolean failIfNotFound) throws IOException {
-    Collection<Field<?>> keys = Stores.getNamespaceKeys(NAMESPACE_FIELD, GENERATION_COL, summary);
+    Collection<Field<?>> keys = getNamespaceKeys(NAMESPACE_FIELD, GENERATION_COL, summary);
     keys.add(Fields.stringField(RECIPE_NAME_FIELD, recipeName));
     Range range = Range.singleton(keys);
     CloseableIterator<StructuredRow> iterator = table.scan(range, 1);
@@ -161,7 +189,7 @@ public class RecipeStore {
   }
 
   private Collection<Field<?>> getRecipeKeys(RecipeId recipeId) {
-    List<Field<?>> keys = new ArrayList<>(Stores.getNamespaceKeys(
+    List<Field<?>> keys = new ArrayList<>(getNamespaceKeys(
       NAMESPACE_FIELD, GENERATION_COL, recipeId.getNamespace()));
     keys.add(Fields.stringField(RECIPE_ID_FIELD, recipeId.getRecipeId()));
     return keys;
