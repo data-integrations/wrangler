@@ -33,9 +33,11 @@ import io.cdap.wrangler.proto.recipe.v2.RecipeId;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.store.recipe.RecipeStore;
 
+import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.regex.Pattern;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -120,6 +122,18 @@ public class RecipeHandler extends AbstractWranglerHandler {
         .setSortOrder(sortOrder)
         .build();
       responder.sendString(GSON.toJson(recipeStore.listRecipes(pageRequest)));
+    });
+  }
+
+  @DELETE
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes/{id}")
+  public void deleteRecipe(HttpServiceRequest request, HttpServiceResponder responder,
+                           @PathParam("context") String namespace,
+                           @PathParam("id") String recipeId) {
+    respond(responder, namespace, ns-> {
+      recipeStore.deleteRecipe(RecipeId.builder(ns).setRecipeId(recipeId).build());
+      responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
   }
 }
