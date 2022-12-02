@@ -161,6 +161,19 @@ public class RecipeStore {
     });
   }
 
+  /**
+   * Delete the specified Recipe
+   * @param recipeId id of the recipe to delete
+   * @throws RecipeNotFoundException if recipe with given id is not found
+   */
+  public void deleteRecipe(RecipeId recipeId) throws RecipeNotFoundException {
+    TransactionRunners.run(transactionRunner, context -> {
+      StructuredTable table = context.getTable(TABLE_ID);
+      getRecipeInternal(table, recipeId, true);
+      table.delete(getRecipeKeys(recipeId));
+    }, RecipeNotFoundException.class);
+  }
+
   private RecipeRow getRecipeInternal(StructuredTable table, RecipeId recipeId, boolean failIfNotFound)
     throws RecipeNotFoundException, IOException {
     Optional<StructuredRow> row = table.read(getRecipeKeys(recipeId));
