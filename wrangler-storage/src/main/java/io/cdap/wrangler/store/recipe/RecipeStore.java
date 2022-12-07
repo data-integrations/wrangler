@@ -123,15 +123,30 @@ public class RecipeStore {
   }
 
   /**
-   * Get the Recipe associated with given recipe name
+   * Get the Recipe associated with given recipe Id
    * @param recipeId id of the recipe to fetch
    * @return {@link Recipe} metadata for given recipe id
    * @throws RecipeNotFoundException if recipe is not found
    */
-  public Recipe getRecipe(RecipeId recipeId) throws RecipeNotFoundException {
+  public Recipe getRecipeById(RecipeId recipeId) throws RecipeNotFoundException {
     return TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       RecipeRow recipeRow = getRecipeInternal(table, recipeId, true);
+      return recipeRow.getRecipe();
+    }, RecipeNotFoundException.class);
+  }
+
+  /**
+   * Get the Recipe associated with given recipe name if it exists, else throws {@link RecipeNotFoundException}
+   * @param namespace
+   * @param recipeName
+   * @return {@link Recipe} metadata for given recipe name if exists
+   * @throws RecipeNotFoundException
+   */
+  public Recipe getRecipeByName(NamespaceSummary namespace, String recipeName) throws RecipeNotFoundException {
+    return TransactionRunners.run(transactionRunner, context -> {
+      StructuredTable table = context.getTable(TABLE_ID);
+      RecipeRow recipeRow = getRecipeByName(table, recipeName, namespace, true);
       return recipeRow.getRecipe();
     }, RecipeNotFoundException.class);
   }
