@@ -27,6 +27,7 @@ import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.wrangler.dataset.recipe.RecipePageRequest;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
+import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeCreationRequest;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
@@ -40,6 +41,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -50,6 +52,7 @@ import javax.ws.rs.QueryParam;
 public class RecipeHandler extends AbstractWranglerHandler {
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+  private static final Pattern RECIPE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9 ]*");
 
   private RecipeStore recipeStore;
 
@@ -69,11 +72,6 @@ public class RecipeHandler extends AbstractWranglerHandler {
       RecipeCreationRequest creationRequest = GSON.fromJson(
         StandardCharsets.UTF_8.decode(request.getContent()).toString(), RecipeCreationRequest.class);
 
-      Pattern pattern = Pattern.compile("[a-zA-Z0-9 ]*");
-      if (!pattern.matcher(creationRequest.getRecipeName()).matches()) {
-        throw new IllegalArgumentException("recipe name should contain only alphanumeric characters or spaces");
-      }
-
       List<String> directives = creationRequest.getDirectives();
       long now = System.currentTimeMillis();
 
@@ -86,22 +84,35 @@ public class RecipeHandler extends AbstractWranglerHandler {
         .setRecipeStepsCount(directives.size())
         .build();
 
+      validateRecipeRequest(recipe);
+
       RecipeRow recipeRow = RecipeRow.builder(recipe).build();
 
       recipeStore.saveRecipe(recipeId, recipeRow);
-      responder.sendJson(GSON.toJson(recipe));
+      responder.sendJson(recipe);
     });
   }
 
   @GET
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("v2/contexts/{context}/recipes/{id}")
-  public void getRecipe(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("v2/contexts/{context}/recipes/id/{recipe-id}")
+  public void getRecipeById(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("context") String namespace,
-                        @PathParam("id") String recipeId) {
+                        @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns -> {
       RecipeId id = RecipeId.builder(ns).setRecipeId(recipeId).build();
-      responder.sendString(GSON.toJson(recipeStore.getRecipe(id)));
+      responder.sendJson(recipeStore.getRecipeById(id));
+    });
+  }
+
+  @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes/name/{recipe-name}")
+  public void getRecipeByName(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("context") String namespace,
+                        @PathParam("recipe-name") String recipeName) {
+    respond(responder, namespace, ns -> {
+      responder.sendJson(recipeStore.getRecipeByName(ns, recipeName));
     });
   }
 
@@ -121,19 +132,67 @@ public class RecipeHandler extends AbstractWranglerHandler {
         .setSortBy(sortBy)
         .setSortOrder(sortOrder)
         .build();
-      responder.sendString(GSON.toJson(recipeStore.listRecipes(pageRequest)));
+      responder.sendJson(recipeStore.listRecipes(pageRequest));
     });
   }
 
   @DELETE
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("v2/contexts/{context}/recipes/{id}")
+  @Path("v2/contexts/{context}/recipes/id/{recipe-id}")
   public void deleteRecipe(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace,
-                           @PathParam("id") String recipeId) {
+                           @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns-> {
       recipeStore.deleteRecipe(RecipeId.builder(ns).setRecipeId(recipeId).build());
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
+  }
+
+  @PUT
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes/id/{recipe-id}")
+  public void updateRecipe(HttpServiceRequest request, HttpServiceResponder responder,
+                           @PathParam("context") String namespace,
+                           @PathParam("recipe-id") String recipeIdString) {
+    respond(responder, namespace, ns-> {
+      RecipeId recipeId = RecipeId.builder(ns).setRecipeId(recipeIdString).build();
+      // get recipe from request
+      Recipe recipe = GSON.fromJson(
+        StandardCharsets.UTF_8.decode(request.getContent()).toString(), Recipe.class);
+      // validate recipe
+      validateRecipeRequest(recipe);
+      // create Recipe for update from request recipe
+      long now = System.currentTimeMillis();
+
+      Recipe newRecipe = Recipe.builder(recipeId)
+        .setRecipeName(recipe.getRecipeName())
+        .setDescription(recipe.getDescription())
+        .setCreatedTimeMillis(now)
+        .setUpdatedTimeMillis(now)
+        .setDirectives(recipe.getDirectives())
+        .setRecipeStepsCount(recipe.getDirectives().size())
+        .build();
+      // update recipe
+      recipeStore.updateRecipe(recipeId, RecipeRow.builder(newRecipe).build());
+      responder.sendStatus(HttpURLConnection.HTTP_OK);
+    });
+  }
+
+  private void validateRecipeRequest(Recipe recipe) {
+    if (recipe == null) {
+      throw new BadRequestException("Request is empty");
+    }
+    if (recipe.getRecipeName() == null) {
+      throw new BadRequestException("No name was specified for the Recipe");
+    }
+    if (recipe.getDescription() == null) {
+      throw new BadRequestException("No description was specified for the Recipe");
+    }
+    if (recipe.getDirectives() == null || recipe.getDirectives().size() == 0) {
+      throw new BadRequestException("No directives were specified for the Recipe");
+    }
+    if (!RECIPE_NAME_PATTERN.matcher(recipe.getRecipeName()).matches()) {
+      throw new BadRequestException("Recipe name should contain only alphanumeric characters or spaces");
+    }
   }
 }

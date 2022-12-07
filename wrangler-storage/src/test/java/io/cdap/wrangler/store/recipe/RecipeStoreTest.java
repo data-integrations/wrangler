@@ -71,8 +71,13 @@ public class RecipeStoreTest extends SystemAppTestBase {
     RecipeRow recipeRow = RecipeRow.builder(recipe).build();
     store.saveRecipe(recipeId, recipeRow);
 
-    Recipe savedRecipeRow = store.getRecipe(recipeId);
+    // Testing get recipe by ID
+    Recipe savedRecipeRow = store.getRecipeById(recipeId);
     Assert.assertEquals(recipeRow.getRecipe(), savedRecipeRow);
+
+    // Testing get recipe by name
+    Recipe savedRecipeRowByName = store.getRecipeByName(summary, "dummy name");
+    Assert.assertEquals(recipeRow.getRecipe(), savedRecipeRowByName);
   }
 
   @Test(expected = RecipeAlreadyExistsException.class)
@@ -93,8 +98,15 @@ public class RecipeStoreTest extends SystemAppTestBase {
   public void testGetRecipeDoesNotExist() {
     NamespaceSummary summary = new NamespaceSummary("n100", "", 40L);
     RecipeId recipeId = RecipeId.builder(summary).setRecipeId("non-existent-recipe-id").build();
-    store.getRecipe(recipeId);
+    store.getRecipeById(recipeId);
   }
+
+  @Test(expected = RecipeNotFoundException.class)
+  public void testGetRecipeByNameDoesNotExist() {
+    NamespaceSummary summary = new NamespaceSummary("n100", "", 40L);
+    store.getRecipeByName(summary, "non-existent-recipe-name");
+  }
+
 
   @Test
   public void testListRecipesDefault() {
@@ -185,7 +197,7 @@ public class RecipeStoreTest extends SystemAppTestBase {
     store.saveRecipe(recipeId, recipeRow);
 
     store.deleteRecipe(recipeId);
-    store.getRecipe(recipeId);
+    store.getRecipeById(recipeId);
   }
 
   @Test(expected = RecipeNotFoundException.class)
@@ -193,5 +205,105 @@ public class RecipeStoreTest extends SystemAppTestBase {
     NamespaceSummary summary = new NamespaceSummary("n100", "", 40L);
     RecipeId recipeId = RecipeId.builder(summary).setRecipeId("non-existent-recipe-id").build();
     store.deleteRecipe(recipeId);
+  }
+
+  @Test
+  public void testSaveUpdateRecipe() {
+    NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
+    RecipeId recipeId = RecipeId.builder(summary).build();
+    Recipe recipe = Recipe.builder(recipeId)
+      .setRecipeName("name-before-edit")
+      .setDescription("description-before-edit")
+      .setCreatedTimeMillis(100L)
+      .setUpdatedTimeMillis(100L)
+      .setDirectives(ImmutableList.of("dir1", "dir2"))
+      .setRecipeStepsCount(2)
+      .build();
+    store.saveRecipe(recipeId, RecipeRow.builder(recipe).build());
+
+    Recipe updateRecipe = Recipe.builder(recipeId)
+      .setRecipeName("name-after-edit")
+      .setDescription("description-after-edit")
+      .setCreatedTimeMillis(100L)
+      .setUpdatedTimeMillis(100L)
+      .setDirectives(ImmutableList.of("dir1", "dir2", "dir3"))
+      .setRecipeStepsCount(3)
+      .build();
+    store.updateRecipe(recipeId, RecipeRow.builder(updateRecipe).build());
+
+    Recipe newRecipe = store.getRecipeById(recipeId);
+    Assert.assertEquals(recipeId, newRecipe.getRecipeId());
+    Assert.assertEquals("name-after-edit", newRecipe.getRecipeName());
+    Assert.assertEquals("description-after-edit", newRecipe.getDescription());
+    Assert.assertEquals(ImmutableList.of("dir1", "dir2", "dir3"), newRecipe.getDirectives());
+    Assert.assertEquals(3, newRecipe.getRecipeStepsCount());
+  }
+
+  @Test
+  public void testUpdateWithoutNameChange() {
+    NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
+    RecipeId recipeId = RecipeId.builder(summary).build();
+    Recipe recipe = Recipe.builder(recipeId)
+      .setRecipeName("name-before-edit")
+      .setDescription("description-before-edit")
+      .setCreatedTimeMillis(100L)
+      .setUpdatedTimeMillis(100L)
+      .setDirectives(ImmutableList.of("dir1", "dir2"))
+      .setRecipeStepsCount(2)
+      .build();
+    store.saveRecipe(recipeId, RecipeRow.builder(recipe).build());
+
+    Recipe updateRecipe = Recipe.builder(recipeId)
+      .setRecipeName("name-before-edit")
+      .setDescription("description-after-edit")
+      .setCreatedTimeMillis(100L)
+      .setUpdatedTimeMillis(100L)
+      .setDirectives(ImmutableList.of("dir1", "dir2", "dir3"))
+      .setRecipeStepsCount(3)
+      .build();
+    store.updateRecipe(recipeId, RecipeRow.builder(updateRecipe).build());
+
+    Recipe newRecipe = store.getRecipeById(recipeId);
+    Assert.assertEquals(recipeId, newRecipe.getRecipeId());
+    Assert.assertEquals("name-before-edit", newRecipe.getRecipeName());
+    Assert.assertEquals("description-after-edit", newRecipe.getDescription());
+    Assert.assertEquals(ImmutableList.of("dir1", "dir2", "dir3"), newRecipe.getDirectives());
+    Assert.assertEquals(3, newRecipe.getRecipeStepsCount());
+  }
+
+  @Test(expected = RecipeAlreadyExistsException.class)
+  public void testUpdateNameToExistingRecipeName() {
+    NamespaceSummary summary = new NamespaceSummary("n1", "", 10L);
+    RecipeId recipeId = RecipeId.builder(summary).build();
+    Recipe recipe = Recipe.builder(recipeId)
+      .setRecipeName("name-to-edit")
+      .setDescription("description")
+      .setCreatedTimeMillis(100L)
+      .setUpdatedTimeMillis(100L)
+      .setDirectives(ImmutableList.of("dir1", "dir2"))
+      .setRecipeStepsCount(2)
+      .build();
+    store.saveRecipe(recipeId, RecipeRow.builder(recipe).build());
+
+    RecipeId existing = RecipeId.builder(summary).build();
+    Recipe existingRecipe = Recipe.builder(existing)
+      .setRecipeName("existing-name")
+      .setDescription("description")
+      .setCreatedTimeMillis(100L)
+      .setUpdatedTimeMillis(100L)
+      .setDirectives(ImmutableList.of("dir1", "dir2"))
+      .setRecipeStepsCount(2)
+      .build();
+    store.saveRecipe(existing, RecipeRow.builder(existingRecipe).build());
+
+    Recipe updateRecipe = Recipe.builder(recipeId)
+      .setRecipeName("existing-name")
+      .setDescription("description")
+      .setCreatedTimeMillis(100L)
+      .setUpdatedTimeMillis(100L)
+      .setDirectives(ImmutableList.of("dir1", "dir2"))
+      .setRecipeStepsCount(2)
+      .build();
+    store.updateRecipe(recipeId, RecipeRow.builder(updateRecipe).build());
   }
 }
