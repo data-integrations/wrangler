@@ -89,19 +89,30 @@ public class RecipeHandler extends AbstractWranglerHandler {
       RecipeRow recipeRow = RecipeRow.builder(recipe).build();
 
       recipeStore.saveRecipe(recipeId, recipeRow);
-      responder.sendJson(GSON.toJson(recipe));
+      responder.sendJson(recipe);
     });
   }
 
   @GET
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("v2/contexts/{context}/recipes/{id}")
-  public void getRecipe(HttpServiceRequest request, HttpServiceResponder responder,
+  @Path("v2/contexts/{context}/recipes/id/{recipe-id}")
+  public void getRecipeById(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("context") String namespace,
-                        @PathParam("id") String recipeId) {
+                        @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns -> {
       RecipeId id = RecipeId.builder(ns).setRecipeId(recipeId).build();
-      responder.sendString(GSON.toJson(recipeStore.getRecipe(id)));
+      responder.sendJson(recipeStore.getRecipeById(id));
+    });
+  }
+
+  @GET
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/recipes/name/{recipe-name}")
+  public void getRecipeByName(HttpServiceRequest request, HttpServiceResponder responder,
+                        @PathParam("context") String namespace,
+                        @PathParam("recipe-name") String recipeName) {
+    respond(responder, namespace, ns -> {
+      responder.sendJson(recipeStore.getRecipeByName(ns, recipeName));
     });
   }
 
@@ -121,16 +132,16 @@ public class RecipeHandler extends AbstractWranglerHandler {
         .setSortBy(sortBy)
         .setSortOrder(sortOrder)
         .build();
-      responder.sendString(GSON.toJson(recipeStore.listRecipes(pageRequest)));
+      responder.sendJson(recipeStore.listRecipes(pageRequest));
     });
   }
 
   @DELETE
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
-  @Path("v2/contexts/{context}/recipes/{id}")
+  @Path("v2/contexts/{context}/recipes/id/{recipe-id}")
   public void deleteRecipe(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace,
-                           @PathParam("id") String recipeId) {
+                           @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns-> {
       recipeStore.deleteRecipe(RecipeId.builder(ns).setRecipeId(recipeId).build());
       responder.sendStatus(HttpURLConnection.HTTP_OK);
