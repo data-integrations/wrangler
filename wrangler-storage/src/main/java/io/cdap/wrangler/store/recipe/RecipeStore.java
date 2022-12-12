@@ -88,38 +88,62 @@ public class RecipeStore {
    * @param recipeId  id of the recipe
    * @param recipeRow recipe to create/update
    */
-  public void saveRecipe(RecipeId recipeId, RecipeRow recipeRow) {
-    saveRecipe(recipeId, recipeRow, false);
-  }
-
-  // Create or update a recipe
-  private void saveRecipe(RecipeId recipeId, RecipeRow recipeRow, boolean failIfNotFound)
-    throws RecipeAlreadyExistsException {
+  public void createRecipe(RecipeId recipeId, RecipeRow recipeRow) {
     TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
 
+      // check if a different recipe with same name exists
       String recipeName = recipeRow.getRecipe().getRecipeName();
-      RecipeRow oldRecipeWithName = getRecipeByName(table, recipeName, recipeId.getNamespace(), failIfNotFound);
-      if (!failIfNotFound && oldRecipeWithName != null) {
+      RecipeRow oldRecipeWithName = getRecipeByName(table, recipeName, recipeId.getNamespace(), false);
+      if (oldRecipeWithName != null) {
         throw new RecipeAlreadyExistsException(String.format("recipe with name '%s' already exists", recipeName));
       }
-
-      RecipeRow oldRecipe = getRecipeInternal(table, recipeId, failIfNotFound);
-      RecipeRow newRecipe = recipeRow;
-      if (oldRecipe != null) {
-        Recipe updatedRecipe = Recipe.builder(newRecipe.getRecipe())
-          .setCreatedTimeMillis(oldRecipe.getRecipe().getCreatedTimeMillis()).build();
-        newRecipe = RecipeRow.builder(updatedRecipe).build();
-      }
-
-      Collection<Field<?>> fields = getRecipeKeys(recipeId);
-      fields.add(Fields.stringField(RECIPE_NAME_FIELD, newRecipe.getRecipe().getRecipeName()));
-      fields.add(Fields.longField(CREATE_TIME_COL, newRecipe.getRecipe().getCreatedTimeMillis()));
-      fields.add(Fields.longField(UPDATE_TIME_COL, newRecipe.getRecipe().getUpdatedTimeMillis()));
-      fields.add(Fields.stringField(RECIPE_INFO_COL, GSON.toJson(newRecipe)));
-
-      table.upsert(fields);
+      saveRecipe(recipeId, recipeRow, false, table);
     });
+  }
+
+  /**
+   * Update a recipe
+   * @param recipeId  id of the recipe
+   * @param recipeRow recipe to create/update
+   */
+  public void updateRecipe(RecipeId recipeId, RecipeRow recipeRow) {
+    TransactionRunners.run(transactionRunner, context -> {
+      StructuredTable table = context.getTable(TABLE_ID);
+
+      // check if a different recipe with same name exists
+      String recipeName = recipeRow.getRecipe().getRecipeName();
+      RecipeRow oldRecipeWithName = getRecipeByName(table, recipeName, recipeId.getNamespace(), false);
+      if (oldRecipeWithName != null
+        && !oldRecipeWithName.getRecipe().getRecipeId().equals(recipeRow.getRecipe().getRecipeId())) {
+        throw new RecipeAlreadyExistsException(String.format("recipe with name '%s' already exists", recipeName));
+      }
+      saveRecipe(recipeId, recipeRow, true, table);
+    });
+  }
+
+  // Create or update a recipe
+  // failIfNotFound should be false for create, and true for update
+  private void saveRecipe(RecipeId recipeId, RecipeRow recipeRow, boolean failIfNotFound, StructuredTable table)
+    throws IOException, RecipeAlreadyExistsException {
+    RecipeRow oldRecipe = getRecipeInternal(table, recipeId, failIfNotFound);
+    if (oldRecipe != null) {
+      Recipe updatedRecipe = Recipe.builder(recipeRow.getRecipe())
+        .setCreatedTimeMillis(oldRecipe.getRecipe().getCreatedTimeMillis()).build();
+      recipeRow = RecipeRow.builder(updatedRecipe).build();
+    }
+    upsertRecipe(recipeId, recipeRow, table);
+  }
+
+  // Upsert recipeRow to structured table
+  private void upsertRecipe(RecipeId recipeId, RecipeRow recipeRow, StructuredTable table) throws IOException {
+    Collection<Field<?>> fields = getRecipeKeys(recipeId);
+    fields.add(Fields.stringField(RECIPE_NAME_FIELD, recipeRow.getRecipe().getRecipeName()));
+    fields.add(Fields.longField(CREATE_TIME_COL, recipeRow.getRecipe().getCreatedTimeMillis()));
+    fields.add(Fields.longField(UPDATE_TIME_COL, recipeRow.getRecipe().getUpdatedTimeMillis()));
+    fields.add(Fields.stringField(RECIPE_INFO_COL, GSON.toJson(recipeRow)));
+
+    table.upsert(fields);
   }
 
   /**
