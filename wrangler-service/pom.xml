@@ -28,7 +28,7 @@
   <properties>
     <app.main.class>io.cdap.wrangler.DataPrep</app.main.class>
     <tika.version>1.14</tika.version>
-    <hadoop.version>2.3.0</hadoop.version>
+    <hadoop.version>2.10.2</hadoop.version>
     <google.cloud.spanner.version>1.51.0</google.cloud.spanner.version>
   </properties>
 
@@ -222,6 +222,10 @@
         <exclusion>
           <groupId>io.cdap.cdap</groupId>
           <artifactId>cdap-explore-jdbc</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
