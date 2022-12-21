@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
@@ -53,6 +54,8 @@ import io.cdap.wrangler.parser.GrammarWalker;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
+import io.cdap.wrangler.proto.recipe.v2.Recipe;
+import io.cdap.wrangler.proto.recipe.v2.RecipeId;
 import io.cdap.wrangler.proto.workspace.v2.Artifact;
 import io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionRequest;
 import io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionResponse;
@@ -69,6 +72,7 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceSpec;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceUpdateRequest;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
+import io.cdap.wrangler.store.recipe.RecipeStore;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.SchemaConverter;
@@ -105,6 +109,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   private static final String CONNECTION_TYPE = "upload";
 
   private WorkspaceStore wsStore;
+  private RecipeStore recipeStore;
   private ConnectionDiscoverer discoverer;
 
   // Injected by CDAP
@@ -115,6 +120,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     wsStore = new WorkspaceStore(context);
+    recipeStore = new RecipeStore(context);
     discoverer = new ConnectionDiscoverer(context);
   }
 
@@ -343,29 +349,10 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                       @PathParam("context") String namespace,
                       @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException(
-          "Executing directives in system namespace is currently not supported");
-      }
+      validateNamespace(ns, "Executing directives in system namespace is currently not supported");
 
-      DirectiveExecutionRequest executionRequest =
-        GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(),
-                      DirectiveExecutionRequest.class);
-
-      List<String> directives = new ArrayList<>(executionRequest.getDirectives());
-
-      WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
-      UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
-      List<Row> result = executeDirectives(ns.getName(), directives, detail,
-                                           userDirectivesCollector);
-      DirectiveExecutionResponse response = generateExecutionResponse(result,
-                                                                      executionRequest.getLimit());
-      userDirectivesCollector.addLoadDirectivesPragma(directives);
-      Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
-                                 .setDirectives(directives)
-                                 .setUpdatedTimeMillis(System.currentTimeMillis()).build();
-      wsStore.updateWorkspace(wsId, newWorkspace);
+      DirectiveExecutionResponse response = execute(ns, request, new WorkspaceId(ns, workspaceId),
+                                                    null);
       responder.sendJson(response);
     });
   }
@@ -435,6 +422,57 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                                new Artifact(wrangler.getName(), wrangler.getVersion(),
                                             wrangler.getScope().name().toLowerCase()))))));
     });
+  }
+
+  @POST
+  @TransactionPolicy(value = TransactionControl.EXPLICIT)
+  @Path("v2/contexts/{context}/workspaces/{id}/applyRecipe/{recipe-id}")
+  public void applyRecipe(HttpServiceRequest request, HttpServiceResponder responder,
+                          @PathParam("context") String namespace,
+                          @PathParam("id") String workspaceId,
+                          @PathParam("recipe-id") String recipeIdString) {
+    respond(responder, namespace, ns -> {
+      validateNamespace(ns, "Executing directives in system namespace is currently not supported");
+
+      RecipeId recipeId = RecipeId.builder(ns).setRecipeId(recipeIdString).build();
+      Recipe recipe = recipeStore.getRecipeById(recipeId);
+
+      DirectiveExecutionResponse response = execute(ns, request, new WorkspaceId(ns, workspaceId),
+                                                    recipe.getDirectives());
+      responder.sendJson(response);
+    });
+  }
+
+  private void validateNamespace(NamespaceSummary ns, String errorMessage) {
+    if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
+      throw new BadRequestException(errorMessage);
+    }
+  }
+
+  private DirectiveExecutionResponse execute(NamespaceSummary ns, HttpServiceRequest request,
+                                             WorkspaceId workspaceId,
+                                             List<String> recipeDirectives) throws Exception {
+    DirectiveExecutionRequest executionRequest =
+      GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(),
+                    DirectiveExecutionRequest.class);
+
+    List<String> directives = new ArrayList<>(executionRequest.getDirectives());
+    if (recipeDirectives != null) {
+      directives.addAll(recipeDirectives);
+    }
+
+    WorkspaceDetail detail = wsStore.getWorkspaceDetail(workspaceId);
+    UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
+    List<Row> result = executeDirectives(ns.getName(), directives, detail,
+                                         userDirectivesCollector);
+    DirectiveExecutionResponse response = generateExecutionResponse(result,
+                                                                    executionRequest.getLimit());
+    userDirectivesCollector.addLoadDirectivesPragma(directives);
+    Workspace newWorkspace = Workspace.builder(detail.getWorkspace())
+      .setDirectives(directives)
+      .setUpdatedTimeMillis(System.currentTimeMillis()).build();
+    wsStore.updateWorkspace(workspaceId, newWorkspace);
+    return response;
   }
 
   /**
