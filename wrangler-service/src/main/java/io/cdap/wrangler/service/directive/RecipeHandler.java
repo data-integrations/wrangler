@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
@@ -56,6 +57,13 @@ public class RecipeHandler extends AbstractWranglerHandler {
 
   private RecipeStore recipeStore;
 
+  // Injected by CDAP
+  @SuppressWarnings("unused")
+  private Metrics metrics;
+
+  private static final String RECIPE_CREATE_METRIC = "recipe.create";
+  private static final String NUMBER_RECIPE_SAVED_METRIC = "recipe.saved";
+
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
@@ -71,6 +79,8 @@ public class RecipeHandler extends AbstractWranglerHandler {
       RecipeId recipeId = RecipeId.builder(ns).build();
       Recipe recipe = buildRecipeFromRequest(request, recipeId);
       recipeStore.createRecipe(recipeId, RecipeRow.builder(recipe).build());
+      metrics.count(RECIPE_CREATE_METRIC, 1);
+      metrics.gauge(NUMBER_RECIPE_SAVED_METRIC, recipe.getDirectives().size());
       responder.sendJson(recipe);
     });
   }
