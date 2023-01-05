@@ -20,18 +20,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.cdap.cdap.api.data.schema.Schema;
-import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.test.ApplicationManager;
 import io.cdap.cdap.test.ServiceManager;
-import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.common.http.HttpRequest;
 import io.cdap.common.http.HttpRequests;
 import io.cdap.common.http.HttpResponse;
 import io.cdap.wrangler.DataPrep;
 import io.cdap.wrangler.service.directive.DirectivesHandler;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -49,9 +46,6 @@ import java.util.Map;
 public class WranglerServiceTest extends WranglerServiceTestBase {
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
-  @ClassRule
-  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
-
 
   @Test
   public void test() throws Exception {

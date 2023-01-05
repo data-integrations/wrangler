@@ -19,14 +19,11 @@ package io.cdap.wrangler.store.upgrade;
 
 import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.NamespaceSummary;
-import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.common.utils.Tasks;
 import io.cdap.cdap.test.SystemAppTestBase;
-import io.cdap.cdap.test.TestConfiguration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.List;
@@ -36,8 +33,6 @@ import java.util.concurrent.TimeUnit;
  * Upgrade store test
  */
 public class UpgradeStoreTest extends SystemAppTestBase {
-  @ClassRule
-  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
   private static UpgradeStore store;
 
   @BeforeClass
