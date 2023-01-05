@@ -17,10 +17,8 @@
 package io.cdap.wrangler.dataset;
 
 import com.google.gson.JsonObject;
-import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.cdap.test.SystemAppTestBase;
-import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -36,7 +34,6 @@ import io.cdap.wrangler.proto.WorkspaceIdentifier;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -47,9 +44,6 @@ import java.util.Map;
  */
 public class WorkspaceDatasetTest extends SystemAppTestBase {
 
-  @ClassRule
-  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
-  
   @Before
   public void setupTest() throws Exception {
     getStructuredTableAdmin().create(WorkspaceDataset.TABLE_SPEC);
