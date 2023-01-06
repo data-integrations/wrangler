@@ -20,9 +20,7 @@ package io.cdap.wrangler.store.workspace;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import io.cdap.cdap.api.NamespaceSummary;
-import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.test.SystemAppTestBase;
-import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.dataset.workspace.WorkspaceNotFoundException;
 import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
@@ -32,7 +30,6 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -40,9 +37,6 @@ import java.util.Collections;
 import java.util.HashSet;
 
 public class WorkspaceStoreTest extends SystemAppTestBase {
-
-  @ClassRule
-  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
   private static WorkspaceStore store;
 
   @BeforeClass

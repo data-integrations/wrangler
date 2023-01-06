@@ -18,9 +18,7 @@ package io.cdap.wrangler.store.recipe;
 
 import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.NamespaceSummary;
-import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.test.SystemAppTestBase;
-import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.wrangler.dataset.recipe.RecipeAlreadyExistsException;
 import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
 import io.cdap.wrangler.dataset.recipe.RecipePageRequest;
@@ -31,7 +29,6 @@ import io.cdap.wrangler.proto.recipe.v2.RecipeListResponse;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.List;
@@ -41,8 +38,6 @@ import static io.cdap.wrangler.dataset.utils.PageRequest.SORT_ORDER_DESC;
 import static io.cdap.wrangler.store.recipe.RecipeStore.RECIPE_TABLE_SPEC;
 
 public class RecipeStoreTest extends SystemAppTestBase {
-  @ClassRule
-  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
   private static RecipeStore store;
 
   @BeforeClass

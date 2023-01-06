@@ -16,10 +16,8 @@
 
 package io.cdap.wrangler.dataset;
 
-import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.cdap.test.SystemAppTestBase;
-import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.wrangler.dataset.schema.SchemaDescriptor;
 import io.cdap.wrangler.dataset.schema.SchemaNotFoundException;
 import io.cdap.wrangler.dataset.schema.SchemaRegistry;
@@ -30,7 +28,6 @@ import io.cdap.wrangler.proto.schema.SchemaEntry;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -41,9 +38,6 @@ import java.util.Set;
  * Tests for {@link SchemaRegistry}.
  */
 public class SchemaRegistryTest extends SystemAppTestBase {
-
-  @ClassRule
-  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
 
   @Before
   public void setupTest() throws Exception {
