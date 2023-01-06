@@ -18,15 +18,12 @@ package io.cdap.wrangler.service.filesystem;
 
 import io.cdap.cdap.api.dataset.Dataset;
 import io.cdap.cdap.api.dataset.lib.FileSet;
-import io.cdap.cdap.common.conf.Constants;
 import io.cdap.cdap.test.ApplicationManager;
 import io.cdap.cdap.test.ServiceManager;
 import io.cdap.cdap.test.TestBase;
-import io.cdap.cdap.test.TestConfiguration;
 import io.cdap.wrangler.service.explorer.DatasetProvider;
 import io.cdap.wrangler.service.explorer.Explorer;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -37,9 +34,6 @@ import java.util.Map;
  */
 @Ignore
 public class FilesystemExplorerTest extends TestBase {
-  @ClassRule
-  public static final TestConfiguration CONFIG = new TestConfiguration(Constants.Explore.EXPLORE_ENABLED, false);
-
   @Test
   public void testExplorer() throws Exception {
     ApplicationManager app = deployApplication(TestApp.class);
