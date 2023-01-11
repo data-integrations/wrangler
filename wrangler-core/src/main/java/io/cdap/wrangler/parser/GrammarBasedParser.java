@@ -18,12 +18,12 @@ package io.cdap.wrangler.parser;
 
 import com.google.common.base.Joiner;
 import io.cdap.wrangler.api.Arguments;
-import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveNotFoundException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.registry.DirectiveInfo;
@@ -31,6 +31,7 @@ import io.cdap.wrangler.registry.DirectiveRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class <code>GrammarBasedParser</code> is an implementation of <code>RecipeParser</code>.
@@ -66,13 +67,13 @@ public class GrammarBasedParser implements RecipeParser {
    * @return List of {@link Directive}.
    */
   @Override
-  public List<Directive> parse()
-    throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException {
-
+  public List<Directive> parse() throws RecipeException {
+    AtomicInteger directiveIndex = new AtomicInteger();
     try {
       List<Directive> result = new ArrayList<>();
 
       new GrammarWalker(new RecipeCompiler(), context).walk(recipe, (command, tokenGroup) -> {
+        directiveIndex.getAndIncrement();
         DirectiveInfo info = registry.get(namespace, command);
         if (info == null) {
           throw new DirectiveNotFoundException(
@@ -93,12 +94,10 @@ public class GrammarBasedParser implements RecipeParser {
       });
 
       return result;
-    } catch (CompileException e) {
-      throw new DirectiveParseException(e.getMessage(), e.iterator(), e);
     } catch (DirectiveLoadException | DirectiveNotFoundException | DirectiveParseException e) {
-      throw e;
+      throw new RecipeException(e.getMessage(), e, directiveIndex.get());
     } catch (Exception e) {
-      throw new DirectiveParseException(e.getMessage(), e);
+      throw new RecipeException(e.getMessage(), e);
     }
   }
 }

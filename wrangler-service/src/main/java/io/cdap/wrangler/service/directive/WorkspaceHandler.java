@@ -47,6 +47,7 @@ import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.GrammarMigrator;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.DirectiveClass;
@@ -567,7 +568,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
    */
   private <E extends Exception> List<Row> executeLocally(String namespace, List<String> directives,
                                    WorkspaceDetail detail, GrammarWalker.Visitor<E> grammarVisitor)
-    throws DirectiveLoadException, DirectiveParseException, E {
+    throws DirectiveLoadException, DirectiveParseException, E, RecipeException {
 
     // load the udd
     composite.reload(namespace);

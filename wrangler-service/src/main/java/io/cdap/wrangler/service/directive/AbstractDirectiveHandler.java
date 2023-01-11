@@ -19,7 +19,6 @@ package io.cdap.wrangler.service.directive;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.directives.aggregates.DefaultTransientStore;
@@ -112,7 +111,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       String namespace,
       List<String> directives,
       List<Row> sample,
-      GrammarWalker.Visitor<E> grammarVisitor) throws DirectiveParseException, E {
+      GrammarWalker.Visitor<E> grammarVisitor) throws DirectiveParseException, E, RecipeException {
 
     if (directives.isEmpty()) {
       return sample;
@@ -146,8 +145,6 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
         throw new ErrorRecordsException(errors);
       }
       return result;
-    } catch (RecipeException e) {
-      throw new BadRequestException(e.getMessage(), e);
     }
   }
 

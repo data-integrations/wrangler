@@ -23,6 +23,7 @@ import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.worker.RemoteExecutionException;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.dataset.connections.ConnectionNotFoundException;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
 import io.cdap.wrangler.dataset.workspace.Workspace;
@@ -39,6 +40,7 @@ import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.StatusCodeException;
 import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionType;
+import io.cdap.wrangler.proto.workspace.v2.RecipeExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,6 +200,9 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
 
     try {
       runnable.respond(namespaceSummary);
+    } catch (RecipeException e) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+                         new RecipeExceptionResponse<>(e.getMessage(), e.getRowIndex(), e.getDirectiveIndex()));
     } catch (StatusCodeException e) {
       responder.sendJson(e.getCode(), new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
     } catch (ErrorRecordsException e) {
