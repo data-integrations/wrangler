@@ -20,9 +20,6 @@ import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveLoadException;
-import io.cdap.wrangler.api.DirectiveNotFoundException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.Executor;
@@ -104,8 +101,9 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     List<Directive> directives = getDirectives();
     List<String> messages = new ArrayList<>();
     List<Row> results = new ArrayList<>();
+    int i = 0;
+    int directiveIndex = 0;
     try {
-      int i = 0;
       collector.reset();
       while (i < rows.size()) {
         messages.clear();
@@ -115,9 +113,11 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         }
 
         List<Row> cumulativeRows = rows.subList(i, i + 1);
+        directiveIndex = 0;
         try {
           for (Executor<List<Row>, List<Row>> directive : directives) {
             try {
+              directiveIndex++;
               cumulativeRows = directive.execute(cumulativeRows, context);
               if (cumulativeRows.size() < 1) {
                 break;
@@ -140,7 +140,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         ++i;
       }
     } catch (DirectiveExecutionException e) {
-      throw new RecipeException(e.getMessage(), e);
+      throw new RecipeException(e.getMessage(), e, i, directiveIndex);
     }
     return results;
   }
@@ -157,11 +157,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
 
   private List<Directive> getDirectives() throws RecipeException {
     if (directives == null) {
-      try {
-        this.directives = recipeParser.parse();
-      } catch (DirectiveParseException | DirectiveNotFoundException | DirectiveLoadException e) {
-        throw new RecipeException(e.getMessage(), e);
-      }
+      this.directives = recipeParser.parse();
     }
     return directives;
   }
