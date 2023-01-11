@@ -19,8 +19,7 @@ package io.cdap.wrangler.parser;
 import com.google.gson.Gson;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
-import io.cdap.wrangler.api.DirectiveNotFoundException;
-import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
@@ -52,7 +51,7 @@ public class ConfigDirectiveContextTest {
 
   private static final String EMPTY = "{}";
 
-  @Test(expected = DirectiveParseException.class)
+  @Test(expected = RecipeException.class)
   public void testBasicExclude() throws Exception {
     String[] text = new String[] {
       "parse-as-csv body , true"
@@ -67,7 +66,7 @@ public class ConfigDirectiveContextTest {
     directives.parse();
   }
 
-  @Test(expected = DirectiveParseException.class)
+  @Test(expected = RecipeException.class)
   public void testAliasedAndExcluded() throws Exception {
     String[] text = new String[] {
       "js-parser body"
@@ -98,7 +97,7 @@ public class ConfigDirectiveContextTest {
     Assert.assertEquals(1, steps.size());
   }
 
-  @Test(expected = DirectiveNotFoundException.class)
+  @Test(expected = RecipeException.class)
   public void testEmptyAliasingShouldFail() throws Exception {
     String[] text = new String[] {
       "json-parser :body;"
