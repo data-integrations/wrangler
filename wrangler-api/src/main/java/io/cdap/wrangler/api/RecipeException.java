@@ -21,16 +21,31 @@ package io.cdap.wrangler.api;
  * communicating issues with execution of pipeline.
  */
 public class RecipeException extends Exception {
-  public RecipeException(Exception e) {
-    super(e);
+  public static final int UNKNOWN_INDEX = -1;
+
+  // Index of row in dataset and directive in recipe that caused the error
+  private final int rowIndex;
+  private final int directiveIndex;
+
+  public RecipeException(String message, Throwable throwable, int rowIndex, int directiveIndex) {
+    super(message, throwable);
+    this.rowIndex = rowIndex;
+    this.directiveIndex = directiveIndex;
   }
 
-  public RecipeException(String message) {
-    super(message);
+  public RecipeException(String message, Throwable throwable, int directiveIndex) {
+    this(message, throwable, UNKNOWN_INDEX, directiveIndex);
   }
 
   public RecipeException(String message, Throwable throwable) {
-    super(message, throwable);
+    this(message, throwable, UNKNOWN_INDEX, UNKNOWN_INDEX);
+  }
+
+  public int getRowIndex() {
+    return rowIndex;
+  }
+
+  public int getDirectiveIndex() {
+    return directiveIndex;
   }
 }
-

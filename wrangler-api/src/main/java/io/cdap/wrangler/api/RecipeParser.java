@@ -30,5 +30,5 @@ public interface RecipeParser {
    *
    * @return List of {@link Executor}.
    */
-  List<Directive> parse() throws DirectiveLoadException, DirectiveNotFoundException, DirectiveParseException;
+  List<Directive> parse() throws RecipeException;
 }
