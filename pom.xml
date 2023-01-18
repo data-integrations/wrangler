@@ -113,14 +113,14 @@
     <kafka.clients.version>0.10.2.1</kafka.clients.version>
     <natty.version>0.13</natty.version>
     <netty-http.version>1.3.0</netty-http.version>
-    <netty.version>4.1.16.Final</netty.version>
+    <netty.version>4.1.75.Final</netty.version>
     <javax.ws.rs-api.version>2.0</javax.ws.rs-api.version>
     <poi.version>3.16</poi.version>
     <protobuf.version>3.11.3</protobuf.version>
     <reflections.version>0.9.9</reflections.version>
     <simmetrics.version>4.1.1</simmetrics.version>
     <simplemagic.version>1.11</simplemagic.version>
-    <slf4j.version>1.7.5</slf4j.version>
+    <slf4j.version>1.7.15</slf4j.version>
     <unix4j.version>0.4</unix4j.version>
   </properties>
 
@@ -158,6 +158,11 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
