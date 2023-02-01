@@ -61,7 +61,6 @@ public class RecipeHandler extends AbstractWranglerHandler {
   @SuppressWarnings("unused")
   private Metrics metrics;
 
-  private static final String RECIPE_CREATE_METRIC = "recipe.create";
   private static final String NUMBER_RECIPE_SAVED_METRIC = "recipe.saved";
 
   @Override
@@ -79,7 +78,6 @@ public class RecipeHandler extends AbstractWranglerHandler {
       RecipeId recipeId = RecipeId.builder(ns).build();
       Recipe recipe = buildRecipeFromRequest(request, recipeId);
       recipeStore.createRecipe(recipeId, RecipeRow.builder(recipe).build());
-      metrics.count(RECIPE_CREATE_METRIC, 1);
       metrics.gauge(NUMBER_RECIPE_SAVED_METRIC, recipe.getDirectives().size());
       responder.sendJson(recipe);
     });
