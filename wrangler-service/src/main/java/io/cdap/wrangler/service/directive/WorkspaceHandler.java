@@ -117,9 +117,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   @SuppressWarnings("unused")
   private Metrics metrics;
 
-  private static final String APPLY_RECIPE_SUCCESS_METRIC = "recipe.apply.success";
-  private static final String APPLY_RECIPE_FAILURE_METRIC = "recipe.apply.failure";
-
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
@@ -441,15 +438,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       RecipeId recipeId = RecipeId.builder(ns).setRecipeId(recipeIdString).build();
       Recipe recipe = recipeStore.getRecipeById(recipeId);
 
-      DirectiveExecutionResponse response;
-      try {
-        response = execute(ns, request, new WorkspaceId(ns, workspaceId),
-                                                      recipe.getDirectives());
-      } catch (Throwable t) {
-        metrics.count(APPLY_RECIPE_FAILURE_METRIC, 1);
-        throw t;
-      }
-      metrics.count(APPLY_RECIPE_SUCCESS_METRIC, 1);
+      DirectiveExecutionResponse response = execute(ns, request, new WorkspaceId(ns, workspaceId),
+                                                    recipe.getDirectives());
       responder.sendJson(response);
     });
   }
