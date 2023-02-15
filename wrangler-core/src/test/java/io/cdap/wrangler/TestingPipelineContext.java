@@ -75,6 +75,11 @@ class TestingPipelineContext implements ExecutorContext {
       }
 
       @Override
+      public void event(String s, long l) {
+        
+      }
+
+      @Override
       public void pipelineCount(String s, int i) {
 
       }

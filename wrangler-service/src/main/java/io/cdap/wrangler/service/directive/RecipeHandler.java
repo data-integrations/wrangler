@@ -78,7 +78,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
       RecipeId recipeId = RecipeId.builder(ns).build();
       Recipe recipe = buildRecipeFromRequest(request, recipeId);
       recipeStore.createRecipe(recipeId, RecipeRow.builder(recipe).build());
-      metrics.gauge(NUMBER_RECIPE_SAVED_METRIC, recipe.getDirectives().size());
+      metrics.event(NUMBER_RECIPE_SAVED_METRIC, recipe.getDirectives().size());
       responder.sendJson(recipe);
     });
   }
