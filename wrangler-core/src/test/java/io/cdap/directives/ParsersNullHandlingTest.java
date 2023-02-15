@@ -7,7 +7,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-public class NullHandlingTest {
+public class ParsersNullHandlingTest {
 
   private static final String CSV_PARSER_DIRECTIVE = "parse-as-csv body , false";
   private static final String FIXED_LENGTH_PARSER_DIRECTIVE = "parse-as-fixed-length body 2,2,1,1,3,4";
@@ -28,7 +28,7 @@ public class NullHandlingTest {
 
 
   @Test
-  public void ParsersTest() {
+  public void Test() {
     List<Row> rows = Arrays.asList(new Row("body", null));
 
     run(CSV_PARSER_DIRECTIVE, rows);
