@@ -76,7 +76,7 @@ class TestingPipelineContext implements ExecutorContext {
 
       @Override
       public void event(String s, long l) {
-        
+
       }
 
       @Override
