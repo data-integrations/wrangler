@@ -96,6 +96,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String ON_ERROR_FAIL_PIPELINE = "fail-pipeline";
   private static final String ON_ERROR_PROCEED = "send-to-error-port";
   private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
+  private static final String DIRECTIVE_METRICS_TAG = "dir";
+  private static final String DIRECTIVE_METRICS_NAME = "wrangler.directive.count";
 
   // Plugin configuration.
   private final Config config;
@@ -279,6 +281,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // to be processed for extracting lineage.
     RecipeParser recipe = getRecipeParser(context);
     List<Directive> directives = recipe.parse();
+    emitDirectiveMetrics(directives, context);
 
     LineageOperations lineageOperations = new LineageOperations(input, output, directives);
     context.record(lineageOperations.generate());
@@ -480,6 +483,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(), registry);
+  }
+
+  private void emitDirectiveMetrics(List<Directive> directives, StageSubmitterContext context) {
+    for (Directive directive : directives) {
+      context.getMetrics()
+        .child(Collections.singletonMap(DIRECTIVE_METRICS_TAG, directive.define().getDirectiveName()))
+        .count(DIRECTIVE_METRICS_NAME, 1);
+    }
   }
 
   /**
