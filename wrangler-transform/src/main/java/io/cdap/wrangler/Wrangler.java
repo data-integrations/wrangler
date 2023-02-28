@@ -23,6 +23,7 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.etl.api.Emitter;
@@ -33,6 +34,7 @@ import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.StageSubmitterContext;
 import io.cdap.cdap.etl.api.Transform;
 import io.cdap.cdap.etl.api.TransformContext;
+import io.cdap.cdap.etl.common.Constants;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
@@ -96,8 +98,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String ON_ERROR_FAIL_PIPELINE = "fail-pipeline";
   private static final String ON_ERROR_PROCEED = "send-to-error-port";
   private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
-  private static final String DIRECTIVE_METRICS_TAG = "dir";
-  private static final String DIRECTIVE_METRICS_NAME = "wrangler.directive.count";
+  private static final String DIRECTIVE_METRIC_TAG_NAME = "directive";
+  private static final String DIRECTIVE_METRIC_NAME = "wrangler.directive.count";
 
   // Plugin configuration.
   private final Config config;
@@ -281,7 +283,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // to be processed for extracting lineage.
     RecipeParser recipe = getRecipeParser(context);
     List<Directive> directives = recipe.parse();
-    emitDirectiveMetrics(directives, context);
+    emitDirectiveMetrics(directives, context.getMetrics());
 
     LineageOperations lineageOperations = new LineageOperations(input, output, directives);
     context.record(lineageOperations.generate());
@@ -485,11 +487,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(), registry);
   }
 
-  private void emitDirectiveMetrics(List<Directive> directives, StageSubmitterContext context) {
+  private void emitDirectiveMetrics(List<Directive> directives, Metrics metrics) {
     for (Directive directive : directives) {
-      context.getMetrics()
-        .child(Collections.singletonMap(DIRECTIVE_METRICS_TAG, directive.define().getDirectiveName()))
-        .count(DIRECTIVE_METRICS_NAME, 1);
+      Metrics child = metrics.child(
+        ImmutableMap.of(SERVICE_NAME, APPLICATION_NAME,
+                        Constants.Metrics.Tag.APP_ENTITY_TYPE, DIRECTIVE_METRIC_TAG_NAME,
+                        Constants.Metrics.Tag.APP_ENTITY_TYPE_NAME, directive.define().getDirectiveName()));
+      child.count(DIRECTIVE_METRIC_NAME, 1);
     }
   }
 

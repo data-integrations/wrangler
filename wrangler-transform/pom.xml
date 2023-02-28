@@ -30,6 +30,11 @@
     </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-etl-core</artifactId>
+      <version>${cdap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-features</artifactId>
       <version>${cdap.version}</version>
     </dependency>
