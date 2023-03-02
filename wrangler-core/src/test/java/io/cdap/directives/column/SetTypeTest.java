@@ -18,6 +18,7 @@ package io.cdap.directives.column;
 
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
@@ -170,6 +171,34 @@ public class SetTypeTest {
         Assert.assertTrue(new BigDecimal("10000").equals(value));
       }
     }
+  }
+
+  @Test
+  public void testToDecimalWithRound() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_1", "122.5").add("scale_3", "456.789"));
+    String[] directives = new String[] {"set-type scale_1 decimal 0", "set-type scale_3 decimal 0 'FLOOR'"};
+    List<Row> results = TestingRig.execute(directives, rows);
+    Row row = results.get(0);
+
+    Assert.assertTrue(row.getValue(0) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(0), new BigDecimal("122"));
+
+    Assert.assertTrue(row.getValue(1) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(1), new BigDecimal("456"));
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testToDecimalRoundingRequired() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_2", "123.45"));
+    String[] directives = new String[] {"set-type scale_2 decimal 1 'UNNECESSARY'"};
+    TestingRig.execute(directives, rows);
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testToDecimalInvalidRoundingMode() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_2", "123.45"));
+    String[] directives = new String[] {"set-type scale_2 decimal 3 'RANDOM'"};
+    TestingRig.execute(directives, rows);
   }
 
   @Test

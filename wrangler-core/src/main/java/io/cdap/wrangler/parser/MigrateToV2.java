@@ -126,11 +126,13 @@ public final class MigrateToV2 implements GrammarMigrator {
         }
         break;
 
-        //set-type <column> <type>
+        //set-type <column> <type> [<scale> <rounding-mode>]
         case "set-type": {
           String col = getNextToken(tokenizer,  command, "col", lineno);
           String type = getNextToken(tokenizer, command, "type", lineno);
-          transformed.add(String.format("set-type %s %s;", col(col), type));
+          String scale = getNextToken(tokenizer, null, command, "scale", lineno, true);
+          String roundingMode = getNextToken(tokenizer, null, command, "rounding-mode", lineno, true);
+          transformed.add(String.format("set-type %s %s %s %s;", col(col), type, scale, roundingMode));
         }
         break;
 
