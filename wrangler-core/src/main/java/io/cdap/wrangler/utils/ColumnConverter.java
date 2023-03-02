@@ -20,6 +20,7 @@ import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.Row;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Utility class that converts a {@link Row} column into another column.
@@ -65,7 +66,8 @@ public final class ColumnConverter {
    * @param toType the target type of the column.
    * @throws DirectiveExecutionException when an unsupported type is specified or the column can not be converted.
    */
-  public static void convertType(String directiveName, Row row, String column, String toType)
+  public static void convertType(String directiveName, Row row, String column, String toType,
+                                 Integer scale, RoundingMode roundingMode)
     throws DirectiveExecutionException {
     int idx = row.find(column);
     if (idx != -1) {
@@ -74,7 +76,12 @@ public final class ColumnConverter {
         return;
       }
       try {
-        row.setValue(idx, ColumnConverter.convertType(column, toType, object));
+        Object converted = ColumnConverter.convertType(column, toType, object);
+        if (toType.equalsIgnoreCase("DECIMAL")) {
+          row.setValue(idx, setDecimalScale((BigDecimal) converted, scale, roundingMode));
+        } else {
+          row.setValue(idx, converted);
+        }
       } catch (DirectiveExecutionException e) {
         throw e;
       } catch (Exception e) {
@@ -84,7 +91,8 @@ public final class ColumnConverter {
     }
   }
 
-  private static Object convertType(String col, String toType, Object object) throws Exception {
+  private static Object convertType(String col, String toType, Object object)
+    throws Exception {
     toType = toType.toUpperCase();
     switch (toType) {
       case "INTEGER":
@@ -283,5 +291,18 @@ public final class ColumnConverter {
     throw new DirectiveExecutionException(
         String.format("Column '%s' has value of type '%s' and cannot be converted to a '%s'.", col,
             object.getClass().getSimpleName(), toType));
+  }
+
+  private static BigDecimal setDecimalScale(BigDecimal decimal, Integer scale, RoundingMode roundingMode)
+    throws DirectiveExecutionException {
+    if (scale == null) {
+      return decimal;
+    }
+    try {
+      return decimal.setScale(scale, roundingMode);
+    } catch (ArithmeticException e) {
+      throw new DirectiveExecutionException(String.format(
+        "Cannot set scale as '%s' for value '%s' when rounding-mode is '%s'", scale, decimal, roundingMode), e);
+    }
   }
 }
