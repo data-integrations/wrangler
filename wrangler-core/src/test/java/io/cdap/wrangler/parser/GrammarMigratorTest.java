@@ -110,7 +110,7 @@ public class GrammarMigratorTest {
     "set-column :salary exp:{salary > 100 ? 100 : salary};",
     "set-headers :fname,:lname,:address,:city,:state,:country,:zipcode;",
     "rename :body_fname :fname;",
-    "set-type :value int;",
+    "set-type :value int null null;",
     "drop :fname,:lname,:address,:zipcode,:city;",
     "merge :fname :lname :name ',';",
     "uppercase :name;",
