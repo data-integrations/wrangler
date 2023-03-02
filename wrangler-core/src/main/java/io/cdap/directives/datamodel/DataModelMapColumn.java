@@ -38,6 +38,7 @@ import io.cdap.wrangler.utils.AvroSchemaGlossary;
 import io.cdap.wrangler.utils.ColumnConverter;
 import org.apache.avro.Schema;
 
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +152,7 @@ public class DataModelMapColumn implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName);
+      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName, null, RoundingMode.UNNECESSARY);
       ColumnConverter.rename(NAME, row, column, targetFieldName);
     }
     return rows;
