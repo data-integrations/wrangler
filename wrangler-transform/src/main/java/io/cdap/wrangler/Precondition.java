@@ -16,9 +16,17 @@
 
 package io.cdap.wrangler;
 
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Row;
 import org.apache.commons.jexl3.scripting.JexlScriptEngine;
 
+import java.util.Optional;
 import javax.script.Bindings;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
@@ -29,14 +37,25 @@ import javax.script.SimpleScriptContext;
 /**
  * A precondition expression that filters data into the directives.
  */
-public class Precondition {
+public class Precondition implements LinearRelationalTransform {
   private final String condition;
   private final CompiledScript script;
   // SimpleScriptContext is pretty expensive to construct due to all PrintWriter creation, so let's cache it
   private final ThreadLocal<ScriptContext> contextCache = ThreadLocal.withInitial(this::createContext);
+  boolean isConditionSQL;
 
   public Precondition(String condition) throws PreconditionException {
+    this(condition, false);
+  }
+
+  public Precondition(String condition, boolean isConditionSQL) throws PreconditionException {
     this.condition = condition;
+    this.isConditionSQL = isConditionSQL;
+
+    if (isConditionSQL) {
+      script = null;
+      return;
+    }
     JexlScriptEngine engine = new JexlScriptEngine();
     try {
       script = engine.compile(condition);
@@ -87,5 +106,21 @@ public class Precondition {
         throw new PreconditionException(e.getMessage());
       }
     }
+  }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    Expression filterExpression = expressionFactory.get().compile(condition);
+
+    return relation.filter(filterExpression);
+  }
+
+  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
+    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
   }
 }
