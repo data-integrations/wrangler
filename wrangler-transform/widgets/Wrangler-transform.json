@@ -19,9 +19,36 @@
           }
         },
         {
+          "widget-type": "radio-group",
+          "name": "preconditionLanguage",
+          "label": "Precondition Language",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "jexl",
+            "options": [
+              {
+                "id": "jexl",
+                "label": "JEXL"
+              },
+              {
+                "id": "sql",
+                "label": "SQL"
+              }
+            ]
+          }
+        },
+        {
           "widget-type": "textbox",
-          "label": "Precondition",
+          "label": "Precondition (JEXL)",
           "name": "precondition",
+          "widget-attributes" : {
+            "default" : "false"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Precondition (SQL)",
+          "name": "preconditionSQL",
           "widget-attributes" : {
             "default" : "false"
           }
@@ -77,6 +104,32 @@
   ],
   "emit-alerts": true,
   "emit-errors": true,
+  "filters": [
+    {
+      "name": "PreconditionValueNotSQL",
+      "condition": {
+        "expression": "preconditionLanguage != 'sql'"
+      },
+      "show": [
+        {
+          "type": "properties",
+          "name": "precondition"
+        }
+      ]
+    },
+    {
+      "name": "preconditionValueSQL",
+      "condition": {
+        "expression": "preconditionLanguage == 'sql'"
+      },
+      "show": [
+        {
+          "type": "properties",
+          "name": "preconditionSQL"
+        }
+      ]
+    }
+  ],
   "outputs": [
     {
       "name": "schema",
