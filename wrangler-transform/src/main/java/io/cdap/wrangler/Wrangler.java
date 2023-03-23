@@ -34,6 +34,13 @@ import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.cdap.etl.api.StageSubmitterContext;
 import io.cdap.cdap.etl.api.Transform;
 import io.cdap.cdap.etl.api.TransformContext;
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
@@ -69,6 +76,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -86,7 +94,7 @@ import static io.cdap.cdap.features.Feature.WRANGLER_FAIL_PIPELINE_FOR_ERROR;
 @Plugin(type = "transform")
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
-public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
+public class Wrangler extends Transform<StructuredRecord, StructuredRecord> implements LinearRelationalTransform {
   private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
 
   // Configuration specifying the dataprep application and service name.
@@ -244,19 +252,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
         }
       }
 
-      // Check if sql pre-condition is not null or empty and if so compile expression.
-      if (!config.containsMacro(Config.NAME_PRECONDITION_SQL)
-        && !config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-        if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())
-          && checkPreconditionNotEmpty(true)) {
-          try {
-            new Precondition(config.getPreconditionSQL(), true);
-          } catch (PreconditionException e) {
-            collector.addFailure(e.getMessage(), null).withConfigProperty(Config.NAME_PRECONDITION_SQL);
-          }
-        }
-      }
-
       // Set the output schema.
       if (oSchema != null) {
         configurer.getStageConfigurer().setOutputSchema(oSchema);
@@ -349,18 +344,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
     }
 
-    // Check if sql pre-condition is not null or empty and if so compile expression.
-    if (!config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-      if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())
-        && checkPreconditionNotEmpty(true)) {
-        try {
-          condition = new Precondition(config.getPreconditionSQL(), true);
-        } catch (PreconditionException e) {
-          throw new IllegalArgumentException(e.getMessage(), e);
-        }
-      }
-    }
-
     try {
       // Create the pipeline executor with context being set.
       pipeline = new RecipePipelineExecutor(recipe, ctx);
@@ -409,7 +392,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
       }
 
       // If pre-condition is set, then evaluate the precondition
-      if (condition != null) {
+      if (PRECONDITION_LANGUAGE_JEXL.equalsIgnoreCase(config.getPreconditionLanguage())
+          && checkPreconditionNotEmpty(false)) {
         boolean skip = condition.apply(row);
         if (skip) {
           getContext().getMetrics().count("precondition.filtered", 1);
@@ -562,6 +546,27 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(), registry);
+  }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
+    if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())
+            && checkPreconditionNotEmpty(true)) {
+      Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+      if (!expressionFactory.isPresent()) {
+        return new InvalidRelation("Cannot find an Expression Factory");
+      }
+
+      String negatedSQL = String.format("NOT (%s)", config.getPreconditionSQL());
+      Expression filterExpression = expressionFactory.get().compile(negatedSQL);
+      return relation.filter(filterExpression);
+    }
+
+    return null;
+  }
+
+  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
+    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
   }
 
   /**
