@@ -16,6 +16,7 @@
 
 package io.cdap.directives.transformation;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -23,6 +24,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityMetricDef;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -37,6 +39,7 @@ import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
+import io.cdap.wrangler.metrics.DirectiveJEXLCategoryMetric;
 
 import java.util.List;
 
@@ -56,7 +59,7 @@ import java.util.List;
 @Name(ColumnExpression.NAME)
 @Categories(categories = { "transform"})
 @Description("Sets a column by evaluating a JEXL expression.")
-public class ColumnExpression implements Directive, Lineage {
+public class ColumnExpression implements Directive, DirectiveJEXLCategoryMetric, Lineage {
   public static final String NAME = "set-column";
   // Column to which the result of experience is applied to.
   private String column;
@@ -123,6 +126,10 @@ public class ColumnExpression implements Directive, Lineage {
     });
     return builder.build();
   }
+
+  @Override
+  public List<EntityMetricDef> getMetrics() {
+    EntityMetricDef jexlCategoryMetric = getJEXLCategoryMetric(el.getScriptParsedText());
+    return (jexlCategoryMetric == null) ? ImmutableList.of() : ImmutableList.of(jexlCategoryMetric);
+  }
 }
-
-
