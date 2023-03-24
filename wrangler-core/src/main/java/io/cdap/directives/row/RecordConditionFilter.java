@@ -16,6 +16,7 @@
 
 package io.cdap.directives.row;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -23,6 +24,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityMetricDef;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -36,6 +38,7 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
+import io.cdap.wrangler.metrics.DirectiveJEXLCategoryMetric;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +56,7 @@ import java.util.List;
 @Name(RecordConditionFilter.NAME)
 @Categories(categories = { "row", "data-quality"})
 @Description("Filters rows based on condition type specified.")
-public class RecordConditionFilter implements Directive, Lineage {
+public class RecordConditionFilter implements Directive, Lineage, DirectiveJEXLCategoryMetric {
   public static final String NAME = "filter-row";
   private EL el;
   private boolean isTrue;
@@ -118,5 +121,11 @@ public class RecordConditionFilter implements Directive, Lineage {
       .readable("Filtered records based on columns '%s'", el.variables());
     el.variables().forEach(column -> builder.relation(column, column));
     return builder.build();
+  }
+
+  @Override
+  public List<EntityMetricDef> getMetrics() {
+    EntityMetricDef jexlCategoryMetric = getJEXLCategoryMetric(el.getScriptParsedText());
+    return (jexlCategoryMetric == null) ? ImmutableList.of() : ImmutableList.of(jexlCategoryMetric);
   }
 }

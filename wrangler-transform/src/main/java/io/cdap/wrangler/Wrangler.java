@@ -23,6 +23,7 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.api.plugin.PluginConfig;
 import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.etl.api.Emitter;
@@ -40,6 +41,8 @@ import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityMetricDef;
+import io.cdap.wrangler.api.EntityMetrics;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.RecipeParser;
@@ -55,6 +58,7 @@ import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
+import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
@@ -65,6 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -73,6 +78,10 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
+import static io.cdap.cdap.api.metrics.MetricType.COUNTER;
+import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.APP_ENTITY_TYPE;
+import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.APP_ENTITY_TYPE_NAME;
+import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.SERVICE;
 import static io.cdap.cdap.features.Feature.WRANGLER_FAIL_PIPELINE_FOR_ERROR;
 
 /**
@@ -96,6 +105,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
   private static final String ON_ERROR_FAIL_PIPELINE = "fail-pipeline";
   private static final String ON_ERROR_PROCEED = "send-to-error-port";
   private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
+  private static final String DIRECTIVE_METRIC_NAME = "wrangler.directive.count";
+  private static final int DIRECTIVE_METRIC_COUNT = 1;
+  private static final String DIRECTIVE_ENTITY_NAME = "directive";
 
   // Plugin configuration.
   private final Config config;
@@ -279,6 +291,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     // to be processed for extracting lineage.
     RecipeParser recipe = getRecipeParser(context);
     List<Directive> directives = recipe.parse();
+    emitDirectiveMetrics(directives, context.getMetrics());
 
     LineageOperations lineageOperations = new LineageOperations(input, output, directives);
     context.record(lineageOperations.generate());
@@ -480,6 +493,49 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> {
     }
 
     return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(), registry);
+  }
+
+  /**
+   * This method emits all metrics for the given list of directives
+   *
+   * @param directives a list of Wrangler directives
+   * @param metrics CDAP {@link Metrics} object using which metrics can be emitted
+   * @throws DirectiveLoadException
+   */
+  private void emitDirectiveMetrics(List<Directive> directives, Metrics metrics) throws DirectiveLoadException {
+    for (Directive directive : directives) {
+      List<EntityMetricDef> entityMetricDefs = new ArrayList<>();
+
+      // Emit directive usage metric only if directive is present in system directive registry
+      if (registry.get(Contexts.SYSTEM, directive.define().getDirectiveName()) != null) {
+        entityMetricDefs.add(getDirectiveUsageMetric(directive.define().getDirectiveName()));
+      }
+
+      if (directive instanceof EntityMetrics) {
+        entityMetricDefs.addAll(((EntityMetrics) directive).getMetrics());
+      }
+
+      for (EntityMetricDef entityMetricDef : entityMetricDefs) {
+        Metrics child = metrics.child(entityMetricDef.getTags());
+        switch (entityMetricDef.getType()) {
+          case COUNTER:
+            child.countLong(entityMetricDef.getName(), entityMetricDef.getValue());
+            break;
+          case GAUGE:
+            child.gauge(entityMetricDef.getName(), entityMetricDef.getValue());
+            break;
+          // TODO: add logic for distribution metrics (currently not supported)
+        }
+      }
+    }
+  }
+
+  private EntityMetricDef getDirectiveUsageMetric(String directiveName) {
+    return new EntityMetricDef(
+      DIRECTIVE_METRIC_NAME, ImmutableMap.of(SERVICE, APPLICATION_NAME,
+                                             APP_ENTITY_TYPE, DIRECTIVE_ENTITY_NAME,
+                                             APP_ENTITY_TYPE_NAME, directiveName),
+      COUNTER, DIRECTIVE_METRIC_COUNT);
   }
 
   /**
