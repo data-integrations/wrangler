@@ -173,10 +173,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
       if (!config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
         if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())) {
-          validatePrecondition(config.getPreconditionSQL(), true, collector);
+          if (!config.containsMacro(Config.NAME_PRECONDITION_SQL)) {
+            validatePrecondition(config.getPreconditionSQL(), true, collector);
+          }
           validateSQLModeDirectives(collector);
         } else {
-          validatePrecondition(config.getPreconditionJEXL(), false, collector);
+          if (!config.containsMacro(Config.NAME_PRECONDITION)) {
+            validatePrecondition(config.getPreconditionJEXL(), false, collector);
+          }
         }
       }
 
