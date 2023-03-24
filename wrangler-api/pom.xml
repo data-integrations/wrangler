@@ -24,7 +24,7 @@
 
   <artifactId>wrangler-api</artifactId>
   <name>Wrangler API</name>
-  <description>Wrangler API Libaray.</description>
+  <description>Wrangler API Library.</description>
 
   <dependencies>
     <dependency>
@@ -36,6 +36,12 @@
     <dependency>
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-api</artifactId>
+      <version>${cdap.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-watchdog-api</artifactId>
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
