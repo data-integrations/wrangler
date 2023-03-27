@@ -645,6 +645,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Name(NAME_PRECONDITION_LANGUAGE)
     @Description("Toggle to configure precondition language between JEXL and SQL")
     @Macro
+    @Nullable
     private String preconditionLanguage;
 
     @Name(NAME_PRECONDITION)
