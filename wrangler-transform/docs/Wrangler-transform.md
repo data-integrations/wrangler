@@ -6,12 +6,14 @@ plugin.
 
 ## Plugin Configuration
 
-| Configuration     | Required | Default | Description                                                           |
-| ----------------- | :------: | :-----: | --------------------------------------------------------------------- |
-| Input Field       | No       | `*`     | The name of the input field (or `*` for all fields)                   |
-| Precondition      | No       | `false` | A filter to be applied before a record is passed to data prep         |
-| Directives        | Yes      | n/a     | The series of data prep directives to be applied on the input records |
-| Failure Threshold | No       | `1`     | Maximum number of errors tolerated before exiting pipeline processing |
+| Configuration         | Required | Default | Description                                                           |
+|-----------------------| :------: |:-------:|-----------------------------------------------------------------------|
+| Input Field           | No       |   `*`   | The name of the input field (or `*` for all fields)                   |
+| Precondition Language | No       | `JEXL`  | This is a language selector for preconditions (SQL/JEXL)              |
+| Precondition (JEXL)   | No       | `false` | A JEXL filter to be applied before a record is passed to data prep    |
+| Precondition (SQL)    | No       | `false` | A SQL filter to be applied before a record is passed to data prep     |
+| Directives            | Yes      |   n/a   | The series of data prep directives to be applied on the input records |
+| Failure Threshold     | No       |   `1`   | Maximum number of errors tolerated before exiting pipeline processing |
 
 ## Directives
 
@@ -27,6 +29,12 @@ Note that if the transform doesn't operate on all of the input record fields or 
 not configured as part of the output schema, and you are using the `set columns`
 directive, you may see inconsistent behavior. Use the `drop` directive to drop any fields
 that are not used in the data prep.
+
+Precondition language is selected to `JEXL` by default. It can be switched between `SQL`
+and `JEXL`.
+
+If precondition language is selected as `SQL`, the directive and UDD fields throw a
+validation error if they are non-empty.
 
 A precondition filter is useful to apply filtering on records before the records are
 delivered for data prep. To filter a record, specify a condition that will result in
