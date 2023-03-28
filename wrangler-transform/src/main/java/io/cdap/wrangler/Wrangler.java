@@ -579,7 +579,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       return relation.filter(filterExpression);
     }
 
-    return null;
+    return new InvalidRelation("Plugin is not configured for relational transformation");
   }
 
   private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
