@@ -16,7 +16,6 @@
 
 package io.cdap.directives.aggregates;
 
-import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -24,7 +23,6 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.EntityMetricDef;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
@@ -37,7 +35,6 @@ import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
-import io.cdap.wrangler.metrics.DirectiveJEXLCategoryMetric;
 
 import java.util.List;
 
@@ -51,7 +48,7 @@ import java.util.List;
 @Name(SetTransientVariable.NAME)
 @Categories(categories = { "transient"})
 @Description("Sets the value for a transient variable for the record being processed.")
-public class SetTransientVariable implements Directive, DirectiveJEXLCategoryMetric {
+public class SetTransientVariable implements Directive {
   public static final String NAME = "set-variable";
   private EL el;
   private String variable;
@@ -98,11 +95,5 @@ public class SetTransientVariable implements Directive, DirectiveJEXLCategoryMet
       }
     }
     return rows;
-  }
-
-  @Override
-  public List<EntityMetricDef> getMetrics() {
-    EntityMetricDef jexlCategoryMetric = getJEXLCategoryMetric(el.getScriptParsedText());
-    return (jexlCategoryMetric == null) ? ImmutableList.of() : ImmutableList.of(jexlCategoryMetric);
   }
 }
