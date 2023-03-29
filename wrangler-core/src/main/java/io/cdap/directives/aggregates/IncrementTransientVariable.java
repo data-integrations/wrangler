@@ -16,7 +16,6 @@
 
 package io.cdap.directives.aggregates;
 
-import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -24,7 +23,6 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.EntityMetricDef;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
@@ -38,7 +36,6 @@ import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
-import io.cdap.wrangler.metrics.DirectiveJEXLCategoryMetric;
 
 import java.util.List;
 
@@ -50,7 +47,7 @@ import java.util.List;
 @Name(IncrementTransientVariable.NAME)
 @Categories(categories = { "transient"})
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
-public class IncrementTransientVariable implements Directive, DirectiveJEXLCategoryMetric {
+public class IncrementTransientVariable implements Directive {
   public static final String NAME = "increment-variable";
   private String variable;
   private long incrementBy;
@@ -110,11 +107,5 @@ public class IncrementTransientVariable implements Directive, DirectiveJEXLCateg
 
   public void destroy() {
     // no-op
-  }
-
-  @Override
-  public List<EntityMetricDef> getMetrics() {
-    EntityMetricDef jexlCategoryMetric = getJEXLCategoryMetric(el.getScriptParsedText());
-    return (jexlCategoryMetric == null) ? ImmutableList.of() : ImmutableList.of(jexlCategoryMetric);
   }
 }
