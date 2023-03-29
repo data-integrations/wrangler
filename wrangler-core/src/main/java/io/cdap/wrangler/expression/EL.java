@@ -123,10 +123,6 @@ public final class EL {
     return variables;
   }
 
-  public String getScriptParsedText() {
-    return script.getParsedText();
-  }
-
   public ELResult execute(ELContext context) throws ELException {
     try {
       // Null the missing fields
