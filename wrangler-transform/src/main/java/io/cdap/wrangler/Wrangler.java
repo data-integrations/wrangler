@@ -79,10 +79,10 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import static io.cdap.cdap.api.metrics.MetricType.COUNTER;
-import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.APP_ENTITY_TYPE;
-import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.APP_ENTITY_TYPE_NAME;
-import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.SERVICE;
 import static io.cdap.cdap.features.Feature.WRANGLER_FAIL_PIPELINE_FOR_ERROR;
+import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE;
+import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE_NAME;
+import static io.cdap.wrangler.metrics.Constants.Tags.SERVICE;
 
 /**
  * Wrangler - A interactive tool for data cleansing and transformation.

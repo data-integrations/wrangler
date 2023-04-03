@@ -24,9 +24,10 @@ import io.cdap.wrangler.expression.EL;
 import java.util.Map;
 
 import static io.cdap.cdap.api.metrics.MetricType.COUNTER;
-import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.APP_ENTITY_TYPE;
-import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.APP_ENTITY_TYPE_NAME;
-import static io.cdap.cdap.common.conf.Constants.Metrics.Tag.SERVICE;
+import static io.cdap.wrangler.metrics.Constants.APPLICATION_NAME;
+import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE;
+import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE_NAME;
+import static io.cdap.wrangler.metrics.Constants.Tags.SERVICE;
 
 /**
  * Represents a directive that emits the 'JEXL category' metric. This metric counts the number of times
@@ -36,7 +37,6 @@ public interface DirectiveJEXLCategoryMetric extends EntityMetrics {
   String JEXL_CATEGORY_METRIC_NAME = "wrangler.jexl-category.count";
   int JEXL_CATEGORY_METRIC_COUNT = 1;
   String JEXL_CATEGORY_ENTITY_NAME = "jexl-category";
-  String APPLICATION_NAME = "dataprep";
   Map<?, ?> EL_DEFAULT_FUNCTIONS = new EL.DefaultFunctions().functions();
 
   /**

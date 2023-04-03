@@ -43,7 +43,6 @@
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-watchdog-api</artifactId>
       <version>${cdap.version}</version>
-      <scope>provided</scope>
     </dependency>
 
   </dependencies>
