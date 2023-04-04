@@ -135,11 +135,14 @@ public class ParseAvro implements Directive, Lineage {
       // Retryer that retries when there is connection issue or any request / response
       // issue. It would exponentially back-off till wait time of 10 seconds is reached
       // for 5 attempts.
+
+      int maximumTimeOut = 10;
+      int maximumAttempts = 5;
       Retryer<Decoder<Row>> retryer = RetryerBuilder.<Decoder<Row>>newBuilder()
         .retryIfExceptionOfType(IOException.class)
         .retryIfExceptionOfType(RestClientException.class)
-        .withWaitStrategy(WaitStrategies.exponentialWait(10, TimeUnit.SECONDS))
-        .withStopStrategy(StopStrategies.stopAfterAttempt(5))
+        .withWaitStrategy(WaitStrategies.exponentialWait(maximumTimeOut, TimeUnit.SECONDS))
+        .withStopStrategy(StopStrategies.stopAfterAttempt(maximumAttempts))
         .build();
 
       try {
