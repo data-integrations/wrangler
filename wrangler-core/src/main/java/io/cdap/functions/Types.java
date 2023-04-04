@@ -23,6 +23,16 @@ import io.cdap.wrangler.dq.TypeInference;
  */
 public class Types {
   /**
+   * Checks if the object is null.
+   *
+   * @param object to be checked for null.
+   * @return true if
+   */
+  public static boolean isnull(Object object) {
+    return object == null ? true : false;
+  }
+
+  /**
    * Checks if a value is a date or not.
    *
    * @param value representing date.
