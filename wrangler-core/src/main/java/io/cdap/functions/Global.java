@@ -210,11 +210,15 @@ public final class Global {
    */
   public static String unquote(String string) {
 
-    if (string != null && ((string.startsWith("\"") && string.endsWith("\""))
-      || (string.startsWith("'") && string.endsWith("'")))) {
+    if (isStringQuoted(string)) {
       string = string.substring(1, string.length() - 1);
     }
     return string;
+  }
+
+  private static boolean isStringQuoted(String string) {
+    return string != null && ((string.startsWith("\"") && string.endsWith("\""))
+            || (string.startsWith("'") && string.endsWith("'")));
   }
 
   /**
