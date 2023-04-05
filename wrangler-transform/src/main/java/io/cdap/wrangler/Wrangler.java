@@ -381,6 +381,15 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
    */
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
+    // The Transform function should never execute if SQL filters are enabled. SQL filters are
+    // handled by the LinearRelationalTransform implementation. If this code is reached, it means
+    // the LinearRelationalTransform could not be executed correctly.
+    if (PRECONDITION_LANGUAGE_SQL.equals(config.getPreconditionLanguage())) {
+      throw new IllegalArgumentException("SQL filters are not supported with "
+          + "multiple input stages. Please ensure the Wrangler stages with SQL "
+          + "filters have only one input.");
+    }
+
     long start = 0;
     List<StructuredRecord> records;
 
