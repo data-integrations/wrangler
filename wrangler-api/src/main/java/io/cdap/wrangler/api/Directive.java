@@ -51,7 +51,7 @@ import java.util.List;
  *   }
  * </code>
  */
-public interface Directive extends Executor<List<Row>, List<Row>> {
+public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics {
   /**
    * This defines a interface variable that is static and final for specify
    * the {@code type} of the plugin this interface would provide.
@@ -115,4 +115,15 @@ public interface Directive extends Executor<List<Row>, List<Row>> {
    * @see io.cdap.wrangler.api.parser.TokenType
    */
   UsageDefinition define();
+
+  /**
+   * This method provides a way to emit metrics from the Directive. Metadata about each metric to be emitted can be
+   * returned and used in the metrics emission logic elsewhere.
+   * @return List of metrics ({@link EntityCountMetricDef}s) emitted by this directive
+   */
+  @Override
+  default List<EntityCountMetricDef> getCountMetrics() {
+    // no op
+    return null;
+  }
 }
