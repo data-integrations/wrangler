@@ -16,6 +16,7 @@
 
 package io.cdap.directives.transformation;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
@@ -24,6 +25,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityCountMetricDef;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -102,6 +104,9 @@ public class MessageHash implements Directive, Lineage {
     "TIGER",
     "WHIRLPOOL"
   );
+  private static final String HASH_ALGORITHM_METRIC_NAME = "wrangler.hash-algo.count";
+  private static final int HASH_ALGORITHM_COUNT = 1;
+  private static final String HASH_ALGORITHM_ENTITY_NAME = "directive-hash-algo";
   private String column;
   private boolean encode;
   private MessageDigest digest;
@@ -193,5 +198,11 @@ public class MessageHash implements Directive, Lineage {
     }
     return rows;
   }
-}
 
+  @Override
+  public List<EntityCountMetricDef> getCountMetrics() {
+    return ImmutableList.of(
+      new EntityCountMetricDef(HASH_ALGORITHM_METRIC_NAME, HASH_ALGORITHM_ENTITY_NAME,
+                               digest.getAlgorithm(), HASH_ALGORITHM_COUNT));
+  }
+}
