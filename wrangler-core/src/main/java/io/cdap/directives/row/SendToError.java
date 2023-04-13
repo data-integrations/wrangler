@@ -16,6 +16,7 @@
 
 package io.cdap.directives.row;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -23,6 +24,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityCountMetricDef;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
@@ -42,6 +44,8 @@ import io.cdap.wrangler.expression.ELResult;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.cdap.wrangler.metrics.JexlCategoryMetricUtils.getJexlCategoryMetric;
 
 /**
  * A directive for erroring the record if
@@ -137,5 +141,11 @@ public class SendToError implements Directive, Lineage {
       .readable("Redirecting records to error path based on expression '%s'", condition);
     el.variables().forEach(column -> builder.relation(column, column));
     return builder.build();
+  }
+
+  @Override
+  public List<EntityCountMetricDef> getCountMetrics() {
+    EntityCountMetricDef jexlCategoryMetric = getJexlCategoryMetric(el.getScriptParsedText());
+    return (jexlCategoryMetric == null) ? null : ImmutableList.of(jexlCategoryMetric);
   }
 }

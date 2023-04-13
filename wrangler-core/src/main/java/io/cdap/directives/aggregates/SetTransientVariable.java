@@ -16,6 +16,7 @@
 
 package io.cdap.directives.aggregates;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -23,6 +24,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityCountMetricDef;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
@@ -37,6 +39,8 @@ import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
 import java.util.List;
+
+import static io.cdap.wrangler.metrics.JexlCategoryMetricUtils.getJexlCategoryMetric;
 
 /**
  * A directive that defines a transient variable who's life-expectancy is only within the record.
@@ -95,5 +99,11 @@ public class SetTransientVariable implements Directive {
       }
     }
     return rows;
+  }
+
+  @Override
+  public List<EntityCountMetricDef> getCountMetrics() {
+    EntityCountMetricDef jexlCategoryMetric = getJexlCategoryMetric(el.getScriptParsedText());
+    return (jexlCategoryMetric == null) ? null : ImmutableList.of(jexlCategoryMetric);
   }
 }

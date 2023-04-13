@@ -16,6 +16,7 @@
 
 package io.cdap.directives.row;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -23,6 +24,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityCountMetricDef;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -39,6 +41,8 @@ import io.cdap.wrangler.expression.ELException;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.cdap.wrangler.metrics.JexlCategoryMetricUtils.getJexlCategoryMetric;
 
 /**
  * A Wrangle step for filtering rows based on the condition.
@@ -118,5 +122,11 @@ public class RecordConditionFilter implements Directive, Lineage {
       .readable("Filtered records based on columns '%s'", el.variables());
     el.variables().forEach(column -> builder.relation(column, column));
     return builder.build();
+  }
+
+  @Override
+  public List<EntityCountMetricDef> getCountMetrics() {
+    EntityCountMetricDef jexlCategoryMetric = getJexlCategoryMetric(el.getScriptParsedText());
+    return (jexlCategoryMetric == null) ? null : ImmutableList.of(jexlCategoryMetric);
   }
 }
