@@ -595,20 +595,23 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
    */
   private void emitDirectiveMetrics(List<Directive> directives, Metrics metrics) throws DirectiveLoadException {
     for (Directive directive : directives) {
-      List<EntityCountMetric> metricDefs = new ArrayList<>();
-
-      // Emit directive usage metric only if directive is present in system directive registry
+      // skip emitting metrics if the directive is not system metric
       if (registry.get(Contexts.SYSTEM, directive.define().getDirectiveName()) != null) {
-        metricDefs.add(getDirectiveUsageMetric(directive.define().getDirectiveName()));
+        continue;
       }
+      List<EntityCountMetric> countMetrics = new ArrayList<>();
 
+      // add usage metric
+      countMetrics.add(getDirectiveUsageMetric(directive.define().getDirectiveName()));
+
+      // add custom directive metrics
       if (directive.getCountMetrics() != null) {
-        metricDefs.addAll(directive.getCountMetrics());
+        countMetrics.addAll(directive.getCountMetrics());
       }
 
-      for (EntityCountMetric metricDef : metricDefs) {
-        Metrics child = metrics.child(getEntityMetricTags(metricDef));
-        child.countLong(metricDef.getName(), metricDef.getCount());
+      for (EntityCountMetric countMetric : countMetrics) {
+        Metrics child = metrics.child(getEntityMetricTags(countMetric));
+        child.countLong(countMetric.getName(), countMetric.getCount());
       }
     }
   }
