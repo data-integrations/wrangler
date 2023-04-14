@@ -25,7 +25,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.EntityCountMetricDef;
+import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -200,9 +200,9 @@ public class MessageHash implements Directive, Lineage {
   }
 
   @Override
-  public List<EntityCountMetricDef> getCountMetrics() {
+  public List<EntityCountMetric> getCountMetrics() {
     return ImmutableList.of(
-      new EntityCountMetricDef(HASH_ALGORITHM_METRIC_NAME, HASH_ALGORITHM_ENTITY_NAME,
+      new EntityCountMetric(HASH_ALGORITHM_METRIC_NAME, HASH_ALGORITHM_ENTITY_NAME,
                                digest.getAlgorithm(), HASH_ALGORITHM_COUNT));
   }
 }

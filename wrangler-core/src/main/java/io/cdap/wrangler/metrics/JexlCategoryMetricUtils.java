@@ -16,7 +16,7 @@
 
 package io.cdap.wrangler.metrics;
 
-import io.cdap.wrangler.api.EntityCountMetricDef;
+import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.expression.EL;
 import org.apache.commons.jexl3.parser.ParserTokenManager;
 import org.apache.commons.jexl3.parser.SimpleCharStream;
@@ -43,13 +43,13 @@ public final class JexlCategoryMetricUtils {
    * present in {@link io.cdap.wrangler.expression.EL.DefaultFunctions}
    *
    * @param jexlScript the JEXL script from which the JEXL function category will be parsed
-   * @return {@link EntityCountMetricDef} with the metric name and necessary tags representing a JEXL category metric
+   * @return {@link EntityCountMetric} with the metric name and necessary tags representing a JEXL category metric
    */
   @Nullable
-  public static EntityCountMetricDef getJexlCategoryMetric(String jexlScript) {
+  public static EntityCountMetric getJexlCategoryMetric(String jexlScript) {
     String category = parseJexlCategory(jexlScript);
     if (EL_DEFAULT_FUNCTIONS.containsKey(category)) {
-      return new EntityCountMetricDef(
+      return new EntityCountMetric(
         JEXL_CATEGORY_METRIC_NAME, JEXL_CATEGORY_ENTITY_TYPE, category, JEXL_CATEGORY_METRIC_COUNT);
     }
     return null;

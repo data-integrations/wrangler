@@ -24,7 +24,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.EntityCountMetricDef;
+import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.ReportErrorAndProceed;
@@ -143,8 +143,8 @@ public class SendToErrorAndContinue implements Directive, Lineage {
   }
 
   @Override
-  public List<EntityCountMetricDef> getCountMetrics() {
-    EntityCountMetricDef jexlCategoryMetric = getJexlCategoryMetric(el.getScriptParsedText());
+  public List<EntityCountMetric> getCountMetrics() {
+    EntityCountMetric jexlCategoryMetric = getJexlCategoryMetric(el.getScriptParsedText());
     return (jexlCategoryMetric == null) ? null : ImmutableList.of(jexlCategoryMetric);
   }
 }

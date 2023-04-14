@@ -20,7 +20,7 @@ package io.cdap.wrangler.api;
  * Represents generic metadata information for a count metric that is emitted in Wrangler. The entity's type and name
  * will be automatically mapped to corresponding metric tags.
  */
-public class EntityCountMetricDef {
+public class EntityCountMetric {
   /**
    * Metric name
    */
@@ -38,7 +38,7 @@ public class EntityCountMetricDef {
    */
   private final String appEntityTypeName;
 
-  public EntityCountMetricDef(String name, String appEntityType, String appEntityTypeName, long count) {
+  public EntityCountMetric(String name, String appEntityType, String appEntityTypeName, long count) {
     this.name = name;
     this.appEntityType = appEntityType;
     this.appEntityTypeName = appEntityTypeName;
