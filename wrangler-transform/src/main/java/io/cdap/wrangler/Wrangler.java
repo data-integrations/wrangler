@@ -50,7 +50,7 @@ import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.EntityCountMetricDef;
+import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.RecipeParser;
@@ -600,7 +600,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
    */
   private void emitDirectiveMetrics(List<Directive> directives, Metrics metrics) throws DirectiveLoadException {
     for (Directive directive : directives) {
-      List<EntityCountMetricDef> metricDefs = new ArrayList<>();
+      List<EntityCountMetric> metricDefs = new ArrayList<>();
 
       // Emit directive usage metric only if directive is present in system directive registry
       if (registry.get(Contexts.SYSTEM, directive.define().getDirectiveName()) != null) {
@@ -611,19 +611,19 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
         metricDefs.addAll(directive.getCountMetrics());
       }
 
-      for (EntityCountMetricDef metricDef : metricDefs) {
+      for (EntityCountMetric metricDef : metricDefs) {
         Metrics child = metrics.child(getEntityMetricTags(metricDef));
         child.countLong(metricDef.getName(), metricDef.getCount());
       }
     }
   }
 
-  private EntityCountMetricDef getDirectiveUsageMetric(String directiveName) {
-    return new EntityCountMetricDef(
+  private EntityCountMetric getDirectiveUsageMetric(String directiveName) {
+    return new EntityCountMetric(
       DIRECTIVE_METRIC_NAME, DIRECTIVE_ENTITY_TYPE, directiveName, DIRECTIVE_METRIC_COUNT);
   }
 
-  private Map<String, String> getEntityMetricTags(EntityCountMetricDef metricDef) {
+  private Map<String, String> getEntityMetricTags(EntityCountMetric metricDef) {
     Map<String, String> tags = new HashMap<>();
     tags.put(APP_ENTITY_TYPE, metricDef.getAppEntityType());
     tags.put(APP_ENTITY_TYPE_NAME, metricDef.getAppEntityTypeName());

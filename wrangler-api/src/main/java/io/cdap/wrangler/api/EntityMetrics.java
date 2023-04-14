@@ -25,7 +25,7 @@ public interface EntityMetrics {
   /**
    * This method is used to return a list of count metrics to be emitted by a Wrangler entity (ex: {@link Directive}).
    * Note that this method doesn't emit metrics, it only returns metadata to be used in metrics emission logic elsewhere
-   * @return list of {@link EntityCountMetricDef}s to be emitted
+   * @return list of {@link EntityCountMetric}s to be emitted
    */
-  List<EntityCountMetricDef> getCountMetrics();
+  List<EntityCountMetric> getCountMetrics();
 }
