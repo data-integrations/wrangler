@@ -16,6 +16,7 @@
 
 package io.cdap.directives.transformation;
 
+import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -23,6 +24,7 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -39,6 +41,8 @@ import io.cdap.wrangler.expression.ELException;
 import io.cdap.wrangler.expression.ELResult;
 
 import java.util.List;
+
+import static io.cdap.wrangler.metrics.JexlCategoryMetricUtils.getJexlCategoryMetric;
 
 /**
  * A directive for apply an expression to store the result in a column.
@@ -123,6 +127,10 @@ public class ColumnExpression implements Directive, Lineage {
     });
     return builder.build();
   }
+
+  @Override
+  public List<EntityCountMetric> getCountMetrics() {
+    EntityCountMetric jexlCategoryMetric = getJexlCategoryMetric(el.getScriptParsedText());
+    return (jexlCategoryMetric == null) ? null : ImmutableList.of(jexlCategoryMetric);
+  }
 }
-
-
