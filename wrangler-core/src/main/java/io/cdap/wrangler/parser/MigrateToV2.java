@@ -814,7 +814,7 @@ public final class MigrateToV2 implements GrammarMigrator {
   public static String getNextToken(StringTokenizer tokenizer, String delimiter,
                                     String directive, String field, int lineno, boolean optional)
     throws DirectiveParseException {
-    String value = null;
+    String value = "";
     if (tokenizer.hasMoreTokens()) {
       if (delimiter == null) {
         value = tokenizer.nextToken().trim();
