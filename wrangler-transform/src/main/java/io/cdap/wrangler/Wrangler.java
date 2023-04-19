@@ -41,6 +41,7 @@ import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
+import io.cdap.cdap.features.Feature;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
@@ -556,6 +557,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
     if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())
             && checkPreconditionNotEmpty(true)) {
+
+      if (!Feature.WRANGLER_PRECONDITION_SQL.isEnabled(relationalTranformContext)) {
+        throw new RuntimeException("SQL Precondition feature is not available");
+      }
+
       Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
       if (!expressionFactory.isPresent()) {
         return new InvalidRelation("Cannot find an Expression Factory");
