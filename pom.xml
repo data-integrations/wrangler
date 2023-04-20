@@ -19,7 +19,7 @@
 
   <groupId>io.cdap.wrangler</groupId>
   <artifactId>wrangler</artifactId>
-  <version>4.8.1</version>
+  <version>4.8.2-SNAPSHOT</version>
   <name>Wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
