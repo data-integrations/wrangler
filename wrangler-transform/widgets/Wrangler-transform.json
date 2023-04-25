@@ -20,7 +20,7 @@
         },
         {
           "widget-type": "radio-group",
-          "name": "preconditionLanguage",
+          "name": "expressionLanguage",
           "label": "Precondition Language",
           "widget-attributes": {
             "layout": "inline",
@@ -108,7 +108,7 @@
     {
       "name": "PreconditionValueNotSQL",
       "condition": {
-        "expression": "preconditionLanguage != 'sql'"
+        "expression": "expressionLanguage != 'sql'"
       },
       "show": [
         {
@@ -120,7 +120,7 @@
     {
       "name": "preconditionValueSQL",
       "condition": {
-        "expression": "preconditionLanguage == 'sql'"
+        "expression": "expressionLanguage == 'sql'"
       },
       "show": [
         {
@@ -137,7 +137,7 @@
       "show": [
         {
           "type": "properties",
-          "name": "preconditionLanguage"
+          "name": "expressionLanguage"
         }
       ]
     }
