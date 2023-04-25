@@ -581,8 +581,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
         return new InvalidRelation("Cannot find an Expression Factory");
       }
 
-      String negatedSQL = String.format("NOT (%s)", config.getPreconditionSQL());
-      Expression filterExpression = expressionFactory.get().compile(negatedSQL);
+      Expression filterExpression = expressionFactory.get().compile(config.getPreconditionSQL());
       return relation.filter(filterExpression);
     }
 
@@ -640,7 +639,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   public static class Config extends PluginConfig {
     static final String NAME_PRECONDITION = "precondition";
     static final String NAME_PRECONDITION_SQL = "preconditionSQL";
-    static final String NAME_PRECONDITION_LANGUAGE = "preconditionLanguage";
+    static final String NAME_PRECONDITION_LANGUAGE = "expressionLanguage";
     static final String NAME_FIELD = "field";
     static final String NAME_DIRECTIVES = "directives";
     static final String NAME_UDD = "udd";
@@ -661,7 +660,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
 
     @Name(NAME_PRECONDITION_SQL)
-    @Description("SQL Precondition expression specifying filtering before applying directives (true to filter)")
+    @Description("SQL Precondition expression specifying filtering before applying directives (false to filter)")
     @Macro
     @Nullable
     private String preconditionSQL;
