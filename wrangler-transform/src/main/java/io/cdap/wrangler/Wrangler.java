@@ -600,8 +600,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
    */
   private void emitDirectiveMetrics(List<Directive> directives, Metrics metrics) throws DirectiveLoadException {
     for (Directive directive : directives) {
-      // skip emitting metrics if the directive is not system metric
-      if (registry.get(Contexts.SYSTEM, directive.define().getDirectiveName()) != null) {
+      // skip emitting metrics if the directive is not system directive
+      if (registry.get(Contexts.SYSTEM, directive.define().getDirectiveName()) == null) {
         continue;
       }
       List<EntityCountMetric> countMetrics = new ArrayList<>();
