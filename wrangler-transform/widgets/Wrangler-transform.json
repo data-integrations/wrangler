@@ -74,6 +74,24 @@
       ]
     },
     {
+      "label": "RelationalDirectives",
+      "properties": [
+        {
+          "widget-type": "wrangler-relational-directives",
+          "label": "RelationalRecipe",
+          "name": "RelationalDirectives",
+          "widget-attributes" : {
+            "placeholder" : "#pragma load-directives my-directive; my-directive :body;"
+          }
+        },
+        {
+          "widget-type": "csv",
+          "label": "User Defined SQL(UDS)",
+          "name": "uds"
+        }
+      ]
+    },
+    {
       "label" : "Error Handling",
       "properties" : [
         {

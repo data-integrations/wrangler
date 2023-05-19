@@ -569,23 +569,33 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
-    if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())
-            && checkPreconditionNotEmpty(true)) {
-
-      if (!Feature.WRANGLER_PRECONDITION_SQL.isEnabled(relationalTranformContext)) {
-        throw new RuntimeException("SQL Precondition feature is not available");
-      }
-
-      Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
-      if (!expressionFactory.isPresent()) {
-        return new InvalidRelation("Cannot find an Expression Factory");
-      }
-
-      Expression filterExpression = expressionFactory.get().compile(config.getPreconditionSQL());
-      return relation.filter(filterExpression);
+    if (!(PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())
+            && checkPreconditionNotEmpty(true))) {
+      return new InvalidRelation("Plugin is not configured for relational transformation");
     }
 
-    return new InvalidRelation("Plugin is not configured for relational transformation");
+    if (!Feature.WRANGLER_PRECONDITION_SQL.isEnabled(relationalTranformContext)) {
+      throw new RuntimeException("SQL Precondition feature is not available");
+    }
+
+    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    Expression filterExpression = expressionFactory.get().compile(config.getPreconditionSQL());
+    Relation filteredRelation = relation.filter(filterExpression);
+
+    ExpressionFactory<String> expFactory = expressionFactory.get();
+    String relationalDirectives = config.getRelationalDirectives();
+    String[] sqls = relationalDirectives.split("\n");
+    for (String sql : sqls) {
+      // Expression exp = expFactory.compile(sql);
+      // currently supporting only drop column
+      String column = sql.split(" ")[2]; // add validation later
+      filteredRelation = filteredRelation.dropColumn(column);
+    }
+    return filteredRelation;
   }
 
   private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
@@ -642,6 +652,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     static final String NAME_PRECONDITION_LANGUAGE = "expressionLanguage";
     static final String NAME_FIELD = "field";
     static final String NAME_DIRECTIVES = "directives";
+    static final String NAME_RELATIONAL_DIRECTIVES = "relationalDirectives";
     static final String NAME_UDD = "udd";
     static final String NAME_SCHEMA = "schema";
     static final String NAME_ON_ERROR = "on-error";
@@ -672,6 +683,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Nullable
     private String directives;
 
+    @Name(NAME_RELATIONAL_DIRECTIVES)
+    @Description("Recipe for wrangling the input records")
+    @Macro
+    @Nullable
+    private String relationalDirectives;
+
     @Name(NAME_UDD)
     @Description("List of User Defined Directives (UDD) that have to be loaded.")
     @Nullable
@@ -694,7 +711,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     private final String onError;
 
     public Config(String preconditionLanguage, String precondition, String directives, String udds,
-                  String field, String schema, String onError) {
+                  String field, String schema, String onError, String relationalDirectives) {
       this.preconditionLanguage = preconditionLanguage;
       this.precondition = precondition;
       this.directives = directives;
@@ -703,6 +720,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       this.field = field;
       this.schema = schema;
       this.onError = onError;
+      this.relationalDirectives = relationalDirectives;
     }
 
     /**
@@ -738,6 +756,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     public String getUDDs() {
       return udds;
+    }
+
+    public String getRelationalDirectives() {
+      return relationalDirectives;
     }
   }
 }
