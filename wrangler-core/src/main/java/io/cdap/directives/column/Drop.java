@@ -24,6 +24,7 @@ import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.RelationalDirective;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
@@ -43,7 +44,7 @@ import java.util.List;
 @Name(Drop.NAME)
 @Categories(categories = { "column"})
 @Description("Drop one or more columns.")
-public class Drop implements Directive, Lineage {
+public class Drop implements RelationalDirective, Lineage {
   public static final String NAME = "drop";
 
   // Columns to be dropped.
@@ -87,5 +88,15 @@ public class Drop implements Directive, Lineage {
       .readable("Dropped columns %s", columns)
       .drop(Many.of(columns))
       .build();
+  }
+
+  @Override
+  public String getSQL() {
+    String sql = "DROP COLUMN ";
+    for (String col : columns) {
+      sql += col + ",";
+    }
+    sql = sql.substring(0, sql.length() - 1);
+    return sql;
   }
 }

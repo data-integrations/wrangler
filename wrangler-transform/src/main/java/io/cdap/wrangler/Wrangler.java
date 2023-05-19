@@ -44,6 +44,7 @@ import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.cdap.features.Feature;
 import io.cdap.directives.aggregates.DefaultTransientStore;
+import io.cdap.directives.column.Drop;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
@@ -53,9 +54,11 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.RecipeSymbol;
+import io.cdap.wrangler.api.RelationalDirective;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.TransientStore;
@@ -587,15 +590,40 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     Relation filteredRelation = relation.filter(filterExpression);
 
     ExpressionFactory<String> expFactory = expressionFactory.get();
-    String relationalDirectives = config.getRelationalDirectives();
-    String[] sqls = relationalDirectives.split("\n");
-    for (String sql : sqls) {
+
+    String recipe = config.getDirectives();
+    List<Directive> directives = null;
+    try {
+      GrammarBasedParser parser = new GrammarBasedParser("default", new MigrateToV2(recipe).migrate(), registry);
+      directives = parser.parse();
+    } catch (DirectiveParseException e) {
+      throw new RuntimeException(e);
+    } catch (RecipeException e) {
+      throw new RuntimeException(e);
+    }
+
+    for (Directive directive : directives) {
       // Expression exp = expFactory.compile(sql);
+      if (!(directive instanceof RelationalDirective)) {
+        throw new RuntimeException("Directive is not relational Directive");
+      }
       // currently supporting only drop column
-      String column = sql.split(" ")[2]; // add validation later
-      filteredRelation = filteredRelation.dropColumn(column);
+      // SQL will be returned as "DROP COLUMN col1, col2"
+      String sql = ((RelationalDirective) directive).getSQL();
+      List<String> cols = getColumnsOfDropSQL(sql);
+      for (String col : cols) {
+        filteredRelation = filteredRelation.dropColumn(col);
+      }
     }
     return filteredRelation;
+  }
+
+  private List<String> getColumnsOfDropSQL(String sql) {
+    List<String> cols = new ArrayList<>();
+    for (String col : sql.split(" ")[2].split(",")) {
+      cols.add(col.trim());
+    }
+    return cols;
   }
 
   private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
@@ -683,11 +711,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Nullable
     private String directives;
 
-    @Name(NAME_RELATIONAL_DIRECTIVES)
-    @Description("Recipe for wrangling the input records")
-    @Macro
-    @Nullable
-    private String relationalDirectives;
 
     @Name(NAME_UDD)
     @Description("List of User Defined Directives (UDD) that have to be loaded.")
@@ -720,7 +743,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       this.field = field;
       this.schema = schema;
       this.onError = onError;
-      this.relationalDirectives = relationalDirectives;
     }
 
     /**
@@ -756,10 +778,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     public String getUDDs() {
       return udds;
-    }
-
-    public String getRelationalDirectives() {
-      return relationalDirectives;
     }
   }
 }

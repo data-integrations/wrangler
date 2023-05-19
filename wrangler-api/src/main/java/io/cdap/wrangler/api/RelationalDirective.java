@@ -25,6 +25,6 @@ public interface RelationalDirective extends Directive {
    * returns sql expression
    * @return expression
    */
-  String getExpression();
+  String getSQL();
 
 }
