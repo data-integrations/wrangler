@@ -67,5 +67,24 @@ public class ParseExcelTest {
       Assert.assertEquals(1, pipeline.getSecond().size());
     }
   }
-}
 
+  @Test
+  public void testDateFormatting() throws Exception {
+    try (InputStream stream =
+           ParseAvroFileTest.class.getClassLoader().getResourceAsStream("date-formats-test-sheet.xlsx")) {
+      byte[] data = IOUtils.toByteArray(stream);
+
+      String[] directives = new String[]{
+        "parse-as-excel :body '0'",
+      };
+
+      List<Row> rows = new ArrayList<>();
+      rows.add(new Row("body", data));
+      List<Row> results = TestingRig.execute(directives, rows);
+
+      for (Row result : results) {
+        Assert.assertEquals(result.getValue("A"), result.getValue("B"));
+      }
+    }
+  }
+}
