@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
+import io.cdap.wrangler.api.RelationalDirective;
 import org.reflections.Reflections;
 
 import java.util.ArrayList;
@@ -84,6 +85,7 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
       try {
         Reflections reflections = new Reflections(namespace);
         Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
+        system.addAll(reflections.getSubTypesOf(RelationalDirective.class));
         for (Class<? extends Directive> directive : system) {
           DirectiveInfo info = DirectiveInfo.fromSystem(directive);
           registry.put(info.name(), info);
