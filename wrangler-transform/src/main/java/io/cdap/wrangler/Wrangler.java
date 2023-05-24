@@ -592,6 +592,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     ExpressionFactory<String> expFactory = expressionFactory.get();
 
     String recipe = config.getDirectives();
+
+    registry = SystemDirectiveRegistry.INSTANCE;
+    try {
+      registry.reload("default");
+    } catch (DirectiveLoadException e) {
+      throw new RuntimeException(e);
+    }
+
     List<Directive> directives = null;
     try {
       GrammarBasedParser parser = new GrammarBasedParser("default", new MigrateToV2(recipe).migrate(), registry);
