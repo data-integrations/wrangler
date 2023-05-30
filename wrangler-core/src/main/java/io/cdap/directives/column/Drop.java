@@ -19,6 +19,8 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -44,7 +46,7 @@ import java.util.List;
 @Name(Drop.NAME)
 @Categories(categories = { "column"})
 @Description("Drop one or more columns.")
-public class Drop implements RelationalDirective, Lineage {
+public class Drop implements Directive, Lineage {
   public static final String NAME = "drop";
 
   // Columns to be dropped.
@@ -91,12 +93,11 @@ public class Drop implements RelationalDirective, Lineage {
   }
 
   @Override
-  public String getSQL() {
-    String sql = "DROP COLUMN ";
-    for (String col : columns) {
-      sql += col + ",";
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+      Relation relation) {
+    for (String col: columns) {
+      relation = relation.dropColumn(col);
     }
-    sql = sql.substring(0, sql.length() - 1);
-    return sql;
+    return relation;
   }
 }

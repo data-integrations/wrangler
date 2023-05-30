@@ -16,6 +16,9 @@
 
 package io.cdap.wrangler.api;
 
+import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
@@ -51,7 +54,8 @@ import java.util.List;
  *   }
  * </code>
  */
-public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics {
+public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics,
+    LinearRelationalTransform {
   /**
    * This defines a interface variable that is static and final for specify
    * the {@code type} of the plugin this interface would provide.
@@ -125,5 +129,12 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
   default List<EntityCountMetric> getCountMetrics() {
     // no op
     return null;
+  }
+
+  @Override
+  default Relation transform(RelationalTranformContext relationalTranformContext,
+      Relation relation) {
+    // no-op
+    return relation;
   }
 }

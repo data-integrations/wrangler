@@ -16,15 +16,19 @@
 
 package io.cdap.wrangler.api;
 
+import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+
 /**
  * Directive interface which supports Relational transformations
  */
-public interface RelationalDirective extends Directive {
+public interface RelationalDirective extends Directive, LinearRelationalTransform {
 
-  /**
-   * returns sql expression
-   * @return expression
-   */
-  String getSQL();
-
+  @Override
+  default Relation transform(RelationalTranformContext relationalTranformContext,
+      Relation relation) {
+    // no-op
+    return relation;
+  }
 }

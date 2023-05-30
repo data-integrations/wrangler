@@ -589,8 +589,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     Expression filterExpression = expressionFactory.get().compile(config.getPreconditionSQL());
     Relation filteredRelation = relation.filter(filterExpression);
 
-    ExpressionFactory<String> expFactory = expressionFactory.get();
-
     String recipe = config.getDirectives();
 
     registry = SystemDirectiveRegistry.INSTANCE;
@@ -611,17 +609,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
 
     for (Directive directive : directives) {
-      // Expression exp = expFactory.compile(sql);
-      if (!(directive instanceof RelationalDirective)) {
-        throw new RuntimeException("Directive is not relational Directive");
-      }
-      // currently supporting only drop column
-      // SQL will be returned as "DROP COLUMN col1, col2"
-      String sql = ((RelationalDirective) directive).getSQL();
-      List<String> cols = getColumnsOfDropSQL(sql);
-      for (String col : cols) {
-        filteredRelation = filteredRelation.dropColumn(col);
-      }
+      filteredRelation = directive
+          .transform(relationalTranformContext, filteredRelation);
     }
     return filteredRelation;
   }
