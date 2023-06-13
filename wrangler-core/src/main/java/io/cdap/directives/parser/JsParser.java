@@ -179,32 +179,27 @@ public class JsParser implements Directive, Lineage {
       Map.Entry<String, JsonElement> next = elements.next();
       String key = next.getKey();
       JsonElement element = next.getValue();
-      if (element instanceof JsonObject) {
-        jsonFlatten(element.getAsJsonObject(),
-                    String.format(removeColon("%s_%s"), field, key), depth + 1, maxDepth, row);
-      } else if (element instanceof JsonArray) {
-        jsonArrayFlatten((JsonArray) element,
-                         String.format(removeColon("%s_%s"),
-                                       field, key), depth + 1, maxDepth, row);
-      } else {
-        row.add(String.format(removeColon("%s_%s"), field, key), getValue(element));
-      }
+      rec(element, field, key, depth, maxDepth, row);
     }
   }
 
   public static void jsonArrayFlatten(JsonArray array, String field, int depth, int maxDepth, Row row) {
     for (int i = 0; i < array.size(); i++) {
       JsonElement element = array.get(i);
-      if (element instanceof JsonObject) {
-        jsonFlatten(element.getAsJsonObject(),
-            String.format(removeColon("%s_%s"), field, i), depth + 1, maxDepth, row);
-      } else if (element instanceof JsonArray) {
-        jsonArrayFlatten((JsonArray) element,
-            String.format(removeColon("%s_%s"),
-                field, i), depth + 1, maxDepth, row);
-      } else {
-        row.add(String.format(removeColon("%s_%s"), field, i), getValue(element));
-      }
+      rec(element, field, String.valueOf(i), depth, maxDepth, row);
+    }
+  }
+
+  static void rec(JsonElement element, String field, String key, int depth, int maxDepth, Row row) {
+    if (element instanceof JsonObject) {
+      jsonFlatten(element.getAsJsonObject(),
+          removeColon(String.format("%s_%s", field, key)), depth + 1, maxDepth, row);
+    } else if (element instanceof JsonArray) {
+      jsonArrayFlatten((JsonArray) element,
+          removeColon(String.format("%s_%s", field, key)),
+          depth + 1, maxDepth, row);
+    } else {
+      row.add(removeColon(String.format("%s_%s", field, key)), getValue(element));
     }
   }
 
