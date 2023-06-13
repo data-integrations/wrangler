@@ -209,7 +209,7 @@ public class JsParser implements Directive, Lineage {
   }
 
   static String removeColon(String key) {
-    return key.replace(":", "");
+    return key.replaceAll(":", "");
   }
 
   /**
