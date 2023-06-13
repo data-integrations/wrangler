@@ -195,8 +195,16 @@ public class JsParser implements Directive, Lineage {
   public static void jsonArrayFlatten(JsonArray array, String field, int depth, int maxDepth, Row row) {
     for (int i = 0; i < array.size(); i++) {
       JsonElement element = array.get(i);
-      jsonFlatten(element.getAsJsonObject(),
-          String.format(removeColon("%s_%s"), field, i), depth + 1, maxDepth, row);
+      if (element instanceof JsonObject) {
+        jsonFlatten(element.getAsJsonObject(),
+            String.format(removeColon("%s_%s"), field, i), depth + 1, maxDepth, row);
+      } else if (element instanceof JsonArray) {
+        jsonArrayFlatten((JsonArray) element,
+            String.format(removeColon("%s_%s"),
+                field, i), depth + 1, maxDepth, row);
+      } else {
+        row.add(String.format(removeColon("%s_%s"), field, i), getValue(element));
+      }
     }
   }
 
