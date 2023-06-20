@@ -19,6 +19,12 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -34,8 +40,12 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This class <code>Keep</code> implements a directive that
@@ -92,5 +102,25 @@ public class Keep implements Directive, Lineage {
                                   .readable("Removed all columns except '%s'", keep);
     keep.forEach(column -> builder.relation(column, column));
     return builder.build();
+  }
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+    Map<String, Expression> keepCol = generateColumnExpMap(keep.stream().collect(Collectors.toList()),
+            expressionFactory.get());
+    return relation.select(keepCol);
+  }
+
+  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
+    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
+  }
+  private Map<String, Expression> generateColumnExpMap(List<String> columns, ExpressionFactory<String> factory) {
+    Map<String, Expression> columnExpMap = new LinkedHashMap<>();
+    columns.forEach((colName)-> columnExpMap.put(colName, factory.compile(colName)));
+    return columnExpMap;
   }
 }
