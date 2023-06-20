@@ -82,7 +82,7 @@ public class Lower implements Directive, Lineage {
         if (object instanceof String) {
           if (object != null) {
             String value = (String) object;
-            //row.setValue(idx, value.toLowerCase());
+            row.setValue(idx, value.toLowerCase());
           }
         }
       }
