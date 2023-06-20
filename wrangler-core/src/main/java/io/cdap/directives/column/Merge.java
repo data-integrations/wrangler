@@ -19,6 +19,11 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -37,6 +42,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A directive for merging two columns and creates a third column.
@@ -107,5 +113,18 @@ public class Merge implements Directive, Lineage {
       .readable("Merged column '%s' and '%s' using delimiter '%s' into column '%s'", col1, col2, delimiter, dest)
       .relation(Many.columns(col1, col2), Many.of(col1, col2, dest))
       .build();
+  }
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+    return relation.setColumn(dest, expressionFactory.get()
+            .compile("CONCAT(" + col1 + ",'" + delimiter + "'," + col2 + ")"));
+  }
+
+  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
+    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
   }
 }
