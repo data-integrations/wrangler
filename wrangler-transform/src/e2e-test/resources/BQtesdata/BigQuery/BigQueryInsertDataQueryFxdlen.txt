@@ -1,4 +1,4 @@
-INSERT INTO DATASET.TABLE_NAME (url,fixedlength)
+INSERT INTO DATASET.TABLE_NAME (Url,fixedlength)
 VALUES
 ('http://example.com:80/docs/books/tutorial/index.html?name=networking#DOWNLOADING','21  10  ABCXYZ'),
 ('http://geeks.com:80/docs/chair/tutorial/index.html?name=networking#DOWNLOADING','19  13  ABCXYZ'),

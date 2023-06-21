@@ -1,0 +1,10 @@
+INSERT INTO DATASET.TABLE_NAME (id, firstname, lastname, streetAddress, city, state, zipcode, phoneNumber)
+VALUES
+('5', 'Frank', 'Underwood', '1609 Far St.', 'San Diego', 'CA', 2977876770, 19061512345),
+('1', 'Douglas', 'Williams', '1 Vista Montana', 'San Jose', 'CA', 9513498885, 35834612345),
+('4', 'Walter', 'White', '3828 Piermont Dr', 'Orlando', 'FL', 7349864532, 7829812345),
+('3', 'Hugh', 'Jackman', '5, Cool Way', 'Manhattan', 'NY', 6726312345, 1695412345),
+('7', 'Sarthak', 'Dash', '123 Far St.', 'New York', 'NY', 2345365523, 1324812345),
+('6', 'Serena', 'Woods', '123 Far St.', 'Las Vegas', 'NV', 4533456734, 78919612345),
+('2', 'David', 'Johnson', '3 Baypointe Parkway', 'Houston', 'TX', 1738378970, 1451412345),
+('8', 'Rahul', 'Dash', '22 MG Road.', 'Bangalore', 'KA',NULL, 94864612345);
