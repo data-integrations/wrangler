@@ -13,13 +13,13 @@
 # the License.
 
 @Wrangler
-Feature:  parse as HL7
+Feature:  parse as Json
 
-  @BQ_SOURCE_HL7_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
-  Scenario: To verify User is able to run a pipeline using parse hl7 directive
+  @BQ_SOURCE_JSON_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
+  Scenario: To verify User is able to run a pipeline using parse Json directive
     Given Open Datafusion Project to configure pipeline
     Then Click on the Plus Green Button to import the pipelines
-    Then Select the file for importing the pipeline for the plugin "Directive_parse_hl7"
+    Then Select the file for importing the pipeline for the plugin "Directive_parse_json"
     Then Navigate to the properties page of plugin: "BigQueryTable"
     Then Replace input plugin property: "project" with value: "projectId"
     Then Replace input plugin property: "dataset" with value: "dataset"
@@ -33,10 +33,11 @@ Feature:  parse as HL7
     Then Replace input plugin property: "dataset" with value: "dataset"
     Then Validate "BigQuery2" plugin properties
     Then Close the Plugin Properties page
-    Then Save and Deploy Pipeline
+    Then Rename the pipeline
+    Then Deploy the pipeline
     Then Run the Pipeline in Runtime
     Then Wait till pipeline is in running state
     Then Open and capture logs
     Then Verify the pipeline status is "Succeeded"
     Then Close the pipeline logs
-    Then Validate The Data From BQ To BQ With Actual And Expected File for: "ExpectedDirective_parse_hl7"
+    Then Validate The Data From BQ To BQ With Actual And Expected File for: "ExpectedDirective_parse_json"
