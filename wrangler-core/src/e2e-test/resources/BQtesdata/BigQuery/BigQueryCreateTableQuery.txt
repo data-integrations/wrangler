@@ -1,0 +1,2 @@
+create table `DATASET.TABLE_NAME` (ID STRING, name STRING, email STRING, Customer_id STRING, First_name STRING,
+Last_name STRING, Age STRING, Address STRING, Col1 STRING, create_date STRING, update_date STRING, body STRING)
