@@ -1,0 +1,9 @@
+insert into `DATASET.TABLE_NAME` (ID, name, email, Customer_id, First_name, Last_name, Age, Address, Col1,
+create_date, update_date, body) values
+('0','Surya','Test@gmail.com','1','Shelby','Shelbylastname', '20', 'Address1','testdata', '2021-01-28', '2021-01-30', 'Test'),
+('1','Ragini','Test1@gmail.com','2','Shelby','Shelbylastname', '21', 'Address2','testdata', '2021-01-27', '2021-01-30', 'User'),
+('2','Sahil','Test2@gmail.com','3','Shelby','Shelbylastname', '22', 'Address3','testdata', '2021-01-26', '2021-01-30', 'Data'),
+('3','','Test3@gmail.com','4','Shelby','Shelbylastname', '23', 'Address4','testdata', '2021-01-25', '2021-01-26', 'Content'),
+('4','Ashish','Test4@gmail.com','5','Shelby','Shelbylastname', '24', 'Address5','testdata', '2021-01-23', '2021-01-24', 'Files'),
+(  '5'  ,' Jojo','Test4@gmail.com ','6','Shelby','Shelbylastname', '25', 'Address6','testdata', '2021-01-22', '2021-01-23', 'Testuser');
+
