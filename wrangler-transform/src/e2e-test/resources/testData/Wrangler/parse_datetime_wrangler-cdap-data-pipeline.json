@@ -1,5 +1,5 @@
 {
-    "name": "parse_csv_wrangle",
+    "name": "parse_datetime_wrangler",
     "description": "Data Pipeline Application",
     "artifact": {
         "name": "cdap-data-pipeline",
@@ -41,9 +41,9 @@
                     },
                     "properties": {
                         "useConnection": "false",
-                        "dataset": "wrangler_ankit",
-                        "table": "table5",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]}",
+                        "dataset": "Wrangler_Test",
+                        "table": "datetimetab",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timestamp\",\"type\":[\"string\",\"null\"]}]}",
                         "project": "auto-detect",
                         "serviceAccountType": "filePath",
                         "serviceFilePath": "auto-detect",
@@ -53,18 +53,18 @@
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timestamp\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "id": "BigQueryTable",
                 "type": "batchsource",
                 "label": "BigQueryTable",
                 "icon": "fa-plug",
-                "$$hashKey": "object:441",
+                "$$hashKey": "object:358",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "496px",
-                    "top": "343.5px"
+                    "top": "342px"
                 }
             },
             {
@@ -77,35 +77,28 @@
                         "name": "wrangler-transform"
                     },
                     "properties": {
-                        "directives": "parse-as-csv :body ',' false\nrename body_1 new_id\nquantize body_4 body_q 1:2=20,3:4=40\nset-type :body_4 integer \ncolumns-replace s/^new_//g\nfill-null-or-empty :body_3 'shubh'\nset-headers :abc\nchange-column-case uppercase\ncleanse-column-names\nsplit-to-rows :id '#'",
+                        "directives": "parse-as-datetime :timestamp \"yyyy-MM-dd'T'HH:mm:ssX'['z']'\"\ncurrent-datetime :create_date\ndatetime-to-timestamp :timestamp\nformat-datetime :create_date 'y'\nformat-date :timestamp yyyy-mm-dd\nrename timestamp timecolumn",
                         "field": "*",
                         "precondition": "false",
-                        "workspaceId": "b0564dfc-77db-4d95-b3bc-b04bcdf0f687",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}",
-                        "on-error": "fail-pipeline"
+                        "workspaceId": "b28b92f3-93bb-4a4f-8258-ef5881543ecb",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 },
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
-                    }
-                ],
-                "inputSchema": [
-                    {
-                        "name": "BigQueryTable",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "id": "Wrangler",
                 "type": "transform",
                 "label": "Wrangler",
                 "icon": "icon-DataPreparation",
-                "$$hashKey": "object:442",
+                "$$hashKey": "object:359",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "796px",
-                    "top": "343.5px"
+                    "top": "342px"
                 }
             },
             {
@@ -123,38 +116,39 @@
                         "serviceAccountType": "filePath",
                         "serviceFilePath": "auto-detect",
                         "dataset": "Wrangler",
-                        "table": "uptable",
+                        "table": "ddtab",
                         "operation": "insert",
                         "truncateTable": "false",
                         "allowSchemaRelaxation": "false",
                         "location": "US",
                         "createPartitionedTable": "false",
                         "partitioningType": "TIME",
+                        "timePartitioningType": "DAY",
                         "partitionFilterRequired": "false",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 },
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "inputSchema": [
                     {
                         "name": "Wrangler",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "id": "BigQuery2",
                 "type": "batchsink",
                 "label": "BigQuery2",
                 "icon": "fa-plug",
-                "$$hashKey": "object:443",
+                "$$hashKey": "object:360",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "1096px",
-                    "top": "343.5px"
+                    "top": "342px"
                 }
             }
         ],
@@ -169,5 +163,5 @@
         "pushdownEnabled": false,
         "transformationPushdown": {}
     },
-    "version": "afe60ddd-4b3a-11ee-9107-0000007a4d1b"
+    "version": "a397cf5a-af9f-11ee-bad0-0000007dcfa3"
 }

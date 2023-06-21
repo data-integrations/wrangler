@@ -1,9 +1,9 @@
 {
-    "name": "parse_as_datetime",
+    "name": "parse_xmltojson_wrangler",
     "description": "Data Pipeline Application",
     "artifact": {
         "name": "cdap-data-pipeline",
-        "version": "6.10.0-SNAPSHOT",
+        "version": "[6.0.0, 7.0.0)",
         "scope": "SYSTEM"
     },
     "config": {
@@ -37,15 +37,13 @@
                     "type": "batchsource",
                     "label": "BigQueryTable",
                     "artifact": {
-                        "name": "google-cloud",
-                        "version": "0.23.0-SNAPSHOT",
-                        "scope": "SYSTEM"
+                        "name": "google-cloud"
                     },
                     "properties": {
                         "useConnection": "false",
-                        "dataset": "Wrangler",
-                        "table": "datetimeupd",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"create_date\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"string\"}]}",
+                        "dataset": "Wrangler_Test",
+                        "table": "xmlnews",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata\",\"type\":[\"string\",\"null\"]}]}",
                         "project": "auto-detect",
                         "serviceAccountType": "filePath",
                         "serviceFilePath": "auto-detect",
@@ -55,18 +53,18 @@
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"create_date\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"string\"}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "id": "BigQueryTable",
                 "type": "batchsource",
                 "label": "BigQueryTable",
                 "icon": "fa-plug",
-                "$$hashKey": "object:532",
+                "$$hashKey": "object:609",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "496px",
-                    "top": "343px"
+                    "top": "342px"
                 },
                 "_backendProperties": {
                     "schema": {
@@ -257,40 +255,39 @@
                     "type": "transform",
                     "label": "Wrangler",
                     "artifact": {
-                        "name": "wrangler-transform",
-                        "version": "4.10.0-SNAPSHOT",
-                        "scope": "SYSTEM"
+                        "name": "wrangler-transform"
                     },
                     "properties": {
-                        "directives": "parse-as-datetime :timestamp \"yyyy-MM-dd'T'HH:mm:ssX'['z']'\"\ncurrent-datetime :create_date\ndatetime-to-timestamp :timestamp\nformat-datetime :create_date 'y'\nformat-date :timestamp yyyy-mm-dd\nrename timestamp timecolumn",
+                        "directives": "parse-xml-to-json :xmldata 1\nsplit-email :email\ntext-distance block email email_account distance\ntext-metric longest-common-subsequence email email_account distance2\nwrite-as-json-object :email_domain distance,email_account\nstemming :email\nsplit-to-rows :email_account '0'\nrename :email_account id",
                         "field": "*",
                         "precondition": "false",
-                        "workspaceId": "7faca220-0705-4a1c-99d6-60d7dd657a0b",
-                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}",
+                        "workspaceId": "4c1d141a-66f6-4b4c-bc5f-a92ca41bee42",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}",
+                        "expressionLanguage": "jexl",
                         "on-error": "fail-pipeline"
                     }
                 },
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
                     }
                 ],
                 "inputSchema": [
                     {
                         "name": "BigQueryTable",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"create_date\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"string\"}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "id": "Wrangler",
                 "type": "transform",
                 "label": "Wrangler",
                 "icon": "icon-DataPreparation",
-                "$$hashKey": "object:533",
+                "$$hashKey": "object:610",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "796px",
-                    "top": "343px"
+                    "top": "342px"
                 },
                 "selected": false
             },
@@ -301,48 +298,47 @@
                     "type": "batchsink",
                     "label": "BigQuery2",
                     "artifact": {
-                        "name": "google-cloud",
-                        "version": "0.23.0-SNAPSHOT",
-                        "scope": "SYSTEM"
+                        "name": "google-cloud"
                     },
                     "properties": {
                         "useConnection": "false",
                         "project": "auto-detect",
                         "serviceAccountType": "filePath",
                         "serviceFilePath": "auto-detect",
-                        "dataset": "Wrangler",
-                        "table": "dateupd",
+                        "dataset": "Wrangler_Test",
+                        "table": "fintab",
                         "operation": "insert",
                         "truncateTable": "false",
                         "allowSchemaRelaxation": "false",
                         "location": "US",
                         "createPartitionedTable": "false",
                         "partitioningType": "TIME",
+                        "timePartitioningType": "DAY",
                         "partitionFilterRequired": "false",
-                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
                     }
                 },
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
                     }
                 ],
                 "inputSchema": [
                     {
                         "name": "Wrangler",
-                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
                     }
                 ],
                 "id": "BigQuery2",
                 "type": "batchsink",
                 "label": "BigQuery2",
                 "icon": "fa-plug",
-                "$$hashKey": "object:534",
+                "$$hashKey": "object:611",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "1096px",
-                    "top": "343px"
+                    "top": "342px"
                 },
                 "selected": false
             }
@@ -358,5 +354,5 @@
         "pushdownEnabled": false,
         "transformationPushdown": {}
     },
-    "version": "6ab2074d-4e26-11ee-84d2-000000ba158f"
+    "version": "42a96af3-af8e-11ee-8372-00000073831c"
 }
