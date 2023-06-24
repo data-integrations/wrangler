@@ -19,6 +19,11 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -36,6 +41,7 @@ import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.utils.ColumnConverter;
+import io.cdap.wrangler.utils.ColumnTypeExpression;
 
 import java.math.RoundingMode;
 import java.util.List;
@@ -107,5 +113,20 @@ public final class SetType implements Directive, Lineage {
       .readable("Changed the column '%s' to type '%s'", col, type)
       .relation(col, col)
       .build();
+  }
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    java.util.Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+    String expression = ColumnTypeExpression.getColumnTypeExp(type, col, scale);
+    return relation.setColumn(col, expressionFactory.get().compile(expression));
+  }
+
+  private java.util.Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
+    return ctx.getEngine()
+            .getExpressionFactory(StringExpressionFactoryType.SQL);
   }
 }
