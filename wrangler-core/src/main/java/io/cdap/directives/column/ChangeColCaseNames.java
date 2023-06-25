@@ -19,6 +19,13 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -34,7 +41,10 @@ import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class <code>ChangeColCaseNames</code> converts the case of the columns
@@ -94,5 +104,43 @@ public class ChangeColCaseNames implements Directive, Lineage {
       .all(Many.of())
       .build();
   }
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    java.util.Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+    List<String> columnNames = generateListCols(relationalTranformContext);
+    Map<String, Expression> colmap = generateColumnCaseMap(columnNames, expressionFactory.get());
+    return relation.select(colmap);
+  }
+
+  private List<String> generateListCols(RelationalTranformContext relationalTranformContext) {
+    List<String> colnames = new ArrayList<String>();
+    java.util.Set<String> s = relationalTranformContext.getInputRelationNames();
+    for (String inp : s) {
+      Schema schema = relationalTranformContext.getInputSchema(inp);
+      List<Schema.Field> fields = schema.getFields();
+      for (Schema.Field field: fields) {
+        colnames.add(field.getName());
+      }
+    }
+    return colnames;
+  }
+  private java.util.Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
+    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
+  }
+
+  private Map<String, Expression> generateColumnCaseMap(List<String> columns, ExpressionFactory<String> factory) {
+    Map<String, Expression> columnExpMap = new LinkedHashMap<>();
+    if (toLower) {
+      columns.forEach((colName) -> columnExpMap.put(colName.toLowerCase(), factory.compile(colName)));
+    } else {
+      columns.forEach((colName) -> columnExpMap.put(colName.toUpperCase(), factory.compile(colName)));
+    }
+    return columnExpMap;
+  }
+
 }
 
