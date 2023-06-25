@@ -104,7 +104,4 @@ public class RightTrim implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile("RTRIM(" + column + ")"));
   }
 
-  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 }

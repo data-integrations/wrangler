@@ -16,12 +16,16 @@
 
 package io.cdap.wrangler.api;
 
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.cdap.etl.api.relational.RelationalTransform;
+import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Directive is a user defined directive. DIE - Define, Initialize & Execute - Pattern
@@ -55,7 +59,7 @@ import java.util.List;
  * </code>
  */
 public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics,
-    LinearRelationalTransform {
+        LinearRelationalTransform {
   /**
    * This defines a interface variable that is static and final for specify
    * the {@code type} of the plugin this interface would provide.
@@ -137,4 +141,18 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
     // no-op
     return relation;
   }
+
+  default Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
+   return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
+  }
 }
+
+
+
+
+
+
+
+
+
+

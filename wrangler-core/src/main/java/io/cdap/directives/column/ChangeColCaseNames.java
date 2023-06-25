@@ -128,9 +128,6 @@ public class ChangeColCaseNames implements Directive, Lineage {
     }
     return colnames;
   }
-  private java.util.Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 
   private Map<String, Expression> generateColumnCaseMap(List<String> columns, ExpressionFactory<String> factory) {
     Map<String, Expression> columnExpMap = new LinkedHashMap<>();

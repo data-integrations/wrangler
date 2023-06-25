@@ -111,7 +111,4 @@ public class Upper implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile("UPPER(" + column + ")"));
   }
 
-  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 }

@@ -115,12 +115,10 @@ public class Keep implements Directive, Lineage {
     return relation.select(keepCol);
   }
 
-  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
   private Map<String, Expression> generateColumnExpMap(List<String> columns, ExpressionFactory<String> factory) {
     Map<String, Expression> columnExpMap = new LinkedHashMap<>();
     columns.forEach((colName)-> columnExpMap.put(colName, factory.compile(colName)));
     return columnExpMap;
   }
+
 }

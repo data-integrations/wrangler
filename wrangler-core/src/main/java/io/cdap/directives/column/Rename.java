@@ -23,7 +23,6 @@ import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -38,6 +37,7 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.utils.ColumnConverter;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A directive for renaming columns.
@@ -90,14 +90,11 @@ public final class Rename implements Directive, Lineage {
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext,
                             Relation relation) {
-    java.util.Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
     return relation.setColumn(target.value(), expressionFactory.get().compile(source.value()));
   }
 
-  private java.util.Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 }

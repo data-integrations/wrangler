@@ -125,7 +125,4 @@ public class Copy implements Directive, Lineage {
     return relation.setColumn(destination.value(), expressionFactory.get().compile(source.value()));
   }
 
-  private java.util.Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 }

@@ -102,8 +102,4 @@ public class LeftTrim implements Directive, Lineage {
     }
     return relation.setColumn(col, expressionFactory.get().compile("LTRIM(" + col + ")"));
   }
-
-  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 }

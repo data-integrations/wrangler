@@ -124,7 +124,4 @@ public class Merge implements Directive, Lineage {
             .compile("CONCAT(" + col1 + ",'" + delimiter + "'," + col2 + ")"));
   }
 
-  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 }

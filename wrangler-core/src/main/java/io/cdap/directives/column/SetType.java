@@ -125,8 +125,4 @@ public final class SetType implements Directive, Lineage {
     return relation.setColumn(col, expressionFactory.get().compile(expression));
   }
 
-  private java.util.Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine()
-            .getExpressionFactory(StringExpressionFactoryType.SQL);
-  }
 }
