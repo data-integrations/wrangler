@@ -16,15 +16,17 @@
 
 package io.cdap.wrangler.api;
 
+import io.cdap.cdap.etl.api.relational.Expression;
 import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.RelationalTransform;
 import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -144,6 +146,12 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
 
   default Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
+  }
+
+  default Map<String, Expression> generateColumnExpMap(List<String> columns, ExpressionFactory<String> factory) {
+    Map<String, Expression> columnExpMap = new LinkedHashMap<>();
+    columns.forEach((colName)-> columnExpMap.put(colName, factory.compile(colName)));
+    return columnExpMap;
   }
 }
 
