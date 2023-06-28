@@ -23,7 +23,6 @@ import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -38,6 +37,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.ArrayList;
@@ -116,7 +116,8 @@ public class Merge implements Directive, Lineage {
   }
   public Relation transform(RelationalTranformContext relationalTranformContext,
                             Relation relation) {
-    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }

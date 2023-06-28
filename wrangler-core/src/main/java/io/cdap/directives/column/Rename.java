@@ -35,6 +35,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.utils.ColumnConverter;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.List;
 import java.util.Optional;
@@ -90,7 +91,8 @@ public final class Rename implements Directive, Lineage {
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext,
                             Relation relation) {
-    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }

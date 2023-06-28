@@ -23,23 +23,22 @@ import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
-import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
-import io.cdap.wrangler.api.lineage.Many;
 import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A directive for copying value of one column to another.
@@ -118,7 +117,8 @@ public class Copy implements Directive, Lineage {
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext,
                             Relation relation) {
-    java.util.Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }

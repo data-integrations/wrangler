@@ -19,12 +19,10 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.etl.api.relational.Expression;
 import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -37,10 +35,9 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 
@@ -100,7 +97,8 @@ public class Lower implements Directive, Lineage {
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext,
                             Relation relation) {
-    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
