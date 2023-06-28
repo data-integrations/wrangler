@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * This class <code>Keep</code> implements a directive that
@@ -111,7 +110,7 @@ public class Keep implements Directive, Lineage {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
     Map<String, Expression> keepCol = SqlExpressionGenerator
-            .generateColumnExpMap(keep.stream().collect(Collectors.toList()), expressionFactory.get());
+            .generateColumnExpMap(keep, expressionFactory.get());
     return relation.select(keepCol);
   }
 
