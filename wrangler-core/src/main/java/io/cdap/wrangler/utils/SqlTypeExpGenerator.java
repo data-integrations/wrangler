@@ -19,66 +19,67 @@ package io.cdap.wrangler.utils;
 /**
  * Utility class that returns a string of SQL expression for the given data type.
  */
-public final class ColumnTypeExpression {
+public final class SqlTypeExpGenerator {
 
     public static String getColumnTypeExp(String toType, String column, int scale) {
         toType = toType.toUpperCase();
         String expression;
+        if (!toType.equals("DECIMAL")) {
+            return column;
+        }
+        expression = ("CAST(" + column + " AS DECIMAL(38," + scale + "))");
+        return expression;
+    }
+    public static String getColumnTypeExp(String toType, String column) {
+        toType = toType.toUpperCase();
+        String expression = "";
         switch (toType) {
             case "INTEGER":
             case "I64":
             case "INT": {
-                expression = "CAST(" + column + " AS INT)";
+                expression += "CAST(" + column + " AS INT)";
                 return expression;
             }
 
             case "I32":
             case "SHORT": {
-                expression = "CAST(" + column + " AS SMALLINT)";
+                expression += "CAST(" + column + " AS SMALLINT)";
                 return expression;
             }
 
             case "LONG": {
-                expression = "CAST(" + column + " AS BIGINT)";
+                expression += "CAST(" + column + " AS BIGINT)";
                 return expression;
             }
 
             case "BOOL":
             case "BOOLEAN": {
-                expression = "CAST(" + column + " AS BOOLEAN)";
+                expression += "CAST(" + column + " AS BOOLEAN)";
                 return expression;
             }
 
             case "STRING": {
-                expression = "CAST(" + column + " AS STRING)";
+                expression += "CAST(" + column + " AS STRING)";
                 return expression;
             }
 
             case "FLOAT": {
-                expression = "CAST(" + column + " AS FLOAT)";
-                return expression;
-            }
-
-            case "DECIMAL": {
-                expression = "CAST(" + column + " AS DECIMAL(38," + scale + "))";
+                expression += "CAST(" + column + " AS FLOAT)";
                 return expression;
             }
 
             case "DOUBLE": {
-                expression = "CAST(" + column + " AS DOUBLE)";
+                expression += "CAST(" + column + " AS DOUBLE)";
                 return expression;
             }
 
             case "BYTES": {
-                expression = "CAST(" + column + " AS TINYINT)";
+                expression += "CAST(" + column + " AS TINYINT)";
                 return expression;
             }
 
             default:
                 return column;
-//                throw new DirectiveExecutionException(String.format(
-//                        "Column '%s' is of unsupported type '%s'. Supported types are: " +
-//                                "int, short, long, double, decimal, boolean, string, bytes", column, toType));
         }
     }
 }

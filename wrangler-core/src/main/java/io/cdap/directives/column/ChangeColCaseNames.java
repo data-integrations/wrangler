@@ -25,7 +25,6 @@ import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -40,11 +39,13 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class <code>ChangeColCaseNames</code> converts the case of the columns
@@ -107,7 +108,8 @@ public class ChangeColCaseNames implements Directive, Lineage {
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext,
                             Relation relation) {
-    java.util.Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    java.util.Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
@@ -118,9 +120,9 @@ public class ChangeColCaseNames implements Directive, Lineage {
 
   private List<String> generateListCols(RelationalTranformContext relationalTranformContext) {
     List<String> colnames = new ArrayList<String>();
-    java.util.Set<String> s = relationalTranformContext.getInputRelationNames();
-    for (String inp : s) {
-      Schema schema = relationalTranformContext.getInputSchema(inp);
+    Set<String> inputRelationNames = relationalTranformContext.getInputRelationNames();
+    for (String inputRelationName : inputRelationNames) {
+      Schema schema = relationalTranformContext.getInputSchema(inputRelationName);
       List<Schema.Field> fields = schema.getFields();
       for (Schema.Field field: fields) {
         colnames.add(field.getName());
@@ -140,4 +142,3 @@ public class ChangeColCaseNames implements Directive, Lineage {
   }
 
 }
-

@@ -40,8 +40,8 @@ import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.utils.ColumnConverter;
-import io.cdap.wrangler.utils.ColumnTypeExpression;
 import io.cdap.wrangler.utils.SqlExpressionGenerator;
+import io.cdap.wrangler.utils.SqlTypeExpGenerator;
 
 import java.math.RoundingMode;
 import java.util.List;
@@ -124,9 +124,9 @@ public final class SetType implements Directive, Lineage {
     }
     String expression;
     if (scale == null) {
-      expression = ColumnTypeExpression.getColumnTypeExp(type, col);
+      expression = SqlTypeExpGenerator.getColumnTypeExp(type, col);
     } else {
-      expression = ColumnTypeExpression.getColumnTypeExp(type, col, scale);
+      expression = SqlTypeExpGenerator.getColumnTypeExp(type, col, scale);
     }
     return relation.setColumn(col, expressionFactory.get().compile(expression));
   }
