@@ -26,6 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * Utility class that contains methods for sql expression generation.
  */
@@ -39,5 +41,68 @@ public class SqlExpressionGenerator {
         Map<String, Expression> columnExpMap = new LinkedHashMap<>();
         columns.forEach((colName)-> columnExpMap.put((String) colName, factory.compile(colName.toString())));
         return columnExpMap;
+    }
+
+    public static String getColumnTypeExp(String toType, String column, @Nullable Integer scale) {
+        toType = toType.toUpperCase();
+        String expression;
+        switch (toType) {
+            case "INTEGER":
+            case "I64":
+            case "INT": {
+                expression = "CAST(" + column + " AS INT)";
+                return expression;
+            }
+
+            case "I32":
+            case "SHORT": {
+                expression = "CAST(" + column + " AS SMALLINT)";
+                return expression;
+            }
+
+            case "LONG": {
+                expression = "CAST(" + column + " AS BIGINT)";
+                return expression;
+            }
+
+            case "BOOL":
+            case "BOOLEAN": {
+                expression = "CAST(" + column + " AS BOOLEAN)";
+                return expression;
+            }
+
+            case "STRING": {
+                expression = "CAST(" + column + " AS STRING)";
+                return expression;
+            }
+
+            case "FLOAT": {
+                expression = "CAST(" + column + " AS FLOAT)";
+                return expression;
+            }
+
+            case "DOUBLE": {
+                expression = "CAST(" + column + " AS DOUBLE)";
+                return expression;
+            }
+
+            case "DECIMAL": {
+                if (scale != null) {
+                    expression = String.format("CAST(%s AS DECIMAL(38,%d))", column, scale);
+                    return expression;
+                } else {
+                    expression = String.format("CAST(%s AS DECIMAL)", column);
+                }
+                return expression;
+            }
+
+            case "BYTES": {
+                expression = "CAST(" + column + " AS TINYINT)";
+                return expression;
+            }
+
+            default:
+                return column;
+        }
     }
 }

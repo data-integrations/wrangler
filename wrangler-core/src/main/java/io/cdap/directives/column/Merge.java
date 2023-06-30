@@ -122,7 +122,7 @@ public class Merge implements Directive, Lineage {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
     return relation.setColumn(dest, expressionFactory.get()
-            .compile("CONCAT(" + col1 + ",'" + delimiter + "'," + col2 + ")"));
+            .compile(String.format("CONCAT(%s,'%s',%s)", col1, delimiter, col2)));
   }
 
 }

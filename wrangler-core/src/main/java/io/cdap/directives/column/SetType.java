@@ -41,7 +41,6 @@ import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.utils.ColumnConverter;
 import io.cdap.wrangler.utils.SqlExpressionGenerator;
-import io.cdap.wrangler.utils.SqlTypeExpGenerator;
 
 import java.math.RoundingMode;
 import java.util.List;
@@ -122,12 +121,7 @@ public final class SetType implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    String expression;
-    if (scale == null) {
-      expression = SqlTypeExpGenerator.getColumnTypeExp(type, col);
-    } else {
-      expression = SqlTypeExpGenerator.getColumnTypeExp(type, col, scale);
-    }
+    String expression = SqlExpressionGenerator.getColumnTypeExp(type, col, scale);
     return relation.setColumn(col, expressionFactory.get().compile(expression));
   }
 
