@@ -96,7 +96,8 @@ public final class Rename implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    return relation.setColumn(target.value(), expressionFactory.get().compile(source.value()));
+    relation = relation.setColumn(target.value(), expressionFactory.get().compile(source.value()));
+    return relation.dropColumn(source.value());
   }
 
 }
