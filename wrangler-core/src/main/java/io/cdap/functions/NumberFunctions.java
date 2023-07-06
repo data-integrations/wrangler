@@ -19,31 +19,7 @@ package io.cdap.functions;
 import java.math.BigDecimal;
 import javax.annotation.Nullable;
 
-public final class NumberFunctions {
-
-  /**
-   * @return The number as double.
-   */
-  @Nullable
-  public static Double AsDouble(@Nullable Number value) {
-    return value == null ? null : value.doubleValue();
-  }
-
-  /**
-   * @return The number as float.
-   */
-  @Nullable
-  public static Float AsFloat(@Nullable Number value) {
-    return value == null ? null : value.floatValue();
-  }
-
-  /**
-   * @return The number as integer.
-   */
-  @Nullable
-  public static Integer AsInteger(@Nullable Number value) {
-    return value == null ? null : value.intValue();
-  }
+public final class NumberFunctions extends NumberNullableCheckFunctions {
 
   /**
    * @return Returns the mantissa from the given number. Mantissa definition is used from
