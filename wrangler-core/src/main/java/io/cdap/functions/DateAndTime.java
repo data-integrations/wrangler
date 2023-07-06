@@ -459,8 +459,10 @@ public final class DateAndTime {
    * @return previous day of the week.
    */
   public static LocalDate PreviousWeekdayFromDate(LocalDate source, String textDayOfWeek) {
-    return source == null ? null : (textDayOfWeek == null ? source :
-                                     source.with(TemporalAdjusters.previous(getDayOfWeek(textDayOfWeek))));
+    LocalDate previousWeekday = textDayOfWeek == null
+        ? source
+        : source.with(TemporalAdjusters.previous(getDayOfWeek(textDayOfWeek)));
+    return source == null ? null : previousWeekday;
   }
 
   /**

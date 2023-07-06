@@ -272,142 +272,166 @@ public final class RecordConvertor implements Serializable {
       case NULL:
         return null; // nothing much to do here.
       case INT:
-        if (object instanceof Integer || object instanceof Short) {
-          return (Integer) object;
-        } else if (object instanceof String) {
-          String value = (String) object;
-          try {
-            return Integer.parseInt(value);
-          } catch (NumberFormatException e) {
-            throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to integer for field name '%s'", value, name), e);
-          }
-        } else {
-          throw new RecordConvertorException(
-            String.format("Schema specifies field '%s' is integer, but the value is not a integer or string. " +
-                            "It is of type '%s'", name, object.getClass().getSimpleName())
-          );
-        }
+        return schemaTypeIsINT(name, object);
       case LONG:
-        if (object instanceof Long) {
-          return (Long) object;
-        } else if (object instanceof Integer) {
-          return ((Integer) object).longValue();
-        } else if (object instanceof Short) {
-          return ((Short) object).longValue();
-        } else if (object instanceof String) {
-          String value = (String) object;
-          try {
-            return Long.parseLong(value);
-          } catch (NumberFormatException e) {
-            throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to long for field name '%s'", value, name), e);
-          }
-        } else {
-          throw new RecordConvertorException(
-            String.format("Schema specifies field '%s' is long, but the value is nor a string or long. " +
-                            "It is of type '%s'", name, object.getClass().getSimpleName())
-          );
-        }
+        return schemaTypeIsLONG(name, object);
       case FLOAT:
-        if (object instanceof Float) {
-          return (Float) object;
-        } else if (object instanceof Long) {
-          return ((Long) object).floatValue();
-        } else if (object instanceof Integer) {
-          return ((Integer) object).floatValue();
-        } else if (object instanceof Short) {
-          return ((Short) object).floatValue();
-        } else if (object instanceof String) {
-          String value = (String) object;
-          try {
-            return Float.parseFloat(value);
-          } catch (NumberFormatException e) {
-            throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to float for field name '%s'", value, name), e);
-          }
-        } else {
-          throw new RecordConvertorException(
-            String.format("Schema specifies field '%s' is float, but the value is nor a string or float. " +
-                            "It is of type '%s'", name, object.getClass().getSimpleName())
-          );
-        }
+        return schemaTypeIsFLOAT(name, object);
       case DOUBLE:
-        if (object instanceof Double) {
-          return (Double) object;
-        } else if (object instanceof BigDecimal) {
-          return ((BigDecimal) object).doubleValue();
-        } else if (object instanceof Float) {
-          return ((Float) object).doubleValue();
-        } else if (object instanceof Long) {
-          return ((Long) object).doubleValue();
-        } else if (object instanceof Integer) {
-          return ((Integer) object).doubleValue();
-        } else if (object instanceof Short) {
-          return ((Short) object).doubleValue();
-        } else if (object instanceof String) {
-          String value = (String) object;
-          try {
-            return Double.parseDouble(value);
-          } catch (NumberFormatException e) {
-            throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to double for field name '%s'", value, name), e);
-          }
-        } else {
-          throw new RecordConvertorException(
-            String.format("Schema specifies field '%s' is double, but the value is nor a string or double. " +
-                            "It is of type '%s'", name, object.getClass().getSimpleName())
-          );
-        }
+        return schemaTypeIsDOUBLE(name, object);
       case BOOLEAN:
-        if (object instanceof Boolean) {
-          return (Boolean) object;
-        } else if (object instanceof String) {
-          String value = (String) object;
-          try {
-            return Boolean.parseBoolean(value);
-          } catch (NumberFormatException e) {
-            throw new RecordConvertorException(
-              String.format("Unable to convert '%s' to boolean for field name '%s'", value, name), e);
-          }
-        } else {
-          throw new RecordConvertorException(
-            String.format("Schema specifies field '%s' is double, but the value is nor a string or boolean. " +
-                            "It is of type '%s'", name, object.getClass().getSimpleName())
-          );
-        }
+        return schemaTypeIsBOOLEAN(name, object);
 
       case STRING:
         return object.toString();
 
       case BYTES:
-        if (object instanceof byte[]) {
-          return (byte[]) object;
-        } else if (object instanceof Boolean) {
-          return Bytes.toBytes((Boolean) object);
-        } else if (object instanceof Double) {
-          return Bytes.toBytes((Double) object);
-        } else if (object instanceof Float) {
-          return Bytes.toBytes((Float) object);
-        } else if (object instanceof Long) {
-          return Bytes.toBytes((Long) object);
-        } else if (object instanceof Integer) {
-          return Bytes.toBytes((Integer) object);
-        } else if (object instanceof Short) {
-          return Bytes.toBytes((Short) object);
-        } else if (object instanceof String) {
-          return Bytes.toBytes((String) object);
-        } else if (object instanceof BigDecimal) {
-          return Bytes.toBytes((BigDecimal) object);
-        } else {
-          throw new RecordConvertorException(
-            String.format("Unable to convert '%s' to bytes for field name '%s'", object.toString(), name)
-          );
-        }
+        return schemaTypeIsBYTES(name, object);
     }
     throw new RecordConvertorException(
       String.format("Unable decode object '%s' with schema type '%s'.", name, type.toString())
     );
+  }
+
+  private static byte[] schemaTypeIsBYTES(String name, Object object) throws RecordConvertorException {
+    if (object instanceof byte[]) {
+      return (byte[]) object;
+    } else if (object instanceof Boolean) {
+      return Bytes.toBytes((Boolean) object);
+    } else if (object instanceof Double) {
+      return Bytes.toBytes((Double) object);
+    } else if (object instanceof Float) {
+      return Bytes.toBytes((Float) object);
+    } else if (object instanceof Long) {
+      return Bytes.toBytes((Long) object);
+    } else if (object instanceof Integer) {
+      return Bytes.toBytes((Integer) object);
+    } else if (object instanceof Short) {
+      return Bytes.toBytes((Short) object);
+    } else if (object instanceof String) {
+      return Bytes.toBytes((String) object);
+    } else if (object instanceof BigDecimal) {
+      return Bytes.toBytes((BigDecimal) object);
+    } else {
+      throw new RecordConvertorException(
+        String.format("Unable to convert '%s' to bytes for field name '%s'", object.toString(), name)
+      );
+    }
+  }
+
+  private static Object schemaTypeIsBOOLEAN(String name, Object object) throws RecordConvertorException {
+    if (object instanceof Boolean) {
+      return (Boolean) object;
+    } else if (object instanceof String) {
+      String value = (String) object;
+      try {
+        return Boolean.parseBoolean(value);
+      } catch (NumberFormatException e) {
+        throw new RecordConvertorException(
+          String.format("Unable to convert '%s' to boolean for field name '%s'", value, name), e);
+      }
+    } else {
+      throw new RecordConvertorException(
+        String.format("Schema specifies field '%s' is double, but the value is nor a string or boolean. " +
+                        "It is of type '%s'", name, object.getClass().getSimpleName())
+      );
+    }
+  }
+
+  private static double schemaTypeIsDOUBLE(String name, Object object) throws RecordConvertorException {
+    if (object instanceof Double) {
+      return (Double) object;
+    } else if (object instanceof BigDecimal) {
+      return ((BigDecimal) object).doubleValue();
+    } else if (object instanceof Float) {
+      return ((Float) object).doubleValue();
+    } else if (object instanceof Long) {
+      return ((Long) object).doubleValue();
+    } else if (object instanceof Integer) {
+      return ((Integer) object).doubleValue();
+    } else if (object instanceof Short) {
+      return ((Short) object).doubleValue();
+    } else if (object instanceof String) {
+      String value = (String) object;
+      try {
+        return Double.parseDouble(value);
+      } catch (NumberFormatException e) {
+        throw new RecordConvertorException(
+          String.format("Unable to convert '%s' to double for field name '%s'", value, name), e);
+      }
+    } else {
+      throw new RecordConvertorException(
+        String.format("Schema specifies field '%s' is double, but the value is nor a string or double. " +
+                        "It is of type '%s'", name, object.getClass().getSimpleName())
+      );
+    }
+  }
+
+  private static float schemaTypeIsFLOAT(String name, Object object) throws RecordConvertorException {
+    if (object instanceof Float) {
+      return (Float) object;
+    } else if (object instanceof Long) {
+      return ((Long) object).floatValue();
+    } else if (object instanceof Integer) {
+      return ((Integer) object).floatValue();
+    } else if (object instanceof Short) {
+      return ((Short) object).floatValue();
+    } else if (object instanceof String) {
+      String value = (String) object;
+      try {
+        return Float.parseFloat(value);
+      } catch (NumberFormatException e) {
+        throw new RecordConvertorException(
+          String.format("Unable to convert '%s' to float for field name '%s'", value, name), e);
+      }
+    } else {
+      throw new RecordConvertorException(
+        String.format("Schema specifies field '%s' is float, but the value is nor a string or float. " +
+                        "It is of type '%s'", name, object.getClass().getSimpleName())
+      );
+    }
+  }
+
+  private static long schemaTypeIsLONG(String name, Object object) throws RecordConvertorException {
+    if (object instanceof Long) {
+      return (Long) object;
+    } else if (object instanceof Integer) {
+      return ((Integer) object).longValue();
+    } else if (object instanceof Short) {
+      return ((Short) object).longValue();
+    } else if (object instanceof String) {
+      String value = (String) object;
+      try {
+        return Long.parseLong(value);
+      } catch (NumberFormatException e) {
+        throw new RecordConvertorException(
+          String.format("Unable to convert '%s' to long for field name '%s'", value, name), e);
+      }
+    } else {
+      throw new RecordConvertorException(
+        String.format("Schema specifies field '%s' is long, but the value is nor a string or long. " +
+                        "It is of type '%s'", name, object.getClass().getSimpleName())
+      );
+    }
+  }
+
+  private static int schemaTypeIsINT(String name, Object object) throws RecordConvertorException {
+    if (object instanceof Integer || object instanceof Short) {
+      return (Integer) object;
+    } else if (object instanceof String) {
+      String value = (String) object;
+      try {
+        return Integer.parseInt(value);
+      } catch (NumberFormatException e) {
+        throw new RecordConvertorException(
+          String.format("Unable to convert '%s' to integer for field name '%s'", value, name), e);
+      }
+    } else {
+      throw new RecordConvertorException(
+        String.format("Schema specifies field '%s' is integer, but the value is not a integer or string. " +
+                        "It is of type '%s'", name, object.getClass().getSimpleName())
+      );
+    }
   }
 
   private Map<Object, Object> decodeMap(String name,
