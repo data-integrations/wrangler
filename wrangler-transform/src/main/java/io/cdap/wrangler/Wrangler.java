@@ -577,7 +577,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
     if (LANGUAGE_JEXL.equalsIgnoreCase(config.getPreconditionLanguage())
             && LANGUAGE_JEXL.equalsIgnoreCase(config.getExecutionLanguage())) {
-        return new InvalidRelation("Plugin is not configured for relational transformation");
+      return new InvalidRelation("Plugin is not configured for relational transformation");
     }
 
     if (!(Feature.WRANGLER_PRECONDITION_SQL.isEnabled(relationalTranformContext)
