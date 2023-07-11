@@ -38,6 +38,25 @@
           }
         },
         {
+          "widget-type": "radio-group",
+          "name": "executionLanguage",
+          "label": "Execution Language",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "jexl",
+            "options": [
+              {
+                "id": "jexl",
+                "label": "JEXL"
+              },
+              {
+                "id": "sql",
+                "label": "SQL"
+              }
+            ]
+          }
+        },
+        {
           "widget-type": "textbox",
           "label": "Precondition (JEXL)",
           "name": "precondition",
@@ -50,7 +69,7 @@
           "label": "Precondition (SQL)",
           "name": "preconditionSQL",
           "widget-attributes" : {
-            "default" : "false"
+            "default" : "true"
           }
         }
       ]
@@ -126,7 +145,7 @@
     {
       "name": "PreconditionValueNotSQL",
       "condition": {
-        "expression": "expressionLanguage != 'sql'"
+        "expression": "expressionLanguage == 'jexl' && executionLanguage == 'jexl'"
       },
       "show": [
         {
@@ -138,7 +157,7 @@
     {
       "name": "preconditionValueSQL",
       "condition": {
-        "expression": "expressionLanguage == 'sql'"
+        "expression": "expressionLanguage == 'sql' || executionLanguage == 'sql'"
       },
       "show": [
         {
@@ -150,9 +169,27 @@
     {
       "name": "preconditionSQLEnabled",
       "condition": {
-        "expression": "featureFlags['wrangler.precondition.sql.enabled'] == true"
+        "expression": "featureFlags['wrangler.precondition.sql.enabled'] == true && featureFlags['wrangler.execution.sql.enabled'] == false"
       },
       "show": [
+        {
+          "type": "properties",
+          "name": "expressionLanguage"
+        }
+      ]
+    },
+    {
+      "name": "preconditionSQLEnabled",
+      "condition": {
+        "expression": "featureFlags['wrangler.execution.sql.enabled'] == true"
+      },
+      "show": [
+        {
+          "type": "properties",
+          "name": "executionLanguage"
+        }
+      ],
+      "hide": [
         {
           "type": "properties",
           "name": "expressionLanguage"
