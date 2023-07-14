@@ -588,11 +588,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       return new InvalidRelation("Plugin is not configured for relational transformation");
     }
 
-//    if (!(Feature.WRANGLER_PRECONDITION_SQL.isEnabled(relationalTranformContext)
-//            || Feature.WRANGLER_EXECUTION_SQL.isEnabled(relationalTranformContext))) {
-//      throw new RuntimeException("SQL execution feature is not available");
-//    }
-
     Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
