@@ -18,13 +18,21 @@ package io.cdap.wrangler.executor;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.TestingPipelineContext;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.TransientVariableScope;
+import io.cdap.wrangler.utils.TransientStoreKeys;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests {@link RecipePipelineExecutor}.
@@ -95,5 +103,67 @@ public class RecipePipelineExecutorTest {
     Assert.assertEquals("lperezqt@umn.edu", record.get("email"));
     Assert.assertEquals(1481666448L, record.<Long>get("timestamp").longValue());
     Assert.assertEquals(186.66f, record.get("weight"), 0.0001f);
+  }
+
+  @Test
+  public void testOutputSchemaGeneration() throws Exception {
+    String[] commands = new String[]{
+      "parse-as-csv :body ,",
+      "drop :body",
+      "set-headers :decimal_col,:name,:timestamp,:weight,:date",
+      "set-type :timestamp double",
+    };
+    Schema inputSchema = Schema.recordOf(
+      "input",
+      Schema.Field.of("body", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("decimal_col", Schema.decimalOf(10, 2))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expected",
+      Schema.Field.of("decimal_col", Schema.decimalOf(10, 2)),
+      Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("timestamp", Schema.nullableOf(Schema.of(Schema.Type.DOUBLE))),
+      Schema.Field.of("weight", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
+    );
+    List<Row> inputRows = new ArrayList<>();
+    inputRows.add(new Row("body", "Larry,,186.66,01/01/2000").add("decimal_col", new BigDecimal("123.45")));
+    inputRows.add(new Row("body", "Barry,1481666448,,05/01/2000").add("decimal_col", new BigDecimal("234235456.0000")));
+    ExecutorContext context = new TestingPipelineContext();
+    context.getTransientStore().set(
+      TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
+
+    TestingRig.execute(commands, inputRows, context);
+    Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+
+    for (Schema.Field field : expectedSchema.getFields()) {
+      Assert.assertEquals(field.getName(), outputSchema.getField(field.getName()).getName());
+      Assert.assertEquals(field.getSchema(), outputSchema.getField(field.getName()).getSchema());
+    }
+  }
+
+  @Test
+  public void testOutputSchemaGeneration_doesNotDropNullColumn() throws Exception {
+    Schema inputSchema = Schema.recordOf(
+      "input",
+      Schema.Field.of("id", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("null_col", Schema.of(Schema.Type.STRING))
+    );
+    String[] commands = new String[]{"set-type :id int"};
+    Schema expectedSchema = Schema.recordOf(
+      "expected",
+      Schema.Field.of("id", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("null_col", Schema.of(Schema.Type.STRING))
+    );
+    Row row = new Row();
+    row.add("id", "123");
+    row.add("null_col", null);
+    ExecutorContext context = new TestingPipelineContext();
+    context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
+
+    TestingRig.execute(commands, Collections.singletonList(row), context);
+    Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+
+    Assert.assertEquals(outputSchema.getField("null_col").getSchema(), expectedSchema.getField("null_col").getSchema());
   }
 }

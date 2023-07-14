@@ -16,9 +16,11 @@
 
 package io.cdap.wrangler.api;
 
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
+import javax.annotation.Nullable;
 
 /**
  * A interface defining the wrangle Executor in the wrangling {@link RecipePipeline}.
@@ -80,5 +82,18 @@ public interface Executor<I, O> extends Serializable {
    * correct at this phase of invocation.
    */
   void destroy();
-}
 
+  /**
+   * This method is used to get the updated schema of the data after the directive's transformation has been applied.
+   * @implNote By default, returns a null and the schema is inferred from the data when necessary.
+   * <p>For consistent handling, override for directives that perform column renames,
+   * column data type changes or column additions with specific schemas.</p>
+   * @param inputSchema input {@link Schema} of the data before transformation
+   * @return output {@link Schema} of the transformed data
+   */
+  @Nullable
+  default Schema getOutputSchema(Schema inputSchema) {
+    // no op
+    return null;
+  }
+}

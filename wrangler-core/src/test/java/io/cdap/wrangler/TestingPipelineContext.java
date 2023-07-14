@@ -34,13 +34,13 @@ import java.util.Map;
  * This class {@link TestingPipelineContext} is a runtime context that is provided for each
  * {@link Executor} execution.
  */
-class TestingPipelineContext implements ExecutorContext {
+public class TestingPipelineContext implements ExecutorContext {
   private StageMetrics metrics;
   private String name;
   private TransientStore store;
   private Map<String, String> properties;
 
-  TestingPipelineContext() {
+  public TestingPipelineContext() {
     properties = new HashedMap();
     store = new DefaultTransientStore();
   }
