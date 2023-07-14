@@ -30,7 +30,6 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,8 +61,8 @@ public class RecipePipelineExecutorTest {
 
     RecipePipeline pipeline = TestingRig.execute(commands);
 
-    Row row = new Row("__col", new String("a,b,c,d,e,f,1.0"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
+    Row row = new Row("__col", "a,b,c,d,e,f,1.0");
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Collections.singletonList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("a", record.get("first"));
@@ -94,8 +93,8 @@ public class RecipePipelineExecutorTest {
     );
 
     RecipePipeline pipeline = TestingRig.execute(commands);
-    Row row = new Row("__col", new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
+    Row row = new Row("__col", "Larry,Perez,lperezqt@umn.edu,1481666448,186.66");
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Collections.singletonList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("Larry", record.get("first"));
