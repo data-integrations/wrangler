@@ -179,7 +179,7 @@
       ]
     },
     {
-      "name": "preconditionSQLEnabled",
+      "name": "executionSQLEnabled",
       "condition": {
         "expression": "featureFlags['wrangler.execution.sql.enabled'] == true"
       },
