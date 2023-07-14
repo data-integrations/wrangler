@@ -18,12 +18,14 @@ package io.cdap.wrangler.executor;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.data.schema.Schema.Field;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.Executor;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
@@ -32,11 +34,16 @@ import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.utils.RecordConvertor;
 import io.cdap.wrangler.utils.RecordConvertorException;
+import io.cdap.wrangler.utils.SchemaConverter;
+import io.cdap.wrangler.utils.TransientStoreKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -45,9 +52,11 @@ import javax.annotation.Nullable;
 public final class RecipePipelineExecutor implements RecipePipeline<Row, StructuredRecord, ErrorRecord> {
 
   private static final Logger LOG = LoggerFactory.getLogger(RecipePipelineExecutor.class);
+  private static final String TEMP_SCHEMA_FIELD_NAME = "temporarySchemaField";
 
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private final RecordConvertor convertor = new RecordConvertor();
+  private final SchemaConverter generator = new SchemaConverter();
   private final RecipeParser recipeParser;
   private final ExecutorContext context;
   private List<Directive> directives;
@@ -112,6 +121,12 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
           context.getTransientStore().reset(TransientVariableScope.LOCAL);
         }
 
+        // Initialize schema with input schema from TransientStore if running in service env (design-time) / testing env
+        boolean designTime = context.getEnvironment() != null &&
+          context.getEnvironment().equals(ExecutorContext.Environment.SERVICE) ||
+          context.getEnvironment().equals(ExecutorContext.Environment.TESTING);
+        Schema schema = designTime ? context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA) : null;
+
         List<Row> cumulativeRows = rows.subList(i, i + 1);
         directiveIndex = 0;
         try {
@@ -122,13 +137,25 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
               if (cumulativeRows.size() < 1) {
                 break;
               }
+              if (designTime && schema != null) {
+                Schema directiveOutputSchema = directive.getOutputSchema(schema);
+                schema = directiveOutputSchema != null ? directiveOutputSchema
+                  : generateOutputSchema(schema, cumulativeRows);
+              }
             } catch (ReportErrorAndProceed e) {
               messages.add(String.format("%s (ecode: %d)", e.getMessage(), e.getCode()));
               collector
                 .add(new ErrorRecord(rows.subList(i, i + 1).get(0), String.join(",", messages), e.getCode(), true));
               cumulativeRows = new ArrayList<>();
               break;
+            } catch (RecordConvertorException e) {
+              throw new RecipeException("Error while generating schema: " + e.getMessage(), e);
             }
+          }
+          if (designTime && schema != null) {
+            Schema previousRowSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+            schema = previousRowSchema != null ? getSchemaUnion(previousRowSchema, schema) : schema;
+            context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.OUTPUT_SCHEMA, schema);
           }
           results.addAll(cumulativeRows);
         } catch (ErrorRowException e) {
@@ -160,5 +187,56 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       this.directives = recipeParser.parse();
     }
     return directives;
+  }
+
+  private Schema generateOutputSchema(Schema inputSchema, List<Row> output) throws RecordConvertorException {
+    Map<String, Schema> outputFieldMap = new LinkedHashMap<>();
+    for (Row row : output) {
+      for (Pair<String, Object> rowField : row.getFields()) {
+        String fieldName = rowField.getFirst();
+        Object fieldValue = rowField.getSecond();
+
+        Schema existing = inputSchema.getField(fieldName) != null ? inputSchema.getField(fieldName).getSchema() : null;
+        Schema generated = fieldValue != null && !isValidSchemaForValue(existing, fieldValue) ?
+          generator.getSchema(fieldValue, fieldName) : null;
+
+        if (generated != null) {
+          outputFieldMap.put(fieldName, generated);
+        } else if (existing != null) {
+          outputFieldMap.put(fieldName, existing);
+        }
+      }
+    }
+    List<Field> outputFields = outputFieldMap.entrySet().stream()
+      .map(e -> Schema.Field.of(e.getKey(), e.getValue()))
+      .collect(Collectors.toList());
+    return Schema.recordOf("output", outputFields);
+  }
+
+  // Checks whether the provided input schema is of valid type for given object
+  private boolean isValidSchemaForValue(@Nullable Schema schema, Object value) throws RecordConvertorException {
+    if (schema == null) {
+      return false;
+    }
+    Schema generated = generator.getSchema(value, TEMP_SCHEMA_FIELD_NAME);
+    generated = generated.isNullable() ? generated.getNonNullable() : generated;
+    schema = schema.isNullable() ? schema.getNonNullable() : schema;
+    return generated.getType().equals(schema.getType());
+  }
+
+  // Gets the union of fields in two schemas while maintaining insertion order and uniqueness of fields. If the same
+  // field exists with two different schemas, the second schema overwrites first one
+  private Schema getSchemaUnion(Schema first, Schema second) {
+    Map<String, Schema> fieldMap = new LinkedHashMap<>();
+    for (Field field : first.getFields()) {
+      fieldMap.put(field.getName(), field.getSchema());
+    }
+    for (Field field : second.getFields()) {
+      fieldMap.put(field.getName(), field.getSchema());
+    }
+    List<Field> outputFields = fieldMap.entrySet().stream()
+      .map(e -> Schema.Field.of(e.getKey(), e.getValue()))
+      .collect(Collectors.toList());
+    return Schema.recordOf("union", outputFields);
   }
 }

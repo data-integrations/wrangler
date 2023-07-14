@@ -60,7 +60,7 @@ public final class TestingRig {
    */
   public static List<Row> execute(String[] recipe, List<Row> rows)
     throws RecipeException, DirectiveParseException, DirectiveLoadException {
-    return execute(recipe, rows, null);
+    return execute(recipe, rows, new TestingPipelineContext());
   }
 
   public static List<Row> execute(String[] recipe, List<Row> rows, ExecutorContext context)
@@ -83,7 +83,7 @@ public final class TestingRig {
    */
   public static Pair<List<Row>, List<Row>> executeWithErrors(String[] recipe, List<Row> rows)
     throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
-    return executeWithErrors(recipe, rows, null);
+    return executeWithErrors(recipe, rows, new TestingPipelineContext());
   }
 
   public static Pair<List<Row>, List<Row>> executeWithErrors(String[] recipe, List<Row> rows, ExecutorContext context)
