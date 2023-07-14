@@ -39,19 +39,19 @@
         },
         {
           "widget-type": "radio-group",
-          "name": "executionLanguage",
-          "label": "Execution Language",
+          "name": "sqlExecution",
+          "label": "Enable SQL Execution",
           "widget-attributes": {
             "layout": "inline",
-            "default": "jexl",
+            "default": "no",
             "options": [
               {
-                "id": "jexl",
-                "label": "JEXL"
+                "id": "yes",
+                "label": "Yes"
               },
               {
-                "id": "sql",
-                "label": "SQL"
+                "id": "no",
+                "label": "No"
               }
             ]
           }
@@ -145,7 +145,7 @@
     {
       "name": "PreconditionValueNotSQL",
       "condition": {
-        "expression": "expressionLanguage == 'jexl' && executionLanguage == 'jexl'"
+        "expression": "expressionLanguage == 'jexl' && sqlExecution == 'no'"
       },
       "show": [
         {
@@ -157,7 +157,7 @@
     {
       "name": "preconditionValueSQL",
       "condition": {
-        "expression": "expressionLanguage == 'sql' || executionLanguage == 'sql'"
+        "expression": "expressionLanguage == 'sql' || sqlExecution == 'yes'"
       },
       "show": [
         {
@@ -186,13 +186,7 @@
       "show": [
         {
           "type": "properties",
-          "name": "executionLanguage"
-        }
-      ],
-      "hide": [
-        {
-          "type": "properties",
-          "name": "expressionLanguage"
+          "name": "sqlExecution"
         }
       ]
     }

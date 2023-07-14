@@ -122,8 +122,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   public static final String DIRECTIVE_ENTITY_TYPE = "directive";
 
   // Precondition languages
-  private static final String LANGUAGE_JEXL = "jexl";
-  private static final String LANGUAGE_SQL = "sql";
+  private static final String JEXL = "jexl";
+  private static final String SQL = "sql";
+
+  // Sql execution value
+  private static final String SQL_ENABLED = "yes";
 
   // Plugin configuration.
   private final Config config;
@@ -148,8 +151,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
   // on error strategy
   private String onErrorStrategy;
-
-  private boolean isSqlExecutionEnabled;
 
   // This is used only for tests, otherwise this is being injected by the ingestion framework.
   public Wrangler(Config config) {
@@ -188,10 +189,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
         }
       }
 
-      isSqlExecutionEnabled = checkSQLExecution(config);
-
       if (!config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-        if (isSqlExecutionEnabled) {
+        if (checkSQLExecution(config)) {
           if (!config.containsMacro(Config.NAME_PRECONDITION_SQL)) {
             validatePrecondition(config.getPreconditionSQL(), true, collector);
           }
@@ -265,7 +264,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
       // Check if jexl pre-condition is not null or empty and if so compile expression.
       if (!config.containsMacro(Config.NAME_PRECONDITION) && !config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-        if (!isSqlExecutionEnabled && checkPreconditionNotEmpty(false)) {
+        if (!checkSQLExecution(config) && checkPreconditionNotEmpty(false)) {
           try {
             new Precondition(config.getPreconditionJEXL());
           } catch (PreconditionException e) {
@@ -357,7 +356,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     // Check if jexl pre-condition is not null or empty and if so compile expression.
     if (!config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-      if (!isSqlExecutionEnabled && checkPreconditionNotEmpty(false)) {
+      if (!checkSQLExecution(config) && checkPreconditionNotEmpty(false)) {
         try {
           condition = new Precondition(config.getPreconditionJEXL());
         } catch (PreconditionException e) {
@@ -414,7 +413,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       }
 
       // If pre-condition is set, then evaluate the precondition
-      if (!isSqlExecutionEnabled && checkPreconditionNotEmpty(false)) {
+      if (!checkSQLExecution(config) && checkPreconditionNotEmpty(false)) {
         boolean skip = condition.apply(row);
         if (skip) {
           getContext().getMetrics().count("precondition.filtered", 1);
@@ -549,13 +548,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
 
     if (!Strings.isNullOrEmpty(config.getPreconditionLanguage())) {
-      if (LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())) {
-        return true;
-      }
+      return SQL.equalsIgnoreCase(config.getPreconditionLanguage());
     }
 
-    if (!Strings.isNullOrEmpty(config.getExecutionLanguage())) {
-      return LANGUAGE_SQL.equalsIgnoreCase(config.getExecutionLanguage()) ? true : false;
+    if (!Strings.isNullOrEmpty(config.getSqlExecution())) {
+      return SQL_ENABLED.equalsIgnoreCase(config.getSqlExecution());
     }
 
     // for backwards compatibility
@@ -587,7 +584,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
-    if (!isSqlExecutionEnabled) {
+    if (!checkSQLExecution(config)) {
       return new InvalidRelation("Plugin is not configured for relational transformation");
     }
 
@@ -690,7 +687,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     static final String NAME_PRECONDITION = "precondition";
     static final String NAME_PRECONDITION_SQL = "preconditionSQL";
     static final String NAME_PRECONDITION_LANGUAGE = "expressionLanguage";
-    static final String NAME_EXECUTION_LANGUAGE = "executionLanguage";
+    static final String NAME_SQL_EXECUTION = "sqlExecution";
     static final String NAME_FIELD = "field";
     static final String NAME_DIRECTIVES = "directives";
     static final String NAME_RELATIONAL_DIRECTIVES = "relationalDirectives";
@@ -704,11 +701,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Nullable
     private String preconditionLanguage;
 
-    @Name(NAME_EXECUTION_LANGUAGE)
+    @Name(NAME_SQL_EXECUTION)
     @Description("Toggle to configure execution language between JEXL and SQL")
     @Macro
     @Nullable
-    private String executionLanguage;
+    private String sqlExecution;
 
     @Name(NAME_PRECONDITION)
     @Description("JEXL Precondition expression specifying filtering before applying directives (true to filter)")
@@ -752,10 +749,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Nullable
     private final String onError;
 
-    public Config(String preconditionLanguage, String executionLanguage, String precondition, String directives,
+    public Config(String preconditionLanguage, String sqlExecution, String precondition, String directives,
                   String udds, String field, String schema, String onError, String relationalDirectives) {
       this.preconditionLanguage = preconditionLanguage;
-      this.executionLanguage = executionLanguage;
+      this.sqlExecution = sqlExecution;
       this.precondition = precondition;
       this.directives = directives;
       this.udds = udds;
@@ -775,8 +772,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     public String getPreconditionLanguage() {
       return preconditionLanguage;
     }
-    public String getExecutionLanguage() {
-      return executionLanguage;
+    public String getSqlExecution() {
+      return sqlExecution;
     }
 
     public String getPreconditionJEXL() {
