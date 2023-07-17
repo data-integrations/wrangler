@@ -15,18 +15,11 @@ package io.cdap.plugin.wrangler.stepsdesign;
  * the License.
  */
 
-import io.cdap.e2e.pages.locators.CdfConnectionLocators;
 import io.cdap.e2e.utils.CdfHelper;
-import io.cdap.e2e.utils.ElementHelper;
 import io.cdap.e2e.utils.PluginPropertyUtils;
-import io.cdap.e2e.utils.SeleniumHelper;
 import io.cdap.plugin.wrangler.actions.ValidationHelper;
-import io.cdap.plugin.wrangler.actions.WranglerPropertiesPageActions;
-import io.cdap.plugin.wrangler.locators.WranglerPropertiesPage;
 import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import org.junit.Assert;
-import org.openqa.selenium.WebElement;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -36,15 +29,6 @@ import java.net.URISyntaxException;
  */
 
 public class Wrangler implements CdfHelper {
-
-    static {
-        SeleniumHelper.getPropertiesLocators(WranglerPropertiesPage.class);
-    }
-
-    @Then("Rename the pipeline")
-    public void renameThePipeline() {
-        WranglerPropertiesPageActions.renameThePipeline();
-    }
 
     @Then("Validate The Data From BQ To BQ With Actual And Expected File for: {string}")
     public void validateTheDataFromBQToBQWithActualAndExpectedFileFor(String expectedFile) throws IOException,

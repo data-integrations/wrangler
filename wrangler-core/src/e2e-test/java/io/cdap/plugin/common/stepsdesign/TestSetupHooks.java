@@ -51,21 +51,21 @@ public class TestSetupHooks {
     BeforeActions.scenario.write("BQ Target table name - " + bqTargetTableName);
   }
 
-  @After(order = 1, value = "@BQ_SINK_TEST")
-  public static void deleteTempTargetBQTable() throws IOException, InterruptedException {
-    String bqTargetTableName = PluginPropertyUtils.pluginProp("bqTargetTable");
-    try {
-      BigQueryClient.dropBqQuery(bqTargetTableName);
-      BeforeActions.scenario.write("BQ Target table - " + bqTargetTableName + " deleted successfully");
-      PluginPropertyUtils.removePluginProp("bqTargetTable");
-    } catch (BigQueryException e) {
-      if (e.getMessage().contains("Not found: Table")) {
-        BeforeActions.scenario.write("BQ Target Table " + bqTargetTableName + " does not exist");
-      } else {
-        Assert.fail(e.getMessage());
-      }
-    }
-  }
+////  @After(order = 1, value = "@BQ_SINK_TEST")
+////  public static void deleteTempTargetBQTable() throws IOException, InterruptedException {
+////    String bqTargetTableName = PluginPropertyUtils.pluginProp("bqTargetTable");
+////    try {
+////      BigQueryClient.dropBqQuery(bqTargetTableName);
+////      BeforeActions.scenario.write("BQ Target table - " + bqTargetTableName + " deleted successfully");
+////      PluginPropertyUtils.removePluginProp("bqTargetTable");
+////    } catch (BigQueryException e) {
+////      if (e.getMessage().contains("Not found: Table")) {
+////        BeforeActions.scenario.write("BQ Target Table " + bqTargetTableName + " does not exist");
+////      } else {
+////        Assert.fail(e.getMessage());
+////      }
+////    }
+//  }
 
   /**
    * Create BigQuery table.
