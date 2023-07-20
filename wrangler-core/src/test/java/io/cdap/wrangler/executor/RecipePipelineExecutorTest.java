@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -163,6 +164,39 @@ public class RecipePipelineExecutorTest {
     TestingRig.execute(commands, Collections.singletonList(row), context);
     Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
 
-    Assert.assertEquals(outputSchema.getField("null_col").getSchema(), expectedSchema.getField("null_col").getSchema());
+    Assert.assertEquals(expectedSchema.getField("null_col").getSchema(), outputSchema.getField("null_col").getSchema());
+  }
+
+  @Test
+  public void testOutputSchemaGeneration_columnOrdering() throws Exception {
+    Schema inputSchema = Schema.recordOf(
+      "input",
+      Schema.Field.of("body", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("value", Schema.of(Schema.Type.INT))
+    );
+    String[] commands = new String[] {
+      "parse-as-json :body 1",
+      "set-type :value long"
+    };
+    List<Schema.Field> expectedFields = Arrays.asList(
+      Schema.Field.of("value", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
+      Schema.Field.of("body_A", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
+      Schema.Field.of("body_B", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("body_C", Schema.nullableOf(Schema.of(Schema.Type.DOUBLE)))
+    );
+    Row row1 = new Row().add("body", "{\"A\":1, \"B\":\"hello\"}").add("value", 10L);
+    Row row2 = new Row().add("body", "{\"C\":1.23, \"A\":1, \"B\":\"world\"}").add("value", 20L);
+    ExecutorContext context = new TestingPipelineContext();
+    context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
+
+    TestingRig.execute(commands, Arrays.asList(row1, row2), context);
+    Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+    List<Schema.Field> outputFields = outputSchema.getFields();
+
+    Assert.assertEquals(expectedFields.size(), outputFields.size());
+    for (int i = 0; i < expectedFields.size(); i++) {
+      Assert.assertEquals(expectedFields.get(i).getName(), outputFields.get(i).getName());
+      Assert.assertEquals(expectedFields.get(i).getSchema(), outputFields.get(i).getSchema());
+    }
   }
 }

@@ -401,16 +401,11 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
       List<String> directives = new ArrayList<>(detail.getWorkspace().getDirectives());
       UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
-      List<Row> output = executeDirectives(ns.getName(), directives, detail, userDirectivesCollector);
+      executeDirectives(ns.getName(), directives, detail, userDirectivesCollector);
       userDirectivesCollector.addLoadDirectivesPragma(directives);
 
       Schema outputSchema = TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) != null ?
         TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) : TRANSIENT_STORE.get(TransientStoreKeys.INPUT_SCHEMA);
-
-      List<Schema.Field> fields = new ArrayList<>();
-      for (String column : getAllColumns(output)) {
-        fields.add(outputSchema.getField(column));
-      }
 
       // check if the rows are empty before going to create a record schema, it will result in a 400 if empty fields
       // are passed to a record type schema
@@ -423,7 +418,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
       ArtifactSummary wrangler = composite.getLatestWranglerArtifact();
       responder.sendString(GSON.toJson(new WorkspaceSpec(
-        srcSpecs, new StageSpec(Schema.recordOf(fields), new Plugin("Wrangler", "transform", properties,
+        srcSpecs, new StageSpec(outputSchema, new Plugin("Wrangler", "transform", properties,
                              wrangler == null ? null :
                                new Artifact(wrangler.getName(), wrangler.getVersion(),
                                             wrangler.getScope().name().toLowerCase()))))));
