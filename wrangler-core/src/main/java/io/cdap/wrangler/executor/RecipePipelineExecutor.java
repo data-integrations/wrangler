@@ -39,9 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
@@ -112,6 +110,10 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     boolean designTime = context != null && context.getEnvironment() != null &&
       (context.getEnvironment().equals(ExecutorContext.Environment.SERVICE) ||
       context.getEnvironment().equals(ExecutorContext.Environment.TESTING));
+    Schema inputSchema = designTime ? context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA) : null;
+
+    OutputSchemaGenerator outputSchemaGenerator = designTime && inputSchema != null ?
+      new OutputSchemaGenerator(inputSchema, directives) : null;
 
     try {
       collector.reset();
@@ -121,7 +123,6 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         if (context != null) {
           context.getTransientStore().reset(TransientVariableScope.LOCAL);
         }
-        Schema schema = designTime ? context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA) : null;
 
         List<Row> cumulativeRows = rows.subList(i, i + 1);
         directiveIndex = 0;
@@ -133,10 +134,10 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
               if (cumulativeRows.size() < 1) {
                 break;
               }
-              if (designTime && schema != null) {
-                Schema directiveOutputSchema = directive.getOutputSchema(schema);
-                schema = directiveOutputSchema != null ? directiveOutputSchema
-                  : OutputSchemaGenerator.generateOutputSchema(schema, getRowUnion(cumulativeRows));
+              if (designTime && inputSchema != null) {
+                for (Pair<String, Object> field : getRowUnion(cumulativeRows).getFields()) {
+                  outputSchemaGenerator.addDirectiveField(directiveIndex - 1, field.getFirst(), field.getSecond());
+                }
               }
             } catch (ReportErrorAndProceed e) {
               messages.add(String.format("%s (ecode: %d)", e.getMessage(), e.getCode()));
@@ -144,30 +145,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
                 .add(new ErrorRecord(rows.subList(i, i + 1).get(0), String.join(",", messages), e.getCode(), true));
               cumulativeRows = new ArrayList<>();
               break;
-            } catch (RecordConvertorException e) {
-              throw new RecipeException("Error while generating schema: " + e.getMessage(), e);
             }
-          }
-          // After executing all directives on a row, take union of previous row's schema and this one's schema
-          // to ensure all output columns are included in final output schema
-          if (designTime && schema != null) {
-            Schema previousRowSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
-            // If this is the first row, initialize previousRowSchema with input schema fields for all columns in output
-            if (previousRowSchema == null) {
-              Schema inputSchema = context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA);
-              List<Schema.Field> inputFields = new ArrayList<>();
-              for (Pair<String, Object> field : getRowUnion(cumulativeRows).getFields()) {
-                Schema.Field existing = inputSchema.getField(field.getFirst());
-                if (existing != null) {
-                  inputFields.add(existing);
-                }
-              }
-              if (!inputFields.isEmpty()) {
-                previousRowSchema = Schema.recordOf(inputFields);
-              }
-            }
-            context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.OUTPUT_SCHEMA,
-                                            OutputSchemaGenerator.getSchemaUnion(previousRowSchema, schema));
           }
           results.addAll(cumulativeRows);
         } catch (ErrorRowException e) {
@@ -180,6 +158,15 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       }
     } catch (DirectiveExecutionException e) {
       throw new RecipeException(e.getMessage(), e, i, directiveIndex);
+    }
+    // Schema generation
+    if (designTime && inputSchema != null) {
+      try {
+        context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.OUTPUT_SCHEMA,
+                                        outputSchemaGenerator.generateOutputSchema());
+      } catch (RecordConvertorException e) {
+        throw new RuntimeException(e);
+      }
     }
     return results;
   }
