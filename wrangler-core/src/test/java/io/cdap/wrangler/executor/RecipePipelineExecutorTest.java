@@ -127,8 +127,8 @@ public class RecipePipelineExecutorTest {
       Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
     );
     List<Row> inputRows = new ArrayList<>();
-    inputRows.add(new Row("body", "Larry,,186.66,01/01/2000").add("decimal_col", new BigDecimal("123.45")));
-    inputRows.add(new Row("body", "Barry,1481666448,,05/01/2000").add("decimal_col", new BigDecimal("234235456.0000")));
+    inputRows.add(new Row("body", "Larry,1481666448,01/01/2000").add("decimal_col", new BigDecimal("123.45")));
+    inputRows.add(new Row("body", "Barry,,172.3,05/01/2000").add("decimal_col", new BigDecimal("234235456.0000")));
     ExecutorContext context = new TestingPipelineContext();
     context.getTransientStore().set(
       TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
