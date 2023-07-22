@@ -103,12 +103,15 @@ public class Swap implements Directive, Lineage {
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext,
                             Relation relation) {
+
     Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
             .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    Relation tempRel =  relation.setColumn(left, expressionFactory.get().compile(right));
-    return tempRel.setColumn(right, expressionFactory.get().compile(left));
+
+    Relation tempRel =  relation.setColumn("tempColumn", expressionFactory.get().compile(right));
+    tempRel = tempRel.setColumn(right, expressionFactory.get().compile(left));
+    return tempRel.setColumn(left, expressionFactory.get().compile("tempColumn"));
   }
 }
