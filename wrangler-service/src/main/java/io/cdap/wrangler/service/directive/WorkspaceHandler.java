@@ -74,11 +74,11 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceSpec;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceUpdateRequest;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
+import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.store.recipe.RecipeStore;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
-import io.cdap.wrangler.utils.TransientStoreKeys;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.net.HttpURLConnection;

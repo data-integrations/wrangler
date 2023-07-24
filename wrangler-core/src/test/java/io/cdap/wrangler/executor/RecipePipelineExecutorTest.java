@@ -24,7 +24,7 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
-import io.cdap.wrangler.utils.TransientStoreKeys;
+import io.cdap.wrangler.schema.TransientStoreKeys;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -120,7 +120,7 @@ public class RecipePipelineExecutorTest {
     );
     Schema expectedSchema = Schema.recordOf(
       "expected",
-      Schema.Field.of("decimal_col", Schema.decimalOf(10, 2)),
+      Schema.Field.of("decimal_col", Schema.nullableOf(Schema.decimalOf(10, 2))),
       Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
       Schema.Field.of("timestamp", Schema.nullableOf(Schema.of(Schema.Type.DOUBLE))),
       Schema.Field.of("weight", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
@@ -152,8 +152,8 @@ public class RecipePipelineExecutorTest {
     String[] commands = new String[]{"set-type :id int"};
     Schema expectedSchema = Schema.recordOf(
       "expected",
-      Schema.Field.of("id", Schema.of(Schema.Type.INT)),
-      Schema.Field.of("null_col", Schema.of(Schema.Type.STRING))
+      Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+      Schema.Field.of("null_col", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
     );
     Row row = new Row();
     row.add("id", "123");

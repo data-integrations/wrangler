@@ -49,10 +49,10 @@ import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
+import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.statistics.BasicStatistics;
 import io.cdap.wrangler.statistics.Statistics;
-import io.cdap.wrangler.utils.TransientStoreKeys;
 import io.cdap.wrangler.validator.ColumnNameValidator;
 import io.cdap.wrangler.validator.Validator;
 import io.cdap.wrangler.validator.ValidatorException;
@@ -64,7 +64,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -266,21 +265,6 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
   }
 
   /**
-   * Method to get the list of columns across all the given rows
-   * @param rows list of rows
-   * @return list of columns (union across columns in all rows)
-   */
-  public static List<String> getAllColumns(List<Row> rows) {
-    Set<String> columns = new LinkedHashSet<>();
-    for (Row row : rows) {
-      for (int i = 0; i < row.width(); i++) {
-        columns.add(row.getColumn(i));
-      }
-    }
-    return new ArrayList<>(columns);
-  }
-
-  /**
    * Creates a uber record after iterating through all rows.
    *
    * @param rows list of all rows.
@@ -301,5 +285,4 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     }
     return uber;
   }
-
 }

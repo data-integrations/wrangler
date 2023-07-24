@@ -14,15 +14,18 @@
  * the License.
  */
 
-package io.cdap.wrangler.utils;
+package io.cdap.wrangler.schema;
 
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.SchemaResolutionContext;
+import io.cdap.wrangler.utils.RecordConvertorException;
+import io.cdap.wrangler.utils.SchemaConverter;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -59,7 +62,7 @@ public class DirectiveOutputSchemaGenerator {
             outputFieldMap.put(fieldName, fieldValue);
           }
         } else {
-          outputFieldMap.putIfAbsent(fieldName, fieldValue);
+          outputFieldMap.put(fieldName, fieldValue);
         }
       }
     }
@@ -68,20 +71,22 @@ public class DirectiveOutputSchemaGenerator {
   /**
    * Method to get the output schema of the directive. Returns a generated schema based on maintained map of fields
    * only if directive does not return a custom output schema.
-   * @param inputSchema input {@link Schema} of the data before applying the directive
+   * @param context input {@link Schema} of the data before applying the directive
    * @return {@link Schema} corresponding to the output data
    */
-  public Schema getDirectiveOutputSchema(Schema inputSchema) throws RecordConvertorException {
-    Schema directiveOutputSchema = directive.getOutputSchema(inputSchema);
-    return directiveOutputSchema != null ? directiveOutputSchema : generateDirectiveOutputSchema(inputSchema);
+  public Schema getDirectiveOutputSchema(SchemaResolutionContext context) throws RecordConvertorException {
+    Schema directiveOutputSchema = directive.getOutputSchema(context);
+    return directiveOutputSchema != null ? directiveOutputSchema :
+      generateDirectiveOutputSchema(context.getInputSchema());
   }
 
   // Given the schema from previous step and output of current directive, generates the directive output schema.
   private Schema generateDirectiveOutputSchema(Schema inputSchema)
     throws RecordConvertorException {
-    List<Schema.Field> outputFields = new LinkedList<>();
-    for (String fieldName : outputFieldMap.keySet()) {
-      Object fieldValue = outputFieldMap.get(fieldName);
+    List<Schema.Field> outputFields = new ArrayList<>();
+    for (Map.Entry<String, Object> field : outputFieldMap.entrySet()) {
+      String fieldName = field.getKey();
+      Object fieldValue = field.getValue();
 
       Schema existing = inputSchema.getField(fieldName) != null ? inputSchema.getField(fieldName).getSchema() : null;
       Schema generated = fieldValue != null && !isValidSchemaForValue(existing, fieldValue) ?
@@ -90,6 +95,9 @@ public class DirectiveOutputSchemaGenerator {
       if (generated != null) {
         outputFields.add(Schema.Field.of(fieldName, generated));
       } else if (existing != null) {
+        if (!existing.isNullable()) {
+          existing = Schema.nullableOf(existing);
+        }
         outputFields.add(Schema.Field.of(fieldName, existing));
       } else {
         outputFields.add(Schema.Field.of(fieldName, Schema.of(Schema.Type.NULL)));
