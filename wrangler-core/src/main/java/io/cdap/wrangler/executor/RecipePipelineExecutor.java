@@ -30,11 +30,12 @@ import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.ReportErrorAndProceed;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
-import io.cdap.wrangler.utils.DirectiveOutputSchemaGenerator;
+import io.cdap.wrangler.schema.DirectiveOutputSchemaGenerator;
+import io.cdap.wrangler.schema.DirectiveSchemaResolutionContext;
+import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.utils.RecordConvertor;
 import io.cdap.wrangler.utils.RecordConvertorException;
 import io.cdap.wrangler.utils.SchemaConverter;
-import io.cdap.wrangler.utils.TransientStoreKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,7 +193,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     Schema schema = inputSchema;
     for (DirectiveOutputSchemaGenerator outputSchemaGenerator : outputSchemaGenerators) {
       try {
-        schema = outputSchemaGenerator.getDirectiveOutputSchema(schema);
+        schema = outputSchemaGenerator.getDirectiveOutputSchema(new DirectiveSchemaResolutionContext(schema));
       } catch (RecordConvertorException e) {
         throw new RecipeException("Error while generating output schema for a directive: " + e, e);
       }

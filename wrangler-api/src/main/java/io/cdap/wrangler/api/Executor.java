@@ -85,14 +85,15 @@ public interface Executor<I, O> extends Serializable {
 
   /**
    * This method is used to get the updated schema of the data after the directive's transformation has been applied.
+   *
+   * @param schemaResolutionContext context containing necessary information for getting output schema
+   * @return output {@link Schema} of the transformed data
    * @implNote By default, returns a null and the schema is inferred from the data when necessary.
    * <p>For consistent handling, override for directives that perform column renames,
    * column data type changes or column additions with specific schemas.</p>
-   * @param inputSchema input {@link Schema} of the data before transformation
-   * @return output {@link Schema} of the transformed data
    */
   @Nullable
-  default Schema getOutputSchema(Schema inputSchema) {
+  default Schema getOutputSchema(SchemaResolutionContext schemaResolutionContext) {
     // no op
     return null;
   }

@@ -14,16 +14,16 @@
  * the License.
  */
 
-package io.cdap.wrangler.utils;
+package io.cdap.wrangler.api;
+
+import io.cdap.cdap.api.data.schema.Schema;
 
 /**
- * TransientStoreKeys for storing Workspace schema in TransientStore
+ * Interface to pass contextual information related to getting or generating the output schema of a {@link Executor}
  */
-public final class TransientStoreKeys {
-  public static final String INPUT_SCHEMA = "ws_input_schema";
-  public static final String OUTPUT_SCHEMA = "ws_output_schema";
-
-  private TransientStoreKeys() {
-    throw new AssertionError("Cannot instantiate a static utility class.");
-  }
+public interface SchemaResolutionContext {
+  /**
+   * @return {@link Schema} of the input data before transformation
+   */
+  Schema getInputSchema();
 }
