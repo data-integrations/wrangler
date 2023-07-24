@@ -19,6 +19,10 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -37,6 +41,7 @@ import io.cdap.wrangler.api.parser.NumericList;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -148,4 +153,32 @@ public final class FixedLengthParser implements Directive, Lineage {
       .all(Many.of(col), Many.of(col))
       .build();
   }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    java.util.Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    int currentpos = 1;
+    int columncounter = 1;
+
+    for (int width : widths) {
+      relation = relation.setColumn(String.format("%s_%d", col, columncounter),
+              expressionFactory.get().compile(String
+                      .format("replace(substr(%s, %d, %d), '%s', \"\")"
+                              , col, currentpos, width, padding)))
+              .filter(expressionFactory.get().compile(String.format("%d <= (length(%s) - %d + 1)",
+                      width, col, currentpos)));
+
+      currentpos += width;
+      columncounter++;
+    }
+
+    return relation;
+  }
+
 }
