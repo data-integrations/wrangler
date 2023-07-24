@@ -24,16 +24,16 @@ import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.Executor;
 import io.cdap.wrangler.api.ExecutorContext;
-import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.ReportErrorAndProceed;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
-import io.cdap.wrangler.utils.OutputSchemaGenerator;
+import io.cdap.wrangler.utils.DirectiveOutputSchemaGenerator;
 import io.cdap.wrangler.utils.RecordConvertor;
 import io.cdap.wrangler.utils.RecordConvertorException;
+import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.utils.TransientStoreKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +51,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
 
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private final RecordConvertor convertor = new RecordConvertor();
+  private final SchemaConverter generator = new SchemaConverter();
   private final RecipeParser recipeParser;
   private final ExecutorContext context;
   private List<Directive> directives;
@@ -112,8 +113,12 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       context.getEnvironment().equals(ExecutorContext.Environment.TESTING));
     Schema inputSchema = designTime ? context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA) : null;
 
-    OutputSchemaGenerator outputSchemaGenerator = designTime && inputSchema != null ?
-      new OutputSchemaGenerator(inputSchema, directives) : null;
+    List<DirectiveOutputSchemaGenerator> outputSchemaGenerators = new ArrayList<>();
+    if (designTime && inputSchema != null) {
+      for (Directive directive : directives) {
+        outputSchemaGenerators.add(new DirectiveOutputSchemaGenerator(directive, generator));
+      }
+    }
 
     try {
       collector.reset();
@@ -135,9 +140,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
                 break;
               }
               if (designTime && inputSchema != null) {
-                for (Pair<String, Object> field : getRowUnion(cumulativeRows).getFields()) {
-                  outputSchemaGenerator.addDirectiveField(directiveIndex - 1, field.getFirst(), field.getSecond());
-                }
+                outputSchemaGenerators.get(directiveIndex - 1).addNewOutputFields(cumulativeRows);
               }
             } catch (ReportErrorAndProceed e) {
               messages.add(String.format("%s (ecode: %d)", e.getMessage(), e.getCode()));
@@ -161,12 +164,8 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     }
     // Schema generation
     if (designTime && inputSchema != null) {
-      try {
-        context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.OUTPUT_SCHEMA,
-                                        outputSchemaGenerator.generateOutputSchema());
-      } catch (RecordConvertorException e) {
-        throw new RuntimeException(e);
-      }
+      context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.OUTPUT_SCHEMA,
+                                        getOutputSchema(inputSchema, outputSchemaGenerators));
     }
     return results;
   }
@@ -188,15 +187,16 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     return directives;
   }
 
-  public static Row getRowUnion(List<Row> rows) {
-    Row union = new Row();
-    for (Row row : rows) {
-      for (int i = 0; i < row.width(); ++i) {
-        if (union.find(row.getColumn(i)) == -1) {
-          union.add(row.getColumn(i), row.getValue(i));
-        }
+  private Schema getOutputSchema(Schema inputSchema, List<DirectiveOutputSchemaGenerator> outputSchemaGenerators)
+    throws RecipeException {
+    Schema schema = inputSchema;
+    for (DirectiveOutputSchemaGenerator outputSchemaGenerator : outputSchemaGenerators) {
+      try {
+        schema = outputSchemaGenerator.getDirectiveOutputSchema(schema);
+      } catch (RecordConvertorException e) {
+        throw new RecipeException("Error while generating output schema for a directive: " + e, e);
       }
     }
-    return union;
+    return schema;
   }
 }
