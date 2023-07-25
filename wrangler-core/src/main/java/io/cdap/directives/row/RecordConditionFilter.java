@@ -20,6 +20,10 @@ import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -38,6 +42,7 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,4 +134,16 @@ public class RecordConditionFilter implements Directive, Lineage {
     EntityCountMetric jexlCategoryMetric = getJexlCategoryMetric(el.getScriptParsedText());
     return (jexlCategoryMetric == null) ? null : ImmutableList.of(jexlCategoryMetric);
   }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    java.util.Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+    return relation.filter(expressionFactory.get().compile(el.getScriptParsedText()));
+  }
+
 }
