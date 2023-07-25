@@ -131,6 +131,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   // Sql execution value
   private static final String SQL_ENABLED = "yes";
 
+  // wrangler sql execution mode enabled or not
+
+  public boolean isSqlenabled = false;
+
   // Plugin configuration.
   private final Config config;
 
@@ -356,10 +360,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
                       context.getStageName()), e
       );
     }
-
+    // initialize the wrangler sql mode
+    isSqlenabled = checkSQLExecution(config);
+    
     // Check if jexl pre-condition is not null or empty and if so compile expression.
     if (!config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-      if (!checkSQLExecution(config) && checkPreconditionNotEmpty(false)) {
+      if (!isSqlenabled && checkPreconditionNotEmpty(false)) {
         try {
           condition = new Precondition(config.getPreconditionJEXL());
         } catch (PreconditionException e) {
@@ -416,7 +422,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       }
 
       // If pre-condition is set, then evaluate the precondition
-      if (!checkSQLExecution(config) && checkPreconditionNotEmpty(false)) {
+      if (!isSqlenabled && checkPreconditionNotEmpty(false)) {
         boolean skip = condition.apply(row);
         if (skip) {
           getContext().getMetrics().count("precondition.filtered", 1);
