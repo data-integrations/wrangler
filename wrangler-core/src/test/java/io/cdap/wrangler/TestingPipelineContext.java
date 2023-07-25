@@ -24,46 +24,27 @@ import io.cdap.wrangler.api.Executor;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.proto.Contexts;
-import org.apache.commons.collections.map.HashedMap;
 
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * This class {@link TestingPipelineContext} is a runtime context that is provided for each
  * {@link Executor} execution.
  */
-class TestingPipelineContext implements ExecutorContext {
-  private StageMetrics metrics;
-  private String name;
-  private TransientStore store;
-  private Map<String, String> properties;
+public class TestingPipelineContext implements ExecutorContext {
+  private final StageMetrics metrics;
+  private final String name;
+  private final TransientStore store;
+  private final Map<String, String> properties;
 
-  TestingPipelineContext() {
-    properties = new HashedMap();
+  public TestingPipelineContext() {
+    name = "testing";
+    properties = new HashMap<>();
     store = new DefaultTransientStore();
-  }
-
-  /**
-   * @return Environment this context is prepared for.
-   */
-  @Override
-  public Environment getEnvironment() {
-    return Environment.TESTING;
-  }
-
-  @Override
-  public String getNamespace() {
-    return Contexts.SYSTEM;
-  }
-
-  /**
-   * @return Measurements context.
-   */
-  @Override
-  public StageMetrics getMetrics() {
-    return new StageMetrics() {
+    metrics = new StageMetrics() {
       @Override
       public void count(String s, int i) {
 
@@ -97,11 +78,32 @@ class TestingPipelineContext implements ExecutorContext {
   }
 
   /**
+   * @return Environment this context is prepared for.
+   */
+  @Override
+  public Environment getEnvironment() {
+    return Environment.TESTING;
+  }
+
+  @Override
+  public String getNamespace() {
+    return Contexts.SYSTEM;
+  }
+
+  /**
+   * @return Measurements context.
+   */
+  @Override
+  public StageMetrics getMetrics() {
+    return metrics;
+  }
+
+  /**
    * @return Context name.
    */
   @Override
   public String getContextName() {
-    return "testing";
+    return name;
   }
 
   /**

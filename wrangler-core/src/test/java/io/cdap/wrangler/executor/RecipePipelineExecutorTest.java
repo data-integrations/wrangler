@@ -18,13 +18,21 @@ package io.cdap.wrangler.executor;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.TestingPipelineContext;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.TransientVariableScope;
+import io.cdap.wrangler.schema.TransientStoreKeys;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests {@link RecipePipelineExecutor}.
@@ -54,8 +62,8 @@ public class RecipePipelineExecutorTest {
 
     RecipePipeline pipeline = TestingRig.execute(commands);
 
-    Row row = new Row("__col", new String("a,b,c,d,e,f,1.0"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
+    Row row = new Row("__col", "a,b,c,d,e,f,1.0");
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Collections.singletonList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("a", record.get("first"));
@@ -86,8 +94,8 @@ public class RecipePipelineExecutorTest {
     );
 
     RecipePipeline pipeline = TestingRig.execute(commands);
-    Row row = new Row("__col", new String("Larry,Perez,lperezqt@umn.edu,1481666448,186.66"));
-    StructuredRecord record = (StructuredRecord) pipeline.execute(Arrays.asList(row), schema).get(0);
+    Row row = new Row("__col", "Larry,Perez,lperezqt@umn.edu,1481666448,186.66");
+    StructuredRecord record = (StructuredRecord) pipeline.execute(Collections.singletonList(row), schema).get(0);
 
     // Validate the {@link StructuredRecord}
     Assert.assertEquals("Larry", record.get("first"));
@@ -95,5 +103,100 @@ public class RecipePipelineExecutorTest {
     Assert.assertEquals("lperezqt@umn.edu", record.get("email"));
     Assert.assertEquals(1481666448L, record.<Long>get("timestamp").longValue());
     Assert.assertEquals(186.66f, record.get("weight"), 0.0001f);
+  }
+
+  @Test
+  public void testOutputSchemaGeneration() throws Exception {
+    String[] commands = new String[]{
+      "parse-as-csv :body ,",
+      "drop :body",
+      "set-headers :decimal_col,:name,:timestamp,:weight,:date",
+      "set-type :timestamp double",
+    };
+    Schema inputSchema = Schema.recordOf(
+      "input",
+      Schema.Field.of("body", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("decimal_col", Schema.decimalOf(10, 2))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expected",
+      Schema.Field.of("decimal_col", Schema.nullableOf(Schema.decimalOf(10, 2))),
+      Schema.Field.of("name", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("timestamp", Schema.nullableOf(Schema.of(Schema.Type.DOUBLE))),
+      Schema.Field.of("weight", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("date", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
+    );
+    List<Row> inputRows = new ArrayList<>();
+    inputRows.add(new Row("body", "Larry,1481666448,01/01/2000").add("decimal_col", new BigDecimal("123.45")));
+    inputRows.add(new Row("body", "Barry,,172.3,05/01/2000").add("decimal_col", new BigDecimal("234235456.0000")));
+    ExecutorContext context = new TestingPipelineContext();
+    context.getTransientStore().set(
+      TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
+
+    TestingRig.execute(commands, inputRows, context);
+    Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+
+    for (Schema.Field field : expectedSchema.getFields()) {
+      Assert.assertEquals(field.getName(), outputSchema.getField(field.getName()).getName());
+      Assert.assertEquals(field.getSchema(), outputSchema.getField(field.getName()).getSchema());
+    }
+  }
+
+  @Test
+  public void testOutputSchemaGeneration_doesNotDropNullColumn() throws Exception {
+    Schema inputSchema = Schema.recordOf(
+      "input",
+      Schema.Field.of("id", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("null_col", Schema.of(Schema.Type.STRING))
+    );
+    String[] commands = new String[]{"set-type :id int"};
+    Schema expectedSchema = Schema.recordOf(
+      "expected",
+      Schema.Field.of("id", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+      Schema.Field.of("null_col", Schema.nullableOf(Schema.of(Schema.Type.STRING)))
+    );
+    Row row = new Row();
+    row.add("id", "123");
+    row.add("null_col", null);
+    ExecutorContext context = new TestingPipelineContext();
+    context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
+
+    TestingRig.execute(commands, Collections.singletonList(row), context);
+    Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+
+    Assert.assertEquals(expectedSchema.getField("null_col").getSchema(), outputSchema.getField("null_col").getSchema());
+  }
+
+  @Test
+  public void testOutputSchemaGeneration_columnOrdering() throws Exception {
+    Schema inputSchema = Schema.recordOf(
+      "input",
+      Schema.Field.of("body", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("value", Schema.of(Schema.Type.INT))
+    );
+    String[] commands = new String[] {
+      "parse-as-json :body 1",
+      "set-type :value long"
+    };
+    List<Schema.Field> expectedFields = Arrays.asList(
+      Schema.Field.of("value", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
+      Schema.Field.of("body_A", Schema.nullableOf(Schema.of(Schema.Type.LONG))),
+      Schema.Field.of("body_B", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+      Schema.Field.of("body_C", Schema.nullableOf(Schema.of(Schema.Type.DOUBLE)))
+    );
+    Row row1 = new Row().add("body", "{\"A\":1, \"B\":\"hello\"}").add("value", 10L);
+    Row row2 = new Row().add("body", "{\"C\":1.23, \"A\":1, \"B\":\"world\"}").add("value", 20L);
+    ExecutorContext context = new TestingPipelineContext();
+    context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
+
+    TestingRig.execute(commands, Arrays.asList(row1, row2), context);
+    Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+    List<Schema.Field> outputFields = outputSchema.getFields();
+
+    Assert.assertEquals(expectedFields.size(), outputFields.size());
+    for (int i = 0; i < expectedFields.size(); i++) {
+      Assert.assertEquals(expectedFields.get(i).getName(), outputFields.get(i).getName());
+      Assert.assertEquals(expectedFields.get(i).getSchema(), outputFields.get(i).getSchema());
+    }
   }
 }
