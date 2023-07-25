@@ -16,15 +16,19 @@
 
 package io.cdap.wrangler.utils;
 
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.relational.Expression;
 import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -105,4 +109,19 @@ public class SqlExpressionGenerator {
                 return column;
         }
     }
+
+    public static List<String> generateListCols(RelationalTranformContext relationalTranformContext) {
+        List<String> colnames = new ArrayList<String>();
+        Set<String> inputRelationNames = relationalTranformContext.getInputRelationNames();
+        for (String inputRelationName : inputRelationNames) {
+            Schema schema = relationalTranformContext.getInputSchema(inputRelationName);
+            List<Schema.Field> fields = schema.getFields();
+            for (Schema.Field field: fields) {
+                colnames.add(field.getName());
+            }
+        }
+        return colnames;
+    }
+
+
 }
