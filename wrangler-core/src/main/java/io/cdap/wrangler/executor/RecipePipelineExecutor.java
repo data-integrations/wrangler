@@ -30,12 +30,8 @@ import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.ReportErrorAndProceed;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
-import io.cdap.wrangler.schema.DirectiveOutputSchemaGenerator;
-import io.cdap.wrangler.schema.DirectiveSchemaResolutionContext;
-import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.utils.RecordConvertor;
 import io.cdap.wrangler.utils.RecordConvertorException;
-import io.cdap.wrangler.utils.SchemaConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +48,6 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
 
   private final ErrorRecordCollector collector = new ErrorRecordCollector();
   private final RecordConvertor convertor = new RecordConvertor();
-  private final SchemaConverter generator = new SchemaConverter();
   private final RecipeParser recipeParser;
   private final ExecutorContext context;
   private List<Directive> directives;
@@ -108,19 +103,6 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     List<Row> results = new ArrayList<>();
     int i = 0;
     int directiveIndex = 0;
-    // Initialize schema with input schema from TransientStore if running in service env (design-time) / testing env
-    boolean designTime = context != null && context.getEnvironment() != null &&
-      (context.getEnvironment().equals(ExecutorContext.Environment.SERVICE) ||
-      context.getEnvironment().equals(ExecutorContext.Environment.TESTING));
-    Schema inputSchema = designTime ? context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA) : null;
-
-    List<DirectiveOutputSchemaGenerator> outputSchemaGenerators = new ArrayList<>();
-    if (designTime && inputSchema != null) {
-      for (Directive directive : directives) {
-        outputSchemaGenerators.add(new DirectiveOutputSchemaGenerator(directive, generator));
-      }
-    }
-
     try {
       collector.reset();
       while (i < rows.size()) {
@@ -139,9 +121,6 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
               cumulativeRows = directive.execute(cumulativeRows, context);
               if (cumulativeRows.size() < 1) {
                 break;
-              }
-              if (designTime && inputSchema != null) {
-                outputSchemaGenerators.get(directiveIndex - 1).addNewOutputFields(cumulativeRows);
               }
             } catch (ReportErrorAndProceed e) {
               messages.add(String.format("%s (ecode: %d)", e.getMessage(), e.getCode()));
@@ -163,11 +142,6 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     } catch (DirectiveExecutionException e) {
       throw new RecipeException(e.getMessage(), e, i, directiveIndex);
     }
-    // Schema generation
-    if (designTime && inputSchema != null) {
-      context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.OUTPUT_SCHEMA,
-                                        getOutputSchema(inputSchema, outputSchemaGenerators));
-    }
     return results;
   }
 
@@ -186,18 +160,5 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       this.directives = recipeParser.parse();
     }
     return directives;
-  }
-
-  private Schema getOutputSchema(Schema inputSchema, List<DirectiveOutputSchemaGenerator> outputSchemaGenerators)
-    throws RecipeException {
-    Schema schema = inputSchema;
-    for (DirectiveOutputSchemaGenerator outputSchemaGenerator : outputSchemaGenerators) {
-      try {
-        schema = outputSchemaGenerator.getDirectiveOutputSchema(new DirectiveSchemaResolutionContext(schema));
-      } catch (RecordConvertorException e) {
-        throw new RecipeException("Error while generating output schema for a directive: " + e, e);
-      }
-    }
-    return schema;
   }
 }

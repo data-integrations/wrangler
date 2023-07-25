@@ -49,7 +49,6 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.GrammarMigrator;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.DirectiveClass;
 import io.cdap.wrangler.parser.GrammarWalker;
@@ -74,10 +73,10 @@ import io.cdap.wrangler.proto.workspace.v2.WorkspaceSpec;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceUpdateRequest;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
-import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.store.recipe.RecipeStore;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
 import io.cdap.wrangler.utils.ObjectSerDe;
+import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -401,14 +400,14 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
       List<String> directives = new ArrayList<>(detail.getWorkspace().getDirectives());
       UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
-      executeDirectives(ns.getName(), directives, detail, userDirectivesCollector);
+      List<Row> result = executeDirectives(ns.getName(), directives, detail,
+                                           userDirectivesCollector);
       userDirectivesCollector.addLoadDirectivesPragma(directives);
 
-      Schema outputSchema = TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) != null ?
-        TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) : TRANSIENT_STORE.get(TransientStoreKeys.INPUT_SCHEMA);
-
+      SchemaConverter schemaConvertor = new SchemaConverter();
       // check if the rows are empty before going to create a record schema, it will result in a 400 if empty fields
       // are passed to a record type schema
+      Schema schema = result.isEmpty() ? null : schemaConvertor.toSchema("record", createUberRecord(result));
       Map<String, String> properties = ImmutableMap.of("directives", String.join("\n", directives),
                                                        "field", "*",
                                                        "precondition", "false",
@@ -418,7 +417,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
       ArtifactSummary wrangler = composite.getLatestWranglerArtifact();
       responder.sendString(GSON.toJson(new WorkspaceSpec(
-        srcSpecs, new StageSpec(outputSchema, new Plugin("Wrangler", "transform", properties,
+        srcSpecs, new StageSpec(
+          schema, new Plugin("Wrangler", "transform", properties,
                              wrangler == null ? null :
                                new Artifact(wrangler.getName(), wrangler.getVersion(),
                                             wrangler.getScope().name().toLowerCase()))))));
@@ -540,9 +540,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                                                             GrammarWalker.Visitor<E> grammarVisitor) throws Exception {
     // Remove all the #pragma from the existing directives. New ones will be generated.
     directives.removeIf(d -> PRAGMA_PATTERN.matcher(d).find());
-    Schema inputSchema = detail.getWorkspace().getSampleSpec().getRelatedPlugins().iterator().next().getSchema();
-    TRANSIENT_STORE.reset(TransientVariableScope.GLOBAL);
-    TRANSIENT_STORE.set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
 
     return getContext().isRemoteTaskEnabled() ?
       executeRemotely(namespace, directives, detail, grammarVisitor) :

@@ -32,7 +32,6 @@ import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
 import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.GrammarBasedParser;
@@ -49,10 +48,10 @@ import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
-import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.statistics.BasicStatistics;
 import io.cdap.wrangler.statistics.Statistics;
+import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.validator.ColumnNameValidator;
 import io.cdap.wrangler.validator.Validator;
 import io.cdap.wrangler.validator.ValidatorException;
@@ -63,7 +62,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,7 +81,6 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
   protected static final String COLUMN_NAME = "body";
   protected static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   protected static final String DELIMITER_HEADER = "delimiter";
-  protected static final TransientStore TRANSIENT_STORE = new DefaultTransientStore();
 
   protected DirectiveRegistry composite;
 
@@ -135,7 +133,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     try (RecipePipelineExecutor executor = new RecipePipelineExecutor(parser,
                                                                       new ServicePipelineContext(
                                                                         namespace, ExecutorContext.Environment.SERVICE,
-                                                                        getContext(), TRANSIENT_STORE))) {
+                                                                        getContext(), new DefaultTransientStore()))) {
       List<Row> result = executor.execute(sample);
 
       List<ErrorRecordBase> errors = executor.errors()
@@ -156,19 +154,10 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
   protected DirectiveExecutionResponse generateExecutionResponse(
     List<Row> rows, int limit) throws Exception {
     List<Map<String, Object>> values = new ArrayList<>(rows.size());
-    Map<String, String> types = new LinkedHashMap<>();
+    Map<String, String> types = new HashMap<>();
+    Set<String> headers = new LinkedHashSet<>();
+    SchemaConverter convertor = new SchemaConverter();
 
-    Schema outputSchema = TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) != null ?
-      TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) : TRANSIENT_STORE.get(TransientStoreKeys.INPUT_SCHEMA);
-
-    for (Schema.Field field : outputSchema.getFields()) {
-      Schema schema = field.getSchema();
-      schema = schema.isNullable() ? schema.getNonNullable() : schema;
-      String type = schema.getLogicalType() == null ? schema.getType().name() : schema.getLogicalType().name();
-      // for backward compatibility, make the characters except the first one to lower case
-      type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
-      types.put(field.getName(), type);
-    }
     // Iterate through all the new rows.
     for (Row row : rows) {
       // If output array has more than return result values, we terminate.
@@ -181,9 +170,20 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       // Iterate through all the fields of the row.
       for (Pair<String, Object> field : row.getFields()) {
         String fieldName = field.getFirst();
+        headers.add(fieldName);
         Object object = field.getSecond();
 
         if (object != null) {
+          Schema schema = convertor.getSchema(object, fieldName);
+          String type = object.getClass().getSimpleName();
+          if (schema != null) {
+            schema = schema.isNullable() ? schema.getNonNullable() : schema;
+            type = schema.getLogicalType() == null ? schema.getType().name() : schema.getLogicalType().name();
+            // for backward compatibility, make the characters except the first one to lower case
+            type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
+          }
+          types.put(fieldName, type);
+
           if ((object instanceof Iterable)
               || (object instanceof Row)) {
             value.put(fieldName, GSON.toJson(object));
@@ -201,7 +201,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       }
       values.add(value);
     }
-    return new DirectiveExecutionResponse(values, types.keySet(), types, getWorkspaceSummary(rows));
+    return new DirectiveExecutionResponse(values, headers, types, getWorkspaceSummary(rows));
   }
 
   /**
@@ -285,4 +285,5 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     }
     return uber;
   }
+
 }
