@@ -55,7 +55,7 @@ import java.util.List;
  * </code>
  */
 public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics,
-        LinearRelationalTransform {
+    LinearRelationalTransform {
   /**
    * This defines a interface variable that is static and final for specify
    * the {@code type} of the plugin this interface would provide.
@@ -137,5 +137,4 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
     // no-op
     return relation;
   }
-
 }
