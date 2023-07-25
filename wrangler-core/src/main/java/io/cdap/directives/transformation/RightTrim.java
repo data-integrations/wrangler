@@ -105,4 +105,9 @@ public class RightTrim implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile("RTRIM(" + column + ")"));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

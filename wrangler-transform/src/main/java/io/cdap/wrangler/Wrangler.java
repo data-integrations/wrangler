@@ -50,6 +50,7 @@ import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.DirectiveRelationalTransform;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -106,7 +107,7 @@ import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE_NAME;
 @Plugin(type = "transform")
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
-public class Wrangler extends Transform<StructuredRecord, StructuredRecord> implements LinearRelationalTransform {
+public class Wrangler extends Transform<StructuredRecord, StructuredRecord> implements DirectiveRelationalTransform {
   private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
 
   // Configuration specifying the dataprep application and service name.
@@ -524,6 +525,34 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   }
 
   private void validateSQLModeDirectives(FailureCollector collector) {
+
+    String recipe = config.getDirectives();
+
+    registry = SystemDirectiveRegistry.INSTANCE;
+    try {
+      registry.reload("default");
+    } catch (DirectiveLoadException e) {
+      throw new RuntimeException(e);
+    }
+
+    List<Directive> directives = null;
+    try {
+      GrammarBasedParser parser = new GrammarBasedParser("default",
+              new MigrateToV2(recipe).migrate(), registry);
+      directives = parser.parse();
+    } catch (DirectiveParseException e) {
+      throw new RuntimeException(e);
+    } catch (RecipeException e) {
+      throw new RuntimeException(e);
+    }
+
+    for (Directive directive :directives) {
+      if (!directive.isSQLSupported()) {
+        collector.addFailure(String.format("%s directive is not supported by SQL execution.",
+                        directive.define().getDirectiveName()), null)
+                .withConfigProperty(Config.NAME_DIRECTIVES);
+      }
+    }
     if (!Strings.isNullOrEmpty(config.getUDDs())) {
       collector.addFailure("UDDs are not supported for precondition of type SQL", null)
         .withConfigProperty(Config.NAME_UDD);
