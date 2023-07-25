@@ -73,7 +73,9 @@ import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -588,7 +590,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       return new InvalidRelation("Plugin is not configured for relational transformation");
     }
 
-    Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
@@ -607,7 +610,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     List<Directive> directives = null;
     try {
-      GrammarBasedParser parser = new GrammarBasedParser("default", new MigrateToV2(recipe).migrate(), registry);
+      GrammarBasedParser parser = new GrammarBasedParser("default",
+              new MigrateToV2(recipe).migrate(), registry);
       directives = parser.parse();
     } catch (DirectiveParseException e) {
       throw new RuntimeException(e);
@@ -628,10 +632,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       cols.add(col.trim());
     }
     return cols;
-  }
-
-  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
   }
 
   /**
