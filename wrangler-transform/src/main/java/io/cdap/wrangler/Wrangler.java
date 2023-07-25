@@ -38,10 +38,8 @@ import io.cdap.cdap.etl.api.TransformContext;
 import io.cdap.cdap.etl.api.relational.Expression;
 import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
-import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.cdap.features.Feature;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
@@ -201,7 +199,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
           if (!config.containsMacro(Config.NAME_PRECONDITION_SQL)) {
             validatePrecondition(config.getPreconditionSQL(), true, collector);
           }
-          validateSQLModeDirectives(collector);
+          validateSQLModeDirectives(collector, getDirectivesList(config));
         } else {
           if (!config.containsMacro(Config.NAME_PRECONDITION)) {
             validatePrecondition(config.getPreconditionJEXL(), false, collector);
@@ -530,28 +528,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
   }
 
-  private void validateSQLModeDirectives(FailureCollector collector) {
-
-    String recipe = config.getDirectives();
-
-    registry = SystemDirectiveRegistry.INSTANCE;
-    try {
-      registry.reload("default");
-    } catch (DirectiveLoadException e) {
-      throw new RuntimeException(e);
-    }
-
-    List<Directive> directives = null;
-    try {
-      GrammarBasedParser parser = new GrammarBasedParser("default",
-              new MigrateToV2(recipe).migrate(), registry);
-      directives = parser.parse();
-    } catch (DirectiveParseException e) {
-      throw new RuntimeException(e);
-    } catch (RecipeException e) {
-      throw new RuntimeException(e);
-    }
-
+  private void validateSQLModeDirectives(FailureCollector collector, List<Directive> directives) {
     for (Directive directive :directives) {
       if (!directive.isSQLSupported()) {
         collector.addFailure(String.format("%s directive is not supported by SQL execution.",
@@ -594,6 +571,15 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     // for backwards compatibility
     return false;
+  }
+
+  List<Directive> getDirectivesList(Config config) throws Exception{
+    String recipe = config.getDirectives();
+    List<Directive> directives = null;
+    GrammarBasedParser parser = new GrammarBasedParser("default",
+            new MigrateToV2(recipe).migrate(), registry);
+    directives = parser.parse();
+    return directives;
   }
 
   /**
