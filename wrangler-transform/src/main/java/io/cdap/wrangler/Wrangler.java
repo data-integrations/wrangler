@@ -46,6 +46,7 @@ import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.DirectiveRelationalTransform;
@@ -199,7 +200,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
           if (!config.containsMacro(Config.NAME_PRECONDITION_SQL)) {
             validatePrecondition(config.getPreconditionSQL(), true, collector);
           }
-          validateSQLModeDirectives(collector, getDirectivesList(config));
+          validateSQLUDDs(collector);
         } else {
           if (!config.containsMacro(Config.NAME_PRECONDITION)) {
             validatePrecondition(config.getPreconditionJEXL(), false, collector);
@@ -251,6 +252,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
             }
           }
         }
+
+        // check if the directive is supported by SQL
+        if (checkSQLExecution(config)) {
+          List<Directive> sqlDirectives = null;
+          sqlDirectives = getDirectivesList(config);
+          validateSQLModeDirectives(collector, sqlDirectives);
+        }
+
       } catch (CompileException e) {
         collector.addFailure("Compilation error occurred : " + e.getMessage(), null);
       } catch (DirectiveParseException e) {
@@ -536,9 +545,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
                 .withConfigProperty(Config.NAME_DIRECTIVES);
       }
     }
+  }
+
+  private void validateSQLUDDs (FailureCollector collector) {
     if (!Strings.isNullOrEmpty(config.getUDDs())) {
       collector.addFailure("UDDs are not supported for precondition of type SQL", null)
-        .withConfigProperty(Config.NAME_UDD);
+              .withConfigProperty(Config.NAME_UDD);
     }
   }
 
@@ -573,7 +585,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     return false;
   }
 
-  List<Directive> getDirectivesList(Config config) throws Exception{
+  List<Directive> getDirectivesList(Config config) throws DirectiveParseException, RecipeException {
     String recipe = config.getDirectives();
     List<Directive> directives = null;
     GrammarBasedParser parser = new GrammarBasedParser("default",
@@ -620,8 +632,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     Expression filterExpression = expressionFactory.get().compile(config.getPreconditionSQL());
     Relation filteredRelation = relation.filter(filterExpression);
 
-    String recipe = config.getDirectives();
-
     registry = SystemDirectiveRegistry.INSTANCE;
     try {
       registry.reload("default");
@@ -631,12 +641,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     List<Directive> directives = null;
     try {
-      GrammarBasedParser parser = new GrammarBasedParser("default",
-              new MigrateToV2(recipe).migrate(), registry);
-      directives = parser.parse();
-    } catch (DirectiveParseException e) {
-      throw new RuntimeException(e);
-    } catch (RecipeException e) {
+      directives = getDirectivesList(config);
+    } catch (DirectiveParseException | RecipeException e) {
       throw new RuntimeException(e);
     }
 
