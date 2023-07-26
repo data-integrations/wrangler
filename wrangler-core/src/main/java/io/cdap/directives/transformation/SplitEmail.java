@@ -146,13 +146,13 @@ public class SplitEmail implements Directive, Lineage {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
 
-    Relation accountRelation = relation.setColumn(generatedAccountCol, getExpression(expressionFactory));
+    String accountExpression = String
+            .format("substring(%s, 1, char_length(%s) - locate('@', reverse(%s)))", column, column, column);
+    String domainExpression = String.format("substring_index(%s, '@', -1)", column);
+    Relation accountRelation = relation
+            .setColumn(generatedAccountCol, expressionFactory.get().compile(accountExpression));
     return accountRelation.setColumn(generatedDomainCol,
-            expressionFactory.get().compile(String.format("substring_index(%s, '@', -1)", column)));
+            expressionFactory.get().compile(domainExpression));
   }
 
-  Expression getExpression(Optional<ExpressionFactory<String>> expfactory) {
-    return expfactory.get().compile(String
-            .format("substring(%s, 1, char_length(%s) - locate('@', reverse(%s)))", column, column, column));
-  }
 }

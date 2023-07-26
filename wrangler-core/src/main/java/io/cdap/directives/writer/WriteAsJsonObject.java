@@ -130,10 +130,8 @@ public class WriteAsJsonObject implements Directive, Lineage {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
     return relation.setColumn(
-            column, expressionFactory.get().compile(String.format("struct(%s)", getJSONColumns(columns))));
+            column, expressionFactory.get()
+                    .compile(String.format("struct(%s)", String.join(",", columns))));
   }
 
-  String getJSONColumns(List<String> columnList) {
-    return String.join(",", columnList);
-  }
 }
