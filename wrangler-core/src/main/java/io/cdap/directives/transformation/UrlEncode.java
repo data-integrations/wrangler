@@ -117,6 +117,6 @@ public class UrlEncode implements Directive, Lineage {
     }
     return relation.setColumn(
             column, expressionFactory.get().compile(
-                    String.format("reflect('java.net.url.Encoder', 'encode', %s, 'utf-8')", column)));
+                    String.format("reflect('java.net.URLEncoder', 'encode', %s, 'utf-8')", column)));
   }
 }

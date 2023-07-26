@@ -117,7 +117,7 @@ public class UrlDecode implements Directive, Lineage {
     }
     return relation.setColumn(
         column, expressionFactory.get().compile(
-                String.format("reflect('java.net.url.Decoder', 'decode', %s, 'utf-8')", column)));
+                String.format("reflect('java.net.URLDecoder', 'decode', %s, 'utf-8')", column)));
   }
 
 }
