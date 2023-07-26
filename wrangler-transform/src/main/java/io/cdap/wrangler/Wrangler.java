@@ -131,7 +131,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   private static final String SQL_ENABLED = "yes";
 
   // wrangler sql execution mode enabled or not
-
   public boolean isSqlenabled = false;
 
   // Plugin configuration.
@@ -255,9 +254,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
         // check if the directive is supported by SQL
         if (checkSQLExecution(config)) {
-          List<Directive> sqlDirectives = null;
-          sqlDirectives = getDirectivesList(config);
-          validateSQLModeDirectives(collector, sqlDirectives);
+          validateSQLModeDirectives(collector, getDirectivesList(config));
         }
 
       } catch (CompileException e) {
@@ -538,7 +535,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   }
 
   private void validateSQLModeDirectives(FailureCollector collector, List<Directive> directives) {
-    for (Directive directive :directives) {
+    for (Directive directive : directives) {
       if (!directive.isSQLSupported()) {
         collector.addFailure(String.format("%s directive is not supported by SQL execution.",
                         directive.define().getDirectiveName()), null)
@@ -550,7 +547,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   private void validateSQLUDDs (FailureCollector collector) {
     if (!Strings.isNullOrEmpty(config.getUDDs())) {
       collector.addFailure("UDDs are not supported for precondition of type SQL", null)
-              .withConfigProperty(Config.NAME_UDD);
+        .withConfigProperty(Config.NAME_UDD);
     }
   }
 
@@ -587,10 +584,9 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
   List<Directive> getDirectivesList(Config config) throws DirectiveParseException, RecipeException {
     String recipe = config.getDirectives();
-    List<Directive> directives = null;
     GrammarBasedParser parser = new GrammarBasedParser("default",
             new MigrateToV2(recipe).migrate(), registry);
-    directives = parser.parse();
+    List<Directive> directives = parser.parse();
     return directives;
   }
 
