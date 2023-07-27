@@ -173,11 +173,11 @@ public class Decode implements Directive, Lineage {
     if (method.toString().equalsIgnoreCase("base64")) {
       return relation.setColumn(
           String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
-                      .get().compile("unbase64(" + column + ")"));
-    } else if (method.toString().equalsIgnoreCase("base32")) {
+                      .get().compile("string(unbase64(" + column + "))"));
+    } else if (method.toString().equalsIgnoreCase("hex")) {
       return relation.setColumn(
               String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
-                      .get().compile("unhex(" + column + ")"));
+                      .get().compile("string(unhex(" + column + "))"));
     } else {
       return new InvalidRelation(String.format("Decoding of type %s is not supported by " +
               "SQL execution currently", method.toString()));

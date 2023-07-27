@@ -169,7 +169,7 @@ public class Encode implements Directive, Lineage {
       return relation.setColumn(
               String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
                       .get().compile("base64(" + column + ")"));
-    } else if (method.toString().equalsIgnoreCase("base32")) {
+    } else if (method.toString().equalsIgnoreCase("hex")) {
       return relation.setColumn(
               String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
                       .get().compile("hex(" + column + ")"));
