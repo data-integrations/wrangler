@@ -130,11 +130,11 @@ public class Fail implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    return relation.setColumn("tempColumn", expressionFactory.get()
-            .compile(String.format("CASE %s WHEN %s THEN raise_error(\"Condition %s evaluating to true. " +
-                    "Terminating process.\") END", el.getScriptParsedText(),
-                    el.getScriptParsedText(), el.getScriptParsedText())))
-            .dropColumn("tempColumn");
+
+    return relation.setColumn("tempColumn", expressionFactory.get().compile(
+            String.format("if(%s, raise_error(\"Condition '%s' evaluated to true. " +
+                    "Terminating processing.\"), %s)", el.getScriptParsedText(),
+                    el.getScriptParsedText(), el.getScriptParsedText())));
   }
 
 }
