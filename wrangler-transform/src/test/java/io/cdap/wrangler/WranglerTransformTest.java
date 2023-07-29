@@ -16,13 +16,45 @@
 
 package io.cdap.wrangler;
 
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.etl.api.relational.Capability;
+import io.cdap.cdap.etl.api.relational.Engine;
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.ExpressionFactoryType;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
 import io.cdap.cdap.etl.api.relational.Relation;
 
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
+import io.cdap.directives.transformation.Lower;
+import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveLoadException;
+import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.RecipeException;
+import io.cdap.wrangler.parser.GrammarBasedParser;
+import io.cdap.wrangler.parser.MigrateToV2;
+import io.cdap.wrangler.registry.DirectiveRegistry;
+import io.cdap.wrangler.registry.SystemDirectiveRegistry;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
+import org.apache.poi.ss.formula.functions.T;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+
 
 public class WranglerTransformTest {
 
@@ -34,7 +66,6 @@ public class WranglerTransformTest {
         Relation relation = mock(Relation.class);
         Relation resultRelation = mock(Relation.class);
         resultRelation = wrangler.transform(null, relation);
-        //Assert.assertEquals(resultRelation, wrangler.transform(null, relation));
     }
 
     @Test
@@ -43,8 +74,30 @@ public class WranglerTransformTest {
                 "false", "uppercase :Name", null,
                 null, null, null, null));
         Relation relation = mock(Relation.class);
-    Relation invalidrelation = new InvalidRelation("Plugin is not configured for relational transformation");
+        Relation invalidrelation = new InvalidRelation("Plugin is not con" +
+                "figured for relational transformation");
         Assert.assertEquals(invalidrelation.getValidationError(),
                 wrangler.transform(null, relation).getValidationError());
+    }
+
+    public static Relation runTransform(String[] recipe,
+                                        RelationalTranformContext relationalTranformContext,
+                                        Relation relation)
+            throws DirectiveParseException, RecipeException {
+        DirectiveRegistry registry;
+        registry = SystemDirectiveRegistry.INSTANCE;
+        try {
+            registry.reload("default");
+        } catch (DirectiveLoadException e) {
+            throw new RuntimeException(e);
+        }
+
+        GrammarBasedParser parser = new GrammarBasedParser("default",
+                new MigrateToV2(recipe).migrate(), registry);
+        List<Directive> directives = parser.parse();
+        for(Directive directive : directives) {
+            relation = directive.transform(relationalTranformContext, relation);
+        }
+        return relation;
     }
 }

@@ -16,7 +16,15 @@
 
 package io.cdap.directives.column;
 
+import io.cdap.MockEngine;
+import io.cdap.MockExpression;
+import io.cdap.MockRelation;
+import io.cdap.MockRelationalTransformContext;
+import io.cdap.cdap.etl.api.relational.Engine;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
@@ -24,6 +32,9 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static io.cdap.RelationalDirectiveTest.runTransform;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Tests {@link io.cdap.directives.column.Copy}
@@ -96,4 +107,26 @@ public class CopyTest {
     Assert.assertEquals(rows.get(2).getValue("body_2"), rows.get(2).getValue("body_1"));
   }
 
+  @Test
+  public void testRelationColumn() throws DirectiveParseException, RecipeException {
+    MockRelation relation = new MockRelation(null, null);
+    Engine engine = new MockEngine();
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
+            any(), any());
+    String[] recipe = {"copy testColumn testColumn_copy"};
+    Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
+    Assert.assertEquals(((MockRelation) relation1).getColumn(), "testColumn_copy");
+  }
+
+  @Test
+  public void testRelationExpression() throws DirectiveParseException, RecipeException {
+    MockRelation relation = new MockRelation(null, null);
+    Engine engine = new MockEngine();
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
+            any(), any());
+    String[] recipe = {"copy testColumn testColumn_copy"};
+    Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
+    Assert.assertEquals(((MockExpression) ((MockRelation) relation1).getExpression()).getExpression(),
+            "testColumn");
+  }
 }

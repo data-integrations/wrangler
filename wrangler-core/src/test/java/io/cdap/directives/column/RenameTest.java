@@ -16,7 +16,15 @@
 
 package io.cdap.directives.column;
 
+import io.cdap.MockEngine;
+import io.cdap.MockExpression;
+import io.cdap.MockRelation;
+import io.cdap.MockRelationalTransformContext;
+import io.cdap.cdap.etl.api.relational.Engine;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
@@ -24,6 +32,9 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static io.cdap.RelationalDirectiveTest.runTransform;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Tests {@link Rename}
