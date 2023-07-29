@@ -79,25 +79,5 @@ public class WranglerTransformTest {
         Assert.assertEquals(invalidrelation.getValidationError(),
                 wrangler.transform(null, relation).getValidationError());
     }
-
-    public static Relation runTransform(String[] recipe,
-                                        RelationalTranformContext relationalTranformContext,
-                                        Relation relation)
-            throws DirectiveParseException, RecipeException {
-        DirectiveRegistry registry;
-        registry = SystemDirectiveRegistry.INSTANCE;
-        try {
-            registry.reload("default");
-        } catch (DirectiveLoadException e) {
-            throw new RuntimeException(e);
-        }
-
-        GrammarBasedParser parser = new GrammarBasedParser("default",
-                new MigrateToV2(recipe).migrate(), registry);
-        List<Directive> directives = parser.parse();
-        for (Directive directive : directives) {
-            relation = directive.transform(relationalTranformContext, relation);
-        }
-        return relation;
-    }
+    
 }
