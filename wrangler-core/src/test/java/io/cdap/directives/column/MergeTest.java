@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.cdap.RelationalDirectiveTest.runTransform;
-import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Tests {@link Merge}
@@ -123,8 +122,8 @@ public class MergeTest {
   public void testRelationColumn() throws DirectiveParseException, RecipeException {
     MockRelation relation = new MockRelation(null, null);
     Engine engine = new MockEngine();
-    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
-            any(), any());
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
     String[] recipe = {"merge testColumn1 testColumn2 destColumn ','"};
     Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
     Assert.assertEquals(((MockRelation) relation1).getColumn(), "destColumn");
@@ -134,8 +133,8 @@ public class MergeTest {
   public void testRelationExpression() throws DirectiveParseException, RecipeException {
     MockRelation relation = new MockRelation(null, null);
     Engine engine = new MockEngine();
-    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
-            any(), any());
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
     String[] recipe = {"merge testColumn1 testColumn2 destColumn ','"};
     Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
     Assert.assertEquals(((MockExpression) ((MockRelation) relation1).getExpression()).getExpression(),

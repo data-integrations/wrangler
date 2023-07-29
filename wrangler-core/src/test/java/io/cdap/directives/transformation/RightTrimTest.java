@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.cdap.RelationalDirectiveTest.runTransform;
-import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Tests {@link RightTrim}
@@ -91,8 +90,12 @@ public class RightTrimTest {
   public void testRelationColumn() throws DirectiveParseException, RecipeException {
     MockRelation relation = new MockRelation(null, null);
     Engine engine = new MockEngine();
-    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
-            any(), any());
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null
+            , null
+            ,
+            null
+            , null
+    );
     String[] recipe = {"rtrim testColumn"};
     Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
     Assert.assertEquals(((MockRelation) relation1).getColumn(), "testColumn");
@@ -102,8 +105,12 @@ public class RightTrimTest {
   public void testRelationExpression() throws DirectiveParseException, RecipeException {
     MockRelation relation = new MockRelation(null, null);
     Engine engine = new MockEngine();
-    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
-            any(), any());
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null
+            , null
+            ,
+            null
+            , null
+    );
     String[] recipe = {"rtrim testColumn"};
     Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
     Assert.assertEquals(((MockExpression) ((MockRelation) relation1).getExpression()).getExpression(),

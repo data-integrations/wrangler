@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.cdap.RelationalDirectiveTest.runTransform;
-import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Tests {@link Keep}
@@ -62,8 +61,8 @@ public class KeepTest {
   public void testRelationColumn() throws DirectiveParseException, RecipeException {
     MockRelation relation = new MockRelation(null, null);
     Engine engine = new MockEngine();
-    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
-            any(), any());
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
     String[] recipe = {"keep column1"};
     Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
     Assert.assertEquals(((MockRelation) relation1).getColumn(), "column1");
@@ -73,8 +72,8 @@ public class KeepTest {
   public void testRelationExpression() throws DirectiveParseException, RecipeException {
     MockRelation relation = new MockRelation(null, null);
     Engine engine = new MockEngine();
-    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
-            any(), any());
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
     String[] recipe = {"keep column1"};
     Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
     Assert.assertEquals(((MockExpression) ((MockRelation) relation1).getExpression()).getExpression(),
@@ -85,8 +84,8 @@ public class KeepTest {
   public void testMultipleColumns() throws DirectiveParseException, RecipeException {
     MockRelation relation = new MockRelation(null, null);
     Engine engine = new MockEngine();
-    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, any(), any(),
-            any(), any());
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
     String[] recipe = {"keep column1,column2,column3"};
     Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
       String[] outputColumns = ((MockExpression) ((MockRelation) relation1)

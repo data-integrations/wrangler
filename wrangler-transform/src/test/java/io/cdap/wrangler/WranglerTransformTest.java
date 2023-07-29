@@ -69,7 +69,7 @@ public class WranglerTransformTest {
     }
 
     @Test
-    public void InvalidRelationTest () {
+    public void invalidRelationTest () {
         Wrangler wrangler = new Wrangler(new Wrangler.Config("jexl", "No",
                 "false", "uppercase :Name", null,
                 null, null, null, null));
@@ -95,7 +95,7 @@ public class WranglerTransformTest {
         GrammarBasedParser parser = new GrammarBasedParser("default",
                 new MigrateToV2(recipe).migrate(), registry);
         List<Directive> directives = parser.parse();
-        for(Directive directive : directives) {
+        for (Directive directive : directives) {
             relation = directive.transform(relationalTranformContext, relation);
         }
         return relation;
