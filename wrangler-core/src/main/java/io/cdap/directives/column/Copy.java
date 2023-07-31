@@ -125,4 +125,9 @@ public class Copy implements Directive, Lineage {
     return relation.setColumn(destination.value(), expressionFactory.get().compile(source.value()));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

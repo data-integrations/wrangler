@@ -125,4 +125,9 @@ public class Merge implements Directive, Lineage {
             .compile(String.format("CONCAT(%s,'%s',%s)", col1, delimiter, col2)));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

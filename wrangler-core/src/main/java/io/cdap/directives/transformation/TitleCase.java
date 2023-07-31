@@ -105,4 +105,9 @@ public class TitleCase implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile("initcap(" + column + ")"));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

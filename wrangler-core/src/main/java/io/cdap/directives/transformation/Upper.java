@@ -104,4 +104,9 @@ public class Upper implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile("UPPER(" + column + ")"));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }
