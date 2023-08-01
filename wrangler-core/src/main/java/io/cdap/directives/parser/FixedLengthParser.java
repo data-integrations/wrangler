@@ -167,12 +167,13 @@ public final class FixedLengthParser implements Directive, Lineage {
     int columncounter = 1;
 
     for (int width : widths) {
+      String fixedLengthParseExpression = String.format("replace(substr(%s, %d, %d), '%s', \"\")",
+              col, currentpos, width, padding);
+      String filterExcessLengthExpression = String.format("%d <= (length(%s) - %d + 1)", width, col, currentpos);
+
       relation = relation.setColumn(String.format("%s_%d", col, columncounter),
-              expressionFactory.get().compile(String
-                      .format("replace(substr(%s, %d, %d), '%s', \"\")"
-                              , col, currentpos, width, padding)))
-              .filter(expressionFactory.get().compile(String.format("%d <= (length(%s) - %d + 1)",
-                      width, col, currentpos)));
+              expressionFactory.get().compile(fixedLengthParseExpression))
+              .filter(expressionFactory.get().compile(filterExcessLengthExpression));
 
       currentpos += width;
       columncounter++;

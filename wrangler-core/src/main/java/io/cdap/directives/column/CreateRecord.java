@@ -115,11 +115,9 @@ public class CreateRecord implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
+    String getColumnString = String.join(",", columns);
     return relation.setColumn(targetColumn, expressionFactory.get().compile(String
-            .format("struct(%s)", getColumnString(columns))));
+            .format("struct(%s)", getColumnString)));
   }
 
-  public String getColumnString(String[] columns) {
-      return String.join(",", columns);
-  }
 }
