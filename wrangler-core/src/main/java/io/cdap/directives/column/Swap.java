@@ -19,6 +19,10 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,8 +36,10 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A directive for swapping the column names.
@@ -92,5 +98,20 @@ public class Swap implements Directive, Lineage {
       .readable("Swapped columns '%s' and '%s'", left, right)
       .relation(Many.of(left, right), Many.of(right, left))
       .build();
+  }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    Relation tempRel =  relation.setColumn("tempColumn", expressionFactory.get().compile(right));
+    tempRel = tempRel.setColumn(right, expressionFactory.get().compile(left));
+    return tempRel.setColumn(left, expressionFactory.get().compile("tempColumn"));
   }
 }

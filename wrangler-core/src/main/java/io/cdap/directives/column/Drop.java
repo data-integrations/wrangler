@@ -19,11 +19,14 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.RelationalDirective;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
@@ -87,5 +90,19 @@ public class Drop implements Directive, Lineage {
       .readable("Dropped columns %s", columns)
       .drop(Many.of(columns))
       .build();
+  }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+      Relation relation) {
+    for (String col: columns) {
+      relation = relation.dropColumn(col);
+    }
+    return relation;
+  }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
   }
 }

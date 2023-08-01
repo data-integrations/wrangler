@@ -38,21 +38,22 @@ import io.cdap.cdap.etl.api.TransformContext;
 import io.cdap.cdap.etl.api.relational.Expression;
 import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.InvalidRelation;
-import io.cdap.cdap.etl.api.relational.LinearRelationalTransform;
 import io.cdap.cdap.etl.api.relational.Relation;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
-import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 import io.cdap.cdap.features.Feature;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.DirectiveRelationalTransform;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.RecipeSymbol;
@@ -72,7 +73,9 @@ import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +106,7 @@ import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE_NAME;
 @Plugin(type = "transform")
 @Name("Wrangler")
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
-public class Wrangler extends Transform<StructuredRecord, StructuredRecord> implements LinearRelationalTransform {
+public class Wrangler extends Transform<StructuredRecord, StructuredRecord> implements DirectiveRelationalTransform {
   private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
 
   // Configuration specifying the dataprep application and service name.
@@ -121,8 +124,14 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   public static final String DIRECTIVE_ENTITY_TYPE = "directive";
 
   // Precondition languages
-  private static final String PRECONDITION_LANGUAGE_JEXL = "jexl";
-  private static final String PRECONDITION_LANGUAGE_SQL = "sql";
+  private static final String JEXL = "jexl";
+  private static final String SQL = "sql";
+
+  // Sql execution value
+  private static final String SQL_ENABLED = "yes";
+
+  // wrangler sql execution mode enabled or not
+  public boolean isSqlenabled = false;
 
   // Plugin configuration.
   private final Config config;
@@ -186,11 +195,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       }
 
       if (!config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-        if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())) {
+        if (checkSQLExecution(config)) {
           if (!config.containsMacro(Config.NAME_PRECONDITION_SQL)) {
             validatePrecondition(config.getPreconditionSQL(), true, collector);
           }
-          validateSQLModeDirectives(collector);
+          validateSQLUDDs(collector);
         } else {
           if (!config.containsMacro(Config.NAME_PRECONDITION)) {
             validatePrecondition(config.getPreconditionJEXL(), false, collector);
@@ -242,6 +251,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
             }
           }
         }
+
+        // check if the directive is supported by SQL
+        if (checkSQLExecution(config)) {
+          validateSQLModeDirectives(collector, getDirectivesList(config));
+        }
+
       } catch (CompileException e) {
         collector.addFailure("Compilation error occurred : " + e.getMessage(), null);
       } catch (DirectiveParseException e) {
@@ -260,8 +275,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
       // Check if jexl pre-condition is not null or empty and if so compile expression.
       if (!config.containsMacro(Config.NAME_PRECONDITION) && !config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-        if (PRECONDITION_LANGUAGE_JEXL.equalsIgnoreCase(config.getPreconditionLanguage())
-          && checkPreconditionNotEmpty(false)) {
+        if (!checkSQLExecution(config) && checkPreconditionNotEmpty(false)) {
           try {
             new Precondition(config.getPreconditionJEXL());
           } catch (PreconditionException e) {
@@ -350,11 +364,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
                       context.getStageName()), e
       );
     }
-
+    // initialize the wrangler sql mode
+    isSqlenabled = checkSQLExecution(config);
+    
     // Check if jexl pre-condition is not null or empty and if so compile expression.
     if (!config.containsMacro(Config.NAME_PRECONDITION_LANGUAGE)) {
-      if (PRECONDITION_LANGUAGE_JEXL.equalsIgnoreCase(config.getPreconditionLanguage())
-        && checkPreconditionNotEmpty(false)) {
+      if (!isSqlenabled && checkPreconditionNotEmpty(false)) {
         try {
           condition = new Precondition(config.getPreconditionJEXL());
         } catch (PreconditionException e) {
@@ -411,8 +426,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       }
 
       // If pre-condition is set, then evaluate the precondition
-      if (PRECONDITION_LANGUAGE_JEXL.equalsIgnoreCase(config.getPreconditionLanguage())
-          && checkPreconditionNotEmpty(false)) {
+      if (!isSqlenabled && checkPreconditionNotEmpty(false)) {
         boolean skip = condition.apply(row);
         if (skip) {
           getContext().getMetrics().count("precondition.filtered", 1);
@@ -520,12 +534,17 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
   }
 
-  private void validateSQLModeDirectives(FailureCollector collector) {
-    if (!Strings.isNullOrEmpty(config.getDirectives())) {
-      collector.addFailure("Directives are not supported for precondition of type SQL", null)
-        .withConfigProperty(Config.NAME_DIRECTIVES);
+  private void validateSQLModeDirectives(FailureCollector collector, List<Directive> directives) {
+    for (Directive directive : directives) {
+      if (!directive.isSQLSupported()) {
+        collector.addFailure(String.format("%s directive is not supported by SQL execution.",
+                        directive.define().getDirectiveName()), null)
+                .withConfigProperty(Config.NAME_DIRECTIVES);
+      }
     }
+  }
 
+  private void validateSQLUDDs (FailureCollector collector) {
     if (!Strings.isNullOrEmpty(config.getUDDs())) {
       collector.addFailure("UDDs are not supported for precondition of type SQL", null)
         .withConfigProperty(Config.NAME_UDD);
@@ -542,6 +561,33 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       return true;
     }
     return false;
+  }
+
+  private boolean checkSQLExecution(Config config) {
+    if (!(Feature.WRANGLER_PRECONDITION_SQL.isEnabled(getContext())
+            || Feature.WRANGLER_EXECUTION_SQL.isEnabled(getContext()))) {
+      // disabling SQL execution for precondition and directives
+      return false;
+    }
+
+    if (!Strings.isNullOrEmpty(config.getPreconditionLanguage())) {
+      return SQL.equalsIgnoreCase(config.getPreconditionLanguage());
+    }
+
+    if (!Strings.isNullOrEmpty(config.getSqlExecution())) {
+      return SQL_ENABLED.equalsIgnoreCase(config.getSqlExecution());
+    }
+
+    // for backwards compatibility
+    return false;
+  }
+
+  List<Directive> getDirectivesList(Config config) throws DirectiveParseException, RecipeException {
+    String recipe = config.getDirectives();
+    GrammarBasedParser parser = new GrammarBasedParser("default",
+            new MigrateToV2(recipe).migrate(), registry);
+    List<Directive> directives = parser.parse();
+    return directives;
   }
 
   /**
@@ -569,27 +615,46 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
   @Override
   public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
-    if (PRECONDITION_LANGUAGE_SQL.equalsIgnoreCase(config.getPreconditionLanguage())
-            && checkPreconditionNotEmpty(true)) {
-
-      if (!Feature.WRANGLER_PRECONDITION_SQL.isEnabled(relationalTranformContext)) {
-        throw new RuntimeException("SQL Precondition feature is not available");
-      }
-
-      Optional<ExpressionFactory<String>> expressionFactory = getExpressionFactory(relationalTranformContext);
-      if (!expressionFactory.isPresent()) {
-        return new InvalidRelation("Cannot find an Expression Factory");
-      }
-
-      Expression filterExpression = expressionFactory.get().compile(config.getPreconditionSQL());
-      return relation.filter(filterExpression);
+    if (!checkSQLExecution(config)) {
+      return new InvalidRelation("Plugin is not configured for relational transformation");
     }
 
-    return new InvalidRelation("Plugin is not configured for relational transformation");
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    Expression filterExpression = expressionFactory.get().compile(config.getPreconditionSQL());
+    Relation filteredRelation = relation.filter(filterExpression);
+
+    registry = SystemDirectiveRegistry.INSTANCE;
+    try {
+      registry.reload("default");
+    } catch (DirectiveLoadException e) {
+      throw new RuntimeException(e);
+    }
+
+    List<Directive> directives = null;
+    try {
+      directives = getDirectivesList(config);
+    } catch (DirectiveParseException | RecipeException e) {
+      throw new RuntimeException(e);
+    }
+
+    for (Directive directive : directives) {
+      filteredRelation = directive
+          .transform(relationalTranformContext, filteredRelation);
+    }
+    return filteredRelation;
   }
 
-  private Optional<ExpressionFactory<String>> getExpressionFactory(RelationalTranformContext ctx) {
-    return ctx.getEngine().getExpressionFactory(StringExpressionFactoryType.SQL);
+  private List<String> getColumnsOfDropSQL(String sql) {
+    List<String> cols = new ArrayList<>();
+    for (String col : sql.split(" ")[2].split(",")) {
+      cols.add(col.trim());
+    }
+    return cols;
   }
 
   /**
@@ -640,8 +705,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     static final String NAME_PRECONDITION = "precondition";
     static final String NAME_PRECONDITION_SQL = "preconditionSQL";
     static final String NAME_PRECONDITION_LANGUAGE = "expressionLanguage";
+    static final String NAME_SQL_EXECUTION = "sqlExecution";
     static final String NAME_FIELD = "field";
     static final String NAME_DIRECTIVES = "directives";
+    static final String NAME_RELATIONAL_DIRECTIVES = "relationalDirectives";
     static final String NAME_UDD = "udd";
     static final String NAME_SCHEMA = "schema";
     static final String NAME_ON_ERROR = "on-error";
@@ -651,6 +718,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Macro
     @Nullable
     private String preconditionLanguage;
+
+    @Name(NAME_SQL_EXECUTION)
+    @Description("Toggle to configure execution language between JEXL and SQL")
+    @Macro
+    @Nullable
+    private String sqlExecution;
 
     @Name(NAME_PRECONDITION)
     @Description("JEXL Precondition expression specifying filtering before applying directives (true to filter)")
@@ -671,6 +744,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Macro
     @Nullable
     private String directives;
+
 
     @Name(NAME_UDD)
     @Description("List of User Defined Directives (UDD) that have to be loaded.")
@@ -693,9 +767,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     @Nullable
     private final String onError;
 
-    public Config(String preconditionLanguage, String precondition, String directives, String udds,
-                  String field, String schema, String onError) {
+    public Config(String preconditionLanguage, String sqlExecution, String precondition, String directives,
+                  String udds, String field, String schema, String onError, String relationalDirectives) {
       this.preconditionLanguage = preconditionLanguage;
+      this.sqlExecution = sqlExecution;
       this.precondition = precondition;
       this.directives = directives;
       this.udds = udds;
@@ -713,11 +788,10 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
 
     public String getPreconditionLanguage() {
-      if (Strings.isNullOrEmpty(preconditionLanguage)) {
-        // due to backward compatibility...
-        return PRECONDITION_LANGUAGE_JEXL;
-      }
       return preconditionLanguage;
+    }
+    public String getSqlExecution() {
+      return sqlExecution;
     }
 
     public String getPreconditionJEXL() {
@@ -741,4 +815,3 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
   }
 }
-

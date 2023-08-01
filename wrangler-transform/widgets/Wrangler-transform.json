@@ -38,6 +38,25 @@
           }
         },
         {
+          "widget-type": "radio-group",
+          "name": "sqlExecution",
+          "label": "Enable SQL Execution",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "no",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Yes"
+              },
+              {
+                "id": "no",
+                "label": "No"
+              }
+            ]
+          }
+        },
+        {
           "widget-type": "textbox",
           "label": "Precondition (JEXL)",
           "name": "precondition",
@@ -50,7 +69,7 @@
           "label": "Precondition (SQL)",
           "name": "preconditionSQL",
           "widget-attributes" : {
-            "default" : "false"
+            "default" : "true"
           }
         }
       ]
@@ -70,6 +89,24 @@
           "widget-type": "csv",
           "label": "User Defined Directives(UDD)",
           "name": "udd"
+        }
+      ]
+    },
+    {
+      "label": "RelationalDirectives",
+      "properties": [
+        {
+          "widget-type": "wrangler-relational-directives",
+          "label": "RelationalRecipe",
+          "name": "RelationalDirectives",
+          "widget-attributes" : {
+            "placeholder" : "#pragma load-directives my-directive; my-directive :body;"
+          }
+        },
+        {
+          "widget-type": "csv",
+          "label": "User Defined SQL(UDS)",
+          "name": "uds"
         }
       ]
     },
@@ -108,7 +145,7 @@
     {
       "name": "PreconditionValueNotSQL",
       "condition": {
-        "expression": "expressionLanguage != 'sql'"
+        "expression": "expressionLanguage == 'jexl' && sqlExecution == 'no'"
       },
       "show": [
         {
@@ -120,7 +157,7 @@
     {
       "name": "preconditionValueSQL",
       "condition": {
-        "expression": "expressionLanguage == 'sql'"
+        "expression": "expressionLanguage == 'sql' || sqlExecution == 'yes'"
       },
       "show": [
         {
@@ -132,12 +169,24 @@
     {
       "name": "preconditionSQLEnabled",
       "condition": {
-        "expression": "featureFlags['wrangler.precondition.sql.enabled'] == true"
+        "expression": "featureFlags['wrangler.precondition.sql.enabled'] == true && featureFlags['wrangler.execution.sql.enabled'] == false"
       },
       "show": [
         {
           "type": "properties",
           "name": "expressionLanguage"
+        }
+      ]
+    },
+    {
+      "name": "executionSQLEnabled",
+      "condition": {
+        "expression": "featureFlags['wrangler.execution.sql.enabled'] == true"
+      },
+      "show": [
+        {
+          "type": "properties",
+          "name": "sqlExecution"
         }
       ]
     }
