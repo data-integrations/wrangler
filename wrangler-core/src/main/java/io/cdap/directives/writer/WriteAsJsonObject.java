@@ -134,4 +134,9 @@ public class WriteAsJsonObject implements Directive, Lineage {
                     .compile(String.format("struct(%s)", getColumnString)));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

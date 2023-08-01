@@ -137,4 +137,9 @@ public class Fail implements Directive, Lineage {
                     el.getScriptParsedText(), el.getScriptParsedText())));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

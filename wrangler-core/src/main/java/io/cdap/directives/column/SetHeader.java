@@ -123,5 +123,10 @@ public class SetHeader implements Directive, Lineage {
     return relation.select(columnExpMap);
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }
 

@@ -184,4 +184,9 @@ public class Decode implements Directive, Lineage {
     }
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

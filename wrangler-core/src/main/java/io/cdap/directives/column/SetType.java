@@ -126,4 +126,9 @@ public final class SetType implements Directive, Lineage {
     return relation.setColumn(col, expressionFactory.get().compile(expression));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

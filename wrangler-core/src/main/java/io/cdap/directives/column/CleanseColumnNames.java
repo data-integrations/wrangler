@@ -128,4 +128,9 @@ public final class CleanseColumnNames implements Directive, Lineage {
     return columnExpMap;
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

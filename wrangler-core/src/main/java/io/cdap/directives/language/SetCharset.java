@@ -136,5 +136,10 @@ public class SetCharset implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile(String
             .format("decode(%s, '%s'))", column, charset)));
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
   
 }

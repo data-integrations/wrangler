@@ -123,4 +123,9 @@ public class WriteAsCSV implements Directive, Lineage {
             .format("to_csv(struct(%s))", String.join(",", columnNames))));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

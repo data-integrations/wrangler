@@ -108,4 +108,9 @@ public class WriteAsJsonMap implements Directive, Lineage {
             .format("to_json(struct(%s))", String.join(",", columnNames))));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

@@ -120,4 +120,9 @@ public class CreateRecord implements Directive, Lineage {
             .format("struct(%s)", getColumnString)));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

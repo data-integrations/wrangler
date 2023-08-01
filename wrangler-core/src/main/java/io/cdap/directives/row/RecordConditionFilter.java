@@ -146,4 +146,9 @@ public class RecordConditionFilter implements Directive, Lineage {
     return relation.filter(expressionFactory.get().compile(el.getScriptParsedText()));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

@@ -129,5 +129,10 @@ public class SplitToRows implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get()
             .compile(String.format("explode(split(%s, '%s'))", column, regex)));
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
 }
 

@@ -182,4 +182,9 @@ public final class FixedLengthParser implements Directive, Lineage {
     return relation;
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

@@ -179,4 +179,9 @@ public class Encode implements Directive, Lineage {
     }
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

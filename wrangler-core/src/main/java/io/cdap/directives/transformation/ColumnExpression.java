@@ -150,4 +150,9 @@ public class ColumnExpression implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile(el.getScriptParsedText()));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

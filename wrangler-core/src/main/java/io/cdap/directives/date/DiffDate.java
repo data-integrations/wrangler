@@ -137,4 +137,9 @@ public class DiffDate implements Directive, Lineage {
             .compile(String.format("datediff(millisecond, timestamp(%s), timestamp(%s))", column2, column1)));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

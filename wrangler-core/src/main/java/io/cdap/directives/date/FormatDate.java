@@ -133,4 +133,9 @@ public class FormatDate implements Directive, Lineage {
             .compile(String.format("date_format(timestamp(%s), '%s')", column, format)));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

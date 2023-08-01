@@ -164,5 +164,10 @@ public class RecordRegexFilter implements Directive, Lineage {
     }
     return relation.filter(expressionFactory.get().compile("rlike(" + column + ", '" + pattern + "')"));
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
 }
 

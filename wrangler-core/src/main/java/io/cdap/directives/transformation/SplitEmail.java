@@ -155,4 +155,9 @@ public class SplitEmail implements Directive, Lineage {
             expressionFactory.get().compile(domainExpression));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

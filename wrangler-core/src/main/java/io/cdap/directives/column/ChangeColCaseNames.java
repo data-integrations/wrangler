@@ -126,5 +126,10 @@ public class ChangeColCaseNames implements Directive, Lineage {
     return columnExpMap;
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }
 

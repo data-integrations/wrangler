@@ -119,4 +119,10 @@ public class UrlEncode implements Directive, Lineage {
             column, expressionFactory.get().compile(
                     String.format("reflect('java.net.URLEncoder', 'encode', %s, 'utf-8')", column)));
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }
