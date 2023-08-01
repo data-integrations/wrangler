@@ -100,4 +100,9 @@ public final class Rename implements Directive, Lineage {
     return relation.dropColumn(source.value());
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

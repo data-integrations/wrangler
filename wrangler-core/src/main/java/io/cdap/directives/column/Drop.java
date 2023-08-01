@@ -100,4 +100,9 @@ public class Drop implements Directive, Lineage {
     }
     return relation;
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
 }

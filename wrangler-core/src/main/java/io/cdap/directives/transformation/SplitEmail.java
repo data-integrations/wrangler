@@ -19,6 +19,11 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -33,8 +38,10 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A directive to split email address into account and domain.
@@ -128,4 +135,24 @@ public class SplitEmail implements Directive, Lineage {
       return new Pair<>(emailId.substring(0, lastidx), emailId.substring(lastidx + 1));
     }
   }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    String accountExpression = String
+            .format("substring(%s, 1, char_length(%s) - locate('@', reverse(%s)))", column, column, column);
+    String domainExpression = String.format("substring_index(%s, '@', -1)", column);
+    Relation accountRelation = relation
+            .setColumn(generatedAccountCol, expressionFactory.get().compile(accountExpression));
+    return accountRelation.setColumn(generatedDomainCol,
+            expressionFactory.get().compile(domainExpression));
+  }
+
 }

@@ -114,4 +114,9 @@ public class Keep implements Directive, Lineage {
     return relation.select(keepCol);
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

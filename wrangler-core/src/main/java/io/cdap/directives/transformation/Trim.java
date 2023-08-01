@@ -104,4 +104,9 @@ public class Trim implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get().compile("TRIM(" + column + ")"));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }
