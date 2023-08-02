@@ -158,24 +158,26 @@ public class Encode implements Directive, Lineage {
   }
 
   @Override
-  public Relation transform(RelationalTranformContext relationalTranformContext,
-                            Relation relation) {
+  public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
     Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
             .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    if (method.toString().equalsIgnoreCase("base64")) {
-      return relation.setColumn(
-              String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
-                      .get().compile("base64(" + column + ")"));
-    } else if (method.toString().equalsIgnoreCase("hex")) {
-      return relation.setColumn(
-              String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
-                      .get().compile("hex(" + column + ")"));
-    } else {
-      return new InvalidRelation(String.format("Encoding of type %s is not supported by " +
+
+    switch (method.toString().toLowerCase()) {
+      case "base64": {
+        return relation.setColumn(String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)),
+                expressionFactory.get().compile("base64(" + column + ")"));
+      }
+      case "hex": {
+        return relation.setColumn(String.format("%s_encode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)),
+                expressionFactory.get().compile("hex(" + column + ")"));
+      }
+      default: {
+        return new InvalidRelation(String.format("Encoding of type %s is not supported by " +
               "SQL execution currently", method.toString()));
+      }
     }
   }
 

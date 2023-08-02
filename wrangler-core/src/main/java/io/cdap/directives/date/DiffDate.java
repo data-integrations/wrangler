@@ -133,6 +133,8 @@ public class DiffDate implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
+
+    // TODO: handle columns of data type timestamp_micros, this implementation is for string data type
     return relation.setColumn(destCol, expressionFactory.get()
             .compile(String.format("datediff(millisecond, timestamp(%s), timestamp(%s))", column2, column1)));
   }

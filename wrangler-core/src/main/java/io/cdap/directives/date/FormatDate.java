@@ -129,6 +129,8 @@ public class FormatDate implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
+
+    // TODO: handle columns of data type timestamp_micros, this implementation is for string data type
     return relation.setColumn(column, expressionFactory.get()
             .compile(String.format("date_format(timestamp(%s), '%s')", column, format)));
   }

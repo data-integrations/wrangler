@@ -110,18 +110,15 @@ public class SetHeader implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    List<String> columnNames = SqlExpressionGenerator.generateListCols(relationalTranformContext);
-    Map<String, Expression> columnExpMap = new LinkedHashMap<>();
 
-    IntStream.range(0, Math.min(columnNames.size(), columns.size()))
-            .forEach(i -> columnExpMap.put(columns.get(i), expressionFactory.get().compile(columnNames.get(i))));
-
-    if (columnNames.size() > columns.size()) {
-      IntStream.range(columns.size(), columnNames.size())
-          .forEach(i -> columnExpMap.put(columnNames.get(i), expressionFactory.get().compile(columnNames.get(i))));
-    }
+    // TODO: handle schema changes in relationalTranformContext for multiple directive execution
+    List<String> columnNames = SqlExpressionGenerator.generateColumnNameList(relationalTranformContext);
+    Map<String, Expression> columnExpMap = SqlExpressionGenerator
+            .generateHeaders(columnNames, columns, expressionFactory.get());
     return relation.select(columnExpMap);
   }
+
+
 
   @Override
   public boolean isSQLSupported() {

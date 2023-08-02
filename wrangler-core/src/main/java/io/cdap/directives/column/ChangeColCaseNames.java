@@ -111,7 +111,9 @@ public class ChangeColCaseNames implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    List<String> columnNames = SqlExpressionGenerator.generateListCols(relationalTranformContext);
+
+    // TODO: handle schema changes in relationalTranformContext for multiple directive execution
+    List<String> columnNames = SqlExpressionGenerator.generateColumnNameList(relationalTranformContext);
     Map<String, Expression> colmap = generateColumnCaseMap(columnNames, expressionFactory.get());
     return relation.select(colmap);
   }

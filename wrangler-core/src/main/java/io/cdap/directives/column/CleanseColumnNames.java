@@ -37,10 +37,9 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * A directive for cleanses columns names.
@@ -111,21 +110,12 @@ public final class CleanseColumnNames implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    List<String> columnNames = SqlExpressionGenerator.generateListCols(relationalTranformContext);
-    Map<String, Expression> colmap = generateCleanseColumnMap(columnNames, expressionFactory.get());
-    return relation.select(colmap);
-  }
 
-  public static Map<String, Expression> generateCleanseColumnMap(Collection columns,
-                                                                 ExpressionFactory<String> factory) {
-    Map<String, Expression> columnExpMap = new LinkedHashMap<>();
-    columns.forEach((colName)-> columnExpMap.put(String
-            .format(colName
-                    .toString()
-                    .toLowerCase()
-                    .replaceAll("[^a-zA-Z0-9_]", "_")), factory
-            .compile(colName.toString())));
-    return columnExpMap;
+    // TODO: handle schema changes in relationalTranformContext for multiple directive execution
+    List<String> columnNames = SqlExpressionGenerator.generateColumnNameList(relationalTranformContext);
+    Map<String, Expression> colmap = SqlExpressionGenerator
+            .generateCleanseColumnMap(columnNames, expressionFactory.get());
+    return relation.select(colmap);
   }
 
   @Override

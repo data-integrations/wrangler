@@ -122,6 +122,9 @@ public final class SetType implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
+
+    // TODO: handle decimal casting and byte casting
+    //TODO: implement short data type in CDAP
     String expression = SqlExpressionGenerator.getColumnTypeExp(type, col, scale);
     return relation.setColumn(col, expressionFactory.get().compile(expression));
   }

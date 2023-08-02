@@ -103,7 +103,9 @@ public class WriteAsJsonMap implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    List<String> columnNames = SqlExpressionGenerator.generateListCols(relationalTranformContext);
+
+    // TODO: handle schema changes in relationalTranformContext for multiple directive execution
+    List<String> columnNames = SqlExpressionGenerator.generateColumnNameList(relationalTranformContext);
     return relation.setColumn(column, expressionFactory.get().compile(String
             .format("to_json(struct(%s))", String.join(",", columnNames))));
   }

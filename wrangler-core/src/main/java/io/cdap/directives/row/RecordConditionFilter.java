@@ -143,6 +143,8 @@ public class RecordConditionFilter implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
+
+    // TODO: handle cases where condition is not of ANSI SQL compatible syntax
     return relation.filter(expressionFactory.get().compile(el.getScriptParsedText()));
   }
 

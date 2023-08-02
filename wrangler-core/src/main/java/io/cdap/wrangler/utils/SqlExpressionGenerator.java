@@ -110,7 +110,7 @@ public class SqlExpressionGenerator {
         }
     }
 
-    public static List<String> generateListCols(RelationalTranformContext relationalTranformContext) {
+    public static List<String> generateColumnNameList(RelationalTranformContext relationalTranformContext) {
         List<String> colnames = new ArrayList<String>();
         Set<String> inputRelationNames = relationalTranformContext.getInputRelationNames();
         for (String inputRelationName : inputRelationNames) {
@@ -123,5 +123,28 @@ public class SqlExpressionGenerator {
         return colnames;
     }
 
+    public static Map<String, Expression> generateHeaders(List<String> columns, List<String> headers,
+                                                          ExpressionFactory<String> factory) {
+        Map<String, Expression> columnExpMap = new LinkedHashMap<>();
+        for (int i = 0; i < Math.min(columns.size(), headers.size()); i++) {
+            columnExpMap.put(headers.get(i), factory.compile(columns.get(i)));
+        }
+
+        if (columns.size() > headers.size()) {
+            for (int i = headers.size(); i < columns.size(); i++) {
+                columnExpMap.put(columns.get(i), factory.compile(columns.get(i)));
+            }
+        }
+        return columnExpMap;
+    }
+
+    public static Map<String, Expression> generateCleanseColumnMap(Collection columns,
+                                                                   ExpressionFactory<String> factory) {
+        Map<String, Expression> columnExpMap = new LinkedHashMap<>();
+        columns.forEach((colName)-> columnExpMap.put(String
+                .format(colName.toString().toLowerCase().replaceAll("[^a-zA-Z0-9_]", "_")), factory
+                .compile(colName.toString())));
+        return columnExpMap;
+    }
 
 }

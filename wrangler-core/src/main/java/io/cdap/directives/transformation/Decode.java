@@ -163,24 +163,26 @@ public class Decode implements Directive, Lineage {
   }
 
   @Override
-  public Relation transform(RelationalTranformContext relationalTranformContext,
-                            Relation relation) {
+  public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
     Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
             .getExpressionFactory(relationalTranformContext);
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-    if (method.toString().equalsIgnoreCase("base64")) {
-      return relation.setColumn(
-          String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
-                      .get().compile("string(unbase64(" + column + "))"));
-    } else if (method.toString().equalsIgnoreCase("hex")) {
-      return relation.setColumn(
-              String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)), expressionFactory
-                      .get().compile("string(unhex(" + column + "))"));
-    } else {
-      return new InvalidRelation(String.format("Decoding of type %s is not supported by " +
-              "SQL execution currently", method.toString()));
+
+    switch (method.toString().toLowerCase()) {
+      case "base64": {
+        return relation.setColumn(String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)),
+                expressionFactory.get().compile("unbase64(" + column + ")"));
+      }
+      case "hex": {
+        return relation.setColumn(String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)),
+                expressionFactory.get().compile("unhex(" + column + ")"));
+      }
+      default: {
+        return new InvalidRelation(String.format("Decoding of type %s is not supported by " +
+                "SQL execution currently", method.toString()));
+      }
     }
   }
 

@@ -130,11 +130,12 @@ public class Fail implements Directive, Lineage {
     if (!expressionFactory.isPresent()) {
       return new InvalidRelation("Cannot find an Expression Factory");
     }
-
-    return relation.setColumn("tempColumn", expressionFactory.get().compile(
-            String.format("if(%s, raise_error(\"Condition '%s' evaluated to true. " +
+    String errorExp = String.format("if(%s, raise_error(\"Condition '%s' evaluated to true. " +
                     "Terminating processing.\"), %s)", el.getScriptParsedText(),
-                    el.getScriptParsedText(), el.getScriptParsedText())));
+            el.getScriptParsedText(), el.getScriptParsedText());
+
+    // TODO: handle cases where condition is not of ANSI SQL compatible syntax
+    return relation.setColumn("tempColumn", expressionFactory.get().compile(errorExp));
   }
 
   @Override
