@@ -120,4 +120,9 @@ public class UrlDecode implements Directive, Lineage {
                 String.format("reflect('java.net.URLDecoder', 'decode', %s, 'utf-8')", column)));
   }
 
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

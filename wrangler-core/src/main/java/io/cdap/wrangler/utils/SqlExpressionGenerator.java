@@ -16,15 +16,19 @@
 
 package io.cdap.wrangler.utils;
 
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.relational.Expression;
 import io.cdap.cdap.etl.api.relational.ExpressionFactory;
 import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.cdap.etl.api.relational.StringExpressionFactoryType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -105,4 +109,42 @@ public class SqlExpressionGenerator {
                 return column;
         }
     }
+
+    public static List<String> generateColumnNameList(RelationalTranformContext relationalTranformContext) {
+        List<String> colnames = new ArrayList<String>();
+        Set<String> inputRelationNames = relationalTranformContext.getInputRelationNames();
+        for (String inputRelationName : inputRelationNames) {
+            Schema schema = relationalTranformContext.getInputSchema(inputRelationName);
+            List<Schema.Field> fields = schema.getFields();
+            for (Schema.Field field: fields) {
+                colnames.add(field.getName());
+            }
+        }
+        return colnames;
+    }
+
+    public static Map<String, Expression> generateHeaders(List<String> columns, List<String> headers,
+                                                          ExpressionFactory<String> factory) {
+        Map<String, Expression> columnExpMap = new LinkedHashMap<>();
+        for (int i = 0; i < Math.min(columns.size(), headers.size()); i++) {
+            columnExpMap.put(headers.get(i), factory.compile(columns.get(i)));
+        }
+
+        if (columns.size() > headers.size()) {
+            for (int i = headers.size(); i < columns.size(); i++) {
+                columnExpMap.put(columns.get(i), factory.compile(columns.get(i)));
+            }
+        }
+        return columnExpMap;
+    }
+
+    public static Map<String, Expression> generateCleanseColumnMap(Collection columns,
+                                                                   ExpressionFactory<String> factory) {
+        Map<String, Expression> columnExpMap = new LinkedHashMap<>();
+        columns.forEach((colName)-> columnExpMap.put(String
+                .format(colName.toString().toLowerCase().replaceAll("[^a-zA-Z0-9_]", "_")), factory
+                .compile(colName.toString())));
+        return columnExpMap;
+    }
+
 }

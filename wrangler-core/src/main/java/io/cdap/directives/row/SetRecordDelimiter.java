@@ -135,4 +135,9 @@ public class SetRecordDelimiter implements Directive, Lineage {
             String.format("explode(split(%s, \"%s\", %d))", column, delimiter, limit)));
     return relation.select(columnExpMap);
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
 }

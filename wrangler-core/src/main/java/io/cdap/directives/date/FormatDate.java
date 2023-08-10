@@ -19,6 +19,10 @@ package io.cdap.directives.date;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,6 +36,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -40,6 +45,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A directive for managing date formats.
@@ -114,4 +120,24 @@ public class FormatDate implements Directive, Lineage {
       .relation(column, column)
       .build();
   }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    // TODO: handle columns of data type timestamp_micros, this implementation is for string data type
+    return relation.setColumn(column, expressionFactory.get()
+            .compile(String.format("date_format(timestamp(%s), '%s')", column, format)));
+  }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

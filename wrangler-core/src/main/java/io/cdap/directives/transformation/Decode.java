@@ -19,6 +19,10 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,6 +36,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Base64;
@@ -40,6 +45,7 @@ import org.apache.commons.codec.binary.Hex;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * A directive that decodes a column that was encoded as base-32, base-64, or hex.
@@ -155,4 +161,34 @@ public class Decode implements Directive, Lineage {
       .relation(column, column)
       .build();
   }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    switch (method.toString().toLowerCase()) {
+      case "base64": {
+        return relation.setColumn(String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)),
+                expressionFactory.get().compile("unbase64(" + column + ")"));
+      }
+      case "hex": {
+        return relation.setColumn(String.format("%s_decode_%s", column, method.toString().toLowerCase(Locale.ENGLISH)),
+                expressionFactory.get().compile("unhex(" + column + ")"));
+      }
+      default: {
+        return new InvalidRelation(String.format("Decoding of type %s is not supported by " +
+                "SQL execution currently", method.toString()));
+      }
+    }
+  }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

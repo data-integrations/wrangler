@@ -123,4 +123,9 @@ public class FillNullOrEmpty implements Directive, Lineage {
             .format("nvl2(%s, if(length(%s) == 0, \"%s\", %s), \"%s\")",
              column, column, value, column, value)));
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
 }

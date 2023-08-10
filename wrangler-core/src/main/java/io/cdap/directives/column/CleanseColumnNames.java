@@ -19,6 +19,11 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -30,8 +35,11 @@ import io.cdap.wrangler.api.lineage.Lineage;
 import io.cdap.wrangler.api.lineage.Many;
 import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.List;
+import java.util.Map;
+
 
 /**
  * A directive for cleanses columns names.
@@ -93,4 +101,26 @@ public final class CleanseColumnNames implements Directive, Lineage {
       .all(Many.of())
       .build();
   }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    java.util.Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    // TODO: handle schema changes in relationalTranformContext for multiple directive execution
+    List<String> columnNames = SqlExpressionGenerator.generateColumnNameList(relationalTranformContext);
+    Map<String, Expression> colmap = SqlExpressionGenerator
+            .generateCleanseColumnMap(columnNames, expressionFactory.get());
+    return relation.select(colmap);
+  }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }

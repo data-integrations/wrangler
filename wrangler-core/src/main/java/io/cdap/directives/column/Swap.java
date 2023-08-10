@@ -114,4 +114,9 @@ public class Swap implements Directive, Lineage {
     tempRel = tempRel.setColumn(right, expressionFactory.get().compile(left));
     return tempRel.setColumn(left, expressionFactory.get().compile("tempColumn"));
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
 }

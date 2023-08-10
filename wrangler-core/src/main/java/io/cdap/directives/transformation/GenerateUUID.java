@@ -107,4 +107,9 @@ public class GenerateUUID implements Directive, Lineage {
     return relation.setColumn(column, expressionFactory.get()
             .compile(String.format("uuid()")));
   }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
 }

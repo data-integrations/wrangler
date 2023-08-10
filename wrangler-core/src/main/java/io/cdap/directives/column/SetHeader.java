@@ -19,6 +19,11 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.Expression;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -32,9 +37,15 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * A directive for setting the columns obtained from wrangling.
@@ -90,5 +101,29 @@ public class SetHeader implements Directive, Lineage {
       .generate(Many.of(columns))
       .build();
   }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext,
+                            Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory = SqlExpressionGenerator
+            .getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+
+    // TODO: handle schema changes in relationalTranformContext for multiple directive execution
+    List<String> columnNames = SqlExpressionGenerator.generateColumnNameList(relationalTranformContext);
+    Map<String, Expression> columnExpMap = SqlExpressionGenerator
+            .generateHeaders(columnNames, columns, expressionFactory.get());
+    return relation.select(columnExpMap);
+  }
+
+
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
+  }
+
 }
 
