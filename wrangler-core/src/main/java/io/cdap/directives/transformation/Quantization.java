@@ -22,6 +22,10 @@ import com.google.common.collect.TreeRangeMap;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.etl.api.relational.ExpressionFactory;
+import io.cdap.cdap.etl.api.relational.InvalidRelation;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -37,9 +41,11 @@ import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.SqlExpressionGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A Wrangler step for quantizing a column.
@@ -134,5 +140,26 @@ public class Quantization implements Directive, Lineage {
       .readable("Quanitized column '%s' into column '%s'", col1, col2)
       .conditional(col1, col2)
       .build();
+  }
+
+  @Override
+  public Relation transform(RelationalTranformContext relationalTranformContext, Relation relation) {
+    Optional<ExpressionFactory<String>> expressionFactory =
+            SqlExpressionGenerator.getExpressionFactory(relationalTranformContext);
+    if (!expressionFactory.isPresent()) {
+      return new InvalidRelation("Cannot find an Expression Factory");
+    }
+    List<String> caseStatements = new ArrayList<>();
+    this.rangeMap.asMapOfRanges().entrySet().stream()
+            .forEach(entry -> caseStatements.add(String.format("WHEN double(%s) BETWEEN %f AND %f THEN '%s'", col1,
+                    entry.getKey().lowerEndpoint(), entry.getKey().upperEndpoint(), entry.getValue())));
+
+    return relation.setColumn(col2, expressionFactory.get().compile(String.format(
+            "CASE %s ELSE NULL END", String.join(" ", caseStatements))));
+  }
+
+  @Override
+  public boolean isSQLSupported() {
+    return true;
   }
 }
