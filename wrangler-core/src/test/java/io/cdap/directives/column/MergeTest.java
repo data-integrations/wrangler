@@ -16,7 +16,16 @@
 
 package io.cdap.directives.column;
 
+import io.cdap.MockEngine;
+import io.cdap.MockExpression;
+import io.cdap.MockRelation;
+import io.cdap.MockRelationalTransformContext;
+import io.cdap.cdap.etl.api.relational.Engine;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -24,6 +33,8 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static io.cdap.RelationalDirectiveTest.runTransform;
 
 /**
  * Tests {@link Merge}
@@ -105,5 +116,28 @@ public class MergeTest {
     rows = TestingRig.execute(directives, rows);
     Assert.assertEquals(1, rows.size());
     Assert.assertEquals("Root---Joltie", rows.get(0).getValue("C"));
+  }
+
+  @Test
+  public void testRelationColumn() throws DirectiveParseException, RecipeException {
+    MockRelation relation = new MockRelation(null, null);
+    Engine engine = new MockEngine();
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
+    String[] recipe = {"merge testColumn1 testColumn2 destColumn ','"};
+    Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
+    Assert.assertEquals(((MockRelation) relation1).getColumn(), "destColumn");
+  }
+
+  @Test
+  public void testRelationExpression() throws DirectiveParseException, RecipeException {
+    MockRelation relation = new MockRelation(null, null);
+    Engine engine = new MockEngine();
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
+    String[] recipe = {"merge testColumn1 testColumn2 destColumn ','"};
+    Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
+    Assert.assertEquals(((MockExpression) ((MockRelation) relation1).getExpression()).getExpression(),
+            "CONCAT(testColumn1,',',testColumn2)");
   }
 }

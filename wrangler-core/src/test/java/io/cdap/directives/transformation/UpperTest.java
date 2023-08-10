@@ -16,13 +16,24 @@
 
 package io.cdap.directives.transformation;
 
+import io.cdap.MockEngine;
+import io.cdap.MockExpression;
+import io.cdap.MockRelation;
+import io.cdap.MockRelationalTransformContext;
+import io.cdap.cdap.etl.api.relational.Engine;
+import io.cdap.cdap.etl.api.relational.Relation;
+import io.cdap.cdap.etl.api.relational.RelationalTranformContext;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static io.cdap.RelationalDirectiveTest.runTransform;
 
 /**
  * Tests {@link Upper}
@@ -71,4 +82,30 @@ public class UpperTest {
     Assert.assertEquals("TITLE IS TITLE", rows.get(2).getValue("body"));
     Assert.assertEquals("TITLE IS TITLE", rows.get(3).getValue("body"));
   }
+
+  @Test
+  public void testRelationColumn() throws DirectiveParseException, RecipeException {
+    MockRelation relation = new MockRelation(null, null);
+    Engine engine = new MockEngine();
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
+    String[] recipe = {"uppercase testColumn"};
+    Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
+    Assert.assertEquals(((MockRelation) relation1).getColumn(), "testColumn");
+    Assert.assertEquals(((MockExpression) ((MockRelation) relation1).getExpression()).getExpression(),
+            "UPPER(testColumn)");
+  }
+
+  @Test
+  public void testRelationExpression() throws DirectiveParseException, RecipeException {
+    MockRelation relation = new MockRelation(null, null);
+    Engine engine = new MockEngine();
+    RelationalTranformContext relationalTranformContext = new MockRelationalTransformContext(engine, null, null,
+            null, null);
+    String[] recipe = {"uppercase testColumn"};
+    Relation relation1 = runTransform(recipe, relationalTranformContext, relation);
+    Assert.assertEquals(((MockExpression) ((MockRelation) relation1).getExpression()).getExpression(),
+            "UPPER(testColumn)");
+  }
+
 }
