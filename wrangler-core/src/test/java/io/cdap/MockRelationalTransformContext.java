@@ -28,9 +28,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Basic implementation of the {@link RelationalTranformContext} with single output port
- */
 public class MockRelationalTransformContext implements RelationalTranformContext {
     private Engine engine;
     private Map<String, Relation> inputMap;
@@ -38,7 +35,6 @@ public class MockRelationalTransformContext implements RelationalTranformContext
     private Schema outputSchema;
     private  FeatureFlagsProvider featureFlagsProvider;
     private Relation outputRelation;
-
 
     public MockRelationalTransformContext(Engine engine,
                                           Map<String, Relation> inputMap,
@@ -92,9 +88,6 @@ public class MockRelationalTransformContext implements RelationalTranformContext
         return this.featureFlagsProvider.isFeatureEnabled(name);
     }
 
-    public Relation getOutputRelation() {
-        return outputRelation;
-    }
 
     public Collection<Capability> getDefaultLanguageCapabilityList() {
         return Collections.singleton(StandardSQLCapabilities.POSTGRES);
