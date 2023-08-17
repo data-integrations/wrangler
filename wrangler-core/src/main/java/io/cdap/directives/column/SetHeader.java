@@ -19,12 +19,14 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.SchemaResolutionContext;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
 import io.cdap.wrangler.api.lineage.Many;
@@ -90,5 +92,18 @@ public class SetHeader implements Directive, Lineage {
       .generate(Many.of(columns))
       .build();
   }
-}
 
+  @Override
+  public Schema getOutputSchema(SchemaResolutionContext context) {
+    List<Schema.Field> inputFields = context.getInputSchema().getFields();
+    List<Schema.Field> outputFields = new ArrayList<>();
+    for (int i = 0; i < columns.size() && i < inputFields.size(); i++) {
+      outputFields.add(Schema.Field.of(columns.get(i).trim(), inputFields.get(i).getSchema()));
+    }
+    // Leftover columns (not renamed)
+    for (int i = columns.size(); i < inputFields.size(); i++) {
+      outputFields.add(inputFields.get(i));
+    }
+    return Schema.recordOf("outputSchema", outputFields);
+  }
+}
