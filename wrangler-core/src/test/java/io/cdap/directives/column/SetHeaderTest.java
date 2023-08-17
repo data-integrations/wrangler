@@ -16,13 +16,17 @@
 
 package io.cdap.directives.column;
 
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests {@link SetHeader}
@@ -34,7 +38,7 @@ public class SetHeaderTest {
     String[] directives = {
       "set-header ,A,B"
     };
-    TestingRig.execute(directives, new ArrayList<Row>());
+    TestingRig.execute(directives, new ArrayList<>());
   }
 
   @Test(expected = RecipeException.class)
@@ -42,7 +46,7 @@ public class SetHeaderTest {
     String[] directives = {
       "set-header A,B, ,D"
     };
-    TestingRig.execute(directives, new ArrayList<Row>());
+    TestingRig.execute(directives, new ArrayList<>());
   }
 
   @Test(expected = RecipeException.class)
@@ -50,7 +54,7 @@ public class SetHeaderTest {
     String[] directives = {
       "set-header A,B,D,"
     };
-    TestingRig.execute(directives, new ArrayList<Row>());
+    TestingRig.execute(directives, new ArrayList<>());
     Assert.assertTrue(true);
   }
 
@@ -59,8 +63,38 @@ public class SetHeaderTest {
     String[] directives = {
       "set-header A,B,D,,"
     };
-    TestingRig.execute(directives, new ArrayList<Row>());
+    TestingRig.execute(directives, new ArrayList<>());
     Assert.assertTrue(true);
   }
 
+  @Test
+  public void testGetOutputSchemaAfterSettingHeader() throws Exception {
+    String[] directives = new String[] {
+      "set-headers :new_A ,:new_B",
+    };
+    List<Row> rows = Collections.singletonList(
+      new Row("col_A", 1).add("col_B", new BigDecimal("123.456")).add("col_c", "hello world")
+    );
+    Schema inputSchema = Schema.recordOf(
+      "inputSchema",
+      Schema.Field.of("col_A", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("col_B", Schema.decimalOf(10, 3)),
+      Schema.Field.of("col_c", Schema.of(Schema.Type.STRING))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expectedSchema",
+      Schema.Field.of("new_A", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("new_B", Schema.decimalOf(10, 3)),
+      Schema.Field.of("col_c", Schema.of(Schema.Type.STRING))
+    );
+
+    Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
+
+    Assert.assertEquals(expectedSchema.getFields().size(), outputSchema.getFields().size());
+    for (Schema.Field expectedField : expectedSchema.getFields()) {
+      Assert.assertEquals(
+        outputSchema.getField(expectedField.getName()).getSchema().getType(), expectedField.getSchema().getType()
+      );
+    }
+  }
 }
