@@ -158,11 +158,8 @@ public class RecipePipelineExecutorTest {
     Row row = new Row();
     row.add("id", "123");
     row.add("null_col", null);
-    ExecutorContext context = new TestingPipelineContext();
-    context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
 
-    TestingRig.execute(commands, Collections.singletonList(row), context);
-    Schema outputSchema = context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);
+    Schema outputSchema = TestingRig.executeAndGetSchema(commands, Collections.singletonList(row), inputSchema);
 
     Assert.assertEquals(expectedSchema.getField("null_col").getSchema(), outputSchema.getField("null_col").getSchema());
   }

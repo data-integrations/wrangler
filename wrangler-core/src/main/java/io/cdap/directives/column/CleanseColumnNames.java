@@ -19,12 +19,14 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.SchemaResolutionContext;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
 import io.cdap.wrangler.api.lineage.Many;
@@ -32,6 +34,7 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A directive for cleanses columns names.
@@ -73,13 +76,7 @@ public final class CleanseColumnNames implements Directive, Lineage {
     for (Row row : rows) {
       for (int i = 0; i < row.width(); ++i) {
         String column = row.getColumn(i);
-        // Trims
-        column = column.trim();
-        // Lower case columns
-        column = column.toLowerCase();
-        // Filtering unwanted characters
-        column = column.replaceAll("[^a-zA-Z0-9_]", "_");
-        row.setColumn(i, column);
+        row.setColumn(i, cleanseColumnName(column));
       }
     }
     return rows;
@@ -92,5 +89,28 @@ public final class CleanseColumnNames implements Directive, Lineage {
                   "and replaced all but [A-Z][a-z][0-9]_ characters")
       .all(Many.of())
       .build();
+  }
+
+  @Override
+  public Schema getOutputSchema(SchemaResolutionContext context) {
+    Schema inputSchema = context.getInputSchema();
+    return Schema.recordOf(
+      "outputSchema",
+      inputSchema.getFields().stream()
+        .map(
+          field -> Schema.Field.of(cleanseColumnName(field.getName()), field.getSchema())
+        )
+        .collect(Collectors.toList())
+    );
+  }
+
+  private String cleanseColumnName(String columnName) {
+    // Trims
+    columnName = columnName.trim();
+    // Lower case columns
+    columnName = columnName.toLowerCase();
+    // Filtering unwanted characters
+    columnName = columnName.replaceAll("[^a-zA-Z0-9_]", "_");
+    return columnName;
   }
 }
