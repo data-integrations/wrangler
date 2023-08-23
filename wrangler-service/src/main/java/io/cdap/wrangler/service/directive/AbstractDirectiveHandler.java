@@ -21,6 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.features.Feature;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.DirectiveConfig;
@@ -53,6 +54,7 @@ import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.statistics.BasicStatistics;
 import io.cdap.wrangler.statistics.Statistics;
+import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.validator.ColumnNameValidator;
 import io.cdap.wrangler.validator.Validator;
 import io.cdap.wrangler.validator.ValidatorException;
@@ -79,12 +81,14 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
   private static final Gson  GSON = new GsonBuilder().registerTypeAdapterFactory(
     new WranglerDisplaySerializer()).create();
 
+  private static final String NULL_COLUMN_DISPLAY_TYPE = "NULL";
   protected static final String COLUMN_NAME = "body";
   protected static final String RECORD_DELIMITER_HEADER = "recorddelimiter";
   protected static final String DELIMITER_HEADER = "delimiter";
   protected static final TransientStore TRANSIENT_STORE = new DefaultTransientStore();
 
   protected DirectiveRegistry composite;
+  protected boolean schemaManagementEnabled;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
@@ -93,6 +97,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       SystemDirectiveRegistry.INSTANCE,
       new UserDirectiveRegistry(context)
     );
+    schemaManagementEnabled = Feature.WRANGLER_SCHEMA_MANAGEMENT.isEnabled(context);
   }
 
   /**
@@ -157,18 +162,16 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     List<Row> rows, int limit) throws Exception {
     List<Map<String, Object>> values = new ArrayList<>(rows.size());
     Map<String, String> types = new LinkedHashMap<>();
+    SchemaConverter convertor = new SchemaConverter();
 
-    Schema outputSchema = TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) != null ?
-      TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) : TRANSIENT_STORE.get(TransientStoreKeys.INPUT_SCHEMA);
-
-    for (Schema.Field field : outputSchema.getFields()) {
-      Schema schema = field.getSchema();
-      schema = schema.isNullable() ? schema.getNonNullable() : schema;
-      String type = schema.getLogicalType() == null ? schema.getType().name() : schema.getLogicalType().name();
-      // for backward compatibility, make the characters except the first one to lower case
-      type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
-      types.put(field.getName(), type);
+    if (schemaManagementEnabled) {
+      Schema outputSchema = TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) != null ?
+        TRANSIENT_STORE.get(TransientStoreKeys.OUTPUT_SCHEMA) : TRANSIENT_STORE.get(TransientStoreKeys.INPUT_SCHEMA);
+      for (Schema.Field field : outputSchema.getFields()) {
+        types.put(field.getName(), getColumnDisplayType(field.getSchema()));
+      }
     }
+
     // Iterate through all the new rows.
     for (Row row : rows) {
       // If output array has more than return result values, we terminate.
@@ -184,6 +187,11 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
         Object object = field.getSecond();
 
         if (object != null) {
+          if (!schemaManagementEnabled) {
+            Schema schema = convertor.getSchema(object, fieldName);
+            types.put(fieldName, schema != null ? getColumnDisplayType(schema) : object.getClass().getSimpleName());
+          }
+
           if ((object instanceof Iterable)
               || (object instanceof Row)) {
             value.put(fieldName, GSON.toJson(object));
@@ -194,9 +202,11 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
               value.put(fieldName, WranglerDisplaySerializer.NONDISPLAYABLE_STRING);
             }
           }
-
         } else {
           value.put(fieldName, null);
+          if (!schemaManagementEnabled) {
+            types.put(fieldName, NULL_COLUMN_DISPLAY_TYPE);
+          }
         }
       }
       values.add(value);
@@ -264,25 +274,11 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     return new WorkspaceValidationResult(columnValidationResults, statistics);
   }
 
-  /**
-   * Creates a uber record after iterating through all rows.
-   *
-   * @param rows list of all rows.
-   * @return A single record will rows merged across all columns.
-   */
-  public static Row createUberRecord(List<Row> rows) {
-    Row uber = new Row();
-    for (Row row : rows) {
-      for (int i = 0; i < row.width(); ++i) {
-        Object o = row.getValue(i);
-        if (o != null) {
-          int idx = uber.find(row.getColumn(i));
-          if (idx == -1) {
-            uber.add(row.getColumn(i), o);
-          }
-        }
-      }
-    }
-    return uber;
+  private String getColumnDisplayType(Schema schema) {
+    schema = schema.isNullable() ? schema.getNonNullable() : schema;
+    String type = schema.getLogicalType() == null ? schema.getType().name() : schema.getLogicalType().name();
+    // for backward compatibility, make the characters except the first one to lower case
+    type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
+    return type;
   }
 }

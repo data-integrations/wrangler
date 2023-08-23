@@ -77,4 +77,8 @@ public interface ExecutorContext extends LookupProvider, Serializable {
    * @return A transient store.
    */
   TransientStore getTransientStore();
+
+  default boolean isSchemaManagementEnabled() {
+    return false;
+  }
 }

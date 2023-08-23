@@ -16,7 +16,6 @@
 
 package io.cdap.wrangler;
 
-import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.etl.api.Lookup;
 import io.cdap.cdap.etl.api.StageMetrics;
 import io.cdap.directives.aggregates.DefaultTransientStore;
@@ -24,9 +23,9 @@ import io.cdap.wrangler.api.Executor;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.proto.Contexts;
+import org.mockito.Mockito;
 
 import java.net.URL;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,42 +38,17 @@ public class TestingPipelineContext implements ExecutorContext {
   private final String name;
   private final TransientStore store;
   private final Map<String, String> properties;
+  private boolean schemaManagementEnabled;
 
   public TestingPipelineContext() {
     name = "testing";
-    properties = new HashMap<>();
     store = new DefaultTransientStore();
-    metrics = new StageMetrics() {
-      @Override
-      public void count(String s, int i) {
+    properties = new HashMap<>();
 
-      }
+    metrics = Mockito.mock(StageMetrics.class);
+    Mockito.doNothing().when(metrics).count(Mockito.anyString(), Mockito.anyInt());
 
-      @Override
-      public void gauge(String s, long l) {
-
-      }
-
-      @Override
-      public void pipelineCount(String s, int i) {
-
-      }
-
-      @Override
-      public void pipelineGauge(String s, long l) {
-
-      }
-
-      @Override
-      public Metrics child(Map<String, String> tags) {
-        return this;
-      }
-
-      @Override
-      public Map<String, String> getTags() {
-        return Collections.emptyMap();
-      }
-    };
+    schemaManagementEnabled = false;
   }
 
   /**
@@ -131,6 +105,11 @@ public class TestingPipelineContext implements ExecutorContext {
     return store;
   }
 
+  public TestingPipelineContext setSchemaManagementEnabled() {
+    this.schemaManagementEnabled = true;
+    return this;
+  }
+
   /**
    * Provides a handle to dataset for lookup.
    *
@@ -141,5 +120,10 @@ public class TestingPipelineContext implements ExecutorContext {
   @Override
   public <T> Lookup<T> provide(String s, Map<String, String> map) {
     return null;
+  }
+
+  @Override
+  public boolean isSchemaManagementEnabled() {
+    return schemaManagementEnabled;
   }
 }
