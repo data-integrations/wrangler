@@ -109,13 +109,12 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
     int i = 0;
     int directiveIndex = 0;
     // Initialize schema with input schema from TransientStore if running in service env (design-time) / testing env
-    boolean designTime = context != null && context.getEnvironment() != null &&
-      (context.getEnvironment().equals(ExecutorContext.Environment.SERVICE) ||
-      context.getEnvironment().equals(ExecutorContext.Environment.TESTING));
-    Schema inputSchema = designTime ? context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA) : null;
+    boolean schemaManagementEnabled = context != null && context.isSchemaManagementEnabled();
+    Schema inputSchema = schemaManagementEnabled ?
+      context.getTransientStore().get(TransientStoreKeys.INPUT_SCHEMA) : null;
 
     List<DirectiveOutputSchemaGenerator> outputSchemaGenerators = new ArrayList<>();
-    if (designTime && inputSchema != null) {
+    if (schemaManagementEnabled && inputSchema != null) {
       for (Directive directive : directives) {
         outputSchemaGenerators.add(new DirectiveOutputSchemaGenerator(directive, generator));
       }
@@ -140,7 +139,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
               if (cumulativeRows.size() < 1) {
                 break;
               }
-              if (designTime && inputSchema != null) {
+              if (schemaManagementEnabled && inputSchema != null) {
                 outputSchemaGenerators.get(directiveIndex - 1).addNewOutputFields(cumulativeRows);
               }
             } catch (ReportErrorAndProceed e) {
@@ -164,7 +163,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
       throw new RecipeException(e.getMessage(), e, i, directiveIndex);
     }
     // Schema generation
-    if (designTime && inputSchema != null) {
+    if (schemaManagementEnabled && inputSchema != null) {
       context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.OUTPUT_SCHEMA,
                                         getOutputSchema(inputSchema, outputSchemaGenerators));
     }

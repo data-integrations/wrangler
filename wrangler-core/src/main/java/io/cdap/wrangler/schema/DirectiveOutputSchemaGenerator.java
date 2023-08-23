@@ -95,7 +95,7 @@ public class DirectiveOutputSchemaGenerator {
       if (generated != null) {
         outputFields.add(Schema.Field.of(fieldName, generated));
       } else if (existing != null) {
-        if (!existing.isNullable()) {
+        if (!existing.getType().equals(Schema.Type.NULL) && !existing.isNullable()) {
           existing = Schema.nullableOf(existing);
         }
         outputFields.add(Schema.Field.of(fieldName, existing));

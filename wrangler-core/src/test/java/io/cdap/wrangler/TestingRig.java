@@ -63,7 +63,7 @@ public final class TestingRig {
    */
   public static Schema executeAndGetSchema(String[] recipe, List<Row> rows, Schema inputSchema)
     throws DirectiveParseException, DirectiveLoadException, RecipeException {
-    ExecutorContext context = new TestingPipelineContext();
+    ExecutorContext context = new TestingPipelineContext().setSchemaManagementEnabled();
     context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
     execute(recipe, rows, context);
     return context.getTransientStore().get(TransientStoreKeys.OUTPUT_SCHEMA);

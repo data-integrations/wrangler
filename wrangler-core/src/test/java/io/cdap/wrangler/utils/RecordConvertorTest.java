@@ -84,7 +84,7 @@ public class RecordConvertorTest {
     );
 
     rows = TestingRig.execute(directives, rows);
-    Row row = createUberRecord(rows);
+    Row row = RowHelper.createMergedRow(rows);
 
     SchemaConverter schemaConvertor = new SchemaConverter();
     RecordConvertor convertor = new RecordConvertor();
@@ -94,20 +94,6 @@ public class RecordConvertorTest {
 
     Assert.assertEquals(1, outputs.size());
     Assert.assertEquals(6, ((List) outputs.get(0).get("body_numbers")).size());
-  }
-
-  private static Row createUberRecord(List<Row> rows) {
-    Row uber = new Row();
-    for (Row row : rows) {
-      for (int i = 0; i < row.width(); ++i) {
-        Object o = row.getValue(i);
-        uber.addOrSet(row.getColumn(i), null);
-        if (o != null) {
-          uber.addOrSet(row.getColumn(i), o);
-        }
-      }
-    }
-    return uber;
   }
 
   @Test
