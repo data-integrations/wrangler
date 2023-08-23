@@ -16,13 +16,16 @@
 
 package io.cdap.directives.column;
 
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -94,6 +97,35 @@ public class CopyTest {
     Assert.assertEquals(rows.get(0).getValue("body_2"), rows.get(0).getValue("body_1"));
     Assert.assertEquals(rows.get(1).getValue("body_2"), rows.get(1).getValue("body_1"));
     Assert.assertEquals(rows.get(2).getValue("body_2"), rows.get(2).getValue("body_1"));
+  }
+
+  @Test
+  public void testGetOutputSchemaForCopiedColumn() throws Exception {
+    String[] directives = new String[] {
+      "copy :col_B :col_A true",
+    };
+    List<Row> rows = Collections.singletonList(
+      new Row("col_A", 1).add("col_B", new BigDecimal("143235.016"))
+    );
+    Schema inputSchema = Schema.recordOf(
+      "inputSchema",
+      Schema.Field.of("col_A", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("col_B", Schema.decimalOf(10, 3))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expectedSchema",
+      Schema.Field.of("col_A", Schema.decimalOf(10, 3)),
+      Schema.Field.of("col_B", Schema.decimalOf(10, 3))
+    );
+
+    Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
+
+    Assert.assertEquals(outputSchema.getFields().size(), expectedSchema.getFields().size());
+    for (Schema.Field expectedField : expectedSchema.getFields()) {
+      Assert.assertEquals(
+        outputSchema.getField(expectedField.getName()).getSchema().getType(), expectedField.getSchema().getType()
+      );
+    }
   }
 
 }

@@ -16,13 +16,16 @@
 
 package io.cdap.directives.column;
 
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -64,5 +67,37 @@ public class ColumnsReplaceTest {
     );
 
     TestingRig.execute(directives, rows);
+  }
+  @Test
+  public void testGetOutputSchemaForReplacedColumnNames() throws Exception {
+    String[] directives = new String[] {
+      "columns-replace s/^data_//g",
+    };
+    List<Row> rows = Collections.singletonList(
+      new Row("data_a", 1).add("data_data_confuse", "ABC").add("no_data", null).add("random", new BigDecimal("12.44"))
+    );
+    Schema inputSchema = Schema.recordOf(
+      "inputSchema",
+      Schema.Field.of("data_a", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("data_data_confuse", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("no_data", Schema.of(Schema.Type.DOUBLE)),
+      Schema.Field.of("random", Schema.decimalOf(10, 3))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expectedSchema",
+      Schema.Field.of("a", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("data_confuse", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("no_data", Schema.of(Schema.Type.DOUBLE)),
+      Schema.Field.of("random", Schema.decimalOf(10, 3))
+    );
+
+    Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
+
+    Assert.assertEquals(outputSchema.getFields().size(), expectedSchema.getFields().size());
+    for (Schema.Field expectedField : expectedSchema.getFields()) {
+      Assert.assertEquals(
+        outputSchema.getField(expectedField.getName()).getSchema().getType(), expectedField.getSchema().getType()
+      );
+    }
   }
 }
