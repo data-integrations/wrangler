@@ -19,6 +19,7 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -26,6 +27,7 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.SchemaResolutionContext;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
 import io.cdap.wrangler.api.lineage.Mutation;
@@ -39,6 +41,7 @@ import io.cdap.wrangler.utils.ColumnConverter;
 
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A Wrangler step for converting data type of column
@@ -107,5 +110,25 @@ public final class SetType implements Directive, Lineage {
       .readable("Changed the column '%s' to type '%s'", col, type)
       .relation(col, col)
       .build();
+  }
+
+  @Override
+  public Schema getOutputSchema(SchemaResolutionContext context) {
+    Schema inputSchema = context.getInputSchema();
+    return Schema.recordOf(
+      "outputSchema",
+      inputSchema.getFields().stream()
+        .map(
+          field -> {
+            try {
+              return field.getName().equals(col) ?
+                Schema.Field.of(col, ColumnConverter.getSchemaForType(type, scale)) : field;
+            } catch (DirectiveParseException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        )
+        .collect(Collectors.toList())
+    );
   }
 }
