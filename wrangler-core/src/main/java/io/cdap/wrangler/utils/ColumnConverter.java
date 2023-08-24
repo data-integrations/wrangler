@@ -16,16 +16,22 @@
 package io.cdap.wrangler.utils;
 
 import io.cdap.cdap.api.common.Bytes;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.DirectiveExecutionException;
+import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.Row;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility class that converts a {@link Row} column into another column.
  */
 public final class ColumnConverter {
+  private static final Map<String, Schema.Type> SCHEMA_TYPE_MAP;
 
   private ColumnConverter() {
   }
@@ -304,5 +310,39 @@ public final class ColumnConverter {
       throw new DirectiveExecutionException(String.format(
         "Cannot set scale as '%s' for value '%s' when rounding-mode is '%s'", scale, decimal, roundingMode), e);
     }
+  }
+
+  public static Schema getSchemaForType(String type, Integer scale) throws DirectiveParseException {
+    Schema typeSchema;
+    type = type.toUpperCase();
+    if (type.equals("DECIMAL")) {
+      // TODO make set-type support setting decimal precision
+      typeSchema = Schema.nullableOf(Schema.decimalOf(38, scale));
+    } else {
+      if (!SCHEMA_TYPE_MAP.containsKey(type)) {
+        throw new DirectiveParseException(String.format("'%s' is an unsupported type. " +
+          "Supported types are: int, short, long, double, decimal, boolean, string, bytes", type));
+      }
+      typeSchema = Schema.nullableOf(Schema.of(SCHEMA_TYPE_MAP.get(type)));
+    }
+    return typeSchema;
+  }
+
+  static {
+    Map<String, Schema.Type> schemaTypeMap = new HashMap<>();
+    schemaTypeMap.put("INTEGER", Schema.Type.INT);
+    schemaTypeMap.put("I64", Schema.Type.INT);
+    schemaTypeMap.put("INT", Schema.Type.INT);
+    // TODO currently CDAP does not have a SHORT datatype for I32 and SHORT arguments.
+    schemaTypeMap.put("SHORT", Schema.Type.INT);
+    schemaTypeMap.put("I32", Schema.Type.INT);
+    schemaTypeMap.put("LONG", Schema.Type.LONG);
+    schemaTypeMap.put("BOOL", Schema.Type.BOOLEAN);
+    schemaTypeMap.put("BOOLEAN", Schema.Type.BOOLEAN);
+    schemaTypeMap.put("STRING", Schema.Type.STRING);
+    schemaTypeMap.put("FLOAT", Schema.Type.FLOAT);
+    schemaTypeMap.put("DOUBLE", Schema.Type.DOUBLE);
+    schemaTypeMap.put("BYTES", Schema.Type.BYTES);
+    SCHEMA_TYPE_MAP = Collections.unmodifiableMap(schemaTypeMap);
   }
 }
