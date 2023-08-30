@@ -35,8 +35,8 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A directive for copying value of one column to another.
@@ -116,14 +116,20 @@ public class Copy implements Directive, Lineage {
   @Override
   public Schema getOutputSchema(SchemaResolutionContext context) {
     Schema inputSchema = context.getInputSchema();
-    return Schema.recordOf(
-      "outputSchema",
-      inputSchema.getFields().stream()
-        .map(
-          field -> field.getName().equals(destination.value()) ?
-            Schema.Field.of(destination.value(), inputSchema.getField(source.value()).getSchema()) : field
-        )
-        .collect(Collectors.toList())
-    );
+    List<Schema.Field> outputFields = new ArrayList<>();
+    Schema sourceSchema = inputSchema.getField(source.value()).getSchema();
+
+    for (Schema.Field field : inputSchema.getFields()) {
+      if (field.getName().equals(destination.value())) {
+        outputFields.add(Schema.Field.of(destination.value(), sourceSchema));
+      } else {
+        outputFields.add(field);
+      }
+    }
+    if (!force) {
+      outputFields.add(Schema.Field.of(destination.value(), sourceSchema));
+    }
+
+    return Schema.recordOf("outputSchema", outputFields);
   }
 }

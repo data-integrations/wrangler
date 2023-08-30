@@ -100,7 +100,7 @@ public class CopyTest {
   }
 
   @Test
-  public void testGetOutputSchemaForCopiedColumn() throws Exception {
+  public void testGetOutputSchemaForForceCopiedColumn() throws Exception {
     String[] directives = new String[] {
       "copy :col_B :col_A true",
     };
@@ -128,4 +128,31 @@ public class CopyTest {
     }
   }
 
+  @Test
+  public void testGetOutputSchemaForCopiedColumn() throws Exception {
+    String[] directives = new String[] {
+      "copy :col_A :col_B",
+    };
+    List<Row> rows = Collections.singletonList(
+      new Row("col_A", new BigDecimal("143235.016"))
+    );
+    Schema inputSchema = Schema.recordOf(
+      "inputSchema",
+      Schema.Field.of("col_A", Schema.decimalOf(10, 3))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expectedSchema",
+      Schema.Field.of("col_A", Schema.decimalOf(10, 3)),
+      Schema.Field.of("col_B", Schema.decimalOf(10, 3))
+    );
+
+    Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
+
+    Assert.assertEquals(outputSchema.getFields().size(), expectedSchema.getFields().size());
+    for (Schema.Field expectedField : expectedSchema.getFields()) {
+      Assert.assertEquals(
+        outputSchema.getField(expectedField.getName()).getSchema().getType(), expectedField.getSchema().getType()
+      );
+    }
+  }
 }
