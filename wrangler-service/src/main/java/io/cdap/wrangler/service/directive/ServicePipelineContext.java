@@ -22,6 +22,7 @@ import io.cdap.cdap.etl.api.Lookup;
 import io.cdap.cdap.etl.api.StageMetrics;
 import io.cdap.cdap.etl.common.DatasetContextLookupProvider;
 import io.cdap.cdap.etl.common.NoopMetrics;
+import io.cdap.cdap.features.Feature;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.TransientStore;
 
@@ -133,5 +134,13 @@ class ServicePipelineContext implements ExecutorContext {
   @Override
   public <T> Lookup<T> provide(String s, Map<String, String> map) {
     return lookupProvider.provide(s, map);
+  }
+
+  @Override
+  public boolean isSchemaManagementEnabled() {
+    if (systemAppTaskContext != null) {
+      return Feature.WRANGLER_SCHEMA_MANAGEMENT.isEnabled(systemAppTaskContext);
+    }
+    return Feature.WRANGLER_SCHEMA_MANAGEMENT.isEnabled(serviceContext);
   }
 }

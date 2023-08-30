@@ -71,6 +71,7 @@ import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.ProjectInfo;
+import io.cdap.wrangler.utils.RowHelper;
 import io.cdap.wrangler.utils.SchemaConverter;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -645,7 +646,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
 
       // generate a schema based upon the first record
       SchemaConverter schemaConvertor = new SchemaConverter();
-      Schema schema = schemaConvertor.toSchema("record", createUberRecord(rows));
+      Schema schema = schemaConvertor.toSchema("record", RowHelper.createMergedRow(rows));
       if (schema.getType() != Schema.Type.RECORD) {
         schema = Schema.recordOf("array", Schema.Field.of("value", schema));
       }
