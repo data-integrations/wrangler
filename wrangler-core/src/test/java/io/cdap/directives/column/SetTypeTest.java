@@ -17,6 +17,7 @@
 package io.cdap.directives.column;
 
 import io.cdap.cdap.api.common.Bytes;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
@@ -316,6 +317,51 @@ public class SetTypeTest {
       Assert.assertTrue(object instanceof byte[]);
       byte [] value = (byte[]) object;
       Assert.assertEquals(0, Bytes.compareTo(value, bytesResults[i]));
+    }
+  }
+
+  @Test
+  public void testGetOutputSchemaForTypeChangedColumn() throws Exception {
+    String[] directives = new String[] {
+      "set-type :A I64",
+      "set-type :B shoRT",
+      "set-type :C decimal 5 HALF_UP",
+      "set-type :D bytes",
+      "set-type :E string",
+      "set-type :F BOOLEAN",
+      "set-type :G double"
+    };
+    List<Row> rows = Collections.singletonList(
+      new Row("A", "1234").add("B", "1").add("C", "143235.016")
+        .add("D", "random").add("E", 123).add("F", "true").add("G", 12L)
+    );
+    Schema inputSchema = Schema.recordOf(
+      "inputSchema",
+      Schema.Field.of("A", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("B", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("C", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("D", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("E", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("F", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("G", Schema.of(Schema.Type.LONG))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expectedSchema",
+      Schema.Field.of("A", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("B", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("C", Schema.decimalOf(38, 5)),
+      Schema.Field.of("D", Schema.of(Schema.Type.BYTES)),
+      Schema.Field.of("E", Schema.of(Schema.Type.STRING)),
+      Schema.Field.of("F", Schema.of(Schema.Type.BOOLEAN)),
+      Schema.Field.of("G", Schema.of(Schema.Type.DOUBLE))
+    );
+
+    Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
+
+    Assert.assertEquals(outputSchema.getFields().size(), expectedSchema.getFields().size());
+    for (Schema.Field expectedField : expectedSchema.getFields()) {
+      Assert.assertEquals(expectedField.getSchema().getType(),
+                          outputSchema.getField(expectedField.getName()).getSchema().getNonNullable().getType());
     }
   }
 }
