@@ -16,16 +16,22 @@
 package io.cdap.wrangler.utils;
 
 import io.cdap.cdap.api.common.Bytes;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.DirectiveExecutionException;
+import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.Row;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility class that converts a {@link Row} column into another column.
  */
 public final class ColumnConverter {
+  private static final Map<String, Schema.Type> SCHEMA_TYPE_MAP;
 
   private ColumnConverter() {
   }
@@ -77,7 +83,7 @@ public final class ColumnConverter {
       }
       try {
         Object converted = ColumnConverter.convertType(column, toType, object);
-        if (toType.equalsIgnoreCase("DECIMAL")) {
+        if (toType.equalsIgnoreCase(ColumnTypeNames.DECIMAL)) {
           row.setValue(idx, setDecimalScale((BigDecimal) converted, scale, roundingMode));
         } else {
           row.setValue(idx, converted);
@@ -95,9 +101,9 @@ public final class ColumnConverter {
     throws Exception {
     toType = toType.toUpperCase();
     switch (toType) {
-      case "INTEGER":
-      case "I64":
-      case "INT": {
+      case ColumnTypeNames.INTEGER:
+      case ColumnTypeNames.I64:
+      case ColumnTypeNames.INT: {
         if (object instanceof String) {
           return Integer.parseInt((String) object);
         } else if (object instanceof Short) {
@@ -119,8 +125,8 @@ public final class ColumnConverter {
         }
       }
 
-      case "I32":
-      case "SHORT": {
+      case ColumnTypeNames.I32:
+      case ColumnTypeNames.SHORT: {
         if (object instanceof String) {
           return Short.parseShort((String) object);
         } else if (object instanceof Short) {
@@ -142,7 +148,7 @@ public final class ColumnConverter {
         }
       }
 
-      case "LONG": {
+      case ColumnTypeNames.LONG: {
         if (object instanceof String) {
           return Long.parseLong((String) object);
         } else if (object instanceof Short) {
@@ -164,8 +170,8 @@ public final class ColumnConverter {
         }
       }
 
-      case "BOOL":
-      case "BOOLEAN": {
+      case ColumnTypeNames.BOOL:
+      case ColumnTypeNames.BOOLEAN: {
         if (object instanceof Boolean) {
           return object;
         } else if (object instanceof String) {
@@ -189,13 +195,13 @@ public final class ColumnConverter {
         }
       }
 
-      case "STRING": {
+      case ColumnTypeNames.STRING: {
         if (object instanceof byte[]) {
           return Bytes.toString((byte[]) object);
         }
         return object.toString();
       }
-      case "FLOAT": {
+      case ColumnTypeNames.FLOAT: {
         if (object instanceof String) {
           return Float.parseFloat((String) object);
         } else if (object instanceof Short) {
@@ -217,7 +223,7 @@ public final class ColumnConverter {
         }
       }
 
-      case "DECIMAL": {
+      case ColumnTypeNames.DECIMAL: {
         if (object instanceof BigDecimal) {
           return object;
         } else if (object instanceof String) {
@@ -239,7 +245,7 @@ public final class ColumnConverter {
         }
       }
 
-      case "DOUBLE": {
+      case ColumnTypeNames.DOUBLE: {
         if (object instanceof String) {
           return Double.parseDouble((String) object);
         } else if (object instanceof Short) {
@@ -261,7 +267,7 @@ public final class ColumnConverter {
         }
       }
 
-      case "BYTES": {
+      case ColumnTypeNames.BYTES: {
         if (object instanceof String) {
           return Bytes.toBytes((String) object);
         } else if (object instanceof Short) {
@@ -304,5 +310,59 @@ public final class ColumnConverter {
       throw new DirectiveExecutionException(String.format(
         "Cannot set scale as '%s' for value '%s' when rounding-mode is '%s'", scale, decimal, roundingMode), e);
     }
+  }
+
+  public static Schema getSchemaForType(String type, Integer scale) throws DirectiveParseException {
+    Schema typeSchema;
+    type = type.toUpperCase();
+    if (type.equals(ColumnTypeNames.DECIMAL)) {
+      // TODO make set-type support setting decimal precision
+      typeSchema = Schema.nullableOf(Schema.decimalOf(38, scale));
+    } else {
+      if (!SCHEMA_TYPE_MAP.containsKey(type)) {
+        throw new DirectiveParseException(String.format("'%s' is an unsupported type. " +
+          "Supported types are: int, short, long, double, decimal, boolean, string, bytes", type));
+      }
+      typeSchema = Schema.nullableOf(Schema.of(SCHEMA_TYPE_MAP.get(type)));
+    }
+    return typeSchema;
+  }
+
+  static {
+    Map<String, Schema.Type> schemaTypeMap = new HashMap<>();
+    schemaTypeMap.put(ColumnTypeNames.INTEGER, Schema.Type.INT);
+    schemaTypeMap.put(ColumnTypeNames.I64, Schema.Type.INT);
+    schemaTypeMap.put(ColumnTypeNames.INT, Schema.Type.INT);
+    // TODO currently CDAP does not have a SHORT datatype for I32 and SHORT arguments.
+    schemaTypeMap.put(ColumnTypeNames.SHORT, Schema.Type.INT);
+    schemaTypeMap.put(ColumnTypeNames.I32, Schema.Type.INT);
+    schemaTypeMap.put(ColumnTypeNames.LONG, Schema.Type.LONG);
+    schemaTypeMap.put(ColumnTypeNames.BOOL, Schema.Type.BOOLEAN);
+    schemaTypeMap.put(ColumnTypeNames.BOOLEAN, Schema.Type.BOOLEAN);
+    schemaTypeMap.put(ColumnTypeNames.STRING, Schema.Type.STRING);
+    schemaTypeMap.put(ColumnTypeNames.FLOAT, Schema.Type.FLOAT);
+    schemaTypeMap.put(ColumnTypeNames.DOUBLE, Schema.Type.DOUBLE);
+    schemaTypeMap.put(ColumnTypeNames.BYTES, Schema.Type.BYTES);
+    SCHEMA_TYPE_MAP = Collections.unmodifiableMap(schemaTypeMap);
+  }
+
+  private static final class ColumnTypeNames {
+    private ColumnTypeNames() {
+      throw new AssertionError("Cannot instantiate a constants class");
+    }
+
+    public static final String INTEGER = "INTEGER";
+    public static final String I64 = "I64";
+    public static final String INT = "INT";
+    public static final String SHORT = "SHORT";
+    public static final String I32 = "I32";
+    public static final String LONG = "LONG";
+    public static final String BOOL = "BOOL";
+    public static final String BOOLEAN = "BOOLEAN";
+    public static final String STRING = "STRING";
+    public static final String FLOAT = "FLOAT";
+    public static final String DOUBLE = "DOUBLE";
+    public static final String BYTES = "BYTES";
+    public static final String DECIMAL = "DECIMAL";
   }
 }
