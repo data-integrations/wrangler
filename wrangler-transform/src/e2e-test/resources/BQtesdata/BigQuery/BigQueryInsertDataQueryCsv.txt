@@ -1,0 +1,5 @@
+INSERT INTO DATASET.TABLE_NAME (body)
+VALUES
+('C#12,ronnie,root,1'),
+('D#34,aman,,2'),
+('L#89,adam,joy,3');
