@@ -188,6 +188,17 @@ public class SetTypeTest {
     Assert.assertEquals(row.getValue(1), new BigDecimal("456"));
   }
 
+  @Test
+  public void testToDecimalNegativeScale() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_2", "125.45"));
+    String[] directives = new String[] {"set-type scale_2 decimal -1 'HALF_UP'"};
+    List<Row> results = TestingRig.execute(directives, rows);
+    Row row = results.get(0);
+
+    Assert.assertTrue(row.getValue(0) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(0), new BigDecimal("1.3E+2"));
+  }
+
   @Test(expected = RecipeException.class)
   public void testToDecimalRoundingRequired() throws Exception {
     List<Row> rows = Collections.singletonList(new Row("scale_2", "123.45"));
