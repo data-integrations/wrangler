@@ -304,7 +304,7 @@ Space
  ;
 
 fragment Int
- : [1-9] Digit* [L]*
+ : '-'? [1-9] Digit* [L]*
  | '0'
  ;
 
