@@ -68,7 +68,7 @@ public class ColumnNameValidator implements Validator<String> {
   @Override
   public void validate(String name) throws ValidatorException {
     // Only alphanumeric and underscore (_) allowed.
-    if (!name.matches("^[a-zA-Z0-9_]*$")) {
+    if (!name.matches("^[a-zA-Z\u0400-\u04FF0-9_]*$")) {
       throw new ValidatorException("Column '" + name + "' contains non-alphanumeric characters");
     }
     // Reserved words not allowed

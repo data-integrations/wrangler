@@ -258,15 +258,15 @@ Number
  ;
 
 Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
+ : [a-zA-Z\u0400-\u04FF_\-] [a-zA-Z\u0400-\u04FF_0-9\-]*
  ;
 
 Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
+ : [a-zA-Z\u0400-\u04FF_] [a-zA-Z\u0400-\u04FF_0-9]*
  ;
 
 Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
+ : ':' [a-zA-Z\u0400-\u04FF_\-] [:a-zA-Z\u0400-\u04FF_0-9\-]*
  ;
 
 String

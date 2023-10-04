@@ -27,6 +27,7 @@ public class ColumnNameValidatorTest {
   public void testGoodColumnNames() throws Exception {
     Validator validator = new ColumnNameValidator();
     validator.initialize();
+    validator.validate("киРилиця");
     validator.validate("first_name");
     validator.validate("id");
     validator.validate("last_name");
