@@ -317,7 +317,8 @@ public final class ColumnConverter {
     type = type.toUpperCase();
     if (type.equals(ColumnTypeNames.DECIMAL)) {
       // TODO make set-type support setting decimal precision
-      typeSchema = Schema.nullableOf(Schema.decimalOf(38, scale));
+      scale = scale != null ? scale : 38;
+      typeSchema = Schema.nullableOf(Schema.decimalOf(76, scale));
     } else {
       if (!SCHEMA_TYPE_MAP.containsKey(type)) {
         throw new DirectiveParseException(String.format("'%s' is an unsupported type. " +
