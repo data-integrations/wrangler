@@ -17,34 +17,31 @@
 package io.cdap.plugin.common.stepsdesign;
 
 import com.google.cloud.bigquery.BigQueryException;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.StorageException;
 import io.cdap.e2e.utils.BigQueryClient;
 import io.cdap.e2e.utils.PluginPropertyUtils;
-import io.cdap.e2e.utils.StorageClient;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import stepsdesign.BeforeActions;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-
-import static io.cdap.e2e.pages.locators.CdfGCSLocators.filePath;
 
 /**
  * Setup BQ for Wrangler tests.
  */
 public class TestSetupHooks {
 
+  @Before(order = 1, value = "@BQ_SOURCE_CSV_TEST")
+  public static void createTempSourceBQTable() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQTableQueryFileCsv"),
+            PluginPropertyUtils.pluginProp("InsertBQDataQueryFileCsv"));
+  }
   @Before(order = 1, value = "@BQ_SINK_TEST")
   public static void setTempTargetBQTableName() {
     String bqTargetTableName = "E2E_TARGET_" + UUID.randomUUID().toString().replaceAll("-", "_");
@@ -71,10 +68,33 @@ public class TestSetupHooks {
   /**
    * Create BigQuery table.
    */
-  @Before(order = 1, value = "@BQ_SOURCE_CSV_TEST")
-  public static void createTempSourceBQTable() throws IOException, InterruptedException {
-    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQTableQueryFileCsv"),
-                                   PluginPropertyUtils.pluginProp("InsertBQDataQueryFileCsv"));
+  @Before(order = 1, value = "@BQ_SOURCE_FXDLEN_TEST")
+  public static void createTempSourceBQTableFxdLen() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQDataQueryFileFxdLen"),
+            PluginPropertyUtils.pluginProp("InsertBQDataQueryFileFxdLen"));
+  }
+  @Before(order = 1, value = "@BQ_SOURCE_HL7_TEST")
+  public static void createTempSourceBQTableHl7() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQDataQueryFileHl7"),
+            PluginPropertyUtils.pluginProp("InsertBQDataQueryFileHl7"));
+  }
+  @Before(order = 1, value = "@BQ_SOURCE_TS_TEST")
+  public static void createTempSourceBQTableTimestamp() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQDataQueryFileTimestamp"),
+            PluginPropertyUtils.pluginProp("InsertBQDataQueryFileTimestamp"));
+  }
+  @Before(order = 1, value = "@BQ_SOURCE_DATETIME_TEST")
+  public static void createTempSourceBQTableDateTime() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQDataQueryFileDatetime"),
+            PluginPropertyUtils.pluginProp("InsertBQDataQueryFileDatetime"));
+  }
+
+  @After(order = 1, value = "@BQ_SOURCE_TEST")
+  public static void deleteTempSourceBQTable() throws IOException, InterruptedException {
+    String bqSourceTable = PluginPropertyUtils.pluginProp("bqSourceTable");
+    BigQueryClient.dropBqQuery(bqSourceTable);
+    BeforeActions.scenario.write("BQ source Table " + bqSourceTable + " deleted successfully");
+    PluginPropertyUtils.removePluginProp("bqSourceTable");
   }
 
   private static void createSourceBQTableWithQueries(String bqCreateTableQueryFile, String bqInsertDataQueryFile)
