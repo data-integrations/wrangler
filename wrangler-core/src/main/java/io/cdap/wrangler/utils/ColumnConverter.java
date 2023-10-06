@@ -318,7 +318,7 @@ public final class ColumnConverter {
     if (type.equals(ColumnTypeNames.DECIMAL)) {
       // TODO make set-type support setting decimal precision
       scale = scale != null ? scale : 38;
-      typeSchema = Schema.nullableOf(Schema.decimalOf(76, scale));
+      typeSchema = Schema.nullableOf(Schema.decimalOf(77, scale));
     } else {
       if (!SCHEMA_TYPE_MAP.containsKey(type)) {
         throw new DirectiveParseException(String.format("'%s' is an unsupported type. " +
