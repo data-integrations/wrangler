@@ -214,6 +214,17 @@ public class SetTypeTest {
   }
 
   @Test
+  public void testToDecimalScaleIsNull() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_2", "125.45"));
+    String[] directives = new String[] {"set-type scale_2 decimal"};
+    List<Row> results = TestingRig.execute(directives, rows);
+    Row row = results.get(0);
+
+    Assert.assertTrue(row.getValue(0) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(0), new BigDecimal("125.45"));
+  }
+
+  @Test
   public void testToBoolean() throws Exception {
     List<Row> trueRows = Collections.singletonList(
       new Row("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
