@@ -214,6 +214,36 @@ public class SetTypeTest {
   }
 
   @Test
+  public void testToDecimalScaleIsNull() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_2", "125.45"));
+    String[] directives = new String[] {"set-type scale_2 decimal"};
+    Schema inputSchema = Schema.recordOf(
+        "inputSchema",
+        Schema.Field.of("scale_2", Schema.of(Schema.Type.DOUBLE))
+    );
+
+    Schema expectedSchema = Schema.recordOf(
+        "expectedSchema",
+        Schema.Field.of("scale_2", Schema.decimalOf(77, 38))
+    );
+
+    List<Row> results = TestingRig.execute(directives, rows);
+    Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
+    Row row = results.get(0);
+    Schema.Field outputSchemaField = expectedSchema.getFields().get(0);
+
+    Assert.assertTrue(row.getValue(0) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(0), new BigDecimal("125.45"));
+
+    Assert.assertEquals(outputSchemaField.getSchema().getType(),
+        outputSchema.getField(outputSchemaField.getName()).getSchema().getNonNullable().getType());
+    Assert.assertEquals(outputSchemaField.getSchema().getPrecision(),
+        outputSchema.getField(outputSchemaField.getName()).getSchema().getNonNullable().getPrecision());
+    Assert.assertEquals(outputSchemaField.getSchema().getScale(),
+        outputSchema.getField(outputSchemaField.getName()).getSchema().getNonNullable().getScale());
+  }
+
+  @Test
   public void testToBoolean() throws Exception {
     List<Row> trueRows = Collections.singletonList(
       new Row("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
