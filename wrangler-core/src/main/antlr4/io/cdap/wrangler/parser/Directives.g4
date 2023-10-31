@@ -124,7 +124,7 @@ properties
  ;
 
 propertyList
- : property (',' property)+
+ : property (',' property)*
  ;
 
 property
