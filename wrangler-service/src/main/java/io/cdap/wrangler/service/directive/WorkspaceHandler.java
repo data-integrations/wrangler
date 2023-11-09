@@ -621,6 +621,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                                                                          namespace, detail.getSampleAsBytes());
     RunnableTaskRequest runnableTaskRequest = RunnableTaskRequest.getBuilder(RemoteExecutionTask.class.getName())
       .withParam(GSON.toJson(directiveRequest))
+      .withNamespace(namespace)
       .build();
     byte[] bytes = getContext().runTask(runnableTaskRequest);
     return new ObjectSerDe<List<Row>>().toObject(bytes);
