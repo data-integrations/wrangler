@@ -103,6 +103,7 @@ public class CopyTest {
   public void testGetOutputSchemaForForceCopiedColumn() throws Exception {
     String[] directives = new String[] {
       "copy :col_B :col_A true",
+      "copy :col_B :col_C true",
     };
     List<Row> rows = Collections.singletonList(
       new Row("col_A", 1).add("col_B", new BigDecimal("143235.016"))
@@ -115,7 +116,8 @@ public class CopyTest {
     Schema expectedSchema = Schema.recordOf(
       "expectedSchema",
       Schema.Field.of("col_A", Schema.decimalOf(10, 3)),
-      Schema.Field.of("col_B", Schema.decimalOf(10, 3))
+      Schema.Field.of("col_B", Schema.decimalOf(10, 3)),
+      Schema.Field.of("col_C", Schema.decimalOf(10, 3))
     );
 
     Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
