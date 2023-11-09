@@ -118,18 +118,18 @@ public class Copy implements Directive, Lineage {
     Schema inputSchema = context.getInputSchema();
     List<Schema.Field> outputFields = new ArrayList<>();
     Schema sourceSchema = inputSchema.getField(source.value()).getSchema();
+    boolean destinationExists = inputSchema.getField(destination.value()) != null;
 
     for (Schema.Field field : inputSchema.getFields()) {
-      if (field.getName().equals(destination.value())) {
+      if (force && field.getName().equals(destination.value())) {
         outputFields.add(Schema.Field.of(destination.value(), sourceSchema));
       } else {
         outputFields.add(field);
       }
     }
-    if (!force) {
+    if (!destinationExists) {
       outputFields.add(Schema.Field.of(destination.value(), sourceSchema));
     }
-
     return Schema.recordOf("outputSchema", outputFields);
   }
 }
