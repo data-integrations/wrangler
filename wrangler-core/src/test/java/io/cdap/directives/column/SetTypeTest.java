@@ -214,12 +214,47 @@ public class SetTypeTest {
   }
 
   @Test
+  public void testToDecimalWithScalePrecisionAndRoundingMode() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_1_precision_4", "122.5")
+        .add("scale_3_precision_6", "456.789"));
+    String[] directives = new String[] {"set-type :scale_1_precision_4 decimal 0 'FLOOR' prop:{precision=3}",
+        "set-type :scale_3_precision_6 decimal 0 prop:{precision=5}"};
+    List<Row> results = TestingRig.execute(directives, rows);
+    Row row = results.get(0);
+
+    Assert.assertTrue(row.getValue(0) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(0), new BigDecimal("122"));
+
+    Assert.assertTrue(row.getValue(1) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(1), new BigDecimal("457"));
+  }
+
+  @Test
+  public void testToDecimalWithPrecision() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_1_precision_4", "122.5"));
+    String[] directives = new String[] {"set-type :scale_1_precision_4 decimal 'FLOOR' prop:{precision=3}"};
+    List<Row> results = TestingRig.execute(directives, rows);
+    Row row = results.get(0);
+
+    Assert.assertTrue(row.getValue(0) instanceof BigDecimal);
+    Assert.assertEquals(row.getValue(0), new BigDecimal("122"));
+
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testToDecimalWithInvalidPrecision() throws Exception {
+    List<Row> rows = Collections.singletonList(new Row("scale_1_precision_4", "122.5"));
+    String[] directives = new String[] {"set-type :scale_1_precision_4 decimal 0 'FLOOR' prop:{precision=-1}"};
+    TestingRig.execute(directives, rows);
+  }
+
+  @Test
   public void testToDecimalScaleIsNull() throws Exception {
     List<Row> rows = Collections.singletonList(new Row("scale_2", "125.45"));
     String[] directives = new String[] {"set-type scale_2 decimal"};
     Schema inputSchema = Schema.recordOf(
         "inputSchema",
-        Schema.Field.of("scale_2", Schema.of(Schema.Type.DOUBLE))
+        Schema.Field.of("scale_2", Schema.nullableOf(Schema.of(Schema.Type.DOUBLE)))
     );
 
     Schema expectedSchema = Schema.recordOf(
@@ -377,14 +412,14 @@ public class SetTypeTest {
         .add("D", "random").add("E", 123).add("F", "true").add("G", 12L)
     );
     Schema inputSchema = Schema.recordOf(
-      "inputSchema",
-      Schema.Field.of("A", Schema.of(Schema.Type.STRING)),
-      Schema.Field.of("B", Schema.of(Schema.Type.STRING)),
-      Schema.Field.of("C", Schema.of(Schema.Type.STRING)),
-      Schema.Field.of("D", Schema.of(Schema.Type.STRING)),
-      Schema.Field.of("E", Schema.of(Schema.Type.INT)),
-      Schema.Field.of("F", Schema.of(Schema.Type.STRING)),
-      Schema.Field.of("G", Schema.of(Schema.Type.LONG))
+        "inputSchema",
+        Schema.Field.of("A", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+        Schema.Field.of("B", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+        Schema.Field.of("C", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+        Schema.Field.of("D", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+        Schema.Field.of("E", Schema.nullableOf(Schema.of(Schema.Type.INT))),
+        Schema.Field.of("F", Schema.nullableOf(Schema.of(Schema.Type.STRING))),
+        Schema.Field.of("G", Schema.nullableOf(Schema.of(Schema.Type.LONG)))
     );
     Schema expectedSchema = Schema.recordOf(
       "expectedSchema",
