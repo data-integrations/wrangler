@@ -17,11 +17,13 @@ package io.cdap.wrangler.utils;
 
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.data.schema.Schema.LogicalType;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.Row;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,7 +47,7 @@ public final class ColumnConverter {
    * @throws DirectiveExecutionException when a column matching the target name already exists
    */
   public static void rename(String directiveName, Row row, String column, String toName)
-    throws DirectiveExecutionException {
+      throws DirectiveExecutionException {
     int idx = row.find(column);
     int existingColumn = row.find(toName);
     if (idx == -1) {
@@ -57,9 +59,9 @@ public final class ColumnConverter {
       row.setColumn(idx, toName);
     } else {
       throw new DirectiveExecutionException(
-        directiveName, String.format("Column '%s' already exists. Apply the 'drop %s' directive before " +
-                                       "renaming '%s' to '%s'.",
-                                     toName, toName, column, toName));
+          directiveName, String.format("Column '%s' already exists. Apply the 'drop %s' directive before " +
+              "renaming '%s' to '%s'.",
+          toName, toName, column, toName));
     }
   }
 
@@ -73,8 +75,8 @@ public final class ColumnConverter {
    * @throws DirectiveExecutionException when an unsupported type is specified or the column can not be converted.
    */
   public static void convertType(String directiveName, Row row, String column, String toType,
-                                 Integer scale, RoundingMode roundingMode)
-    throws DirectiveExecutionException {
+      Integer scale, Integer precision, RoundingMode roundingMode)
+      throws DirectiveExecutionException {
     int idx = row.find(column);
     if (idx != -1) {
       Object object = row.getValue(idx);
@@ -84,7 +86,8 @@ public final class ColumnConverter {
       try {
         Object converted = ColumnConverter.convertType(column, toType, object);
         if (toType.equalsIgnoreCase(ColumnTypeNames.DECIMAL)) {
-          row.setValue(idx, setDecimalScale((BigDecimal) converted, scale, roundingMode));
+          row.setValue(idx, setDecimalScaleAndPrecision((BigDecimal) converted, scale,
+              precision, roundingMode));
         } else {
           row.setValue(idx, converted);
         }
@@ -92,13 +95,13 @@ public final class ColumnConverter {
         throw e;
       } catch (Exception e) {
         throw new DirectiveExecutionException(
-          directiveName, String.format("Column '%s' cannot be converted to a '%s'.", column, toType), e);
+            directiveName, String.format("Column '%s' cannot be converted to a '%s'.", column, toType), e);
       }
     }
   }
 
   private static Object convertType(String col, String toType, Object object)
-    throws Exception {
+      throws Exception {
     toType = toType.toUpperCase();
     switch (toType) {
       case ColumnTypeNames.INTEGER:
@@ -291,38 +294,62 @@ public final class ColumnConverter {
 
       default:
         throw new DirectiveExecutionException(String.format(
-          "Column '%s' is of unsupported type '%s'. Supported types are: " +
-            "int, short, long, double, decimal, boolean, string, bytes", col, toType));
+            "Column '%s' is of unsupported type '%s'. Supported types are: " +
+                "int, short, long, double, decimal, boolean, string, bytes", col, toType));
     }
     throw new DirectiveExecutionException(
         String.format("Column '%s' has value of type '%s' and cannot be converted to a '%s'.", col,
             object.getClass().getSimpleName(), toType));
   }
 
-  private static BigDecimal setDecimalScale(BigDecimal decimal, Integer scale, RoundingMode roundingMode)
-    throws DirectiveExecutionException {
-    if (scale == null) {
+  private static BigDecimal setDecimalScaleAndPrecision(BigDecimal decimal, Integer scale,
+      Integer precision, RoundingMode roundingMode)
+      throws DirectiveExecutionException {
+    if (scale == null && precision == null) {
       return decimal;
     }
     try {
-      return decimal.setScale(scale, roundingMode);
+      if (precision == null) {
+        return decimal.setScale(scale, roundingMode);
+      } else if (scale == null) {
+        return decimal.round(new MathContext(precision, roundingMode));
+      } else {
+        BigDecimal result;
+        if (validateScaleAndPrecision(scale, precision, decimal)) {
+          result = decimal.setScale(scale, roundingMode);
+          result = result.round(new MathContext(precision, roundingMode));
+        } else {
+          throw new DirectiveExecutionException(String.format(
+              "Cannot set scale as '%s' and precision as '%s' for value '%s' when"
+                  + "given precision - scale is less than number of digits"
+                  + " before decimal point ", scale, precision, decimal));
+        }
+        return result;
+      }
     } catch (ArithmeticException e) {
       throw new DirectiveExecutionException(String.format(
-        "Cannot set scale as '%s' for value '%s' when rounding-mode is '%s'", scale, decimal, roundingMode), e);
+          "Cannot set scale as '%s' and precision '%s' for value '%s' when rounding-mode "
+              + "is '%s'", scale, precision, decimal, roundingMode), e);
     }
   }
 
-  public static Schema getSchemaForType(String type, Integer scale) throws DirectiveParseException {
+  private static Boolean validateScaleAndPrecision(Integer scale, Integer precision, BigDecimal decimal) {
+    int digitsBeforeDecimalPoint = decimal.signum() == 0 ? 1 : decimal.precision() - decimal.scale();
+    return precision - scale >= digitsBeforeDecimalPoint;
+  }
+
+  public static Schema getSchemaForType(String type, Integer scale, Integer precision) throws DirectiveParseException {
     Schema typeSchema;
     type = type.toUpperCase();
     if (type.equals(ColumnTypeNames.DECIMAL)) {
       // TODO make set-type support setting decimal precision
+      precision = precision != null ? precision : 77;
       scale = scale != null ? scale : 38;
-      typeSchema = Schema.nullableOf(Schema.decimalOf(77, scale));
+      typeSchema = Schema.nullableOf(Schema.decimalOf(precision, scale));
     } else {
       if (!SCHEMA_TYPE_MAP.containsKey(type)) {
         throw new DirectiveParseException(String.format("'%s' is an unsupported type. " +
-          "Supported types are: int, short, long, double, decimal, boolean, string, bytes", type));
+            "Supported types are: int, short, long, double, decimal, boolean, string, bytes", type));
       }
       typeSchema = Schema.nullableOf(Schema.of(SCHEMA_TYPE_MAP.get(type)));
     }
