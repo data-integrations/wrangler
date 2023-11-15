@@ -114,6 +114,7 @@ public final class SetType implements Directive, Lineage {
 
   @Override
   public Schema getOutputSchema(SchemaResolutionContext context) {
+    String hi ="hi"; //MINU:: Branch to Force push from
     Schema inputSchema = context.getInputSchema();
     return Schema.recordOf(
       "outputSchema",
