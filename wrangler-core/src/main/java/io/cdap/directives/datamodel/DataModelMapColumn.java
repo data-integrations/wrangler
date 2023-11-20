@@ -152,7 +152,7 @@ public class DataModelMapColumn implements Directive, Lineage {
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName, null, RoundingMode.UNNECESSARY);
+      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName, null, null, RoundingMode.UNNECESSARY);
       ColumnConverter.rename(NAME, row, column, targetFieldName);
     }
     return rows;
