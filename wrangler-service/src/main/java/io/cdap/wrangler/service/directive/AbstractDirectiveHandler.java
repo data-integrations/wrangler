@@ -109,7 +109,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     try {
       composite.close();
     } catch (IOException e) {
-      // If something bad happens here, you might see a a lot of open file handles.
+      // If something bad happens here, you might see a lot of open file handles.
       LOG.warn("Unable to close the directive registry. You might see increasing number of open file handle.", e);
     }
   }
