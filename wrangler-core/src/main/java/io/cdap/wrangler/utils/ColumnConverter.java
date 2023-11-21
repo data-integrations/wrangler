@@ -317,7 +317,6 @@ public final class ColumnConverter {
     type = type.toUpperCase();
     if (type.equals(ColumnTypeNames.DECIMAL)) {
       // TODO make set-type support setting decimal precision
-      scale = scale != null ? scale : 38;
       typeSchema = Schema.nullableOf(Schema.decimalOf(77, scale));
     } else {
       if (!SCHEMA_TYPE_MAP.containsKey(type)) {
