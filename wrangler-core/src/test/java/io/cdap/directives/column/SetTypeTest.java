@@ -224,7 +224,7 @@ public class SetTypeTest {
 
     Schema expectedSchema = Schema.recordOf(
         "expectedSchema",
-        Schema.Field.of("scale_2", Schema.decimalOf(77, 38))
+        Schema.Field.of("scale_2", Schema.decimalOf(38, 2))
     );
 
     List<Row> results = TestingRig.execute(directives, rows);

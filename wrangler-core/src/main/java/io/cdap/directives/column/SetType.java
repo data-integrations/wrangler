@@ -115,6 +115,9 @@ public final class SetType implements Directive, Lineage {
   @Override
   public Schema getOutputSchema(SchemaResolutionContext context) {
     Schema inputSchema = context.getInputSchema();
+    if (type.equalsIgnoreCase("decimal") && scale == null) {
+      return null;
+    }
     return Schema.recordOf(
       "outputSchema",
       inputSchema.getFields().stream()
