@@ -20,6 +20,7 @@ package io.cdap.wrangler.proto.workspace.v2;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nullable;
@@ -38,6 +39,8 @@ public class Workspace {
   // this is for insights page in UI
   private final JsonObject insights;
 
+  private HashMap<String, UserDefinedAction> nullabilityMap;
+
   private Workspace(String workspaceName, String workspaceId, List<String> directives,
                     long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec,
                     JsonObject insights) {
@@ -48,6 +51,7 @@ public class Workspace {
     this.updatedTimeMillis = updatedTimeMillis;
     this.sampleSpec = sampleSpec;
     this.insights = insights;
+    this.nullabilityMap = new HashMap<>();
   }
 
   public String getWorkspaceName() {
@@ -77,6 +81,15 @@ public class Workspace {
 
   public JsonObject getInsights() {
     return insights;
+  }
+
+  public HashMap<String, UserDefinedAction> getColumnMappings() {
+    return nullabilityMap;
+  }
+
+  public void setColumnMappings(
+      HashMap<String, UserDefinedAction> nullabilityMap) {
+    this.nullabilityMap = nullabilityMap;
   }
 
   @Override
@@ -163,5 +176,16 @@ public class Workspace {
       return new Workspace(workspaceName, workspaceId, directives, createdTimeMillis, updatedTimeMillis, sampleSpec,
                            insights);
     }
+  }
+
+  /**
+   * UserDefinedAction enum.
+   */
+  public enum UserDefinedAction {
+    NO_ACTION,
+    SKIP_ROW,
+    SEND_TO_ERROR_COLLECTOR,
+    ERROR_PIPELINE,
+    NULLABLE
   }
 }

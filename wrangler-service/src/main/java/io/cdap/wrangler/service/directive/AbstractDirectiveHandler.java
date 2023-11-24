@@ -46,6 +46,9 @@ import io.cdap.wrangler.proto.workspace.ColumnStatistics;
 import io.cdap.wrangler.proto.workspace.ColumnValidationResult;
 import io.cdap.wrangler.proto.workspace.WorkspaceValidationResult;
 import io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionResponse;
+import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
+import io.cdap.wrangler.proto.workspace.v2.Workspace;
+import io.cdap.wrangler.proto.workspace.v2.Workspace.UserDefinedAction;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
@@ -118,7 +121,8 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       String namespace,
       List<String> directives,
       List<Row> sample,
-      GrammarWalker.Visitor<E> grammarVisitor) throws DirectiveParseException, E, RecipeException {
+      GrammarWalker.Visitor<E> grammarVisitor,
+      Workspace workspace) throws DirectiveParseException, E, RecipeException {
 
     if (directives.isEmpty()) {
       return sample;
@@ -139,8 +143,11 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
                                                  new ConfigDirectiveContext(DirectiveConfig.EMPTY));
     try (RecipePipelineExecutor executor = new RecipePipelineExecutor(parser,
                                                                       new ServicePipelineContext(
-                                                                        namespace, ExecutorContext.Environment.SERVICE,
-                                                                        getContext(), TRANSIENT_STORE))) {
+                                                                        namespace,
+                                                                          ExecutorContext.Environment.SERVICE,
+                                                                          getContext(),
+                                                                          TRANSIENT_STORE),
+        workspace.getColumnMappings())) {
       List<Row> result = executor.execute(sample);
 
       List<ErrorRecordBase> errors = executor.errors()

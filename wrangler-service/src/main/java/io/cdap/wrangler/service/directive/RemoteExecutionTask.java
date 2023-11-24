@@ -107,7 +107,7 @@ public class RemoteExecutionTask implements RunnableTask {
                                                                           namespace,
                                                                           ExecutorContext.Environment.SERVICE,
                                                                           systemAppContext,
-                                                                          new DefaultTransientStore()))) {
+                                                                          new DefaultTransientStore()), null)) {
         rows = executor.execute(rows);
         List<ErrorRecordBase> errors = executor.errors().stream()
             .filter(ErrorRecordBase::isShownInWrangler)

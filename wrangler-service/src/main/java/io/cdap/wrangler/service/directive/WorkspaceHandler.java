@@ -67,6 +67,7 @@ import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
 import io.cdap.wrangler.proto.workspace.v2.ServiceResponse;
 import io.cdap.wrangler.proto.workspace.v2.StageSpec;
 import io.cdap.wrangler.proto.workspace.v2.Workspace;
+import io.cdap.wrangler.proto.workspace.v2.Workspace.UserDefinedAction;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceCreationRequest;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceDetail;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
@@ -472,6 +473,12 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
     WorkspaceDetail detail = wsStore.getWorkspaceDetail(workspaceId);
     UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
+    HashMap<String, UserDefinedAction> nullabilityMap = executionRequest.getNullabilityMap() == null ?
+        new HashMap<>() : executionRequest.getNullabilityMap();
+    if (!nullabilityMap.isEmpty()) {
+      //change nullabilityMap in Workspace Object
+      changeNullability(nullabilityMap, workspaceId);
+    }
     List<Row> result = executeDirectives(ns.getName(), directives, detail,
                                          userDirectivesCollector);
     DirectiveExecutionResponse response = generateExecutionResponse(result,
@@ -483,6 +490,18 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     wsStore.updateWorkspace(workspaceId, newWorkspace);
     return response;
   }
+
+  private void changeNullability(HashMap<String, UserDefinedAction> columnMappings,
+       WorkspaceId workspaceId) throws Exception {
+    try {
+      Workspace workspace = wsStore.getWorkspace(workspaceId);
+      workspace.setColumnMappings(columnMappings);
+      wsStore.updateWorkspace(workspaceId, workspace);
+    } catch (Exception e) {
+      throw new RuntimeException("Error in setting nullabilityMap of columns ", e);
+    }
+    }
+
 
   /**
    * Get source specs, contains some hacky way on dealing with the csv parser
@@ -580,7 +599,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     // load the udd
     composite.reload(namespace);
     return executeDirectives(namespace, directives, new ArrayList<>(detail.getSample()),
-                             grammarVisitor);
+                             grammarVisitor, detail.getWorkspace());
   }
 
   /**

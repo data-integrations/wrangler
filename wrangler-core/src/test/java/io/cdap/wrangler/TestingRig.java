@@ -89,7 +89,7 @@ public final class TestingRig {
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
-    return new RecipePipelineExecutor(parser, context).execute(rows);
+    return new RecipePipelineExecutor(parser, context, null).execute(rows);
   }
 
   /**
@@ -112,7 +112,7 @@ public final class TestingRig {
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
-    RecipePipeline pipeline = new RecipePipelineExecutor(parser, context);
+    RecipePipeline pipeline = new RecipePipelineExecutor(parser, context, null);
     List<Row> results = pipeline.execute(rows);
     List<Row> errors = pipeline.errors();
     return new Pair<>(results, errors);
@@ -126,7 +126,7 @@ public final class TestingRig {
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
-    return new RecipePipelineExecutor(parser, new TestingPipelineContext());
+    return new RecipePipelineExecutor(parser, new TestingPipelineContext(), null);
   }
 
   public static RecipeParser parse(String[] recipe) throws DirectiveParseException, DirectiveLoadException {
