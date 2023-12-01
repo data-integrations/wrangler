@@ -495,7 +495,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
        WorkspaceId workspaceId) throws Exception {
     try {
       Workspace workspace = wsStore.getWorkspace(workspaceId);
-      workspace.setColumnMappings(columnMappings);
+      workspace.setNullabilityMap(columnMappings);
       wsStore.updateWorkspace(workspaceId, workspace);
     } catch (Exception e) {
       throw new RuntimeException("Error in setting nullabilityMap of columns ", e);

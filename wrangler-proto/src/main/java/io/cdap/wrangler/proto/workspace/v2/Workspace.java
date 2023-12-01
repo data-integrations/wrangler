@@ -83,11 +83,11 @@ public class Workspace {
     return insights;
   }
 
-  public HashMap<String, UserDefinedAction> getColumnMappings() {
+  public HashMap<String, UserDefinedAction> getNullabilityMap() {
     return nullabilityMap;
   }
 
-  public void setColumnMappings(
+  public void setNullabilityMap(
       HashMap<String, UserDefinedAction> nullabilityMap) {
     this.nullabilityMap = nullabilityMap;
   }

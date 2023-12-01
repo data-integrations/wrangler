@@ -147,7 +147,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
                                                                           ExecutorContext.Environment.SERVICE,
                                                                           getContext(),
                                                                           TRANSIENT_STORE),
-        workspace.getColumnMappings())) {
+        workspace.getNullabilityMap())) {
       List<Row> result = executor.execute(sample);
 
       List<ErrorRecordBase> errors = executor.errors()
