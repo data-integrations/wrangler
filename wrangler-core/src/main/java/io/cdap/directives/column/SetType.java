@@ -134,33 +134,35 @@ public final class SetType implements Directive, Lineage {
               if (field.getName().equals(col)) {
                 Integer outputScale = scale;
                 Integer outputPrecision = precision;
-                Schema fieldSchema = field.getSchema().getNonNullable();
-                Pair<Integer, Integer> scaleAndPrecision = getPrecisionAndScale(fieldSchema);
-                Integer inputSchemaScale = scaleAndPrecision.getSecond();
-                Integer inputSchemaPrecision = scaleAndPrecision.getFirst();
+                if (type.equalsIgnoreCase("decimal") && field.getSchema().isNullable()) {
+                  Schema fieldSchema = field.getSchema().getNonNullable();
+                  Pair<Integer, Integer> scaleAndPrecision = getPrecisionAndScale(fieldSchema);
+                  Integer inputSchemaScale = scaleAndPrecision.getSecond();
+                  Integer inputSchemaPrecision = scaleAndPrecision.getFirst();
 
-                if (scale == null && precision == null) {
-                  outputScale = inputSchemaScale;
-                  outputPrecision = inputSchemaPrecision;
-                } else if (scale == null && inputSchemaScale != null) {
-                  if (precision - inputSchemaScale < 1) {
-                    throw new DirectiveParseException(String.format(
-                        "Cannot set scale as '%s' and precision as '%s' when "
-                            + "given precision - scale is less than 1 ", inputSchemaScale,
-                        precision));
-                  }
-                  outputScale = inputSchemaScale;
-                  outputPrecision = precision;
+                  if (scale == null && precision == null) {
+                    outputScale = inputSchemaScale;
+                    outputPrecision = inputSchemaPrecision;
+                  } else if (scale == null && inputSchemaScale != null) {
+                    if (precision - inputSchemaScale < 1) {
+                      throw new DirectiveParseException(String.format(
+                          "Cannot set scale as '%s' and precision as '%s' when "
+                              + "given precision - scale is less than 1 ", inputSchemaScale,
+                          precision));
+                    }
+                    outputScale = inputSchemaScale;
+                    outputPrecision = precision;
 
-                } else if (precision == null && inputSchemaPrecision != null) {
-                  if (inputSchemaPrecision - scale < 1) {
-                    throw new DirectiveParseException(String.format(
-                        "Cannot set scale as '%s' and precision as '%s' when "
-                            + "given precision - scale is less than 1 ", scale,
-                        inputSchemaPrecision));
+                  } else if (precision == null && inputSchemaPrecision != null) {
+                    if (inputSchemaPrecision - scale < 1) {
+                      throw new DirectiveParseException(String.format(
+                          "Cannot set scale as '%s' and precision as '%s' when "
+                              + "given precision - scale is less than 1 ", scale,
+                          inputSchemaPrecision));
+                    }
+                    outputScale = scale;
+                    outputPrecision = inputSchemaPrecision;
                   }
-                  outputScale = scale;
-                  outputPrecision = inputSchemaPrecision;
                 }
                 return Schema.Field.of(col, ColumnConverter.getSchemaForType(type,
                     outputScale, outputPrecision));
