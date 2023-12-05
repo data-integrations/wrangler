@@ -43,7 +43,7 @@ public class Workspace {
 
   private Workspace(String workspaceName, String workspaceId, List<String> directives,
                     long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec,
-                    JsonObject insights) {
+                    JsonObject insights, HashMap<String, UserDefinedAction> nullabilityMap) {
     this.workspaceName = workspaceName;
     this.workspaceId = workspaceId;
     this.directives = directives;
@@ -51,7 +51,8 @@ public class Workspace {
     this.updatedTimeMillis = updatedTimeMillis;
     this.sampleSpec = sampleSpec;
     this.insights = insights;
-    this.nullabilityMap = new HashMap<>();
+    this.nullabilityMap = nullabilityMap == null || nullabilityMap.isEmpty() ?
+        new HashMap<>() : nullabilityMap;
   }
 
   public String getWorkspaceName() {
@@ -124,7 +125,8 @@ public class Workspace {
              .setCreatedTimeMillis(existing.getCreatedTimeMillis())
              .setUpdatedTimeMillis(existing.getUpdatedTimeMillis())
              .setSampleSpec(existing.getSampleSpec())
-             .setInsights(existing.getInsights());
+             .setInsights(existing.getInsights())
+             .setNullabilityMap(existing.getNullabilityMap());
   }
 
   /**
@@ -138,6 +140,7 @@ public class Workspace {
     private long updatedTimeMillis;
     private SampleSpec sampleSpec;
     private JsonObject insights;
+    private HashMap<String, UserDefinedAction> nullabilityMap;
 
     Builder(String name, String workspaceId) {
       this.workspaceName = name;
@@ -172,9 +175,14 @@ public class Workspace {
       return this;
     }
 
+    public Builder setNullabilityMap (HashMap<String, UserDefinedAction> nullabilityMap) {
+      this.nullabilityMap = nullabilityMap;
+      return this;
+    }
+
     public Workspace build() {
       return new Workspace(workspaceName, workspaceId, directives, createdTimeMillis, updatedTimeMillis, sampleSpec,
-                           insights);
+                           insights, nullabilityMap);
     }
   }
 
