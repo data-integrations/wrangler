@@ -122,7 +122,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       List<String> directives,
       List<Row> sample,
       GrammarWalker.Visitor<E> grammarVisitor,
-      Workspace workspace) throws DirectiveParseException, E, RecipeException {
+      HashMap<String, UserDefinedAction> nullabilityMap) throws DirectiveParseException, E, RecipeException {
 
     if (directives.isEmpty()) {
       return sample;
@@ -147,7 +147,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
                                                                           ExecutorContext.Environment.SERVICE,
                                                                           getContext(),
                                                                           TRANSIENT_STORE),
-        workspace.getNullabilityMap())) {
+        nullabilityMap)) {
       List<Row> result = executor.execute(sample);
 
       List<ErrorRecordBase> errors = executor.errors()

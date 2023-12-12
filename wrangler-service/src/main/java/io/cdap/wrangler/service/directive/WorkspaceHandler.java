@@ -600,7 +600,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     // load the udd
     composite.reload(namespace);
     return executeDirectives(namespace, directives, new ArrayList<>(detail.getSample()),
-                             grammarVisitor, detail.getWorkspace());
+                             grammarVisitor, detail.getWorkspace().getNullabilityMap());
   }
 
   /**
