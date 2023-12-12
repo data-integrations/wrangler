@@ -190,10 +190,8 @@ public class Workspace {
    * UserDefinedAction enum.
    */
   public enum UserDefinedAction {
-    NO_ACTION,
     SKIP_ROW,
     SEND_TO_ERROR_COLLECTOR,
     ERROR_PIPELINE,
-    NULLABLE
   }
 }
