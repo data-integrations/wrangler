@@ -13,7 +13,7 @@
 # the License.
 
 @Wrangler
-Feature:  parse as fixed length
+Feature:  parse as fixed Length
 
   @BQ_SOURCE_FXDLEN_TEST @BQ_SINK_TEST
   Scenario: To verify User is able to run a pipeline using parse fixedlength directive
