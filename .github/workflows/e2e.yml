@@ -19,7 +19,7 @@ on:
     branches: [ develop ]
   pull_request:
       branches: [ develop ]
-      types: [ opened, synchronize, reopened, labeled ]
+      types: [ opened, synchronize, reopened ]
   workflow_dispatch:
 
 jobs:
@@ -35,9 +35,7 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch'
       || github.event_name == 'push'
-      || (contains(github.event.pull_request.labels.*.name, 'build')
-          && (github.event.action != 'labeled' || github.event.label.name == 'build')
-          )
+      || github.event_name == 'pull_request'
     strategy:
       matrix:
         module: [wrangler-transform]
@@ -82,13 +80,6 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || steps.filter.outputs.e2e-test == 'true'
         run: python3 e2e/src/main/scripts/run_e2e_test.py --module ${{ matrix.module }}
 
-      - name: Upload report
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: Cucumber report - ${{ matrix.module }}
-          path: ./**/target/cucumber-reports
-
       - name: Upload debug files
         uses: actions/upload-artifact@v3
         if: always()
@@ -97,9 +88,12 @@ jobs:
           path: ./**/target/e2e-debug
 
       - name: Upload files to GCS
-        uses: google-github-actions/upload-cloud-storage@v0
+        uses: google-github-actions/upload-cloud-storage@v2
         if: always()
         with:
           path: ./plugin
           destination: e2e-tests-cucumber-reports/${{ github.event.repository.name }}/${{ github.ref }}
           glob: '**/target/cucumber-reports/**'
+      - name: Cucumber Report URL
+        if: always()
+        run: echo "https://storage.googleapis.com/e2e-tests-cucumber-reports/${{ github.event.repository.name }}/${{ github.ref }}/plugin/${{ matrix.module }}/target/cucumber-reports/advanced-reports/cucumber-html-reports/overview-features.html"
