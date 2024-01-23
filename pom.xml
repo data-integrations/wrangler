@@ -116,7 +116,7 @@
     <netty.version>4.1.75.Final</netty.version>
     <javax.ws.rs-api.version>2.0</javax.ws.rs-api.version>
     <poi.version>3.16</poi.version>
-    <protobuf.version>3.11.3</protobuf.version>
+    <protobuf.version>3.16.3</protobuf.version>
     <reflections.version>0.9.9</reflections.version>
     <simmetrics.version>4.1.1</simmetrics.version>
     <simplemagic.version>1.11</simplemagic.version>
