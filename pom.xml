@@ -100,7 +100,7 @@
     <google.storage.version>1.106.0</google.storage.version>
     <gson.version>2.6.2</gson.version>
     <guava.retrying.version>2.0.0</guava.retrying.version>
-    <guava.version>31.0.1-jre</guava.version>
+    <guava.version>32.0.0-jre</guava.version>
     <hadoop.version>2.4.0</hadoop.version>
     <hl7.version>2.2</hl7.version>
     <hsql.version>2.2.4</hsql.version>
