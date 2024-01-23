@@ -38,6 +38,7 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
 import org.json.XML;
 
@@ -52,9 +53,11 @@ import java.util.List;
 @Description("Parses a XML document to JSON representation.")
 public class XmlToJson implements Directive, Lineage {
   public static final String NAME = "parse-xml-to-json";
+  public static final String ARG_KEEP_STRING = "keep-string";
   // Column within the input row that needs to be parsed as Json
   private String col;
   private int depth;
+  private boolean keepString;
   private final Gson gson = new Gson();
 
   @Override
@@ -62,6 +65,7 @@ public class XmlToJson implements Directive, Lineage {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("depth", TokenType.NUMERIC, Optional.TRUE);
+    builder.define(ARG_KEEP_STRING, TokenType.BOOLEAN, Optional.TRUE);
     return builder.build();
   }
 
@@ -73,6 +77,12 @@ public class XmlToJson implements Directive, Lineage {
     } else {
       this.depth = Integer.MAX_VALUE;
     }
+
+    if (args.contains(ARG_KEEP_STRING) &&
+      StringUtils.isNotEmpty(args.value(ARG_KEEP_STRING).value().toString())) {
+      this.keepString = Boolean.parseBoolean(args.value(ARG_KEEP_STRING).value().toString());
+    }
+
   }
 
   @Override
@@ -93,7 +103,7 @@ public class XmlToJson implements Directive, Lineage {
 
         try {
           if (object instanceof String) {
-            JsonObject element = gson.fromJson(XML.toJSONObject((String) object).toString(),
+            JsonObject element = gson.fromJson(XML.toJSONObject((String) object, this.keepString).toString(),
                                                JsonElement.class).getAsJsonObject();
             JsParser.jsonFlatten(element, col, 1, depth, row);
             row.remove(idx);
