@@ -1,0 +1,5 @@
+INSERT INTO DATASET.TABLE_NAME (email,xmldata)
+VALUES
+('abc01@mail.com','<?xml version=1.0 encoding=UTF-8?> <note> <to>Tove</to> <from>Tani</from> <heading>Reminder</heading> <body>Dont forget me this week!</body> </note>'),
+('def02@mail.com','<?xml version=1.0 encoding=UTF-8?> <note> <to>Tove</to> <from>joy</from> <heading>Reminder</heading> <body>Dont forget us this holiday!</body> </note>'),
+('ghi03@mail.com','<?xml version=1.0 encoding=UTF-8?> <note> <to>Tove</to> <from>shree</from> <heading>Reminder</heading> <body>Dont forget him this weekend!</body> </note>');
