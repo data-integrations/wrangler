@@ -1,0 +1,2 @@
+create table `DATASET.TABLE_NAME` (id STRING, firstname STRING, lastname STRING, streetAddress STRING,
+city STRING, state STRING, zipcode BIGINT, phoneNumber BIGINT)

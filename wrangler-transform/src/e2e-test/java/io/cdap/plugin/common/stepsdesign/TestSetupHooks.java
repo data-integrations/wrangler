@@ -108,6 +108,7 @@ public class TestSetupHooks {
     PluginPropertyUtils.removePluginProp("bqSourceTable");
   }
 
+
   @Before(order = 1, value = "@BQ_SOURCE_JSON_TEST")
   public static void createTempSourceBQTableJson() throws IOException, InterruptedException {
     createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQTableQueryFileJson"),
@@ -118,6 +119,12 @@ public class TestSetupHooks {
   public static void createTempSourceBQTableXml() throws IOException, InterruptedException {
     createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQDataQueryFileXml"),
         PluginPropertyUtils.pluginProp("InsertBQDataQueryFileXml"));
+  }
+
+  @Before(order = 1, value = "@BQ_SOURCE_GRPBY_TEST")
+  public static void createTempSourceBQTableGroupBy() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQTableQueryFile"),
+                                   PluginPropertyUtils.pluginProp("InsertBQDataQueryFile"));
   }
 
   @Before(order = 1, value = "@GCS_SOURCE_TEST")
@@ -168,16 +175,14 @@ public class TestSetupHooks {
     String createTableQuery = StringUtils.EMPTY;
     try {
       createTableQuery = new String(Files.readAllBytes(Paths.get(TestSetupHooks.class.getResource
-          ("/" + bqCreateTableQueryFile).toURI()))
-          , StandardCharsets.UTF_8);
-      createTableQuery = createTableQuery.replace("DATASET",
-              PluginPropertyUtils.pluginProp("dataset"))
-          .replace("TABLE_NAME", bqSourceTable);
+        ("/" + bqCreateTableQueryFile).toURI()))
+        , StandardCharsets.UTF_8);
+      createTableQuery = createTableQuery.replace("DATASET", PluginPropertyUtils.pluginProp("dataset"))
+        .replace("TABLE_NAME", bqSourceTable);
     } catch (Exception e) {
-      BeforeActions.scenario.write(
-          "Exception in reading " + bqCreateTableQueryFile + " - " + e.getMessage());
+      BeforeActions.scenario.write("Exception in reading " + bqCreateTableQueryFile + " - " + e.getMessage());
       Assert.fail("Exception in BigQuery testdata prerequisite setup " +
-          "- error in reading create table query file " + e.getMessage());
+                    "- error in reading create table query file " + e.getMessage());
     }
 
     String insertDataQuery = StringUtils.EMPTY;
