@@ -13,30 +13,28 @@
 # the License.
 
 @Wrangler
-Feature:  parse as HL7
+Feature:  Parse as excel
 
-  @BQ_SOURCE_HL7_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
-  Scenario: To verify User is able to run a pipeline using parse hl7 directive
+  @GCS_SOURCE_TEST @BQ_SINK_TEST
+  Scenario: To verify User is able to run a pipeline using parse Excel directive
     Given Open Datafusion Project to configure pipeline
     Then Click on the Plus Green Button to import the pipelines
-    Then Select the file for importing the pipeline for the plugin "Directive_parse_hl7"
-    Then Navigate to the properties page of plugin: "BigQueryTable"
+    Then Select the file for importing the pipeline for the plugin "Directive_parse_excel"
+    Then Navigate to the properties page of plugin: "GCSFile"
     Then Replace input plugin property: "project" with value: "projectId"
-    Then Replace input plugin property: "dataset" with value: "dataset"
-    Then Replace input plugin property: "table" with value: "bqSourceTable"
-    Then Click on the Get Schema button
-    Then Validate "BigQueryTable" plugin properties
+    Then Replace input plugin property: "path" with value: "gcsSourceBucket"
     Then Close the Plugin Properties page
-    Then Navigate to the properties page of plugin: "BigQuery2"
+    Then Navigate to the properties page of plugin: "BigQuery"
     Then Replace input plugin property: "project" with value: "projectId"
     Then Replace input plugin property: "table" with value: "bqTargetTable"
     Then Replace input plugin property: "dataset" with value: "dataset"
-    Then Validate "BigQuery2" plugin properties
+    Then Validate "BigQuery" plugin properties
     Then Close the Plugin Properties page
-    Then Save and Deploy Pipeline
+    Then Rename the pipeline
+    Then Deploy the pipeline
     Then Run the Pipeline in Runtime
     Then Wait till pipeline is in running state
     Then Open and capture logs
     Then Verify the pipeline status is "Succeeded"
     Then Close the pipeline logs
-    Then Validate The Data From BQ To BQ With Actual And Expected File for: "ExpectedDirective_parse_hl7"
+    Then Validate The Data From BQ To BQ With Actual And Expected File for: "ExpectedDirective_parse_excel"

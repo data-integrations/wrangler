@@ -1,5 +1,5 @@
 {
-    "name": "parse_csv_wrangle",
+    "name": "parse_excel_wrangler_copy",
     "description": "Data Pipeline Application",
     "artifact": {
         "name": "cdap-data-pipeline",
@@ -17,12 +17,12 @@
         },
         "connections": [
             {
-                "from": "BigQueryTable",
+                "from": "GCSFile",
                 "to": "Wrangler"
             },
             {
                 "from": "Wrangler",
-                "to": "BigQuery2"
+                "to": "BigQuery"
             }
         ],
         "postActions": [],
@@ -31,40 +31,46 @@
         "stageLoggingEnabled": true,
         "stages": [
             {
-                "name": "BigQueryTable",
+                "name": "GCSFile",
                 "plugin": {
-                    "name": "BigQueryTable",
+                    "name": "GCSFile",
                     "type": "batchsource",
-                    "label": "BigQueryTable",
+                    "label": "GCSFile",
                     "artifact": {
                         "name": "google-cloud"
                     },
                     "properties": {
+                        "format": "blob",
+                        "path": "gs://00000000-e2e-0014a44f-81be-4501-8360-0ddca1c39789/test1.xlsx",
+                        "fileEncoding": "UTF-8",
                         "useConnection": "false",
-                        "dataset": "wrangler_ankit",
-                        "table": "table5",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]}",
+                        "referenceName": "test",
+                        "schema": "{\"type\":\"record\",\"name\":\"blob\",\"fields\":[{\"name\":\"body\",\"type\":\"bytes\"}]}",
                         "project": "auto-detect",
                         "serviceAccountType": "filePath",
                         "serviceFilePath": "auto-detect",
-                        "enableQueryingViews": "false"
+                        "sampleSize": "1000",
+                        "filenameOnly": "false",
+                        "recursive": "false",
+                        "ignoreNonExistingFolders": "false",
+                        "encrypted": "false"
                     }
                 },
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"blob\",\"fields\":[{\"name\":\"body\",\"type\":\"bytes\"}]}"
                     }
                 ],
-                "id": "BigQueryTable",
+                "id": "GCSFile",
                 "type": "batchsource",
-                "label": "BigQueryTable",
+                "label": "GCSFile",
                 "icon": "fa-plug",
-                "$$hashKey": "object:441",
+                "$$hashKey": "object:475",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "496px",
-                    "top": "343.5px"
+                    "top": "343px"
                 }
             },
             {
@@ -77,43 +83,43 @@
                         "name": "wrangler-transform"
                     },
                     "properties": {
-                        "directives": "parse-as-csv :body ',' false\nrename body_1 new_id\nquantize body_4 body_q 1:2=20,3:4=40\nset-type :body_4 integer \ncolumns-replace s/^new_//g\nfill-null-or-empty :body_3 'shubh'\nset-headers :abc\nchange-column-case uppercase\ncleanse-column-names\nsplit-to-rows :id '#'",
+                        "directives": "parse-as-excel :body '0' true\ncopy name copiedname\nmerge name bkd uniquenum ','\nrename bkd rollno\ndrop fwd\nswap id rollno\nsplit-to-rows :name 'o'\nfilter-rows-on condition-false rollno !~ '2.0'",
                         "field": "*",
                         "precondition": "false",
-                        "workspaceId": "b0564dfc-77db-4d95-b3bc-b04bcdf0f687",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}",
+                        "workspaceId": "667f9e85-6c36-4d38-ad48-ef85db7a04a2",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"int\",\"null\"]},{\"name\":\"rollno\",\"type\":[\"string\",\"null\"]},{\"name\":\"name\",\"type\":[\"string\",\"null\"]},{\"name\":\"phone\",\"type\":[\"string\",\"null\"]},{\"name\":\"copiedname\",\"type\":[\"string\",\"null\"]},{\"name\":\"uniquenum\",\"type\":[\"string\",\"null\"]}]}",
                         "on-error": "fail-pipeline"
                     }
                 },
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"int\",\"null\"]},{\"name\":\"rollno\",\"type\":[\"string\",\"null\"]},{\"name\":\"name\",\"type\":[\"string\",\"null\"]},{\"name\":\"phone\",\"type\":[\"string\",\"null\"]},{\"name\":\"copiedname\",\"type\":[\"string\",\"null\"]},{\"name\":\"uniquenum\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "inputSchema": [
                     {
-                        "name": "BigQueryTable",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]}"
+                        "name": "GCSFile",
+                        "schema": "{\"type\":\"record\",\"name\":\"blob\",\"fields\":[{\"name\":\"body\",\"type\":\"bytes\"}]}"
                     }
                 ],
                 "id": "Wrangler",
                 "type": "transform",
                 "label": "Wrangler",
                 "icon": "icon-DataPreparation",
-                "$$hashKey": "object:442",
+                "$$hashKey": "object:476",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "796px",
-                    "top": "343.5px"
+                    "top": "343px"
                 }
             },
             {
-                "name": "BigQuery2",
+                "name": "BigQuery",
                 "plugin": {
                     "name": "BigQueryTable",
                     "type": "batchsink",
-                    "label": "BigQuery2",
+                    "label": "BigQuery",
                     "artifact": {
                         "name": "google-cloud"
                     },
@@ -123,7 +129,7 @@
                         "serviceAccountType": "filePath",
                         "serviceFilePath": "auto-detect",
                         "dataset": "Wrangler",
-                        "table": "uptable",
+                        "table": "extab34",
                         "operation": "insert",
                         "truncateTable": "false",
                         "allowSchemaRelaxation": "false",
@@ -131,30 +137,30 @@
                         "createPartitionedTable": "false",
                         "partitioningType": "TIME",
                         "partitionFilterRequired": "false",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"int\",\"null\"]},{\"name\":\"rollno\",\"type\":[\"string\",\"null\"]},{\"name\":\"name\",\"type\":[\"string\",\"null\"]},{\"name\":\"phone\",\"type\":[\"string\",\"null\"]},{\"name\":\"copiedname\",\"type\":[\"string\",\"null\"]},{\"name\":\"uniquenum\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 },
                 "outputSchema": [
                     {
                         "name": "etlSchemaBody",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"int\",\"null\"]},{\"name\":\"rollno\",\"type\":[\"string\",\"null\"]},{\"name\":\"name\",\"type\":[\"string\",\"null\"]},{\"name\":\"phone\",\"type\":[\"string\",\"null\"]},{\"name\":\"copiedname\",\"type\":[\"string\",\"null\"]},{\"name\":\"uniquenum\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
                 "inputSchema": [
                     {
                         "name": "Wrangler",
-                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"abc\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_2\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_3\",\"type\":[\"string\",\"null\"]},{\"name\":\"body_4\",\"type\":[\"int\",\"null\"]},{\"name\":\"body_q\",\"type\":[\"string\",\"null\"]}]}"
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"int\",\"null\"]},{\"name\":\"rollno\",\"type\":[\"string\",\"null\"]},{\"name\":\"name\",\"type\":[\"string\",\"null\"]},{\"name\":\"phone\",\"type\":[\"string\",\"null\"]},{\"name\":\"copiedname\",\"type\":[\"string\",\"null\"]},{\"name\":\"uniquenum\",\"type\":[\"string\",\"null\"]}]}"
                     }
                 ],
-                "id": "BigQuery2",
+                "id": "BigQuery",
                 "type": "batchsink",
-                "label": "BigQuery2",
+                "label": "BigQuery",
                 "icon": "fa-plug",
-                "$$hashKey": "object:443",
+                "$$hashKey": "object:477",
                 "isPluginAvailable": true,
                 "_uiPosition": {
                     "left": "1096px",
-                    "top": "343.5px"
+                    "top": "343px"
                 }
             }
         ],
@@ -165,9 +171,10 @@
             "min": 1,
             "max": "5000"
         },
+        "description": "Data Pipeline Application",
         "maxConcurrentRuns": 1,
         "pushdownEnabled": false,
         "transformationPushdown": {}
     },
-    "version": "afe60ddd-4b3a-11ee-9107-0000007a4d1b"
+    "version": "2dd12daa-5395-11ee-9dac-000000d0cf32"
 }

@@ -1,0 +1,467 @@
+{
+    "name": "parse_json_wrangler1",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "[6.0.0, 7.0.0)",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "BigQueryTable",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "BigQuery2"
+            }
+        ],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": true,
+        "stages": [
+            {
+                "name": "BigQueryTable",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsource",
+                    "label": "BigQueryTable",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "dataset": "Wrangler_Test",
+                        "table": "jsontab",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]},{\"name\":\"json\",\"type\":[\"string\",\"null\"]}]}",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "enableQueryingViews": "false"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]},{\"name\":\"json\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQueryTable",
+                "type": "batchsource",
+                "label": "BigQueryTable",
+                "icon": "fa-plug",
+                "$$hashKey": "object:443",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "496px",
+                    "top": "342px"
+                },
+                "selected": false
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform"
+                    },
+                    "properties": {
+                        "directives": "parse-as-json :json 1\nltrim :body\nset-column :desc concat(json_pet,body)\ncopy :json_name :copied\nswap :json_id :json_age\nmerge :json_id :json_name :json_id_json_name ,\nmask-number :json_pet 'testing'\ndrop json_height\nwrite-as-json-map :json_age\nrename json_id id",
+                        "field": "*",
+                        "precondition": "false",
+                        "workspaceId": "6e59a102-2268-4328-afce-e81e6eb9228b",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_age\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_name\",\"type\":[{\"type\":\"record\",\"name\":\"json_name05F0DF247CD8481657781C26E1595028\",\"fields\":[{\"name\":\"first\",\"type\":[\"string\",\"null\"]},{\"name\":\"last\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"json_pet\",\"type\":[\"string\",\"null\"]},{\"name\":\"desc\",\"type\":[\"string\",\"null\"]},{\"name\":\"copied\",\"type\":[\"json_name05F0DF247CD8481657781C26E1595028\",\"null\"]},{\"name\":\"json_id_json_name\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_age\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_name\",\"type\":[{\"type\":\"record\",\"name\":\"json_name05F0DF247CD8481657781C26E1595028\",\"fields\":[{\"name\":\"first\",\"type\":[\"string\",\"null\"]},{\"name\":\"last\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"json_pet\",\"type\":[\"string\",\"null\"]},{\"name\":\"desc\",\"type\":[\"string\",\"null\"]},{\"name\":\"copied\",\"type\":[\"json_name05F0DF247CD8481657781C26E1595028\",\"null\"]},{\"name\":\"json_id_json_name\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "Wrangler",
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataPreparation",
+                "$$hashKey": "object:444",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "796px",
+                    "top": "342px"
+                },
+                "selected": false
+            },
+            {
+                "name": "BigQuery2",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BigQuery2",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "dataset": "Wrangler_Test",
+                        "table": "jstabss",
+                        "operation": "insert",
+                        "truncateTable": "false",
+                        "allowSchemaRelaxation": "false",
+                        "location": "US",
+                        "createPartitionedTable": "false",
+                        "partitioningType": "TIME",
+                        "timePartitioningType": "DAY",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_age\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_name\",\"type\":[{\"type\":\"record\",\"name\":\"json_name05F0DF247CD8481657781C26E1595028\",\"fields\":[{\"name\":\"first\",\"type\":[\"string\",\"null\"]},{\"name\":\"last\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"json_pet\",\"type\":[\"string\",\"null\"]},{\"name\":\"desc\",\"type\":[\"string\",\"null\"]},{\"name\":\"copied\",\"type\":[\"json_name05F0DF247CD8481657781C26E1595028\",\"null\"]},{\"name\":\"json_id_json_name\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_age\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_name\",\"type\":[{\"type\":\"record\",\"name\":\"json_name05F0DF247CD8481657781C26E1595028\",\"fields\":[{\"name\":\"first\",\"type\":[\"string\",\"null\"]},{\"name\":\"last\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"json_pet\",\"type\":[\"string\",\"null\"]},{\"name\":\"desc\",\"type\":[\"string\",\"null\"]},{\"name\":\"copied\",\"type\":[\"json_name05F0DF247CD8481657781C26E1595028\",\"null\"]},{\"name\":\"json_id_json_name\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"body\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_age\",\"type\":[\"string\",\"null\"]},{\"name\":\"json_name\",\"type\":[{\"type\":\"record\",\"name\":\"json_name05F0DF247CD8481657781C26E1595028\",\"fields\":[{\"name\":\"first\",\"type\":[\"string\",\"null\"]},{\"name\":\"last\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"json_pet\",\"type\":[\"string\",\"null\"]},{\"name\":\"desc\",\"type\":[\"string\",\"null\"]},{\"name\":\"copied\",\"type\":[\"json_name05F0DF247CD8481657781C26E1595028\",\"null\"]},{\"name\":\"json_id_json_name\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQuery2",
+                "type": "batchsink",
+                "label": "BigQuery2",
+                "icon": "fa-plug",
+                "$$hashKey": "object:445",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "1096px",
+                    "top": "342px"
+                },
+                "_backendProperties": {
+                    "schema": {
+                        "name": "schema",
+                        "description": "The schema of the data to write. If provided, must be compatible with the table schema.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "partitionFilter": {
+                        "name": "partitionFilter",
+                        "description": "Partition filter that can be used for partition elimination during Update or Upsert operations.This value is ignored if operation is not UPDATE or UPSERT.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "rangeStart": {
+                        "name": "rangeStart",
+                        "description": "Start value for range partitioning. The start value is inclusive. Ignored when table already exists",
+                        "type": "long",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "serviceAccountJSON": {
+                        "name": "serviceAccountJSON",
+                        "description": "Content of the service account file.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "useConnection": {
+                        "name": "useConnection",
+                        "description": "Whether to use an existing connection.",
+                        "type": "boolean",
+                        "required": false,
+                        "macroSupported": false,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "jsonStringFields": {
+                        "name": "jsonStringFields",
+                        "description": "Fields in input schema that should be treated as JSON strings. The schema of these fields should be of type STRING.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": false,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "project": {
+                        "name": "project",
+                        "description": "Google Cloud Project ID. It can be found on the Dashboard in the Google Cloud Platform Console.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "partitioningType": {
+                        "name": "partitioningType",
+                        "description": "Specifies the partitioning type. Can either be Integer or Time or None. Ignored when table already exists",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "timePartitioningType": {
+                        "name": "timePartitioningType",
+                        "description": "Specifies the time partitioning type. Can either be Daily or Hourly or Monthly or Yearly. Ignored when table already exists",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "jobLabels": {
+                        "name": "jobLabels",
+                        "description": "Key value pairs to be added as labels to the BigQuery job. Keys must be unique. [job_source, type] are reserved keys and cannot be used as label keys.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "relationTableKey": {
+                        "name": "relationTableKey",
+                        "description": "List of fields that determines relation between tables during Update and Upsert operations.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "rangeEnd": {
+                        "name": "rangeEnd",
+                        "description": "End value for range partitioning. The end value is exclusive. Ignored when table already exists",
+                        "type": "long",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "clusteringOrder": {
+                        "name": "clusteringOrder",
+                        "description": "List of fields that determines the sort order of the data. Fields must be of type INT, LONG, STRING, DATE, TIMESTAMP, BOOLEAN or DECIMAL. Tables cannot be clustered on more than 4 fields. This value is only used when the BigQuery table is automatically created and ignored if the table already exists.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "partitionFilterRequired": {
+                        "name": "partitionFilterRequired",
+                        "description": "Whether to create a table that requires a partition filter. This value is ignored if the table already exists.",
+                        "type": "boolean",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "serviceFilePath": {
+                        "name": "serviceFilePath",
+                        "description": "Path on the local file system of the service account key used for authorization. Can be set to 'auto-detect' when running on a Dataproc cluster. When running on other clusters, the file must be present on every node in the cluster.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "truncateTable": {
+                        "name": "truncateTable",
+                        "description": "Whether or not to truncate the table before writing to it. Should only be used with the Insert operation. This could overwrite the table schema",
+                        "type": "boolean",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "partitionByField": {
+                        "name": "partitionByField",
+                        "description": "Partitioning column for the BigQuery table. This should be left empty if the BigQuery table is an ingestion-time partitioned table.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "connection": {
+                        "name": "connection",
+                        "description": "The existing connection to use.",
+                        "type": "bigqueryconnectorconfig",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": [
+                            "serviceAccountJSON",
+                            "serviceFilePath",
+                            "project",
+                            "serviceAccountType",
+                            "datasetProject"
+                        ]
+                    },
+                    "table": {
+                        "name": "table",
+                        "description": "The table to write to. A table contains individual records organized in rows. Each record is composed of columns (also called fields). Every table is defined by a schema that describes the column names, data types, and other information.",
+                        "type": "string",
+                        "required": true,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "referenceName": {
+                        "name": "referenceName",
+                        "description": "This will be used to uniquely identify this source/sink for lineage, annotating metadata, etc.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": false,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "cmekKey": {
+                        "name": "cmekKey",
+                        "description": "The GCP customer managed encryption key (CMEK) name used to encrypt data written to any bucket, dataset or table created by the plugin. If the bucket, dataset or table already exists, this is ignored. More information can be found at https://cloud.google.com/data-fusion/docs/how-to/customer-managed-encryption-keys",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "createPartitionedTable": {
+                        "name": "createPartitionedTable",
+                        "description": "DEPRECATED!. Whether to create the BigQuery table with time partitioning. This value is ignored if the table already exists. When this is set to false, value of Partitioning type will be used. Use 'Partitioning type' property",
+                        "type": "boolean",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "dedupeBy": {
+                        "name": "dedupeBy",
+                        "description": "Column names and sort order used to choose which input record to update/upsert when there are multiple input records with the same key. For example, if this is set to 'updated_time desc', then if there are multiple input records with the same key, the one with the largest value for 'updated_time' will be applied.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "allowSchemaRelaxation": {
+                        "name": "allowSchemaRelaxation",
+                        "description": "Whether to modify the BigQuery table schema if it differs from the input schema.",
+                        "type": "boolean",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "bucket": {
+                        "name": "bucket",
+                        "description": "The Google Cloud Storage bucket to store temporary data in. Cloud Storage data will be deleted after it is loaded into BigQuery. If it is not provided, a unique bucket will be automatically created and then deleted after the run finishes. The service account must have permission to create buckets in the configured project.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "rangeInterval": {
+                        "name": "rangeInterval",
+                        "description": "Interval value for range partitioning. The interval value must be a positive integer.Ignored when table already exists",
+                        "type": "long",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "gcsChunkSize": {
+                        "name": "gcsChunkSize",
+                        "description": "Optional property to tune chunk size in gcs upload request. The value of this property should be in number of bytes. By default, 8388608 bytes (8MB) will be used as upload request chunk size.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "location": {
+                        "name": "location",
+                        "description": "The location where the big query dataset will get created. This value is ignored if the dataset or temporary bucket already exist.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "serviceAccountType": {
+                        "name": "serviceAccountType",
+                        "description": "Service account type, file path where the service account is located or the JSON content of the service account.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "datasetProject": {
+                        "name": "datasetProject",
+                        "description": "The project the dataset belongs to. This is only required if the dataset is not in the same project that the BigQuery job will run in. If no value is given, it will default to the configured project ID.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "operation": {
+                        "name": "operation",
+                        "description": "Type of write operation to perform. This can be set to Insert, Update or Upsert.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "dataset": {
+                        "name": "dataset",
+                        "description": "The dataset to write to. A dataset is contained within a specific project. Datasets are top-level containers that are used to organize and control access to tables and views.",
+                        "type": "string",
+                        "required": true,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    }
+                },
+                "description": "This sink writes to a BigQuery table. BigQuery is Google's serverless, highly scalable, enterprise data warehouse. Data is first written to a temporary location on Google Cloud Storage, then loaded into BigQuery from there.",
+                "selected": false
+            }
+        ],
+        "schedule": "0 1 */1 * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "rangeRecordsPreview": {
+            "min": 1,
+            "max": "5000"
+        },
+        "maxConcurrentRuns": 1,
+        "pushdownEnabled": false,
+        "transformationPushdown": {}
+    },
+    "version": "15e6341c-af95-11ee-a080-000000f3bab4"
+}

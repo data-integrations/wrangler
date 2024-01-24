@@ -15,7 +15,7 @@
 @Wrangler
 Feature:  datatype parsers
 
-  @BQ_SOURCE_TS_TEST @BQ_SINK_TEST
+  @BQ_SOURCE_TS_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
   Scenario: To verify User is able to run a pipeline using parse timestamp directive
     Given Open Datafusion Project to configure pipeline
     Then Click on the Plus Green Button to import the pipelines
@@ -25,13 +25,13 @@ Feature:  datatype parsers
     Then Replace input plugin property: "dataset" with value: "dataset"
     Then Replace input plugin property: "table" with value: "bqSourceTable"
     Then Click on the Get Schema button
-    Then Click on the Validate button
+    Then Validate "BigQueryTable" plugin properties
     Then Close the Plugin Properties page
     Then Navigate to the properties page of plugin: "BigQuery2"
     Then Replace input plugin property: "project" with value: "projectId"
     Then Replace input plugin property: "table" with value: "bqTargetTable"
     Then Replace input plugin property: "dataset" with value: "dataset"
-    Then Click on the Validate button
+    Then Validate "BigQuery2" plugin properties
     Then Close the Plugin Properties page
     Then Rename the pipeline
     Then Deploy the pipeline
@@ -43,7 +43,7 @@ Feature:  datatype parsers
     Then Validate The Data From BQ To BQ With Actual And Expected File for: "ExpectedDirective_parse_Timestamp"
 
 
-  @BQ_SOURCE_DATETIME_TEST @BQ_SINK_TEST
+  @BQ_SOURCE_DATETIME_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
   Scenario: To verify User is able to run a pipeline using parse datetime directive
     Given Open Datafusion Project to configure pipeline
     Then Click on the Plus Green Button to import the pipelines
@@ -53,13 +53,14 @@ Feature:  datatype parsers
     Then Replace input plugin property: "dataset" with value: "dataset"
     Then Replace input plugin property: "table" with value: "bqSourceTable"
     Then Click on the Get Schema button
-    Then Click on the Validate button
+    Then Validate "BigQueryTable" plugin properties
     Then Close the Plugin Properties page
     Then Navigate to the properties page of plugin: "BigQuery2"
     Then Replace input plugin property: "project" with value: "projectId"
     Then Replace input plugin property: "table" with value: "bqTargetTable"
     Then Replace input plugin property: "dataset" with value: "dataset"
     Then Click on the Validate button
+    Then Validate "BigQuery2" plugin properties
     Then Close the Plugin Properties page
     Then Rename the pipeline
     Then Deploy the pipeline
