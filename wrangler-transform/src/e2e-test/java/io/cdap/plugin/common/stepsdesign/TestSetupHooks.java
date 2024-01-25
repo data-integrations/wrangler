@@ -107,6 +107,16 @@ public class TestSetupHooks {
     BeforeActions.scenario.write("BQ source Table " + bqSourceTable + " deleted successfully");
     PluginPropertyUtils.removePluginProp("bqSourceTable");
   }
+  @Before(order = 1, value = "@BQ_SOURCE_AVRO_TEST")
+  public static void createTempSourceBQTableAvro() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQTableQueryFileAvro"),
+            PluginPropertyUtils.pluginProp("InsertBQDataQueryFileAvro"));
+  }
+  @Before(order = 1, value = "@BQ_SOURCE_LOG_TEST")
+  public static void createTempSourceBQTableLog() throws IOException, InterruptedException {
+    createSourceBQTableWithQueries(PluginPropertyUtils.pluginProp("CreateBQTableQueryFileLog"),
+            PluginPropertyUtils.pluginProp("InsertBQDataQueryFileLog"));
+  }
 
 
   @Before(order = 1, value = "@BQ_SOURCE_JSON_TEST")
