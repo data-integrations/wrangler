@@ -20,8 +20,10 @@ package io.cdap.wrangler.proto.workspace.v2;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
@@ -39,11 +41,11 @@ public class Workspace {
   // this is for insights page in UI
   private final JsonObject insights;
 
-  private HashMap<String, UserDefinedAction> nullabilityMap;
+  private final Map<String, UserDefinedAction> nullabilityMap;
 
   private Workspace(String workspaceName, String workspaceId, List<String> directives,
                     long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec,
-                    JsonObject insights, HashMap<String, UserDefinedAction> nullabilityMap) {
+      JsonObject insights, Map<String, UserDefinedAction> nullabilityMap) {
     this.workspaceName = workspaceName;
     this.workspaceId = workspaceId;
     this.directives = directives;
@@ -51,8 +53,7 @@ public class Workspace {
     this.updatedTimeMillis = updatedTimeMillis;
     this.sampleSpec = sampleSpec;
     this.insights = insights;
-    this.nullabilityMap = nullabilityMap == null || nullabilityMap.isEmpty() ?
-        new HashMap<>() : nullabilityMap;
+    this.nullabilityMap = Collections.unmodifiableMap(new HashMap(nullabilityMap));
   }
 
   public String getWorkspaceName() {
@@ -84,13 +85,8 @@ public class Workspace {
     return insights;
   }
 
-  public HashMap<String, UserDefinedAction> getNullabilityMap() {
+  public Map<String, UserDefinedAction> getNullabilityMap() {
     return nullabilityMap;
-  }
-
-  public void setNullabilityMap(
-      HashMap<String, UserDefinedAction> nullabilityMap) {
-    this.nullabilityMap = nullabilityMap;
   }
 
   @Override
@@ -140,7 +136,7 @@ public class Workspace {
     private long updatedTimeMillis;
     private SampleSpec sampleSpec;
     private JsonObject insights;
-    private HashMap<String, UserDefinedAction> nullabilityMap;
+    private Map<String, UserDefinedAction> nullabilityMap;
 
     Builder(String name, String workspaceId) {
       this.workspaceName = name;
@@ -175,7 +171,7 @@ public class Workspace {
       return this;
     }
 
-    public Builder setNullabilityMap (HashMap<String, UserDefinedAction> nullabilityMap) {
+    public Builder setNullabilityMap(Map<String, UserDefinedAction> nullabilityMap) {
       this.nullabilityMap = nullabilityMap;
       return this;
     }
@@ -184,14 +180,5 @@ public class Workspace {
       return new Workspace(workspaceName, workspaceId, directives, createdTimeMillis, updatedTimeMillis, sampleSpec,
                            insights, nullabilityMap);
     }
-  }
-
-  /**
-   * UserDefinedAction enum.
-   */
-  public enum UserDefinedAction {
-    SKIP_ROW,
-    SEND_TO_ERROR_COLLECTOR,
-    ERROR_PIPELINE,
   }
 }

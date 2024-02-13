@@ -48,7 +48,7 @@ import io.cdap.wrangler.proto.workspace.WorkspaceValidationResult;
 import io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionResponse;
 import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
 import io.cdap.wrangler.proto.workspace.v2.Workspace;
-import io.cdap.wrangler.proto.workspace.v2.Workspace.UserDefinedAction;
+import io.cdap.wrangler.proto.workspace.v2.UserDefinedAction;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
@@ -122,7 +122,8 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       List<String> directives,
       List<Row> sample,
       GrammarWalker.Visitor<E> grammarVisitor,
-      HashMap<String, UserDefinedAction> nullabilityMap) throws DirectiveParseException, E, RecipeException {
+      Map<String, UserDefinedAction> nullabilityMap)
+      throws DirectiveParseException, E, RecipeException {
 
     if (directives.isEmpty()) {
       return sample;

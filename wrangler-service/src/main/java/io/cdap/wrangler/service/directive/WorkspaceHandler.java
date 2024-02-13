@@ -67,7 +67,7 @@ import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
 import io.cdap.wrangler.proto.workspace.v2.ServiceResponse;
 import io.cdap.wrangler.proto.workspace.v2.StageSpec;
 import io.cdap.wrangler.proto.workspace.v2.Workspace;
-import io.cdap.wrangler.proto.workspace.v2.Workspace.UserDefinedAction;
+import io.cdap.wrangler.proto.workspace.v2.UserDefinedAction;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceCreationRequest;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceDetail;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
@@ -474,10 +474,9 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
     WorkspaceDetail detail = wsStore.getWorkspaceDetail(workspaceId);
     UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
-    HashMap<String, UserDefinedAction> nullabilityMap = executionRequest.getNullabilityMap() == null ?
-        new HashMap<>() : executionRequest.getNullabilityMap();
+    Map<String, UserDefinedAction> nullabilityMap = executionRequest.getNullabilityMap();
     if (!nullabilityMap.isEmpty()) {
-      //change nullabilityMap in Workspace Object
+      //create new workspace object with the new nullabilityMap
       changeNullability(nullabilityMap, workspaceId);
     }
     List<Row> result = executeDirectives(ns.getName(), directives, detail,
@@ -492,16 +491,18 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     return response;
   }
 
-  private void changeNullability(HashMap<String, UserDefinedAction> columnMappings,
-       WorkspaceId workspaceId) throws Exception {
+  private void changeNullability(Map<String, UserDefinedAction> nullabilityMap,
+      WorkspaceId workspaceId) throws Exception {
     try {
       Workspace workspace = wsStore.getWorkspace(workspaceId);
-      workspace.setNullabilityMap(columnMappings);
-      wsStore.updateWorkspace(workspaceId, workspace);
+      Workspace newWorkspace = Workspace.builder(workspace)
+          .setUpdatedTimeMillis(System.currentTimeMillis())
+          .setNullabilityMap(nullabilityMap).build();
+      wsStore.updateWorkspace(workspaceId, newWorkspace);
     } catch (Exception e) {
       throw new RuntimeException("Error in setting nullabilityMap of columns ", e);
     }
-    }
+  }
 
 
   /**

@@ -40,6 +40,7 @@ import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.schema.TransientStoreKeys;
+import java.util.Collections;
 import org.junit.Assert;
 
 import java.util.Iterator;
@@ -89,7 +90,7 @@ public final class TestingRig {
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
-    return new RecipePipelineExecutor(parser, context, null).execute(rows);
+    return new RecipePipelineExecutor(parser, context, Collections.emptyMap()).execute(rows);
   }
 
   /**
