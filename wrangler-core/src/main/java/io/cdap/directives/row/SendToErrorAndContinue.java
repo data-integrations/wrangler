@@ -125,6 +125,8 @@ public class SendToErrorAndContinue implements Directive, Lineage {
             context.getTransientStore().increment(TransientVariableScope.LOCAL, "dq_failure", 1);
           }
           throw new ReportErrorAndProceed(message, 1);
+        } else if (context != null && !context.getTransientStore().getVariables().contains("dq_failure")) {
+            context.getTransientStore().set(TransientVariableScope.LOCAL, "dq_failure", 0L);
         }
       } catch (ELException e) {
         throw new DirectiveExecutionException(NAME, e.getMessage(), e);
