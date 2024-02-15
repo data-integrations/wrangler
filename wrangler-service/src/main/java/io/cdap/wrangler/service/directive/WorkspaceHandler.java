@@ -67,6 +67,7 @@ import io.cdap.wrangler.proto.workspace.v2.SampleSpec;
 import io.cdap.wrangler.proto.workspace.v2.ServiceResponse;
 import io.cdap.wrangler.proto.workspace.v2.StageSpec;
 import io.cdap.wrangler.proto.workspace.v2.Workspace;
+import io.cdap.wrangler.proto.workspace.v2.UserDefinedAction;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceCreationRequest;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceDetail;
 import io.cdap.wrangler.proto.workspace.v2.WorkspaceId;
@@ -169,7 +170,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       long now = System.currentTimeMillis();
       Workspace workspace = Workspace.builder(generateWorkspaceName(wsId, creationRequest.getSampleRequest().getPath()),
                                               wsId.getWorkspaceId())
-                              .setCreatedTimeMillis(now).setUpdatedTimeMillis(now).setSampleSpec(spec).build();
+                              .setCreatedTimeMillis(now).setUpdatedTimeMillis(now)
+          .setSampleSpec(spec).setNullabilityMap(new HashMap<>()).build();
       wsStore.saveWorkspace(wsId, new WorkspaceDetail(workspace, rows));
       responder.sendJson(wsId.getWorkspaceId());
     });
@@ -472,6 +474,11 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
     WorkspaceDetail detail = wsStore.getWorkspaceDetail(workspaceId);
     UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
+    Map<String, UserDefinedAction> nullabilityMap = executionRequest.getNullabilityMap();
+    if (!nullabilityMap.isEmpty()) {
+      //create new workspace object with the new nullabilityMap
+      changeNullability(nullabilityMap, workspaceId);
+    }
     List<Row> result = executeDirectives(ns.getName(), directives, detail,
                                          userDirectivesCollector);
     DirectiveExecutionResponse response = generateExecutionResponse(result,
@@ -483,6 +490,20 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     wsStore.updateWorkspace(workspaceId, newWorkspace);
     return response;
   }
+
+  private void changeNullability(Map<String, UserDefinedAction> nullabilityMap,
+      WorkspaceId workspaceId) throws Exception {
+    try {
+      Workspace workspace = wsStore.getWorkspace(workspaceId);
+      Workspace newWorkspace = Workspace.builder(workspace)
+          .setUpdatedTimeMillis(System.currentTimeMillis())
+          .setNullabilityMap(nullabilityMap).build();
+      wsStore.updateWorkspace(workspaceId, newWorkspace);
+    } catch (Exception e) {
+      throw new RuntimeException("Error in setting nullabilityMap of columns ", e);
+    }
+  }
+
 
   /**
    * Get source specs, contains some hacky way on dealing with the csv parser
@@ -580,7 +601,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     // load the udd
     composite.reload(namespace);
     return executeDirectives(namespace, directives, new ArrayList<>(detail.getSample()),
-                             grammarVisitor);
+                             grammarVisitor, detail.getWorkspace().getNullabilityMap());
   }
 
   /**

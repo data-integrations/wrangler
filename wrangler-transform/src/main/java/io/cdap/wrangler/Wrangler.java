@@ -67,6 +67,7 @@ import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.Contexts;
+import io.cdap.wrangler.proto.workspace.v2.Workspace.UserDefinedAction;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
@@ -365,7 +366,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     try {
       // Create the pipeline executor with context being set.
-      pipeline = new RecipePipelineExecutor(recipe, ctx);
+      pipeline = new RecipePipelineExecutor(recipe, ctx, null);
     } catch (Exception e) {
       throw new Exception(String.format("Stage:%s - %s", getContext().getStageName(), e.getMessage()), e);
     }

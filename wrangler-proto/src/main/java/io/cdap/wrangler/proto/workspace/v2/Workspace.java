@@ -20,7 +20,10 @@ package io.cdap.wrangler.proto.workspace.v2;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
@@ -38,9 +41,11 @@ public class Workspace {
   // this is for insights page in UI
   private final JsonObject insights;
 
+  private final Map<String, UserDefinedAction> nullabilityMap;
+
   private Workspace(String workspaceName, String workspaceId, List<String> directives,
                     long createdTimeMillis, long updatedTimeMillis, @Nullable SampleSpec sampleSpec,
-                    JsonObject insights) {
+      JsonObject insights, Map<String, UserDefinedAction> nullabilityMap) {
     this.workspaceName = workspaceName;
     this.workspaceId = workspaceId;
     this.directives = directives;
@@ -48,6 +53,7 @@ public class Workspace {
     this.updatedTimeMillis = updatedTimeMillis;
     this.sampleSpec = sampleSpec;
     this.insights = insights;
+    this.nullabilityMap = Collections.unmodifiableMap(new HashMap(nullabilityMap));
   }
 
   public String getWorkspaceName() {
@@ -77,6 +83,10 @@ public class Workspace {
 
   public JsonObject getInsights() {
     return insights;
+  }
+
+  public Map<String, UserDefinedAction> getNullabilityMap() {
+    return nullabilityMap;
   }
 
   @Override
@@ -111,7 +121,8 @@ public class Workspace {
              .setCreatedTimeMillis(existing.getCreatedTimeMillis())
              .setUpdatedTimeMillis(existing.getUpdatedTimeMillis())
              .setSampleSpec(existing.getSampleSpec())
-             .setInsights(existing.getInsights());
+             .setInsights(existing.getInsights())
+             .setNullabilityMap(existing.getNullabilityMap());
   }
 
   /**
@@ -125,6 +136,7 @@ public class Workspace {
     private long updatedTimeMillis;
     private SampleSpec sampleSpec;
     private JsonObject insights;
+    private Map<String, UserDefinedAction> nullabilityMap;
 
     Builder(String name, String workspaceId) {
       this.workspaceName = name;
@@ -159,9 +171,14 @@ public class Workspace {
       return this;
     }
 
+    public Builder setNullabilityMap(Map<String, UserDefinedAction> nullabilityMap) {
+      this.nullabilityMap = nullabilityMap;
+      return this;
+    }
+
     public Workspace build() {
       return new Workspace(workspaceName, workspaceId, directives, createdTimeMillis, updatedTimeMillis, sampleSpec,
-                           insights);
+                           insights, nullabilityMap);
     }
   }
 }

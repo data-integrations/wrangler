@@ -30,16 +30,18 @@ import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.ReportErrorAndProceed;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
+import io.cdap.wrangler.proto.workspace.v2.UserDefinedAction;
 import io.cdap.wrangler.schema.DirectiveOutputSchemaGenerator;
 import io.cdap.wrangler.schema.DirectiveSchemaResolutionContext;
 import io.cdap.wrangler.schema.TransientStoreKeys;
 import io.cdap.wrangler.utils.RecordConvertor;
 import io.cdap.wrangler.utils.RecordConvertorException;
 import io.cdap.wrangler.utils.SchemaConverter;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -56,10 +58,13 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
   private final RecipeParser recipeParser;
   private final ExecutorContext context;
   private List<Directive> directives;
+  private final Map<String, UserDefinedAction> nullabilityMap;
 
-  public RecipePipelineExecutor(RecipeParser recipeParser, @Nullable ExecutorContext context) {
+  public RecipePipelineExecutor(RecipeParser recipeParser, @Nullable ExecutorContext context,
+      Map<String, UserDefinedAction> nullabilityMap) {
     this.context = context;
     this.recipeParser = recipeParser;
+    this.nullabilityMap = new HashMap<>(nullabilityMap);
   }
 
   /**

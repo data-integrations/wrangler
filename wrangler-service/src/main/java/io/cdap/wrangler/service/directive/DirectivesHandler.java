@@ -1095,7 +1095,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       // Extract rows from the workspace.
       List<Row> rows = fromWorkspace(workspace);
       return executeDirectives(id.getNamespace().getName(), directives, sample.apply(rows),
-                               grammarVisitor);
+          grammarVisitor, null);
     });
   }
 }

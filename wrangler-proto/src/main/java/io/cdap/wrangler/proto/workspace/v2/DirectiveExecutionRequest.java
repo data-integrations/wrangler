@@ -17,8 +17,11 @@
 
 package io.cdap.wrangler.proto.workspace.v2;
 
+import io.cdap.wrangler.proto.workspace.v2.UserDefinedAction;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Directive execution request for v2 endpoint
@@ -26,10 +29,14 @@ import java.util.List;
 public class DirectiveExecutionRequest {
   private final List<String> directives;
   private final int limit;
+  private final Map<String, UserDefinedAction> nullabilityMap;
 
-  public DirectiveExecutionRequest(List<String> directives, int limit) {
+
+  public DirectiveExecutionRequest(List<String> directives, int limit,
+      Map<String, UserDefinedAction> nullabilityMap) {
     this.directives = directives;
     this.limit = limit;
+    this.nullabilityMap = nullabilityMap;
   }
 
   public int getLimit() {
@@ -38,5 +45,10 @@ public class DirectiveExecutionRequest {
 
   public List<String> getDirectives() {
     return directives == null ? Collections.emptyList() : directives;
+  }
+
+  public Map<String, UserDefinedAction> getNullabilityMap() {
+
+    return nullabilityMap == null ? Collections.emptyMap() : nullabilityMap;
   }
 }
