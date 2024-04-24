@@ -39,6 +39,7 @@ import io.cdap.cdap.etl.common.Constants;
 import io.cdap.cdap.etl.proto.ArtifactSelectorConfig;
 import io.cdap.cdap.etl.proto.connection.ConnectorDetail;
 import io.cdap.cdap.etl.proto.connection.SampleResponse;
+import io.cdap.cdap.features.Feature;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.wrangler.PropertyIds;
@@ -79,6 +80,7 @@ import io.cdap.wrangler.store.recipe.RecipeStore;
 import io.cdap.wrangler.store.workspace.WorkspaceStore;
 import io.cdap.wrangler.utils.ObjectSerDe;
 import io.cdap.wrangler.utils.RowHelper;
+import io.cdap.wrangler.utils.RowSerializer;
 import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -624,7 +626,11 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       .withNamespace(namespace)
       .build();
     byte[] bytes = getContext().runTask(runnableTaskRequest);
-    return new ObjectSerDe<List<Row>>().toObject(bytes);
+    if (Feature.WRANGLER_KRYO_SERIALIZATION.isEnabled(getContext())) {
+      return new RowSerializer().toRows(bytes);
+    } else {
+      return new ObjectSerDe<List<Row>>().toObject(bytes);
+    }
   }
 
   private List<Row> getSample(SampleResponse sampleResponse) {
