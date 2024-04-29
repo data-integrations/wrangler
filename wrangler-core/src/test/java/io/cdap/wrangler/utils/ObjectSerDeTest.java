@@ -17,6 +17,8 @@
 package io.cdap.wrangler.utils;
 
 import com.google.common.base.Charsets;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.api.RemoteDirectiveResponse;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
@@ -84,5 +86,21 @@ public class ObjectSerDeTest {
     bytes = objectSerDe.toByteArray(expectedRows);
     actualRows = objectSerDe.toObject(bytes);
     Assert.assertEquals(expectedRows.size(), actualRows.size());
+  }
+  @Test
+  public void testRemoteDirectiveResponseSerDe() throws Exception {
+    List<Row> expectedRows = new ArrayList<>();
+    Row firstRow = new Row();
+    firstRow.add("id", 1);
+    expectedRows.add(firstRow);
+    Schema expectedSchema = Schema.recordOf(Schema.Field.of("id", Schema.of(Schema.Type.INT)));
+    RemoteDirectiveResponse expectedResponse = new RemoteDirectiveResponse(expectedRows, expectedSchema);
+    ObjectSerDe<RemoteDirectiveResponse> objectSerDe = new ObjectSerDe<>();
+
+    byte[] bytes = objectSerDe.toByteArray(expectedResponse);
+    RemoteDirectiveResponse actualResponse = objectSerDe.toObject(bytes);
+
+    Assert.assertEquals(expectedResponse.getRows().size(), actualResponse.getRows().size());
+    Assert.assertEquals(expectedResponse.getOutputSchema(), actualResponse.getOutputSchema());
   }
 }

@@ -19,12 +19,15 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.api.RemoteDirectiveResponse;
 import io.cdap.wrangler.api.Row;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -33,20 +36,24 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
  * A helper class with allows Serialization and Deserialization using Kryo
  * We should register all schema classes present in {@link SchemaConverter}
+ * and {@link RemoteDirectiveResponse}
  **/
-public class RowSerializer {
+public class KryoSerializer {
 
   private final Kryo kryo;
   private static final Gson GSON = new Gson();
 
-  public RowSerializer() {
+  public KryoSerializer() {
     kryo = new Kryo();
+    // Register all classes from RemoteDirectiveResponse
+    kryo.register(RemoteDirectiveResponse.class);
+    // Schema does not have no-arg constructor but implements Serializable
+    kryo.register(Schema.class, new JavaSerializer());
     // Register all classes from SchemaConverter
     kryo.register(Row.class);
     kryo.register(ArrayList.class);
@@ -56,7 +63,7 @@ public class RowSerializer {
     kryo.register(Map.class);
     kryo.register(JsonNull.class);
     // JsonPrimitive does not have no-arg constructor hence we need a
-    // custom serializer
+    // custom serializer as it is not serializable by JavaSerializer
     kryo.register(JsonPrimitive.class, new JsonSerializer());
     kryo.register(JsonArray.class);
     kryo.register(JsonObject.class);
@@ -67,16 +74,15 @@ public class RowSerializer {
     kryo.register(Timestamp.class);
   }
 
-  public byte[] fromRows(List<Row> rows) {
+  public byte[] fromRemoteDirectiveResponse(RemoteDirectiveResponse response) {
     Output output = new Output(1024, -1);
-    kryo.writeClassAndObject(output, rows);
+    kryo.writeClassAndObject(output, response);
     return output.getBuffer();
   }
 
-  public List<Row> toRows(byte[] bytes) {
+  public RemoteDirectiveResponse toRemoteDirectiveResponse(byte[] bytes) {
     Input input = new Input(bytes);
-    List<Row> result = (List<Row>) kryo.readClassAndObject(input);
-    return result;
+    return (RemoteDirectiveResponse) kryo.readClassAndObject(input);
   }
 
   static class JsonSerializer extends Serializer<JsonElement> {

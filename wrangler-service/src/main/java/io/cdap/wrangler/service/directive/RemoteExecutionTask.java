@@ -16,10 +16,13 @@
 package io.cdap.wrangler.service.directive;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.worker.RunnableTask;
 import io.cdap.cdap.api.service.worker.RunnableTaskContext;
 import io.cdap.cdap.api.service.worker.SystemAppTaskContext;
 import io.cdap.cdap.features.Feature;
+import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.CompileException;
@@ -30,7 +33,10 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.RecipeException;
+import io.cdap.wrangler.api.RemoteDirectiveResponse;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.TransientStore;
+import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
 import io.cdap.wrangler.expression.EL;
@@ -43,22 +49,25 @@ import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.ErrorRecordsException;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
+import io.cdap.wrangler.utils.KryoSerializer;
 import io.cdap.wrangler.utils.ObjectSerDe;
-
-import io.cdap.wrangler.utils.RowSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static io.cdap.wrangler.schema.TransientStoreKeys.INPUT_SCHEMA;
+import static io.cdap.wrangler.schema.TransientStoreKeys.OUTPUT_SCHEMA;
+
 /**
  * Task for remote execution of directives
  */
 public class RemoteExecutionTask implements RunnableTask {
 
-  private static final Gson GSON = new Gson();
-
+  private static final Gson GSON = new GsonBuilder()
+          .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
+          .create();
 
   @Override
   public void run(RunnableTaskContext runnableTaskContext) throws Exception {
@@ -105,12 +114,18 @@ public class RemoteExecutionTask implements RunnableTask {
       ObjectSerDe<List<Row>> objectSerDe = new ObjectSerDe<>();
       List<Row> rows = objectSerDe.toObject(directiveRequest.getData());
 
+      Schema inputSchema = directiveRequest.getInputSchema();
+      TransientStore transientStore = new DefaultTransientStore();
+      if (inputSchema != null) {
+        transientStore.set(TransientVariableScope.GLOBAL, INPUT_SCHEMA, inputSchema);
+      }
+
       try (RecipePipelineExecutor executor = new RecipePipelineExecutor(() -> directives,
                                                                         new ServicePipelineContext(
                                                                           namespace,
                                                                           ExecutorContext.Environment.SERVICE,
                                                                           systemAppContext,
-                                                                          new DefaultTransientStore()))) {
+                                                                          transientStore))) {
         rows = executor.execute(rows);
         List<ErrorRecordBase> errors = executor.errors().stream()
             .filter(ErrorRecordBase::isShownInWrangler)
@@ -123,12 +138,16 @@ public class RemoteExecutionTask implements RunnableTask {
         throw new BadRequestException(e.getMessage(), e);
       }
 
+      Schema outputSchema = transientStore.get(OUTPUT_SCHEMA);
+      RemoteDirectiveResponse response = new RemoteDirectiveResponse(rows, outputSchema);
+      ObjectSerDe<RemoteDirectiveResponse> responseSerDe = new ObjectSerDe<>();
+
       runnableTaskContext.setTerminateOnComplete(hasUDD.get() || EL.isUsed());
 
       if (Feature.WRANGLER_KRYO_SERIALIZATION.isEnabled(systemAppContext)) {
-        runnableTaskContext.writeResult(new RowSerializer().fromRows(rows));
+        runnableTaskContext.writeResult(new KryoSerializer().fromRemoteDirectiveResponse(response));
       } else {
-        runnableTaskContext.writeResult(objectSerDe.toByteArray(rows));
+        runnableTaskContext.writeResult(responseSerDe.toByteArray(response));
       }
     } catch (DirectiveParseException | ClassNotFoundException | CompileException e) {
       throw new BadRequestException(e.getMessage(), e);

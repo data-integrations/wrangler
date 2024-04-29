@@ -17,8 +17,10 @@ package io.cdap.wrangler.utils;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonParser;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipePipeline;
+import io.cdap.wrangler.api.RemoteDirectiveResponse;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RowSerializerTest {
+public class KryoSerializerTest {
 
   private static final String[] TESTS = new String[]{
       JsonTestData.BASIC,
@@ -67,8 +69,9 @@ public class RowSerializerTest {
       Row row = new Row("body", test);
 
       List<Row> expectedRows = executor.execute(Lists.newArrayList(row));
-      byte[] serializedRows = new RowSerializer().fromRows(expectedRows);
-      List<Row> gotRows = new RowSerializer().toRows(serializedRows);
+      byte[] serializedRows = new KryoSerializer().fromRemoteDirectiveResponse(
+          new RemoteDirectiveResponse(expectedRows, null));
+      List<Row> gotRows = new KryoSerializer().toRemoteDirectiveResponse(serializedRows).getRows();
       Assert.assertArrayEquals(expectedRows.toArray(), gotRows.toArray());
     }
   }
@@ -84,8 +87,9 @@ public class RowSerializerTest {
     testRow.add("bigdecimal", new BigDecimal(new BigInteger("123456"), 5));
     testRow.add("datetime", LocalDateTime.now());
     List<Row> expectedRows = Collections.singletonList(testRow);
-    byte[] serializedRows = new RowSerializer().fromRows(expectedRows);
-    List<Row> gotRows = new RowSerializer().toRows(serializedRows);
+    byte[] serializedRows = new KryoSerializer().fromRemoteDirectiveResponse(
+        new RemoteDirectiveResponse(expectedRows, null));
+    List<Row> gotRows = new KryoSerializer().toRemoteDirectiveResponse(serializedRows).getRows();
     Assert.assertArrayEquals(expectedRows.toArray(), gotRows.toArray());
   }
 
@@ -110,8 +114,33 @@ public class RowSerializerTest {
     testRow.add("map", map);
 
     List<Row> expectedRows = Collections.singletonList(testRow);
-    byte[] serializedRows = new RowSerializer().fromRows(expectedRows);
-    List<Row> gotRows = new RowSerializer().toRows(serializedRows);
+    byte[] serializedRows = new KryoSerializer().fromRemoteDirectiveResponse(
+        new RemoteDirectiveResponse(expectedRows, null));
+    List<Row> gotRows = new KryoSerializer().toRemoteDirectiveResponse(serializedRows).getRows();
     Assert.assertArrayEquals(expectedRows.toArray(), gotRows.toArray());
+  }
+
+  @Test
+  public void testWithSchema() throws Exception {
+    Row testRow = new Row();
+    testRow.add("id", 1);
+    testRow.add("name", "abc");
+    testRow.add("date", LocalDate.of(2018, 11, 11));
+    testRow.add("time", LocalTime.of(11, 11, 11));
+    testRow.add("timestamp", ZonedDateTime.of(2018, 11, 11, 11, 11, 11, 0, ZoneId.of("UTC")));
+    testRow.add("bigdecimal", new BigDecimal(new BigInteger("123456"), 5));
+    testRow.add("datetime", LocalDateTime.now());
+    List<Row> expectedRows = Collections.singletonList(testRow);
+
+    SchemaConverter converter = new SchemaConverter();
+    Schema expectedSchema = converter.toSchema("myrecord", expectedRows.get(0));
+
+    byte[] serializedRows = new KryoSerializer().fromRemoteDirectiveResponse(
+        new RemoteDirectiveResponse(expectedRows, expectedSchema));
+    RemoteDirectiveResponse response = new KryoSerializer().toRemoteDirectiveResponse(
+        serializedRows);
+
+    Assert.assertArrayEquals(expectedRows.toArray(), response.getRows().toArray());
+    Assert.assertEquals(expectedSchema, response.getOutputSchema());
   }
 }
