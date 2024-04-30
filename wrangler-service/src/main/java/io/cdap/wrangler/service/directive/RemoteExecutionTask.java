@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import io.cdap.cdap.api.service.worker.RunnableTask;
 import io.cdap.cdap.api.service.worker.RunnableTaskContext;
 import io.cdap.cdap.api.service.worker.SystemAppTaskContext;
+import io.cdap.cdap.features.Feature;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.CompileException;
@@ -44,6 +45,7 @@ import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.UserDirectiveRegistry;
 import io.cdap.wrangler.utils.ObjectSerDe;
 
+import io.cdap.wrangler.utils.RowSerializer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,7 @@ import java.util.stream.Collectors;
 public class RemoteExecutionTask implements RunnableTask {
 
   private static final Gson GSON = new Gson();
+
 
   @Override
   public void run(RunnableTaskContext runnableTaskContext) throws Exception {
@@ -121,7 +124,12 @@ public class RemoteExecutionTask implements RunnableTask {
       }
 
       runnableTaskContext.setTerminateOnComplete(hasUDD.get() || EL.isUsed());
-      runnableTaskContext.writeResult(objectSerDe.toByteArray(rows));
+
+      if (Feature.WRANGLER_KRYO_SERIALIZATION.isEnabled(systemAppContext)) {
+        runnableTaskContext.writeResult(new RowSerializer().fromRows(rows));
+      } else {
+        runnableTaskContext.writeResult(objectSerDe.toByteArray(rows));
+      }
     } catch (DirectiveParseException | ClassNotFoundException | CompileException e) {
       throw new BadRequestException(e.getMessage(), e);
     }

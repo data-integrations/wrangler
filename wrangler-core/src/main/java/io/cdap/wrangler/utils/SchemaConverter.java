@@ -100,6 +100,7 @@ public final class SchemaConverter {
    * @param name name of the field
    * @param recordPrefix prefix to append at the beginning of a custom record
    * @return the schema of this object
+   * NOTE: ANY NEWLY SUPPORTED DATATYPE SHOULD ALSO BE REGISTERED IN {@link RowSerializer}
    */
   @Nullable
   public Schema getSchema(Object value, String name, @Nullable String recordPrefix) throws RecordConvertorException {
