@@ -18,6 +18,7 @@ package io.cdap.wrangler.schema;
 
 /**
  * TransientStoreKeys for storing Workspace schema in TransientStore
+ * NOTE: Please add any needed value in {@link io.cdap.wrangler.api.RemoteDirectiveResponse}
  */
 public final class TransientStoreKeys {
   public static final String INPUT_SCHEMA = "ws_input_schema";
