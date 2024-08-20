@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 @CucumberOptions(
   features = {"src/e2e-test/features"},
   glue = {"stepsdesign", "io.cdap.plugin.common.stepsdesign", "io.cdap.plugin.wrangler.stepsdesign",
-          "io.cdap.plugin.wrangler.locators"},
+          "io.cdap.plugin.wrangler.actions"},
   tags = {"@Wrangler"},
         plugin = {"pretty", "html:target/cucumber-html-report/wrangler-required",
                 "json:target/cucumber-reports/cucumber-wrangler-required.json",
