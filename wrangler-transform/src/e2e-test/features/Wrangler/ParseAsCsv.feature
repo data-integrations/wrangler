@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-@Wrangler
+@Wrangler_Required
 Feature:  Wrangler - Run time scenarios for parse csv
 
   @BQ_SOURCE_CSV_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST

@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-@Wrangler
+@Wrangler_Required
 Feature:  parse as fixed length
 
   @BQ_SOURCE_FXDLEN_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST

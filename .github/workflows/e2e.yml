@@ -43,7 +43,7 @@ jobs:
 
     steps:
       # Pinned 1.0.0 version
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: plugin
           submodules: 'recursive'
@@ -59,13 +59,13 @@ jobs:
               - '${{ matrix.module }}/**/e2e-test/**'
 
       - name: Checkout e2e test repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: cdapio/cdap-e2e-tests
           path: e2e
 
       - name: Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ github.workflow }}-${{ hashFiles('**/pom.xml') }}
@@ -81,7 +81,7 @@ jobs:
         run: python3 e2e/src/main/scripts/run_e2e_test.py --module ${{ matrix.module }}
 
       - name: Upload debug files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Debug files - ${{ matrix.module }}
