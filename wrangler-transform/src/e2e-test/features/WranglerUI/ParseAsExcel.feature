@@ -15,7 +15,7 @@
 @Wrangler
 Feature:  Parse as excel
 
-  @BQ_SINK_TEST
+  @BQ_SINK_TEST @BQ_CONNECTION
   Scenario: To verify User is able to run a pipeline using parse Excel directive
     Given Open Wrangler connections page
     Then Click plugin property: "addConnection" button

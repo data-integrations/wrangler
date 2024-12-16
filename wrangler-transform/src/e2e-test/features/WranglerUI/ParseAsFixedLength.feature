@@ -15,7 +15,7 @@
 @Wrangler_Required
 Feature:  parse as fixed length
 
-  @BQ_SOURCE_FXDLEN_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
+  @BQ_SOURCE_FXDLEN_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST @BQ_CONNECTION
   Scenario: To verify User is able to run a pipeline using parse fixedlength directive
     Given Open Wrangler connections page
     Then Click plugin property: "addConnection" button
