@@ -219,4 +219,9 @@ public class TestSetupHooks {
     PluginPropertyUtils.addPluginProp("bqSourceTable", bqSourceTable);
     BeforeActions.scenario.write("BQ Source Table " + bqSourceTable + " created successfully");
   }
+
+  @Before(order = 1, value = "@BQ_CONNECTION")
+  public static void setBQConnectionName() {
+    PluginPropertyUtils.addPluginProp("bqConnectionName", "BQ-" + UUID.randomUUID());
+  }
 }

@@ -15,7 +15,7 @@
 @Wrangler
 Feature:  Wrangler - Run time scenarios for Parse Log
 
-  @BQ_SOURCE_LOG_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
+  @BQ_SOURCE_LOG_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST @BQ_CONNECTION
   Scenario: To verify User is able to run a pipeline using parse log directive
     Given Open Wrangler connections page
     Then Click plugin property: "addConnection" button

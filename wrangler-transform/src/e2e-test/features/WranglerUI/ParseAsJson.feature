@@ -15,7 +15,7 @@
 @Wrangler
 Feature:  parse as Json
 
-  @BQ_SOURCE_JSON_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
+  @BQ_SOURCE_JSON_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST @BQ_CONNECTION
   Scenario: To verify User is able to run a pipeline using parse Json directive
     Given Open Wrangler connections page
     Then Click plugin property: "addConnection" button
