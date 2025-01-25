@@ -23,6 +23,9 @@ import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.Predicate;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.CloseableIterator;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
@@ -98,8 +101,12 @@ public class ConnectionStore {
       StructuredTable table = context.getTable(TABLE_ID);
       return new ConnectionStore(table);
     } catch (TableNotFoundException e) {
-      throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+      String errorMessage = String.format(
+          "System table '%s' does not exist. Please check your system environment. %s: %s",
+          TABLE_ID.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
     }
   }
 
@@ -113,17 +120,29 @@ public class ConnectionStore {
    * @throws ConnectionAlreadyExistsException if the connection already exists
    */
   public NamespacedId create(Namespace namespace,
-                             ConnectionMeta meta) throws ConnectionAlreadyExistsException, IOException {
+                             ConnectionMeta meta) {
     return create(namespace, meta, false);
   }
 
   public NamespacedId create(Namespace namespace, ConnectionMeta meta,
-                             boolean preconfigured) throws ConnectionAlreadyExistsException, IOException {
+                             boolean preconfigured) {
     NamespacedId id = new NamespacedId(namespace, getConnectionId(meta.getName()));
-    Connection existing = read(id);
+    Connection existing = null;
+    try {
+      existing = read(id);
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to read connection '%s'. %s: %s",
+          id.getId(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
     if (existing != null) {
-      throw new ConnectionAlreadyExistsException(
-        String.format("Connection named '%s' with id '%s' already exists.", meta.getName(), id.getId()));
+      String errorMessage = String.format("Connection named '%s' with id '%s' already exists.",
+          meta.getName(), id.getId());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, new ConnectionAlreadyExistsException(errorMessage));
     }
 
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
@@ -132,7 +151,16 @@ public class ConnectionStore {
       .setUpdated(now)
       .setPreconfigured(preconfigured)
       .build();
-    table.upsert(toFields(connection, namespace.getGeneration()));
+    try {
+      table.upsert(toFields(connection, namespace.getGeneration()));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to upsert connection '%s' for namespace " + "'%s'. %s: %s", id.getId(),
+          namespace.getName(), e.getClass().getSimpleName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     return id;
   }
 
@@ -143,10 +171,22 @@ public class ConnectionStore {
    * @return the connection information
    * @throws ConnectionNotFoundException if the connection does not exist
    */
-  public Connection get(NamespacedId id) throws ConnectionNotFoundException, IOException {
-    Connection existing = read(id);
+  public Connection get(NamespacedId id) {
+    Connection existing;
+    try {
+      existing = read(id);
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to read connection '%s'. %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
     if (existing == null) {
-      throw new ConnectionNotFoundException(String.format("Connection '%s' does not exist", id.getId()));
+      String errorMessage = String.format("Connection '%s' does not exist", id.getId());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, new ConnectionNotFoundException(errorMessage));
     }
     return existing;
   }
@@ -158,14 +198,22 @@ public class ConnectionStore {
    * @param meta metadata to update
    * @throws ConnectionNotFoundException if the specified connection does not exist
    */
-  public void update(NamespacedId id, ConnectionMeta meta) throws ConnectionNotFoundException, IOException {
+  public void update(NamespacedId id, ConnectionMeta meta) {
     Connection existing = get(id);
 
     Connection updated = Connection.builder(id, meta)
       .setCreated(existing.getCreated())
       .setUpdated(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build();
-    table.upsert(toFields(updated, id.getNamespace().getGeneration()));
+    try {
+      table.upsert(toFields(updated, id.getNamespace().getGeneration()));
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to update connection '%s'. %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
   }
 
   /**
@@ -180,8 +228,16 @@ public class ConnectionStore {
   /**
    * Returns true if connection identified by connectionName already exists.
    */
-  public boolean connectionExists(Namespace namespace, String connectionName) throws IOException {
-    return read(new NamespacedId(namespace, getConnectionId(connectionName))) != null;
+  public boolean connectionExists(Namespace namespace, String connectionName) {
+    try {
+      return read(new NamespacedId(namespace, getConnectionId(connectionName))) != null;
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to check if connection '%s' exists. %s: %s",
+          connectionName, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
   }
 
   /**
@@ -190,7 +246,7 @@ public class ConnectionStore {
    * @param filter to be applied on the data being returned.
    * @return List of connections
    */
-  public List<Connection> list(Namespace namespace, Predicate<Connection> filter) throws IOException {
+  public List<Connection> list(Namespace namespace, Predicate<Connection> filter) {
     List<Field<?>> key = new ArrayList<>(2);
     key.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
     key.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
@@ -205,18 +261,33 @@ public class ConnectionStore {
         }
       }
       return result;
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to list connections for namespace '%s'. %s: %s",
+          namespace.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
     }
   }
 
   /**
    * Delete all connection with the namespace and generation id
    */
-  public void deleteAll(NamespaceSummary namespace) throws IOException {
+  public void deleteAll(NamespaceSummary namespace) {
     List<Field<?>> key = new ArrayList<>(2);
     key.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
     key.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
     Range range = Range.singleton(key);
-    table.deleteAll(range);
+    try {
+      table.deleteAll(range);
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to delete all connections for namespace '%s'. %s: %s", namespace.getName(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**

@@ -20,7 +20,9 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.proto.Recipe;
 import io.cdap.wrangler.proto.Request;
 import io.cdap.wrangler.proto.RequestV1;
@@ -34,16 +36,16 @@ import java.lang.reflect.Type;
  */
 public class RequestDeserializer implements JsonDeserializer<Request> {
   @Override
-  public Request deserialize(JsonElement json, Type type, JsonDeserializationContext context)
-    throws JsonParseException {
+  public Request deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
 
     final JsonObject object = json.getAsJsonObject();
 
     // If the version is not specified
     if (!object.has("version")) {
-      throw new JsonParseException(
-        String.format("Version field is not specified in the request.")
-      );
+      String errorMessage = "Version field is not specified in the request.";
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
 
     int version = object.get("version").getAsInt();
@@ -55,9 +57,10 @@ public class RequestDeserializer implements JsonDeserializer<Request> {
       JsonObject properties = context.deserialize(object.get("properties"), JsonObject.class);
       return new RequestV1(workspace, recipe, sampling, properties);
     } else {
-      throw new JsonParseException (
-        String.format("Unsupported request version %d.", version)
-      );
+      String errorMessage = String.format("Unsupported request version %d.", version);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
   }
 }

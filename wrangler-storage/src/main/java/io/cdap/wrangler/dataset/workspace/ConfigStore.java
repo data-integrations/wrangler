@@ -17,6 +17,9 @@
 package io.cdap.wrangler.dataset.workspace;
 
 import com.google.gson.Gson;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
 import io.cdap.cdap.spi.data.StructuredTableContext;
@@ -65,20 +68,41 @@ public class ConfigStore {
       StructuredTable table = context.getTable(TABLE_ID);
       return new ConfigStore(table);
     } catch (TableNotFoundException e) {
-      throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+      String errorMessage = String.format(
+          "System table '%s' does not exist. Please check your system environment. %s: %s",
+          TABLE_ID.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
   }
 
-  public void updateConfig(DirectiveConfig config) throws IOException {
+  public void updateConfig(DirectiveConfig config) {
     List<Field<?>> fields = new ArrayList<>(2);
     fields.add(keyField);
     fields.add(Fields.stringField(VAL_COL, GSON.toJson(config)));
-    table.upsert(fields);
+    try {
+      table.upsert(fields);
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to write to system table '%s'. %s: %s",
+          TABLE_ID.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
+    }
   }
 
-  public DirectiveConfig getConfig() throws IOException {
-    Optional<StructuredRow> row = table.read(Collections.singletonList(keyField));
+  public DirectiveConfig getConfig() {
+    Optional<StructuredRow> row = null;
+    try {
+      row = table.read(Collections.singletonList(keyField));
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to read from system table '%s'. %s: %s",
+          TABLE_ID.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
+    }
     String configStr = row.map(r -> r.getString(VAL_COL)).orElse("{}");
     return GSON.fromJson(configStr, DirectiveConfig.class);
   }

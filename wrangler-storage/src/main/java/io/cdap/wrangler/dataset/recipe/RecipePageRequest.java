@@ -17,6 +17,9 @@
 package io.cdap.wrangler.dataset.recipe;
 
 import io.cdap.cdap.api.NamespaceSummary;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.spi.data.SortOrder;
 import io.cdap.cdap.spi.data.table.field.Field;
 import io.cdap.cdap.spi.data.table.field.Fields;
@@ -61,9 +64,12 @@ public class RecipePageRequest extends PageRequest<Recipe> {
   @Override
   public void validateSortBy(String sortBy) {
     if (sortBy != null && !sortByMap.containsKey(sortBy)) {
-      throw new IllegalArgumentException(
-        String.format("Invalid sortBy '%s' specified. sortBy must be one of: '%s' or '%s'",
-                      sortBy, SORT_BY_NAME, SORT_BY_UPDATE_TIME));
+      String errorMessage = String.format(
+          "Invalid sortBy '%s' specified. sortBy must be one of: '%s' or '%s'", sortBy,
+          SORT_BY_NAME, SORT_BY_UPDATE_TIME);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
   }
 
@@ -107,9 +113,12 @@ public class RecipePageRequest extends PageRequest<Recipe> {
         nextPageToken = String.valueOf(recipe.getUpdatedTimeMillis());
         break;
       default:
-        throw new IllegalArgumentException(
-          String.format("Invalid sortBy field '%s' is not mapped to any field in Recipe to return as a pageToken.",
-                        getSortBy()));
+        String errorMessage = String.format(
+            "Invalid sortBy field '%s' is not mapped to any field in Recipe to "
+                + "return as a pageToken.", getSortBy());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
     }
     return nextPageToken;
   }
@@ -126,8 +135,12 @@ public class RecipePageRequest extends PageRequest<Recipe> {
       try {
         Long.parseLong(pageToken);
       } catch (NumberFormatException e) {
-        throw new IllegalArgumentException(
-          "pageToken value is of invalid data type: expected 'long' value for sortBy 'updated'");
+        String errorMessage = String.format(
+            "PageToken value is of invalid data type: expected 'long' value for sortBy '%s', %s: %s",
+            sortBy, e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, e);
       }
     }
   }
@@ -142,9 +155,12 @@ public class RecipePageRequest extends PageRequest<Recipe> {
         sortByField = Fields.longField(UPDATE_TIME_COL, Long.parseLong(Objects.requireNonNull(getPageToken())));
         break;
       default:
-        throw new IllegalArgumentException(
-          String.format("Invalid sortBy field '%s' is not mapped to any Recipe store column name.",
-                        getSortBy()));
+        String errorMessage = String.format(
+            "Invalid sortBy field '%s' is not mapped to any Recipe store column name.",
+            getSortBy());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
     }
     return sortByField;
   }

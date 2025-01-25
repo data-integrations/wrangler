@@ -22,6 +22,9 @@ import com.google.gson.reflect.TypeToken;
 import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.CloseableIterator;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
@@ -108,8 +111,12 @@ public class WorkspaceDataset {
       StructuredTable table = context.getTable(TABLE_ID);
       return new WorkspaceDataset(table);
     } catch (TableNotFoundException e) {
-      throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+      String errorMessage = String.format(
+          "System table '%s' does not exist. Please check your system environment, %s: %s",
+          TABLE_ID.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
   }
 
@@ -120,7 +127,7 @@ public class WorkspaceDataset {
    * @param meta the workspace metadata
    * @return the id of the newly created workspace
    */
-  public NamespacedId createWorkspace(Namespace namespace, WorkspaceMeta meta) throws IOException  {
+  public NamespacedId createWorkspace(Namespace namespace, WorkspaceMeta meta) {
     NamespacedId id = new NamespacedId(namespace, UUID.randomUUID().toString());
 
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
@@ -131,7 +138,16 @@ public class WorkspaceDataset {
       .setProperties(meta.getProperties())
       .setType(meta.getType())
       .build();
-    table.upsert(toFields(workspace));
+    try {
+      table.upsert(toFields(workspace));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to upsert data. Unable to create workspace '%s', %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     return id;
   }
 
@@ -141,7 +157,7 @@ public class WorkspaceDataset {
    * @param id the id of the workspace to write
    * @param meta the workspace metadata
    */
-  public void writeWorkspaceMeta(NamespacedId id, WorkspaceMeta meta) throws IOException {
+  public void writeWorkspaceMeta(NamespacedId id, WorkspaceMeta meta) {
     Workspace existing = readWorkspace(id);
     long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
     Workspace.Builder updated = Workspace.builder(id, meta.getName());
@@ -156,7 +172,16 @@ public class WorkspaceDataset {
       .setScope(meta.getScope())
       .setProperties(meta.getProperties())
       .setType(meta.getType());
-    table.upsert(toFields(updated.build()));
+    try {
+      table.upsert(toFields(updated.build()));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to upsert data. Unable to write workspace '%s', %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
@@ -166,10 +191,13 @@ public class WorkspaceDataset {
    * @return information about the workspace
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public Workspace getWorkspace(NamespacedId id) throws WorkspaceNotFoundException, IOException {
+  public Workspace getWorkspace(NamespacedId id) {
     Workspace workspace = readWorkspace(id);
     if (workspace == null) {
-      throw new WorkspaceNotFoundException(String.format("Workspace '%s' does not exist.", id.getId()));
+      String errorMessage = String.format("Workspace '%s' does not exist.", id.getId());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, new WorkspaceNotFoundException(errorMessage));
     }
     return workspace;
   }
@@ -180,8 +208,18 @@ public class WorkspaceDataset {
    * @param id of the workspace to be checked for.
    * @return true if workspace exists, false otherwise.
    */
-  public boolean hasWorkspace(NamespacedId id) throws IOException {
-    Optional<StructuredRow> row = table.read(getKey(id));
+  public boolean hasWorkspace(NamespacedId id) {
+    Optional<StructuredRow> row = null;
+    try {
+      row = table.read(getKey(id));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to read data. Unable to check if workspace '%s' exists, %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     return row.isPresent();
   }
 
@@ -213,7 +251,7 @@ public class WorkspaceDataset {
    *
    * @return List of workspaces.
    */
-  public List<Workspace> listWorkspaces(NamespaceSummary namespace, long timestampSeconds) throws IOException {
+  public List<Workspace> listWorkspaces(NamespaceSummary namespace, long timestampSeconds) {
     List<Workspace> values = new ArrayList<>();
     List<Field<?>> namespaceKey = new ArrayList<>(2);
     namespaceKey.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
@@ -227,6 +265,14 @@ public class WorkspaceDataset {
           values.add(workspace);
         }
       }
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to read data. Unable to list workspaces in namespace '%s', %s: %s",
+          namespace.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+
     }
     return values;
   }
@@ -239,13 +285,22 @@ public class WorkspaceDataset {
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
   public void updateWorkspaceProperties(NamespacedId id,
-                                        Map<String, String> properties) throws WorkspaceNotFoundException, IOException {
+                                        Map<String, String> properties) {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setProperties(properties)
       .setUpdated(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build();
-    table.upsert(toFields(updated));
+    try {
+      table.upsert(toFields(updated));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to upsert data. Unable to update properties for workspace '%s', %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
@@ -255,13 +310,22 @@ public class WorkspaceDataset {
    * @param request the directive execution request
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
-  public void updateWorkspaceRequest(NamespacedId id, Request request) throws WorkspaceNotFoundException, IOException {
+  public void updateWorkspaceRequest(NamespacedId id, Request request) {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setRequest(request)
       .setUpdated(System.currentTimeMillis() / 1000)
       .build();
-    table.upsert(toFields(updated));
+    try {
+      table.upsert(toFields(updated));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to upsert data. Unable to update request for workspace '%s', %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
@@ -272,14 +336,23 @@ public class WorkspaceDataset {
    * @throws WorkspaceNotFoundException if the workspace does not exist
    */
   public void updateWorkspaceData(NamespacedId id, DataType dataType,
-                                  byte[] data) throws WorkspaceNotFoundException, IOException {
+                                  byte[] data) {
     Workspace existing = getWorkspace(id);
     Workspace updated = Workspace.builder(existing)
       .setType(dataType)
       .setData(data)
       .setUpdated(System.currentTimeMillis() / 1000)
       .build();
-    table.upsert(toFields(updated));
+    try {
+      table.upsert(toFields(updated));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to upsert data. Unable to update data for workspace '%s', %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
@@ -287,8 +360,17 @@ public class WorkspaceDataset {
    *
    * @param id to be deleted.
    */
-  public void deleteWorkspace(NamespacedId id) throws IOException {
-    table.delete(getKey(id));
+  public void deleteWorkspace(NamespacedId id) {
+    try {
+      table.delete(getKey(id));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to delete data. Unable to delete workspace '%s', %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
@@ -299,7 +381,7 @@ public class WorkspaceDataset {
    * @param scope to be deleted
    * @return number of workspaces deleted
    */
-  public int deleteScope(Namespace namespace, String scope) throws IOException {
+  public int deleteScope(Namespace namespace, String scope) {
     List<Field<?>> key = new ArrayList<>(2);
     key.add(Fields.stringField(NAMESPACE_COL, namespace.getName()));
     key.add(Fields.longField(GENERATION_COL, namespace.getGeneration()));
@@ -315,6 +397,13 @@ public class WorkspaceDataset {
         }
       }
       return count;
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to read data. Unable to delete workspaces in scope '%s', %s: %s",
+          scope, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
     }
   }
 
@@ -341,8 +430,18 @@ public class WorkspaceDataset {
   }
 
   @Nullable
-  private Workspace readWorkspace(NamespacedId id) throws IOException {
-    Optional<StructuredRow> row = table.read(getKey(id));
+  private Workspace readWorkspace(NamespacedId id) {
+    Optional<StructuredRow> row = null;
+    try {
+      row = table.read(getKey(id));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to read data. Unable to read workspace '%s', %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     return row.map(this::readWorkspace).orElse(null);
   }
 

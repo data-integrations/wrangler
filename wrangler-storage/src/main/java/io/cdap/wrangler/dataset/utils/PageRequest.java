@@ -16,6 +16,9 @@
 
 package io.cdap.wrangler.dataset.utils;
 
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.spi.data.SortOrder;
 import io.cdap.cdap.spi.data.table.field.Range;
 
@@ -87,7 +90,7 @@ public abstract class PageRequest<T> {
    * @param sortBy field based on which results should be sorted
    * @throws IllegalArgumentException if the value does not have a mapping
    */
-  protected abstract void validateSortBy(String sortBy) throws IllegalArgumentException;
+  protected abstract void validateSortBy(String sortBy);
 
   /**
    * Get the default table column name using which results will be sorted.
@@ -113,15 +116,22 @@ public abstract class PageRequest<T> {
 
   protected void validatePageSize(Integer pageSize) {
     if (pageSize != null && pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize cannot be negative or zero.");
+      String errorMessage = String.format(
+          "Invalid pageSize '%d' specified. PageSize must be a positive integer.", pageSize);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
   }
 
   protected void validateSortOrder(String sortOrder) {
     if (sortOrder != null && !(sortOrder.equals(SORT_ORDER_ASC) || sortOrder.equals(SORT_ORDER_DESC))) {
-      throw new IllegalArgumentException(
-        String.format("Invalid sortOrder '%s' specified. sortOrder must be one of: '%s' or '%s'",
-                      sortOrder, SORT_ORDER_ASC, SORT_ORDER_DESC));
+      String errorMessage = String.format(
+          "Invalid sortOrder '%s' specified. sortOrder must be one of: '%s' or '%s'", sortOrder,
+          SORT_ORDER_ASC, SORT_ORDER_DESC);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
   }
 }

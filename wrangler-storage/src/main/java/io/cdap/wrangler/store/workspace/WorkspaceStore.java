@@ -22,6 +22,9 @@ import com.google.gson.GsonBuilder;
 import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.CloseableIterator;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
@@ -87,9 +90,8 @@ public class WorkspaceStore {
    *
    * @param workspaceId the id of the workspace to look up
    * @return the workspace metadata about the given workspace id
-   * @throws WorkspaceNotFoundException if the workspace is not found
    */
-  public Workspace getWorkspace(WorkspaceId workspaceId) throws WorkspaceNotFoundException {
+  public Workspace getWorkspace(WorkspaceId workspaceId) {
     return TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       return getWorkspaceInternal(table, workspaceId, true);
@@ -101,15 +103,17 @@ public class WorkspaceStore {
    *
    * @param workspaceId the id of the workspace to look up
    * @return the workspace detail about the given workspace id
-   * @throws WorkspaceNotFoundException if the workspace is not found
    */
-  public WorkspaceDetail getWorkspaceDetail(WorkspaceId workspaceId) throws WorkspaceNotFoundException {
+  public WorkspaceDetail getWorkspaceDetail(WorkspaceId workspaceId) {
     return TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       Optional<StructuredRow> row = table.read(getWorkspaceKeys(workspaceId));
       if (!row.isPresent()) {
-        throw new WorkspaceNotFoundException(
-          String.format("Workspace %s does not exist", workspaceId.getWorkspaceId()));
+        String errorMessage = String.format("Workspace %s does not exist",
+            workspaceId.getWorkspaceId());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, new WorkspaceNotFoundException(errorMessage));
       }
 
       Workspace workspace = GSON.fromJson(row.get().getString(WORKSPACE_INFO_COL), Workspace.class);
@@ -169,9 +173,8 @@ public class WorkspaceStore {
    * Delete the given workspace
    *
    * @param workspaceId the workspace id to delete
-   * @throws WorkspaceNotFoundException if the workspace is not found
    */
-  public void deleteWorkspace(WorkspaceId workspaceId) throws WorkspaceNotFoundException {
+  public void deleteWorkspace(WorkspaceId workspaceId) {
     TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       getWorkspaceInternal(table, workspaceId, true);
@@ -219,13 +222,26 @@ public class WorkspaceStore {
   @Nullable
   private Workspace getWorkspaceInternal(
     StructuredTable table, WorkspaceId workspaceId,
-    boolean failIfNotFound) throws IOException, WorkspaceNotFoundException {
-    Optional<StructuredRow> row = table.read(getWorkspaceKeys(workspaceId));
+    boolean failIfNotFound) {
+    Optional<StructuredRow> row;
+    try {
+      row = table.read(getWorkspaceKeys(workspaceId));
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to read workspace %s, %s: %s",
+          workspaceId.getWorkspaceId(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     if (!row.isPresent()) {
       if (!failIfNotFound) {
         return null;
       }
-      throw new WorkspaceNotFoundException(String.format("Workspace %s does not exist", workspaceId.getWorkspaceId()));
+      String errorMessage = String.format("Workspace %s does not exist",
+          workspaceId.getWorkspaceId());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, new WorkspaceNotFoundException(errorMessage));
     }
 
     return GSON.fromJson(row.get().getString(WORKSPACE_INFO_COL), Workspace.class);

@@ -21,6 +21,9 @@ import com.google.gson.GsonBuilder;
 import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.dataset.lib.CloseableIterator;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
@@ -96,7 +99,10 @@ public class RecipeStore {
       String recipeName = recipeRow.getRecipe().getRecipeName();
       RecipeRow oldRecipeWithName = getRecipeByName(table, recipeName, recipeId.getNamespace(), false);
       if (oldRecipeWithName != null) {
-        throw new RecipeAlreadyExistsException(String.format("recipe with name '%s' already exists", recipeName));
+        String errorMessage = String.format("Recipe with name '%s' already exists", recipeName);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new RecipeAlreadyExistsException(errorMessage));
       }
       saveRecipe(recipeId, recipeRow, false, table);
     });
@@ -116,7 +122,10 @@ public class RecipeStore {
       RecipeRow oldRecipeWithName = getRecipeByName(table, recipeName, recipeId.getNamespace(), false);
       if (oldRecipeWithName != null
         && !oldRecipeWithName.getRecipe().getRecipeId().equals(recipeRow.getRecipe().getRecipeId())) {
-        throw new RecipeAlreadyExistsException(String.format("recipe with name '%s' already exists", recipeName));
+        String errorMessage = String.format("Recipe with name '%s' already exists", recipeName);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new RecipeAlreadyExistsException(errorMessage));
       }
       saveRecipe(recipeId, recipeRow, true, table);
     });
@@ -124,8 +133,7 @@ public class RecipeStore {
 
   // Create or update a recipe
   // failIfNotFound should be false for create, and true for update
-  private void saveRecipe(RecipeId recipeId, RecipeRow recipeRow, boolean failIfNotFound, StructuredTable table)
-    throws IOException, RecipeAlreadyExistsException {
+  private void saveRecipe(RecipeId recipeId, RecipeRow recipeRow, boolean failIfNotFound, StructuredTable table) {
     RecipeRow oldRecipe = getRecipeInternal(table, recipeId, failIfNotFound);
     if (oldRecipe != null) {
       Recipe updatedRecipe = Recipe.builder(recipeRow.getRecipe())
@@ -136,23 +144,30 @@ public class RecipeStore {
   }
 
   // Upsert recipeRow to structured table
-  private void upsertRecipe(RecipeId recipeId, RecipeRow recipeRow, StructuredTable table) throws IOException {
+  private void upsertRecipe(RecipeId recipeId, RecipeRow recipeRow, StructuredTable table) {
     Collection<Field<?>> fields = getRecipeKeys(recipeId);
     fields.add(Fields.stringField(RECIPE_NAME_FIELD, recipeRow.getRecipe().getRecipeName()));
     fields.add(Fields.longField(CREATE_TIME_COL, recipeRow.getRecipe().getCreatedTimeMillis()));
     fields.add(Fields.longField(UPDATE_TIME_COL, recipeRow.getRecipe().getUpdatedTimeMillis()));
     fields.add(Fields.stringField(RECIPE_INFO_COL, GSON.toJson(recipeRow)));
 
-    table.upsert(fields);
+    try {
+      table.upsert(fields);
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to upsert recipe with id '%s', %s: %s",
+          recipeId.getRecipeId(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
    * Get the Recipe associated with given recipe Id
    * @param recipeId id of the recipe to fetch
    * @return {@link Recipe} metadata for given recipe id
-   * @throws RecipeNotFoundException if recipe is not found
    */
-  public Recipe getRecipeById(RecipeId recipeId) throws RecipeNotFoundException {
+  public Recipe getRecipeById(RecipeId recipeId) {
     return TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       RecipeRow recipeRow = getRecipeInternal(table, recipeId, true);
@@ -161,13 +176,12 @@ public class RecipeStore {
   }
 
   /**
-   * Get the Recipe associated with given recipe name if it exists, else throws {@link RecipeNotFoundException}
+   * Get the Recipe associated with given recipe name if it exists
    * @param namespace
    * @param recipeName
    * @return {@link Recipe} metadata for given recipe name if exists
-   * @throws RecipeNotFoundException
    */
-  public Recipe getRecipeByName(NamespaceSummary namespace, String recipeName) throws RecipeNotFoundException {
+  public Recipe getRecipeByName(NamespaceSummary namespace, String recipeName) {
     return TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       RecipeRow recipeRow = getRecipeByName(table, recipeName, namespace, true);
@@ -203,9 +217,8 @@ public class RecipeStore {
   /**
    * Delete the specified Recipe
    * @param recipeId id of the recipe to delete
-   * @throws RecipeNotFoundException if recipe with given id is not found
    */
-  public void deleteRecipe(RecipeId recipeId) throws RecipeNotFoundException {
+  public void deleteRecipe(RecipeId recipeId) {
     TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       getRecipeInternal(table, recipeId, true);
@@ -213,29 +226,54 @@ public class RecipeStore {
     }, RecipeNotFoundException.class);
   }
 
-  private RecipeRow getRecipeInternal(StructuredTable table, RecipeId recipeId, boolean failIfNotFound)
-    throws RecipeNotFoundException, IOException {
-    Optional<StructuredRow> row = table.read(getRecipeKeys(recipeId));
+  private RecipeRow getRecipeInternal(StructuredTable table, RecipeId recipeId, boolean failIfNotFound) {
+    Optional<StructuredRow> row;
+    try {
+      row = table.read(getRecipeKeys(recipeId));
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to read recipe with id '%s', %s: %s",
+          recipeId.getRecipeId(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, new RecipeAlreadyExistsException(errorMessage));
+    }
     if (!row.isPresent()) {
       if (!failIfNotFound) {
         return null;
       }
-      throw new RecipeNotFoundException(String.format("recipe with id '%s' does not exist", recipeId.getRecipeId()));
+      String errorMessage = String.format("Recipe with ID '%s' already exists",
+          recipeId.getRecipeId());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, new RecipeAlreadyExistsException(errorMessage));
     }
     return GSON.fromJson(row.get().getString(RECIPE_INFO_COL), RecipeRow.class);
   }
 
   private RecipeRow getRecipeByName(StructuredTable table, String recipeName,
-                                    NamespaceSummary summary, boolean failIfNotFound) throws IOException {
+                                    NamespaceSummary summary, boolean failIfNotFound) {
     Collection<Field<?>> keys = getNamespaceKeys(NAMESPACE_FIELD, GENERATION_COL, summary);
     keys.add(Fields.stringField(RECIPE_NAME_FIELD, recipeName));
     Range range = Range.singleton(keys);
-    CloseableIterator<StructuredRow> iterator = table.scan(range, 1);
+    CloseableIterator<StructuredRow> iterator;
+    try {
+      iterator = table.scan(range, 1);
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to scan the table with the specified range. %s. "
+              + "Please verify the range and ensure the table is accessible. %s: %s", range,
+          e.getClass().getSimpleName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
+    }
     if (!iterator.hasNext()) {
       if (!failIfNotFound) {
         return null;
       }
-      throw new RecipeNotFoundException(String.format("recipe with name '%s' does not exist", recipeName));
+      String errorMessage = String.format("Recipe with name '%s' already exists", recipeName);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, new RecipeNotFoundException(errorMessage));
     }
     return GSON.fromJson(iterator.next().getString(RECIPE_INFO_COL), RecipeRow.class);
   }

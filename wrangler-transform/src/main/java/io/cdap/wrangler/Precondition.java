@@ -16,6 +16,10 @@
 
 package io.cdap.wrangler;
 
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
+import io.cdap.cdap.api.exception.ProgramFailureException;
 import io.cdap.wrangler.api.Row;
 import org.apache.commons.jexl3.scripting.JexlScriptEngine;
 
@@ -41,11 +45,7 @@ public class Precondition {
     try {
       script = engine.compile(condition);
     } catch (ScriptException e) {
-      if (e.getCause() != null) {
-        throw new PreconditionException(e.getCause().getMessage());
-      } else {
-        throw new PreconditionException(e.getMessage());
-      }
+      throw getProgramFailureExceptionDueToPrecondition(condition, e);
     }
   }
 
@@ -61,7 +61,7 @@ public class Precondition {
     return context;
   }
 
-  public boolean apply(Row row) throws PreconditionException {
+  public boolean apply(Row row) {
     Bindings bindings = new SimpleBindings();
     for (int i = 0; i < row.width(); ++i) {
       bindings.put(row.getColumn(i), row.getValue(i));
@@ -72,20 +72,33 @@ public class Precondition {
       scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
       Object result = script.eval(scriptContext);
       if (!(result instanceof Boolean)) {
-        throw new PreconditionException(
-          String.format("Precondition '%s' does not result in true or false.", condition)
-        );
+        String errorMessage = String.format("Precondition '%s' does not result in true or false.",
+            condition);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       return (Boolean) result;
     } catch (ScriptException e) {
       // Generally JexlException wraps the original exception, so it's good idea
       // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
       // else just print the error message.
-      if (e.getCause() != null) {
-        throw new PreconditionException(e.getCause().getMessage());
-      } else {
-        throw new PreconditionException(e.getMessage());
-      }
+      throw getProgramFailureExceptionDueToPrecondition(condition, e);
     }
+  }
+
+  private static ProgramFailureException getProgramFailureExceptionDueToPrecondition(
+      String condition, ScriptException e) {
+    String errorMessage;
+    if (e.getCause() != null) {
+      errorMessage = String.format("Error in evaluating precondition '%s'. %s: %s", condition,
+          e.getClass().getName(), e.getCause().getMessage());
+    } else {
+      errorMessage = String.format("Error in evaluating precondition '%s'. %s: %s", condition,
+          e.getClass().getName(), e.getMessage());
+    }
+    return ErrorUtils.getProgramFailureException(
+        new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+        ErrorType.SYSTEM, false, new PreconditionException(errorMessage));
   }
 }

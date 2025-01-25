@@ -19,6 +19,9 @@ package io.cdap.wrangler.store.upgrade;
 
 import com.google.gson.Gson;
 import io.cdap.cdap.api.NamespaceSummary;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
 import io.cdap.cdap.spi.data.StructuredTableContext;
@@ -150,19 +153,38 @@ public class UpgradeStore {
   }
 
   private void setComplete(NamespaceSummary namespace, StructuredTableContext context,
-                           UpgradeEntityType type, UpgradeState upgradeState) throws IOException {
+                           UpgradeEntityType type, UpgradeState upgradeState) {
     StructuredTable table = context.getTable(TABLE_ID);
     Collection<Field<?>> fields = getPrimaryKeys(namespace, type);
     fields.add(Fields.stringField(UPGRADE_STATE_COL, GSON.toJson(upgradeState)));
-    table.upsert(fields);
+    try {
+      table.upsert(fields);
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to upsert data for namespace %s and type %s, %s: %S", namespace.getName(),
+          type.name(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   @Nullable
   private UpgradeState getEntityUpgradeState(NamespaceSummary namespace, StructuredTableContext context,
-                                             UpgradeEntityType type) throws IOException {
+                                             UpgradeEntityType type) {
     StructuredTable table = context.getTable(TABLE_ID);
     Collection<Field<?>> fields = getPrimaryKeys(namespace, type);
-    Optional<StructuredRow> row = table.read(fields);
+    Optional<StructuredRow> row;
+    try {
+      row = table.read(fields);
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Failed to read upgrade state for namespace %s and type %s, %s: %s", namespace.getName(),
+          type.name(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     if (!row.isPresent() || row.get().getString(UPGRADE_STATE_COL) == null) {
       return null;
     }

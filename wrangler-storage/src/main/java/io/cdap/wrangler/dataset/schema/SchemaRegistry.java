@@ -17,6 +17,10 @@
 package io.cdap.wrangler.dataset.schema;
 
 import io.cdap.cdap.api.dataset.lib.CloseableIterator;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
+import io.cdap.cdap.api.exception.ProgramFailureException;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
 import io.cdap.cdap.spi.data.StructuredTableContext;
@@ -70,6 +74,7 @@ public final class SchemaRegistry  {
   private static final String NAMESPACE_COL = "namespace";
   private static final String GENERATION_COL = "generation";
   private static final String ID_COL = "id";
+  private static final String SCHEMA_MISSING = "Schema '%s' does not exist.";
   private final StructuredTable metaTable;
   private final StructuredTable entryTable;
 
@@ -131,8 +136,12 @@ public final class SchemaRegistry  {
       StructuredTable entryTable = context.getTable(ENTRY_TABLE_ID);
       return new SchemaRegistry(metaTable, entryTable);
     } catch (TableNotFoundException e) {
-      throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", e.getId().getName()), e);
+      String errorMessage = String.format(
+          "System table '%s' does not exist. Please check your system environment. %s: %s",
+          META_TABLE_ID.getName(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
   }
 
@@ -141,9 +150,8 @@ public final class SchemaRegistry  {
    * Writes an entry in the schema registry. If the schema already exists, it is overwritten.
    *
    * @param schemaDescriptor information about the schema to write
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public void write(SchemaDescriptor schemaDescriptor) throws IOException {
+  public void write(SchemaDescriptor schemaDescriptor) {
     SchemaRow.Builder builder = SchemaRow.builder(schemaDescriptor);
 
     long now = System.currentTimeMillis() / 1000;
@@ -159,17 +167,35 @@ public final class SchemaRegistry  {
         .setCurrentVersion(existing.getCurrentVersion());
     }
 
-    metaTable.upsert(toFields(builder.build()));
+    try {
+      metaTable.upsert(toFields(builder.build()));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to write, failed to upsert schema metadata with ID: '%s'. %s: %s",
+          schemaDescriptor.getId().getId(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
    * Deletes the schema and all associated entries.
    *
    * @param id of the schema to delete
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public void delete(NamespacedId id) throws IOException {
-    metaTable.delete(getMetaKey(id));
+  public void delete(NamespacedId id) {
+    try {
+      metaTable.delete(getMetaKey(id));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to delete, failed to delete schema metadata with ID: '%s'. %s: %s",
+          id.getId(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+
+    }
     Range range = Range.singleton(getMetaKey(id));
     try (CloseableIterator<StructuredRow> rowIter = entryTable.scan(range, Integer.MAX_VALUE)) {
       while (rowIter.hasNext()) {
@@ -179,6 +205,13 @@ public final class SchemaRegistry  {
         long entryVersion = row.getLong(EntryColumn.VERSION);
         entryTable.delete(getEntryKey(entryId, entryVersion));
       }
+    } catch (IOException e) {
+      String errorMessage = String.format("Unable to scan entry table starting from %s. "
+              + "Failed to delete schema entries with ID: '%s'. %s: %s", range, id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
     }
   }
 
@@ -188,12 +221,11 @@ public final class SchemaRegistry  {
    * @param id the id of the schema to add
    * @param specification the schema to be added
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public long add(NamespacedId id, byte[] specification) throws IOException {
+  public long add(NamespacedId id, byte[] specification) {
     SchemaRow existing = getSchemaRow(id);
     if (existing == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
+      throw getProgramFailureDueToMissingSchema(String.format(SCHEMA_MISSING, id.getId()));
     }
 
     long version = existing.getAutoVersion() + 1;
@@ -204,10 +236,28 @@ public final class SchemaRegistry  {
       .build();
 
     // update schema information
-    metaTable.upsert(toFields(updated));
+    try {
+      metaTable.upsert(toFields(updated));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to add, failed to upsert schema metadata with ID: '%s'. %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     List<Field<?>> fields = getEntryKey(id, version);
     fields.add(Fields.bytesField(EntryColumn.SCHEMA, specification));
-    entryTable.upsert(fields);
+    try {
+      entryTable.upsert(fields);
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to add, failed to upsert schema entry with ID: '%s' and version: '%d'. %s: %s",
+          id.getId(), version, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
     return version;
   }
 
@@ -219,14 +269,22 @@ public final class SchemaRegistry  {
    * @param id of the schema to be deleted.
    * @param version of the schema to be deleted.
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public void remove(NamespacedId id, long version) throws IOException {
+  public void remove(NamespacedId id, long version) {
     SchemaRow row = getSchemaRow(id);
     if (row == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
+      throw getProgramFailureDueToMissingSchema(String.format(SCHEMA_MISSING, id.getId()));
     }
-    entryTable.delete(getEntryKey(id, version));
+    try {
+      entryTable.delete(getEntryKey(id, version));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to remove, failed to delete schema entry with ID: '%s' and version: '%d'. %s: %s",
+          id.getId(), version, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   /**
@@ -236,14 +294,23 @@ public final class SchemaRegistry  {
    * @param version version of the schema to be checked.
    * @return true if id and version matches, else false.
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public boolean hasSchema(NamespacedId id, long version) throws IOException {
+  public boolean hasSchema(NamespacedId id, long version) {
     SchemaRow schemaRow = getSchemaRow(id);
     if (schemaRow == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist", id.getId()));
+      throw getProgramFailureDueToMissingSchema(String.format(SCHEMA_MISSING, id.getId()));
     }
-    Optional<StructuredRow> row = entryTable.read(getEntryKey(id, version));
+    Optional<StructuredRow> row;
+    try {
+      row = entryTable.read(getEntryKey(id, version));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to check, failed to read schema entry with ID: '%s' and version: '%d'. %s: %s",
+          id.getId(), version, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
     return row.isPresent();
   }
 
@@ -252,10 +319,19 @@ public final class SchemaRegistry  {
    *
    * @param id the id of the schema to check
    * @return true if it exists, false otherwise
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public boolean hasSchema(NamespacedId id) throws IOException {
-    Optional<StructuredRow> row = metaTable.read(getMetaKey(id));
+  public boolean hasSchema(NamespacedId id) {
+    Optional<StructuredRow> row = null;
+    try {
+      row = metaTable.read(getMetaKey(id));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to check, failed to read schema metadata with ID: '%s'. %s: %s", id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
     return row.isPresent();
   }
 
@@ -265,11 +341,10 @@ public final class SchemaRegistry  {
    * @param id the schema id
    * @return list of schema versions
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public Set<Long> getVersions(NamespacedId id) throws IOException {
+  public Set<Long> getVersions(NamespacedId id) {
     if (getSchemaRow(id) == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
+      throw getProgramFailureDueToMissingSchema(String.format(SCHEMA_MISSING, id.getId()));
     }
     Range range = Range.singleton(getMetaKey(id));
     try (CloseableIterator<StructuredRow> rowIter = entryTable.scan(range, Integer.MAX_VALUE)) {
@@ -279,6 +354,13 @@ public final class SchemaRegistry  {
         versionSet.add(row.getLong(EntryColumn.VERSION));
       }
       return versionSet;
+    } catch (IOException e) {
+      String errorMessage = String.format("Unable to scan entry table starting from %s. "
+              + "Failed to get schema versions with ID: '%s'. %s: %s", range, id.getId(),
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
     }
   }
 
@@ -289,12 +371,11 @@ public final class SchemaRegistry  {
    * @param version the entry version to get
    * @return the schema entry
    * @throws SchemaNotFoundException if the schema does not exist
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public SchemaEntry getEntry(NamespacedId id, long version) throws IOException {
+  public SchemaEntry getEntry(NamespacedId id, long version) {
     SchemaRow schemaRow = getSchemaRow(id);
     if (schemaRow == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
+      throw getProgramFailureDueToMissingSchema(String.format(SCHEMA_MISSING, id.getId()));
     }
     return getEntry(schemaRow, version);
   }
@@ -305,12 +386,11 @@ public final class SchemaRegistry  {
    * @param id the schema id
    * @return the latest entry of the specified schema
    * @throws SchemaNotFoundException if the schema or its latest entry could not be found
-   * @throws IOException if there was an error reading from or writing to the storage system
    */
-  public SchemaEntry getEntry(NamespacedId id) throws IOException {
+  public SchemaEntry getEntry(NamespacedId id) {
     SchemaRow schemaRow = getSchemaRow(id);
     if (schemaRow == null) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' does not exist.", id.getId()));
+      throw getProgramFailureDueToMissingSchema(String.format(SCHEMA_MISSING, id.getId()));
     }
     Long version = schemaRow.getCurrentVersion();
     if (version == null) {
@@ -320,11 +400,22 @@ public final class SchemaRegistry  {
     return getEntry(schemaRow, version);
   }
 
-  private SchemaEntry getEntry(SchemaRow schemaRow, long version) throws IOException {
+  private SchemaEntry getEntry(SchemaRow schemaRow, long version) {
     NamespacedId id = schemaRow.getDescriptor().getId();
-    Optional<StructuredRow> row = entryTable.read(getEntryKey(id, version));
+    Optional<StructuredRow> row;
+    try {
+      row = entryTable.read(getEntryKey(id, version));
+    } catch (IOException e) {
+      String errorMessage = String.format(
+          "Unable to read schema entry with ID: '%s' and version: '%d'. %s: %s", id.getId(),
+          version, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
     if (!row.isPresent()) {
-      throw new SchemaNotFoundException(String.format("Schema '%s' version '%d' does not exist.", id.getId(), version));
+      throw getProgramFailureDueToMissingSchema(
+          String.format("Schema '%s' version '%d' does not exist.", id, version));
     }
     byte[] specification = row.get().getBytes(EntryColumn.SCHEMA);
     Set<Long> versions = getVersions(id);
@@ -333,9 +424,24 @@ public final class SchemaRegistry  {
                            schemaRow.getCurrentVersion());
   }
 
+  private static ProgramFailureException getProgramFailureDueToMissingSchema(String errorMessage) {
+    return ErrorUtils.getProgramFailureException(
+        new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+        ErrorType.USER, false, new SchemaNotFoundException(errorMessage));
+  }
+
   @Nullable
-  private SchemaRow getSchemaRow(NamespacedId id) throws IOException {
-    Optional<StructuredRow> row = metaTable.read(getMetaKey(id));
+  private SchemaRow getSchemaRow(NamespacedId id) {
+    Optional<StructuredRow> row;
+    try {
+      row = metaTable.read(getMetaKey(id));
+    } catch (IOException e) {
+      String errorMessage = String.format("Unable to read schema metadata with ID: '%s'. %s: %s",
+          id.getId(), e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
+    }
     return row.map(this::fromRow).orElse(null);
   }
 
