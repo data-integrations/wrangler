@@ -20,9 +20,11 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -70,17 +72,23 @@ public class Swap implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int sidx = row.find(left);
       int didx = row.find(right);
 
       if (sidx == -1) {
-        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", left));
+        String errorMessage = String.format("Column '%s' does not exist.", left);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       if (didx == -1) {
-        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", right));
+        String errorMessage = String.format("Column '%s' does not exist.", right);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       row.setColumn(sidx, right);

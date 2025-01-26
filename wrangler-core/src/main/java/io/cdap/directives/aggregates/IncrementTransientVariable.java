@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -66,19 +69,24 @@ public class IncrementTransientVariable implements Directive {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.variable = ((Identifier) args.value("variable")).value();
     this.incrementBy = ((Numeric) args.value("value")).value().longValue();
     String expression = ((Expression) args.value("condition")).value();
     try {
       el = EL.compile(expression);
     } catch (ELException e) {
-      throw new DirectiveParseException(NAME, e.getMessage(), e);
+      String errorMessage = String.format(
+          "Unable to compile, invalid expression provided '%s'. %s: %s", expression,
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, new DirectiveParseException(NAME, errorMessage, e));
     }
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext();
@@ -102,7 +110,12 @@ public class IncrementTransientVariable implements Directive {
           context.getTransientStore().increment(TransientVariableScope.GLOBAL, variable, incrementBy);
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+        String errorMessage = String.format(
+            "Unable to execute, invalid expression provided '%s'. %s: %s", el.getScriptParsedText(),
+            e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new DirectiveExecutionException(NAME, errorMessage, e));
       }
     }
     return rows;

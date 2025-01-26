@@ -17,6 +17,9 @@
 package io.cdap.directives.validation.conformers;
 
 import com.google.gson.JsonObject;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.directives.validation.ConformanceIssue;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
@@ -79,7 +82,7 @@ public class JsonConformer implements Conformer<JsonObject> {
   }
 
   @Override
-  public void initialize() throws IOException {
+  public void initialize() {
 
     try (
       InputStream stream = schemaStream.get();
@@ -87,6 +90,12 @@ public class JsonConformer implements Conformer<JsonObject> {
     ) {
       JSONObject schemaJson = new JSONObject(new JSONTokener(reader));
       schema = SchemaLoader.builder().schemaJson(schemaJson).build().load().build();
+    } catch (IOException e) {
+      String errorMessage = String.format("Failed to load schema, %s: %s", e.getClass().getName(),
+          e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
   }
 

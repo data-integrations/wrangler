@@ -25,11 +25,12 @@ import com.google.gson.internal.LazilyParsedNumber;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -94,8 +95,7 @@ public class JsParser implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
 
     // Iterate through all the rows.
@@ -116,9 +116,12 @@ public class JsParser implements Directive, Lineage {
           } else if (value instanceof JsonObject || value instanceof JsonArray) {
             element = (JsonElement) value;
           } else {
-            throw new DirectiveExecutionException(
-              NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'" +
-                                    " or 'JsonObject' or 'JsonArray'.", column, value.getClass().getSimpleName()));
+            String errorMessage = String.format(
+                "Column '%s' is of invalid type '%s'. It should be of type 'String'"
+                    + " or 'JsonObject' or 'JsonArray'.", column, value.getClass().getSimpleName());
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
 
           row.remove(idx);
@@ -144,7 +147,11 @@ public class JsParser implements Directive, Lineage {
             }
           }
         } catch (JSONException e) {
-          throw new ErrorRowException(NAME, e.getMessage(), 1);
+          String errorMessage = String.format("Error parsing JSON data in column '%s'. %s: %s",
+              column, e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, e);
         }
       }
     }

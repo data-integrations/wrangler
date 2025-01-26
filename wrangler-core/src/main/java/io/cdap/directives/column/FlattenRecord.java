@@ -19,6 +19,9 @@ package io.cdap.directives.column;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -88,7 +91,7 @@ public class FlattenRecord implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
 
     for (Row row : rows) {
@@ -104,10 +107,12 @@ public class FlattenRecord implements Directive {
         }
 
         if (!(object instanceof Row)) {
-          throw new DirectiveExecutionException(
-            NAME,
-            String.format("Column '%s' has invalid type '%s'. It should be of type 'Record'.",
-                          column, object.getClass().getSimpleName()));
+          String errorMessage = String.format(
+              "Column '%s' has invalid type '%s'. It should be of type 'Record'.", column,
+              object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, new DirectiveExecutionException(NAME, errorMessage));
         }
 
         Row rowColumns = (Row) object;

@@ -19,11 +19,12 @@ package io.cdap.directives.currency;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -89,8 +90,7 @@ public class ParseAsCurrency implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(source);
       if (idx != -1) {
@@ -106,7 +106,12 @@ public class ParseAsCurrency implements Directive, Lineage {
           BigDecimal number = (BigDecimal) fmt.parse(value);
           row.addOrSet(destination, number.doubleValue());
         } catch (ParseException e) {
-          throw new ErrorRowException(NAME, e.getMessage(), 1);
+          String errorMessage = String.format(
+              "Failed to parse currency value '%s' using locale '%s'. %s: %s", value, locale,
+              e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, e);
         }
       }
     }

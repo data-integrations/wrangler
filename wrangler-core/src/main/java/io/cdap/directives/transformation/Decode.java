@@ -19,10 +19,11 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -84,13 +85,16 @@ public class Decode implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.column = ((ColumnName) args.value("column")).value();
     String type = ((Text) args.value("method")).value();
     type = type.toUpperCase();
     if (!type.equals("BASE64") && !type.equals("BASE32") && !type.equals("HEX")) {
-      throw new DirectiveParseException(
-        NAME, String.format("Decoding type '%s' is not supported. Supported types are base64, base32 & hex.", type));
+      String errorMessage = String.format(
+          "Decoding type '%s' is not supported. Supported types are base64, base32 & hex.", type);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     this.method = Method.valueOf(type);
   }
@@ -101,7 +105,7 @@ public class Decode implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx == -1) {
@@ -119,9 +123,12 @@ public class Decode implements Directive, Lineage {
       } else if (object instanceof byte[]) {
         value = (byte[]) object;
       } else {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Column '%s' has invalid type '%s'. It should be a non-null 'String' or 'byte array'.",
-                              column, object.getClass().getSimpleName()));
+        String errorMessage = String.format(
+            "Column '%s' has invalid type '%s'. It should be a non-null 'String' "
+                + "or 'byte array'.", column, object.getClass().getSimpleName());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       byte[] out = new byte[0];
@@ -133,13 +140,19 @@ public class Decode implements Directive, Lineage {
         try {
           out = hexEncode.decode(value);
         } catch (DecoderException e) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Failed to decode hex value. %s", e.getMessage()), e);
+          String errorMessage = String.format("Failed to decode hex value. %s: %s",
+              e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, e);
         }
       } else {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Specified decoding type '%s' is not supported. Supported types are base64, " +
-                                "base32 & hex.", method.toString()));
+        String errorMessage = String.format(
+            "Specified decoding type '%s' is not supported. Supported types are base64, "
+                + "base32 & hex.", method.toString());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       String obj = new String(out, StandardCharsets.UTF_8);

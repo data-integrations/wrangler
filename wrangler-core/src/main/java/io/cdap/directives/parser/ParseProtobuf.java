@@ -24,11 +24,13 @@ import com.github.rholder.retry.WaitStrategies;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -103,8 +105,7 @@ public class ParseProtobuf implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, final ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, final ExecutorContext context) {
     List<Row> results = new ArrayList<>();
 
     if (!decoderInitialized) {
@@ -138,12 +139,19 @@ public class ParseProtobuf implements Directive, Lineage {
       try {
         decoder = retryer.call(decoderCallable);
         if (decoder == null) {
-          throw new DirectiveExecutionException(NAME, "Unsupported protobuf decoder type.");
+          String errorMessage = "Unable to retrieve protobuf descriptor from schema registry.";
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, true, new DirectiveExecutionException(NAME, errorMessage));
         }
         decoderInitialized = true;
       } catch (ExecutionException | RetryException e) {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Unable to retrieve protobuf descriptor from schema registry. %s", e.getMessage()), e);
+        String errorMessage = String.format(
+            "Unable to retrieve protobuf descriptor from schema registry. %s: %s",
+            e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, true, e);
       }
     }
 
@@ -156,13 +164,21 @@ public class ParseProtobuf implements Directive, Lineage {
             byte[] bytes = (byte[]) object;
             results.addAll(decoder.decode(bytes));
           } else {
-            throw new ErrorRowException(NAME, "Column " + column + " should be of type 'byte array'", 1);
+            String errorMessage = String.format("Column '%s' should be of type 'byte array'",
+                column);
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
         }
       }
     } catch (DecoderException e) {
-      throw new ErrorRowException(NAME, "Issue decoding Protobuf record. Check schema version '"
-        + (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
+      String errorMessage = String.format(
+          "Issue decoding Protobuf record. Check schema version '%s'. %s",
+          (version == -1 ? "latest" : version), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, true, e);
     }
     return results;
   }

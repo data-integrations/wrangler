@@ -19,11 +19,12 @@ package io.cdap.directives.language;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -74,8 +75,7 @@ public class SetCharset implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException,
-    ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
 
     // Iterate through all the rows.
     for (Row row : rows) {
@@ -96,17 +96,24 @@ public class SetCharset implements Directive, Lineage {
       } else if (object instanceof ByteBuffer) {
         buffer = (ByteBuffer) object;
       } else {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'byte array' or " +
-                                "'ByteBuffer'.", column, object.getClass().getSimpleName()));
+        String errorMessage = String.format(
+            "Column '%s' is of invalid type '%s'. It should be of type 'byte array' "
+                + "or 'ByteBuffer'.", column, object.getClass().getSimpleName());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       try {
         CharBuffer result = Charset.forName(charset).decode(buffer);
         row.setValue(idx, result.toString());
-      } catch (Error e) {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Can not convert to character set '%s', %s", charset, e.getMessage()), e);
+      } catch (Throwable e) {
+        String errorMessage = String.format(
+            "Failed to decode the byte array in column '%s' using charset '%s'. %s: %s", column,
+            charset, e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, e);
       }
     }
     return rows;

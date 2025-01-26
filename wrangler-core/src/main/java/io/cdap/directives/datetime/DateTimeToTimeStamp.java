@@ -18,10 +18,12 @@ package io.cdap.directives.datetime;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -74,12 +76,16 @@ public class DateTimeToTimeStamp implements Directive, Lineage {
     try {
       this.zoneId = ZoneId.of(this.zone);
     } catch (IllegalArgumentException | ZoneRulesException exception) {
-      throw new DirectiveParseException(NAME, String.format("Zone '%s' is invalid.", this.zone), exception);
+      String errorMessage = String.format("Zone '%s' is invalid, %s: %s", this.zone,
+          exception.getClass().getName(), exception.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, exception);
     }
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx == -1) {
@@ -92,8 +98,11 @@ public class DateTimeToTimeStamp implements Directive, Lineage {
       }
 
       if (!(value instanceof LocalDateTime)) {
-        throw new ErrorRowException(NAME, String.format("Value %s for column %s expected to be datetime but found %s",
-                                                        value.toString(), column, value.getClass().getSimpleName()), 2);
+        String errorMessage = String.format("Value %s for column %s expected to be datetime but found %s",
+                                            value.toString(), column, value.getClass().getSimpleName());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       ZonedDateTime zonedDateTime = ZonedDateTime.of((LocalDateTime) value, zoneId);

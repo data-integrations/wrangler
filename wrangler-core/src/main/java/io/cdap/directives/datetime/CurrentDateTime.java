@@ -18,9 +18,11 @@ package io.cdap.directives.datetime;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -62,7 +64,7 @@ public class CurrentDateTime implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.column = ((ColumnName) args.value(COLUMN)).value();
     if (args.value(ZONE) == null) {
       this.zone = UTC;
@@ -74,7 +76,11 @@ public class CurrentDateTime implements Directive, Lineage {
     try {
       this.zoneId = ZoneId.of(this.zone);
     } catch (IllegalArgumentException | ZoneRulesException exception) {
-      throw new DirectiveParseException(NAME, String.format("Zone '%s' is invalid.", this.zone), exception);
+      String errorMessage = String.format("Zone '%s' is invalid, %s: %s", this.zone,
+          exception.getClass().getName(), exception.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, exception);
     }
   }
 

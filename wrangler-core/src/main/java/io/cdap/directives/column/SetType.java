@@ -21,6 +21,9 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.data.schema.Schema.LogicalType;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -77,26 +80,37 @@ public final class SetType implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     col = ((ColumnName) args.value("column")).value();
     type = ((Identifier) args.value("type")).value();
     if (type.equalsIgnoreCase("decimal")) {
       precision = args.contains("precision") ? (Integer) ((HashMap<String, Numeric>) args.
           value("precision").value()).get("precision").value().intValue() : null;
       if (precision != null && precision < 1) {
-        throw new DirectiveParseException("precision cannot be less than 1");
+        String errorMessage = "Precision cannot be less than 1";
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       scale = args.contains("scale") ? ((Numeric) args.value("scale")).value().intValue() : null;
       if (scale == null && precision == null && args.contains("rounding-mode")) {
-        throw new DirectiveParseException("'rounding-mode' can only be specified when a 'scale' or 'precision' is set");
+        String errorMessage = "Rounding-mode can only be specified when a 'scale' or "
+            + "'precision' is set";
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       try {
         roundingMode = args.contains("rounding-mode") ?
           RoundingMode.valueOf(((Text) args.value("rounding-mode")).value()) :
           (scale == null && precision == null ? RoundingMode.UNNECESSARY : RoundingMode.HALF_EVEN);
       } catch (IllegalArgumentException e) {
-        throw new DirectiveParseException(String.format(
-          "Specified rounding-mode '%s' is not a valid Java rounding mode", args.value("rounding-mode").value()), e);
+        String errorMessage = String.format(
+            "Specified rounding-mode '%s' is not a valid Java rounding mode",
+            args.value("rounding-mode").value());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new DirectiveParseException(NAME, errorMessage, e));
       }
     }
   }
@@ -107,9 +121,17 @@ public final class SetType implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
-      ColumnConverter.convertType(NAME, row, col, type, scale, precision, roundingMode);
+      try {
+        ColumnConverter.convertType(NAME, row, col, type, scale, precision, roundingMode);
+      } catch (DirectiveExecutionException e) {
+        String errorMessage = String.format("Error converting column '%s' to type '%s', %s: %s",
+            col, type, e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, e);
+      }
     }
     return rows;
   }
@@ -144,20 +166,26 @@ public final class SetType implements Directive, Lineage {
                   outputPrecision = inputSchemaPrecision;
                 } else if (scale == null && inputSchemaScale != null) {
                   if (precision - inputSchemaScale < 1) {
-                    throw new DirectiveParseException(String.format(
+                    String errorMessage = String.format(
                         "Cannot set scale as '%s' and precision as '%s' when "
                             + "given precision - scale is less than 1 ", inputSchemaScale,
-                        precision));
+                        precision);
+                    throw ErrorUtils.getProgramFailureException(
+                        new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                        errorMessage, ErrorType.USER, false, null);
                   }
                   outputScale = inputSchemaScale;
                   outputPrecision = precision;
 
                 } else if (precision == null && inputSchemaPrecision != null) {
                   if (inputSchemaPrecision - scale < 1) {
-                    throw new DirectiveParseException(String.format(
+                    String errorMessage = String.format(
                         "Cannot set scale as '%s' and precision as '%s' when "
                             + "given precision - scale is less than 1 ", scale,
-                        inputSchemaPrecision));
+                        inputSchemaPrecision);
+                    throw ErrorUtils.getProgramFailureException(
+                        new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                        errorMessage, ErrorType.USER, false, null);
                   }
                   outputScale = scale;
                   outputPrecision = inputSchemaPrecision;
@@ -167,7 +195,12 @@ public final class SetType implements Directive, Lineage {
               }
               return field;
             } catch (DirectiveParseException e) {
-              throw new RuntimeException(e);
+              String errorMessage = String.format(
+                  "Error converting column '%s' to type '%s', %s: %s", col, type,
+                  e.getClass().getName(), e.getMessage());
+              throw ErrorUtils.getProgramFailureException(
+                  new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                  errorMessage, ErrorType.USER, false, e);
             }
           }
         )

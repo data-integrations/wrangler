@@ -19,9 +19,11 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -80,7 +82,7 @@ public class ParseLog implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     // Iterate through all the rows.
     for (Row row : rows) {
       int idx = row.find(column);
@@ -88,9 +90,12 @@ public class ParseLog implements Directive, Lineage {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has null value. It should be a non-null 'String' or 'byte array'.",
-                                column));
+          String errorMessage = String.format(
+              "Column '%s' has null value. It should be a non-null 'String' or 'byte array'.",
+              column);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         String log;
@@ -99,9 +104,12 @@ public class ParseLog implements Directive, Lineage {
         } else if (object instanceof byte[]) {
           log = new String((byte[]) object);
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String' or 'byte array'.",
-                                column, object.getClass().getSimpleName()));
+          String errorMessage = String.format(
+              "Column '%s' is of invalid type '%s'. It should be of type 'String' or 'byte array'.",
+              column, object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
         line.set(row);
         try {

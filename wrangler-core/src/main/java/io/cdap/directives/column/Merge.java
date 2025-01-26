@@ -84,7 +84,7 @@ public class Merge implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       int idx1 = row.find(col1);

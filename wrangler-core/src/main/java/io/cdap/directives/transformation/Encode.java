@@ -19,10 +19,11 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -83,14 +84,17 @@ public class Encode implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.column = ((ColumnName) args.value("column")).value();
     String value = ((Text) args.value("method")).value();
     value = value.toUpperCase();
     if (!value.equals("BASE64") && !value.equals("BASE32") && !value.equals("HEX")) {
-      throw new DirectiveParseException(
-        NAME, String.format("Type of encoding specified '%s' is not supported. Supported types are " +
-                              "base64, base32 & hex.", value));
+      String errorMessage = String.format(
+          "Type of encoding specified '%s' is not supported. Supported types are base64, "
+              + "base32 & hex.", value);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     this.method = Method.valueOf(value);
   }
@@ -101,7 +105,7 @@ public class Encode implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx == -1) {
@@ -119,9 +123,12 @@ public class Encode implements Directive, Lineage {
       } else if (object instanceof byte[]) {
         value = (byte[]) object;
       } else {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
-                              column, object.getClass().getSimpleName()));
+        String errorMessage = String.format(
+            "Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
+            column, object.getClass().getSimpleName());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       byte[] out = new byte[0];
@@ -132,9 +139,12 @@ public class Encode implements Directive, Lineage {
       } else if (method == Method.HEX) {
         out = hexEncode.encode(value);
       } else {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Specified encoding type '%s' is not supported. Supported types are base64, " +
-                                "base32 & hex.", method.toString()));
+        String errorMessage = String.format(
+            "Specified encoding type '%s' is not supported. Supported types are base64, "
+                + "base32 & hex.", method.getType());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       String obj = new String(out, StandardCharsets.UTF_8);

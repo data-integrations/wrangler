@@ -19,10 +19,11 @@ package io.cdap.directives.row;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -64,15 +65,17 @@ public class RecordRegexFilter implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     String matchType = ((Identifier) args.value("match-type")).value();
     if (matchType.equalsIgnoreCase("if-matched")) {
       matched = true;
     } else if (matchType.equalsIgnoreCase("if-not-matched")) {
       matched = false;
     } else {
-      throw new DirectiveParseException(
-        NAME, "Match type specified is not 'if-matched' or 'if-not-matched'");
+      String errorMessage = "Match type specified is not 'if-matched' or 'if-not-matched'";
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     column = ((ColumnName) args.value("column")).value();
     String regex = ((Text) args.value("regex")).value();
@@ -89,7 +92,7 @@ public class RecordRegexFilter implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
     if (pattern == null) {
       return rows;
@@ -100,9 +103,12 @@ public class RecordRegexFilter implements Directive, Lineage {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
-                                  "'JSONObject' or 'Number'.", column));
+          String errorMessage = String.format(
+              "Column '%s' has null value. It should be a non-null 'String', "
+                  + "'JSONObject' or 'Number'.", column);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         if (object instanceof JSONObject) {
@@ -118,10 +124,12 @@ public class RecordRegexFilter implements Directive, Lineage {
             continue;
           }
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type " +
-                                  "'String', 'JSONObject' or 'Number'.", column, object.getClass().getSimpleName())
-          );
+          String errorMessage = String.format(
+              "Column '%s' is of invalid type '%s'. It should be of type 'String', "
+                  + "'JSONObject' or 'Number'.", column, object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
         results.add(row);
       } else {

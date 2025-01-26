@@ -49,9 +49,13 @@
 package io.cdap.directives.nlp.internal;
 
 
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -622,14 +626,32 @@ public final class PorterStemmer {
     i = 0;
   }
 
-  public List<String> process(List<String> input) throws IOException {
+  public List<String> process(List<String> input) {
     List<String> stemmed = new ArrayList<>();
     int cnt = 0;
     char[] w = new char[501];
     for (int i = 0; i < input.size(); i++) {
-      InputStream in = new ByteArrayInputStream(input.get(i).getBytes("UTF-8"));
+      InputStream in = null;
+      try {
+        in = new ByteArrayInputStream(input.get(i).getBytes("UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        String errorMessage = String.format("Unable to encode input '%s', %s: %s", input.get(i),
+            e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, e);
+      }
       while (true) {
-        int ch = in.read();
+        int ch = 0;
+        try {
+          ch = in.read();
+        } catch (IOException e) {
+          String errorMessage = String.format("Unable to read input '%s', %s: %s", input.get(i),
+              e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, e);
+        }
         if (Character.isLetter((char) ch)) {
           int j = 0;
           while (true) {
@@ -638,7 +660,15 @@ public final class PorterStemmer {
             if (j < 500) {
               j++;
             }
-            ch = in.read();
+            try {
+              ch = in.read();
+            } catch (IOException e) {
+              String errorMessage = String.format("Unable to read input '%s', %s: %s", input.get(i),
+                  e.getClass().getName(), e.getMessage());
+              throw ErrorUtils.getProgramFailureException(
+                  new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+                  ErrorType.SYSTEM, false, e);
+            }
             if (!Character.isLetter((char) ch)) {
               for (int c = 0; c < j; c++) {
                 add(w[c]);

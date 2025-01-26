@@ -19,9 +19,11 @@ package io.cdap.directives.date;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -75,14 +77,17 @@ public class FormatDate implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       Row dt = new Row(row);
       int idx = dt.find(column);
 
       if (idx == -1) {
-        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
+        String errorMessage = String.format("Column '%s' does not exist.", column);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       Object object = row.getValue(idx);
@@ -94,9 +99,12 @@ public class FormatDate implements Directive, Lineage {
         } else if (object instanceof ZonedDateTime) {
           zonedDateTime = (ZonedDateTime) object;
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has invalid type '%s'. Apply 'parse-as-date' directive first.",
-                                column, object.getClass().getSimpleName()));
+          String errorMessage = String.format(
+              "Column '%s' has invalid type '%s'. Apply 'parse-as-date' directive first.", column,
+              object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         dt.setValue(idx, destinationFmt.format(zonedDateTime));

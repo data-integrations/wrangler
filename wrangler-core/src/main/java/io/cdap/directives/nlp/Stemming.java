@@ -19,10 +19,12 @@ package io.cdap.directives.nlp;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.directives.nlp.internal.PorterStemmer;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -72,7 +74,7 @@ public class Stemming implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       List<String> stemmed = new ArrayList<>();
       int idx = row.find(column);
@@ -80,9 +82,12 @@ public class Stemming implements Directive, Lineage {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
-                                  "'Array of String' or 'List of String'.", column));
+          String errorMessage = String.format(
+              "Column '%s' has null value. It should be a non-null 'String', "
+                  + "'Array of String' or 'List of String'.", column);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         if ((object instanceof List || object instanceof String[] || object instanceof String)) {
@@ -96,17 +101,16 @@ public class Stemming implements Directive, Lineage {
             String[] w = phrase.split("\\W+");
             words = Arrays.asList(w);
           }
-          try {
-            stemmed = stemmer.process(words);
-            row.add(porterCol, stemmed);
-          } catch (IOException e) {
-            throw new DirectiveExecutionException(
-              NAME, String.format("Unable to apply porter stemmer on column '%s'. %s", column, e.getMessage()), e);
-          }
+          stemmed = stemmer.process(words);
+          row.add(porterCol, stemmed);
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Invalid type '%s' of column '%s'. It should be of type 'String', " +
-                                  "Array of String' or 'List of String'.", column, object.getClass().getSimpleName()));
+          String errorMessage = String.format(
+              "Invalid type '%s' of column '%s'. It should be of type 'String', "
+                  + "Array of String' or 'List of String'.", column,
+              object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
       } else {
         row.add(porterCol, stemmed);

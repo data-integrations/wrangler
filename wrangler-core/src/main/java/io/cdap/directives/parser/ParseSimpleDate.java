@@ -19,11 +19,12 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -81,8 +82,7 @@ public class ParseSimpleDate implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx != -1) {
@@ -103,13 +103,20 @@ public class ParseSimpleDate implements Directive, Lineage {
                                                                .atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC)));
             row.setValue(idx, zonedDateTime);
           } catch (ParseException e) {
-            throw new ErrorRowException(
-              NAME, String.format("Failed to parse '%s' with pattern '%s'", object, formatter.toPattern()), 1);
+            String errorMessage = String.format(
+                "Value '%s' for column '%s' is not in expected format '%s'. %s: %s", object, column,
+                formatter.toPattern(), e.getClass().getName(), e.getMessage());
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, e);
           }
         } else {
-          throw new ErrorRowException(
-            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
-                                column, object.getClass().getSimpleName()), 2);
+          String errorMessage = String.format(
+              "Column '%s' is of invalid type '%s'. It should be of type 'String'.", column,
+              object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
       }
     }

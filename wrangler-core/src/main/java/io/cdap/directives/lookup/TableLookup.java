@@ -21,10 +21,12 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.cdap.api.data.DatasetInstantiationException;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.cdap.etl.api.Lookup;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -76,7 +78,7 @@ public class TableLookup implements Directive, Lineage {
     // no-op
   }
 
-  private void ensureInitialized(ExecutorContext context) throws DirectiveExecutionException {
+  private void ensureInitialized(ExecutorContext context) {
     if (initialized) {
       return;
     }
@@ -84,20 +86,26 @@ public class TableLookup implements Directive, Lineage {
     try {
       lookup = context.provide(table, Collections.<String, String>emptyMap());
     } catch (DatasetInstantiationException e) {
-      throw new DirectiveExecutionException(
-        NAME, String.format("Dataset '%s' could not be instantiated. Make sure that a dataset '%s' of " +
-                              "type Table exists.", table, table), e);
+      String errorMessage = String.format(
+          "Dataset '%s' could not be instantiated. Make sure that a dataset '%s' of "
+              + "type Table exists. %s: %s", table, table, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
     if (!(lookup instanceof io.cdap.cdap.etl.api.lookup.TableLookup)) {
-      throw new DirectiveExecutionException(
-        NAME, "Lookup is not being performed on a table. Lookup can be performed only on tables.");
+      String errorMessage = String.format(
+          "Dataset '%s' is not a Table. Lookup can be performed only on tables.", table);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     tableLookup = (io.cdap.cdap.etl.api.lookup.TableLookup) lookup;
     initialized = true;
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     ensureInitialized(context);
     for (Row row : rows) {
       int idx = row.find(column);
@@ -106,16 +114,20 @@ public class TableLookup implements Directive, Lineage {
       }
       Object object = row.getValue(idx);
       if (object == null) {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column)
-        );
+        String errorMessage = String.format(
+            "Column '%s' has null value. It should be a non-null 'String'.", column);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       if (!(object instanceof String)) {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
-                              column, object.getClass().getSimpleName())
-        );
+        String errorMessage = String.format(
+            "Column '%s' is of invalid type '%s'. It should be of type 'String'.",
+            column, object.getClass().getSimpleName());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       io.cdap.cdap.api.dataset.table.Row lookedUpRow = tableLookup.lookup((String) object);
       for (Map.Entry<byte[], byte[]> entry : lookedUpRow.getColumns().entrySet()) {

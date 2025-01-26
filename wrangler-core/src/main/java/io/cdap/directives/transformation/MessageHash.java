@@ -21,10 +21,11 @@ import com.google.common.collect.ImmutableSet;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
@@ -121,18 +122,27 @@ public class MessageHash implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.column = ((ColumnName) args.value("column")).value();
     Text algorithm = args.value("algorithm");
     if (!MessageHash.isValid(algorithm.value())) {
-      throw new DirectiveParseException(
-        NAME, String.format("Algorithm '%s' specified at line %d is not supported.", algorithm, args.line()));
+      String errorMessage = String.format(
+          "Algorithm '%s' specified is not supported. Supported algorithms are %s.",
+          algorithm.value(), algorithms);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     try {
       this.digest = MessageDigest.getInstance(algorithm.value());
     } catch (NoSuchAlgorithmException e) {
-      throw new DirectiveParseException(
-        NAME, String.format("Unable to find algorithm '%s' specified at line %d.", algorithm, args.line()));
+      String errorMessage = String.format(
+          "Algorithm '%s' specified at line %d is not supported. Supported algorithms "
+              + "are %s. %s: %s", algorithm.value(), args.line(), algorithms,
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
 
     this.encode = false;
@@ -159,16 +169,19 @@ public class MessageHash implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx != -1) {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has null value. It should be a non-null 'String' or 'byte array'.",
-                                column));
+          String errorMessage = String.format(
+              "Column '%s' has null value. It should be a non-null 'String' or 'byte array'.",
+              column);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         byte[] message;
@@ -177,9 +190,12 @@ public class MessageHash implements Directive, Lineage {
         } else if (object instanceof byte[]) {
           message = ((byte[]) object);
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
-                                column, object.getClass().getSimpleName()));
+          String errorMessage = String.format(
+              "Column '%s' has invalid type '%s'. It should be of type 'String' or 'byte array'.",
+              column, object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         digest.update(message);
@@ -193,7 +209,10 @@ public class MessageHash implements Directive, Lineage {
           row.addOrSet(column, hashed);
         }
       } else {
-        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
+        String errorMessage = String.format("Column '%s' does not exist in the row.", column);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
     }
     return rows;

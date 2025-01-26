@@ -22,10 +22,12 @@ import com.google.gson.JsonObject;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.directives.parser.JsParser;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
@@ -91,14 +93,17 @@ public class XmlToJson implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(col);
       if (idx != -1) {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          throw new DirectiveExecutionException(NAME, "' : Column '" + col + "' does not exist.");
+          String errorMessage = String.format("Column '%s' has null value in row '%s'.", col, row);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         try {
@@ -108,12 +113,19 @@ public class XmlToJson implements Directive, Lineage {
             JsParser.jsonFlatten(element, col, 1, depth, row);
             row.remove(idx);
           } else {
-            throw new DirectiveExecutionException(
-              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
-                                  col, object.getClass().getSimpleName()));
+            String errorMessage = String.format(
+                "Column '%s' has invalid type '%s'. It should be of type 'String'.", col,
+                object.getClass().getSimpleName());
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
         } catch (JSONException e) {
-          throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+          String errorMessage = String.format("Error occurred while parsing XML to JSON. %s: %s",
+              e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, null);
         }
       }
     }

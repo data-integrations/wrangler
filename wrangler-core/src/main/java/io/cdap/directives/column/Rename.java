@@ -20,6 +20,9 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -71,9 +74,18 @@ public final class Rename implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
-      ColumnConverter.rename(NAME, row, source.value(), target.value());
+      try {
+        ColumnConverter.rename(NAME, row, source.value(), target.value());
+      } catch (DirectiveExecutionException e) {
+        String errorMessage = String.format(
+            "Error renaming column '%s' to '%s' in row '%s'. %s: %s", source.value(),
+            target.value(), row, e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new DirectiveExecutionException(NAME, errorMessage, e));
+      }
     }
     return rows;
   }

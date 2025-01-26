@@ -19,10 +19,12 @@ package io.cdap.directives.datamodel;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
@@ -91,12 +93,15 @@ public class DataModelMapColumn implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     String dataModelUrl = ((Text) args.value(DATA_MODEL_URL)).value();
     if (!glossaryCache.containsKey(dataModelUrl)) {
       AvroSchemaGlossary glossary = new AvroSchemaGlossary(new HTTPSchemaLoader(dataModelUrl, "manifest.json"));
       if (!glossary.configure()) {
-        throw new DirectiveParseException(NAME, String.format("Unable to load data models from %s.", dataModelUrl));
+        String errorMessage = String.format("Unable to load data models from %s.", dataModelUrl);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       glossaryCache.put(dataModelUrl, glossary);
     }
@@ -105,19 +110,28 @@ public class DataModelMapColumn implements Directive, Lineage {
     long revision = ((Numeric) args.value(DATA_MODEL_REVISION)).value().longValue();
     Schema dataModel = glossaryCache.get(dataModelUrl).get(dataModelName, revision);
     if (dataModel == null) {
-      throw new DirectiveParseException(NAME, String
-        .format("Unable to find data model %s revision %d.", dataModelName, revision));
+      String errorMessage = String.format("Unable to find data model %s revision %d.",
+          dataModelName, revision);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
 
     String modelName = ((Text) args.value(MODEL)).value();
     Schema.Field modelField = dataModel.getField(modelName);
     if (modelField == null) {
-      throw new DirectiveParseException(NAME, String
-        .format("Model %s does not exist in data model %s.", modelName, dataModelName));
+      String errorMessage = String.format("Model %s does not exist in data model %s.", modelName,
+          dataModelName);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     Schema subSchema = modelField.schema();
     if (subSchema == null) {
-      throw new DirectiveParseException(NAME, String.format("Model %s has no schema.", modelField.name()));
+      String errorMessage = String.format("Model %s has no schema.", modelField.name());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
 
     Schema model = subSchema.getTypes().stream()
@@ -125,24 +139,32 @@ public class DataModelMapColumn implements Directive, Lineage {
       .findFirst()
       .orElse(null);
     if (model == null) {
-      throw new DirectiveParseException(NAME, String.format("Model %s has no schema.", subSchema.getName()));
+      String errorMessage = String.format("Model %s has no schema.", subSchema.getName());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
 
     String targetName = ((Text) args.value(TARGET_FIELD)).value();
     Schema.Field targetField = model.getField(targetName);
     if (targetField == null) {
-      throw new DirectiveParseException(NAME, String
-        .format("Field %s does not exist in model %s.", targetName, model.getName()));
+      String errorMessage = String.format("Field %s does not exist in model %s.", targetName,
+          model.getName());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     Schema type = targetField.schema().getTypes().stream()
       .filter(s -> s.getType() != Schema.Type.NULL)
       .findFirst()
       .orElse(null);
     if (type == null) {
-      throw new DirectiveParseException(NAME,
-                                        String
-                                          .format(" Field %s of model %s in data model %s is missing type information.",
-                                                  targetField.name(), modelName, dataModelName));
+      String errorMessage = String.format(
+          "Field %s of model %s in data model %s is missing type information.", targetField.name(),
+          modelName, dataModelName);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     targetFieldName = targetField.name();
     targetFieldTypeName = type.getName();
@@ -150,10 +172,19 @@ public class DataModelMapColumn implements Directive, Lineage {
   }
   
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
-      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName, null, null, RoundingMode.UNNECESSARY);
-      ColumnConverter.rename(NAME, row, column, targetFieldName);
+      try {
+        ColumnConverter.convertType(NAME, row, column, targetFieldTypeName, null, null, RoundingMode.UNNECESSARY);
+        ColumnConverter.rename(NAME, row, column, targetFieldName);
+      } catch (DirectiveExecutionException e) {
+        String errorMessage = String.format(
+            "Failed to map column '%s' to column name '%s' and type '%s'. %s: %s", column,
+            targetFieldName, targetFieldTypeName, e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, e);
+      }
     }
     return rows;
   }

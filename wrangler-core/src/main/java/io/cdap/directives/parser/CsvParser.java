@@ -19,11 +19,11 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -84,7 +84,7 @@ public class CsvParser implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     columnArg = args.value("col");
 
     char delimiter = ',';
@@ -94,8 +94,11 @@ public class CsvParser implements Directive, Lineage {
       if (delimiterArg.value().startsWith("\\")) {
         String unescapedStr = StringEscapeUtils.unescapeJava(delimiterArg.value());
         if (unescapedStr == null) {
-          throw new DirectiveParseException(
-            NAME, String.format("Invalid delimiter for CSV Parser '%s'", delimiterArg.value()));
+          String errorMessage = String.format("Invalid delimiter for CSV Parser '%s'",
+              delimiterArg.value());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, null);
         }
         delimiter = unescapedStr.charAt(0);
       }
@@ -128,8 +131,7 @@ public class CsvParser implements Directive, Lineage {
    * @return New Row containing multiple columns based on CSV parsing.
    */
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
 
     for (Row row : rows) {
       int idx = row.find(columnArg.value());
@@ -158,7 +160,11 @@ public class CsvParser implements Directive, Lineage {
         }
       } catch (IOException e) {
         // When there is error parsing data, the data is written to error.
-        throw new ErrorRowException(NAME, e.getMessage(), 1);
+        String errorMessage = String.format("Error parsing CSV data in column '%s'. %s: %s",
+            columnArg.value(), e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, e);
       }
     }
     return rows;

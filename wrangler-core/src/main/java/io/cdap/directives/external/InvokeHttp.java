@@ -22,10 +22,12 @@ import com.google.gson.reflect.TypeToken;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
@@ -41,7 +43,6 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
@@ -85,7 +86,7 @@ public class InvokeHttp implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     gson = new Gson();
     this.url = ((Text) args.value("url")).value();
     this.columns = ((ColumnNameList) args.value("column")).value();
@@ -98,19 +99,28 @@ public class InvokeHttp implements Directive, Lineage {
       for (String header : parsedHeaders) {
         String[] components = header.split("=");
         if (components.length != 2) {
-          throw new DirectiveParseException (
-            NAME, String.format("Incorrect header '%s' specified. Header should be specified as 'key=value' " +
-                                  "pairs separated by a comma (,).", header));
+          String errorMessage = String.format(
+              "Incorrect header '%s' specified. Header should be specified as "
+                  + "'key=value' pairs separated by a comma (,).", header);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
         String key = components[0].trim();
         String value = components[1].trim();
         if (key.isEmpty()) {
-          throw new DirectiveParseException(
-            NAME, String.format("Key specified for header '%s' cannot be empty.", header));
+          String errorMessage = String.format("Key specified for header '%s' cannot be empty.",
+              header);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
         if (value.isEmpty()) {
-          throw new DirectiveParseException(
-            NAME, String.format("Value specified for header '%s' cannot be empty.", header));
+          String errorMessage = String.format("Value specified for header '%s' cannot be empty.",
+              header);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
         headers.put(key, value);
       }
@@ -140,7 +150,12 @@ public class InvokeHttp implements Directive, Lineage {
         }
       } catch (Exception e) {
         // If there are any issues, they will be pushed on the error port.
-        throw new ErrorRowException(NAME, e.getMessage(), 500);
+        String errorMessage = String.format(
+            "Error invoking external service '%s' with parameters '%s'. %s: %s", url, parameters,
+            e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new ErrorRowException(NAME, errorMessage, 500));
       }
     }
     return rows;
@@ -165,7 +180,11 @@ public class InvokeHttp implements Directive, Lineage {
           statusLine.getReasonPhrase());
       }
       if (entity == null) {
-        throw new ClientProtocolException("Response contains no content");
+        String errorMessage = String.format("Response contains no content. Status code: %d",
+            statusLine.getStatusCode());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       Gson gson = new GsonBuilder().create();
       Reader reader = new InputStreamReader(entity.getContent(), Charset.forName("UTF-8"));
@@ -174,7 +193,7 @@ public class InvokeHttp implements Directive, Lineage {
   }
 
   private Map<String, Object> invokeHttp(String url, Map<String, Object> parameters,
-                                         Map<String, String> headers) throws IOException {
+                                         Map<String, String> headers) {
     CloseableHttpClient client = null;
     try {
       String body = gson.toJson(parameters);
@@ -189,9 +208,23 @@ public class InvokeHttp implements Directive, Lineage {
       post.setEntity(entity);
       client = HttpClients.createDefault();
       return client.execute(post, new ServiceResponseHandler());
+    } catch (IOException e) {
+      String errorMessage = String.format("Error invoking external service '%s'. %s: %s", url,
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, true, e);
     } finally {
       if (client != null) {
-        client.close();
+        try {
+          client.close();
+        } catch (IOException e) {
+          String errorMessage = String.format("Error closing HTTP client. %s: %s",
+              e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, true, null);
+        }
       }
     }
   }

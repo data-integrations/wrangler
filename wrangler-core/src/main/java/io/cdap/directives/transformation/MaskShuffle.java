@@ -19,9 +19,11 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -77,7 +79,7 @@ public class MaskShuffle implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       Row masked = new Row(row);
@@ -85,7 +87,10 @@ public class MaskShuffle implements Directive, Lineage {
       if (idx != -1) {
         masked.setValue(idx, maskShuffle((String) row.getValue(idx), 0));
       } else {
-        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", column));
+        String errorMessage = String.format("Column '%s' does not exist.", column);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       results.add(masked);
     }

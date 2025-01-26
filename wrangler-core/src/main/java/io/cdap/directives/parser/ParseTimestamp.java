@@ -19,11 +19,12 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -83,8 +84,7 @@ public class ParseTimestamp implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx != -1) {
@@ -103,21 +103,26 @@ public class ParseTimestamp implements Directive, Lineage {
     return rows;
   }
 
-  private static TimeUnit getTimeUnit(String unitValue) throws DirectiveParseException {
+  private static TimeUnit getTimeUnit(String unitValue) {
     TimeUnit unit;
 
     try {
       unit = TimeUnit.valueOf(unitValue.toUpperCase());
     } catch (IllegalArgumentException e) {
-      throw new DirectiveParseException(
-        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
-                            unitValue, SUPPORTED_TIME_UNITS), e);
+      String errorMessage = String.format(
+          "Time unit '%s' is not a supported time unit. Supported time units are %s, %s: %s",
+          unitValue, SUPPORTED_TIME_UNITS, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
 
     if (!SUPPORTED_TIME_UNITS.contains(unit)) {
-      throw new DirectiveParseException(
-        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
-                            unitValue, SUPPORTED_TIME_UNITS));
+      String errorMessage = String.format(
+          "Time unit '%s' is not a supported time unit. Supported time units are %s", unitValue, SUPPORTED_TIME_UNITS);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
 
     return unit;
@@ -131,7 +136,7 @@ public class ParseTimestamp implements Directive, Lineage {
       .build();
   }
 
-  private long getLongValue(Object object) throws ErrorRowException {
+  private long getLongValue(Object object) {
     String errorMsg = String.format("Invalid type '%s' of column '%s'. Must be of type 'Long' or 'String'.",
                                     object.getClass().getSimpleName(), column);
     try {
@@ -146,7 +151,9 @@ public class ParseTimestamp implements Directive, Lineage {
                                  "representing long.", column);
     }
 
-    throw new ErrorRowException(NAME, errorMsg, 2);
+    throw ErrorUtils.getProgramFailureException(
+        new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMsg, errorMsg,
+        ErrorType.USER, false, null);
   }
 
   private ZonedDateTime getZonedDateTime(long ts, TimeUnit unit, ZoneId zoneId) {

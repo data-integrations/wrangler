@@ -20,6 +20,9 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -75,11 +78,14 @@ public class Copy implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int sidx = row.find(source.value());
       if (sidx == -1) {
-        throw new DirectiveExecutionException(NAME, String.format("Column '%s' does not exist.", source.value()));
+        String errorMessage = String.format("Column '%s' does not exist.", source.value());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new DirectiveExecutionException(NAME, errorMessage));
       }
 
       int didx = row.find(destination.value());
@@ -95,9 +101,12 @@ public class Copy implements Directive, Lineage {
         // if destination column exists, and force is set to false, then throw exception, else
         // overwrite it.
         if (!force) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Destination column '%s' already exists in the row. Use 'force' " +
-                                  "option to overwrite the column.", destination.value()));
+          String errorMessage = String.format(
+              "Destination column '%s' already exists in the row. Use 'force' "
+                  + "option to overwrite the column.", destination.value());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, new DirectiveExecutionException(errorMessage));
         }
         row.setValue(didx, row.getValue(sidx));
       }

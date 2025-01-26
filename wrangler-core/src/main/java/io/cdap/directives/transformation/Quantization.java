@@ -22,9 +22,11 @@ import com.google.common.collect.TreeRangeMap;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -81,7 +83,7 @@ public class Quantization implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       int idx = row.find(col1);
@@ -91,9 +93,12 @@ public class Quantization implements Directive, Lineage {
           Object object = row.getValue(idx);
 
           if (object == null) {
-            throw new DirectiveExecutionException(
-              NAME, String.format("Column '%s' has null value. It should be a non-null 'String', " +
-                                    "'Float' or 'Double'.", col1));
+            String errorMessage = String.format(
+                "Column '%s' has null value. It should be a non-null 'String', "
+                    + "'Float' or 'Double'.", col1);
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
 
           Double d;
@@ -104,9 +109,12 @@ public class Quantization implements Directive, Lineage {
           } else if (object instanceof Float) {
             d = ((Float) object).doubleValue();
           } else {
-            throw new DirectiveExecutionException(
-              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String', " +
-                                    "'Float' or 'Double'.", col1, object.getClass().getSimpleName()));
+            String errorMessage = String.format(
+                "Column '%s' has invalid type '%s'. It should be of type 'String', "
+                    + "'Float' or 'Double'.", col1, object.getClass().getSimpleName());
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
           String value = rangeMap.get(d);
           int destIdx = row.find(col2);
@@ -116,12 +124,18 @@ public class Quantization implements Directive, Lineage {
             row.setValue(destIdx, value);
           }
         } catch (NumberFormatException e) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has invalid type. It should be of type 'String', " +
-                                  "'Float' or 'Double'.", col1), e);
+          String errorMessage = String.format(
+              "Column '%s' has invalid type. It should be of type 'String', 'Float' or 'Double'. %s: %s",
+              col1, e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, e);
         }
       } else {
-        throw new DirectiveExecutionException(NAME, "Column '" + col1 + "' does not exist.");
+        String errorMessage = String.format("Column '%s' does not exist.", col1);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
       results.add(row);
     }

@@ -18,10 +18,11 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -62,19 +63,22 @@ public class ParseDateTime implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.column = ((ColumnName) args.value(COLUMN)).value();
     this.format = args.value(FORMAT).value().toString();
     try {
       this.formatter = DateTimeFormatter.ofPattern(this.format);
     } catch (IllegalArgumentException exception) {
-      throw new DirectiveParseException(NAME, String.format("'%s' is an invalid datetime format.", this.format),
-                                        exception);
+      String errorMessage = String.format("'%s' is an invalid datetime format. %s: %s", this.format,
+          exception.getClass().getName(), exception.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, exception);
     }
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx == -1) {
@@ -90,8 +94,12 @@ public class ParseDateTime implements Directive, Lineage {
         LocalDateTime localDateTime = LocalDateTime.parse(value.toString(), formatter);
         row.setValue(idx, localDateTime);
       } catch (DateTimeParseException exception) {
-        throw new ErrorRowException(NAME, String.format("Value %s for column %s is not in expected format %s",
-                                                        value.toString(), column, format), 2, exception);
+        String errorMessage = String.format(
+            "Value %s for column %s is not in expected format %s, %s: %s", value, column, format,
+            exception.getClass().getName(), exception.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, exception);
       }
     }
     return rows;

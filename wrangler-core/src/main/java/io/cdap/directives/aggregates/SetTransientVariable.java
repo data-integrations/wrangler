@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -66,13 +69,18 @@ public class SetTransientVariable implements Directive {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.variable = ((Identifier) args.value("variable")).value();
     String expression = ((Expression) args.value("condition")).value();
     try {
       el = EL.compile(expression);
     } catch (ELException e) {
-      throw new DirectiveParseException(NAME, e.getMessage(), e);
+      String errorMessage = String.format(
+          "Unable to compile, Error while parsing expression '%s'. %s: %s", expression,
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, new DirectiveParseException(NAME, errorMessage, e));
     }
   }
 
@@ -82,7 +90,7 @@ public class SetTransientVariable implements Directive {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context, el, row);
@@ -95,7 +103,12 @@ public class SetTransientVariable implements Directive {
           context.getTransientStore().set(TransientVariableScope.GLOBAL, variable, result.getObject());
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+        String errorMessage = String.format(
+            "Unable to execute, error while executing expression '%s'. %s: %s",
+            el.getScriptParsedText(), e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, new DirectiveExecutionException(NAME, errorMessage, e));
       }
     }
     return rows;

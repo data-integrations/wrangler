@@ -20,10 +20,11 @@ import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -62,17 +63,23 @@ public class Fail implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     Expression expression = args.value("condition");
     if (expression.value().isEmpty()) {
-      throw new DirectiveParseException(
-        NAME, "No condition has been specified. Make sure condition is provided");
+      String errorMessage = String.format("No condition has been specified. Make sure condition is provided");
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, true, null);
     }
     condition = expression.value();
     try {
       el = EL.compile(condition);
     } catch (ELException e) {
-      throw new DirectiveParseException(NAME, e.getMessage(), e);
+      String errorMessage = String.format("Error while parsing the condition, %s: %s",
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
     }
   }
 
@@ -82,8 +89,7 @@ public class Fail implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context, el, row);
@@ -93,11 +99,18 @@ public class Fail implements Directive, Lineage {
       try {
         ELResult result = el.execute(ctx);
         if (result.getBoolean()) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Condition '%s' evaluated to true. Terminating processing.", condition));
+          String errorMessage = String.format(
+              "Condition '%s' evaluated to true. Terminating processing.", condition);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, null);
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+        String errorMessage = String.format("Error while evaluating the condition, %s: %s",
+            e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, e);
       }
     }
     return rows;

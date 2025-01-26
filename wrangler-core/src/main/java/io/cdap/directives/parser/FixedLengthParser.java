@@ -19,11 +19,12 @@ package io.cdap.directives.parser;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.Optional;
@@ -90,8 +91,7 @@ public final class FixedLengthParser implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       int idx = row.find(col);
@@ -99,8 +99,11 @@ public final class FixedLengthParser implements Directive, Lineage {
         Object object = row.getValue(idx);
 
         if (object == null) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", col));
+          String errorMessage = String.format(
+              "Column '%s' has null value. It should be a non-null 'String'.", col);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, null);
         }
 
         if (object instanceof String) {
@@ -108,10 +111,13 @@ public final class FixedLengthParser implements Directive, Lineage {
           int length = data.length();
           // If the recordLength length doesn't match the string length.
           if (length < recordLength) {
-            throw new ErrorRowException(
-              NAME, String.format("Column '%s' contains a value with fewer characters than the specified length " +
-                                    "of row. Expected at least %d characters but found %s characters.",
-                                  col, recordLength, length), 2);
+            String errorMessage = String.format(
+                "Column '%s' contains a value with fewer characters than the specified "
+                    + "length of row. Expected at least %d characters but found %s characters.",
+                col, recordLength, length);
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.SYSTEM, false, null);
           }
 
           int index = 1;
@@ -132,9 +138,12 @@ public final class FixedLengthParser implements Directive, Lineage {
             index = (index + recordLength);
           }
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
-                                col, object.getClass().getSimpleName()));
+          String errorMessage = String.format(
+              "Column '%s' has invalid type '%s'. It should be of type 'String'.", col,
+              object.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, null);
         }
       }
     }

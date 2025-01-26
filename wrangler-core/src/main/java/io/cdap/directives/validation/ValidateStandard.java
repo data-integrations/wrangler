@@ -21,15 +21,14 @@ import com.google.gson.JsonObject;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.directives.validation.conformers.Conformer;
 import io.cdap.directives.validation.conformers.JsonConformer;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
-import io.cdap.wrangler.api.ReportErrorAndProceed;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.parser.ColumnName;
@@ -73,27 +72,34 @@ public class ValidateStandard implements Directive {
   static {
     FORMAT_TO_FACTORY.put(JsonConformer.SCHEMA_FORMAT, new JsonConformer.Factory());
 
-    try {
-      standardsManifest = getManifest();
-    } catch (IOException e) {
-      LOG.error("Unable to read standards manifest", e);
-    }
+    standardsManifest = getManifest();
   }
 
   private String column;
   private String schema;
 
-  private static Manifest getManifest() throws IOException {
+  private static Manifest getManifest() {
     InputStream resourceStream =
       ValidateStandard.class.getClassLoader().getResourceAsStream(ValidateStandard.MANIFEST_PATH);
 
     if (resourceStream == null) {
-      throw new IOException(
-        String.format("Can't read/find resource %s", ValidateStandard.MANIFEST_PATH));
+      String errorMessage = String.format("Can't read/find resource %s",
+          ValidateStandard.MANIFEST_PATH);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, null);
     }
 
     InputStream manifestStream = readResource(ValidateStandard.MANIFEST_PATH);
-    return new Gson().getAdapter(Manifest.class).fromJson(new InputStreamReader(manifestStream));
+    try {
+      return new Gson().getAdapter(Manifest.class).fromJson(new InputStreamReader(manifestStream));
+    } catch (IOException e) {
+      String errorMessage = String.format("Unable to read standards manifest, %s: %s",
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, e);
+    }
   }
 
   private static InputStream readResource(String name) {
@@ -120,24 +126,30 @@ public class ValidateStandard implements Directive {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     column = ((ColumnName) args.value(COLUMN)).value();
     String spec = ((Identifier) args.value(STANDARD_SPEC)).value();
 
     if (spec.equals("")) {
-      throw new DirectiveParseException("No standard specified to validate against");
+      String errorMessage = "No standard specified to validate against";
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, null);
     }
     if (standardsManifest == null) {
-      throw new DirectiveParseException(
-        "Standards manifest was not loaded. Please check logs for information");
+      String errorMessage = "Standards manifest was not loaded. Please check logs for information";
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.SYSTEM, false, null);
     }
 
     Map<String, Standard> availableSpecs = standardsManifest.getStandards();
     if (!availableSpecs.containsKey(spec)) {
-      throw new DirectiveParseException(
-        String.format(
-          "Unknown standard %s. Known values are %s",
-          spec, String.join(", ", standardsManifest.getStandards().keySet())));
+      String errorMessage = String.format("Unknown standard %s. Known values are %s", spec,
+          String.join(", ", standardsManifest.getStandards().keySet()));
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
 
     Standard standard = availableSpecs.get(spec);
@@ -147,7 +159,10 @@ public class ValidateStandard implements Directive {
 
     if (!schemaToConformer.containsKey(schema)) {
       if (!FORMAT_TO_FACTORY.containsKey(standard.getFormat())) {
-        throw new DirectiveParseException(String.format("No validator for format %s", standard.getFormat()));
+        String errorMessage = String.format("No validator for format %s", standard.getFormat());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       try {
@@ -157,14 +172,17 @@ public class ValidateStandard implements Directive {
         conformer.initialize();
         schemaToConformer.put(schema, conformer);
       } catch (IOException e) {
-        throw new DirectiveParseException(String.format("Unable to read standard schema: %s", e.getMessage()), e);
+        String errorMessage = String.format("Unable to read standard schema, %s: %s",
+            e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, e);
       }
     }
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException, ReportErrorAndProceed {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(column);
 
@@ -178,25 +196,29 @@ public class ValidateStandard implements Directive {
       }
 
       if (!(object instanceof JsonObject)) {
-        throw new DirectiveExecutionException(
-          String.format(
-            "Column %s is not a %s (it's %s)",
-            column, JsonObject.class.getName(), object.getClass().getName()));
+        String errorMessage = String.format("Column %s is not a %s (it's %s)", column,
+            JsonObject.class.getName(), object.getClass().getName());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       Conformer<JsonObject> conformer = schemaToConformer.get(schema);
       if (conformer == null) {
-        throw new DirectiveExecutionException("Directive was not initialized for schema " + schema);
+        String errorMessage = String.format("No validator for schema %s", schema);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
 
       List<ConformanceIssue> conformanceIssues =
         conformer.checkConformance((JsonObject) object);
       if (conformanceIssues.size() > 0) {
-        throw new ErrorRowException(
-          conformanceIssues.stream()
-            .map(ConformanceIssue::toString)
-            .collect(Collectors.joining("; ")),
-          1, true);
+        String errorMessage = conformanceIssues.stream().map(ConformanceIssue::toString)
+            .collect(Collectors.joining("; "));
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
     }
     return rows;

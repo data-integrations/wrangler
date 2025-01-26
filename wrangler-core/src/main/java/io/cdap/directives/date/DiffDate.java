@@ -19,9 +19,11 @@ package io.cdap.directives.date;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -76,7 +78,7 @@ public class DiffDate implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       ZonedDateTime date1 = getDate(row, column1);
       ZonedDateTime date2 = getDate(row, column2);
@@ -89,7 +91,7 @@ public class DiffDate implements Directive, Lineage {
     return rows;
   }
 
-  private ZonedDateTime getDate(Row row, String colName) throws DirectiveExecutionException {
+  private ZonedDateTime getDate(Row row, String colName) {
     // If one of the column contains now, then we return
     // the current date.
     if (colName.equalsIgnoreCase("now")) {
@@ -99,7 +101,10 @@ public class DiffDate implements Directive, Lineage {
     // Else attempt to find the column.
     int idx = row.find(colName);
     if (idx == -1) {
-      throw new DirectiveExecutionException(NAME, "Column '" + colName + "' does not exist.");
+      String errorMessage = String.format("Column '%s' does not exist.", colName);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     Object o = row.getValue(idx);
     if (o == null || !(o instanceof ZonedDateTime)) {

@@ -19,9 +19,11 @@ package io.cdap.directives.writer;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
@@ -71,7 +73,7 @@ public class WriteAsCSV implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       try {
         final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
@@ -88,7 +90,12 @@ public class WriteAsCSV implements Directive, Lineage {
         }
         row.add(column, bOut.toString());
       } catch (IOException e) {
-        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+        String errorMessage = String.format(
+            "Error occurred while writing the record as CSV, %s: %s", e.getClass().getName(),
+            e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, e);
       }
     }
     return rows;

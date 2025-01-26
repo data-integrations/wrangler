@@ -20,10 +20,12 @@ import com.google.common.collect.ImmutableList;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -77,14 +79,16 @@ public class SendToError implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     condition = ((Expression) args.value("condition")).value();
     try {
       el = EL.compile(condition);
     } catch (ELException e) {
-      throw new DirectiveParseException(
-        NAME, String.format(" Invalid condition '%s'.", condition)
-      );
+      String errorMessage = String.format("Error in parsing the condition '%s'. %s; %s", condition,
+          e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
     if (args.contains("metric")) {
       metric = ((Identifier) args.value("metric")).value();
@@ -128,7 +132,11 @@ public class SendToError implements Directive, Lineage {
           throw new ErrorRowException(NAME, message, 1);
         }
       } catch (ELException e) {
-        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+        String errorMessage = String.format("Error in evaluating the condition '%s'. %s; %s",
+            condition, e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, e);
       }
       results.add(row);
     }

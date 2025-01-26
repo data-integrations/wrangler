@@ -20,6 +20,9 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -71,14 +74,19 @@ public class ColumnsReplace implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       for (int i = 0; i < row.width(); ++i) {
         String name = row.getColumn(i);
         try {
           row.setColumn(i, getSedReplacedColumnName(name));
         } catch (IllegalArgumentException e) {
-          throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+          String errorMessage = String.format(
+              "Failed to apply sed expression '%s' on column '%s'. %s: %s", sed, name,
+              e.getClass().getName(), e.getMessage());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.SYSTEM, false, new DirectiveExecutionException(NAME, errorMessage, e));
         }
       }
     }

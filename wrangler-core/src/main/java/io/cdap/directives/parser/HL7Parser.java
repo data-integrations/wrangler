@@ -38,9 +38,11 @@ import com.google.gson.JsonObject;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
@@ -108,7 +110,7 @@ public class HL7Parser implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       try {
         int idx = row.find(column);
@@ -116,9 +118,11 @@ public class HL7Parser implements Directive, Lineage {
           Object object = row.getValue(idx);
 
           if (object == null) {
-            throw new DirectiveExecutionException(
-              NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", column)
-            );
+            String errorMessage = String.format(
+                "Column '%s' has null value. It should be a non-null 'String'.", column);
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
 
           // Handling the first parsing on HL7 message
@@ -128,15 +132,21 @@ public class HL7Parser implements Directive, Lineage {
             MessageVisitors.visit(message,
                                   MessageVisitors.visitPopulatedElements(visitor)).getDelegate();
           } else {
-            throw new DirectiveExecutionException(
-              NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
-                                  column, object.getClass().getSimpleName())
-            );
+            String errorMessage = String.format(
+                "Column '%s' has invalid type '%s'. It should be of type 'String'.", column,
+                object.getClass().getSimpleName());
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
 
         }
       } catch (HL7Exception e) {
-        throw new DirectiveExecutionException(NAME, e.getMessage(), e);
+        String errorMessage = String.format("Error parsing HL7 data in column '%s'. %s: %s", column,
+            e.getClass().getName(), e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, e);
       }
     }
     return rows;

@@ -26,11 +26,11 @@ import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.common.Bytes;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
-import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
@@ -86,13 +86,16 @@ public class ParseAvro implements Directive, Lineage {
   }
 
   @Override
-  public void initialize(Arguments args) throws DirectiveParseException {
+  public void initialize(Arguments args) {
     this.column = ((ColumnName) args.value("column")).value();
     this.schemaId = ((Identifier) args.value("schema-id")).value();
     this.type = ((Identifier) args.value("encode-type")).value();
     if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
-      throw new DirectiveParseException(
-        NAME, String.format("Invalid encoding type '%s'. The type must be either 'json' or 'binary'.", type));
+      String errorMessage = String.format(
+          "Invalid encoding type '%s'. The type must be either 'json' or 'binary'.", type);
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, null);
     }
     if (args.contains("version")) {
       this.version = ((Numeric) args.value("version")).value().intValue();
@@ -107,8 +110,7 @@ public class ParseAvro implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     List<Row> results = new ArrayList<>();
 
     if (!decoderInitialized) {
@@ -145,13 +147,21 @@ public class ParseAvro implements Directive, Lineage {
       try {
         decoder = retryer.call(decoderCallable);
         if (decoder == null) {
-          throw new DirectiveExecutionException(NAME, "Avro parsing is supported for 'json' and 'binary' types only.");
+          String errorMessage = String.format(
+              "Invalid encoding type '%s'. The type must be either 'json' or 'binary'.", type);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+              errorMessage, ErrorType.USER, false, null);
         }
 
         decoderInitialized = true;
       } catch (ExecutionException | RetryException e) {
-        throw new DirectiveExecutionException(
-          NAME, String.format("Unable to retrieve schema from schema registry. %s", e.getMessage()), e);
+        String errorMessage = String.format(
+            "Unable to retrieve schema from schema registry. %s: %s", e.getClass().getName(),
+            e.getMessage());
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.SYSTEM, false, e);
       }
     }
 
@@ -168,14 +178,21 @@ public class ParseAvro implements Directive, Lineage {
             byte[] bytes = body.getBytes(Charsets.UTF_8);
             results.addAll(decoder.decode(bytes));
           } else {
-            throw new ErrorRowException(
-              NAME, "Column " + column + " should be of type 'String' or 'byte array'.", 1);
+            String errorMessage = String.format(
+                "Column '%s' should be of type 'String' or 'byte array'.", column);
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.USER, false, null);
           }
         }
       }
     } catch (DecoderException e) {
-      throw new ErrorRowException(NAME, "Issue decoding Avro record. Check schema version '"
-        + (version == -1 ? "latest" : version) + "'. " + e.getMessage(), 2);
+      String errorMessage = String.format(
+          "Issue decoding Avro record. Check schema version '%s'. %s: %s",
+          version == -1 ? "latest" : version, e.getClass().getName(), e.getMessage());
+      throw ErrorUtils.getProgramFailureException(
+          new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+          ErrorType.USER, false, e);
     }
     return results;
   }

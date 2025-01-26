@@ -20,6 +20,9 @@ import com.google.gson.Gson;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
@@ -76,7 +79,7 @@ public class ParseAvroFile implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, final ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, final ExecutorContext context) {
     List<Row> results = new ArrayList<>();
     for (Row row : rows) {
       int idx = row.find(column);
@@ -93,7 +96,11 @@ public class ParseAvroFile implements Directive, Lineage {
               results.add(newRow);
             }
           } catch (IOException e) {
-            throw new DirectiveExecutionException(NAME, "Failed to parse Avro data file. " + e.getMessage(), e);
+            String errorMessage = String.format("Failed to parse Avro data file. %s: %s",
+                e.getClass().getName(), e.getMessage());
+            throw ErrorUtils.getProgramFailureException(
+                new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage,
+                errorMessage, ErrorType.SYSTEM, false, e);
           } finally {
             if (reader != null) {
               try {
@@ -104,8 +111,11 @@ public class ParseAvroFile implements Directive, Lineage {
             }
           }
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' is of invalid type. It should be of type 'byte array'.", column));
+          String errorMessage = String.format(
+              "Column '%s' is of invalid type. It should be of type 'byte array'.", column);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
       }
     }

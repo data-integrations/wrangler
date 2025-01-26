@@ -19,15 +19,16 @@ package io.cdap.directives.transformation;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
+import io.cdap.cdap.api.exception.ErrorCategory;
+import io.cdap.cdap.api.exception.ErrorType;
+import io.cdap.cdap.api.exception.ErrorUtils;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
-import io.cdap.wrangler.api.lineage.Many;
 import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
@@ -72,27 +73,36 @@ public class CharacterCut implements Directive, Lineage {
   }
 
   @Override
-  public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
     for (Row row : rows) {
       int idx = row.find(source);
       if (idx != -1) {
         Object value = row.getValue(idx);
 
         if (value == null) {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has null value. It should be a non-null 'String'.", source));
+          String errorMessage = String.format(
+              "Column '%s' has null value. It should be a non-null 'String'.", source);
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
 
         if (value instanceof String) {
           String result = Unix4j.fromString((String) value).cut("-c", range).toStringResult();
           row.addOrSet(destination, result);
         } else {
-          throw new DirectiveExecutionException(
-            NAME, String.format("Column '%s' has invalid type '%s'. It should be of type 'String'.",
-                                source, value.getClass().getSimpleName()));
+          String errorMessage = String.format(
+              "Column '%s' has invalid type '%s'. It should be of type 'String'.", source,
+              value.getClass().getSimpleName());
+          throw ErrorUtils.getProgramFailureException(
+              new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+              ErrorType.USER, false, null);
         }
       } else {
-        throw new DirectiveExecutionException(NAME, "Scope column '" + source + "' does not exist.");
+        String errorMessage = String.format("Column '%s' does not exist.", source);
+        throw ErrorUtils.getProgramFailureException(
+            new ErrorCategory(ErrorCategory.ErrorCategoryEnum.PLUGIN), errorMessage, errorMessage,
+            ErrorType.USER, false, null);
       }
     }
     return rows;
