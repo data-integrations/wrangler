@@ -140,8 +140,18 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+    : STRING
+    | NUMBER
+    | BOOLEAN
+    | NULL
+    | COLUMN_NAME
+    | byteSizeArg
+    | timeDurationArg
+    | functionCall
+    ;
+
+byteSizeArg : BYTE_SIZE ;
+timeDurationArg : TIME_DURATION ;
 
 ecommand
  : '!' Identifier
@@ -195,7 +205,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
@@ -247,14 +256,13 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
  ;
 
 Number
- : Int ('.' Digit*)?
+ : DIGITS
  ;
 
 Identifier
@@ -266,7 +274,7 @@ Macro
  ;
 
 Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
+ : ':' [a-zA-Z_\-] [a-zA-Z_0-9\-]*
  ;
 
 String
@@ -303,11 +311,22 @@ Space
  : [ \t\r\n\u000C]+ -> skip
  ;
 
-fragment Int
- : '-'? [1-9] Digit* [L]*
- | '0'
- ;
+fragment DIGITS : [0-9]+ ('.' [0-9]+)?;
 
-fragment Digit
- : [0-9]
- ;
+fragment BYTE_UNIT : [KMGTP] ['B']? ;
+fragment TIME_UNIT : [smhd] ;
+
+BYTE_SIZE : DIGITS BYTE_UNIT ;
+TIME_DURATION : DIGITS TIME_UNIT ;
+
+functionCall
+    : ID LPAREN argumentList RPAREN
+    ;
+
+argumentList
+    : argument (COMMA argument)*
+    ;
+
+argument
+    : value
+    ;

@@ -16,10 +16,10 @@
 
 package io.cdap.wrangler.parser;
 
+import javax.annotation.Nullable;
+
 import io.cdap.cdap.api.artifact.ArtifactId;
 import io.cdap.wrangler.registry.DirectiveScope;
-
-import javax.annotation.Nullable;
 
 /**
  * This class carries the class information about a directive.
