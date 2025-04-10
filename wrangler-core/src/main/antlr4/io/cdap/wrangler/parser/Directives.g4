@@ -1,19 +1,3 @@
-/*
- * Copyright © 2017-2019 Cask Data, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
 grammar Directives;
 
 options {
@@ -150,8 +134,13 @@ value
     | functionCall
     ;
 
-byteSizeArg : BYTE_SIZE ;
-timeDurationArg : TIME_DURATION ;
+byteSizeArg
+    : BYTE_SIZE
+    ;
+
+timeDurationArg
+    : TIME_DURATION
+    ;
 
 ecommand
  : '!' Identifier
@@ -301,7 +290,7 @@ UnicodeEscape
    ;
 
 fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
@@ -313,11 +302,21 @@ Space
 
 fragment DIGITS : [0-9]+ ('.' [0-9]+)?;
 
-fragment BYTE_UNIT : [KMGTP] ['B']? ;
-fragment TIME_UNIT : [smhd] ;
+fragment BYTE_UNIT
+    : 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
+    ;
 
-BYTE_SIZE : DIGITS BYTE_UNIT ;
-TIME_DURATION : DIGITS TIME_UNIT ;
+fragment TIME_UNIT
+    : 'ms' | 's' | 'm' | 'h' | 'd'
+    ;
+
+BYTE_SIZE
+    : DIGITS BYTE_UNIT
+    ;
+
+TIME_DURATION
+    : DIGITS TIME_UNIT
+    ;
 
 functionCall
     : ID LPAREN argumentList RPAREN
