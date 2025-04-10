@@ -311,3 +311,11 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+// Byte size tokens (e.g., 10KB, 2.5MB)
+BYTE_SIZE : DIGITS ('.' DIGITS)? BYTE_UNIT ;
+fragment BYTE_UNIT : ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'b' | 'kb' | 'mb' | 'gb' | 'tb') ;
+
+// Time duration tokens (e.g., 500ms, 2.5s)
+TIME_DURATION : DIGITS ('.' DIGITS)? TIME_UNIT ;
+fragment TIME_UNIT : ('ms' | 's' | 'm' | 'h' | 'd') ;
