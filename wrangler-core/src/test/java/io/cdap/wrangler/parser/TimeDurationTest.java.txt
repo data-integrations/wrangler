@@ -1,0 +1,8 @@
+// TimeDurationTest.java
+public class TimeDurationTest {
+    @Test
+    public void testParsing() {
+        assertEquals(1_000_000, new TimeDuration("1ms").getNanos());
+        assertEquals(1.5, new TimeDuration("1500ms").getSeconds(), 0.001);
+    }
+}
