@@ -159,7 +159,7 @@ identifierList
  : Identifier (Comma Identifier)* 
  ;
 
-// Lexer rules
+DirectivesLexer rules
 OBrace   : '{';
 CBrace   : '}';
 SColon   : ';';
@@ -208,7 +208,7 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-// Keywords
+
 IF              : 'if';
 ELSE            : 'else';
 FOR             : 'for';

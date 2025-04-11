@@ -44,7 +44,7 @@ import java.io.Serializable;
  * @see TIME_DURATION
  */
 @PublicEvolving
-public enum TokenType {
+public enum TokenType implements Serializable {
   /**
    * Represents the enumerated type for the object {@code DirectiveName} type.
    * This type is associated with the token that is recognized as a directive

@@ -1,3 +1,15 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 Upload the file and Understand the given task here and give me step by step instructions to make the changes and do all the deliverables in a proper manner to complete this task,
 My grammar file Directives.g4 is throwing ANTLR error 126 due to string literals like 'if', 'else', and 'prop' being used directly in parser rules. 
 Rewrite the grammar to : Replace all string literals in parser rules with symbolic token names (e.g., IF, ELSE, PROP), also Define these keywords in the lexer section, Ensure they are placed before Identifier to avoid lexical conflicts.

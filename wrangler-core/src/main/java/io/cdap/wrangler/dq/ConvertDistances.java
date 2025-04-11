@@ -108,7 +108,7 @@ public final class ConvertDistances {
     this.from = (from == null ? Distance.MILE : from);
     this.to = (to == null ? Distance.KILOMETER : to);
     this.multiplier = new BigDecimal(String.valueOf(this.from.getToBase()))
-      .multiply(new BigDecimal(String.valueOf(this.to.getFromBase())));
+        .multiply(new BigDecimal(String.valueOf(this.to.getFromBase())));
   }
 
   /**

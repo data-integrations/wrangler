@@ -1,64 +1,110 @@
-package io.cdap.wrangler.parser;
+package io.cdap.wrangler.directives.aggregates;
 
-import io.cdap.wrangler.api.*;
+import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.parser.DirectiveContext;
+import io.cdap.wrangler.api.parser.DirectiveParseException;
+import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.Value;
+import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.ColumnName;
-import io.cdap.wrangler.api.parser.Identifier;
+import io.cdap.wrangler.api.parser.DirectiveArgument;
+import io.cdap.wrangler.api.parser.DirectiveDefinition;
 
+import io.cdap.wrangler.api.parser.Arguments;
+import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.api.parser.OutputType;
+
+import io.cdap.wrangler.api.parser.AssertionException;
+import io.cdap.wrangler.api.parser.Assertion;
+import io.cdap.wrangler.api.parser.Column;
+
+import io.cdap.wrangler.api.parser.AssertionException;
+import io.cdap.wrangler.api.parser.Assertion;
+
+import io.cdap.wrangler.api.parser.ValueException;
+import io.cdap.wrangler.api.parser.TextException;
+
+import io.cdap.wrangler.api.parser.ColumnException;
+
+import io.cdap.wrangler.api.parser.StringValue;
+
+import io.cdap.wrangler.api.parser.IntegerValue;
+
+import io.cdap.wrangler.api.parser.StringList;
+
+import io.cdap.wrangler.api.parser.BooleanValue;
+
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Custom directive to aggregate byte size and time duration columns.
+ * A custom directive to aggregate total byte size and time duration over
+ * multiple rows.
  */
-public class AggregateStats implements Directive, Aggregate {
-    private String byteSizeColumn;
-    private String timeColumn;
-    private String outputSizeColumn;
-    private String outputTimeColumn;
+public class AggregateStats implements Directive {
+    private String sourceByteCol;
+    private String sourceTimeCol;
+    private String outputByteCol;
+    private String outputTimeCol;
+
+    private long totalBytes = 0;
+    private long totalMilliseconds = 0;
 
     @Override
     public UsageDefinition define() {
         return UsageDefinition.builder("aggregate-stats")
-                .define("byteSizeColumn", TokenType.COLUMN_NAME)
-                .define("timeColumn", TokenType.COLUMN_NAME)
-                .define("outputSizeColumn", TokenType.IDENTIFIER)
-                .define("outputTimeColumn", TokenType.IDENTIFIER)
+                .usage("aggregate-stats <byte-col> <time-col> <output-byte-col> <output-time-col>")
+                .arguments(
+                        Arguments.of("byte-col", ColumnName.class),
+                        Arguments.of("time-col", ColumnName.class),
+                        Arguments.of("output-byte-col", Text.class),
+                        Arguments.of("output-time-col", Text.class))
+                .output(OutputType.AGGREGATE)
                 .build();
     }
 
     @Override
-    public void initialize(Arguments arguments) throws DirectiveParseException {
-        byteSizeColumn = ((ColumnName) arguments.value("byteSizeColumn")).value();
-        timeColumn = ((ColumnName) arguments.value("timeColumn")).value();
-        outputSizeColumn = ((Identifier) arguments.value("outputSizeColumn")).value();
-        outputTimeColumn = ((Identifier) arguments.value("outputTimeColumn")).value();
+    public void initialize(DirectiveContext ctx, Arguments args) throws DirectiveParseException {
+        sourceByteCol = ((ColumnName) args.value("byte-col")).value();
+        sourceTimeCol = ((ColumnName) args.value("time-col")).value();
+        outputByteCol = ((Text) args.value("output-byte-col")).value();
+        outputTimeCol = ((Text) args.value("output-time-col")).value();
     }
 
     @Override
-    public void aggregate(Store store, Row row) throws DirectiveExecutionException {
-        Object byteValue = row.getValue(byteSizeColumn);
-        Object timeValue = row.getValue(timeColumn);
+    public void execute(Row row, ExecutorContext context) {
+        Object byteObj = row.getValue(sourceByteCol);
+        Object timeObj = row.getValue(sourceTimeCol);
 
-        long bytes = Long.parseLong(byteValue.toString());
-        long millis = Long.parseLong(timeValue.toString());
+        if (byteObj instanceof String) {
+            ByteSize byteSize = new ByteSize((String) byteObj);
+            totalBytes += byteSize.getBytes();
+        }
 
-        store.set("total_bytes", store.getOrDefault("total_bytes", 0L) + bytes);
-        store.set("total_time", store.getOrDefault("total_time", 0L) + millis);
-        store.set("count", store.getOrDefault("count", 0L) + 1);
+        if (timeObj instanceof String) {
+            TimeDuration timeDuration = new TimeDuration((String) timeObj);
+            totalMilliseconds += timeDuration.getMilliseconds();
+        }
     }
 
     @Override
-    public List<Row> emit(Store store) {
-        long totalBytes = store.getOrDefault("total_bytes", 0L);
-        long totalTime = store.getOrDefault("total_time", 0L);
+    public List<Row> finalize(ExecutorContext context) {
+        List<Row> results = new ArrayList<>();
+        Row row = new Row();
 
-        double totalMB = totalBytes / (1024.0 * 1024);
-        double totalSec = totalTime / 1000.0;
+        double totalMB = totalBytes / (1024.0 * 1024.0); // Convert bytes to MB
+        double totalSeconds = totalMilliseconds / 1000.0; // Convert ms to sec
 
-        Row result = new Row();
-        result.add(outputSizeColumn, totalMB);
-        result.add(outputTimeColumn, totalSec);
+        row.add(outputByteCol, totalMB);
+        row.add(outputTimeCol, totalSeconds);
 
-        return Collections.singletonList(result);
+        results.add(row);
+        return results;
     }
 }

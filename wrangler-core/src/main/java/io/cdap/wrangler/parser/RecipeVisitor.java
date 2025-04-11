@@ -22,7 +22,6 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
-import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -34,7 +33,6 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
-import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -360,21 +358,4 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
   }
-
-  @Override
-  public RecipeSymbol.Builder visitValue(DirectivesParser.ValueContext ctx) {
-    if (ctx.BYTE_SIZE() != null) {
-      builder.addToken(new ByteSize(ctx.BYTE_SIZE().getText()));
-    } else if (ctx.TIME_DURATION() != null) {
-      builder.addToken(new TimeDuration(ctx.TIME_DURATION().getText()));
-    } else if (ctx.number() != null) {
-      builder.addToken(new Numeric(new LazyNumber(ctx.number().getText())));
-    } else if (ctx.text() != null) {
-      String text = ctx.text().getText();
-      builder.addToken(new Text(text.substring(1, text.length() - 1)));
-    }
-
-    return builder;
-  }
-
 }
