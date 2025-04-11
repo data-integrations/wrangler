@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize  // -> Added feature here
+    | timeDuration // -> Added feature here
   )*?
   ;
 
@@ -310,4 +312,12 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+BYTE_SIZE
+ : Int? [0-9]+ (('KB' | 'MB' | 'GB' | 'TB' | 'B') | ('kb' | 'mb' | 'gb' | 'tb' | 'b'))
+ ;
+
+TIME_DURATION
+ : Int? [0-9]+ (('MS' | 'S' | 'M' | 'H' | 'D') | ('ms' | 's' | 'm' | 'h' | 'd'))
  ;
