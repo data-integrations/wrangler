@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -307,6 +307,33 @@ fragment Int
  : '-'? [1-9] Digit* [L]*
  | '0'
  ;
+
+BYTE_SIZE
+ : DIGITS ('.' DIGITS)? BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : DIGITS ('.' DIGITS)? TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [KMGTP] 'B' | 'B'   // e.g., KB, MB, GB, TB, PB, or B
+ ;
+
+fragment TIME_UNIT
+ : 'ms'
+ | 's'
+ | 'sec'
+ | 'm'
+ | 'min'
+ | 'h'
+ | 'hr'
+ ;
+
+fragment DIGITS
+ : [0-9]+
+ ;
+
 
 fragment Digit
  : [0-9]
