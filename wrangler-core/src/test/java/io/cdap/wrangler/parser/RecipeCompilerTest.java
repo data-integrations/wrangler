@@ -215,4 +215,26 @@ public class RecipeCompilerTest {
     Set<String> loadableDirectives = compile.getSymbols().getLoadableDirectives();
     Assert.assertEquals(4, loadableDirectives.size());
   }
+
+  @Test
+  public void testAggregateStatsRecipeCompile() throws Exception {
+    String[] recipe = new String[] {
+            "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec"
+    };
+
+    CompileStatus status = TestingRig.compile(recipe);
+    Assert.assertTrue(status.isSuccess());
+  }
+
+  @Test
+  public void testAggregateStatsCompileFailure() throws Exception {
+    String[] recipe = new String[] {
+            "aggregate-stats size time"  // missing colons and arguments
+    };
+
+    CompileStatus status = TestingRig.compile(recipe);
+    Assert.assertFalse(status.isSuccess());
+  }
+
+
 }

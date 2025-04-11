@@ -12,7 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and limitations under the License.
  */
-
 package io.cdap.directives.aggregates;
 
 import io.cdap.cdap.api.annotation.Description;
@@ -26,16 +25,20 @@ import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.api.parser.ByteSize;
-import io.cdap.wrangler.api.parser.TimeDuration;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * Directive to aggregate byte size and time duration fields.
+ */
 @Plugin(type = Directive.TYPE)
 @Name("aggregate-byte-time")
 @Categories(categories = {"aggregates"})
@@ -108,7 +111,8 @@ public class AggregateByteTime implements Directive {
         }
 
         long finalBytes = convertBytes(totalBytes, outputSizeUnit);
-        long finalTime = convertTime(aggregationType.equals(AVERAGE) ? totalTime / rowCount : totalTime, outputTimeUnit);
+        long finalTime =
+                convertTime(aggregationType.equals(AVERAGE) ? totalTime / rowCount : totalTime, outputTimeUnit);
 
         Row output = new Row();
         output.add(sizeTargetColumn, finalBytes);

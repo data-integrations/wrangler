@@ -1,14 +1,14 @@
 /*
  * Copyright © 2017-2019 Cask Data, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -20,38 +20,57 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 
-/**
- * The ByteSize class wraps byte size values such as {@code "10KB"} or {@code "1.5MB"}
- * and converts them into a canonical format, i.e., bytes.
- *
- * <p>It implements the {@code Token} interface, providing methods to retrieve
- * the token type and the parsed byte value, and to serialize the token as JSON.</p>
- *
- * @see TimeDuration
- * @see Numeric
- * @see Text
- */
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
+/**
+ * Represents a byte size token parsed from a directive argument, such as "10KB", "1.5MB", etc.
+ * This class supports common units like B, KB, MB, GB, and TB, and converts them to canonical
+ * form in bytes.
+ *
+ * <p>It implements {@link Token} so that it can be used as a typed argument in directive definitions.
+ *
+ * <p>If the unit is invalid or the value is malformed, an {@link IllegalArgumentException} is thrown.
+ *
+ * <p>Examples of valid inputs: "10KB", "2MB", "1.5GB", "100B"</p>
+ *
+ * @see Token
+ * @see TokenType#BYTE_SIZE
+ */
 @PublicEvolving
 public class ByteSize implements Token {
+
+    private static final Set<String> VALID_UNITS = new HashSet<>(Arrays.asList("B", "KB", "MB", "GB", "TB"));
+
     private final double value;
     private final String unit;
 
     /**
-     * Constructs a new {@code ByteSize} token from a string.
+     * Constructs a {@code ByteSize} token from the given string input.
      *
-     * @param token the string representation (e.g. "10MB", "1.2GB").
+     * @param token the input string containing a numeric value followed by a valid unit (e.g. "10MB")
+     * @throws IllegalArgumentException if the unit is unsupported or the numeric part is invalid
      */
     public ByteSize(String token) {
         token = token.trim().toUpperCase();
         this.unit = token.replaceAll("[0-9.]", "");
-        this.value = Double.parseDouble(token.replaceAll("[^0-9.]", ""));
+
+        if (!VALID_UNITS.contains(unit)) {
+            throw new IllegalArgumentException("Invalid byte size unit: " + unit);
+        }
+
+        try {
+            this.value = Double.parseDouble(token.replaceAll("[^0-9.]", ""));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid numeric value in ByteSize: " + token);
+        }
     }
 
     /**
-     * Returns the byte size in canonical form (bytes).
+     * Returns the canonical size in bytes.
      *
-     * @return the value in bytes as a {@code long}.
+     * @return the byte size as a long
      */
     public long getBytes() {
         switch (unit) {
@@ -66,7 +85,7 @@ public class ByteSize implements Token {
             case "TB":
                 return (long) (value * 1024L * 1024 * 1024 * 1024);
             default:
-                return (long) value;
+                throw new IllegalStateException("Unhandled byte size unit: " + unit);
         }
     }
 
