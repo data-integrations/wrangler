@@ -1,0 +1,27 @@
+# prompts.txt
+
+# ──────────────── GRAMMAR & ANTLR ────────────────
+Prompt 1: How do I add support for custom units like "10MB" or "2s" in an ANTLR grammar used by Java?
+Prompt 2: Write ANTLR lexer and parser rules to recognize byte size values like "512KB", "1.5MB", "10GB" and convert them into a numeric token.
+Prompt 3: How do I modify an ANTLR grammar to parse time duration formats like 500ms, 2s, 3min into a TIME_DURATION token?
+
+# ──────────────── BYTE SIZE / TIME DURATION CLASSES ────────────────
+Prompt 4: Write a Java class that parses strings like "10KB", "2.5MB", and "1GB" into bytes, and returns the long value.
+Prompt 5: How to convert "2.5s", "500ms", and "1min" to milliseconds in Java with proper parsing and error handling?
+Prompt 6: Suggest unit tests for a Java class that parses byte size strings to bytes (e.g., "1KB" -> 1024).
+
+# ──────────────── AGGREGATE DIRECTIVE ────────────────
+Prompt 7: How do I create a new directive in CDAP Wrangler that performs aggregation over byte size and time columns?
+Prompt 8: I want to implement a directive in Java that calculates the total size in MB and total time in seconds from two columns — how do I structure it using CDAP's Directive interface?
+Prompt 9: How to handle aggregation state across multiple rows in a custom directive in Wrangler?
+
+# ──────────────── UNIT TESTING ────────────────
+Prompt 10: Write JUnit test cases to verify that a custom directive in CDAP Wrangler returns one row with aggregated values from a list of input rows.
+Prompt 11: Give me example test data and assertions for a directive that sums up '10MB', '5MB', '2GB' and '200ms', '1.5s', '3s'.
+Prompt 12: How to write unit tests for ANTLR grammar-based parsing logic in Java?
+
+# ──────────────── GIT / ECLIPSE ────────────────
+Prompt 13: How to push a Java project from Eclipse to GitHub with all source and test files included?
+Prompt 14: Git error: 'src refspec main does not match any' — how do I fix this when pushing my code?
+Prompt 15: How to commit and push changes for a forked GitHub repo using Eclipse?
+
