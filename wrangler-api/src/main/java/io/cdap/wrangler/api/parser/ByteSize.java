@@ -83,8 +83,12 @@ public class ByteSize implements Token {
 
     @Override
     public TokenType type() {
-        return TokenType.BYTESIZE;
+        return TokenType.BYTE_SIZE;
     }
+    public long getBytes() {
+        return bytes;
+    }
+    
 
     @Override
     public JsonElement toJson() {
@@ -95,8 +99,4 @@ public class ByteSize implements Token {
         return object;
     }
     
-    @Override
-    public String toString() {
-        return originalText;
-    }
 }

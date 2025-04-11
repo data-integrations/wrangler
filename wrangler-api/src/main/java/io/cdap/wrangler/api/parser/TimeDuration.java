@@ -14,7 +14,7 @@
  * the License.
  */
 
- package io.cdap.wrangler.api.parser;
+package io.cdap.wrangler.api.parser;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -34,11 +34,11 @@ public class TimeDuration implements Token {
         while (i < durationStr.length() && (Character.isDigit(durationStr.charAt(i)) || durationStr.charAt(i) == '.')) {
             i++;
         }
-        
+
         if (i == 0) {
             throw new IllegalArgumentException("Invalid time duration format: " + durationStr);
         }
-        
+
         // Parse the number part
         double number;
         try {
@@ -46,15 +46,15 @@ public class TimeDuration implements Token {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid time duration number: " + durationStr, e);
         }
-        
+
         // If no unit specified, assume milliseconds
         if (i == durationStr.length()) {
             return (long) (number * 1_000_000); // Convert ms to ns
         }
-        
+
         // Parse the unit part (case insensitive)
         String unit = durationStr.substring(i).toLowerCase();
-        
+
         // Convert to nanoseconds based on unit
         switch (unit) {
             case "ns":
@@ -75,13 +75,13 @@ public class TimeDuration implements Token {
     }
 
     @Override
-    public Object value() {
+    public Long value() {
         return this.nanoseconds;
     }
 
     @Override
     public TokenType type() {
-        return TokenType.TIMEDURATION;
+        return TokenType.TIME_DURATION;
     }
 
     @Override
@@ -92,39 +92,5 @@ public class TimeDuration implements Token {
         object.addProperty("original", originalText);
         return object;
     }
-    
-    // Convenience method to get nanoseconds directly
-    public long getNanoseconds() {
-        return nanoseconds;
-    }
-    
-    // Helper methods for unit conversions
-    public double getMicroseconds() {
-        return nanoseconds / 1_000.0;
-    }
-    
-    public double getMilliseconds() {
-        return nanoseconds / 1_000_000.0;
-    }
-    
-    public double getSeconds() {
-        return nanoseconds / 1_000_000_000.0;
-    }
-    
-    public double getMinutes() {
-        return nanoseconds / (60.0 * 1_000_000_000.0);
-    }
-    
-    public double getHours() {
-        return nanoseconds / (60.0 * 60.0 * 1_000_000_000.0);
-    }
-    
-    public double getDays() {
-        return nanoseconds / (24.0 * 60.0 * 60.0 * 1_000_000_000.0);
-    }
-    
-    @Override
-    public String toString() {
-        return originalText;
-    }
+
 }
