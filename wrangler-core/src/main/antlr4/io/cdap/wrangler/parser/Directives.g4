@@ -38,167 +38,128 @@ options {
  */
 }
 
-/**
- * Parser Grammar for recognizing tokens and constructs of the directives language.
- */
-recipe
- : statements EOF
- ;
+recipe : statements EOF ;
 
-statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
- ;
+statements : (Comment | macro | directive SColon | pragma SColon | ifStatement)* ;
 
 directive
- : command
-  (   codeblock
-    | identifier
-    | macro
-    | text
-    | number
-    | bool
-    | column
-    | colList
-    | numberList
-    | boolList
-    | stringList
-    | numberRanges
-    | properties
-  )*?
-  ;
-
-ifStatement
-  : ifStat elseIfStat* elseStat? '}'
-  ;
-
-ifStat
-  : 'if' expression '{' statements
-  ;
-
-elseIfStat
-  : '}' 'else' 'if' expression '{' statements
-  ;
-
-elseStat
-  : '}' 'else' '{' statements
-  ;
-
-expression
-  : '(' (~'(' | expression)* ')'
-  ;
-
-forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+ : command (codeblock
+            | identifier
+            | macro
+            | text
+            | number
+            | bool
+            | column
+            | colList
+            | numberList
+            | boolList
+            | stringList
+            | numberRanges
+            | properties)*?
  ;
 
-macro
- : Dollar OBrace (~OBrace | macro | Macro)*? CBrace
- ;
+ifStatement : ifStat elseIfStat* elseStat? CBrace ;
+ifStat      : IF expression OBrace statements ;
+elseIfStat  : CBrace ELSE IF expression OBrace statements ;
+elseStat    : CBrace ELSE OBrace statements ;
 
-pragma
- : '#pragma' (pragmaLoadDirective | pragmaVersion)
- ;
+expression  : OParen (~OParen | expression)* CParen ;
 
-pragmaLoadDirective
- : 'load-directives' identifierList
- ;
+forStatement : FOR OParen Identifier Assign expression SColon expression SColon expression CParen OBrace statements CBrace ;
 
-pragmaVersion
- : 'version' Number
- ;
+macro : Dollar OBrace (~OBrace | macro | Macro)*? CBrace ;
 
-codeblock
- : 'exp' Space* ':' condition
- ;
+pragma : PRAGMA (pragmaLoadDirective | pragmaVersion) ;
+pragmaLoadDirective : LOAD_DIRECTIVES identifierList ;
+pragmaVersion : VERSION Number ;
 
-identifier
- : Identifier
- ;
+codeblock : EXP Space* Colon condition ;
+
+identifier : Identifier ;
 
 properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
- | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+ : PROP Colon OBrace (propertyList)+ CBrace
+ | PROP Colon OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
+ | PROP Colon OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
+ | PROP Colon (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
+ | PROP Colon OBrace (propertyList)+ { notifyErrorListeners("Missing closing brace"); }
  ;
 
-propertyList
- : property (',' property)*
+propertyList 
+ : property (Comma property)* 
  ;
 
-property
- : Identifier '=' ( text | number | bool )
+property     
+ : Identifier Assign (text | number | bool) 
  ;
 
-numberRanges
- : numberRange ( ',' numberRange)*
+numberRanges 
+ : numberRange (Comma numberRange)* 
  ;
 
-numberRange
- : Number ':' Number '=' value
+numberRange  
+: Number Colon Number Assign value 
+;
+
+value 
+    : text
+    | number 
+    | Column 
+    | Bool 
+    | BYTE_SIZE 
+    | TIME_DURATION 
+    ;
+
+ecommand : External Identifier ;
+
+config 
+: Identifier ;
+
+column 
+ : Column 
  ;
 
-value
- : String | Number | Column | Bool
+text   
+ : String 
  ;
 
-ecommand
- : '!' Identifier
+number 
+: Number 
+;
+
+bool   
+: Bool 
+;
+
+condition 
+: OBrace (~CBrace | condition)* CBrace
+;
+
+command   
+: Identifier 
+;
+
+colList      
+ : Column (Comma Column)+ 
  ;
 
-config
- : Identifier
+numberList   
+ : Number (Comma Number)+ 
+ ; 
+
+boolList     
+ : Bool (Comma Bool)+ 
  ;
 
-column
- : Column
+stringList   
+ : String (Comma String)+ 
  ;
 
-text
- : String
+identifierList 
+ : Identifier (Comma Identifier)* 
  ;
 
-number
- : Number
- ;
-
-bool
- : Bool
- ;
-
-condition
- : OBrace (~CBrace | condition)* CBrace
- ;
-
-command
- : Identifier
- ;
-
-colList
- : Column (','  Column)+
- ;
-
-numberList
- : Number (',' Number)+
- ;
-
-boolList
- : Bool (',' Bool)+
- ;
-
-stringList
- : String (',' String)+
- ;
-
-identifierList
- : Identifier (',' Identifier)*
- ;
-
-
-/*
- * Following are the Lexer Rules used for tokenizing the recipe.
- */
+// Lexer rules
 OBrace   : '{';
 CBrace   : '}';
 SColon   : ';';
@@ -247,67 +208,81 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+// Keywords
+IF              : 'if';
+ELSE            : 'else';
+FOR             : 'for';
+PRAGMA          : '#pragma';
+LOAD_DIRECTIVES : 'load-directives';
+VERSION         : 'version';
+EXP             : 'exp';
+PROP            : 'prop';
 
-Bool
- : 'true'
- | 'false'
- ;
+Bool 
+: 'true' 
+| 'false' 
+;
 
-Number
- : Int ('.' Digit*)?
- ;
+Number 
+: Int (Dot Digit*)? 
+;
 
-Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
- ;
+Identifier 
+: [a-zA-Z_\-] [a-zA-Z_0-9\-]* 
+;
 
-Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
- ;
+Macro      
+: [a-zA-Z_] [a-zA-Z_0-9]* 
+;
 
-Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
- ;
+Column     
+: ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]* 
+;
 
-String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
- ;
+String 
+: '\'' ( EscapeSequence | ~('\'') )* '\''
+| '"'  ( EscapeSequence | ~('"') )* '"' 
+;
 
-EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
-   |   UnicodeEscape
-   |   OctalEscape
-   ;
+// Byte size units
+BYTE_SIZE : Digit+ (Dot Digit+)? BYTE_UNIT ;
+fragment BYTE_UNIT : [kK][bB]? | [mM][bB]? | [gG][bB]? ;
+
+// Time duration units
+TIME_DURATION : Digit+ (Dot Digit+)? TIME_UNIT ;
+fragment TIME_UNIT : [mM][sS] | [sS](ec(onds)?)? ;
+
+EscapeSequence : '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+               | UnicodeEscape
+               | OctalEscape ;
+
+fragment 
+OctalEscape 
+  : '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+  | '\\' ('0'..'7') ('0'..'7')
+  | '\\' ('0'..'7') 
+  ;
 
 fragment
-OctalEscape
-   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7')
-   ;
+UnicodeEscape 
+: '\\' 'u' HexDigit HexDigit HexDigit HexDigit 
+;
 
-fragment
-UnicodeEscape
-   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
-   ;
+fragment 
+  HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
-fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+Comment 
+: ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip 
+;
 
-Comment
- : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
- ;
+Space   
+: [ \t\r\n\u000C]+ -> skip 
+;
 
-Space
- : [ \t\r\n\u000C]+ -> skip
- ;
+fragment Int 
+: '-'? [1-9] Digit* [L]* | '0' 
+;
 
-fragment Int
- : '-'? [1-9] Digit* [L]*
- | '0'
- ;
-
-fragment Digit
- : [0-9]
- ;
+fragment Digit 
+: [0-9] 
+;
