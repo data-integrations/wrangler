@@ -14,32 +14,31 @@
  *  the License.
  */
 
-package io.cdap.wrangler.test.api;
+ package io.cdap.wrangler.test.api;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Class description here.
- */
-public final class TestRecipe {
-  private final List<String> directives;
-
-  public TestRecipe() {
-    this.directives = new ArrayList<>();
-  }
-
-  public void add(String directive) {
-    directives.add(directive);
-  }
-
-  public List<String> toList() {
-    return directives;
-  }
-
-  public String[] toArray() {
-    String[] array = new String[directives.size()];
-    array = directives.toArray(array);
-    return array;
-  }
-}
+ import java.util.ArrayList;
+ import java.util.List;
+ 
+ /**
+  * Represents a recipe used for testing directives in CDAP Wrangler.
+  */
+ public final class TestRecipe {
+   private final List<String> directives;
+ 
+   public TestRecipe() {
+     this.directives = new ArrayList<>();
+   }
+ 
+   public void add(String directive) {
+     directives.add(directive);
+   }
+ 
+   public List<String> toList() {
+     return directives;
+   }
+ 
+   public String[] toArray() {
+     String[] array = new String[directives.size()];
+     return directives.toArray(array);
+   }
+ }
