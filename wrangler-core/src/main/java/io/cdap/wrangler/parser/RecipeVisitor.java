@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +34,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -202,9 +204,22 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
    */
   @Override
   public RecipeSymbol.Builder visitText(DirectivesParser.TextContext ctx) {
-    String value = ctx.String().getText();
-    builder.addToken(new Text(value.substring(1, value.length() - 1)));
-    return builder;
+	  String value = ctx.String().getText();
+	  String unquoted = value.substring(1, value.length() - 1);
+
+	  Token token;
+	  if (unquoted.matches("\\d+(\\.\\d+)?(KB|MB|GB|B)")) {
+	    token = new ByteSize(unquoted);
+	  } else if (unquoted.matches("\\d+(\\.\\d+)?(ns|ms|s|m|h)")) {
+	    token = new TimeDuration(unquoted);
+	  } else {
+	    token = new Text(unquoted);
+	  }
+	  
+
+	  builder.addToken(token);
+	  System.out.println("Token added: " + token.getClass().getSimpleName());
+	  return builder;
   }
 
   /**
