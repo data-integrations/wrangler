@@ -84,6 +84,8 @@ These directives are currently available:
 | [Parse XML To JSON](wrangler-docs/directives/parse-xml-to-json.md)                   | Parses an XML document into a JSON structure                                                                                                                                                      |
 | [Parse as Currency](wrangler-docs/directives/parse-as-currency.md)                   | Parses a string representation of currency into a number.                                                                                                                                         |
 | [Parse as Datetime](wrangler-docs/directives/parse-as-datetime.md)                   | Parses strings with datetime values to CDAP datetime type                                                                                                                                         |
+| [Parse as Byte Size](wrangler-docs/directives/parse-as-byte-size.md)                 | Parses byte size values with units (B, KB, MB, GB, TB) into canonical bytes                                                                                                                       |
+| [Parse as Time Duration](wrangler-docs/directives/parse-as-time-duration.md)         | Parses time duration values with units (ms, s, m, h) into canonical milliseconds                                                                                                                  |
 | **Output Formatters**                                                                |                                                                                                                                                                                                   |
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                             | Converts a record into CSV format                                                                                                                                                                 |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                       | Converts the record into a JSON map                                                                                                                                                               |
@@ -176,11 +178,13 @@ rates below are specified as _records/second_.
 | High (167 Directives) |     426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |     426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
-## Byte Size and Time Duration Parsing
+## Byte Size and Time Duration Support
 
-The Wrangler library now supports parsing and aggregating byte size and time duration values. This allows you to work with values like "10KB", "1.5MB", "100ms", or "2s" directly in your recipes.
+The Wrangler library provides support for parsing and aggregating byte size and time duration values. This feature allows you to work with human-readable size and duration values directly in your recipes.
 
 ### Byte Size Units
+
+The following byte size units are supported:
 
 -   B: Bytes
 -   KB: Kilobytes (1024 bytes)
@@ -190,41 +194,51 @@ The Wrangler library now supports parsing and aggregating byte size and time dur
 
 ### Time Duration Units
 
+The following time duration units are supported:
+
 -   ms: Milliseconds
 -   s: Seconds
 -   m: Minutes
 -   h: Hours
 
-### Example Usage
+### Usage Examples
 
-The `aggregate-stats` directive can be used to aggregate byte size and time duration values:
+1. Parsing byte size values:
 
+```sql
+parse-as-byte-size :file_size
 ```
-aggregate-stats :data_transfer_size :response_time total_size_bytes total_time_ms
+
+2. Parsing time duration values:
+
+```sql
+parse-as-time-duration :response_time
+```
+
+3. Aggregating values using the aggregate-stats directive:
+
+```sql
+aggregate-stats size_column time_column total_size total_time
 ```
 
 This will:
 
-1. Read byte size values from the `data_transfer_size` column
-2. Read time duration values from the `response_time` column
-3. Calculate the total size in bytes and store it in `total_size_bytes`
-4. Calculate the total time in milliseconds and store it in `total_time_ms`
+-   Read byte size values from `size_column` (e.g., "10KB", "1.5MB")
+-   Read time duration values from `time_column` (e.g., "100ms", "2s")
+-   Calculate the total size in bytes and store it in `total_size`
+-   Calculate the total time in milliseconds and store it in `total_time`
 
-Example input data:
+The directive supports both individual values and arrays of values:
 
-```
-data_transfer_size  response_time
-10KB               100ms
-1.5MB              2s
-500B               500ms
+```sql
+# Single values
+aggregate-stats file_size download_time total_size total_time
+
+# Array values
+aggregate-stats file_sizes download_times total_size total_time
 ```
 
-Example output:
-
-```
-total_size_bytes  total_time_ms
-1574400           2600
-```
+For more detailed information about these features, please refer to the [Byte Size and Time Duration Documentation](wrangler-docs/directives/byte-size-time-duration.md).
 
 ## Contact
 
