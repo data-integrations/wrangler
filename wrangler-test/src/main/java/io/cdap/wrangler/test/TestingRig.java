@@ -32,6 +32,7 @@ import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.test.api.TestRecipe;
+import io.cdap.wrangler.api.Row;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.List;
 /**
  * Utilities for testing.
  */
+
 public final class TestingRig {
 
   private TestingRig() {
@@ -46,12 +48,12 @@ public final class TestingRig {
   }
 
   public static RecipePipeline pipeline(Class<? extends Directive> directive, TestRecipe recipe)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException {
+          throws RecipeException, DirectiveParseException, DirectiveLoadException {
     verify(directive);
     List<String> packages = new ArrayList<>();
     packages.add(directive.getPackage().getName());
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      new SystemDirectiveRegistry(packages)
+            new SystemDirectiveRegistry(packages)
     );
 
     String migrate = new MigrateToV2(recipe.toArray()).migrate();
@@ -60,16 +62,29 @@ public final class TestingRig {
   }
 
   public static RecipeParser parser(Class<? extends Directive> directive, String[] recipe)
-    throws DirectiveParseException, DirectiveLoadException {
+          throws DirectiveParseException, DirectiveLoadException {
     verify(directive);
     List<String> packages = new ArrayList<>();
     packages.add(directive.getCanonicalName());
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      SystemDirectiveRegistry.INSTANCE
+            SystemDirectiveRegistry.INSTANCE
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
     return new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
+  }
+
+  // ✅ Add this method to allow tests to use TestingRig.execute(...)
+  public static List<Row> execute(String[] recipe, List<Row> rows) throws Exception {
+    TestRecipe testRecipe = new TestRecipe() {
+      @Override
+      public String[] toArray() {
+        return recipe;
+      }
+    };
+
+    RecipePipeline pipeline = pipeline(io.cdap.directives.aggregates.AggregateStats.class, testRecipe);
+    return pipeline.execute(rows);
   }
 
   private static void verify(Class<? extends Directive> directive) {
@@ -77,7 +92,7 @@ public final class TestingRig {
     Plugin plugin = directive.getAnnotation(Plugin.class);
     if (plugin == null || !plugin.type().equalsIgnoreCase(Directive.TYPE)) {
       throw new IllegalArgumentException(
-        String.format("Class '%s' @Plugin annotation is not of type '%s', Set it as @Plugin(type=UDD.Type)",
+              String.format("Class '%s' @Plugin annotation is not of type '%s', Set it as @Plugin(type=UDD.Type)",
                       classz, Directive.TYPE)
       );
     }
@@ -85,17 +100,16 @@ public final class TestingRig {
     Name name = directive.getAnnotation(Name.class);
     if (name == null) {
       throw new IllegalArgumentException(
-        String.format("Class '%s' is missing @Name annotation. E.g. @Name(\"directive-name\")", classz)
+              String.format("Class '%s' is missing @Name annotation. E.g. @Name(\"directive-name\")", classz)
       );
     }
 
     Description description = directive.getAnnotation(Description.class);
     if (description == null) {
       throw new IllegalArgumentException(
-        String.format("Class '%s' is missing @Description annotation. " +
-                        "E.g. @Description(\"this is what my directive does\")", classz)
+              String.format("Class '%s' is missing @Description annotation. " +
+                      "E.g. @Description(\"this is what my directive does\")", classz)
       );
     }
   }
-
 }

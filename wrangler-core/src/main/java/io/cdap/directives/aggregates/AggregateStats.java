@@ -1,108 +1,89 @@
-package io.cdap.wrangler.directives.aggregates;
+/*
+ * Copyright © 2025 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
+ */
 
+package io.cdap.directives.aggregates;
+
+import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveExecutionException;
+import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.api.parser.DirectiveContext;
-import io.cdap.wrangler.api.parser.DirectiveParseException;
-import io.cdap.wrangler.api.parser.Token;
-import io.cdap.wrangler.api.parser.Value;
-import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.ColumnName;
-import io.cdap.wrangler.api.parser.DirectiveArgument;
-import io.cdap.wrangler.api.parser.DirectiveDefinition;
-
-import io.cdap.wrangler.api.parser.Arguments;
+import io.cdap.wrangler.api.parser.Text;
+import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.api.parser.OutputType;
+import io.cdap.wrangler.api.annotations.PublicEvolving;
 
-import io.cdap.wrangler.api.parser.AssertionException;
-import io.cdap.wrangler.api.parser.Assertion;
-import io.cdap.wrangler.api.parser.Column;
-
-import io.cdap.wrangler.api.parser.AssertionException;
-import io.cdap.wrangler.api.parser.Assertion;
-
-import io.cdap.wrangler.api.parser.ValueException;
-import io.cdap.wrangler.api.parser.TextException;
-
-import io.cdap.wrangler.api.parser.ColumnException;
-
-import io.cdap.wrangler.api.parser.StringValue;
-
-import io.cdap.wrangler.api.parser.IntegerValue;
-
-import io.cdap.wrangler.api.parser.StringList;
-
-import io.cdap.wrangler.api.parser.BooleanValue;
-
-import io.cdap.wrangler.api.parser.ByteSize;
-import io.cdap.wrangler.api.parser.TimeDuration;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
+@PublicEvolving
 public class AggregateStats implements Directive {
-    private String sourceByteCol;
-    private String sourceTimeCol;
-    private String outputByteCol;
+    private String sizeCol;
+    private String timeCol;
+    private String outputSizeCol;
     private String outputTimeCol;
-
-    private long totalBytes = 0;
-    private long totalMilliseconds = 0;
+    private long totalSize = 0;
+    private long totalTime = 0;
 
     @Override
     public UsageDefinition define() {
-        return UsageDefinition.builder("aggregate-stats")
-            .usage("aggregate-stats <byte-col> <time-col> <output-byte-col> <output-time-col>")
-            .arguments(
-                Arguments.of("byte-col", ColumnName.class),
-                Arguments.of("time-col", ColumnName.class),
-                Arguments.of("output-byte-col", Text.class),
-                Arguments.of("output-time-col", Text.class)
-            )
-            .output(OutputType.AGGREGATE)
-            .build();
+        UsageDefinition.Builder builder = UsageDefinition.builder("aggregate-stats");
+
+        builder.define("sizeColumn", TokenType.COLUMN_NAME);
+        builder.define("timeColumn", TokenType.COLUMN_NAME);
+        builder.define("outputSizeColumn", TokenType.TEXT);
+        builder.define("outputTimeColumn", TokenType.TEXT);
+
+        return builder.build();
     }
 
     @Override
-    public void initialize(DirectiveContext ctx, Arguments args) throws DirectiveParseException {
-        sourceByteCol = ((ColumnName) args.value("byte-col")).value();
-        sourceTimeCol = ((ColumnName) args.value("time-col")).value();
-        outputByteCol = ((Text) args.value("output-byte-col")).value();
-        outputTimeCol = ((Text) args.value("output-time-col")).value();
+    public void initialize(Arguments args) throws DirectiveParseException {
+        sizeCol = ((ColumnName) args.value("sizeColumn")).value();
+        timeCol = ((ColumnName) args.value("timeColumn")).value();
+        outputSizeCol = ((Text) args.value("outputSizeColumn")).value();
+        outputTimeCol = ((Text) args.value("outputTimeColumn")).value();
     }
 
     @Override
-    public void execute(Row row, ExecutorContext context) {
-        Object byteObj = row.getValue(sourceByteCol);
-        Object timeObj = row.getValue(sourceTimeCol);
+    public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+        for (Row row : rows) {
+            Object sizeVal = row.getValue(sizeCol);
+            Object timeVal = row.getValue(timeCol);
 
-        if (byteObj instanceof String) {
-            ByteSize byteSize = new ByteSize((String) byteObj);
-            totalBytes += byteSize.getBytes();
+            if (sizeVal instanceof Long) {
+                totalSize += (Long) sizeVal;
+            }
+
+            if (timeVal instanceof Long) {
+                totalTime += (Long) timeVal;
+            }
         }
 
-        if (timeObj instanceof String) {
-            TimeDuration timeDuration = new TimeDuration((String) timeObj);
-            totalMilliseconds += timeDuration.getMilliseconds();
-        }
+        Row result = new Row();
+        result.add(outputSizeCol, totalSize / (1024 * 1024)); // Convert bytes to MB
+        result.add(outputTimeCol, totalTime / 1000);          // Convert ms to seconds
+
+        return Collections.singletonList(result);
     }
 
     @Override
-    public List<Row> finalize(ExecutorContext context) {
-        List<Row> results = new ArrayList<>();
-        Row row = new Row();
-
-        double totalMB = totalBytes / (1024.0 * 1024.0);
-        double totalSeconds = totalMilliseconds / 1000.0;
-
-        row.add(outputByteCol, totalMB);
-        row.add(outputTimeCol, totalSeconds);
-
-        results.add(row);
-        return results;
+    public void destroy() {
+        // no-op
     }
 }

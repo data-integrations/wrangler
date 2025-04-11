@@ -142,8 +142,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+ : String
+ | Number
+ | Column
+ | Bool
+ | byteSize
+ | timeDuration ;
 
 ecommand
  : '!' Identifier
@@ -195,6 +199,14 @@ stringList
 
 identifierList
  : Identifier (',' Identifier)*
+ ;
+
+byteSize
+ : Number Byte_Unit
+ ;
+
+timeDuration
+ : Number Time_Unit
  ;
 
 
@@ -275,6 +287,23 @@ String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
  | '"'  ( EscapeSequence | ~('"') )* '"'
  ;
+
+ fragment Byte_Unit
+  : 'B'
+  | 'KB'
+  | 'MB'
+  | 'GB'
+  | 'TB'
+  | 'PB'
+  ;
+
+ fragment Time_Unit
+  : 'ms'
+  | 's'
+  | 'm'
+  | 'h'
+  | 'd'
+  ;
 
 EscapeSequence
    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
