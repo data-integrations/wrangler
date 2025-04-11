@@ -176,6 +176,14 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
 
+## 📦 New Feature: ByteSize Parsing & TimeDuration Parsing
+
+Wrangler will now support native parsing of data sizes and time durations!
+
+### ✅ New Directive:
+```wrangler
+aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
 ## Contact
 
 ### Mailing Lists
