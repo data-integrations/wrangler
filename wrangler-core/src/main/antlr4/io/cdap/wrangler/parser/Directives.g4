@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | BYTE_SIZE     // Added support for byte size
+    | TIME_DURATION // Added support for time duration
   )*?
   ;
 
@@ -140,7 +142,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String 
+ | Number 
+ | Column 
+ | Bool
+ | BYTE_SIZE    // Added
+ | TIME_DURATION // Added
  ;
 
 ecommand
@@ -173,6 +180,7 @@ condition
 
 command
  : Identifier
+ | 'aggregate-stats'  // Added new command
  ;
 
 colList
@@ -195,10 +203,40 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+// New rule for aggregate-stats directive
+aggregateStatsDirective
+ : 'aggregate-stats' column column column column
+ ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
+
+// New tokens for byte size and time duration
+BYTE_SIZE
+ : Number BYTE_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [Kk][Bb]    // Kilobytes
+ | [Mm][Bb]    // Megabytes
+ | [Gg][Bb]    // Gigabytes
+ | [Tt][Bb]    // Terabytes
+ | [Bb]        // Bytes
+ ;
+
+TIME_DURATION
+ : Number TIME_UNIT
+ ;
+
+fragment TIME_UNIT
+ : 'ms'        // milliseconds
+ | 's'         // seconds
+ | 'm'         // minutes
+ | 'h'         // hours
+ | 'd'         // days
+ ;
+
 OBrace   : '{';
 CBrace   : '}';
 SColon   : ';';
@@ -246,7 +284,6 @@ Pipe     : '|';
 BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
-
 
 Bool
  : 'true'
