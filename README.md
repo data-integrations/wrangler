@@ -1,3 +1,19 @@
+##  Enhancements by Garv Tayal
+
+As part of the Software Engineer Intern Assignment, the following key enhancements were made:
+
+-  **New Directive**: Added `aggregate-stats` transformation directive
+  - Computes statistical summaries: `count`, `sum`, `min`, `max`, and `average` for any numeric column
+  - Includes full unit test coverage via `AggregateStatsTest.java`
+-  **Grammar Enhancements**:
+  - Implemented `ByteSize` token support (`10KB`, `2MB`, `1GB`, etc.)
+  - Implemented `TimeDuration` token support (`5s`, `300ms`, `2min`, `1h`, etc.)
+  - Integrated grammar with `RecipeVisitor`, added token handling and test coverage
+-  **Testing**:
+  - All grammar and directive enhancements come with comprehensive JUnit tests
+  - Ensured compatibility with existing modules and passed all builds with `-Dcheckstyle.skip=true`
+
+
 # Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
@@ -87,8 +103,10 @@ These directives are currently available:
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
 | [Write JSON Object](wrangler-docs/directives/write-as-json-object.md)           | Composes a JSON object based on the fields specified.            |
-| [Format as Currency](wrangler-docs/directives/format-as-currency.md)            | Formats a number as currency as specified by locale.             |
-| **Transformations**                                                    |                                                                  |
+| [Format as Currency](wrangler-docs/directives/format-as-currency.md)            | Formats a number as currency as specified by locale.   
+          
+| **Transformations**
+| [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md)                  | Computes count, sum, min, max, and average from a numeric column |
 | [Changing Case](wrangler-docs/directives/changing-case.md)                      | Changes the case of column values                                |
 | [Cut Character](wrangler-docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
 | [Set Column](wrangler-docs/directives/set-column.md)                            | Sets the column value to the result of an expression execution   |
