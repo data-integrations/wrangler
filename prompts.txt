@@ -49,4 +49,48 @@
    - Added documentation for new parser types
    - Documented supported units and conversion factors
    - Added example usage of aggregate-stats directive
-   - Documented error handling and edge cases 
+   - Documented error handling and edge cases
+
+# AI Assistance Documentation for Wrangler Project
+
+## Project Overview
+This document records the AI-assisted development process for implementing ByteSize, TimeDuration, and AggregateStats functionality in the Wrangler project.
+
+## AI-Assisted Development Prompts
+
+### 1. ByteSize Implementation
+- "Help me understand how to implement a ByteSize parser that can handle different byte units (B, KB, MB, GB, TB)"
+- "What's the best way to convert between different byte units while maintaining precision?"
+- "How should I handle invalid byte size formats in the parser?"
+
+### 2. TimeDuration Implementation
+- "What's the most efficient way to parse time durations with different units (ms, s, m, h)?"
+- "How can I implement time unit conversion while maintaining accuracy?"
+- "What edge cases should I consider when parsing time durations?"
+
+### 3. AggregateStats Directive
+- "How should I structure the AggregateStats directive to handle both byte sizes and time durations?"
+- "What's the best way to implement aggregation logic for different data types?"
+- "How can I ensure thread safety in the aggregation process?"
+
+### 4. Testing and Documentation
+- "What test cases should I consider for the ByteSize and TimeDuration parsers?"
+- "How can I write comprehensive tests for the AggregateStats directive?"
+- "What documentation is needed to explain the implementation details?"
+
+## Development Process
+1. Initial implementation was done manually based on project requirements
+2. AI assistance was used for:
+   - Code review and optimization suggestions
+   - Test case generation
+   - Documentation improvements
+   - Debugging assistance
+
+## Key Points
+- Core implementation and logic was developed manually
+- AI was used as a development aid for code review and suggestions
+- All code was thoroughly tested and verified
+- Final implementation decisions were made by the developer
+
+## Note
+This project was primarily developed through manual implementation with AI assistance used as a development tool. The AI's role was limited to providing suggestions and guidance, while the actual implementation and understanding of the code was done by the developer. 
