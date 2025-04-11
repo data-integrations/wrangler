@@ -1,0 +1,46 @@
+package io.cdap.wrangler.steps.parser;
+
+import io.cdap.wrangler.api.Step;
+import io.cdap.wrangler.api.RecipeException;
+import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.annotation.Name;
+import io.cdap.wrangler.api.annotation.Description;
+import io.cdap.wrangler.api.annotation.Plugin;
+import io.cdap.wrangler.api.parser.TimeDurationParser;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * A Wrangler step to parse a human-readable time duration string into milliseconds.
+ */
+@Plugin(type = Step.PLUGIN_TYPE)
+@Name("parse-duration")
+@Description("Parses time duration string like '10 min', '2h', '3.5 days' into milliseconds")
+public class ParseTimeDuration implements Step {
+
+    private final String column;
+
+    public ParseTimeDuration(String column) {
+        this.column = column;
+    }
+
+    @Override
+    public List<Row> execute(Row row, int rowNum) throws RecipeException {
+        Object value = row.getValue(column);
+        if (value == null || !(value instanceof String)) {
+            throw new RecipeException("Column '" + column + "' must contain a valid string to parse.");
+        }
+
+        try {
+            long millis = TimeDurationParser.parse((String) value);
+            row.setValue(column, millis);
+        } catch (IllegalArgumentException e) {
+            throw new RecipeException("Failed to parse time duration from column '" + column + "': " + e.getMessage());
+        }
+
+        List<Row> results = new ArrayList<>();
+        results.add(row);
+        return results;
+    }
+}
