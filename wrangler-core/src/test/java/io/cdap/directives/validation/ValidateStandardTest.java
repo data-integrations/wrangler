@@ -50,16 +50,22 @@ import static org.junit.Assert.assertTrue;
 public class ValidateStandardTest {
 
   private static Map<String, Standard> getSpecsInArchive()
-    throws IOException, NoSuchAlgorithmException {
+      throws IOException, NoSuchAlgorithmException {
     Map<String, Standard> schemas = new HashMap<>();
     CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
     if (src != null) {
-      File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
+      String path = src.getLocation().getPath();
+      if (System.getProperty("os.name").toLowerCase().contains("win")) {
+        // Remove the leading slash if it exists and the OS is Windows
+        if (path.startsWith("/")) {
+          path = path.substring(1);
+        }
+      }
+      File schemasRoot = Paths.get(path, ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
 
       if (!schemasRoot.isDirectory()) {
         throw new IOException(
-          String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
+            String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
       }
 
       for (File f : schemasRoot.listFiles()) {
@@ -69,8 +75,8 @@ public class ValidateStandardTest {
 
         String hash = calcHash(new FileInputStream(f));
         schemas.put(
-          FilenameUtils.getBaseName(f.getName()),
-          new Standard(hash, FilenameUtils.getExtension(f.getName())));
+            FilenameUtils.getBaseName(f.getName()),
+            new Standard(hash, FilenameUtils.getExtension(f.getName())));
       }
     }
 
@@ -101,23 +107,20 @@ public class ValidateStandardTest {
 
   @Test
   public void testValidation() throws Exception {
-    JsonObject badJson =
-      new Gson()
+    JsonObject badJson = new Gson()
         .fromJson("{\"resourceType\": \"Patient\", \"active\": \"meow\"}", JsonObject.class);
-    JsonObject goodJson =
-      new Gson()
+    JsonObject goodJson = new Gson()
         .fromJson(
-          "{\"resourceType\": \"Patient\", \"active\": true, \"gender\": \"female\"}",
-          JsonObject.class);
+            "{\"resourceType\": \"Patient\", \"active\": true, \"gender\": \"female\"}",
+            JsonObject.class);
 
-    String[] directives = new String[]{
-      "validate-standard :col1 hl7-fhir-r4",
+    String[] directives = new String[] {
+        "validate-standard :col1 hl7-fhir-r4",
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("col1", badJson),
-      new Row("col1", goodJson)
-    );
+        new Row("col1", badJson),
+        new Row("col1", goodJson));
 
     List<Row> actual = TestingRig.execute(directives, rows);
 
@@ -126,43 +129,43 @@ public class ValidateStandardTest {
   }
 
   /**
-   * This test verifies that the manifest in the resources matches up with both the actual schemas in the resources as
+   * This test verifies that the manifest in the resources matches up with both
+   * the actual schemas in the resources as
    * well as the implementations provided to handle those schemas.
    */
   @Test
   public void verifyManifest() throws Exception {
     InputStream manifestStream = readResource(ValidateStandard.MANIFEST_PATH);
-    Manifest manifest =
-      new Gson().getAdapter(Manifest.class).fromJson(new InputStreamReader(manifestStream));
+    Manifest manifest = new Gson().getAdapter(Manifest.class).fromJson(new InputStreamReader(manifestStream));
 
     Map<String, Standard> declaredSpecs = manifest.getStandards();
     Map<String, Standard> actualSpecs = getSpecsInArchive();
 
     assertEquals(
-      "Manifest contains different number of specs than there are in the artifact",
-      declaredSpecs.size(),
-      actualSpecs.size());
+        "Manifest contains different number of specs than there are in the artifact",
+        declaredSpecs.size(),
+        actualSpecs.size());
 
     for (String spec : declaredSpecs.keySet()) {
       assertTrue(
-        String.format("Manifest had spec %s but the artifact did not", spec),
-        actualSpecs.containsKey(spec));
+          String.format("Manifest had spec %s but the artifact did not", spec),
+          actualSpecs.containsKey(spec));
 
       Standard declared = declaredSpecs.get(spec);
       Standard actual = actualSpecs.get(spec);
 
       assertEquals(
-        String.format(
-          "Declared standard %s did not match actual %s",
-          declared.toString(), actual.toString()),
-        declared,
-        actual);
+          String.format(
+              "Declared standard %s did not match actual %s",
+              declared.toString(), actual.toString()),
+          declared,
+          actual);
 
       assertTrue(
-        String.format(
-          "Standard %s does not have a handler/factory registered in %s",
-          spec, ValidateStandard.class.getName()),
-        ValidateStandard.FORMAT_TO_FACTORY.containsKey(actual.getFormat()));
+          String.format(
+              "Standard %s does not have a handler/factory registered in %s",
+              spec, ValidateStandard.class.getName()),
+          ValidateStandard.FORMAT_TO_FACTORY.containsKey(actual.getFormat()));
     }
   }
 }

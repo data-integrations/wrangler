@@ -42,6 +42,7 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -49,7 +50,7 @@ import java.util.TimeZone;
  */
 @Plugin(type = Directive.TYPE)
 @Name("parse-as-simple-date")
-@Categories(categories = {"parser", "date"})
+@Categories(categories = { "parser", "date" })
 @Description("Parses a column as date using format.")
 public class ParseSimpleDate implements Directive, Lineage {
   public static final String NAME = "parse-as-simple-date";
@@ -68,7 +69,7 @@ public class ParseSimpleDate implements Directive, Lineage {
   public void initialize(Arguments args) throws DirectiveParseException {
     this.column = ((ColumnName) args.value("column")).value();
     String format = ((Text) args.value("format")).value();
-    this.formatter = new SimpleDateFormat(format);
+    this.formatter = new SimpleDateFormat(format, Locale.US);
     // CDAP-19615 Use pure Gregorian Calendar to avoid Julian date precision loss
     GregorianCalendar gc = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
     gc.setGregorianChange(new Date(Long.MIN_VALUE));
@@ -82,7 +83,7 @@ public class ParseSimpleDate implements Directive, Lineage {
 
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
+      throws DirectiveExecutionException, ErrorRowException {
     for (Row row : rows) {
       int idx = row.find(column);
       if (idx != -1) {
@@ -94,22 +95,27 @@ public class ParseSimpleDate implements Directive, Lineage {
         }
         if (object instanceof String) {
           try {
-            // This implementation first creates Date object and then converts it into ZonedDateTime. This is because
-            // ZonedDateTime requires presence of Zone and Time components in the pattern and object to be parsed.
-            // For example if the pattern is yyyy-mm-dd, ZonedDateTime object can not be created and the call to
-            // ZonedDateTime.parse("2018-12-21", formatter) will throw DateTimeParseException
+            // This implementation first creates Date object and then converts it into
+            // ZonedDateTime. This is because
+            // ZonedDateTime requires presence of Zone and Time components in the pattern
+            // and object to be parsed.
+            // For example if the pattern is yyyy-mm-dd, ZonedDateTime object can not be
+            // created and the call to
+            // ZonedDateTime.parse("2018-12-21", formatter) will throw
+            // DateTimeParseException
             Date date = formatter.parse(object.toString());
             ZonedDateTime zonedDateTime = ZonedDateTime.from(date.toInstant()
-                                                               .atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC)));
+                .atZone(ZoneId.ofOffset("UTC", ZoneOffset.UTC)));
             row.setValue(idx, zonedDateTime);
           } catch (ParseException e) {
             throw new ErrorRowException(
-              NAME, String.format("Failed to parse '%s' with pattern '%s'", object, formatter.toPattern()), 1);
+                NAME, String.format("Failed to parse '%s' with pattern '%s'", object, formatter.toPattern()), 1);
           }
         } else {
           throw new ErrorRowException(
-            NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
-                                column, object.getClass().getSimpleName()), 2);
+              NAME, String.format("Column '%s' is of invalid type '%s'. It should be of type 'String'.",
+                  column, object.getClass().getSimpleName()),
+              2);
         }
       }
     }
@@ -119,8 +125,8 @@ public class ParseSimpleDate implements Directive, Lineage {
   @Override
   public Mutation lineage() {
     return Mutation.builder()
-      .readable("Parsed column '%s' as date using user specified format '%s'", column, formatter.toPattern())
-      .relation(column, column)
-      .build();
+        .readable("Parsed column '%s' as date using user specified format '%s'", column, formatter.toPattern())
+        .relation(column, column)
+        .build();
   }
 }
