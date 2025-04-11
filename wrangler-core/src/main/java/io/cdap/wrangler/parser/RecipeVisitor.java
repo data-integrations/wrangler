@@ -38,6 +38,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import io.cdap.wrangler.parser.DirectiveParserVisitorImpl;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -173,6 +175,16 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Ranges(output));
     return builder;
   }
+
+  @Override
+  public RecipeSymbol.Builder visitValue(DirectivesParser.ValueContext ctx) {
+    // Use your custom visitor to parse BYTE_SIZE and TIME_DURATION
+    Token token = new DirectiveParserVisitorImpl().visitValue(ctx);
+    builder.addToken(token);
+    return builder;
+  }
+  
+
 
   /**
    * This visitor method extracts the custom directive name specified. The custom
