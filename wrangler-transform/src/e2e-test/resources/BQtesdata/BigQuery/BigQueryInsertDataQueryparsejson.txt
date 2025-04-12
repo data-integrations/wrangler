@@ -1,0 +1,6 @@
+INSERT INTO DATASET.TABLE_NAME (body,json)
+VALUES
+(' hello abc', '{"id": 1, "name": {"first": "Root", "last": "joy"}, "age": 22, "pet": "nick", "height": 5.8}'),
+('hello def', '{"id": 2, "name": {"first": "dded", "last": "share"}, "age": 23, "pet": "hello", "height": 6.8}'),
+('hello ghi', '{"id": 3, "name": {"first": "Root", "last": "Joltie"}, "age": 24, "pet": "doms", "height": 7.8}');
+

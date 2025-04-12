@@ -1,0 +1,358 @@
+{
+    "name": "parse_xmltojson_wrangler",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "[6.0.0, 7.0.0)",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "BigQueryTable",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "BigQuery2"
+            }
+        ],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": true,
+        "stages": [
+            {
+                "name": "BigQueryTable",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsource",
+                    "label": "BigQueryTable",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "dataset": "Wrangler_Test",
+                        "table": "xmlnews",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata\",\"type\":[\"string\",\"null\"]}]}",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "enableQueryingViews": "false"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQueryTable",
+                "type": "batchsource",
+                "label": "BigQueryTable",
+                "icon": "fa-plug",
+                "$$hashKey": "object:609",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "496px",
+                    "top": "342px"
+                },
+                "_backendProperties": {
+                    "schema": {
+                        "name": "schema",
+                        "description": "The schema of the table to read.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "viewMaterializationDataset": {
+                        "name": "viewMaterializationDataset",
+                        "description": "The dataset in the specified project where the temporary table should be created. Defaults to the same dataset in which the table is located.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "enableQueryingViews": {
+                        "name": "enableQueryingViews",
+                        "description": "Whether to allow querying views. Since BigQuery views are not materialized by default, querying them may have a performance overhead.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "serviceAccountJSON": {
+                        "name": "serviceAccountJSON",
+                        "description": "Content of the service account file.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "partitionTo": {
+                        "name": "partitionTo",
+                        "description": "It's inclusive partition end date. It should be a String with format \"yyyy-MM-dd\". This value is ignored if the table does not support partitioning.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "cmekKey": {
+                        "name": "cmekKey",
+                        "description": "The GCP customer managed encryption key (CMEK) name used to encrypt data written to any bucket, dataset or table created by the plugin. If the bucket, dataset or table already exists, this is ignored. More information can be found at https://cloud.google.com/data-fusion/docs/how-to/customer-managed-encryption-keys",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "useConnection": {
+                        "name": "useConnection",
+                        "description": "Whether to use an existing connection.",
+                        "type": "boolean",
+                        "required": false,
+                        "macroSupported": false,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "project": {
+                        "name": "project",
+                        "description": "Google Cloud Project ID. It can be found on the Dashboard in the Google Cloud Platform Console.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "viewMaterializationProject": {
+                        "name": "viewMaterializationProject",
+                        "description": "The project name where the temporary table should be created. Defaults to the same project in which the table is located.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "filter": {
+                        "name": "filter",
+                        "description": "The WHERE clause filters out rows by evaluating each row against boolean expression, and discards all rows that do not return TRUE (that is, rows that return FALSE or NULL).",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "bucket": {
+                        "name": "bucket",
+                        "description": "The Google Cloud Storage bucket to store temporary data in. Cloud Storage data will be deleted after it is loaded into BigQuery. If it is not provided, a unique bucket will be automatically created and then deleted after the run finishes. The service account must have permission to create buckets in the configured project.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "partitionFrom": {
+                        "name": "partitionFrom",
+                        "description": "It's inclusive partition start date. It should be a String with format \"yyyy-MM-dd\". This value is ignored if the table does not support partitioning.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "serviceFilePath": {
+                        "name": "serviceFilePath",
+                        "description": "Path on the local file system of the service account key used for authorization. Can be set to 'auto-detect' when running on a Dataproc cluster. When running on other clusters, the file must be present on every node in the cluster.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "serviceAccountType": {
+                        "name": "serviceAccountType",
+                        "description": "Service account type, file path where the service account is located or the JSON content of the service account.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "connection": {
+                        "name": "connection",
+                        "description": "The existing connection to use.",
+                        "type": "bigqueryconnectorconfig",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": [
+                            "serviceAccountJSON",
+                            "serviceFilePath",
+                            "project",
+                            "serviceAccountType",
+                            "datasetProject"
+                        ]
+                    },
+                    "datasetProject": {
+                        "name": "datasetProject",
+                        "description": "The project the dataset belongs to. This is only required if the dataset is not in the same project that the BigQuery job will run in. If no value is given, it will default to the configured project ID.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "dataset": {
+                        "name": "dataset",
+                        "description": "The dataset to write to. A dataset is contained within a specific project. Datasets are top-level containers that are used to organize and control access to tables and views.",
+                        "type": "string",
+                        "required": true,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "table": {
+                        "name": "table",
+                        "description": "The table to read from. A table contains individual records organized in rows. Each record is composed of columns (also called fields). Every table is defined by a schema that describes the column names, data types, and other information.",
+                        "type": "string",
+                        "required": true,
+                        "macroSupported": true,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    },
+                    "referenceName": {
+                        "name": "referenceName",
+                        "description": "This will be used to uniquely identify this source for lineage, annotating metadata, etc.",
+                        "type": "string",
+                        "required": false,
+                        "macroSupported": false,
+                        "macroEscapingEnabled": false,
+                        "children": []
+                    }
+                },
+                "description": "This source reads the entire contents of a BigQuery table. BigQuery is Google's serverless, highly scalable, enterprise data warehouse.Data is first written to a temporary location on Google Cloud Storage, then read into the pipeline from there.",
+                "selected": false
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform"
+                    },
+                    "properties": {
+                        "directives": "parse-xml-to-json :xmldata 1\nsplit-email :email\ntext-distance block email email_account distance\ntext-metric longest-common-subsequence email email_account distance2\nwrite-as-json-object :email_domain distance,email_account\nstemming :email\nsplit-to-rows :email_account '0'\nrename :email_account id",
+                        "field": "*",
+                        "precondition": "false",
+                        "workspaceId": "4c1d141a-66f6-4b4c-bc5f-a92ca41bee42",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}",
+                        "expressionLanguage": "jexl",
+                        "on-error": "fail-pipeline"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "BigQueryTable",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "Wrangler",
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataPreparation",
+                "$$hashKey": "object:610",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "796px",
+                    "top": "342px"
+                },
+                "selected": false
+            },
+            {
+                "name": "BigQuery2",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BigQuery2",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "dataset": "Wrangler_Test",
+                        "table": "fintab",
+                        "operation": "insert",
+                        "truncateTable": "false",
+                        "allowSchemaRelaxation": "false",
+                        "location": "US",
+                        "createPartitionedTable": "false",
+                        "partitioningType": "TIME",
+                        "timePartitioningType": "DAY",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"email\",\"type\":[\"string\",\"null\"]},{\"name\":\"xmldata_note\",\"type\":[{\"type\":\"record\",\"name\":\"xmldata_note69A9BFB19CE40D9BB21E66FF1DCB2823\",\"fields\":[{\"name\":\"heading\",\"type\":[\"string\",\"null\"]},{\"name\":\"from\",\"type\":[\"string\",\"null\"]},{\"name\":\"to\",\"type\":[\"string\",\"null\"]},{\"name\":\"body\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"email_domain\",\"type\":[{\"type\":\"record\",\"name\":\"email_domain53E9571E3B0C6D8ACD29805625EDE284\",\"fields\":[{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_account\",\"type\":[\"string\",\"null\"]}]},\"null\"]},{\"name\":\"distance\",\"type\":[\"float\",\"null\"]},{\"name\":\"distance2\",\"type\":[\"float\",\"null\"]},{\"name\":\"email_porter\",\"type\":[{\"type\":\"array\",\"items\":[\"string\",\"null\"]},\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQuery2",
+                "type": "batchsink",
+                "label": "BigQuery2",
+                "icon": "fa-plug",
+                "$$hashKey": "object:611",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "1096px",
+                    "top": "342px"
+                },
+                "selected": false
+            }
+        ],
+        "schedule": "0 1 */1 * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "rangeRecordsPreview": {
+            "min": 1,
+            "max": "5000"
+        },
+        "maxConcurrentRuns": 1,
+        "pushdownEnabled": false,
+        "transformationPushdown": {}
+    },
+    "version": "42a96af3-af8e-11ee-8372-00000073831c"
+}

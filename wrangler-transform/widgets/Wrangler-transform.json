@@ -1,0 +1,171 @@
+{
+  "metadata": {
+    "spec-version": "1.6"
+  },
+  "configuration-groups": [
+    {
+      "label" : "Input Selection and Prefilters",
+      "properties" : [
+        {
+          "widget-type" : "hidden",
+          "name" : "workspace"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Input field name",
+          "name": "field",
+          "widget-attributes" : {
+            "default": "*"
+          }
+        },
+        {
+          "widget-type": "radio-group",
+          "name": "expressionLanguage",
+          "label": "Precondition Language",
+          "widget-attributes": {
+            "layout": "inline",
+            "default": "jexl",
+            "options": [
+              {
+                "id": "jexl",
+                "label": "JEXL"
+              },
+              {
+                "id": "sql",
+                "label": "SQL"
+              }
+            ]
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Precondition (JEXL)",
+          "name": "precondition",
+          "widget-attributes" : {
+            "default" : "false"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Precondition (SQL)",
+          "name": "preconditionSQL",
+          "widget-attributes" : {
+            "default" : "false"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Directives",
+      "properties": [
+        {
+          "widget-type": "wrangler-directives",
+          "label": "Recipe",
+          "name": "directives",
+          "widget-attributes" : {
+            "placeholder" : "#pragma load-directives my-directive; my-directive :body;"
+          }
+        },
+        {
+          "widget-type": "csv",
+          "label": "User Defined Directives(UDD)",
+          "name": "udd"
+        }
+      ]
+    },
+    {
+      "label" : "Error Handling",
+      "properties" : [
+        {
+          "name": "on-error",
+          "label": "On Error",
+          "widget-type": "radio-group",
+          "widget-attributes": {
+            "layout": "block",
+            "default": "fail-pipeline",
+            "options": [
+              {
+                "id": "skip-error",
+                "label": "Skip error"
+              },
+              {
+                "id": "send-to-error-port",
+                "label": "Send to error port"
+              },
+              {
+                "id": "fail-pipeline",
+                "label": "Fail pipeline"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "emit-alerts": true,
+  "emit-errors": true,
+  "filters": [
+    {
+      "name": "PreconditionValueNotSQL",
+      "condition": {
+        "expression": "expressionLanguage != 'sql'"
+      },
+      "show": [
+        {
+          "type": "properties",
+          "name": "precondition"
+        }
+      ]
+    },
+    {
+      "name": "preconditionValueSQL",
+      "condition": {
+        "expression": "expressionLanguage == 'sql'"
+      },
+      "show": [
+        {
+          "type": "properties",
+          "name": "preconditionSQL"
+        }
+      ]
+    },
+    {
+      "name": "preconditionSQLEnabled",
+      "condition": {
+        "expression": "featureFlags['wrangler.precondition.sql.enabled'] == true"
+      },
+      "show": [
+        {
+          "type": "properties",
+          "name": "expressionLanguage"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "schema",
+      "label": "schema",
+      "widget-type": "schema",
+      "widget-attributes": {
+        "schema-types": [
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string",
+          "timestamp",
+          "array",
+          "enum",
+          "record",
+          "map",
+          "union"
+        ],
+        "schema-default-type": "string",
+        "property-watch": "format"
+      }
+    }
+  ]
+}

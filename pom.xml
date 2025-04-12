@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright © 2016-2019 Cask Data, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  ~ use this file except in compliance with the License. You may obtain a copy of
+  ~ the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  ~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing permissions and limitations under
+  ~ the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.cdap.wrangler</groupId>
+  <artifactId>wrangler</artifactId>
+  <version>4.12.0-SNAPSHOT</version>
+  <name>Wrangler</name>
+  <packaging>pom</packaging>
+  <description>An interactive tool for data cleansing and transformation.</description>
+  <url>http://github.com/hydrator/wrangler</url>
+
+  <modules>
+    <module>wrangler-api</module>
+    <module>wrangler-core</module>
+    <module>wrangler-proto</module>
+    <module>wrangler-service</module>
+    <module>wrangler-storage</module>
+    <module>wrangler-test</module>
+    <module>wrangler-transform</module>
+  </modules>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>CDAP</name>
+      <email>cdap-dev@googlegroups.com</email>
+      <organization>CDAP</organization>
+      <organizationUrl>http://cdap.io</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/data-integrations/wrangler.git</connection>
+    <developerConnection>scm:git:git@github.com:data-integrations/wrangler.git</developerConnection>
+    <url>https://github.com/data-integrations/wrangler.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>sonatype.release</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <id>sonatype.snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <issueManagement>
+    <url>https://issues.cask.co/browse/CDAP</url>
+  </issueManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <antlr4.version>4.7</antlr4.version>
+    <antlr4-maven-plugin.version>4.7</antlr4-maven-plugin.version>
+    <avro.version>1.8.1</avro.version>
+    <aws.sdk.version>1.11.133</aws.sdk.version>
+    <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
+    <bouncycastle.version>1.56</bouncycastle.version>
+    <cdap.version>6.11.0</cdap.version>
+    <chlorine.version>1.1.5</chlorine.version>
+    <commons.validator.version>1.6</commons.validator.version>
+    <commons-io.version>2.5</commons-io.version>
+    <commons-csv.version>1.4</commons-csv.version>
+    <commons-jexl.version>3.0</commons-jexl.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <commons-lang3.version>3.5</commons-lang3.version>
+    <commons-math3.version>3.6.1</commons-math3.version>
+    <geogson.version>1.1.97</geogson.version>
+    <google.cloud.bigquery.version>1.110.1</google.cloud.bigquery.version>
+    <google.cloud.core.version>1.93.4</google.cloud.core.version>
+    <google.findbugs.version>2.0.1</google.findbugs.version>
+    <google.http.client.version>1.22.0</google.http.client.version>
+    <google.storage.version>1.106.0</google.storage.version>
+    <gson.version>2.6.2</gson.version>
+    <guava.retrying.version>2.0.0</guava.retrying.version>
+    <guava.version>31.0.1-jre</guava.version>
+    <hadoop.version>2.4.0</hadoop.version>
+    <hl7.version>2.2</hl7.version>
+    <hsql.version>2.2.4</hsql.version>
+    <httpclient.version>4.5.3</httpclient.version>
+    <httpdlog-parser.version>3.0</httpdlog-parser.version>
+    <joda-time.version>2.9.7</joda-time.version>
+    <json-path.version>2.2.0</json-path.version>
+    <junit.version>4.12</junit.version>
+    <juniversalchardet.version>1.0.3</juniversalchardet.version>
+    <kafka.clients.version>0.10.2.1</kafka.clients.version>
+    <natty.version>0.13</natty.version>
+    <netty-http.version>1.3.0</netty-http.version>
+    <netty.version>4.1.75.Final</netty.version>
+    <javax.ws.rs-api.version>2.0</javax.ws.rs-api.version>
+    <poi.version>3.16</poi.version>
+    <protobuf.version>3.11.3</protobuf.version>
+    <reflections.version>0.9.9</reflections.version>
+    <simmetrics.version>4.1.1</simmetrics.version>
+    <simplemagic.version>1.11</simplemagic.version>
+    <slf4j.version>1.7.15</slf4j.version>
+    <unix4j.version>0.4</unix4j.version>
+    <testSourceLocation>${project.basedir}/src/test/java/</testSourceLocation>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/groups/public</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>sonatype-snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <testSourceDirectory>${testSourceLocation}</testSourceDirectory>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.13.0</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>3.5.0</version>
+          <extensions>true</extensions>
+          <configuration>
+            <instructions>
+              <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
+              <Embed-Transitive>true</Embed-Transitive>
+              <Embed-Directory>lib</Embed-Directory>
+              <!--Only @Plugin classes in the export packages will be included as plugin-->
+              <_exportcontents>io.cdap.wrangler.*</_exportcontents>
+            </instructions>
+          </configuration>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>bundle</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.7</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <version>0.10</version>
+          <executions>
+            <execution>
+              <id>rat-check</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <excludes>
+                  <exclude>cov-int/**</exclude>
+                  <exclude>*.md</exclude>
+                  <exclude>**/*.md</exclude>
+                  <exclude>**/*.json</exclude>
+                  <exclude>**/resources/**</exclude>
+                  <exclude>wrangler-demos/**</exclude>
+                  <exclude>**/com/example/**</exclude>
+                  <exclude>/**/icons/**</exclude>
+                </excludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.17</version>
+          <executions>
+            <execution>
+              <id>validate</id>
+              <phase>process-test-classes</phase>
+              <configuration>
+                <configLocation>checkstyle.xml</configLocation>
+                <suppressionsLocation>suppressions.xml</suppressionsLocation>
+                <encoding>UTF-8</encoding>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                <!--
+                  excludes don't apply to the target directory, so need to specify this to
+                  avoid checking generated antlr code
+                -->
+                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                <!--
+                  functions has some user visible functions that we can't change without breaking
+                  compatibility.
+
+                  tutorial has some proto code that doesn't need to be enforced.
+
+                  MigrateToV2 has a gigantic method that can't be broken down without a lot of
+                  refactoring. Migration logic should be handled by each individual directive,
+                  not by some central class that somehow understands all directives.
+                 -->
+                <excludes>
+                  **/io/cdap/functions/**,
+                  **/com/example/tutorial/**,
+                  **/io/cdap/wrangler/parser/MigrateToV2.java
+                </excludes>
+              </configuration>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>6.19</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.14.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+   <!-- Profile for release. Includes signing of jars. -->
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <!-- Source JAR -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+            <configuration>
+              <excludeResources>true</excludeResources>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Javadoc jar -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <configuration>
+              <additionalparam>-Xdoclint:none</additionalparam>
+              <failOnError>false</failOnError>
+              <links>
+                <link>http://download.oracle.com/javase/${jee.version}/docs/api/</link>
+              </links>
+              <doctitle>${project.name} ${project.version}</doctitle>
+              <bottom>
+                <![CDATA[Copyright &#169; {currentYear} <a href="http://cdap.io" target="_blank">CDAP</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
+              </bottom>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadoc</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <configuration>
+              <passphrase>${gpg.passphrase}</passphrase>
+              <useAgent>${gpg.useagent}</useAgent>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.5.3</version>
+            <configuration>
+              <tag>v${releaseVersion}</tag>
+              <tagNameFormat>v@{project.version}</tagNameFormat>
+              <autoVersionSubmodules>true</autoVersionSubmodules>
+              <!-- releaseProfiles configuration will actually force a Maven profile
+                – the `releases` profile – to become active during the Release process. -->
+              <releaseProfiles>releases</releaseProfiles>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.2</version>
+            <extensions>true</extensions>
+            <configuration>
+              <nexusUrl>https://oss.sonatype.org</nexusUrl>
+              <serverId>sonatype.release</serverId>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>cloudBuild</id>
+      <activation>
+        <property><name>cloudBuild</name></property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <useFile>false</useFile>
+              <redirectTestOutputToFile>false</redirectTestOutputToFile>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>e2e-tests</id>
+      <properties>
+        <testSourceLocation>src/e2e-test/java</testSourceLocation>
+        <TEST_RUNNER>TestRunner.java</TEST_RUNNER>
+      </properties>
+      <build>
+        <testResources>
+          <testResource>
+            <directory>src/e2e-test/resources</directory>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <skipTests>true</skipTests>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>3.0.0</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.apache.maven.surefire</groupId>
+                <artifactId>surefire-junit47</artifactId>
+                <version>3.0.0</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <includes>
+                <include>${TEST_RUNNER}</include>
+              </includes>
+              <!--Start configuration to run TestRunners in parallel-->
+              <parallel>classes</parallel> <!--Running TestRunner classes in parallel-->
+              <threadCount>2</threadCount> <!--Number of classes to run in parallel-->
+              <forkCount>2</forkCount> <!--Number of JVM processes -->
+              <reuseForks>true</reuseForks>
+              <!--End configuration to run TestRunners in parallel-->
+              <environmentVariables>
+                <GOOGLE_APPLICATION_CREDENTIALS>
+                  ${GOOGLE_APPLICATION_CREDENTIALS}
+                </GOOGLE_APPLICATION_CREDENTIALS>
+                <SERVICE_ACCOUNT_TYPE>
+                  ${SERVICE_ACCOUNT_TYPE}
+                </SERVICE_ACCOUNT_TYPE>
+                <SERVICE_ACCOUNT_FILE_PATH>
+                  ${SERVICE_ACCOUNT_FILE_PATH}
+                </SERVICE_ACCOUNT_FILE_PATH>
+                <SERVICE_ACCOUNT_JSON>
+                  ${SERVICE_ACCOUNT_JSON}
+                </SERVICE_ACCOUNT_JSON>
+              </environmentVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+<!--                  <goal>verify</goal>-->
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>net.masterthought</groupId>
+            <artifactId>maven-cucumber-reporting</artifactId>
+            <version>5.5.0</version>
+
+            <executions>
+              <execution>
+                <id>execution</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+                <configuration>
+                  <projectName>Cucumber Reports</projectName> <!-- Replace with project name -->
+                  <outputDirectory>target/cucumber-reports/advanced-reports</outputDirectory>
+                  <buildNumber>1</buildNumber>
+                  <skip>false</skip>
+                  <inputDirectory>${project.build.directory}/cucumber-reports</inputDirectory>
+                  <jsonFiles> <!-- supports wildcard or name pattern -->
+                    <param>**/*.json</param>
+                  </jsonFiles> <!-- optional, defaults to outputDirectory if not specified -->
+                  <classificationDirectory>${project.build.directory}/cucumber-reports</classificationDirectory>
+                  <checkBuildResult>true</checkBuildResult>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>1.7.15</version>
+        </dependency>
+
+        <dependency>
+          <groupId>io.cdap.tests.e2e</groupId>
+          <artifactId>cdap-e2e-framework</artifactId>
+          <version>0.5.0-SNAPSHOT</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <version>1.2.8</version>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+
+    </profile>
+  </profiles>
+</project>

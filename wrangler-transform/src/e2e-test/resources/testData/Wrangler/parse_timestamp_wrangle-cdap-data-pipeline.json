@@ -1,0 +1,173 @@
+{
+    "name": "parse_as_timestamp",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "[6.0.0, 7.0.0)",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "BigQueryTable",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "BigQuery2"
+            }
+        ],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": true,
+        "stages": [
+            {
+                "name": "BigQueryTable",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsource",
+                    "label": "BigQueryTable",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "dataset": "Wrangler",
+                        "table": "timestampupd",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"create_date\",\"type\":\"string\"},{\"name\":\"update_date\",\"type\":\"string\"},{\"name\":\"time\",\"type\":\"long\"},{\"name\":\"price\",\"type\":\"string\"}]}",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "enableQueryingViews": "false"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"create_date\",\"type\":\"string\"},{\"name\":\"update_date\",\"type\":\"string\"},{\"name\":\"time\",\"type\":\"long\"},{\"name\":\"price\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "id": "BigQueryTable",
+                "type": "batchsource",
+                "label": "BigQueryTable",
+                "icon": "fa-plug",
+                "$$hashKey": "object:509",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "496px",
+                    "top": "343px"
+                }
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform"
+                    },
+                    "properties": {
+                        "directives": "parse-timestamp :time\nparse-as-currency :price :newprice\nformat-as-currency :newprice :format_price\nparse-as-simple-date :create_date yyyy-MM-dd\nparse-as-simple-date :update_date yyyy-MM-dd\ndiff-date :create_date :update_date :diff_date\ntimestamp-to-datetime :update_date\nrename :newprice :id",
+                        "field": "*",
+                        "precondition": "false",
+                        "workspaceId": "dbb637f2-8334-4d73-b35c-894732e01e49",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"create_date\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"update_date\",\"type\":[{\"type\":\"string\",\"logicalType\":\"datetime\"},\"null\"]},{\"name\":\"time\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"price\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"double\",\"null\"]},{\"name\":\"format_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"diff_date\",\"type\":[\"long\",\"null\"]}]}",
+                        "on-error": "fail-pipeline"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"create_date\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"update_date\",\"type\":[{\"type\":\"string\",\"logicalType\":\"datetime\"},\"null\"]},{\"name\":\"time\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"price\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"double\",\"null\"]},{\"name\":\"format_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"diff_date\",\"type\":[\"long\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "BigQueryTable",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"create_date\",\"type\":\"string\"},{\"name\":\"update_date\",\"type\":\"string\"},{\"name\":\"time\",\"type\":\"long\"},{\"name\":\"price\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "id": "Wrangler",
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataPreparation",
+                "$$hashKey": "object:510",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "796px",
+                    "top": "343px"
+                }
+            },
+            {
+                "name": "BigQuery2",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BigQuery2",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "dataset": "Wrangler",
+                        "table": "timeupd",
+                        "operation": "insert",
+                        "truncateTable": "false",
+                        "allowSchemaRelaxation": "false",
+                        "location": "US",
+                        "createPartitionedTable": "false",
+                        "partitioningType": "TIME",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"create_date\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"update_date\",\"type\":[{\"type\":\"string\",\"logicalType\":\"datetime\"},\"null\"]},{\"name\":\"time\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"price\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"double\",\"null\"]},{\"name\":\"format_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"diff_date\",\"type\":[\"long\",\"null\"]}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"create_date\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"update_date\",\"type\":[{\"type\":\"string\",\"logicalType\":\"datetime\"},\"null\"]},{\"name\":\"time\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"price\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"double\",\"null\"]},{\"name\":\"format_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"diff_date\",\"type\":[\"long\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"create_date\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"update_date\",\"type\":[{\"type\":\"string\",\"logicalType\":\"datetime\"},\"null\"]},{\"name\":\"time\",\"type\":[{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"},\"null\"]},{\"name\":\"price\",\"type\":[\"string\",\"null\"]},{\"name\":\"id\",\"type\":[\"double\",\"null\"]},{\"name\":\"format_price\",\"type\":[\"string\",\"null\"]},{\"name\":\"diff_date\",\"type\":[\"long\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQuery2",
+                "type": "batchsink",
+                "label": "BigQuery2",
+                "icon": "fa-plug",
+                "$$hashKey": "object:511",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "1096px",
+                    "top": "343px"
+                }
+            }
+        ],
+        "schedule": "0 1 */1 * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "rangeRecordsPreview": {
+            "min": 1,
+            "max": "5000"
+        },
+        "maxConcurrentRuns": 1,
+        "pushdownEnabled": false,
+        "transformationPushdown": {}
+    },
+    "version": "60373737-4e22-11ee-9c01-00000016111e"
+}

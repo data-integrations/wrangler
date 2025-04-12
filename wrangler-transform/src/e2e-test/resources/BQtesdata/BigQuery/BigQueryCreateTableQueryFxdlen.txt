@@ -1,0 +1,1 @@
+create table `DATASET.TABLE_NAME` (Url STRING, fixedlength STRING)

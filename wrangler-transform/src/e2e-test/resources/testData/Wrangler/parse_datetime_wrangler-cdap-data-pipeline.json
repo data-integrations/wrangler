@@ -1,0 +1,167 @@
+{
+    "name": "parse_datetime_wrangler",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "[6.0.0, 7.0.0)",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "BigQueryTable",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "BigQuery2"
+            }
+        ],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": true,
+        "stages": [
+            {
+                "name": "BigQueryTable",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsource",
+                    "label": "BigQueryTable",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "dataset": "Wrangler_Test",
+                        "table": "datetimetab",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timestamp\",\"type\":[\"string\",\"null\"]}]}",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "enableQueryingViews": "false"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timestamp\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQueryTable",
+                "type": "batchsource",
+                "label": "BigQueryTable",
+                "icon": "fa-plug",
+                "$$hashKey": "object:358",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "496px",
+                    "top": "342px"
+                }
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform"
+                    },
+                    "properties": {
+                        "directives": "parse-as-datetime :timestamp \"yyyy-MM-dd'T'HH:mm:ssX'['z']'\"\ncurrent-datetime :create_date\ndatetime-to-timestamp :timestamp\nformat-datetime :create_date 'y'\nformat-date :timestamp yyyy-mm-dd\nrename timestamp timecolumn",
+                        "field": "*",
+                        "precondition": "false",
+                        "workspaceId": "b28b92f3-93bb-4a4f-8258-ef5881543ecb",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "Wrangler",
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataPreparation",
+                "$$hashKey": "object:359",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "796px",
+                    "top": "342px"
+                }
+            },
+            {
+                "name": "BigQuery2",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BigQuery2",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "dataset": "Wrangler",
+                        "table": "ddtab",
+                        "operation": "insert",
+                        "truncateTable": "false",
+                        "allowSchemaRelaxation": "false",
+                        "location": "US",
+                        "createPartitionedTable": "false",
+                        "partitioningType": "TIME",
+                        "timePartitioningType": "DAY",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"type\":\"record\",\"name\":\"outputSchema\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"create_date\",\"type\":[\"string\",\"null\"]},{\"name\":\"timecolumn\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQuery2",
+                "type": "batchsink",
+                "label": "BigQuery2",
+                "icon": "fa-plug",
+                "$$hashKey": "object:360",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "1096px",
+                    "top": "342px"
+                }
+            }
+        ],
+        "schedule": "0 1 */1 * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "rangeRecordsPreview": {
+            "min": 1,
+            "max": "5000"
+        },
+        "maxConcurrentRuns": 1,
+        "pushdownEnabled": false,
+        "transformationPushdown": {}
+    },
+    "version": "a397cf5a-af9f-11ee-bad0-0000007dcfa3"
+}

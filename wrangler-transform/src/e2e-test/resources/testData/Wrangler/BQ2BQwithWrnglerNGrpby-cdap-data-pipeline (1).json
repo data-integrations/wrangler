@@ -1,0 +1,215 @@
+{
+    "name": "BQ2BQwithWrnglerNGrpby",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "[6.0.0, 7.0.0)",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "BigQueryTable",
+                "to": "Wrangler"
+            },
+            {
+                "from": "Wrangler",
+                "to": "Group By"
+            },
+            {
+                "from": "Group By",
+                "to": "BigQuery2"
+            }
+        ],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": true,
+        "stages": [
+            {
+                "name": "BigQueryTable",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsource",
+                    "label": "BigQueryTable",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "dataset": "wrangler_ankit",
+                        "table": "joinerTest",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"streetAddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"long\",\"null\"]},{\"name\":\"phoneNumber\",\"type\":[\"long\",\"null\"]}]}",
+                        "enableQueryingViews": "false",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"streetAddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"long\",\"null\"]},{\"name\":\"phoneNumber\",\"type\":[\"long\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQueryTable",
+                "type": "batchsource",
+                "label": "BigQueryTable",
+                "icon": "fa-plug",
+                "$$hashKey": "object:1585",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "346px",
+                    "top": "343px"
+                }
+            },
+            {
+                "name": "Wrangler",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "Wrangler",
+                    "artifact": {
+                        "name": "wrangler-transform"
+                    },
+                    "properties": {
+                        "directives": "drop phonenumber\nuppercase :firstname\nset-type :zipcode integer \nfind-and-replace :streetAddress s/St./Street/Ig\nset-column :lastname_count string:length(lastname)\nfilter-rows-on regex-match lastname_count .*5.*\nfilter-rows-on condition-true zipcode == null || zipcode =~ \"^\\W*$\"",
+                        "field": "*",
+                        "precondition": "false",
+                        "workspaceId": "fb521d04-7644-4ec4-b545-837980f402cf",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"streetAddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"int\",\"null\"]},{\"name\":\"lastname_count\",\"type\":[\"int\",\"null\"]}]}",
+                        "on-error": "fail-pipeline"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"streetAddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"int\",\"null\"]},{\"name\":\"lastname_count\",\"type\":[\"int\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "BigQueryTable",
+                        "schema": "{\"type\":\"record\",\"name\":\"output\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"streetAddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"long\",\"null\"]},{\"name\":\"phoneNumber\",\"type\":[\"long\",\"null\"]}]}"
+                    }
+                ],
+                "id": "Wrangler",
+                "type": "transform",
+                "label": "Wrangler",
+                "icon": "icon-DataPreparation",
+                "$$hashKey": "object:1586",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "646px",
+                    "top": "343px"
+                }
+            },
+            {
+                "name": "Group By",
+                "plugin": {
+                    "name": "GroupByAggregate",
+                    "type": "batchaggregator",
+                    "label": "Group By",
+                    "artifact": {
+                        "name": "core-plugins"
+                    },
+                    "properties": {
+                        "groupByFields": "city,firstname,lastname,state,zipcode,id",
+                        "aggregates": "cityFirst:First(city)"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"record.typeagg\",\"fields\":[{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"int\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"cityFirst\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Wrangler",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"streetAddress\",\"type\":[\"string\",\"null\"]},{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"int\",\"null\"]},{\"name\":\"lastname_count\",\"type\":[\"int\",\"null\"]}]}"
+                    }
+                ],
+                "id": "Group-By",
+                "type": "batchaggregator",
+                "label": "Group By",
+                "icon": "icon-groupbyaggregate",
+                "$$hashKey": "object:1587",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "946px",
+                    "top": "343px"
+                }
+            },
+            {
+                "name": "BigQuery2",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BigQuery2",
+                    "artifact": {
+                        "name": "google-cloud"
+                    },
+                    "properties": {
+                        "useConnection": "false",
+                        "project": "auto-detect",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "dataset": "wrangler_ankit",
+                        "table": "joinTestOutput",
+                        "operation": "insert",
+                        "truncateTable": "false",
+                        "allowSchemaRelaxation": "false",
+                        "location": "US",
+                        "createPartitionedTable": "false",
+                        "partitioningType": "TIME",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"record.typeagg\",\"fields\":[{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"int\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"cityFirst\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"record.typeagg\",\"fields\":[{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"int\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"cityFirst\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "Group By",
+                        "schema": "{\"type\":\"record\",\"name\":\"record.typeagg\",\"fields\":[{\"name\":\"city\",\"type\":[\"string\",\"null\"]},{\"name\":\"firstname\",\"type\":[\"string\",\"null\"]},{\"name\":\"lastname\",\"type\":[\"string\",\"null\"]},{\"name\":\"state\",\"type\":[\"string\",\"null\"]},{\"name\":\"zipcode\",\"type\":[\"int\",\"null\"]},{\"name\":\"id\",\"type\":[\"string\",\"null\"]},{\"name\":\"cityFirst\",\"type\":[\"string\",\"null\"]}]}"
+                    }
+                ],
+                "id": "BigQuery2",
+                "type": "batchsink",
+                "label": "BigQuery2",
+                "icon": "fa-plug",
+                "$$hashKey": "object:1588",
+                "isPluginAvailable": true,
+                "_uiPosition": {
+                    "left": "1246px",
+                    "top": "343px"
+                }
+            }
+        ],
+        "schedule": "0 1 */1 * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "rangeRecordsPreview": {
+            "min": 1,
+            "max": "5000"
+        },
+        "description": "Data Pipeline Application",
+        "maxConcurrentRuns": 1,
+        "pushdownEnabled": false,
+        "transformationPushdown": {}
+    },
+    "version": "714034ca-5154-11ee-9b22-000000505066"
+}
