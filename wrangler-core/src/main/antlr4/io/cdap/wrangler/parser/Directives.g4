@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -31,8 +31,8 @@ options {
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -140,7 +142,20 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
+ ;
+
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
  ;
 
 ecommand
@@ -257,6 +272,32 @@ Number
  : Int ('.' Digit*)?
  ;
 
+BYTE_SIZE
+ : DECIMAL BYTE_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : 'B'
+ | 'KB'
+ | 'MB'
+ | 'GB'
+ | 'TB'
+ | 'PB'
+ ;
+
+TIME_DURATION
+ : DECIMAL TIME_UNIT
+ ;
+
+fragment TIME_UNIT
+ : 'ns'
+ | 'ms'
+ | 's'
+ | 'm'
+ | 'h'
+ | 'd'
+ ;
+
 Identifier
  : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
  ;
@@ -311,3 +352,9 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+// Byte size and time duration fragments and rules
+fragment BYTE_UNIT : ('B'|'KB'|'MB'|'GB'|'TB'|'PB');
+fragment TIME_UNIT : ('ns'|'ms'|'s'|'m'|'h'|'d');
+fragment DIGIT : [0-9];
+fragment DECIMAL : DIGIT+ ('.' DIGIT+)?;
