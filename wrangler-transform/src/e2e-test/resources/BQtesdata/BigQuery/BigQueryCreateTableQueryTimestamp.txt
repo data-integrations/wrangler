@@ -1,1 +1,0 @@
-create table `DATASET.TABLE_NAME` (create_date STRING, update_date STRING, time BIGINT, price STRING)
