@@ -332,6 +332,16 @@ fragment Int
  | '0'
  ;
 
+value
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
+ ;
+
+
 fragment Digit
  : [0-9]
  ;
