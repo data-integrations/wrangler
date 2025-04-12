@@ -68,6 +68,12 @@
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+  <groupId>your.group.id</groupId>
+  <artifactId>wrangler-api</artifactId>
+  <version>4.12.0-SNAPSHOT</version> <!-- or the specific version -->
+</dependency>
+
 
     <!-- Test -->
 
@@ -201,6 +207,7 @@
       <artifactId>reflections</artifactId>
       <version>${reflections.version}</version>
     </dependency>
+    
 
     <!-- Apache -->
 
