@@ -22,5 +22,6 @@ package io.cdap.wrangler.api;
  */
 public enum TransientVariableScope {
   LOCAL,
-  GLOBAL
+  GLOBAL,
+  DIRECTIVE
 }
