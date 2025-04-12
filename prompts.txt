@@ -1,0 +1,12 @@
+# Prompts Used for this Project
+
+1. "Implement ByteSize class for parsing byte sizes (B, KB, MB, GB) in the CDAP Wrangler project"
+2. "Create TimeDuration class for parsing time durations (ns, ms, s, h, d) with unit conversion"
+3. "Update TokenType enum to include BYTE_SIZE and TIME_DURATION token types"
+4. "Modify Directives.g4 grammar to recognize byte size and time duration tokens"
+5. "Add AggregateStats directive for aggregating byte sizes and time durations"
+6. "Create unit tests for ByteSize and TimeDuration classes"
+7. "Implement comprehensive tests for different units and conversions"
+8. "Add support for whitespace handling in size and duration parsing"
+9. "Create proper error handling for invalid formats in ByteSize and TimeDuration"
+10. "Document the usage of ByteSize and TimeDuration classes with examples"
