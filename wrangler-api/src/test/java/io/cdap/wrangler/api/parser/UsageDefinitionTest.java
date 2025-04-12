@@ -140,5 +140,11 @@ public class UsageDefinitionTest {
 
     Assert.assertTrue(true);
   }
+    public enum TokenType {
+  // existing types
+  BYTE_SIZE,
+  TIME_DURATION
+}
+
 
 }
