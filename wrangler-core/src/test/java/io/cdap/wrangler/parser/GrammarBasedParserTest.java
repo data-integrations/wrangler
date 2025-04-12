@@ -21,10 +21,14 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
+import org.apache.xbean.recipe.Recipe;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests {@link GrammarBasedParser}
@@ -44,7 +48,7 @@ public class GrammarBasedParserTest {
 
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
-    Assert.assertEquals(2, directives.size());
+    assertEquals(2, directives.size());
   }
 
   @Test
@@ -61,7 +65,7 @@ public class GrammarBasedParserTest {
 
     Compiler compiler = new RecipeCompiler();
     CompileStatus status = compiler.compile(new MigrateToV2(recipe).migrate());
-    Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
+    assertEquals(7, status.getSymbols().getLoadableDirectives().size());
   }
 
   @Test
@@ -72,7 +76,18 @@ public class GrammarBasedParserTest {
 
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
-    Assert.assertEquals(0, directives.size());
+    assertEquals(0, directives.size());
+  }
+  @Test
+  public void testAggregateDirectiveParsingValid() throws Exception {
+    Recipe recipe = RecipeCompiler.compile("aggregate-size-time bytes time total_bytes total_time MB seconds total");
+    assertNotNull(recipe);
+    assertEquals("aggregate-size-time", recipe.create().get(0).name());
+  }
+
+  @Test(expected = DirectiveParseException.class)
+  public void testAggregateDirectiveParsingInvalid() throws Exception {
+    RecipeCompiler.compile("aggregate-size-time bytes time"); // Missing required args
   }
 
 }
