@@ -26,6 +26,74 @@ import java.util.List;
 /**
  * Tests {@link UsageDefinition}
  */
+
+public class ByteSize extends Token {
+    private final double valueInBytes;
+
+    public ByteSize(String value) {
+        super(value);
+        this.valueInBytes = parseBytes(value.trim().toUpperCase());
+    }
+
+    private double parseBytes(String str) {
+        double multiplier;
+        if (str.endsWith("KB")) {
+            multiplier = 1024;
+            str = str.replace("KB", "");
+        } else if (str.endsWith("MB")) {
+            multiplier = 1024 * 1024;
+            str = str.replace("MB", "");
+        } else if (str.endsWith("GB")) {
+            multiplier = 1024 * 1024 * 1024;
+            str = str.replace("GB", "");
+        } else if (str.endsWith("B")) {
+            multiplier = 1;
+            str = str.replace("B", "");
+        } else {
+            throw new IllegalArgumentException("Invalid byte size: " + str);
+        }
+        return Double.parseDouble(str) * multiplier;
+    }
+
+    public long getBytes() {
+        return (long) valueInBytes;
+    }
+}
+
+public class TimeDuration extends Token {
+    private final double valueInMillis;
+
+    public TimeDuration(String value) {
+        super(value);
+        this.valueInMillis = parseMillis(value.trim().toLowerCase());
+    }
+
+    private double parseMillis(String str) {
+        double multiplier;
+        if (str.endsWith("ms")) {
+            multiplier = 1;
+            str = str.replace("ms", "");
+        } else if (str.endsWith("s")) {
+            multiplier = 1000;
+            str = str.replace("s", "");
+        } else if (str.endsWith("m")) {
+            multiplier = 60 * 1000;
+            str = str.replace("m", "");
+        } else if (str.endsWith("h")) {
+            multiplier = 60 * 60 * 1000;
+            str = str.replace("h", "");
+        } else {
+            throw new IllegalArgumentException("Invalid time duration: " + str);
+        }
+        return Double.parseDouble(str) * multiplier;
+    }
+
+    public long getMillis() {
+        return (long) valueInMillis;
+    }
+}
+
+
 public class UsageDefinitionTest {
 
   @Test
