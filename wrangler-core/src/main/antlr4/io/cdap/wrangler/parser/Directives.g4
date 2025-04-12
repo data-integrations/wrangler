@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -248,66 +248,56 @@ Dollar   : '$';
 Tilde    : '~';
 
 
+// Fragments used by Lexer Rules below
+fragment LETTER : [a-zA-Z] ;
+fragment DIGIT : [0-9] ;
+fragment EXPONENT : ('e'|'E') ('+'|'-')? DIGIT+ ;
+fragment NUMBER_FRAGMENT
+    : DIGIT+ ( '.' DIGIT* EXPONENT? | EXPONENT )? // Match numbers like 1.23, 1e-5, 1., 123
+    | '.' DIGIT+ EXPONENT? // Match numbers like .45
+    ;
+fragment BYTE_UNIT : ([kK] | [mM] | [gG] | [tT] | [pP]) [bB]? ;
+fragment TIME_UNIT : ([nN][sS]) | ([uUμ][sS]) | ([mM][sS]) | [sS] | [mM] | [hH] | [dD] ; // ns, us, ms, s, m, h, d
+fragment MacroStart: '$' '{' ;
+fragment MacroStop: '}' ;
+
+
+// Lexer Rules
 Bool
- : 'true'
- | 'false'
- ;
+  : ('true'|'false'|'TRUE'|'FALSE')
+  ;
 
 Number
- : Int ('.' Digit*)?
- ;
+    : NUMBER_FRAGMENT
+    ;
 
-Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
- ;
+BYTE_SIZE
+    : NUMBER_FRAGMENT BYTE_UNIT
+    ;
 
-Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
- ;
+TIME_DURATION
+    : NUMBER_FRAGMENT TIME_UNIT
+    ;
 
-Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
- ;
+// Needs to be before Identifier if Identifier is also allowed as column name
+Column : '`' ( ~'`' | '``' )* '`' | Identifier;
+Macro: MacroStart MacroStop;
 
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
+  : '\'' ( ~'\'' | '\'\'' )* '\''
+  | '"' ( ~'"' | '\"\"' )* '"'
+  ;
+
+// Should be last, after potentially overlapping tokens like Number, BYTE_SIZE, TIME_DURATION, Column
+Identifier
+ : (LETTER | '_') (LETTER | DIGIT | '_' | '-' | '.' | '/' | ':' | '\\' | '$')*
  ;
 
-EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
-   |   UnicodeEscape
-   |   OctalEscape
-   ;
-
-fragment
-OctalEscape
-   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7')
-   ;
-
-fragment
-UnicodeEscape
-   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
-   ;
-
-fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
-
+// Hidden Channel Tokens
 Comment
- : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
+ : '//' ~('\n'|'\r')* -> channel(HIDDEN)
  ;
 
 Space
- : [ \t\r\n\u000C]+ -> skip
- ;
-
-fragment Int
- : '-'? [1-9] Digit* [L]*
- | '0'
- ;
-
-fragment Digit
- : [0-9]
+ : ( ' ' | '\t' | '\n' | '\r' )+ -> channel(HIDDEN)
  ;
