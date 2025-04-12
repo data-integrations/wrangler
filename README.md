@@ -20,6 +20,16 @@ are manually created.
 
 ## New Features
 
+### ✅ Byte Size & Time Duration Parsing
+
+Wrangler now supports parsing and aggregating **Byte Size** (e.g., `KB`, `MB`) and **Time Duration** (e.g., `ms`, `s`) units via the `aggregate-stats` directive.
+
+#### 🧪 To Test:
+```bash
+cd wrangler-api
+mvn test -Dtest=AggregateStatsDirectiveTest
+```
+
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
