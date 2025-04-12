@@ -1,0 +1,8 @@
+prompts used in Zeotap assignment
+
+1. Requested guidance to implement a new aggregate directive in the Wrangler framework (wrangler-core module) for byte size and time duration aggregation.
+2. Asked for explanation of ExecutorContext and TransientStore and whether the provided Java class (AggregateStats.java) was final.
+3. Reported a series of Java compilation errors related to method signatures and requested help fixing them:
+   - Incorrect usage of `get` method in TransientStore with scope and key.
+   - Attempted use of nonexistent `remove` method in TransientStore.
+4. Asked to generate a text file summarizing all user prompts from the conversation without showing code or outputs.
