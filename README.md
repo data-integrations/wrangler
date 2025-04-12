@@ -216,3 +216,13 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+
+### Regenerating Grammar Code after Grammar Modifications
+
+If you make changes to `Directives.g4` (such as adding new lexer/parser rules like `BYTE_SIZE` or `TIME_DURATION`), you must regenerate the ANTLR Java classes.
+
+To do this, run:
+
+```bash
+mvn clean compile

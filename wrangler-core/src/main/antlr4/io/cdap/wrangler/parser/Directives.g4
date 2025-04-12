@@ -311,3 +311,18 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+
+// Lexer rules
+// BYTE SIZE TOKEN: e.g., 10MB, 500kb
+BYTE_SIZE: DIGITS BYTE_UNIT;
+
+// TIME DURATION TOKEN: e.g., 5s, 3min
+TIME_DURATION: DIGITS TIME_UNIT;
+
+// Helper fragments
+fragment BYTE_UNIT: ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'kb' | 'mb' | 'gb' | 'tb');
+fragment TIME_UNIT: ('ms' | 's' | 'sec' | 'm' | 'min' | 'h' | 'd');
+
+// DIGITS already exists, but just in case:
+fragment DIGITS: [0-9]+;
