@@ -28,28 +28,18 @@ This enhancement introduces native support for byte size and time duration units
    - A new directive called `aggregate-stats` has been added to allow aggregation of byte sizes and time durations across rows, including unit conversions (e.g., converting total bytes to MB or total time to seconds).
    - This directive supports various aggregation types such as total, average, median, p95, and p99.
 
-### Example Usage: `aggregate-stats`
-This directive allows users to aggregate data across two columns: one for byte sizes and one for time durations. Here's an example of how to use the new directive:
+###Installation and Build
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-handle/wrangler.git
+   cd wrangler
+   ```
+2. **Build the project using Maveny**:
+   ```bash
+   mvn clean install
+   ```
+3. **CAfter building, run tests to verify the correctness of your modifications**:
+   ```bash
+   mvn test "-DfailIfNoTests=false" "-Dcheckstyle.skip=true" "-Dtest=ByteSizeTest,TimeDurationTest,GrammarBasedParserTest"
+   ```
 
-```java
-String[] recipe = new String[] {
-    // Aggregate size (output MB), total time (output seconds)
-    "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec"
-};
-Installation and Build
-Clone the repository:
-
-bash
-Copy code
-git clone https://github.com/your-handle/wrangler.git
-cd wrangler
-Build the project using Maven:
-
-bash
-Copy code
-mvn clean install
-After building, run tests to verify the correctness of your modifications:
-
-bash
-Copy code
-mvn test
