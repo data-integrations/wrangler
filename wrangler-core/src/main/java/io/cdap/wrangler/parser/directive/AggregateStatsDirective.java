@@ -60,22 +60,39 @@ public class AggregateStatsDirective implements Directive {
     }
 
     // Perform the aggregation operation
-    if ("sum".equalsIgnoreCase(aggregationOperation)) {
-      totalSize = sizeValues.stream().mapToLong(Long::longValue).sum();
-      totalTime = timeValues.stream().mapToLong(Long::longValue).sum();
-    } else if ("average".equalsIgnoreCase(aggregationOperation)) {
-      totalSize = (long) sizeValues.stream().mapToLong(Long::longValue).average().orElse(0);
-      totalTime = (long) timeValues.stream().mapToLong(Long::longValue).average().orElse(0);
-    } else if ("median".equalsIgnoreCase(aggregationOperation)) {
-      totalSize = calculateMedian(sizeValues);
-      totalTime = calculateMedian(timeValues);
+    switch (aggregationOperation.toLowerCase()) {
+      case "sum":
+        totalSize = sizeValues.stream().mapToLong(Long::longValue).sum();
+        totalTime = timeValues.stream().mapToLong(Long::longValue).sum();
+        break;
+      case "average":
+        totalSize = (long) sizeValues.stream().mapToLong(Long::longValue).average().orElse(0);
+        totalTime = (long) timeValues.stream().mapToLong(Long::longValue).average().orElse(0);
+        break;
+      case "median":
+        totalSize = calculateMedian(sizeValues);
+        totalTime = calculateMedian(timeValues);
+        break;
+      case "p95":
+        totalSize = calculatePercentile(sizeValues, 95);
+        totalTime = calculatePercentile(timeValues, 95);
+        break;
+      case "p99":
+        totalSize = calculatePercentile(sizeValues, 99);
+        totalTime = calculatePercentile(timeValues, 99);
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid aggregation operation: " + aggregationOperation);
     }
-    // Add more operations like p95, p99 if necessary
+
+    // Convert size to MB and time to seconds
+    double totalSizeMB = convertBytesToMB(totalSize);
+    double totalTimeSec = convertNanosToSeconds(totalTime);
 
     // Create a new row with the aggregated values
     Row newRow = new Row();
-    newRow.add(targetSizeColumn, totalSize);
-    newRow.add(targetTimeColumn, totalTime);
+    newRow.add(targetSizeColumn, totalSizeMB);
+    newRow.add(targetTimeColumn, totalTimeSec);
     return List.of(newRow);
   }
 
@@ -92,6 +109,24 @@ public class AggregateStatsDirective implements Directive {
     }
   }
 
+  private long calculatePercentile(List<Long> values, double percentile) {
+    if (values.isEmpty()) {
+      return 0;
+    }
+    Collections.sort(values);
+    int index = (int) Math.ceil(percentile / 100 * values.size()) - 1;
+    return values.get(index);
+  }
+
+  private double convertBytesToMB(long bytes) {
+    // Assuming 1 MB = 1024 * 1024 bytes (1024-based conversion)
+    return bytes / (1024.0 * 1024);
+  }
+
+  private double convertNanosToSeconds(long nanos) {
+    return nanos / 1_000_000_000.0;  // Convert nanoseconds to seconds
+  }
+
   @Override
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder("aggregate-stats");
@@ -99,6 +134,7 @@ public class AggregateStatsDirective implements Directive {
     builder.define("source_time", TokenType.COLUMN_NAME);
     builder.define("target_size", TokenType.COLUMN_NAME);
     builder.define("target_time", TokenType.COLUMN_NAME);
+    builder.define("operation", TokenType.TEXT);  // Define the operation (sum, average, etc.)
     return builder.build();
   }
 }
