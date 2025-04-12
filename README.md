@@ -216,3 +216,47 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+## Byte Size and Time Duration Parsers
+
+The Wrangler library now supports parsing byte sizes and time durations with units.
+
+### Byte Size Format
+
+Supported formats:
+- `B` or `b` - bytes
+- `K`, `KB` or `kb` - kilobytes (1024 bytes)
+- `M`, `MB` or `mb` - megabytes (1024 * 1024 bytes)
+- `G`, `GB` or `gb` - gigabytes (1024^3 bytes)
+- `T`, `TB` or `tb` - terabytes (1024^4 bytes)
+- `P`, `PB` or `pb` - petabytes (1024^5 bytes)
+
+Examples:
+- `1B` - 1 byte
+- `1KB` - 1024 bytes
+- `1.5MB` - 1572864 bytes
+- `1 GB` - 1073741824 bytes
+
+### Time Duration Format
+
+Supported formats:
+- `ns`, `nano`, `nanos`, `nanoseconds` - nanoseconds
+- `us`, `micro`, `micros`, `microseconds` - microseconds
+- `ms`, `milli`, `millis`, `milliseconds` - milliseconds
+- `s`, `sec`, `secs`, `second`, `seconds` - seconds
+- `m`, `min`, `mins`, `minute`, `minutes` - minutes
+- `h`, `hour`, `hours` - hours
+- `d`, `day`, `days` - days
+
+Examples:
+- `1ns` - 1 nanosecond
+- `1ms` - 1 millisecond
+- `1s` - 1 second
+- `1.5m` - 90 seconds
+- `1 hour` - 3600 seconds
+
+### Aggregate Stats Directive
+
+The new `aggregate-stats` directive calculates aggregate statistics for columns containing byte sizes and time durations.
+
+
