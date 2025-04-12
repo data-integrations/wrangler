@@ -64,9 +64,17 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
+byteSize
+ : BYTE_SIZE
+ ;
 
+timeDuration
+ : TIME_DURATION
+ ;
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
   ;
@@ -140,7 +148,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE  | TIME_DURATION
  ;
 
 ecommand
@@ -261,6 +269,8 @@ Identifier
  : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
  ;
 
+
+
 Macro
  : [a-zA-Z_] [a-zA-Z_0-9]*
  ;
@@ -279,6 +289,15 @@ EscapeSequence
    |   UnicodeEscape
    |   OctalEscape
    ;
+
+BYTE_SIZE
+  : [0-9]+ ('.' [0-9]+)? ( 'B' | 'KB' | 'MB' | 'GB' | 'TB' )
+  ;
+
+TIME_DURATION
+  : [0-9]+ ('.' [0-9]+)? ( 'ms' | 's' | 'm' | 'h' | 'd' )
+  ;
+
 
 fragment
 OctalEscape
