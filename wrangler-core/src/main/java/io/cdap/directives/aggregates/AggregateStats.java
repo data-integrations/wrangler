@@ -40,10 +40,10 @@ import java.util.List;
  * Directive to aggregate byte size and time duration fields.
  */
 @Plugin(type = Directive.TYPE)
-@Name("aggregate-byte-time")
+@Name("aggregate-stats")
 @Categories(categories = {"aggregates"})
 @Description("Aggregates total byte size and total or average time duration across rows.")
-public class AggregateByteTime implements Directive {
+public class AggregateStats implements Directive {
     private static final String TOTAL = "total";
     private static final String AVERAGE = "average";
 
@@ -61,7 +61,7 @@ public class AggregateByteTime implements Directive {
 
     @Override
     public UsageDefinition define() {
-        UsageDefinition.Builder builder = UsageDefinition.builder("aggregate-byte-time");
+        UsageDefinition.Builder builder = UsageDefinition.builder("aggregate-stats");
         builder.define("size_column", TokenType.COLUMN_NAME);
         builder.define("time_column", TokenType.COLUMN_NAME);
         builder.define("target_size_column", TokenType.COLUMN_NAME);
@@ -92,11 +92,30 @@ public class AggregateByteTime implements Directive {
 
     @Override
     public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+
         List<Row> result = new ArrayList<>();
 
         for (Row row : rows) {
             Object byteVal = row.getValue(sizeColumn);
             Object timeVal = row.getValue(timeColumn);
+
+            // If values are strings, try to parse them into ByteSize and TimeDuration objects.
+            if (byteVal instanceof String) {
+                try {
+                    byteVal = new ByteSize((String) byteVal);
+                } catch (IllegalArgumentException e) {
+                    throw new DirectiveExecutionException("Failed to parse ByteSize from string: " + byteVal, e);
+                }
+            }
+
+            if (timeVal instanceof String) {
+                try {
+                    timeVal = new TimeDuration((String) timeVal);
+                } catch (IllegalArgumentException e) {
+                    throw new DirectiveExecutionException("Failed to parse TimeDuration from string: " + timeVal, e);
+                }
+            }
+
 
             if (byteVal instanceof ByteSize && timeVal instanceof TimeDuration) {
                 totalBytes += ((ByteSize) byteVal).getBytes();
@@ -108,12 +127,12 @@ public class AggregateByteTime implements Directive {
                                 byteVal.getClass().getSimpleName(),
                                 timeVal.getClass().getSimpleName()));
             }
+//            System.out.println("After Row"+rowCount+": "+row+" Byte Size: "+byteVal+" Byte Time: "+timeVal);
         }
 
         long finalBytes = convertBytes(totalBytes, outputSizeUnit);
         long finalTime =
                 convertTime(aggregationType.equals(AVERAGE) ? totalTime / rowCount : totalTime, outputTimeUnit);
-
         Row output = new Row();
         output.add(sizeTargetColumn, finalBytes);
         output.add(timeTargetColumn, finalTime);
@@ -121,6 +140,8 @@ public class AggregateByteTime implements Directive {
 
         return result;
     }
+
+
 
     @Override
     public void destroy() {

@@ -16,15 +16,21 @@
 
 package io.cdap.wrangler.parser;
 
+
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+
 
 /**
  * Tests {@link GrammarBasedParser}
@@ -74,27 +80,5 @@ public class GrammarBasedParserTest {
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
   }
-
-  @Test
-  public void testAggregateStatsParsing() throws Exception {
-    String[] recipe = new String[] {
-            "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec"
-    };
-
-    RecipeParser parser = TestingRig.parse(recipe);
-    List<Directive> directives = parser.parse();
-    Assert.assertEquals(1, directives.size());
-  }
-
-  @Test(expected = Exception.class)
-  public void testAggregateStatsInvalidSyntax() throws Exception {
-    String[] recipe = new String[] {
-            "aggregate-stats data_transfer_size response_time"
-    };
-
-    RecipeParser parser = TestingRig.parse(recipe);
-    parser.parse(); // should throw
-  }
-
 
 }

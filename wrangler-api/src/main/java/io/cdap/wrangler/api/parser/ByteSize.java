@@ -54,7 +54,10 @@ public class ByteSize implements Token {
      */
     public ByteSize(String token) {
         token = token.trim().toUpperCase();
-        this.unit = token.replaceAll("[0-9.]", "");
+        // Extract unit by removing digits and dots.
+        String extractedUnit = token.replaceAll("[0-9.]", "");
+        // If no unit is provided, default to "B"
+        this.unit = extractedUnit.isEmpty() ? "B" : extractedUnit;
 
         if (!VALID_UNITS.contains(unit)) {
             throw new IllegalArgumentException("Invalid byte size unit: " + unit);

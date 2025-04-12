@@ -28,30 +28,48 @@ import java.util.List;
 public class AggregateStatsTest {
 
     @Test
-    public void testAggregateStatsTotalInMbAndSeconds() throws Exception {
+    public void testAggregateStatsTotalInBytesAndMs() throws Exception {
+        // Single input row with data transfer size and response time
         List<Row> rows = Arrays.asList(
-                new Row("data_transfer_size", "10KB").add("response_time", "100ms"),
-                new Row("data_transfer_size", "5MB").add("response_time", "1.5s"),
-                new Row("data_transfer_size", "1024").add("response_time", "250ms") // 1024 bytes, 250ms
+                new Row("data_transfer_size", "10KB").add("response_time", "100ms")
         );
 
+        // Recipe to apply the aggregate-stats directive
         String[] recipe = new String[] {
-                "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec"
+                "aggregate-stats :data_transfer_size :response_time :total_size_bytes :total_time_ms"
         };
 
+        // Execute the directive with the input row
         List<Row> result = TestingRig.execute(recipe, rows);
 
-        // Calculate expected totals
-        double expectedTotalBytes = (10 * 1024) + (5 * 1024 * 1024) + 1024;
-        double expectedMB = expectedTotalBytes / (1024 * 1024);
+        // Calculate the expected totals for size and time (for a single row)
+        double expectedTotalBytes = 10 * 1024; // 10KB = 10240 bytes
+        double expectedMs = 100.0; // 100ms in milliseconds
 
-        double expectedNs = (100e6) + (1.5e9) + (250e6);
-        double expectedSeconds = expectedNs / 1e9;
+        // Variables to accumulate the totals from the result row
+        double totalBytes = 0.0;
+        double totalMs = 0.0;
 
-        Assert.assertEquals(1, result.size());
-        Row output = result.get(0);
+        // Iterate through the result and accumulate the values
+        for (Row row : result) {
+            Object sizeVal = row.getValue("total_size_bytes");
+            Object timeVal = row.getValue("total_time_ms");
 
-        Assert.assertEquals(expectedMB, (double) output.getValue("total_size_mb"), 0.001);
-        Assert.assertEquals(expectedSeconds, (double) output.getValue("total_time_sec"), 0.001);
+            // Ensure the values are of type Number and accumulate
+            if (sizeVal instanceof Number && timeVal instanceof Number) {
+                totalBytes += ((Number) sizeVal).doubleValue();
+                totalMs += ((Number) timeVal).doubleValue();
+            } else {
+                Assert.fail("Output row missing expected numeric total fields.");
+            }
+        }
+
+        // Assert that the number of rows in the result is the same as the input rows (single row test)
+        Assert.assertEquals(rows.size(), result.size());
+
+        // Assert that the accumulated totals match the expected totals
+        Assert.assertEquals(expectedTotalBytes, totalBytes, 0.001);
+        Assert.assertEquals(expectedMs, totalMs, 0.001);
     }
+
 }

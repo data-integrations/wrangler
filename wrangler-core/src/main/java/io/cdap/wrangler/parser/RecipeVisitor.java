@@ -332,7 +332,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
 
-
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
     int b = ctx.getStop().getStopIndex();
