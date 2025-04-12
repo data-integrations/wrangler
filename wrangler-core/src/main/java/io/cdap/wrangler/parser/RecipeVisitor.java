@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +34,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -164,10 +166,10 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
         text = text.substring(1, text.length() - 1);
       }
       Triplet<Numeric, Numeric, String> val =
-        new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
-                      new Numeric(new LazyNumber(numbers.get(1).getText())),
-                      text
-        );
+          new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
+              new Numeric(new LazyNumber(numbers.get(1).getText())),
+              text
+          );
       output.add(val);
     }
     builder.addToken(new Ranges(output));
@@ -315,6 +317,23 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     }
     builder.addToken(new TextList(strs));
     return builder;
+  }
+
+  @Override
+  public Token visitByteSizeArg(ByteSizeArgContext ctx) {
+    String value = ctx.getText();
+    ByteSize byteSize = new ByteSize(value);
+    return byteSize;
+  }
+
+  /**
+   * Method to visit a timeDuration argument rule and convert it to a TimeDuration token.
+   */
+  @Override
+  public Token visitTimeDurationArg(TimeDurationArgContext ctx) {
+    String value = ctx.getText();
+    TimeDuration timeDuration = new TimeDuration(value);
+    return timeDuration;
   }
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {

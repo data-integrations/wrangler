@@ -112,7 +112,7 @@ public final class Row implements Serializable {
     if (col != null && !col.isEmpty()) {
       int idx = find(col);
       if (idx != -1) {
-        return values.get(idx);
+        return (long) values.get(idx);
       }
     }
     return null;

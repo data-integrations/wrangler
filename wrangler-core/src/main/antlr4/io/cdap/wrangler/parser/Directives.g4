@@ -139,8 +139,16 @@ numberRange
  : Number ':' Number '=' value
  ;
 
+ BYTE_SIZE
+   : [0-9]+ ('KB'|'MB'|'GB'|'TB'|'B')
+   ;
+
+ TIME_DURATION
+   : [0-9]+ ('ms'|'s'|'m')
+   ;
+
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand

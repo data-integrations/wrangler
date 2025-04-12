@@ -24,8 +24,8 @@ import java.math.BigDecimal;
 public final class LazyNumber extends Number {
   private final String value;
 
-  public LazyNumber(String value) {
-    this.value = value;
+  public LazyNumber(long value) {
+    this.value = String.valueOf(value);
   }
 
   /**
