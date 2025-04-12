@@ -175,6 +175,78 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
+## Byte Size and Time Duration Parsers
+
+Wrangler now supports parsing and handling byte sizes and time durations with units. These can be used in various directives and expressions.
+
+### Byte Size Units
+
+Byte sizes can be specified with the following units:
+- `B` - Bytes
+- `KB` - Kilobytes (1024 bytes)
+- `MB` - Megabytes (1024 * 1024 bytes)
+- `GB` - Gigabytes (1024 * 1024 * 1024 bytes)
+
+Examples:
+```
+10B
+1.5KB
+2MB
+3.7GB
+```
+
+### Time Duration Units
+
+Time durations can be specified with the following units:
+- `ms` - Milliseconds
+- `s` - Seconds
+- `m` - Minutes
+- `h` - Hours
+
+Examples:
+```
+100ms
+5s
+2m
+1.5h
+```
+
+### Aggregate Stats Directive
+
+The `aggregate-stats` directive allows you to aggregate byte sizes and time durations from multiple rows into a single row with totals.
+
+Usage:
+```
+aggregate-stats :size_column :time_column :total_size_column :total_time_column
+```
+
+Arguments:
+- `size_column` - Column containing byte size values
+- `time_column` - Column containing time duration values
+- `total_size_column` - Column to store total size in bytes
+- `total_time_column` - Column to store total time in milliseconds
+
+Example:
+```
+# Input rows:
+data_size    response_time
+10KB         100ms
+1.5MB        2s
+2GB          5m
+
+# Recipe:
+aggregate-stats :data_size :response_time :total_size :total_time
+
+# Output row:
+total_size    total_time
+2149065735    302100
+```
+
+The directive:
+1. Parses each byte size and time duration value
+2. Converts them to canonical units (bytes and milliseconds)
+3. Aggregates the values
+4. Outputs a single row with the totals
 
 ## Contact
 
