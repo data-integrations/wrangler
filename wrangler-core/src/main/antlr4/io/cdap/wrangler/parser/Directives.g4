@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -165,6 +167,14 @@ number
 
 bool
  : Bool
+ ;
+
+ byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
  ;
 
 condition
@@ -272,6 +282,22 @@ Column
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
  | '"'  ( EscapeSequence | ~('"') )* '"'
+ ;
+
+ BYTE_SIZE
+ : [0-9]+('.'[0-9]+)? BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : [0-9]+('.'[0-9]+)? TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB')
+ ;
+
+fragment TIME_UNIT
+ : ('ns' | 'us' | 'ms' | 's' | 'm' | 'h' | 'd')
  ;
 
 EscapeSequence
