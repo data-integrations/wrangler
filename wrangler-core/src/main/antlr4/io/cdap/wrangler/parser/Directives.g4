@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize //added
+    | timeDuration //added
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | byteSize | timeDuration
  ;
 
 ecommand
@@ -195,6 +197,14 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+//added parser rules
+byteSize
+ : BYTE_SIZE
+ ;
+
+timeDuration
+ : TIME_DURATION
+ ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -247,6 +257,15 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+// added lexar rule
+BYTE_SIZE
+ : Int ('.' Digit*)? BYTE_UNIT
+ ;
+
+// added lexar rule
+TIME_DURATION
+ : Int ('.' Digit*)? TIME_UNIT
+ ;
 
 Bool
  : 'true'
@@ -310,4 +329,23 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+//added helper fragments
+fragment BYTE_UNIT
+ : ('B'|'b') // Bytes
+ | ('KB'|'kb'|'kB'|'Kb') // Kilobytes
+ | ('MB'|'mb'|'mB'|'Mb') // Megabytes 
+ | ('GB'|'gb'|'gB'|'Gb') // Gigabytes
+ | ('TB'|'tb'|'tB'|'Tb') // Terabytes
+ ;
+
+fragment TIME_UNIT
+ : ('ns'|'NS') // Nanoseconds
+ | ('us'|'US'|'µs'|'µS') // Microseconds
+ | ('ms'|'MS') // Milliseconds
+ | ('s'|'S') // Seconds
+ | ('m'|'M') // Minutes
+ | ('h'|'H') // Hours
+ | ('d'|'D') // Days
  ;
