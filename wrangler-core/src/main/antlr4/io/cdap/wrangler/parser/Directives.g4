@@ -170,6 +170,14 @@ config
 column
  : Column
  ;
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
+
 
 text
  : String
