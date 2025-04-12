@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -40,8 +40,6 @@
   * @see Expression
   * @see Text
   * @see TextList
-  * @see ByteSize
-  * @see TimeDuration
   */
  @PublicEvolving
  public enum TokenType implements Serializable {
@@ -81,7 +79,7 @@
    /**
     * Represents the enumerated type for the object of type {@code BoolList} type.
     * This type is associated with the rule that is a collection of {@code Boolean} values
-    * separated by comman(,). E.g.
+    * separated by comma (,). E.g.
     * <code>
     *   ColumnName[,ColumnName]*
     * </code>
@@ -90,7 +88,7 @@
  
    /**
     * Represents the enumerated type for the object of type {@code TextList} type.
-    * This type is associated with the comma separated text represented were each text
+    * This type is associated with the comma separated text represented where each text
     * is enclosed within a single quote (') or double quote (") and each text is separated
     * by comma (,). E.g.
     * <code>
@@ -102,18 +100,17 @@
    /**
     * Represents the enumerated type for the object of type {@code NumericList} type.
     * This type is associated with the collection of {@code Numeric} values separated by
-    * comma(,). E.g.
+    * comma (,). E.g.
     * <code>
     *   Numeric[,Numeric]*
     * </code>
-    *
     */
    NUMERIC_LIST,
  
    /**
     * Represents the enumerated type for the object of type {@code BoolList} type.
     * This type is associated with the collection of {@code Bool} values separated by
-    * comma(,). E.g.
+    * comma (,). E.g.
     * <code>
     *   Boolean[,Boolean]*
     * </code>
@@ -133,16 +130,16 @@
    /**
     * Represents the enumerated type for the object of type {@code Properties} type.
     * This type is associated with a collection of key and value pairs all separated
-    * by a comma(,). E.g.
+    * by a comma (,). E.g.
     * <code>
-    *   prop:{ <key>=<value>[,<key>=<value>]*}
+    *   prop:{ <key>=<value>[,<key>=<value>]* }
     * </code>
     */
    PROPERTIES,
  
    /**
     * Represents the enumerated type for the object of type {@code Ranges} types.
-    * This type is associated with a collection of range represented in the form shown
+    * This type is associated with a collection of ranges represented in the form shown
     * below
     * <code>
     *   <start>:<end>=value[,<start>:<end>=value]*
@@ -157,14 +154,14 @@
    IDENTIFIER,
  
    /**
-    * Represents the enumerated type for the object of type {@code ByteSize}.
-    * This type is associated with byte size values like "10KB", "1.5MB", etc.
+    * Represents the enumerated type for the object of type {@code ByteSize} type.
+    * This type is associated with size strings like 10KB, 20MB, etc.
     */
    BYTE_SIZE,
  
    /**
-    * Represents the enumerated type for the object of type {@code TimeDuration}.
-    * This type is associated with time duration values like "100ms", "2.5s", etc.
+    * Represents the enumerated type for the object of type {@code TimeDuration} type.
+    * This type is associated with time strings like 2s, 100ms, 1h, etc.
     */
    TIME_DURATION
  }
