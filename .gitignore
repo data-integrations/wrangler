@@ -16,6 +16,7 @@ out/
 .DS_Store
 ./lib/
 .idea
+.vscode
 
 # Gradle Files & Dir #
 build/
