@@ -1,0 +1,49 @@
+# Prompts Used for Implementing Byte Size and Time Duration Units Parsers
+
+## Grammar Modification Prompts
+
+1. "Analyze the current ANTLR4 grammar in Directives.g4 and suggest additions for supporting byte size units (KB, MB, GB) and time duration units (ms, s, m, h) in the lexer rules. Consider how existing tokens like Number are defined and follow similar patterns."
+
+2. "How should I extend the parser rules in Directives.g4 to properly handle the new ByteSize and TimeDuration tokens? I need to ensure they can be used as arguments in directives while maintaining backward compatibility."
+
+3. "What's the most efficient way to define fragment rules for byte units (B, KB, MB, GB, etc.) and time units (ns, ms, s, m, h, d) in ANTLR4? I need to ensure they properly capture all valid unit variations including case sensitivity considerations."
+
+## API Implementation Prompts
+
+4. "Design a ByteSize class that extends Token and can parse strings like '10KB', '1.5MB', etc. The class should store the value in a canonical unit (bytes) and provide methods for conversion to different units. Consider edge cases like decimal values and case insensitivity."
+
+5. "Implement a TimeDuration class extending Token that can parse time expressions like '5ms', '2.1s', '1h', etc. It should handle conversions between different time units and provide methods to retrieve the duration in various units (nanoseconds, milliseconds, seconds, etc.)."
+
+6. "What's the best approach to extend the TokenType enum to include BYTE_SIZE and TIME_DURATION while ensuring all existing code that uses TokenType continues to work correctly?"
+
+## Parser Implementation Prompts
+
+7. "How should I modify the RecipeVisitor class to properly handle the new ByteSize and TimeDuration tokens when parsing directives? I need to ensure the visitor can extract and convert the values correctly."
+
+8. "What's the most efficient way to implement the visit methods for ByteSize and TimeDuration in the parser to ensure they're properly added to the TokenGroup and can be accessed by directives?"
+
+## Directive Implementation Prompts
+
+9. "Design an AggregateStats directive that can aggregate byte sizes and time durations across rows. The directive should accept source columns for byte size and time duration, and target columns for the aggregated results. Consider how to handle the aggregation state across multiple rows."
+
+10. "What's the best way to implement the execute method for the AggregateStats directive to accumulate byte sizes and time durations from multiple rows? Consider using the ExecutorContext's TransientStore for maintaining state across rows."
+
+11. "How should I implement the finalize method for the AggregateStats directive to properly convert the accumulated values to the requested output units and create a result row with the aggregated values?"
+
+## Testing Prompts
+
+12. "Design comprehensive unit tests for the ByteSize class that verify correct parsing of various byte size formats (e.g., '10KB', '1.5MB', '2GB') and accurate conversion between different units."
+
+13. "Create unit tests for the TimeDuration class that verify correct parsing of various time duration formats (e.g., '5ms', '2.1s', '1h') and accurate conversion between different time units."
+
+14. "Design test cases for the AggregateStats directive that verify correct aggregation of byte sizes and time durations across multiple rows, with different output unit specifications."
+
+15. "How can I create a robust test suite that verifies the entire pipeline from parsing byte sizes and time durations in the grammar to using them in the AggregateStats directive? Consider edge cases like empty values, extremely large values, and invalid formats."
+
+## Integration and Optimization Prompts
+
+16. "What's the most efficient way to implement the ByteSize and TimeDuration parsers to ensure optimal performance when processing large datasets? Consider caching strategies and avoiding unnecessary object creation."
+
+17. "How should I update the documentation to clearly explain the new byte size and time duration functionality to users? Include examples of valid formats and how they can be used in directives."
+
+18. "What potential backward compatibility issues might arise from adding these new token types, and how can I ensure existing recipes continue to work correctly?"
