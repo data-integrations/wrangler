@@ -241,11 +241,11 @@ Here is an example of how you can use the new parsers in your directives:
 ```java
 // Using BYTE_SIZE
 Directive directive = new Directive("maxSize", "10KB");
-ByteSize byteSize = directive.getByteSizeArgument();  // Returns 10240 bytes
+ByteSize byteSize = directive.getByteSize();  // Returns 10240 bytes
 
 // Using TIME_DURATION
 Directive timeoutDirective = new Directive("timeout", "150ms");
-TimeDuration timeDuration = timeoutDirective.getTimeDurationArgument();  // Returns 150 milliseconds
+TimeDuration timeDuration = timeoutDirective.getTimeDuration();  // Returns 150 milliseconds
 ```
 
 ## Contact
