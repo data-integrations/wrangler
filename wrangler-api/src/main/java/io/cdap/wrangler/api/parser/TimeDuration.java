@@ -37,12 +37,18 @@ public class TimeDuration implements Token {
     String unit = input.replaceAll("[0-9.]", "").toLowerCase();
     double number = Double.parseDouble(num);
     switch (unit) {
-      case "ns": return (long) number;
-      case "ms": return (long) (number * 1_000_000);
-      case "s": return (long) (number * 1_000_000_000);
-      case "m": return (long) (number * 60 * 1_000_000_000);
-      case "h": return (long) (number * 3600 * 1_000_000_000);
-      default: throw new IllegalArgumentException("Unknown unit: " + unit);
+      case "ns":
+        return (long) number;
+      case "ms":
+        return (long) (number * 1_000_000);
+      case "s":
+        return (long) (number * 1_000_000_000);
+      case "m":
+        return (long) (number * 60 * 1_000_000_000);
+      case "h":
+        return (long) (number * 3600 * 1_000_000_000);
+      default:
+        throw new IllegalArgumentException("Unknown unit: " + unit);
     }
   }
 

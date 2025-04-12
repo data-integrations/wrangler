@@ -37,11 +37,16 @@ public class ByteSize implements Token {
     String unit = input.replaceAll("[0-9.]", "").toUpperCase();
     double number = Double.parseDouble(num);
     switch (unit) {
-      case "KB": return (long) (number * 1024);
-      case "MB": return (long) (number * 1024 * 1024);
-      case "GB": return (long) (number * 1024 * 1024 * 1024);
-      case "TB": return (long) (number * 1024 * 1024 * 1024 * 1024);
-      default: return (long) number; // Bytes
+      case "KB":
+        return (long) (number * 1024);
+      case "MB":
+        return (long) (number * 1024 * 1024);
+      case "GB":
+        return (long) (number * 1024 * 1024 * 1024);
+      case "TB":
+        return (long) (number * 1024 * 1024 * 1024 * 1024);
+      default:
+        return (long) number; // Bytes
     }
   }
 
