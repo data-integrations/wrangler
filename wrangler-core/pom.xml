@@ -25,12 +25,16 @@
   <artifactId>wrangler-core</artifactId>
   <name>Wrangler Core</name>
 
-  <repositories>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
+ <repositories>
+  <repository>
+    <id>cdap-repo</id>
+    <url>https://repository.cdap.io/repository/maven-public/</url>
+  </repository>
+  <repository>
+    <id>jitpack</id>
+    <url>https://jitpack.io</url>
+  </repository>
+</repositories>
 
   <dependencies>
 
@@ -68,6 +72,17 @@
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+  <groupId>io.cdap</groupId>
+  <artifactId>cdap-api</artifactId>
+  <version>6.7.0</version>  <!-- Replace with the exact version -->
+</dependency>
+
+    <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-lang3</artifactId>
+    <version>3.12.0</version> <!-- or latest stable version -->
+</dependency>
 
     <!-- Test -->
 
@@ -360,5 +375,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>
