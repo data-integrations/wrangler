@@ -15,11 +15,19 @@
  */
 package io.cdap.directives.parser;
 
+/**
+ * Utility class for parsing and formatting time duration values.
+ */
 public class TimeDurationParser {
 
+    /**
+     * Parses a time duration string into milliseconds.
+     * @param input the time duration string to parse (e.g. "100ms", "5s", "2m")
+     * @return duration in milliseconds
+     * @throws IllegalArgumentException if the input format is invalid
+     */
     public static long parse(String input) {
         input = input.trim().toLowerCase();
-
         if (input.endsWith("ms")) {
             return Long.parseLong(input.replace("ms", "").trim());
         } else if (input.endsWith("s")) {
@@ -33,6 +41,13 @@ public class TimeDurationParser {
         }
     }
 
+    /**
+     * Formats milliseconds into a time duration string with the specified unit.
+     * @param millis duration in milliseconds
+     * @param unit the target unit (ms, s, m, h or full names)
+     * @return formatted duration string
+     * @throws IllegalArgumentException if the unit is not supported
+     */
     public static String format(long millis, String unit) {
         switch (unit.toLowerCase()) {
             case "milliseconds":
@@ -51,5 +66,4 @@ public class TimeDurationParser {
                 throw new IllegalArgumentException("Unsupported output time unit: " + unit);
         }
     }
-
 }

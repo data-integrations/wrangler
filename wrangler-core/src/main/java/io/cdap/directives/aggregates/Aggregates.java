@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2017-2019 Cask Data, Inc.
  *
@@ -27,6 +26,8 @@ import java.util.ArrayList;
 
 /**
  * Aggregates size and duration columns and appends the aggregated, formatted values to the output row.
+ * This directive processes two columns: one for size and one for time. It calculates either the total or 
+ * average values for both columns and formats them in the specified units.
  */
 public class Aggregates implements Directive {
 
@@ -38,6 +39,11 @@ public class Aggregates implements Directive {
     private String outputSizeUnit;
     private String outputTimeUnit;
 
+    /**
+     * Defines the expected arguments for this directive.
+     * The arguments include column names for size and time data, output column names, 
+     * aggregation type, and units for size and time in the output.
+     */
     @Override
     public UsageDefinition define() {
         UsageDefinition.Builder builder = UsageDefinition.builder("aggregate-size-duration");
@@ -45,12 +51,16 @@ public class Aggregates implements Directive {
         builder.define("timeCol", TokenType.COLUMN_NAME);
         builder.define("outputSizeCol", TokenType.COLUMN_NAME);
         builder.define("outputTimeCol", TokenType.COLUMN_NAME);
-        builder.define("aggregationType", TokenType.LITERAL, "total"); // optional: total or average
-        builder.define("outputSizeUnit", TokenType.LITERAL, "MB");     // optional: B, KB, MB, GB
-        builder.define("outputTimeUnit", TokenType.LITERAL, "minutes");// optional: milliseconds, seconds, minutes, etc.
+        builder.define("aggregationType", TokenType.LITERAL, "total"); // Optional: total or average
+        builder.define("outputSizeUnit", TokenType.LITERAL, "MB");     // Optional: B, KB, MB, GB
+        builder.define("outputTimeUnit", TokenType.LITERAL, "minutes");// Optional: milliseconds, seconds, minutes, etc.
         return builder.build();
     }
 
+    /**
+     * Initializes the directive with the given arguments.
+     * The arguments are converted into member variables for use during execution.
+     */
     @Override
     public void initialize(Arguments arguments) throws DirectiveParseException {
         sizeCol = ((ColumnName) arguments.value("sizeCol")).value();
@@ -62,17 +72,19 @@ public class Aggregates implements Directive {
         outputTimeUnit = arguments.value("outputTimeUnit").value().toString();
     }
 
+  
     @Override
     public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
-        TransientStore store = context.getTransientStore();
 
         long totalBytes = 0;
         long totalMillis = 0;
 
+        // Iterate over each row to aggregate the size and time values
         for (Row row : rows) {
             Object sizeObj = row.getValue(sizeCol);
             Object timeObj = row.getValue(timeCol);
 
+            // Parse the size value (if it's a string)
             if (sizeObj instanceof String) {
                 try {
                     totalBytes += ByteSizeParser.parse((String) sizeObj);
@@ -81,6 +93,7 @@ public class Aggregates implements Directive {
                 }
             }
 
+            // Parse the time value (if it's a string)
             if (timeObj instanceof String) {
                 try {
                     totalMillis += TimeDurationParser.parse((String) timeObj);
@@ -91,15 +104,18 @@ public class Aggregates implements Directive {
         }
 
         long count = rows.size();
+        // Calculate the total or average based on the aggregation type
         double sizeValue = aggregationType.equalsIgnoreCase("average") && count > 0
                 ? totalBytes / (double) count : totalBytes;
 
         double timeValue = aggregationType.equalsIgnoreCase("average") && count > 0
                 ? totalMillis / (double) count : totalMillis;
 
+        // Format the aggregated values based on the specified units
         String sizeStr = ByteSizeParser.format((long) sizeValue, outputSizeUnit);
         String timeStr = TimeDurationParser.format((long) timeValue, outputTimeUnit);
 
+        // Create a new row with the aggregated results
         Row result = new Row();
         result.add(outputSizeCol, sizeStr);
         result.add(outputTimeCol, timeStr);
@@ -109,6 +125,9 @@ public class Aggregates implements Directive {
         return output;
     }
 
+    /**
+     * Cleans up resources if necessary. In this case, no cleanup is required.
+     */
     @Override
     public void destroy() {
         // No cleanup needed

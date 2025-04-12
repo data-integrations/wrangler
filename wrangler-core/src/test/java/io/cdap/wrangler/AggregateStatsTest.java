@@ -14,7 +14,6 @@
  * the License.
  */
 package io.cdap.wrangler;
-import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;

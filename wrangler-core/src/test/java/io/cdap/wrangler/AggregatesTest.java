@@ -14,9 +14,6 @@
  * the License.
  */
 package io.cdap.wrangler;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import io.cdap.directives.aggregates.Aggregates;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -24,10 +21,18 @@ import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.TokenType;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 public class AggregatesTest {
 
@@ -105,7 +110,6 @@ public class AggregatesTest {
 
         input.add(row1);
         input.add(row2);
-
 
         ExecutorContext context = new TestingPipelineContext();
         List<Row> result = directive.execute(input, context);

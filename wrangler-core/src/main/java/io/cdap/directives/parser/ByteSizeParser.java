@@ -18,11 +18,20 @@ package io.cdap.directives.parser;
 public class ByteSizeParser {
     public static long parse(String input) {
         input = input.trim().toUpperCase();
-        if (input.endsWith("KB")) return Long.parseLong(input.replace("KB", "").trim()) * 1024;
-        if (input.endsWith("MB")) return Long.parseLong(input.replace("MB", "").trim()) * 1024 * 1024;
-        if (input.endsWith("GB")) return Long.parseLong(input.replace("GB", "").trim()) * 1024 * 1024 * 1024;
-        if (input.endsWith("B")) return Long.parseLong(input.replace("B", "").trim());
-        throw new IllegalArgumentException("Invalid byte size format: " + input);
+        if (input.endsWith("KB")) {
+            return Long.parseLong(input.replace("KB", "").trim()) * 1024;
+        } 
+        if (input.endsWith("MB")) {
+            return Long.parseLong(input.replace("MB", "").trim()) * 1024 * 1024;
+        } 
+        if (input.endsWith("GB")) { 
+            return Long.parseLong(input.replace("GB", "").trim()) * 1024 * 1024 * 1024;
+        } 
+        if (input.endsWith("B")) {
+            return Long.parseLong(input.replace("B", "").trim());
+        } else {
+            throw new IllegalArgumentException("Invalid byte size format: " + input);
+        }
     }
     public static String format(long bytes, String unit) {
         switch (unit.toUpperCase()) {
