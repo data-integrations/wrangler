@@ -228,13 +228,7 @@ Supported units:
 - KB (kilobytes, 1000 bytes)
 - MB (megabytes, 1000^2 bytes)
 - GB (gigabytes, 1000^3 bytes)
-- TB (terabytes, 1000^4 bytes)
-- PB (petabytes, 1000^5 bytes)
-- KIB (kibibytes, 1024 bytes)
-- MIB (mebibytes, 1024^2 bytes)
-- GIB (gibibytes, 1024^3 bytes)
-- TIB (tebibytes, 1024^4 bytes)
-- PIB (pebibytes, 1024^5 bytes)
+
 
 Examples: "10KB", "1.5MB", "2GIB"
 
@@ -242,12 +236,10 @@ Examples: "10KB", "1.5MB", "2GIB"
 
 Supported units:
 
-- NS (nanoseconds)
 - MS (milliseconds)
 - S (seconds)
 - M (minutes)
-- H (hours)
-- D (days)
+
 
 Examples: "500ms", "1.5s", "2h"
 
