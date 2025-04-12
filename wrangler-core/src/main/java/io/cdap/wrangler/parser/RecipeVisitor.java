@@ -326,4 +326,22 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
   }
+
+    // Custom visitor for byte size token
+  @Override
+  public RecipeSymbol.Builder visitByteSize(DirectivesParser.ByteSizeContext context) {
+      String byteText = context.getText();
+      ByteSizeToken byteToken = new ByteSizeToken(byteText);
+      builder.addToken(byteToken);
+      return builder;
+  }
+
+  // Custom visitor for time duration token
+  @Override
+  public RecipeSymbol.Builder visitDuration(DirectivesParser.DurationContext context) {
+      String timeText = context.getText();
+      Duration durationToken = new Duration(timeText);
+      builder.addToken(durationToken);
+      return builder;
+  }
 }
