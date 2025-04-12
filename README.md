@@ -175,6 +175,78 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
+# Wrangler Repo - Enhancements with BYTE_SIZE and TIME_DURATION Parsers
+
+## Overview
+
+This repository has been enhanced to support two new parsers for handling directives related to **byte size** and **time duration**. These new parsers can be used within the existing wrangler toolchain to parse and work with data values expressed in terms of byte sizes (e.g., 10KB, 5MB) and time durations (e.g., 150ms, 2s).
+
+## New Features
+
+### 1. BYTE_SIZE Parser
+The `BYTE_SIZE` parser is introduced to handle data values representing size in different byte units such as `KB`, `MB`, `GB`, etc. 
+
+- **Supported Formats:** 
+  - `10KB` → 10240 bytes
+  - `1MB` → 1048576 bytes
+  - `500GB` → 536870912000 bytes
+
+- **Usage Example:**
+  - `directive("maxSize", "10KB")`
+
+### 2. TIME_DURATION Parser
+The `TIME_DURATION` parser handles time duration values expressed in different time units like milliseconds, seconds, minutes, etc.
+
+- **Supported Formats:**
+- `150ms` → 150 milliseconds
+- `2s` → 2 seconds
+- `1m` → 1 minute (60 seconds)
+
+- **Usage Example:**
+  - `directive("timeout", "150ms")`
+
+## Implementation Details
+
+### (a) Grammar Modifications (ANTLR)
+
+1. **Lexer Rules:**
+ - **BYTE_SIZE:** A new lexer rule has been added to handle byte size units (e.g., `KB`, `MB`, `GB`).
+ - **TIME_DURATION:** A lexer rule has been created to parse time duration units (e.g., `ms`, `s`, `m`).
+
+2. **Parser Rules:**
+ - The relevant parser rules (e.g., `value`, `byteSizeArg`, `timeDurationArg`) have been updated to support the new `BYTE_SIZE` and `TIME_DURATION` tokens.
+
+3. **ANTLR Regeneration:**
+ - After modifying the grammar, the ANTLR Java parser and lexer were regenerated using Maven:  
+   ```
+   mvn compile
+   ```
+
+### (b) API Updates (wrangler-api module)
+
+1. **New Java Classes:**
+ - **ByteSize.java:** A new class has been created to represent byte sizes. This class accepts a string like `"10KB"` and converts it into an appropriate byte value. It provides a method `getBytes()` to retrieve the byte value in a canonical unit (e.g., `long getBytes()`).
+ - **TimeDuration.java:** A new class to represent time durations, accepting a string like `"150ms"` and converting it into a duration in milliseconds. The class provides a method `getMilliseconds()` for retrieving the value in milliseconds.
+
+2. **Token Types:**
+ - `BYTE_SIZE` and `TIME_DURATION` have been added to the Token Types enumeration to allow them to be used as valid directive arguments.
+
+3. **Token Usage:**
+ - The token definition and usage have been updated to support these new token types.
+
+### Example Code
+
+Here is an example of how you can use the new parsers in your directives:
+
+```java
+// Using BYTE_SIZE
+Directive directive = new Directive("maxSize", "10KB");
+ByteSize byteSize = directive.getByteSizeArgument();  // Returns 10240 bytes
+
+// Using TIME_DURATION
+Directive timeoutDirective = new Directive("timeout", "150ms");
+TimeDuration timeDuration = timeoutDirective.getTimeDurationArgument();  // Returns 150 milliseconds
+
 
 ## Contact
 
