@@ -33,9 +33,7 @@
   </repositories>
 
   <dependencies>
-
     <!-- Internal -->
-
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -70,7 +68,6 @@
     </dependency>
 
     <!-- Test -->
-
     <dependency>
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-unit-test</artifactId>
@@ -107,7 +104,6 @@
     </dependency>
 
     <!-- External -->
-
     <dependency>
       <groupId>com.github.everit-org.json-schema</groupId>
       <artifactId>org.everit.json.schema</artifactId>
@@ -203,7 +199,6 @@
     </dependency>
 
     <!-- Apache -->
-
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
@@ -257,13 +252,11 @@
     </dependency>
 
     <!-- UHN -->
-
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-base</artifactId>
       <version>${hl7.version}</version>
     </dependency>
-    <!-- These are structure JARs for HL7 v2.1 and 2.5.1 (as an example) -->
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-structures-v21</artifactId>
@@ -311,7 +304,6 @@
     </dependency>
   </dependencies>
 
-
   <build>
     <resources>
       <resource>
@@ -358,7 +350,28 @@
           </items>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.10</version>
+        <executions>
+          <execution>
+            <id>rat-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludes>
+            <exclude>src/main/antlr4/io/cdap/wrangler/parser/.antlr/**</exclude>
+            <exclude>**/*.interp</exclude>
+            <exclude>**/*.tokens</exclude>
+            <exclude>**/Directives*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
-
 </project>
