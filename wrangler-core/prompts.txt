@@ -1,0 +1,25 @@
+
+AI Tool Usage and Coding Assistance Prompts
+
+ 1. Task Overview
+Enhance the CDAP Wrangler library with Byte Size and Time Duration parsers, and implement an aggregate directive for computing functions like sum and average.
+
+ 2. AI Coding Assistance Prompts
+
+### Prompt 1: Byte Size & Time Duration Parser
+"Create a Java class to parse Byte Size units (KB, MB, GB) and Time Duration units (seconds, minutes). Convert input to bytes or milliseconds, and handle invalid inputs."
+
+### Prompt 2: Aggregate Directive
+"Develop a Java class to implement an aggregate directive for sum, average, and other statistical functions, supporting Byte Size and Time Duration units."
+
+### Prompt 3: Unit Tests
+"Write JUnit tests for the Byte Size and Time Duration parsers, covering edge cases like zero values, large numbers, and invalid inputs."
+
+### Prompt 4: Parser Fix
+"Fix the parser not recognizing units like 'GB'. Ensure it handles units like 'GB', 'MB', 'minutes', etc., correctly."
+
+### Prompt 5: Edge Case Testing
+"Create test cases for large and negative values in Byte Size and Time Duration, ensuring correct handling.
+
+ 3. Conclusion
+AI tools assisted with parser implementation, aggregate directive design, and testing, ensuring robustness and accuracy.
