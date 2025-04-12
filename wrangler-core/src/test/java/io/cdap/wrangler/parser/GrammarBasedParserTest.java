@@ -13,66 +13,59 @@
  *  License for the specific language governing permissions and limitations under
  *  the License.
  */
-
 package io.cdap.wrangler.parser;
-
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
+import org.apache.xbean.recipe.Recipe;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * Tests {@link GrammarBasedParser}
  */
-public class GrammarBasedParserTest {
-
-  @Test
-  public void testBasic() throws Exception {
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "rename :col1 :col2",
-      "parse-as-csv :body ',' true;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "${macro} ${macro_2}",
-      "${macro_${test}}"
-    };
+@@ -44,7 +48,7 @@ public void testBasic() throws Exception {
 
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(2, directives.size());
+    assertEquals(2, directives.size());
   }
 
   @Test
-  public void testLoadableDirectives() throws Exception {
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "rename col1 col2",
-      "parse-as-csv body , true",
-      "text-reverse :body;",
-      "test prop: { a='b', b=1.0, c=true};",
-      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
-    };
+@@ -61,7 +65,7 @@ public void testLoadableDirectives() throws Exception {
 
     Compiler compiler = new RecipeCompiler();
     CompileStatus status = compiler.compile(new MigrateToV2(recipe).migrate());
     Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
+    assertEquals(7, status.getSymbols().getLoadableDirectives().size());
   }
 
   @Test
-  public void testCommentOnlyRecipe() throws Exception {
-    String[] recipe = new String[] {
-      "// test"
-    };
+@@ -72,7 +76,18 @@ public void testCommentOnlyRecipe() throws Exception {
 
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
+    assertEquals(0, directives.size());
+  }
+  @Test
+  public void testAggregateDirectiveParsingValid() throws Exception {
+    Recipe recipe = RecipeCompiler.compile("aggregate-size-time bytes time total_bytes total_time MB seconds total");
+    assertNotNull(recipe);
+    assertEquals("aggregate-size-time", recipe.create().get(0).name());
+  }
+
+  @Test(expected = DirectiveParseException.class)
+  public void testAggregateDirectiveParsingInvalid() throws Exception {
+    RecipeCompiler.compile("aggregate-size-time bytes time"); // Missing required args
   }
 
 }
