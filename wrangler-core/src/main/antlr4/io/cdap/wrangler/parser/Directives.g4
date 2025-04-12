@@ -318,11 +318,11 @@ fragment Digit
  ;
 
 BYTE_SIZE
-    : (Digit+ ('.' Digit+)?) BYTE_UNIT
+    : (Digit+) BYTE_UNIT
     ;
 
 TIME_DURATION
-    : (Digit+ ('.' Digit+)?) TIME_UNIT
+    : (Digit+) TIME_UNIT
     ;
 
 fragment BYTE_UNIT 
