@@ -41,21 +41,29 @@ public class ByteSizeAndTimeDurationTest {
 
     @Test
     public void testTimeDurationParsing() {
-        // Test parsing valid inputs to canonical time units
-        // Assuming TimeDuration.getValue() returns nanoseconds
+        // Test parsing valid inputs to canonical time units (milliseconds as double)
+        double delta = 0.0001; // Tolerance for double comparison
 
-        // 5ms -> 5 * 1,000,000 = 5,000,000 ns. Correct.
-        Assert.assertEquals(5000000L, new TimeDuration("5ms").getValue());
+        // 5ms -> 5.0 ms
+        Assert.assertEquals(5.0, new TimeDuration("5ms").getValue(), delta);
 
-        // 2.1s -> 2.1 * 1,000,000,000 = 2,100,000,000 ns. Correct.
-        Assert.assertEquals(2100000000L, new TimeDuration("2.1s").getValue());
+        // 2.1s -> 2.1 * 1000.0 = 2100.0 ms
+        Assert.assertEquals(2100.0, new TimeDuration("2.1s").getValue(), delta);
 
-        // 1h -> 1 * 60 * 60 * 1,000,000,000 = 3,600,000,000,000 ns. Correct.
-        Assert.assertEquals(3600000000000L, new TimeDuration("1h").getValue());
+        // 1h -> 1.0 * 60.0 * 60.0 * 1000.0 = 3,600,000.0 ms
+        Assert.assertEquals(3600000.0, new TimeDuration("1h").getValue(), delta);
 
         // Test for case insensitivity (using "min")
-        // 1.5min -> 1.5 * 60 * 1,000,000,000 = 90,000,000,000 ns. Correct.
-        Assert.assertEquals(90000000000L, new  TimeDuration("1.5min").getValue());
+        // 1.5min -> 1.5 * 60.0 * 1000.0 = 90,000.0 ms
+        Assert.assertEquals(90000.0, new TimeDuration("1.5min").getValue(), delta);
 
+        // Test other units (assuming they were added to TimeDuration)
+        // 1000us -> 1000.0 / 1000.0 = 1.0 ms
+        Assert.assertEquals(1.0, new TimeDuration("1000us").getValue(), delta);
+        // 5000000ns -> 5000000.0 / 1000000.0 = 5.0 ms
+        Assert.assertEquals(5.0, new TimeDuration("5000000ns").getValue(), delta);
+        // 1d -> 1.0 * 24.0 * 60.0 * 60.0 * 1000.0 = 86,400,000.0 ms
+        Assert.assertEquals(86400000.0, new TimeDuration("1d").getValue(), delta);
     }
+
 }
