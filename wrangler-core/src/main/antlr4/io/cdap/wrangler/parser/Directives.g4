@@ -309,6 +309,8 @@ fragment BYTE_UNIT : ('B' | 'KB' | 'MB' | 'GB' | 'TB');
 TIME_DURATION : Digit+ TIME_UNIT ;
 fragment TIME_UNIT : ('ms' | 's' | 'm' | 'h');
 
+byteSizeArg : BYTE_SIZE;
+timeDurationArg : TIME_DURATION;
 
 
 Comment

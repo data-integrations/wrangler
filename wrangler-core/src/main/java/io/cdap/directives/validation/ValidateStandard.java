@@ -50,13 +50,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 /**
  * A directive for validating data against a number of built-in data models.
  */
 @Plugin(type = Directive.TYPE)
 @Name(ValidateStandard.NAME)
-@Categories(categories = {"data-quality"})
+@Categories(categories = { "data-quality" })
 @Description("Checks a column against a standard schema")
 public class ValidateStandard implements Directive {
 
@@ -84,12 +83,12 @@ public class ValidateStandard implements Directive {
   private String schema;
 
   private static Manifest getManifest() throws IOException {
-    InputStream resourceStream =
-      ValidateStandard.class.getClassLoader().getResourceAsStream(ValidateStandard.MANIFEST_PATH);
+    InputStream resourceStream = ValidateStandard.class.getClassLoader()
+        .getResourceAsStream(ValidateStandard.MANIFEST_PATH);
 
     if (resourceStream == null) {
       throw new IOException(
-        String.format("Can't read/find resource %s", ValidateStandard.MANIFEST_PATH));
+          String.format("Can't read/find resource %s", ValidateStandard.MANIFEST_PATH));
     }
 
     InputStream manifestStream = readResource(ValidateStandard.MANIFEST_PATH);
@@ -111,10 +110,10 @@ public class ValidateStandard implements Directive {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define(COLUMN, TokenType.COLUMN_NAME);
     builder.define(
-      STANDARD_SPEC,
-      TokenType.IDENTIFIER,
-      String.format(
-        "[one of: %s]", String.join(", ", standardsManifest.getStandards().keySet())));
+        STANDARD_SPEC,
+        TokenType.IDENTIFIER,
+        String.format(
+            "[one of: %s]", String.join(", ", standardsManifest.getStandards().keySet())));
 
     return builder.build();
   }
@@ -129,20 +128,19 @@ public class ValidateStandard implements Directive {
     }
     if (standardsManifest == null) {
       throw new DirectiveParseException(
-        "Standards manifest was not loaded. Please check logs for information");
+          "Standards manifest was not loaded. Please check logs for information");
     }
 
     Map<String, Standard> availableSpecs = standardsManifest.getStandards();
     if (!availableSpecs.containsKey(spec)) {
       throw new DirectiveParseException(
-        String.format(
-          "Unknown standard %s. Known values are %s",
-          spec, String.join(", ", standardsManifest.getStandards().keySet())));
+          String.format(
+              "Unknown standard %s. Known values are %s",
+              spec, String.join(", ", standardsManifest.getStandards().keySet())));
     }
 
     Standard standard = availableSpecs.get(spec);
-    schema =
-      Paths.get(SCHEMAS_RESOURCE_PATH, String.format("%s.%s", spec, standard.getFormat()))
+    schema = Paths.get(SCHEMAS_RESOURCE_PATH, String.format("%s.%s", spec, standard.getFormat()))
         .toString();
 
     if (!schemaToConformer.containsKey(schema)) {
@@ -152,8 +150,8 @@ public class ValidateStandard implements Directive {
 
       try {
         Conformer<JsonObject> conformer = FORMAT_TO_FACTORY.get(standard.getFormat())
-          .setSchemaStreamSupplier(() -> readResource(schema))
-          .build();
+            .setSchemaStreamSupplier(() -> readResource(schema))
+            .build();
         conformer.initialize();
         schemaToConformer.put(schema, conformer);
       } catch (IOException e) {
@@ -164,7 +162,7 @@ public class ValidateStandard implements Directive {
 
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException, ReportErrorAndProceed {
+      throws DirectiveExecutionException, ErrorRowException, ReportErrorAndProceed {
     for (Row row : rows) {
       int idx = row.find(column);
 
@@ -179,9 +177,9 @@ public class ValidateStandard implements Directive {
 
       if (!(object instanceof JsonObject)) {
         throw new DirectiveExecutionException(
-          String.format(
-            "Column %s is not a %s (it's %s)",
-            column, JsonObject.class.getName(), object.getClass().getName()));
+            String.format(
+                "Column %s is not a %s (it's %s)",
+                column, JsonObject.class.getName(), object.getClass().getName()));
       }
 
       Conformer<JsonObject> conformer = schemaToConformer.get(schema);
@@ -189,14 +187,13 @@ public class ValidateStandard implements Directive {
         throw new DirectiveExecutionException("Directive was not initialized for schema " + schema);
       }
 
-      List<ConformanceIssue> conformanceIssues =
-        conformer.checkConformance((JsonObject) object);
+      List<ConformanceIssue> conformanceIssues = conformer.checkConformance((JsonObject) object);
       if (conformanceIssues.size() > 0) {
         throw new ErrorRowException(
-          conformanceIssues.stream()
-            .map(ConformanceIssue::toString)
-            .collect(Collectors.joining("; ")),
-          1, true);
+            conformanceIssues.stream()
+                .map(ConformanceIssue::toString)
+                .collect(Collectors.joining("; ")),
+            1, true);
       }
     }
     return rows;
@@ -206,4 +203,5 @@ public class ValidateStandard implements Directive {
   public void destroy() {
     // no-op
   }
+
 }

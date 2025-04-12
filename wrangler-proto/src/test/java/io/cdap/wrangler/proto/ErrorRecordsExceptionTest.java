@@ -27,48 +27,48 @@ import java.util.stream.IntStream;
 
 public class ErrorRecordsExceptionTest {
 
-  @Test
-  public void summarizeLimitsLargeLists() {
-    List<ErrorRecordBase> errs = IntStream.range(0, 100)
-        .boxed()
-        .map(i -> new ErrorRecordBase(String.format("error # %d", i), i, true))
-        .collect(Collectors.toList());
+        @Test
+        public void summarizeLimitsLargeLists() {
+                List<ErrorRecordBase> errs = IntStream.range(0, 100)
+                                .boxed()
+                                .map(i -> new ErrorRecordBase(String.format("error # %d", i), i, true))
+                                .collect(Collectors.toList());
 
-    String result = ErrorRecordsException.summarize(errs);
+                String result = ErrorRecordsException.summarize(errs);
 
-    Assert.assertEquals("wrong number of summary entries",
-        ErrorRecordsException.MAX_NUM_ERRORS_IN_SUMMARY,
-        result.split(ErrorRecordsException.ERROR_SUMMARY_ITEM_DELIM).length);
-    Assert.assertTrue(String.format("result had wrong ending: %s", result),
-        result.endsWith("for brevity"));
-  }
+                Assert.assertEquals("wrong number of summary entries",
+                                ErrorRecordsException.MAX_NUM_ERRORS_IN_SUMMARY,
+                                result.split(ErrorRecordsException.ERROR_SUMMARY_ITEM_DELIM).length);
+                Assert.assertTrue(String.format("result had wrong ending: %s", result),
+                                result.endsWith("for brevity"));
+        }
 
-  @Test
-  public void summarizeLeavesMaxSizedLists() {
-    List<ErrorRecordBase> errs = IntStream
-        .range(1, ErrorRecordsException.MAX_NUM_ERRORS_IN_SUMMARY + 1)
-        .boxed()
-        .map(i -> new ErrorRecordBase(String.format("error # %d", i), i, true))
-        .collect(Collectors.toList());
+        @Test
+        public void summarizeLeavesMaxSizedLists() {
+                List<ErrorRecordBase> errs = IntStream
+                                .range(1, ErrorRecordsException.MAX_NUM_ERRORS_IN_SUMMARY + 1)
+                                .boxed()
+                                .map(i -> new ErrorRecordBase(String.format("error # %d", i), i, true))
+                                .collect(Collectors.toList());
 
-    String result = ErrorRecordsException.summarize(errs);
+                String result = ErrorRecordsException.summarize(errs);
 
-    Assert.assertEquals("wrong number of summary entries",
-        ErrorRecordsException.MAX_NUM_ERRORS_IN_SUMMARY,
-        result.split(ErrorRecordsException.ERROR_SUMMARY_ITEM_DELIM).length);
-  }
+                Assert.assertEquals("wrong number of summary entries",
+                                ErrorRecordsException.MAX_NUM_ERRORS_IN_SUMMARY,
+                                result.split(ErrorRecordsException.ERROR_SUMMARY_ITEM_DELIM).length);
+        }
 
-  @Test
-  public void summarizeCollapsesRepeatedErrors() {
-    List<ErrorRecordBase> errs = IntStream.range(1, 102)
-        .boxed()
-        .map(i -> new ErrorRecordBase(String.format("error %s", i % 2 == 0 ? "foo" : "bar"), i,
-            true))
-        .collect(Collectors.toList());
+        @Test
+        public void summarizeCollapsesRepeatedErrors() {
+                List<ErrorRecordBase> errs = IntStream.range(1, 102)
+                                .boxed()
+                                .map(i -> new ErrorRecordBase(String.format("error %s", i % 2 == 0 ? "foo" : "bar"), i,
+                                                true))
+                                .collect(Collectors.toList());
 
-    String[] results = ErrorRecordsException.summarize(errs)
-        .split(ErrorRecordsException.ERROR_SUMMARY_ITEM_DELIM);
+                String[] results = ErrorRecordsException.summarize(errs)
+                                .split(ErrorRecordsException.ERROR_SUMMARY_ITEM_DELIM);
 
-    Assert.assertArrayEquals(new String[]{"error bar - 51 rows", "error foo - 50 rows"}, results);
-  }
+                Assert.assertArrayEquals(new String[] { "error bar - 51 rows", "error foo - 50 rows" }, results);
+        }
 }
