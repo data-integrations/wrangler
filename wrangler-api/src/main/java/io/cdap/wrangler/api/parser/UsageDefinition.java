@@ -14,13 +14,18 @@
  * the License.
  */
 
-package io.cdap.wrangler.api.parser;
+ package io.cdap.wrangler.api.parser;
+ import io.cdap.wrangler.api.Optional;
 
-import io.cdap.wrangler.api.Optional;
+ import java.io.Serializable;
+ import java.util.ArrayList;
+ import java.util.List;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+ 
+ 
+ 
+
+
 
 /**
  * This class {@link UsageDefinition} provides a way for users to registers the argument for UDDs.
@@ -126,7 +131,11 @@ public final class UsageDefinition implements Serializable {
           sb.append("prop:{key:value,[key:value]*");
         } else if (token.type().equals(TokenType.RANGES)) {
           sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
-        }
+        } else if (token.type().equals(TokenType.BYTE_SIZE)) {
+          sb.append(token.name()).append(" (e.g., 10KB, 2MB)");
+        } else if (token.type().equals(TokenType.TIME_DURATION)) {
+          sb.append(token.name()).append(" (e.g., 150ms, 5s)");
+        }        
       }
 
       count--;
