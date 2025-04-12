@@ -3,121 +3,114 @@ package io.cdap.wrangler.api.parser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
+
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Represents a Token for TimeDuration, capable of parsing a duration string
- * (e.g., "150ms", "2h") and converting it to a canonical unit (nanoseconds).
+ * (e.g., "5ms", "2.1s") and converting it to a canonical unit (nanoseconds).
  */
 @PublicEvolving
 public class TimeDuration implements Token {
 
-    // Pattern supports common time units: ns, us, ms, s, m, h, d
-    // Allows optional whitespace between number and unit
-    private static final Pattern DURATION_PATTERN = Pattern.compile(
-            "(\\d+)\\s*(ns|us|ms|s|m|h|d)", Pattern.CASE_INSENSITIVE);
+    // Multipliers to convert units to nanoseconds (use double for accuracy with fractions)
+    private static final double NANOS_PER_MICROSECOND = 1_000.0;
+    private static final double NANOS_PER_MILLISECOND = 1_000_000.0;
+    private static final double NANOS_PER_SECOND = 1_000_000_000.0;
+    private static final double NANOS_PER_MINUTE = 60.0 * NANOS_PER_SECOND;
+    private static final double NANOS_PER_HOUR = 60.0 * NANOS_PER_MINUTE;
+    private static final double NANOS_PER_DAY = 24.0 * NANOS_PER_HOUR;
 
-    private final long value;
+    private final long value; // Store final value in nanoseconds as long
 
     /**
-     * Constructs a TimeDuration token by parsing the given duration string.
+     * Constructs a TimeDuration by parsing the given duration string.
      *
-     * @param durationString The duration string to parse (e.g., "150ms", "2h", "1d"). Case-insensitive.
-     * @throws IllegalArgumentException If the duration string format is invalid or results in overflow.
+     * @param value The duration string to parse (e.g., "5ms", "2.1s").
+     * @throws IllegalArgumentException If the duration string is invalid.
      */
-    public TimeDuration(String durationString) {
-        this.value = parseDuration(durationString);
+    public TimeDuration(String value) {
+        this.value = parseDuration(value);
     }
 
     /**
      * Parses the given duration string and converts it into nanoseconds.
+     * Handles integer and floating-point numbers.
      *
-     * @param token The duration string to parse.
-     * @return The duration in nanoseconds.
-     * @throws IllegalArgumentException If the duration string format is invalid or results in overflow.
+     * @param durationString The duration string to parse.
+     * @return The duration in nanoseconds (truncated to long).
+     * @throws IllegalArgumentException If the duration string format or unit is invalid.
      */
-    private long parseDuration(String token) {
-        if (token.trim().isEmpty()) {
-            throw new IllegalArgumentException("Duration string must not be empty.");
+    private long parseDuration(String durationString) {
+        if (durationString == null || durationString.trim().isEmpty()) {
+            throw new IllegalArgumentException("Duration string must not be null or empty.");
         }
 
-        Matcher matcher = DURATION_PATTERN.matcher(token.trim());
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid time duration format: '%s'. Expected format like '10s', '150ms', '2h'.", token)
-            );
-        }
+        // Use lowercase for units consistency
+        durationString = durationString.trim().toLowerCase();
+        String numericPart;
+        double multiplier;
 
         try {
-            long value = Long.parseLong(matcher.group(1));
-            String unit = matcher.group(2).toLowerCase();
-            long calculatedNanos;
-
-            switch (unit) {
-                case "ns":
-                    calculatedNanos = value;
-                    break;
-                case "us":
-                    calculatedNanos = TimeUnit.MICROSECONDS.toNanos(value);
-                    // Check for overflow: if input > 0 and output <= 0 (and not the trivial 0 case)
-                    if (value > 0 && calculatedNanos <= 0) throw new ArithmeticException("long overflow");
-                    break;
-                case "ms":
-                    calculatedNanos = TimeUnit.MILLISECONDS.toNanos(value);
-                    if (value > 0 && calculatedNanos <= 0) throw new ArithmeticException("long overflow");
-                    break;
-                case "s":
-                    calculatedNanos = TimeUnit.SECONDS.toNanos(value);
-                    if (value > 0 && calculatedNanos <= 0) throw new ArithmeticException("long overflow");
-                    break;
-                case "m":
-                    calculatedNanos = TimeUnit.MINUTES.toNanos(value);
-                    if (value > 0 && calculatedNanos <= 0) throw new ArithmeticException("long overflow");
-                    break;
-                case "h":
-                    calculatedNanos = TimeUnit.HOURS.toNanos(value);
-                    if (value > 0 && calculatedNanos <= 0) throw new ArithmeticException("long overflow");
-                    break;
-                case "d":
-                    calculatedNanos = TimeUnit.DAYS.toNanos(value);
-                    if (value > 0 && calculatedNanos <= 0) throw new ArithmeticException("long overflow");
-                    break;
-                default:
-                    // Should not be reachable due to regex, but included for safety
-                    throw new IllegalArgumentException("Unsupported time unit: " + unit);
+            if (durationString.endsWith("ns")) {
+                numericPart = durationString.substring(0, durationString.length() - 2);
+                multiplier = 1.0;
+            } else if (durationString.endsWith("us")) {
+                numericPart = durationString.substring(0, durationString.length() - 2);
+                multiplier = NANOS_PER_MICROSECOND;
+            } else if (durationString.endsWith("ms")) {
+                numericPart = durationString.substring(0, durationString.length() - 2);
+                multiplier = NANOS_PER_MILLISECOND;
+            } else if (durationString.endsWith("s")) {
+                numericPart = durationString.substring(0, durationString.length() - 1);
+                multiplier = NANOS_PER_SECOND;
+            } else if (durationString.endsWith("min")) { // Support "min" as requested by test
+                numericPart = durationString.substring(0, durationString.length() - 3);
+                multiplier = NANOS_PER_MINUTE;
+            } else if (durationString.endsWith("m")) { // Also support "m" for minutes
+                numericPart = durationString.substring(0, durationString.length() - 1);
+                multiplier = NANOS_PER_MINUTE;
+            } else if (durationString.endsWith("h")) {
+                numericPart = durationString.substring(0, durationString.length() - 1);
+                multiplier = NANOS_PER_HOUR;
+            } else if (durationString.endsWith("d")) {
+                numericPart = durationString.substring(0, durationString.length() - 1);
+                multiplier = NANOS_PER_DAY;
+            } else {
+                // Match the test's expected generic message format
+                throw new IllegalArgumentException("Invalid time duration format or unsupported unit in string: " + durationString);
             }
-            return calculatedNanos;
+
+            if (numericPart.isEmpty()) {
+                throw new IllegalArgumentException("Missing numeric value in duration string: " + durationString);
+            }
+
+            double parsedValue = Double.parseDouble(numericPart);
+            if (parsedValue < 0) {
+                throw new IllegalArgumentException("Duration value cannot be negative: " + durationString);
+            }
+            // Cast to long truncates fractional nanoseconds.
+            return (long) (parsedValue * multiplier);
 
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    String.format("Invalid numeric value in duration string: '%s'", token), e);
-        } catch (ArithmeticException e) {
-            throw new IllegalArgumentException(
-                    String.format("Duration value '%s' resulted in overflow when converting to nanoseconds.", token), e);
+            throw new IllegalArgumentException("Invalid numeric value in duration string: " + durationString, e);
         }
     }
 
     /**
-     * Returns the duration value in the canonical unit (nanoseconds).
-     * Note: The Token interface returns Object, but this implementation
-     * specifically returns a Long representing nanoseconds.
+     * Returns the duration in the specified TimeUnit.
+     * Note: Conversion might lose precision due to integer division.
      *
-     * @return The duration in nanoseconds as a Long.
+     * @param unit The TimeUnit to convert to.
+     * @return The duration in the specified unit.
      */
-    @Override
-    public Long value() {
-        return value;
-    }
-
-    @Override
-    public TokenType type() {
-        return TokenType.TIME_DURATION;
+    public long getDuration(TimeUnit unit) {
+        return unit.convert(this.value, TimeUnit.NANOSECONDS);
     }
 
     /**
      * Returns the duration in nanoseconds.
+     * This is the canonical value.
      *
      * @return The duration in nanoseconds.
      */
@@ -125,73 +118,28 @@ public class TimeDuration implements Token {
         return value;
     }
 
-    /**
-     * Returns the duration in microseconds.
-     * Note: Conversion from nanoseconds might truncate.
-     *
-     * @return The duration in microseconds.
-     */
-    public long getMicroseconds() {
-        return TimeUnit.NANOSECONDS.toMicros(value);
+    @Override
+    public Object value() {
+        return value; // Return the canonical long value (nanoseconds)
     }
 
-    /**
-     * Returns the duration in milliseconds.
-     * Note: Conversion from nanoseconds might truncate.
-     *
-     * @return The duration in milliseconds.
-     */
-    public long getMilliseconds() {
-        return TimeUnit.NANOSECONDS.toMillis(value);
+    @Override
+    public TokenType type() {
+        return TokenType.TIME_DURATION;
     }
-
-    /**
-     * Returns the duration in seconds.
-     * Note: Conversion from nanoseconds might truncate.
-     *
-     * @return The duration in seconds.
-     */
-    public long getSeconds() {
-        return TimeUnit.NANOSECONDS.toSeconds(value);
-    }
-
-    /**
-     * Returns the duration in minutes.
-     * Note: Conversion from nanoseconds might truncate.
-     *
-     * @return The duration in minutes.
-     */
-    public long getMinutes() {
-        return TimeUnit.NANOSECONDS.toMinutes(value);
-    }
-
-    /**
-     * Returns the duration in hours.
-     * Note: Conversion from nanoseconds might truncate.
-     *
-     * @return The duration in hours.
-     */
-    public long getHours() {
-        return TimeUnit.NANOSECONDS.toHours(value);
-    }
-
-    /**
-     * Returns the duration in days.
-     * Note: Conversion from nanoseconds might truncate.
-     *
-     * @return The duration in days.
-     */
-    public long getDays() {
-        return TimeUnit.NANOSECONDS.toDays(value);
-    }
-
 
     @Override
     public JsonElement toJson() {
         JsonObject object = new JsonObject();
         object.addProperty("type", TokenType.TIME_DURATION.name());
-        object.addProperty("value", value);
+        object.addProperty("value", value); // Store the canonical long value
         return object;
     }
 
+    @Override
+    public String toString() {
+        // Provide a reasonable string representation, maybe the original input if stored,
+        // or reconstruct. For simplicity, just return nanoseconds.
+        return value + "ns";
+    }
 }
