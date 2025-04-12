@@ -103,7 +103,7 @@ public final class ConvertDistances {
     this(Distance.MILE, Distance.KILOMETER);
   }
 
-  @Nullable
+  
   public ConvertDistances(Distance from, Distance to) {
     this.from = (from == null ? Distance.MILE : from);
     this.to = (to == null ? Distance.KILOMETER : to);
