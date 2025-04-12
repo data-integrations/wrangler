@@ -328,7 +328,6 @@ TIME_DURATION
 fragment BYTE_UNIT 
     : 'B' 
     | 'KB' | 'MB' | 'GB' | 'TB'
-    | 'b'  | 'kb' | 'mb' | 'gb' | 'tb'
     ;
 
 fragment TIME_UNIT 
