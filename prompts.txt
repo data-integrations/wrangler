@@ -1,0 +1,5 @@
+1. "Help me design a Java class to parse byte size values with units like KB, MB, GB"
+2. "What's the best way to implement an aggregate directive in CDAP Wrangler?"
+3. "How should I structure unit tests for ANTLR grammar modifications?"
+4. "Show me an example of converting between different time units in Java"
+5. "What edge cases should I consider when parsing byte size values?"
