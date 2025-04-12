@@ -242,9 +242,3 @@ Supported units:
 
 
 Examples: "500ms", "1.5s", "2h"
-
-### Aggregate Stats Directive
-
-The `aggregate-stats` directive calculates aggregates for byte size and time duration columns.
-
-Usage:
