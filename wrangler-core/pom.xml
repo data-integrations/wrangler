@@ -320,6 +320,19 @@
       </resource>
     </resources>
     <plugins>
+      <!-- Add this plugin configuration -->
+    <plugin>
+      <groupId>org.apache.rat</groupId>
+      <artifactId>apache-rat-plugin</artifactId>
+      <configuration>
+        <excludes>
+          <exclude>**/.antlr/**</exclude>
+          <exclude>**/target/**</exclude>
+          <exclude>**/*.iml</exclude>
+        </excludes>
+      </configuration>
+    </plugin>
+    
       <plugin>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-maven-plugin</artifactId>
