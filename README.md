@@ -246,7 +246,7 @@ ByteSize byteSize = directive.getByteSizeArgument();  // Returns 10240 bytes
 // Using TIME_DURATION
 Directive timeoutDirective = new Directive("timeout", "150ms");
 TimeDuration timeDuration = timeoutDirective.getTimeDurationArgument();  // Returns 150 milliseconds
-
+```
 
 ## Contact
 
