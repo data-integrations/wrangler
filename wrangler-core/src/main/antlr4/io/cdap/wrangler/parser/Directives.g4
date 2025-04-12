@@ -140,8 +140,15 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+  : STRING
+  | INTEGER
+  | FLOAT
+  | BOOLEAN
+  | BYTE_SIZE
+  | TIME_DURATION
+  | identifier
+  ;
+
 
 ecommand
  : '!' Identifier
@@ -252,6 +259,14 @@ Bool
  : 'true'
  | 'false'
  ;
+BYTE_SIZE
+  : [0-9]+ ('.' [0-9]+)? ( 'B' | 'KB' | 'MB' | 'GB' )
+  ;
+
+TIME_DURATION
+  : [0-9]+ ('.' [0-9]+)? ( 'ms' | 's' | 'm' | 'h' )
+  ;
+
 
 Number
  : Int ('.' Digit*)?
