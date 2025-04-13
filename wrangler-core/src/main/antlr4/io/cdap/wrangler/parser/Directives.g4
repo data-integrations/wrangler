@@ -64,8 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
-    | byteSize    // Added BYTE_SIZE token
-    | timeDuration // Added TIME_DURATION token
+    | BYTE_SIZE
+    | TIME_DURATION
   )*?
   ;
 
@@ -142,8 +142,9 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
+
 
 ecommand
  : '!' Identifier
@@ -195,15 +196,6 @@ stringList
 
 identifierList
  : Identifier (',' Identifier)*
- ;
-
-// Definitions for BYTE_SIZE and TIME_DURATION tokens
-byteSize
- : [0-9]+ ('.' [0-9]+)? ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB')  // Matches byte size formats
- ;
-
-timeDuration
- : [0-9]+ ('.' [0-9]+)? ('ms' | 's' | 'm' | 'h' | 'd')  // Matches time duration formats
  ;
 
 /*
