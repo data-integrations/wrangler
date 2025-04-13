@@ -324,12 +324,21 @@ public final class JsonFunctions {
   /**
    * @return Number of elements in the array.
    */
-  @Nullable
-  public static int ArrayLength(JsonArray array) {
+
+  // @Nullable  cannot use nullable for primitive return types
+  // public static int ArrayLength(JsonArray array) {
+  //   if (array != null) {
+  //     return array.size();
+  //   }
+  //   return 0;
+  // } 
+
+  //cannot use @Nullable for primitive return types
+  public static Integer ArrayLength(JsonArray array) {
     if (array != null) {
       return array.size();
     }
-    return 0;
+    return null;
   }
 }
 

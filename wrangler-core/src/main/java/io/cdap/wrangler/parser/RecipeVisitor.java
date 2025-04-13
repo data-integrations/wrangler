@@ -38,6 +38,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,6 +88,29 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.createTokenGroup(getOriginalSource(ctx));
     return super.visitDirective(ctx);
   }
+
+  /**
+   * This visitor method extracts a ByteSize argument from the directive.
+   * It creates a token of type <code>ByteSize</code> and adds it to the <code>TokenGroup</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    String byteSizeText = ctx.getText();
+    builder.addToken(new ByteSize(byteSizeText));
+    return builder;
+  }
+
+  /**
+   * This visitor method extracts a TimeDuration argument from the directive.
+   * It creates a token of type <code>TimeDuration</code> and adds it to the <code>TokenGroup</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    String timeDurationText = ctx.getText();
+    builder.addToken(new TimeDuration(timeDurationText));
+    return builder;
+  }
+  
 
   /**
    * A Directive can include identifiers, this method extracts that token that is being
@@ -325,5 +350,9 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int lineno = ctx.getStart().getLine();
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
+
+    
   }
+
+  
 }
