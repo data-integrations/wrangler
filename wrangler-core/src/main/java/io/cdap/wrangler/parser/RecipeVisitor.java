@@ -22,6 +22,9 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+//importing newly created files
+import io.cdap.wrangler.api.parser.ByteSize;
+
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +36,8 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+//importing newly created files
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -43,6 +48,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+
+
+
 
 /**
  * This class <code>RecipeVisitor</code> implements the visitor pattern
@@ -314,6 +323,25 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
       strs.add(text.substring(1, text.length() - 1));
     }
     builder.addToken(new TextList(strs));
+    return builder;
+  }
+
+  /**
+   * Override visitValue to check for BYTE_SIZE and TIME_DURATION tokens.
+   */
+  @Override
+  public RecipeSymbol.Builder visitValue(DirectivesParser.ValueContext ctx) {
+    // Check if the token is of type BYTE_SIZE.
+    if (ctx.BYTE_SIZE() != null) {
+      // Create a ByteSize token and add it to the builder.
+      builder.addToken(new ByteSize(ctx.BYTE_SIZE().getText()));
+    } else if (ctx.TIME_DURATION() != null) {
+      // Check if the token is of type TIME_DURATION.
+      builder.addToken(new TimeDuration(ctx.TIME_DURATION().getText()));
+    } else {
+      // Fallback: If the value is not a BYTE_SIZE or TIME_DURATION, let the default behavior handle it.
+      return super.visitValue(ctx);
+    }
     return builder;
   }
 

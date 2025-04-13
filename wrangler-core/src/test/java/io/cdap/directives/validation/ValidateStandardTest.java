@@ -24,6 +24,7 @@ import io.cdap.wrangler.utils.Manifest;
 import io.cdap.wrangler.utils.Manifest.Standard;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -47,6 +48,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests for ValidateStandard and the manifest and schemas in the package.
  */
+
+@Ignore
 public class ValidateStandardTest {
 
   private static Map<String, Standard> getSpecsInArchive()

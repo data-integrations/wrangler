@@ -324,7 +324,7 @@ public final class JsonFunctions {
   /**
    * @return Number of elements in the array.
    */
-  @Nullable
+  
   public static int ArrayLength(JsonArray array) {
     if (array != null) {
       return array.size();
