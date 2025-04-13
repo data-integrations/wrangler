@@ -29,6 +29,8 @@ import java.util.Map;
  */
 @PublicEvolving
 public interface ExecutorContext extends LookupProvider, Serializable {
+  boolean isEndPartition();
+
   /**
    * Specifies the environment in which wrangler is running.
    */

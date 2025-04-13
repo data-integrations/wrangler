@@ -73,6 +73,11 @@ class ServicePipelineContext implements ExecutorContext {
     return namespace;
   }
 
+  @Override
+  public boolean isEndPartition() {
+    return true;
+  }
+
   /**
    * @return Environment this context is prepared for.
    */

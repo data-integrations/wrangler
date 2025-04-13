@@ -57,6 +57,11 @@ class WranglerPipelineContext implements ExecutorContext {
     return context.getNamespace();
   }
 
+  @Override
+  public boolean isEndPartition() {
+    return true;
+  }
+
   /**
    * @return Environment this context is prepared for.
    */

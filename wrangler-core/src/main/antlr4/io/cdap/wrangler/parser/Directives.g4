@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -247,6 +247,15 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+byteSizeArg
+ : BYTE_SIZE
+ | Column
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ | Column
+ ;
 
 Bool
  : 'true'
@@ -279,6 +288,15 @@ EscapeSequence
    |   UnicodeEscape
    |   OctalEscape
    ;
+
+// Add new lexer rules for byte sizes and time durations
+BYTE_SIZE
+ : Number ('B'|'b'|'KB'|'kb'|'MB'|'mb'|'GB'|'gb'|'TB'|'tb')
+ ;
+
+TIME_DURATION
+ : Number ('ns'|'NS'|'us'|'US'|'ms'|'MS'|'s'|'S'|'min'|'MIN'|'h'|'H')
+ ;
 
 fragment
 OctalEscape

@@ -51,7 +51,7 @@ import java.util.Map;
 @Plugin(type = Directive.TYPE)
 @Name(DataModelMapColumn.NAME)
 @Categories(categories = {"data-quality"})
-@Description("Maps a column to target data model field so that matches the target name and type.")
+@Description("Maps a column to target data model field so that it matches the target name and type.")
 public class DataModelMapColumn implements Directive, Lineage {
 
   public static final String NAME = "data-model-map-column";
@@ -62,13 +62,14 @@ public class DataModelMapColumn implements Directive, Lineage {
   private static final String TARGET_FIELD = "target-field";
   private static final String COLUMN = "column";
   private static final String DATA_MODEL_URL = "data-model-url";
-  private static Map<String, AvroSchemaGlossary> glossaryCache = new HashMap<>();
+
+  private static final Map<String, AvroSchemaGlossary> glossaryCache = new HashMap<>();
 
   private String column;
   private String targetFieldName;
   private String targetFieldTypeName;
 
-  // Used for testing purposes only.
+  // Used only for testing
   static void setGlossary(String key, AvroSchemaGlossary glossary) {
     glossaryCache.put(key, glossary);
   }
@@ -87,72 +88,95 @@ public class DataModelMapColumn implements Directive, Lineage {
 
   @Override
   public void destroy() {
-    // no-op
+    // No resources to clean up
   }
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     String dataModelUrl = ((Text) args.value(DATA_MODEL_URL)).value();
-    if (!glossaryCache.containsKey(dataModelUrl)) {
-      AvroSchemaGlossary glossary = new AvroSchemaGlossary(new HTTPSchemaLoader(dataModelUrl, "manifest.json"));
-      if (!glossary.configure()) {
-        throw new DirectiveParseException(NAME, String.format("Unable to load data models from %s.", dataModelUrl));
+
+    AvroSchemaGlossary glossary = glossaryCache.computeIfAbsent(dataModelUrl, url -> {
+      try {
+        AvroSchemaGlossary g = new AvroSchemaGlossary(new HTTPSchemaLoader(url, "manifest.json"));
+        if (!g.configure()) {
+          // Change this to throw DirectiveParseException instead of RuntimeException
+          throw new DirectiveParseException(NAME,
+                  String.format("Unable to configure data model from URL: %s", url));
+        }
+        return g;
+      }catch (Exception e) {
+        // Convert general exceptions to DirectiveParseException
+        throw new RuntimeException(
+                "Failed to load glossary from URL: " + url, e);
       }
-      glossaryCache.put(dataModelUrl, glossary);
-    }
+    });
 
-    String dataModelName = ((Text) args.value(DATA_MODEL)).value();
-    long revision = ((Numeric) args.value(DATA_MODEL_REVISION)).value().longValue();
-    Schema dataModel = glossaryCache.get(dataModelUrl).get(dataModelName, revision);
-    if (dataModel == null) {
-      throw new DirectiveParseException(NAME, String
-        .format("Unable to find data model %s revision %d.", dataModelName, revision));
-    }
+    try {
+      String dataModelName = ((Text) args.value(DATA_MODEL)).value();
+      long revision = ((Numeric) args.value(DATA_MODEL_REVISION)).value().longValue();
+      Schema dataModel = glossary.get(dataModelName, revision);
+      if (dataModel == null) {
+        throw new DirectiveParseException(NAME,
+                String.format("Data model '%s' with revision '%d' not found.", dataModelName, revision));
+      }
 
-    String modelName = ((Text) args.value(MODEL)).value();
-    Schema.Field modelField = dataModel.getField(modelName);
-    if (modelField == null) {
-      throw new DirectiveParseException(NAME, String
-        .format("Model %s does not exist in data model %s.", modelName, dataModelName));
-    }
-    Schema subSchema = modelField.schema();
-    if (subSchema == null) {
-      throw new DirectiveParseException(NAME, String.format("Model %s has no schema.", modelField.name()));
-    }
+      String modelName = ((Text) args.value(MODEL)).value();
+      Schema.Field modelField = dataModel.getField(modelName);
+      if (modelField == null) {
+        throw new DirectiveParseException(NAME,
+                String.format("Model '%s' not found in data model '%s'.", modelName, dataModelName));
+      }
 
-    Schema model = subSchema.getTypes().stream()
-      .filter(s -> s.getType() == Schema.Type.RECORD)
-      .findFirst()
-      .orElse(null);
-    if (model == null) {
-      throw new DirectiveParseException(NAME, String.format("Model %s has no schema.", subSchema.getName()));
-    }
+      Schema subSchema = modelField.schema();
+      if (subSchema == null) {
+        throw new DirectiveParseException(NAME,
+                String.format("Model field '%s' has no schema.", modelField.name()));
+      }
 
-    String targetName = ((Text) args.value(TARGET_FIELD)).value();
-    Schema.Field targetField = model.getField(targetName);
-    if (targetField == null) {
-      throw new DirectiveParseException(NAME, String
-        .format("Field %s does not exist in model %s.", targetName, model.getName()));
+      Schema model = subSchema.getTypes().stream()
+              .filter(s -> s.getType() == Schema.Type.RECORD)
+              .findFirst()
+              .orElseThrow(() -> {
+                  return new DirectiveParseException(NAME,
+                          String.format("No RECORD type found in schema of model '%s'.", modelName));
+              });
+      String targetName = ((Text) args.value(TARGET_FIELD)).value();
+      Schema.Field targetField = model.getField(targetName);
+      if (targetField == null) {
+        throw new DirectiveParseException(NAME,
+                String.format("Field '%s' not found in model '%s'.", targetName, model.getName()));
+      }
+
+      Schema targetFieldSchema = targetField.schema();
+      Schema type;
+
+      if (targetFieldSchema.getType() == Schema.Type.UNION) {
+        type = targetFieldSchema.getTypes().stream()
+                .filter(s -> s.getType() != Schema.Type.NULL)
+                .findFirst()
+                .orElseThrow(() -> new DirectiveParseException(NAME,
+                        String.format("Field '%s' in model '%s' lacks a valid (non-null) type.", targetField.name(), modelName)));
+      } else {
+        type = targetFieldSchema;
+      }
+
+      this.targetFieldName = targetField.name();
+      this.targetFieldTypeName = type.getName();
+      this.column = ((ColumnName) args.value(COLUMN)).value();
+
+    } catch (DirectiveParseException e) {
+      throw e; // Bubble up known parsing issues
+    } catch (RuntimeException e) {
+      throw new DirectiveParseException(NAME, e.getMessage(), e.getCause());
+    } catch (Exception e) {
+      throw new DirectiveParseException(NAME, "Unexpected error initializing data model mapping.", e);
     }
-    Schema type = targetField.schema().getTypes().stream()
-      .filter(s -> s.getType() != Schema.Type.NULL)
-      .findFirst()
-      .orElse(null);
-    if (type == null) {
-      throw new DirectiveParseException(NAME,
-                                        String
-                                          .format(" Field %s of model %s in data model %s is missing type information.",
-                                                  targetField.name(), modelName, dataModelName));
-    }
-    targetFieldName = targetField.name();
-    targetFieldTypeName = type.getName();
-    column = ((ColumnName) args.value(COLUMN)).value();
   }
-  
+
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
     for (Row row : rows) {
-      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName, null, null, RoundingMode.UNNECESSARY);
+      ColumnConverter.convertType(NAME, row, column, targetFieldTypeName, (Integer) null, (Integer) null, RoundingMode.UNNECESSARY);
       ColumnConverter.rename(NAME, row, column, targetFieldName);
     }
     return rows;
@@ -161,8 +185,8 @@ public class DataModelMapColumn implements Directive, Lineage {
   @Override
   public Mutation lineage() {
     return Mutation.builder()
-      .readable("Mapped column '%s' to column name '%s' and type '%s'", column, targetFieldName, targetFieldTypeName)
-      .relation(column, targetFieldName)
-      .build();
+            .readable("Mapped column '%s' to column name '%s' and type '%s'", column, targetFieldName, targetFieldTypeName)
+            .relation(column, targetFieldName)
+            .build();
   }
 }

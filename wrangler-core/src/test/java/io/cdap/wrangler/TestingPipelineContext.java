@@ -126,4 +126,9 @@ public class TestingPipelineContext implements ExecutorContext {
   public boolean isSchemaManagementEnabled() {
     return schemaManagementEnabled;
   }
+
+  @Override
+  public boolean isEndPartition() {
+    return false; // or true depending on your test logic
+  }
 }
