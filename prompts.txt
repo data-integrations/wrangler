@@ -1,0 +1,7 @@
+1. "How can I create a custom directive in CDAP Wrangler?"
+2. "Can you help me write a Java class that implements the Directive interface for Wrangler?"
+3. "What is the recommended way to update the ANTLR grammar in Directives.g4?"
+4. "How do I define a new TokenType and use it with UsageDefinition?"
+5. "Can you generate a unit test for a directive that aggregates size in MB and time in seconds?"
+6. "How do I resolve Checkstyle errors related to missing Javadoc?"
+7. "How can I fix Maven Surefire Plugin test execution issues with Java 17 and PowerMock?"

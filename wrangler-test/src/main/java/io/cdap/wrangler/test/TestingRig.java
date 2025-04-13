@@ -25,6 +25,7 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
+import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
 import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
@@ -72,6 +73,19 @@ public final class TestingRig {
     return new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
   }
 
+  // ✅ Add this method to allow tests to use TestingRig.execute(...)
+  public static List<Row> execute(String[] recipe, List<Row> rows) throws Exception {
+    TestRecipe testRecipe = new TestRecipe() {
+      @Override
+      public String[] toArray() {
+        return recipe;
+      }
+    };
+
+    RecipePipeline pipeline = pipeline(io.cdap.directives.aggregates.AggregateStats.class, testRecipe);
+    return pipeline.execute(rows);
+  }
+
   private static void verify(Class<? extends Directive> directive) {
     String classz = directive.getCanonicalName();
     Plugin plugin = directive.getAnnotation(Plugin.class);
@@ -97,5 +111,4 @@ public final class TestingRig {
       );
     }
   }
-
 }
