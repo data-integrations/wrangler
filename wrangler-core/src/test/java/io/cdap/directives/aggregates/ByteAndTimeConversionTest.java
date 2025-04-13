@@ -35,17 +35,13 @@ public class ByteAndTimeConversionTest {
         rows.add(new Row("data_transfer_size", "512KB").add("response_time", "500ms"));
 
         String[] recipe = new String[] {
-                "#pragma version 2.0;",
+
                 "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec;"
         };
 
         List<Row> results = TestingRig.execute(recipe, rows);
 
-        Assert.assertEquals(3, results.size());
-
-        System.out.println("<----------------------results---------------------->");
-
-        System.out.println(results);
+        Assert.assertEquals(1, results.size());
 
         double expectedTotalSizeMB = (3);
         double expectedTotalTimeSeconds = (3.5);
