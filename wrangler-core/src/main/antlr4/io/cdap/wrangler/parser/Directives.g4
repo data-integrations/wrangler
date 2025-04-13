@@ -311,10 +311,24 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
-// For byte sizes like 10KB, 1.5MB, etc.
-BYTE_SIZE: [0-9]+ ('.' [0-9]+)? BYTE_UNIT;
-fragment BYTE_UNIT: ('B' | [KkMmGgTtPp][Bb]); // B, KB, MB, GB, etc.
+// Add these fragments for unit recognition
+fragment BYTE_UNIT: ('B'|'KB'|'MB'|'GB'|'TB'|'KIB'|'MIB'|'GIB'|'TIB');
+fragment TIME_UNIT: ('NS'|'MS'|'S'|'M'|'H'|'D');
 
-// For time durations like 100ms, 2.5s, etc.
-TIME_DURATION: [0-9]+ ('.' [0-9]+)? TIME_UNIT;
-fragment TIME_UNIT: ('ms' | 's' | 'm' | 'h' | 'd'); // milliseconds to days
+// Add lexer rules
+BYTE_SIZE: NUMBER WS* BYTE_UNIT;
+TIME_DURATION: NUMBER WS* TIME_UNIT;
+
+// Modify parser rules to accept these tokens
+value
+    : STRING
+    | NUMBER
+    | BOOLEAN
+    | NULL
+    | BYTE_SIZE
+    | TIME_DURATION
+    ;
+
+// Add specific argument types
+byteSizeArg: BYTE_SIZE;
+timeDurationArg: TIME_DURATION;
