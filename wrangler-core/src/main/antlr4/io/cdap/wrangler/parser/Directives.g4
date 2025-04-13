@@ -46,8 +46,7 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
- ;
+ :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)* ;
 
 directive
  : command
@@ -64,6 +63,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -139,9 +140,16 @@ numberRange
  : Number ':' Number '=' value
  ;
 
-// all the value rules
 value
  : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
+ ;
+
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
  ;
 
 ecommand
@@ -196,7 +204,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
@@ -216,14 +223,14 @@ StartsWith : '=^';
 NotStartsWith : '!^';
 EndsWith : '=$';
 NotEndsWith : '!$';
-PlusEqual : '+=';
-SubEqual : '-=';
-MulEqual : '*=';
-DivEqual : '/=';
-PerEqual : '%=';
-AndEqual : '&=';
-OrEqual  : '|=';
-XOREqual : '^=';
+PlusEqual : '+=' ;
+SubEqual : '-=' ;
+MulEqual : '*=' ;
+DivEqual : '/=' ;
+PerEqual : '%=' ;
+AndEqual : '&=' ;
+OrEqual  : '|=' ;
+XOREqual : '^=' ;
 Pow      : '^';
 External : '!';
 GT       : '>';
@@ -248,7 +255,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -256,6 +262,28 @@ Bool
 
 Number
  : Int ('.' Digit*)?
+ ;
+
+BYTE_SIZE
+ : Int BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Int TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [kK][bB]
+ | [mM][bB]
+ | [gG][bB]
+ | [tT][bB]
+ ;
+
+fragment TIME_UNIT
+ : [sS]
+ | [mM][sS]
+ | [hH]
+ | [dD]
  ;
 
 Identifier
@@ -270,28 +298,9 @@ Column
  : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
  ;
 
-//added lexer rules for byte size and time duration
-
-BYTE_SIZE
-  : Int ('.' Digit+)? BYTE_UNIT
-  ;
-
-TIME_DURATION
-  : Int ('.' Digit+)? TIME_UNIT
-  ;
-
-fragment BYTE_UNIT
-  : [KkMmGgTt][Bb]
-  ;
-
-fragment TIME_UNIT
-  : 'ms' | 's' | 'm' | 'h'
-  ;
-
-
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
+ : '\'' ( EscapeSequence | ~('\''))* '\''
+ | '"'  ( EscapeSequence | ~('"'))* '"'
  ;
 
 EscapeSequence
@@ -313,7 +322,7 @@ UnicodeEscape
    ;
 
 fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip

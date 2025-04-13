@@ -51,6 +51,24 @@ import java.util.Map;
  * that is returned by this function.</p>
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Builder> {
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    String text = ctx.getText();
+    ByteSize byteSize = new ByteSize(text);
+    builder.addToken(byteSize);
+    return builder;
+  }
+
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    String text = ctx.getText();
+    TimeDuration timeDuration = new TimeDuration(text);
+    builder.addToken(timeDuration);
+    return builder;
+  }
+
+
+
   private RecipeSymbol.Builder builder = new RecipeSymbol.Builder();
 
   /**
@@ -151,10 +169,10 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
         text = text.substring(1, text.length() - 1);
       }
       Triplet<Numeric, Numeric, String> val =
-        new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
+              new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
                       new Numeric(new LazyNumber(numbers.get(1).getText())),
                       text
-        );
+              );
       output.add(val);
     }
     builder.addToken(new Ranges(output));
@@ -286,18 +304,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     }
     builder.addToken(new BoolList(booleans));
     return builder;
-  }
-  /** methods to extract the newly created bytesize and time duration parsing **/
-  @Override
-  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
-    builder.addToken(new ByteSize(ctx.getText()));
-    return super.visitByteSizeArg(ctx);
-  }
-
-  @Override
-  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
-    builder.addToken(new TimeDuration(ctx.getText()));
-    return super.visitTimeDurationArg(ctx);
   }
 
   /**
