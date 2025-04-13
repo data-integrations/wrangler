@@ -16,11 +16,11 @@
 
 package io.cdap.wrangler.api.parser;
 
-import io.cdap.wrangler.api.Optional;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.cdap.wrangler.api.Optional;
 
 /**
  * This class {@link UsageDefinition} provides a way for users to registers the argument for UDDs.
@@ -105,27 +105,46 @@ public final class UsageDefinition implements Serializable {
       if (token.label() != null) {
         sb.append(token.label());
       } else {
-        if (token.type().equals(TokenType.DIRECTIVE_NAME)) {
-          sb.append(token.name());
-        } else if (token.type().equals(TokenType.COLUMN_NAME)) {
-          sb.append(":").append(token.name());
-        } else if (token.type().equals(TokenType.COLUMN_NAME_LIST)) {
-          sb.append(":").append(token.name()).append(" [,:").append(token.name()).append("  ]*");
-        } else if (token.type().equals(TokenType.BOOLEAN)) {
-          sb.append(token.name()).append(" (true/false)");
-        } else if (token.type().equals(TokenType.TEXT)) {
-          sb.append("'").append(token.name()).append("'");
-        } else if (token.type().equals(TokenType.IDENTIFIER) || token.type().equals(TokenType.NUMERIC)) {
-          sb.append(token.name());
-        } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
-          || token.type().equals(TokenType.TEXT_LIST)) {
-          sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
-        } else if (token.type().equals(TokenType.EXPRESSION)) {
-          sb.append("exp:{<").append(token.name()).append(">}");
-        } else if (token.type().equals(TokenType.PROPERTIES)) {
-          sb.append("prop:{key:value,[key:value]*");
-        } else if (token.type().equals(TokenType.RANGES)) {
-          sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
+        switch (token.type()) {
+          case DIRECTIVE_NAME:
+            sb.append(token.name());
+            break;
+          case COLUMN_NAME:
+            sb.append(":").append(token.name());
+            break;
+          case COLUMN_NAME_LIST:
+            sb.append(":").append(token.name()).append(" [,:").append(token.name()).append("  ]*");
+            break;
+          case BOOLEAN:
+            sb.append(token.name()).append(" (true/false)");
+            break;
+          case TEXT:
+            sb.append("'").append(token.name()).append("'");
+            break;
+          case IDENTIFIER:
+          case NUMERIC:
+            sb.append(token.name());
+            break;
+          case BOOLEAN_LIST:
+          case NUMERIC_LIST:
+          case TEXT_LIST:
+            sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
+            break;
+          case EXPRESSION:
+            sb.append("exp:{<").append(token.name()).append(">}");
+            break;
+          case PROPERTIES:
+            sb.append("prop:{key:value,[key:value]*");
+            break;
+          case RANGES:
+            sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
+            break;
+          case BYTE_SIZE:
+            sb.append(token.name()).append(" (e.g., 10MB, 500KB)");
+            break;
+          case TIME_DURATION:
+            sb.append(token.name()).append(" (e.g., 5s, 120ms)");
+            break;
         }
       }
 
