@@ -30,7 +30,6 @@ import java.util.Set;
  */
 public class RecipeCompilerTest {
 
-  private static final Compiler compiler = new RecipeCompiler();
 
   @Test
   public void testSuccessCompilation() throws Exception {
@@ -168,7 +167,7 @@ public class RecipeCompilerTest {
       "filter-rows-on regex-match body_5 *as*"
     };
     CompileStatus compile = TestingRig.compile(recipe);
-    Assert.assertTrue(true);
+    Assert.assertTrue(compile.isSuccess());
   }
 
   @Test
@@ -183,7 +182,7 @@ public class RecipeCompilerTest {
       "send-to-error body_5 =~ \"DC.*\"",
       "filter-rows-on regex-match body_5 *as*"
     };
-    CompileStatus compile = TestingRig.compile(recipe);
+    TestingRig.compile(recipe);
     Assert.assertTrue(true);
   }
 
@@ -192,8 +191,7 @@ public class RecipeCompilerTest {
     String[] recipe = new String[] {
       "parse-as-csv :body '\t' true; drop :body;"
     };
-    CompileStatus compile = TestingRig.compile(recipe);
-    Assert.assertTrue(true);
+    Assert.assertTrue(TestingRig.compile(recipe).isSuccess());
   }
 
   @Test
@@ -201,7 +199,7 @@ public class RecipeCompilerTest {
     String[] recipe = new String[] {
       "parse-as-abababa-csv :body '\t' true; drop :body;"
     };
-    CompileStatus compile = TestingRig.compile(recipe);
+    TestingRig.compile(recipe);
     Assert.assertTrue(true);
   }
 

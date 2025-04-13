@@ -1,0 +1,9 @@
+Prompt 1: How to add new token types in ANTLR grammar for byte sizes and time durations
+
+Prompt 2: Java code example for parsing byte sizes with units like KB, MB, GB
+
+Prompt 3: Java code example for parsing time durations with units like ms, s, min
+
+Prompt 4: How to implement an aggregation directive in Wrangler
+
+Prompt 5: Unit tests for byte size and time duration parsers in Java

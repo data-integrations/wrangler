@@ -140,8 +140,21 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+    : INTEGER
+    | DECIMAL
+    | IDENTIFIER
+    | STRING
+    | BYTE_SIZE     
+    | TIME_DURATION 
+    ;
+
+byteSizeArg
+    : BYTE_SIZE
+    ;
+
+timeDurationArg
+    : TIME_DURATION
+    ;
 
 ecommand
  : '!' Identifier
@@ -295,6 +308,36 @@ UnicodeEscape
 fragment
    HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
+// Byte size units
+fragment BYTE_UNIT
+    : [Bb]                    // Bytes
+    | [Kk][Bb]                // Kilobytes
+    | [Mm][Bb]                // Megabytes
+    | [Gg][Bb]                // Gigabytes
+    | [Tt][Bb]                // Terabytes
+    ;
+
+// Time duration units
+fragment TIME_UNIT
+    : 'ns'                    // Nanoseconds
+    | 'ms'                    // Milliseconds
+    | 's'                     // Seconds
+    | 'min'                   // Minutes
+    | 'h'                     // Hours
+    ;
+
+// Byte size token (e.g., "10KB", "1.5MB")
+BYTE_SIZE
+    : DECIMAL BYTE_UNIT
+    | INTEGER BYTE_UNIT
+    ;
+
+// Time duration token (e.g., "150ms", "2.5s")
+TIME_DURATION
+    : DECIMAL TIME_UNIT
+    | INTEGER TIME_UNIT
+    ;
+
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
  ;
@@ -311,3 +354,13 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+fragment DECIMAL
+    : '-'? [0-9]+ '.' [0-9]+
+    ;
+
+fragment INTEGER
+    : '-'? [0-9]+
+    ;
+
+

@@ -35,13 +35,18 @@ import java.util.TreeSet;
  * information about the directives (or plugins) that need to be loaded
  * at the startup time.
  *
- * <p>This class provides some useful methods for accessing the list of
+ * <p>
+ * This class provides some useful methods for accessing the list of
  * directives or plugins that need to be loaded, the token groups for
- * all the directives tokenized and parsed.</p>
+ * all the directives tokenized and parsed.
+ * </p>
  *
- * <p>This class exposes a builder pattern for constructing the object.
+ * <p>
+ * This class exposes a builder pattern for constructing the object.
  * in the <code>RecipeVisitor</code>. The <code>RecipeVisitor</code>
- * constructs <code>RecipeSymbol</code> using the <code>RecipeSymbol.Builder</code></p>
+ * constructs <code>RecipeSymbol</code> using the
+ * <code>RecipeSymbol.Builder</code>
+ * </p>
  */
 @PublicEvolving
 public final class RecipeSymbol {
@@ -72,11 +77,13 @@ public final class RecipeSymbol {
    * the set of plugins or directives that are in the recipe, but are provided
    * as the user plugins.
    *
-   * <p>If there are no directives specified in the recipe, then there would
-   * be no plugins to be loaded.</p>
+   * <p>
+   * If there are no directives specified in the recipe, then there would
+   * be no plugins to be loaded.
+   * </p>
    *
    * @return An empty set if there are not directives to be loaded dynamically,
-   * else the list of directives as specified in the recipe.
+   *         else the list of directives as specified in the recipe.
    */
   public Set<String> getLoadableDirectives() {
     return loadableDirectives;
@@ -97,7 +104,10 @@ public final class RecipeSymbol {
    * Returns number of groups tokenized and parsed. The number returned will
    * less than or equal to the number of directives specified in the recipe.
    *
-   * <p>Fewer than number of directives is because of the '#pragma' directives</p>
+   * <p>
+   * Fewer than number of directives is because of the '#pragma' directives
+   * </p>
+   * 
    * @return
    */
   public int size() {
@@ -188,7 +198,8 @@ public final class RecipeSymbol {
     }
 
     /**
-     * This method provides a way to add a <code>Token</code> to the <code>TokenGroup</code>.
+     * This method provides a way to add a <code>Token</code> to the
+     * <code>TokenGroup</code>.
      *
      * @param token to be added to the token group.
      */

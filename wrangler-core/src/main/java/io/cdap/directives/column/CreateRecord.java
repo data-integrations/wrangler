@@ -97,7 +97,7 @@ public class CreateRecord implements Directive, Lineage {
   @Override
   public Mutation lineage() {
     return Mutation.builder()
-      .readable("Created column based on values in columns '%s''", Arrays.asList(columns))
+      .readable("Created column based on values in columns '%s''", Arrays.asList((Object[]) columns))
       .relation(Many.columns(columns), targetColumn)
       .build();
   }

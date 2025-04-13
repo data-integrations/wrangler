@@ -93,9 +93,14 @@ public class DefaultTransientStore implements TransientStore {
    * @return instance of object of type T.
    */
   @Override
+  @SuppressWarnings("unchecked")
   public <T> T get(String name) {
     if (global.containsKey(name)) {
-      return (T) global.get(name);
+      Object value = global.get(name);
+      if (value != null && value.getClass().isAssignableFrom(Object.class)) {
+        return (T) value;
+      }
+      return null;
     }
     return (T) local.get(name);
   }

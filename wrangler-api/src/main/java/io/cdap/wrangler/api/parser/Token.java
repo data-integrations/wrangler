@@ -25,11 +25,16 @@ import java.io.Serializable;
  * The Token class represents the object that contains the value and type of
  * the token as parsed by the parser of the grammar defined for recipe.
  *
- * <p>This class provides methods for retrieving the wrapped value of token parsed
- * as well the type of token the implementation of this interface represents.</p>
+ * <p>
+ * This class provides methods for retrieving the wrapped value of token parsed
+ * as well the type of token the implementation of this interface represents.
+ * </p>
  *
- * <p>It also provides method for providing the {@code JsonElement} of implementation
- * of this interface.</p>
+ * <p>
+ * It also provides method for providing the {@code JsonElement} of
+ * implementation
+ * of this interface.
+ * </p>
  */
 @PublicEvolving
 public interface Token extends Serializable {
@@ -53,7 +58,7 @@ public interface Token extends Serializable {
    * The class implementing this interface will return the {@code JsonElement}
    * instance including the values of the object.
    *
-   * @return {@code JsonElement} object containing members of  implementing class.
+   * @return {@code JsonElement} object containing members of implementing class.
    */
   JsonElement toJson();
 }

@@ -28,13 +28,6 @@ public class RemoteDirectiveResponse implements Serializable {
     private final List<Row> rows;
     private final Schema outputSchema;
 
-    /**
-     * Only used by {@link io.cdap.wrangler.utils.KryoSerializer}
-    **/
-    private RemoteDirectiveResponse() {
-        this(null, null);
-    }
-
     public RemoteDirectiveResponse(List<Row> rows, Schema outputSchema) {
         this.rows = rows;
         this.outputSchema = outputSchema;
