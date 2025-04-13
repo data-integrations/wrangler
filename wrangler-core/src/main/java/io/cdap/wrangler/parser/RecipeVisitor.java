@@ -38,7 +38,10 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
+// importing  the req classes
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
+import io.cdap.wrangler.parser.DirectivesParser;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -326,4 +329,34 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
   }
+  // CHANGES MADE
+//   @Override
+//   public Object visitByteSizeArg(WranglerParser.ByteSizeArgContext ctx) {
+//       String text = ctx.getText();  // e.g., "1.5MB"
+//       return new ByteSize(text);
+//   }
+   
+//   @Override
+//   public Object visitTimeDurationArg(WranglerParser.TimeDurationArgContext ctx) {
+//       String text = ctx.getText();  // e.g., "250ms"
+//       return new TimeDuration(text);
+// }
+    @Override
+    public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+        String text = ctx.getText();
+        try {
+            builder.addToken(new ByteSize(text));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid byte size argument: " + text, e);
+        }
+        return builder;
+    }
+    
+    @Override
+    public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+        String text = ctx.getText();
+        builder.addToken(new TimeDuration(text));
+        return builder;
+    }
+  
 }

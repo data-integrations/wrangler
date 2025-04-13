@@ -139,9 +139,18 @@ numberRange
  : Number ':' Number '=' value
  ;
 
-value
+
+/*
+ Previous value Rule to Accept New Tokens
+ value
  : String | Number | Column | Bool
  ;
+*/
+
+value
+: String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
+;
+
 
 ecommand
  : '!' Identifier
@@ -311,3 +320,41 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+/*
+=== NEW BYTE SIZE TOKEN ===
+*/
+
+BYTE_SIZE
+  : Digit+ ('.' Digit+)? BYTE_UNIT
+  ;
+
+
+/*
+=== NEW TIME DURATION TOKEN ===
+*/
+
+TIME_DURATION
+  : Digit+ ('.' Digit+)? TIME_UNIT
+  ;
+
+
+/*
+ === UNIT FRAGMENTS ===
+*/
+
+fragment BYTE_UNIT
+  : [kKmMgGtTpP]? 'B'
+  ;
+
+fragment TIME_UNIT
+  : 'ms' | 's' | 'm' | 'h'
+  ;
+
+byteSizeArg
+  : BYTE_SIZE
+  ;
+
+timeDurationArg
+  : TIME_DURATION
+  ;

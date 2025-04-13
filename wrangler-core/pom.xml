@@ -105,6 +105,18 @@
       <version>2.0.2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>3.12.4</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- External -->
 
@@ -326,6 +338,8 @@
         <version>${antlr4-maven-plugin.version}</version>
         <configuration>
           <visitor>true</visitor>
+          <sourceDirectory>${project.basedir}/src/main/antlr4</sourceDirectory>
+          <outputDirectory>${project.basedir}/target/generated-sources/antlr4</outputDirectory>
         </configuration>
         <executions>
           <execution>
