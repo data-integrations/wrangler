@@ -112,7 +112,7 @@ public class RecipePageRequestTest {
   @Test
   public void testGetRangeWithPageToken() {
     NamespaceSummary namespace = new NamespaceSummary("n1", "", 10L);
-    String validToken = "n1:100:asc";
+    String validToken = "100"; // Just use a numeric value for update time
     RecipePageRequest pageRequest = RecipePageRequest.builder(namespace)
       .setSortBy(SORT_BY_UPDATE_TIME)
       .setPageToken(validToken)
