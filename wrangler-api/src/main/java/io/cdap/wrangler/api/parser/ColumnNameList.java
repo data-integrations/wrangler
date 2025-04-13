@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,15 +29,15 @@ import java.util.List;
  */
 @PublicEvolving
 public class ColumnNameList implements Token {
-  private List<String> values = new ArrayList<>();
+  private List<String> values;
 
   public ColumnNameList(List<String> values) {
     this.values = values;
   }
 
   @Override
-  public List<String> value() {
-    return values;
+  public String value() {
+    return String.join(",", values);
   }
 
   @Override

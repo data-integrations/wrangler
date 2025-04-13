@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,38 +13,47 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package io.cdap.wrangler.api;
 
-import io.cdap.cdap.api.data.schema.Schema;
-
-import java.io.Serializable;
 import java.util.List;
 
 /**
- * Response after executing directives remotely
- * Please make sure all fields are registered with {@link io.cdap.wrangler.utils.KryoSerializer}
+ * Response object containing transformed rows from a remotely executed directive.
  */
-public class RemoteDirectiveResponse implements Serializable {
-    private final List<Row> rows;
-    private final Schema outputSchema;
+public class RemoteDirectiveResponse {
+  /** The transformed rows. */
+  private final List<Row> rows;
 
-    /**
-     * Only used by {@link io.cdap.wrangler.utils.KryoSerializer}
-    **/
-    private RemoteDirectiveResponse() {
-        this(null, null);
-    }
+  /** The schema for transformed data. */
+  private final String outputSchema;
 
-    public RemoteDirectiveResponse(List<Row> rows, Schema outputSchema) {
-        this.rows = rows;
-        this.outputSchema = outputSchema;
-    }
+  /**
+   * Creates a new response.
+   *
+   * @param rows The transformed rows
+   * @param outputSchema The schema for transformed data
+   */
+  public RemoteDirectiveResponse(final List<Row> rows, final String outputSchema) {
+    this.rows = rows;
+    this.outputSchema = outputSchema;
+  }
 
-    public List<Row> getRows() {
-        return rows;
-    }
+  /**
+   * Gets the transformed rows.
+   *
+   * @return List of transformed rows
+   */
+  public final List<Row> getRows() {
+    return rows;
+  }
 
-    public Schema getOutputSchema() {
-        return outputSchema;
-    }
+  /**
+   * Gets the output schema.
+   *
+   * @return Schema for transformed data
+   */
+  public final String getOutputSchema() {
+    return outputSchema;
+  }
 }

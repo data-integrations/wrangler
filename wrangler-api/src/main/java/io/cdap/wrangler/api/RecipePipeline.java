@@ -24,6 +24,7 @@ import java.util.List;
 
 /**
  * {@link RecipePipeline} executes array of {@link Executor} in the order they are specified.
+ * The pipeline provides error handling and schema mapping capabilities.
  *
  * @param <I> type of input object
  * @param <O> type of output object
@@ -33,31 +34,36 @@ import java.util.List;
 public interface RecipePipeline<I, O, E> extends Serializable, AutoCloseable {
 
   /**
-   * Executes the pipeline on the input.
+   * Executes the pipeline on the input with schema mapping.
    *
-   * @param input List of Input record of type I.
-   * @param schema Schema to which the output should be mapped.
+   * @param input List of Input record of type I
+   * @param schema Schema to which the output should be mapped
    * @return Parsed output list of record of type O
+   * @throws RecipeException if there is an error during pipeline execution
+   *         or schema mapping
    */
   List<O> execute(List<I> input, Schema schema) throws RecipeException;
 
   /**
-   * Executes the pipeline on the input.
+   * Executes the pipeline on the input without schema mapping.
    *
-   * @param input List of input record of type I.
+   * @param input List of input record of type I
    * @return Parsed output list of record of type I
+   * @throws RecipeException if there is an error during pipeline execution
    */
   List<I> execute(List<I> input) throws RecipeException;
 
   /**
-   * Returns records that are errored out.
+   * Returns records that encountered errors during processing.
+   * These records were not successfully transformed by the pipeline.
    *
-   * @return records that have errored out.
+   * @return List of error records of type E
    */
   List<E> errors();
 
   /**
-   * Destroys the pipeline.
+   * Releases any resources held by this pipeline.
+   * This method should be called when the pipeline is no longer needed.
    */
   @Override
   void close();

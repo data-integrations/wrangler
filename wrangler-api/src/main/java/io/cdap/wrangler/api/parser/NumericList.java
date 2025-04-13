@@ -20,25 +20,26 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 import java.util.List;
 
 /**
- * Class description here.
+ * Represents a list of numeric values in a token.
+ * Implements the Token interface to represent a sequence of numbers
+ * in directive parsing.
  */
 @PublicEvolving
 public class NumericList implements Token {
-  private final List<LazyNumber> values;
+  private List<Number> values;
 
-  public NumericList(List<LazyNumber> values) {
+  public NumericList(List<Number> values) {
     this.values = values;
   }
 
   @Override
-  public List<LazyNumber> value() {
-    return values;
+  public String value() {
+    return values.toString();
   }
 
   @Override
@@ -51,7 +52,7 @@ public class NumericList implements Token {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.NUMERIC_LIST.name());
     JsonArray array = new JsonArray();
-    for (LazyNumber value : values) {
+    for (Number value : values) {
       array.add(new JsonPrimitive(value));
     }
     object.add("value", array);

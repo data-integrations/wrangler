@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2016-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,33 +17,22 @@
 package io.cdap.wrangler.api;
 
 /**
- * A pair consisting of two elements - first & second.
- *
- * This class provides immutable access to elements of the pair.
- *
- * @param <F> type of the first element
- * @param <S> type of the second element
+ * A generic pair class to hold two values
  */
-public final class Pair<F, S> {
-  private final F first;
-  private final S second;
+public class Pair<T1, T2> {
+  private final T1 first;
+  private final T2 second;
 
-  public Pair(F first, S second) {
+  public Pair(T1 first, T2 second) {
     this.first = first;
     this.second = second;
   }
 
-  /**
-   * @return First element of the pair.
-   */
-  public F getFirst() {
+  public T1 getFirst() {
     return first;
   }
 
-  /**
-   * @return Second element of the pair.
-   */
-  public S getSecond() {
+  public T2 getSecond() {
     return second;
   }
 }

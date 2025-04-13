@@ -17,21 +17,39 @@
 package io.cdap.wrangler.api;
 
 /**
- * Exception throw when the record needs to emitted to error collector.
+ * Exception thrown when a record needs to be sent to the error collector.
+ * This exception carries information about the error including a message,
+ * an error code, and visibility settings for the Wrangler UI.
  */
 public class ErrorRowException extends Exception {
-  // Message as to why the record errored.
+  /** Detailed message explaining why the record failed processing. */
   private String message;
 
-  // Code associated with the error message.
+  /** Numeric code identifying the type of error that occurred. */
   private int code;
 
+  /** Flag indicating if this error should be displayed in the Wrangler UI. */
   private boolean showInWrangler;
 
+  /**
+   * Creates an error record with a message, code and UI visibility setting.
+   *
+   * @param message Detailed error message
+   * @param code Numeric error code
+   * @param showInWrangler Whether to show this error in the Wrangler UI
+   */
   public ErrorRowException(String message, int code, boolean showInWrangler) {
     this(message, code, showInWrangler, null);
   }
 
+  /**
+   * Creates an error record with a message, code, UI visibility setting and cause.
+   *
+   * @param message Detailed error message
+   * @param code Numeric error code
+   * @param showInWrangler Whether to show this error in the Wrangler UI
+   * @param cause The underlying exception that caused this error
+   */
   public ErrorRowException(String message, int code, boolean showInWrangler, Throwable cause) {
     super(message, cause);
     this.message = message;
@@ -39,34 +57,63 @@ public class ErrorRowException extends Exception {
     this.showInWrangler = showInWrangler;
   }
 
+  /**
+   * Creates an error record with just a message and code.
+   * The error will not be shown in the Wrangler UI by default.
+   *
+   * @param message Detailed error message
+   * @param code Numeric error code
+   */
   public ErrorRowException(String message, int code) {
     this(message, code, false);
   }
 
+  /**
+   * Creates an error record for a specific directive with formatted message.
+   *
+   * @param directiveName Name of the directive where the error occurred
+   * @param errorMessage Specific error details
+   * @param code Numeric error code
+   */
   public ErrorRowException(String directiveName, String errorMessage, int code) {
     this(directiveName, errorMessage, code, null);
   }
 
+  /**
+   * Creates an error record for a specific directive with formatted message and cause.
+   *
+   * @param directiveName Name of the directive where the error occurred
+   * @param errorMessage Specific error details
+   * @param code Numeric error code
+   * @param cause The underlying exception that caused this error
+   */
   public ErrorRowException(String directiveName, String errorMessage, int code, Throwable cause) {
     this(String.format("%s (ecode: %d, directive: %s)", errorMessage, code, directiveName), code, false, cause);
   }
 
   /**
-   * @return Message as why the record errored.
+   * Gets the detailed error message.
+   *
+   * @return Message explaining why the record failed processing
    */
+  @Override
   public String getMessage() {
     return message;
   }
 
   /**
-   * @return code related to the message.
+   * Gets the numeric error code.
+   *
+   * @return Code identifying the type of error
    */
   public int getCode() {
     return code;
   }
 
   /**
-   * @return Flag indicating whether this record should prevent further wrangling.
+   * Checks if this error should be displayed in the Wrangler UI.
+   *
+   * @return true if the error should be shown in the UI, false otherwise
    */
   public boolean isShownInWrangler() {
     return showInWrangler;

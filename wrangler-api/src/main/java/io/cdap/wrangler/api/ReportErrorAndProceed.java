@@ -17,33 +17,44 @@
 package io.cdap.wrangler.api;
 
 /**
- * Exception throw when the record needs to emitted to error collector.
- * This class is similar to {@link ErrorRowException}, but, with a difference
- * that it reports error and continues processing.
+ * An exception that indicates a non-fatal error occurred during directive
+ * execution and processing should continue.
  */
 public class ReportErrorAndProceed extends Exception {
-  // Message as to why the record errored.
-  private String message;
+  /** The error message. */
+  private final String message;
 
-  // Code associated with the error message.
-  private int code;
+  /** The error code. */
+  private final int code;
 
-  public ReportErrorAndProceed(String message, int code) {
+  /**
+   * Creates a new instance with error details.
+   *
+   * @param message The error message
+   * @param code The error code
+   */
+  public ReportErrorAndProceed(final String message, final int code) {
+    super(message);
     this.message = message;
     this.code = code;
   }
 
   /**
-   * @return Message as why the record errored.
+   * Gets the error message.
+   *
+   * @return The error message
    */
-  public String getMessage() {
+  @Override
+  public final String getMessage() {
     return message;
   }
 
   /**
-   * @return code related to the message.
+   * Gets the error code.
+   *
+   * @return The error code
    */
-  public int getCode() {
+  public final int getCode() {
     return code;
   }
 }

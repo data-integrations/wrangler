@@ -44,48 +44,22 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
  */
 @PublicEvolving
 public class Bool implements Token {
-  /**
-   * The {@code Boolean} object that represents the value held by the token.
-   */
   private Boolean value;
 
-  /**
-   * Allocates a {@code Boolean} object representing the
-   * {@code value} argument.
-   *
-   * @param value the value of the {@code Boolean}.
-   */
   public Bool(Boolean value) {
     this.value = value;
   }
 
-  /**
-   * Returns the value of this {@code Boolean} object as a boolean
-   * primitive.
-   *
-   * @return  the primitive {@code boolean} value of this object.
-   */
   @Override
-  public Boolean value() {
-    return value;
+  public String value() {
+    return value.toString();
   }
 
-  /**
-   * Returns the type of this {@code Bool} object as a {@code TokenType}
-   * enum.
-   *
-   * @return the enumerated {@code TokenType} of this object.
-   */
   @Override
   public TokenType type() {
     return TokenType.BOOLEAN;
   }
 
-  /**
-   * Returns the members of this {@code Bool} object as a {@code JsonElement}.
-   *
-   * @return Json representation of this {@code Bool} object as {@code JsonElement}
-   */
   @Override
   public JsonElement toJson() {
     JsonObject object = new JsonObject();

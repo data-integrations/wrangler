@@ -1,51 +1,87 @@
 /*
- *  Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package io.cdap.wrangler.api;
 
 /**
- * A {@link io.cdap.wrangler.api.RecipePipeline} specific exception used for
- * communicating issues with execution of pipeline.
+ * Exception thrown when there is an error executing a recipe.
  */
 public class RecipeException extends Exception {
-  public static final int UNKNOWN_INDEX = -1;
-
-  // Index of row in dataset and directive in recipe that caused the error
+  /** The row index where the error occurred. */
   private final int rowIndex;
+
+  /** The directive index where the error occurred. */
   private final int directiveIndex;
 
-  public RecipeException(String message, Throwable throwable, int rowIndex, int directiveIndex) {
+  /** The message describing the error. */
+  private final String message;
+
+  /**
+   * Constructs a new recipe exception.
+   *
+   * @param message The error message
+   * @param throwable The underlying cause
+   * @param rowIndex The index of the row where error occurred
+   * @param directiveIndex The index of the directive where error occurred
+   */
+  public RecipeException(final String message, final Throwable throwable, 
+      final int rowIndex, final int directiveIndex) {
     super(message, throwable);
     this.rowIndex = rowIndex;
     this.directiveIndex = directiveIndex;
+    this.message = message;
   }
 
-  public RecipeException(String message, Throwable throwable, int directiveIndex) {
-    this(message, throwable, UNKNOWN_INDEX, directiveIndex);
+  /**
+   * Constructs a new recipe exception.
+   *
+   * @param message The error message
+   * @param throwable The underlying cause
+   * @param directiveIndex The index of the directive where error occurred
+   */
+  public RecipeException(final String message, final Throwable throwable,
+      final int directiveIndex) {
+    this(message, throwable, -1, directiveIndex);
   }
 
-  public RecipeException(String message, Throwable throwable) {
-    this(message, throwable, UNKNOWN_INDEX, UNKNOWN_INDEX);
+  /**
+   * Constructs a new recipe exception.
+   *
+   * @param message The error message
+   * @param throwable The underlying cause
+   */
+  public RecipeException(final String message, final Throwable throwable) {
+    this(message, throwable, -1, -1);
   }
 
-  public int getRowIndex() {
+  /**
+   * Gets the row index where the error occurred.
+   *
+   * @return The row index, or -1 if not available
+   */
+  public final int getRowIndex() {
     return rowIndex;
   }
 
-  public int getDirectiveIndex() {
+  /**
+   * Gets the directive index where the error occurred.
+   *
+   * @return The directive index, or -1 if not available
+   */
+  public final int getDirectiveIndex() {
     return directiveIndex;
   }
 }

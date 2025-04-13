@@ -18,25 +18,22 @@ package io.cdap.wrangler.api.parser;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
-
-import java.util.List;
 
 /**
  * Class description here.
  */
 @PublicEvolving
 public class Ranges implements Token {
-  private final List<Triplet<Numeric, Numeric, String>> values;
+  private String value;
 
-  public Ranges(List<Triplet<Numeric, Numeric, String>> values) {
-    this.values = values;
+  public Ranges(String value) {
+    this.value = value;
   }
 
   @Override
-  public List<Triplet<Numeric, Numeric, String>> value() {
-    return values;
+  public String value() {
+    return value;
   }
 
   @Override
@@ -47,6 +44,8 @@ public class Ranges implements Token {
   @Override
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
+    object.addProperty("type", TokenType.RANGES.name());
+    object.addProperty("value", value);
     return object;
   }
 }

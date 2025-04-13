@@ -1,61 +1,94 @@
 /*
- *  Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package io.cdap.wrangler.api;
 
-import io.cdap.wrangler.api.parser.Token;
-
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * Class description here.
+ * A group of tokens with their associated source information.
  */
-public final class TokenGroup {
+public class TokenGroup {
+  /** The source information for this token group. */
   private final SourceInfo info;
-  private final List<Token> tokens;
 
+  /** The list of tokens in this group. */
+  private final List<String> tokens;
+
+  /**
+   * Creates an empty token group with no source information.
+   */
   public TokenGroup() {
-    this.info = null;
-    this.tokens = new ArrayList<>();
+    this(null);
   }
 
-  public TokenGroup(SourceInfo info) {
+  /**
+   * Creates a token group with source information.
+   *
+   * @param info The source information for this group
+   */
+  public TokenGroup(final SourceInfo info) {
     this.info = info;
     this.tokens = new ArrayList<>();
   }
 
-  public void add(Token token) {
+  /**
+   * Adds a token to this group.
+   *
+   * @param token The token to add
+   */
+  public final void addToken(final String token) {
     tokens.add(token);
   }
 
-  public int size() {
-    return tokens.size();
+  /**
+   * Gets the source information for this group.
+   *
+   * @return The source information, or null if not available
+   */
+  public final SourceInfo getInfo() {
+    return info;
   }
 
-  public Token get(int i) {
+  /**
+   * Gets a token at the specified index.
+   *
+   * @param i The index of the token to get
+   * @return The token at the specified index
+   */
+  public final String getToken(final int i) {
     return tokens.get(i);
   }
 
-  public Iterator<Token> iterator() {
-    return tokens.iterator();
+  /**
+   * Gets the number of tokens in this group.
+   *
+   * @return The number of tokens
+   */
+  public final int size() {
+    return tokens.size();
   }
 
-  public SourceInfo getSourceInfo() {
-    return info;
+  /**
+   * Gets all tokens in this group.
+   *
+   * @return List of all tokens
+   */
+  public final List<String> getTokens() {
+    return tokens;
   }
 }

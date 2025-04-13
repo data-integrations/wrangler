@@ -21,11 +21,11 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import java.util.List;
 
 /**
- * Directive is a user defined directive. DIE - Define, Initialize & Execute - Pattern
+ * Directive is a user defined directive that follows the DIE (Define, Initialize &amp; Execute) pattern.
  *
- * Following is a simple example of how to use this interface.
- * <code>
- *   @Plugin(type = Directive.Type)
+ * <p>Following is a simple example of how to use this interface:</p>
+ * <pre>{@code
+ *   @Plugin(type = Directive.TYPE_ANNOTATION)
  *   @Name("text-reverse")
  *   @Description("Reverses a string value of a column.")
  *   public final class TextReverse implements Directive {
@@ -34,96 +34,90 @@ import java.util.List;
  *     @Override
  *     public UsageDefinition define() {
  *       UsageDefinition.Builder builder = UsageDefinition.builder();
- *       builder.define("col", TokenType.COLUMN_NAME)
+ *       builder.define("col", TokenType.COLUMN_NAME);
  *       return builder.build();
  *     }
  *
  *     @Override
- *     public void initialize(Argument args) throws DirectiveParseException {
- *      this.columnArgs = args.value("col");
+ *     public void initialize(Arguments args) throws DirectiveParseException {
+ *       this.columnArgs = args.value("col");
  *     }
  *
  *     @Override
  *     public List<Row> execute(List<Row> rows, ExecutorContext context)
  *       throws DirectiveExecutionException, ErrorRowException {
- *       ...
+ *       // Implementation here
  *     }
  *   }
- * </code>
+ * }</pre>
  */
 public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics {
   /**
-   * This defines a interface variable that is static and final for specify
-   * the {@code type} of the plugin this interface would provide.
-   *
-   * <p>This constant should be used when defining a plugin. An example
-   * of such usage is as follow:</p>
-   *
-   * <code>
-   *   @Plugin(type = Directive.Type)
-   *   @Name("text-reverse")
-   *   @Description("Reverses the value of the column.)
-   *   public final class TextReverse implements Directive {
-   *     ...
-   *   }
-   * </code>
+   * The plugin type identifier for directives. This constant should be used when defining a plugin.
+   */  String TYPE = "directive";
+  
+  /**
+   * Convenience constant for use in annotations.
    */
-  String TYPE = "directive";
+  String TYPE_ANNOTATION = TYPE;
 
   /**
-   * This method provides a way for the developer to provide information
-   * about the arguments expected by this directive. The definition of
-   * arguments would provide information to the framework about how each
-   * argument should be parsed and interpretted.
+   * Defines the arguments expected by this directive.
+   * 
+   * <p>This method uses {@link UsageDefinition.Builder} to build token definitions. Each token 
+   * definition consists of a name, {@link TokenType}, and optional flag that specifies whether 
+   * the token is required.</p>
    *
-   * <p>This method uses {@code UsageDefinition#Builder} to build the token
-   * definitions. Each token definition consists of {@code name}, {@code TokenType}
-   * and {@code optional} field that specifies whether the token specified is
-   * optionally present.</p>
+   * <p>The {@link UsageDefinition} provides methods to define tokens and generate usage 
+   * documentation based on the definition.</p>
    *
-   * <p>The {@code UsageDefinition} provides different methods to {@code define},
-   * and as well generate {@code usage} based on the definition.</p>
+   * <p>This method is called during directive initialization when creating an executable directive 
+   * for the {@link RecipePipeline}.</p>
    *
-   * <p>This method is invoked by the framework at the time of creating an executable
-   * directive that will be added to the {@link RecipePipeline}. It's generally during
-   * the configuration phase.</p>.
+   * <p>Best practices:</p>
+   * <ul>
+   *   <li>This method should not throw exceptions</li>
+   *   <li>Avoid using external libraries that may throw unexpected exceptions</li>
+   * </ul>
    *
-   * <p>NOTE: As best practice, developer needs to make sure that this class doesn't
-   * throw an exception. Also, it should not include external libraries that can
-   * generate exception unknown to the developer.</p>
-   *
-   * <p>
-   *   Following is an example of how {@code define} could be used.
-   * <code>
+   * <p>Example usage:</p>
+   * <pre>{@code
    *   public UsageDefinition define() {
    *     UsageDefinition.Builder builder = UsageDefinition.builder();
-   *     builder.define("column", TokeType.COLUMN_NAME); // :column
-   *     builder.define("number", TokenType.NUMERIC, Optional.TRUE); // 1.0 or 8
-   *     builder.define("text", TokenType.TEXT); // 'text'
-   *     builder.define("boolean", TokenType.BOOL); // true / false
-   *     builder.define("expression", TokenType.EXPRESSOION); // exp: { age < 10.0 }
+   *     builder.define("column", TokenType.COLUMN_NAME);     // :column
+   *     builder.define("number", TokenType.NUMERIC, true);   // Optional: 1.0 or 8
+   *     builder.define("string", TokenType.TEXT);            // 'text'
+   *     return builder.build();
    *   }
-   * </code>
-   * </p>
+   * }</pre>
    *
-   * {@code TokenType} supports many different token types that can be used within the
-   * usage definition.
-   *
-   * @return A object of {@code UsageDefinition} containing definitions of each argument
-   * expected by this directive.
-   *
-   * @see io.cdap.wrangler.api.parser.TokenType
+   * @return A {@link UsageDefinition} object defining the directive's arguments
    */
   UsageDefinition define();
 
   /**
-   * This method provides a way to emit metrics from the Directive. Metadata about each metric to be emitted can be
-   * returned and used in the metrics emission logic elsewhere.
-   * @return List of metrics ({@link EntityCountMetric}s) emitted by this directive
+   * Initializes the directive with parsed arguments.
+   *
+   * <p>This method is called after argument parsing and before execution. It should
+   * validate and store the parsed arguments for use during execution.</p>
+   *
+   * @param args The parsed arguments for this directive
+   * @throws DirectiveParseException if the arguments are invalid or cannot be processed
+   */
+  void initialize(Arguments args) throws DirectiveParseException;
+
+  /**
+   * Executes the directive on a batch of rows.
+   *
+   * <p>This method implements the actual data transformation logic.</p>
+   *
+   * @param rows List of input rows to process
+   * @param context Execution context providing runtime information and services
+   * @return List of transformed rows
+   * @throws DirectiveExecutionException if there is an error during execution
+   * @throws ErrorRowException if specific rows cannot be processed
    */
   @Override
-  default List<EntityCountMetric> getCountMetrics() {
-    // no op
-    return null;
-  }
+  List<Row> execute(List<Row> rows, ExecutorContext context)
+    throws DirectiveExecutionException, ErrorRowException;
 }

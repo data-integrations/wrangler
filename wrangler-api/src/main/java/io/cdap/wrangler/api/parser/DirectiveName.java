@@ -16,36 +16,46 @@
 
 package io.cdap.wrangler.api.parser;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
 /**
- * Class description here.
+ * Token representing a directive name.
  */
-@PublicEvolving
-public class DirectiveName implements Token {
-  private String value;
+public class DirectiveName {
+  /** The raw directive name value. */
+  private final String value;
 
-  public DirectiveName(String value) {
-    this.value = value;
+  /**
+   * Creates a new directive name token.
+   *
+   * @param name The directive name
+   */
+  public DirectiveName(final String name) {
+    this.value = name;
   }
 
-  @Override
-  public String value() {
+  /**
+   * Gets the directive name.
+   *
+   * @return The name value
+   */
+  public final String value() {
     return value;
   }
 
-  @Override
-  public TokenType type() {
+  /**
+   * Gets the token type.
+   *
+   * @return Always TokenType.DIRECTIVE_NAME
+   */
+  public final TokenType type() {
     return TokenType.DIRECTIVE_NAME;
   }
 
-  @Override
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("type", TokenType.DIRECTIVE_NAME.name());
-    object.addProperty("value", value);
-    return object;
+  /**
+   * Gets JSON representation.
+   *
+   * @return JSON string for this token
+   */
+  public final String toJson() {
+    return String.format("{\"%s\":\"%s\"}", type().name().toLowerCase(), value);
   }
 }

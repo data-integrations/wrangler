@@ -43,48 +43,22 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
  */
 @PublicEvolving
 public class Identifier implements Token {
-  /**
-   * The {@code String} object that represents the value held by the token.
-   */
   private String value;
 
-  /**
-   * Allocates a {@code String} object representing the
-   * {@code value} argument.
-   *
-   * @param value the value of the {@code String}.
-   */
   public Identifier(String value) {
     this.value = value;
   }
 
-  /**
-   * Returns the value of this {@code String} object as a boolean
-   * primitive.
-   *
-   * @return  the primitive {@code Identifier} value of this object.
-   */
   @Override
   public String value() {
     return value;
   }
 
-  /**
-   * Returns the type of this {@code Identifier} object as a {@code TokenType}
-   * enum.
-   *
-   * @return the enumerated {@code TokenType} of this object.
-   */
   @Override
   public TokenType type() {
     return TokenType.IDENTIFIER;
   }
 
-  /**
-   * Returns the members of this {@code Identifier} object as a {@code JsonElement}.
-   *
-   * @return Json representation of this {@code Identifier} object as {@code JsonElement}
-   */
   @Override
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
