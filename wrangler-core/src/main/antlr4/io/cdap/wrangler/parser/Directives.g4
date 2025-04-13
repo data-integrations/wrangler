@@ -141,6 +141,8 @@ numberRange
 
 value
  : String | Number | Column | Bool
+ | BYTE_SIZE    
+ | TIME_DURATION 
  ;
 
 ecommand
@@ -291,6 +293,14 @@ fragment
 UnicodeEscape
    :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
    ;
+  
+fragment 
+  BYTE_UNIT: ('B'|'KB'|'MB'|'GB'|'TB'|'KiB'|'MiB'|'GiB'|'TiB');
+fragment 
+  TIME_UNIT: ('ns'|'ms'|'s'|'m'|'h'|'d');
+
+BYTE_SIZE: NUMBER (' ')? BYTE_UNIT;
+TIME_DURATION: NUMBER (' ')? TIME_UNIT;
 
 fragment
    HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;

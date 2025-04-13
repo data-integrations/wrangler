@@ -153,4 +153,5 @@ public enum TokenType implements Serializable {
    * on characters that can be present in a string.
    */
   IDENTIFIER
+  
 }

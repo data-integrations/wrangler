@@ -216,3 +216,42 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+
+###  Byte Size Parser
+**Supported Formats**  
+Format | Example | Canonical Unit (Bytes)
+--- | --- | ---
+`NUMBER UNIT` | `5MB` | 5,242,880 bytes  
+`NUMBER[space]UNIT` | `10 KB` | 10,240 bytes  
+`NUMBER.UNIT` | `1.5GiB` | 1,610,612,736 bytes  
+
+**Valid Units**:
+- `B` (Bytes)
+- `KB`/`KiB` (Kilobytes/Kibibytes)
+- `MB`/`MiB` (Megabytes/Mebibytes)
+- `GB`/`GiB` (Gigabytes/Gibibytes)
+- `TB`/`TiB` (Terabytes/Tebibytes)
+
+### Time Duration Parser
+**Supported Formats**  
+Format | Example | Canonical Unit (Nanoseconds)
+--- | --- | ---
+`NUMBER UNIT` | `500ms` | 500,000,000 ns  
+`NUMBER[space]UNIT` | `2 h` | 7,200,000,000,000 ns  
+`NUMBER.UNIT` | `1.5m` | 90,000,000,000 ns  
+
+**Valid Units**:
+- `ns` (Nanoseconds)
+- `ms` (Milliseconds)
+- `s` (Seconds)
+- `m` (Minutes)
+- `h` (Hours)
+- `d` (Days)
+
+### Aggregate-Stats Directive
+Aggregates byte size and time duration columns across rows.
+
+**Usage**:
+```directive
+aggregate-stats <source_size_col> <source_time_col> <target_size_col> <target_time_col> [size_unit] [time_unit]
