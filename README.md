@@ -216,3 +216,29 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+## New Features
+
+### BYTE_SIZE and TIME_DURATION Parsers
+
+You can now use byte size and time duration values directly in directives using human-readable formats like:
+
+- **Byte Size examples:** `100MB`, `1GB`, `500KB`
+- **Time Duration examples:** `10s`, `5min`, `2h`, `300ms`
+
+These values will automatically be converted to their canonical units (e.g., bytes, nanoseconds) for aggregation or processing.
+
+---
+
+### `aggregate-stats` Directive
+
+A new directive has been added to support aggregation of byte size and time duration fields.
+
+**Usage:**
+
+**Example:**
+
+This will:
+- Convert all values in `memory_used` (e.g., `"100MB"`, `"1GB"`) into **bytes** and aggregate them into `total_memory`.
+- Convert values in `processing_time` (e.g., `"5min"`, `"30s"`) into **nanoseconds** and aggregate into `total_time`.
+
+---
