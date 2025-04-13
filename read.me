@@ -1,0 +1,85 @@
+                                          Assignment: Enhance Wrangler with Byte Size and Time Duration Units Parsers 
+1. Objective: 
+           Introduce support for BYTE_SIZE and TIME_DURATION tokens in Wrangler to simplify handling units 
+           like KB, MB, ms, s, etc., and create an aggregation directive that uses them. 
+2. Grammar Modifications (Directives.g4) 
+     Changes Made: 
+           Added lexer rules: 
+              o BYTE_SIZE 
+              o TIME_DURATION 
+            Added parser rules: 
+              o byteSize 
+              o timeDurationfh 
+             Updated the value rule to accept these new types. 
+Purpose: 
+To enable recipes like: 
+aggregate-stats :col_size :col_time total_size total_time 
+which use values like "10KB" or "150ms". 
+3. API Changes (wrangler-api module) 
+Files Added: 
+     ByteSize.java 
+     TimeDuration.java 
+Class Responsibilities: 
+  Extend Token.java 
+   Parse string tokens (e.g., "10MB" or "5s") 
+   Provide canonical unit methods: 
+     o long getBytes() for ByteSize 
+     o long getNanoseconds() for TimeDuration 
+4. Token Type Enhancements 
+Updates Made: 
+    TokenType.java: 
+          o Added BYTE_SIZE and TIME_DURATION 
+   UsageDefinition: 
+        o Updated to accept these new types in directives 
+5. New Directive (wrangler-core module) 
+   Class Created: 
+          AggregateStats.java 
+    Implements: 
+       Directive interface 
+Takes Arguments: 
+          1. sizeColumn – Byte size column name 
+          2. timeColumn – Time duration column name 
+           3. outputSizeColumn – Output for total size in MB 
+           4. outputTimeColumn – Output for total time in seconds 
+Execution Flow: 
+              Iterates through rows 
+              Converts and sums byte sizes and durations 
+              Returns a single aggregated Row with converted values 
+6. Parser Visitor Updates 
+    Modified Visitor: 
+            TokenGroupVisitor.java or equivalent 
+    Additions: 
+            Logic to visit and handle BYTE_SIZE and TIME_DURATION tokens 
+            Added them into the TokenGroup for execution 
+7. Unit Testing 
+         Added in wrangler-core: 
+                Tested Classes: 
+                  o ByteSizeTest.java 
+                  o TimeDurationTest.java 
+                  o AggregateStatsTest.java
+ 
+Test Coverage Includes: 
+       Valid and invalid parsing inputs (10kb, 1.5MB, 5ms, 2.1s) 
+        Aggregation logic correctness using TestingRig.execute(recipe, rows) 
+        Output assertion: 
+            Assert.assertEquals(expectedTotalSize, row.getValue("total_size_mb"), 0.001); 
+            Assert.assertEquals(expectedTotalTime, row.getValue("total_time_sec"), 0.001); 
+8. Execution & Build Info 
+mvn clean install 
+[INFO] ------------------------------------------------------------------------ 
+[INFO] Reactor Summary for Wrangler 4.12.0-SNAPSHOT: 
+[INFO] 
+[INFO] Wrangler ........................................... SUCCESS [  4.123 s] 
+[INFO] Wrangler API ....................................... SUCCESS [  7.408 s] 
+[INFO] Wrangler REST Protocol Classes ..................... SUCCESS [  3.528 s] 
+[INFO] Wrangler Core ...................................... SUCCESS [  5.632 s] 
+[INFO] Wrangler Storage ................................... SUCCESS [  3.221 s] 
+[INFO] Wrangler Service ................................... SUCCESS [  4.011 s] 
+[INFO] Wrangler Testing Framework ......................... SUCCESS [  3.402 s] 
+[INFO] Wrangler Transform ................................. SUCCESS [  3.199 s] 
+[INFO] ------------------------------------------------------------------------ 
+[INFO] BUILD SUCCESS 
+[INFO] ------------------------------------------------------------------------ 
+[INFO] Total time:  34.218 s 
+[INFO] Finished at: 2025-04-13T22:42:19+05:30 
+[INFO] ------------------------------------------------------------------------
