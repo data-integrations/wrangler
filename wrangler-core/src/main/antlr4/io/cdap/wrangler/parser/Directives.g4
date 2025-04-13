@@ -46,8 +46,7 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
- ;
+ :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)* ;
 
 directive
  : command
@@ -64,6 +63,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -140,8 +141,16 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+  : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
+  ;
+ 
+ byteSizeArg
+  : BYTE_SIZE
+  ;
+ 
+ timeDurationArg
+  : TIME_DURATION
+  ;
 
 ecommand
  : '!' Identifier
@@ -257,6 +266,28 @@ Number
  : Int ('.' Digit*)?
  ;
 
+ BYTE_SIZE
+  : Int BYTE_UNIT
+  ;
+ 
+ TIME_DURATION
+  : Int TIME_UNIT
+  ;
+ 
+ fragment BYTE_UNIT
+  : [kK][bB]
+  | [mM][bB]
+  | [gG][bB]
+  | [tT][bB]
+  ;
+ 
+ fragment TIME_UNIT
+  : [sS]
+  | [mM][sS]
+  | [hH]
+  | [dD]
+  ;
+
 Identifier
  : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
  ;
@@ -270,8 +301,8 @@ Column
  ;
 
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
+ : '\'' ( EscapeSequence | ~('\''))* '\''
+  | '"'  ( EscapeSequence | ~('"'))* '"'
  ;
 
 EscapeSequence
