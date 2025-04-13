@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -311,3 +311,38 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+fragment DIGIT: [0-9];
+fragment BYTE_UNIT: [KkMmGgTt]? 'B';
+fragment TIME_UNIT: 'ms' | 's' | 'm' | 'h' | 'd' | 'w';
+
+BYTE_SIZE: DIGIT+ ('.' DIGIT+)? BYTE_UNIT;
+TIME_DURATION: DIGIT+ ('.' DIGIT+)? TIME_UNIT;
+// ... your parser rules above
+
+// Existing lexer rules
+ID        : [a-zA-Z_][a-zA-Z0-9_]* ;
+INT       : [0-9]+ ;
+WS        : [ \t\r\n]+ -> skip ;
+
+// 👇 Add these at the bottom of the file
+BYTE_SIZE
+  : [0-9]+ ('.' [0-9]+)? BYTE_UNIT
+  ;
+
+fragment BYTE_UNIT
+  : [Kk][Bb]
+  | [Mm][Bb]
+  | [Gg][Bb]
+  | [Tt][Bb]
+  ;
+
+TIME_DURATION
+  : [0-9]+ ('.' [0-9]+)? TIME_UNIT
+  ;
+
+fragment TIME_UNIT
+  : 'ms'
+  | 's'
+  | 'm'
+  | 'h'
+  ;

@@ -20,6 +20,9 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+
 /**
  * The TokenType class provides the enumerated types for different types of
  * tokens that are supported by the grammar.
@@ -75,6 +78,12 @@ public enum TokenType implements Serializable {
    * This type is associated with the token that either represents string 'true' or 'false'.
    */
   BOOLEAN,
+
+  String,
+  BYTE_SIZE,
+  JsonElement,
+  JsonPrimitive,
+
 
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
