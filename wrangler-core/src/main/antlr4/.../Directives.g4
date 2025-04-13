@@ -1,0 +1,13 @@
+// ...existing code...
+BYTE_SIZE: DIGIT+ BYTE_UNIT;
+TIME_DURATION: DIGIT+ ('.' DIGIT+)? TIME_UNIT;
+
+fragment BYTE_UNIT: 'B' | 'KB' | 'MB' | 'GB' | 'TB';
+fragment TIME_UNIT: 'ms' | 's' | 'm' | 'h' | 'd';
+// ...existing code...
+value
+    : ...existing code...
+    | BYTE_SIZE
+    | TIME_DURATION
+    ;
+// ...existing code...
