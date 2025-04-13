@@ -35,7 +35,7 @@ public class ELTest {
     EL el = EL.compile("a + b");
     ELResult execute = el.execute(new ELContext().add("a", 1).add("b", 2));
     Assert.assertNotNull(execute);
-    Assert.assertEquals(new Integer(3), execute.getInteger());
+    Assert.assertEquals(Integer.valueOf(3), execute.getInteger());
     Assert.assertTrue(el.variables().contains("a"));
     Assert.assertFalse(el.variables().contains("c"));
   }
