@@ -126,6 +126,10 @@ public final class UsageDefinition implements Serializable {
           sb.append("prop:{key:value,[key:value]*");
         } else if (token.type().equals(TokenType.RANGES)) {
           sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
+        } else if (token.type().equals(TokenType.BYTE_SIZE)) {
+          sb.append(token.name()).append(" (e.g., 10KB, 1.5MB)");
+        } else if (token.type().equals(TokenType.TIME_DURATION)) {
+          sb.append(token.name()).append(" (e.g., 150ms, 2.5s)");
         }
       }
 
@@ -232,6 +236,86 @@ public final class UsageDefinition implements Serializable {
       optionalCnt = optional ? optionalCnt + 1 : optionalCnt;
       currentOrdinal++;
       tokens.add(spec);
+    }
+
+    /**
+     * Helper method to define a ByteSize token with a name.
+     *
+     * @param name of the token in the definition of a directive.
+     */
+    public void defineByteSize(String name) {
+      define(name, TokenType.BYTE_SIZE);
+    }
+
+    /**
+     * Helper method to define a ByteSize token with a name and label.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param label label that modifies the usage for this field.
+     */
+    public void defineByteSize(String name, String label) {
+      define(name, TokenType.BYTE_SIZE, label);
+    }
+
+    /**
+     * Helper method to define a ByteSize token with a name and optional flag.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param optional <code>true</code> if token is optional, else <code>false</code>.
+     */
+    public void defineByteSize(String name, boolean optional) {
+      define(name, TokenType.BYTE_SIZE, optional);
+    }
+
+    /**
+     * Helper method to define a ByteSize token with a name, label and optional flag.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param label label that modifies the usage for this field.
+     * @param optional <code>true</code> if token is optional, else <code>false</code>.
+     */
+    public void defineByteSize(String name, String label, boolean optional) {
+      define(name, TokenType.BYTE_SIZE, label, optional);
+    }
+
+    /**
+     * Helper method to define a TimeDuration token with a name.
+     *
+     * @param name of the token in the definition of a directive.
+     */
+    public void defineTimeDuration(String name) {
+      define(name, TokenType.TIME_DURATION);
+    }
+
+    /**
+     * Helper method to define a TimeDuration token with a name and label.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param label label that modifies the usage for this field.
+     */
+    public void defineTimeDuration(String name, String label) {
+      define(name, TokenType.TIME_DURATION, label);
+    }
+
+    /**
+     * Helper method to define a TimeDuration token with a name and optional flag.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param optional <code>true</code> if token is optional, else <code>false</code>.
+     */
+    public void defineTimeDuration(String name, boolean optional) {
+      define(name, TokenType.TIME_DURATION, optional);
+    }
+
+    /**
+     * Helper method to define a TimeDuration token with a name, label and optional flag.
+     *
+     * @param name of the token in the definition of a directive.
+     * @param label label that modifies the usage for this field.
+     * @param optional <code>true</code> if token is optional, else <code>false</code>.
+     */
+    public void defineTimeDuration(String name, String label, boolean optional) {
+      define(name, TokenType.TIME_DURATION, label, optional);
     }
 
     /**
