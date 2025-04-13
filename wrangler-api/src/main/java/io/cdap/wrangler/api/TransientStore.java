@@ -61,4 +61,8 @@ public interface TransientStore extends Serializable {
    * @return list of all the variables.
    */
   Set<String> getVariables();
+
+  boolean has(TransientVariableScope directive, String dataSizeKey);
+
+  long get(TransientVariableScope directive, String dataSizeKey);
 }

@@ -25,6 +25,7 @@ import io.cdap.wrangler.api.DirectiveNotFoundException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
@@ -99,5 +100,11 @@ public class GrammarBasedParser implements RecipeParser {
     } catch (Exception e) {
       throw new RecipeException(e.getMessage(), e);
     }
+  }
+
+  @Override
+  public RecipeSymbol getRecipeSymbol() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getRecipeSymbol'");
   }
 }

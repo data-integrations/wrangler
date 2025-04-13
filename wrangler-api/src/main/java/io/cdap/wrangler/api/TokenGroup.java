@@ -58,4 +58,9 @@ public final class TokenGroup {
   public SourceInfo getSourceInfo() {
     return info;
   }
+
+  public Token getToken(int i) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getToken'");
+  }
 }

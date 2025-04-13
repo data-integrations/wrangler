@@ -31,4 +31,6 @@ public interface RecipeParser {
    * @return List of {@link Executor}.
    */
   List<Directive> parse() throws RecipeException;
+
+  RecipeSymbol getRecipeSymbol();
 }

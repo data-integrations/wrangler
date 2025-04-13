@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -80,5 +81,12 @@ public interface ExecutorContext extends LookupProvider, Serializable {
 
   default boolean isSchemaManagementEnabled() {
     return false;
+  }
+
+  boolean isLast();
+
+  static Collection<Directive> errors() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'errors'");
   }
 }

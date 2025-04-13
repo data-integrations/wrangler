@@ -114,4 +114,16 @@ public class DefaultTransientStore implements TransientStore {
       local.put(name, value);
     }
   }
+
+  @Override
+  public boolean has(TransientVariableScope directive, String dataSizeKey) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'has'");
+  }
+
+  @Override
+  public long get(TransientVariableScope directive, String dataSizeKey) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'get'");
+  }
 }

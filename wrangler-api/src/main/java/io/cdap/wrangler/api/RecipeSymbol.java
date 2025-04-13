@@ -227,4 +227,9 @@ public final class RecipeSymbol {
       return new RecipeSymbol(version, loadableDirectives, this.groups);
     }
   }
+
+  public List<TokenGroup> getTokenGroups() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getTokenGroups'");
+  }
 }
