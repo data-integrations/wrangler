@@ -274,11 +274,18 @@ String
  | '"'  ( EscapeSequence | ~('"') )* '"'
  ;
 
+
+BYTE_SIZE : Digit+ ('.' Digit+)? BYTE_UNIT;
+TIME_DURATION : Digit+ ('.' Digit+)? TIME_UNIT;
+
 EscapeSequence
    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
    |   UnicodeEscape
    |   OctalEscape
    ;
+  
+fragment BYTE_UNIT : [KkMmGgTt]? [Bb];
+fragment TIME_UNIT : ('ms' | 's' | 'sec' | 'm' | 'min' | 'h' | 'hr');
 
 fragment
 OctalEscape
