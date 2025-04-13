@@ -164,6 +164,146 @@ These directives are currently available:
 | [JSON](wrangler-docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](wrangler-docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
 
+## How to Use the New Byte Size Parser
+
+The new byte size parser allows you to parse and handle byte size values in various units such as *KB*, *MB*, *GB*, etc. It converts these values into their canonical form (bytes) for easier processing.
+
+Supported Units
+*B* (Bytes)
+*KB* (Kilobytes)
+*MB* (Megabytes)
+*GB* (Gigabytes)
+*TB* (Terabytes)
+*PB* (Petabytes)
+
+Usage
+You can use the byte size parser in directives or recipes where byte size values need to be processed.
+
+Example
+
+10KB   -> 10240 bytes
+1.5MB  -> 1572864 bytes
+2GB    -> 2147483648 bytes
+
+In a directive:
+
+aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
+Here, *:data_transfer_size* can include values like *10KB*, *1MB*, or *500GB*, which will be parsed and aggregated.
+
+## How to Use the New Time Duration Parser
+
+The new time duration parser allows you to parse and handle time duration values in various units such as *ms*, *s*, *m*, *h*, etc. It converts these values into their canonical form (milliseconds) for easier processing.
+
+Supported Units
+*ms* (Milliseconds)
+*s* (Seconds)
+*m* (Minutes)
+*h* (Hours)
+*d* (Days)
+
+Usage
+You can use the time duration parser in directives or recipes where time duration values need to be processed.
+
+Example
+
+500ms  -> 500 milliseconds
+2s     -> 2000 milliseconds
+1.5m   -> 90000 milliseconds
+
+In a directive:
+
+aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
+Here, *:response_time* can include values like *500ms*, *2s*, or *1h*, which will be parsed and aggregated.
+
+## Examples of the New Aggregate Directive
+
+The *aggregate-stats* directive allows you to compute aggregate values (e.g., total size, total time) from columns containing byte size and time duration values.
+
+Syntax
+aggregate-stats :<byte_size_column> :<time_duration_column> <output_size_column> <output_time_column>
+
+Example 1: Total Aggregation
+
+Input Data:
+
+| data_transfer_size	 | response_time | 
+| -------------------- | :----------: |
+|       10KB           |    500ms     | 
+|       1MB	           |      2s      | 
+|       500KB          |      1.5s    |
+
+aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
+Output:
+
+|      total_size_mb	 | total_time_sec | 
+| -------------------- | :----------:   |
+|       1.4765625      |    4.0         | 
+
+Explanation:
+
+*total_size_mb*: *(10KB + 1MB + 500KB) / (1024 * 1024)* = *1.4765625 MB*
+*total_time_sec*: *(500ms + 2s + 1.5s)* = *4.0 seconds*
+
+Example 2: Average Aggregation
+
+Input Data:
+
+| data_transfer_size	 | response_time | 
+| -------------------- | :----------: |
+|       10KB           |    500ms     | 
+|       1MB	           |      2s      | 
+|       500KB          |      1.5s    |
+
+Recipe:
+
+aggregate-stats :data_transfer_size :response_time avg_size_mb avg_time_sec
+
+Output:
+
+|      avg_size_mb	   | avg_time_sec | 
+| -------------------- | :----------: |
+|       0.4921875      |    1.3333333 | 
+
+Explanation:
+
+*avg_size_mb*: *(10KB + 1MB + 500KB) / 3 / (1024 * 1024)* = *0.4921875 MB*
+*avg_time_sec*: *(500ms + 2s + 1.5s) / 3* = *1.3333333 seconds*
+
+Example 3: Using Different Units
+
+Input Data:
+
+| data_transfer_size	 | response_time | 
+| -------------------- | :----------: |
+|       1GB            |    1h        | 
+|       500MB	         |      30m     | 
+|       250MB          |      15m     |
+
+Recipe:
+
+aggregate-stats :data_transfer_size :response_time total_size_gb total_time_min
+
+Output:
+
+|      total_size_gb	 | total_time_min | 
+| -------------------- | :----------:   |
+|       1.75           |    105         | 
+
+Explanation:
+
+*total_size_gb*: *(1GB + 500MB + 250MB) / 1024* = *1.75 GB*
+*total_time_min*: *(1h + 30m + 15m)* = *105 minutes*
+
+
+
+Notes
+
+Ensure that the input data columns (*:data_transfer_size* and :*response_time*) contain valid byte size and time duration values.
+The directive automatically handles unit conversions and aggregates the values into the specified output columns.
+
 ## Performance
 
 Initial performance tests show that with a set of directives of high complexity for
