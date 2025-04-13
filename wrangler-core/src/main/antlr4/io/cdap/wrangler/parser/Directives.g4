@@ -64,8 +64,11 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeOne           // <-- add this line
+    | timeDurationOne       // <-- add this line
   )*?
   ;
+
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
@@ -334,8 +337,12 @@ fragment TIME_UNIT
  | 'h'
  ;
 
-fragment Digit
- : [0-9]
- ;
+byteSizeOne
+  : BYTE_SIZE
+  ;
+
+timeDurationOne
+  : TIME_DURATION
+  ;
 
 

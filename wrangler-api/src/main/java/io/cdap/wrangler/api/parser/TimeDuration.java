@@ -22,20 +22,58 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Represents a time duration in milliseconds, which can be parsed from a string
+ * token
+ * like "10s" (10 seconds), "5m" (5 minutes), "3h" (3 hours), or "1d" (1 day).
+ * The class supports parsing and conversion of these tokens into milliseconds.
+ * 
+ * <p>
+ * The token format can either be in the form of a number followed by an
+ * optional unit
+ * (e.g., "10s", "5m", "3h", "1d"), or a number without a unit, in which case it
+ * is treated
+ * as milliseconds (e.g., "500" represents 500 milliseconds).
+ * </p>
+ *
+ * <p>
+ * The supported time units are: ms (milliseconds), s (seconds), m (minutes), h
+ * (hours),
+ * and d (days). If no unit is provided, milliseconds is assumed by default.
+ * </p>
+ * 
+ * @see Token
+ */
 @PublicEvolving
 public class TimeDuration implements Token {
     private long millis;
 
-    // Regular expression to match time duration formats like "10s", "5m", "3h", "1d"
-    private static final Pattern TIME_DURATION_PATTERN = Pattern.compile("^(\\d+)(ms|s|m|h|d)?$", Pattern.CASE_INSENSITIVE);
+    // Regular expression to match time duration formats like "10s", "5m", "3h",
+    // "1d"
+    private static final Pattern TIME_DURATION_PATTERN = Pattern.compile("^(\\d+)(ms|s|m|h|d)?$",
+            Pattern.CASE_INSENSITIVE);
+
+    // Constant values for time multipliers
+    private static final int MS_IN_SECOND = 1000;
+    private static final int MS_IN_MINUTE = MS_IN_SECOND * 60;
+    private static final int MS_IN_HOUR = MS_IN_MINUTE * 60;
+    private static final int MS_IN_DAY = MS_IN_HOUR * 24;
 
     /**
-     * Constructor to initialize the TimeDuration object by parsing the input token string.
-     *
-     * @param token The token representing a time duration (e.g., "10s", "5m", "3h").
-     * @throws IllegalArgumentException if the token does not match the expected format.
+     * Constructs a TimeDuration object by parsing the provided token string.
+     * 
+     * The token can represent a time duration, such as "10s" for 10 seconds, "5m"
+     * for
+     * 5 minutes, "3h" for 3 hours, or "1d" for 1 day. If no unit is specified, it
+     * defaults
+     * to milliseconds. The valid units are "ms", "s", "m", "h", and "d".
+     * 
+     * @param token The token representing the time duration, e.g., "10s", "5m",
+     *              "3h".
+     * @throws IllegalArgumentException if the token does not match the expected
+     *                                  format.
      */
-    public TimeDuration(String token) {
+    public TimeDuration(final String token) {
         Matcher matcher = TIME_DURATION_PATTERN.matcher(token);
         if (matcher.matches()) {
             long value = Long.parseLong(matcher.group(1));
@@ -45,16 +83,16 @@ public class TimeDuration implements Token {
                     this.millis = value;
                     break;
                 case "s":
-                    this.millis = value * 1000;
+                    this.millis = value * MS_IN_SECOND;
                     break;
                 case "m":
-                    this.millis = value * 1000 * 60;
+                    this.millis = value * MS_IN_MINUTE;
                     break;
                 case "h":
-                    this.millis = value * 1000 * 60 * 60;
+                    this.millis = value * MS_IN_HOUR;
                     break;
                 case "d":
-                    this.millis = value * 1000 * 60 * 60 * 24;
+                    this.millis = value * MS_IN_DAY;
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid TimeDuration format");
@@ -71,7 +109,7 @@ public class TimeDuration implements Token {
      */
     @Override
     public Long value() {
-        return Long.valueOf(millis);  // Return as Long object to match the Token interface
+        return Long.valueOf(millis); // Return as Long object to match the Token interface
     }
 
     /**
@@ -99,10 +137,11 @@ public class TimeDuration implements Token {
 
     /**
      * Gets the time duration in milliseconds.
-     *
+     * 
      * @return The time duration in milliseconds.
      */
-    public long getMillis() {
+    public long getMilliseconds() {
         return millis;
     }
 }
+

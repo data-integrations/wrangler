@@ -22,18 +22,31 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Represents a ByteSize object that can parse and store byte size values
+ * in different units such as KB, MB, GB, or TB.
+ */
 @PublicEvolving
 public class ByteSize implements Token {
     private long bytes;
 
-    // Regular expression pattern to match byte sizes with optional units (KB, MB, GB, TB)
-    private static final Pattern BYTE_SIZE_PATTERN = Pattern.compile("^\\s*(\\d+)\\s*(KB|MB|GB|TB)?\\s*$", Pattern.CASE_INSENSITIVE);
+    // Regular expression pattern to match byte sizes with optional units (KB, MB,
+    // GB, TB)
+    private static final Pattern BYTE_SIZE_PATTERN = Pattern.compile("^\\s*(\\d+)\\s*(KB|MB|GB|TB)?\\s*$",
+            Pattern.CASE_INSENSITIVE);
+
+    private static final int KILOBYTE = 1024;
+    private static final int MEGABYTE = KILOBYTE * KILOBYTE;
+    private static final int GIGABYTE = KILOBYTE * MEGABYTE;
+    private static final int TERABYTE = KILOBYTE * GIGABYTE;
 
     /**
-     * Constructor to initialize the ByteSize object by parsing the input token string.
+     * Constructor to initialize the ByteSize object by parsing the input token
+     * string.
      *
      * @param token The token representing byte size (e.g., "10KB", "100MB").
-     * @throws IllegalArgumentException if the token does not match the expected format.
+     * @throws IllegalArgumentException if the token does not match the expected
+     *                                  format.
      */
     public ByteSize(String token) {
         Matcher matcher = BYTE_SIZE_PATTERN.matcher(token);
@@ -42,16 +55,16 @@ public class ByteSize implements Token {
             String unit = matcher.group(2);
             switch (unit == null ? "" : unit.toUpperCase()) {
                 case "KB":
-                    this.bytes = value * 1024;
+                    this.bytes = value * KILOBYTE;
                     break;
                 case "MB":
-                    this.bytes = value * 1024 * 1024;
+                    this.bytes = value * MEGABYTE;
                     break;
                 case "GB":
-                    this.bytes = value * 1024 * 1024 * 1024;
+                    this.bytes = value * GIGABYTE;
                     break;
                 case "TB":
-                    this.bytes = value * 1024 * 1024 * 1024 * 1024;
+                    this.bytes = value * TERABYTE;
                     break;
                 default:
                     this.bytes = value; // bytes if no unit is specified
@@ -64,11 +77,11 @@ public class ByteSize implements Token {
     /**
      * Returns the value of the byte size.
      *
-     * @return The byte size as a long.
+     * @return The byte size as a Long object.
      */
     @Override
     public Long value() {
-        return Long.valueOf(bytes);  // Return as Long object to match the Token interface
+        return Long.valueOf(bytes); // Return as Long object to match the Token interface
     }
 
     /**
@@ -103,3 +116,4 @@ public class ByteSize implements Token {
         return bytes;
     }
 }
+

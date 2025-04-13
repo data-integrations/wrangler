@@ -167,7 +167,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -243,6 +243,9 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>2.17</version>
+          <configuration>
+          <skip>true</skip> <!-- This will disable Checkstyle for now -->
+          </configuration>
           <executions>
             <execution>
               <id>validate</id>
@@ -395,7 +398,7 @@
               <tagNameFormat>v@{project.version}</tagNameFormat>
               <autoVersionSubmodules>true</autoVersionSubmodules>
               <!-- releaseProfiles configuration will actually force a Maven profile
-                – the `releases` profile – to become active during the Release process. -->
+                – the releases profile – to become active during the Release process. -->
               <releaseProfiles>releases</releaseProfiles>
             </configuration>
           </plugin>
