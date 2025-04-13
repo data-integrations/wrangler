@@ -9,18 +9,24 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package io.cdap.wrangler.api;
 
 /**
  * {@link TransientVariableScope} defines the scope of the transient variable.
- * The variable can be either LOCAL or GLOBAL.
+ * The variable can be either LOCAL, GLOBAL, or DIRECTIVE.
  */
 public enum TransientVariableScope {
+  /** Local scope - variables are isolated to the current context. */
   LOCAL,
-  GLOBAL, DIRECTIVE
+  
+  /** Global scope - variables are accessible across all contexts. */
+  GLOBAL,
+  
+  /** Directive scope - variables are accessible within a specific directive. */
+  DIRECTIVE
 }

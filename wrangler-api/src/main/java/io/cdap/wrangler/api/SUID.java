@@ -9,9 +9,9 @@
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package io.cdap.wrangler.api;
@@ -24,10 +24,16 @@ import java.util.Random;
  * generate around 64K unique ids within a millisecond.
  */
 public final class SUID {
+  /** Maximum value for a 16-bit integer. */
   private static final int SHORT_MAX = 65536;
+  
+  /** Counter for generating sequential IDs within a millisecond. */
   private static int counter = -1;
 
-  private SUID() {}
+  /**
+   * Private constructor to prevent instantiation.
+   */
+  private SUID() { }
 
   /**
    * Creates a unique 64 bits ID by aggregating the current time in
@@ -43,6 +49,7 @@ public final class SUID {
       counter = rnd.nextInt(SHORT_MAX);
     }
     long now = System.currentTimeMillis();
+    // Shift timestamp left by 16 bits (size of short) and combine with counter
     long id = (now << 16) | counter;
     counter = (counter + 1) % SHORT_MAX;
     return id;

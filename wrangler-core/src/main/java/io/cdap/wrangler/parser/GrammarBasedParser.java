@@ -8,8 +8,8 @@
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  *  License for the specific language governing permissions and limitations under
  *  the License.
  */
@@ -18,6 +18,8 @@ package io.cdap.wrangler.parser;
 
 import com.google.common.base.Joiner;
 import io.cdap.wrangler.api.Arguments;
+import io.cdap.wrangler.api.CompileException;
+import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveLoadException;
@@ -104,7 +106,16 @@ public class GrammarBasedParser implements RecipeParser {
 
   @Override
   public RecipeSymbol getRecipeSymbol() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getRecipeSymbol'");
+    RecipeCompiler compiler = new RecipeCompiler();
+    try {
+      CompileStatus status = compiler.compile(recipe);
+      if (status.isSuccess()) {
+        return status.getSymbols();
+      } else {
+        throw new UnsupportedOperationException("Failed to compile recipe");
+      }
+    } catch (CompileException e) {
+      throw new UnsupportedOperationException("Failed to compile recipe: " + e.getMessage(), e);
+    }
   }
 }

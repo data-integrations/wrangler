@@ -9,9 +9,9 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package io.cdap.wrangler.api;
@@ -26,7 +26,9 @@ import java.util.Set;
  */
 public interface TransientStore extends Serializable {
   /**
-   * Resets the state of this store.
+   * Resets the state of this store for the specified scope.
+   *
+   * @param scope The variable scope to reset
    */
   void reset(TransientVariableScope scope);
 
@@ -42,6 +44,7 @@ public interface TransientStore extends Serializable {
   /**
    * Sets the value of the object for variable named 'name'.
    *
+   * @param scope The variable scope
    * @param name of the variable for which the value needs to be set.
    * @param value of the variable.
    */
@@ -50,6 +53,7 @@ public interface TransientStore extends Serializable {
   /**
    * Increments a value of the variable.
    *
+   * @param scope The variable scope
    * @param name of the variable.
    * @param value associated with the variable.
    */
@@ -62,7 +66,21 @@ public interface TransientStore extends Serializable {
    */
   Set<String> getVariables();
 
-  boolean has(TransientVariableScope directive, String dataSizeKey);
+  /**
+   * Checks if the specified key exists in the store for the given scope.
+   *
+   * @param scope The variable scope
+   * @param key The key to check
+   * @return true if key exists, false otherwise
+   */
+  boolean has(TransientVariableScope scope, String key);
 
-  long get(TransientVariableScope directive, String dataSizeKey);
+  /**
+   * Gets the long value for the specified key in the given scope.
+   *
+   * @param scope The variable scope
+   * @param key The key to retrieve
+   * @return The long value associated with the key
+   */
+  long get(TransientVariableScope scope, String key);
 }
