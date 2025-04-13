@@ -16,6 +16,10 @@
 
 package io.cdap.wrangler.parser;
 
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
+
+
 import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.SourceInfo;
@@ -43,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * This class <code>RecipeVisitor</code> implements the visitor pattern
@@ -326,4 +331,20 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
   }
+
+  @Override
+public Token visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+  String value = ctx.getText();
+  return new ByteSize(value);
 }
+
+@Override
+public Token visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+  String value = ctx.getText();
+  return new TimeDuration(value);
+}
+
+}
+
+
+
