@@ -1,0 +1,11 @@
+Prompt:
+Enhance CDAP Wrangler to support parsing and handling of Byte Size and Time Duration units in directives.
+
+Files Added / Modified:
+- ByteSize.java and TimeDuration.java in wrangler-api
+- Grammar updated in Directives.g4 (added BYTE_SIZE, TIME_DURATION)
+- New directive: AggregateStats in wrangler-core
+- New test: AggregateStatsTest.java
+
+Description:
+This change introduces support for parsing human-readable byte sizes (e.g., "1KB", "5MB") and time durations (e.g., "100ms", "2s") in the Wrangler recipe language. It also adds a new directive `aggregate-stats` to compute total size (in MB) and total time (in seconds) from columns containing such values. Grammar and test coverage are included.

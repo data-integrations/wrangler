@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | byteSize | timeDuration
  ;
 
 ecommand
@@ -165,6 +165,14 @@ number
 
 bool
  : Bool
+ ;
+
+byteSize
+ : BYTE_SIZE
+ ;
+
+timeDuration
+ : TIME_DURATION
  ;
 
 condition
@@ -311,3 +319,30 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+ 
+// Byte size values like 10KB, 1.5MB
+BYTE_SIZE
+  : Digit+ ('.' Digit+)? BYTE_UNIT
+  ;
+
+// Time duration values like 100ms, 2s
+TIME_DURATION
+  : Digit+ ('.' Digit+)? TIME_UNIT
+  ;
+
+// Byte units: B, KB, MB, GB, TB (case insensitive)
+fragment BYTE_UNIT
+  : [kK]?[bB]      // B, KB
+  | [mM][bB]       // MB
+  | [gG][bB]       // GB
+  | [tT][bB]       // TB
+  ;
+
+// Time units: ms, s, m, h (case insensitive)
+fragment TIME_UNIT
+  : [mM][sS]       // ms
+  | [sS]           // s
+  | [mM]           // minutes (if desired)
+  | [hH]           // hours (if desired)
+  ;
+
