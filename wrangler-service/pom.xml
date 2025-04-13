@@ -214,6 +214,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+<<<<<<< HEAD
     <dependency>
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-unit-test</artifactId>
@@ -234,6 +235,28 @@
         </exclusion>
       </exclusions>
     </dependency>
+=======
+<!--    <dependency>-->
+<!--      <groupId>io.cdap.cdap</groupId>-->
+<!--      <artifactId>cdap-unit-test</artifactId>-->
+<!--      <version>${cdap.version}</version>-->
+<!--      <scope>test</scope>-->
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.apache.hive</groupId>-->
+<!--          <artifactId>hive-exec</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>io.cdap.cdap</groupId>-->
+<!--          <artifactId>cdap-explore-jdbc</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>log4j</groupId>-->
+<!--          <artifactId>log4j</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+<!--    </dependency>-->
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
     <dependency>
       <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>

@@ -164,10 +164,17 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
         text = text.substring(1, text.length() - 1);
       }
       Triplet<Numeric, Numeric, String> val =
+<<<<<<< HEAD
         new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
                       new Numeric(new LazyNumber(numbers.get(1).getText())),
                       text
         );
+=======
+              new Triplet<>(new Numeric(new LazyNumber(numbers.get(0).getText())),
+                      new Numeric(new LazyNumber(numbers.get(1).getText())),
+                      text
+              );
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
       output.add(val);
     }
     builder.addToken(new Ranges(output));
@@ -326,4 +333,8 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)

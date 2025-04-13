@@ -19,14 +19,32 @@ import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
+<<<<<<< HEAD
+=======
+import org.junit.Before;
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+<<<<<<< HEAD
 
 public class FormatDateTimeTest {
 
+=======
+import java.util.Locale;
+import java.util.TimeZone;
+
+public class FormatDateTimeTest {
+
+  @Before
+  public void setUp() {
+    Locale.setDefault(Locale.US);
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+  }
+
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
   @Test
   public void testDateTimeFormats() throws Exception {
     String[] testPatterns = new String[]{"MM/dd/yyyy HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss[xxx]",

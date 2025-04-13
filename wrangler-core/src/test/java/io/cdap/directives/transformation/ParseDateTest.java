@@ -22,15 +22,24 @@ import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+<<<<<<< HEAD
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+=======
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 /**
  * Tests {@link ParseDate}
  */
@@ -69,6 +78,26 @@ public class ParseDateTest {
 
   @Test
   public void testSimpleDateWithPatterns() throws Exception {
+<<<<<<< HEAD
+=======
+    String pattern = "MM/dd/yyyy HH:mm:ss";
+    String value = "12/10/2016 14:45:11";
+
+    // Create formatter with the specified pattern
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+
+    // Parse the input string to LocalDateTime
+    LocalDateTime localDateTime = LocalDateTime.parse(value, formatter);
+
+    // Convert to ZonedDateTime in UTC
+    ZonedDateTime actual = localDateTime.atZone(ZoneId.systemDefault())
+            .withZoneSameInstant(ZoneId.of("UTC"));
+
+    // Create expected UTC datetime
+    ZonedDateTime expected = ZonedDateTime.parse("2016-12-10T14:45:11Z[UTC]");
+
+    Assert.assertEquals(expected, actual);
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
     String[] directives = new String[] {
       "parse-as-simple-date date1 MM/dd/yyyy",
       "parse-as-simple-date date2 dd/MM/yyyy",

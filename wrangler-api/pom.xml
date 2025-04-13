@@ -39,6 +39,15 @@
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
+<<<<<<< HEAD
+=======
+      <dependency>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+          <version>2.11.0</version>
+          <scope>compile</scope>
+      </dependency>
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 
   </dependencies>
 </project>

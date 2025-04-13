@@ -116,4 +116,9 @@ public interface Arguments {
    * named tokens held within this object.
    */
   JsonElement toJson();
+<<<<<<< HEAD
+=======
+
+    boolean has(String unit);
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 }

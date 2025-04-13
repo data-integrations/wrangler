@@ -146,8 +146,49 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+<<<<<<< HEAD
   </repositories>
 
+=======
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Development Snapshot Repository</name>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>apache.snapshots</id>
+      <name>Apache Development Snapshot Repository</name>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </pluginRepository>
+
+  </pluginRepositories>
+
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -186,6 +227,17 @@
           </configuration>
         </plugin>
         <plugin>
+<<<<<<< HEAD
+=======
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M9</version>
+          <configuration>
+            <argLine>-Duser.timezone=UTC</argLine>
+          </configuration>
+        </plugin>
+        <plugin>
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
           <version>3.5.0</version>
@@ -241,6 +293,17 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+<<<<<<< HEAD
+=======
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M9</version>
+          <configuration>
+            <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>2.17</version>
           <executions>
@@ -297,6 +360,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
       </plugin>
+<<<<<<< HEAD
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -562,3 +626,8 @@
     </profile>
   </profiles>
 </project>
+=======
+    </plugins>
+  </build>
+</project>
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
