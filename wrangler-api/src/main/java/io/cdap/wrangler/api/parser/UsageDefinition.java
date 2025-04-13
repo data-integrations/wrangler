@@ -91,56 +91,113 @@ public final class UsageDefinition implements Serializable {
    *
    * @return a usage representation of this object.
    */
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(directive).append(" ");
+  /**
+ * Converts the UsageDefinition into a readable usage string format,
+ * showing how each token (argument) should be written in the directive.
+ * Handles optional tokens, token types, and labels.
+ */
+@Override
+public String toString() {
+  StringBuilder sb = new StringBuilder();
 
-    int count = tokens.size();
-    for (TokenDefinition token : tokens) {
-      if (token.optional()) {
-        sb.append(" [");
-      }
+  // Start the usage string with the directive name
+  sb.append(directive).append(" ");
 
-      if (token.label() != null) {
-        sb.append(token.label());
-      } else {
-        if (token.type().equals(TokenType.DIRECTIVE_NAME)) {
+  int count = tokens.size(); // Used to manage spacing between tokens
+  for (TokenDefinition token : tokens) {
+
+    // If token is optional, wrap it in square brackets
+    if (token.optional()) {
+      sb.append(" [");
+    }
+
+    // If a custom label is set, use it directly
+    if (token.label() != null) {
+      sb.append(token.label());
+    } else {
+      // Otherwise, build the token display based on its TokenType
+      switch (token.type()) {
+
+        // Directive name is shown as-is
+        case DIRECTIVE_NAME:
           sb.append(token.name());
-        } else if (token.type().equals(TokenType.COLUMN_NAME)) {
+          break;
+
+        // Column name prefixed with colon
+        case COLUMN_NAME:
           sb.append(":").append(token.name());
-        } else if (token.type().equals(TokenType.COLUMN_NAME_LIST)) {
+          break;
+
+        // List of columns with repetition pattern
+        case COLUMN_NAME_LIST:
           sb.append(":").append(token.name()).append(" [,:").append(token.name()).append("  ]*");
-        } else if (token.type().equals(TokenType.BOOLEAN)) {
+          break;
+
+        // Boolean flag with values true/false
+        case BOOLEAN:
           sb.append(token.name()).append(" (true/false)");
-        } else if (token.type().equals(TokenType.TEXT)) {
+          break;
+
+        // Text wrapped in single quotes
+        case TEXT:
           sb.append("'").append(token.name()).append("'");
-        } else if (token.type().equals(TokenType.IDENTIFIER) || token.type().equals(TokenType.NUMERIC)) {
+          break;
+
+        // Identifier or number shown directly
+        case IDENTIFIER:
+        case NUMERIC:
           sb.append(token.name());
-        } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
-          || token.type().equals(TokenType.TEXT_LIST)) {
+          break;
+
+        // Lists of values with repetition
+        case BOOLEAN_LIST:
+        case NUMERIC_LIST:
+        case TEXT_LIST:
           sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
-        } else if (token.type().equals(TokenType.EXPRESSION)) {
+          break;
+
+        // Expression enclosed in exp:{<...>}
+        case EXPRESSION:
           sb.append("exp:{<").append(token.name()).append(">}");
-        } else if (token.type().equals(TokenType.PROPERTIES)) {
+          break;
+
+        // Property map format
+        case PROPERTIES:
           sb.append("prop:{key:value,[key:value]*");
-        } else if (token.type().equals(TokenType.RANGES)) {
+          break;
+
+        // Range pattern with optional types
+        case RANGES:
           sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
-        }
-      }
+          break;
 
-      count--;
+        // NEW: Byte size values like 10KB, 2MB, etc.
+        case BYTE_SIZE:
+          sb.append(token.name()).append(" (e.g. 10KB, 2MB, 1GB)");
+          break;
 
-      if (token.optional()) {
-        sb.append("]");
-      } else {
-        if (count > 0) {
-          sb.append(" ");
-        }
+        // NEW: Time duration values like 100ms, 2s, etc.
+        case TIME_DURATION:
+          sb.append(token.name()).append(" (e.g. 100ms, 2s, 5m)");
+          break;
       }
     }
-    return sb.toString();
+
+    count--; // Reduce remaining token count
+
+    // Close optional token with ']', else add space if more tokens exist
+    if (token.optional()) {
+      sb.append("]");
+    } else {
+      if (count > 0) {
+        sb.append(" ");
+      }
+    }
   }
+
+  // Return the full usage string
+  return sb.toString();
+}
 
   /**
    * This is a static method for creating a builder for the <code>UsageDefinition</code>
