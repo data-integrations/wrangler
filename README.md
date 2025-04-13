@@ -175,6 +175,30 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
+---
+
+## 🚀 Enhancement: Byte Size and Time Duration Parsers
+
+This update enhances the CDAP Wrangler core library by introducing native support for parsing **Byte Size** (e.g., `"10KB"`, `"2.5MB"`) and **Time Duration** (e.g., `"150ms"`, `"3.2s"`) values. Additionally, a new directive `aggregate-stats` is implemented to demonstrate the use of these parsers in data aggregation tasks.
+
+### ✨ New Features
+
+- ✅ New parsers:
+  - `ByteSize`: supports values like `10KB`, `2MB`, `5.5GB`
+  - `TimeDuration`: supports values like `150ms`, `1.5s`, `3min`
+- ✅ New directive: `aggregate-stats` for aggregating size and duration fields
+
+---
+
+### 📦 How to Use
+
+**Example Recipe:**
+
+```java
+String[] recipe = new String[] {
+  "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec total average MB seconds"
+};
+
 
 ## Contact
 
