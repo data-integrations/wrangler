@@ -460,7 +460,8 @@ public class TimeDurationTest {
     // Test case-insensitivity in conversion
     TimeDuration toHoursUppercase = tenSecondsDuration.convertToUnit("H");
     Assert.assertEquals("h", toHoursUppercase.getUnit());
-    Assert.assertEquals(10.0 / (SECONDS_PER_MINUTE * MINUTES_PER_HOUR), toHoursUppercase.getNumericValue(), SMALL_DELTA);
+    Assert.assertEquals(10.0 / (SECONDS_PER_MINUTE * MINUTES_PER_HOUR), toHoursUppercase.getNumericValue(),
+            SMALL_DELTA);
   }
   
   /**
