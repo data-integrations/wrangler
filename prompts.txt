@@ -1,0 +1,79 @@
+# AI Assistance Usage Log for Wrangler Enhancement Project
+# Purpose: Adding support for Byte Size and Time Duration token parsing and an aggregate-stats directive.
+# Author: Sreedhar Reddy Dwarshala
+# Note: AI tools were used for brainstorming, validation, syntax assistance, and edge-case handling — not code copying.
+
+---
+
+Prompt 1:
+"How do I define custom token types like BYTE_SIZE and TIME_DURATION in an ANTLR grammar used by a Java project?"
+
+Purpose:
+To understand how to safely extend the grammar in Directives.g4 without breaking existing parsing rules.
+
+---
+
+Prompt 2:
+"What's the best way to parse units like 1.5MB or 150ms into canonical values (bytes, milliseconds) in Java?"
+
+Purpose:
+To validate my idea of using classes ByteSize and TimeDuration to encapsulate parsing and conversion logic.
+I wanted to handle inputs like '1kb', '1.5MB', and ensure consistent conversion logic.
+
+---
+
+Prompt 3:
+"How can I extend a visitor-based ANTLR parser to support new argument types like BYTE_SIZE and TIME_DURATION?"
+
+Purpose:
+To make sure I was following the correct pattern in visitByteSizeArg and visitTimeDurationArg methods, and how they connect with the Token system used in Wrangler.
+
+---
+
+Prompt 4:
+"How do I implement aggregation in Wrangler using ExecutorContext and TokenGroup?"
+
+Purpose:
+To confirm my understanding of how aggregation works across rows using Wrangler’s Store interface.
+This helped me design the aggregate-stats directive to store running totals and finalize them correctly.
+
+---
+
+Prompt 5:
+"What are best practices for designing modular and testable Java classes for parsing and aggregation logic?"
+
+Purpose:
+To ensure ByteSize and TimeDuration were clean, reusable components that could be individually unit tested.
+I also wanted to avoid writing logic directly in the directive class for better maintainability.
+
+---
+
+Prompt 6:
+"What should unit tests for parsing classes like ByteSize and TimeDuration in Java look like?"
+
+Purpose:
+I wanted to validate boundary cases and ensure correct handling of lowercase, uppercase, decimals, and bad input formats.
+Also confirmed how to write assertEquals with tolerances for floating point values.
+
+---
+
+Prompt 7:
+"How do I use TestingRig in Wrangler to run recipes and simulate a full pipeline for unit tests?"
+
+Purpose:
+To make sure my aggregate-stats directive could be fully tested by simulating rows and running actual recipes through the parser and execution engine.
+
+---
+
+Prompt 8:
+"How should I document new directives and token types in Wrangler’s README to make them discoverable and usable?"
+
+Purpose:
+I wanted the README usage examples to reflect clarity and real-world applicability of the enhancement, especially showing multiple unit formats.
+
+---
+
+Summary:
+While I used AI to validate certain ideas and fill small gaps in syntax or API specifics, the core design and implementation decisions were made by me. 
+I planned the feature, understood the Wrangler architecture, and wrote modular, test-driven code to ensure correctness and robustness.
+
