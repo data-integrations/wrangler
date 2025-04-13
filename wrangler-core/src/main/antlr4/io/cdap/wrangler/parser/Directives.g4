@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2025 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,7 +22,7 @@ options {
 
 @lexer::header {
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2025 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -46,7 +46,7 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+ : ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
  ;
 
 directive
@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -88,7 +90,7 @@ expression
   ;
 
 forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+ : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{' statements '}'
  ;
 
 macro
@@ -116,11 +118,11 @@ identifier
  ;
 
 properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
+ : 'prop' ':' OBrace (propertyList)+ CBrace
  | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
  | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
  | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+ | 'prop' ':' OBrace (propertyList)+ { notifyErrorListeners("Missing closing brace"); }
  ;
 
 propertyList
@@ -140,7 +142,15 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | byteSizeArg | timeDurationArg
+ ;
+
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
  ;
 
 ecommand
@@ -176,7 +186,7 @@ command
  ;
 
 colList
- : Column (','  Column)+
+ : Column (',' Column)+
  ;
 
 numberList
@@ -194,7 +204,6 @@ stringList
 identifierList
  : Identifier (',' Identifier)*
  ;
-
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -243,10 +252,9 @@ Colon    : ':';
 Dot      : '.';
 At       : '@';
 Pipe     : '|';
-BackSlash: '\\';
-Dollar   : '$';
+BackSlash : '\\';
+Dollar    : '$';
 Tilde    : '~';
-
 
 Bool
  : 'true'
@@ -271,29 +279,29 @@ Column
 
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
+ | '"' ( EscapeSequence | ~('"') )* '"'
  ;
 
 EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
-   |   UnicodeEscape
-   |   OctalEscape
+   : '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+   | UnicodeEscape
+   | OctalEscape
    ;
 
 fragment
 OctalEscape
-   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7')
+   : '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+   | '\\' ('0'..'7') ('0'..'7')
+   | '\\' ('0'..'7')
    ;
 
 fragment
 UnicodeEscape
-   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
+   : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
    ;
 
 fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
@@ -303,8 +311,32 @@ Space
  : [ \t\r\n\u000C]+ -> skip
  ;
 
+// Lexer rules for byte size and time duration
+BYTE_SIZE
+ : (Int | Decimal) BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : (Int | Decimal) TIME_UNIT
+ ;
+
+// Helper fragments for units
+fragment BYTE_UNIT
+ : 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
+ | 'b' | 'kb' | 'mb' | 'gb' | 'tb' | 'pb'
+ ;
+
+fragment TIME_UNIT
+ : 'ns' | 'us' | 'ms' | 's' | 'min' | 'h' | 'd'
+ | 'NS' | 'US' | 'MS' | 'S' | 'MIN' | 'H' | 'D'
+ ;
+
+fragment Decimal
+ : Int '.' Digit+
+ ;
+
 fragment Int
- : '-'? [1-9] Digit* [L]*
+ : '-'? [1-9] Digit*
  | '0'
  ;
 

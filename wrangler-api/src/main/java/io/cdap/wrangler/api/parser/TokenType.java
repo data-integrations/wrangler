@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2025 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -40,6 +40,8 @@ import java.io.Serializable;
  * @see Expression
  * @see Text
  * @see TextList
+ * @see ByteSize
+ * @see TimeDuration
  */
 @PublicEvolving
 public enum TokenType implements Serializable {
@@ -79,7 +81,7 @@ public enum TokenType implements Serializable {
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
    * This type is associated with the rule that is a collection of {@code Boolean} values
-   * separated by comman(,). E.g.
+   * separated by comma(,). E.g.
    * <code>
    *   ColumnName[,ColumnName]*
    * </code>
@@ -88,7 +90,7 @@ public enum TokenType implements Serializable {
 
   /**
    * Represents the enumerated type for the object of type {@code TextList} type.
-   * This type is associated with the comma separated text represented were each text
+   * This type is associated with the comma separated text represented where each text
    * is enclosed within a single quote (') or double quote (") and each text is separated
    * by comma (,). E.g.
    * <code>
@@ -104,7 +106,6 @@ public enum TokenType implements Serializable {
    * <code>
    *   Numeric[,Numeric]*
    * </code>
-   *
    */
   NUMERIC_LIST,
 
@@ -139,7 +140,7 @@ public enum TokenType implements Serializable {
   PROPERTIES,
 
   /**
-   * Represents the enumerated type for the object of type {@code Ranges} types.
+   * Represents the enumerated type for the object of type {@code Ranges} type.
    * This type is associated with a collection of range represented in the form shown
    * below
    * <code>
@@ -152,5 +153,19 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+
+  /**
+   * Represents the enumerated type for the object of type {@code ByteSize} type.
+   * This type is associated with a byte size value, consisting of a number followed
+   * by a unit (e.g., "10KB", "1.5MB").
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for the object of type {@code TimeDuration} type.
+   * This type is associated with a time duration value, consisting of a number followed
+   * by a time unit (e.g., "150ms", "2.1s").
+   */
+  TIME_DURATION
 }
