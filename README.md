@@ -197,8 +197,6 @@ CDAP IRC Channel: [#cdap on irc.freenode.net](http://webchat.freenode.net?channe
 
 CDAP Users on Slack: [cdap-users team](https://cdap-users.herokuapp.com)
 
-## License and Trademarks
-
 ## ⭐ New Feature: ByteSize Parsing & TimeDuration Parsing
 
 Now Wrangler can natively understand and parse data sizes (like 10MB) and time durations (like 5m, 2h)!
@@ -206,7 +204,13 @@ Now Wrangler can natively understand and parse data sizes (like 10MB) and time d
 ### ✨New Directive:
 
 ```wrangler
+
 aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
+
+## License and Trademarks
+
+
 
 Copyright © 2016-2019 Cask Data, Inc.
 
