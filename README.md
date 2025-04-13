@@ -20,6 +20,19 @@ are manually created.
 
 ## New Features
 
+## Custom Parsers: BYTE_SIZE & TIME_DURATION
+
+As part of the latest update, I have introduced two new parsers for CDAP Wrangler to facilitate the aggregation of data based on size and time duration.
+
+### 1. **ByteSize Parser**
+The `ByteSize` parser is designed to handle and parse byte size values with various units like `B`, `KB`, `MB`, `GB`, and `TB`. This parser ensures that data is aggregated correctly when size-based limits are applied.
+
+**Usage Example:**
+
+aggregate-size-time dataField 10m 500MB
+
+
+
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
