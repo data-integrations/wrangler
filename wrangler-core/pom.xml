@@ -309,6 +309,12 @@
       <artifactId>cdap-system-app-api</artifactId>
       <version>${cdap.version}</version>
     </dependency>
+  
+    <dependency>
+      <groupId>uk.laxd</groupId>
+      <artifactId>bytesize</artifactId>
+      <version>0.1</version>
+    </dependency>
   </dependencies>
 
 

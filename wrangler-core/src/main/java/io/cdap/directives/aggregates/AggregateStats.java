@@ -1,0 +1,112 @@
+package io.cdap.directives.aggregates;
+
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.api.Arguments;
+import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveExecutionException;
+import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.annotations.Categories;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.ColumnName;
+import io.cdap.wrangler.api.parser.Text;
+import io.cdap.wrangler.api.parser.TimeDuration;
+import io.cdap.wrangler.api.parser.TokenType;
+import io.cdap.wrangler.api.parser.UsageDefinition;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Directive for aggregating statistics.
+ */
+@Categories(categories = { "data-aggregation" })
+
+public class AggregateStats implements Directive {
+    public static final String NAME = "aggregate-stats";
+    private String byteCol;
+    private String timeCol;
+    private String outputSizeCol;
+    private String outputTimeCol;
+    private double totalBytes = 0.0;
+    private double totalTimeMs = 0.0;
+    private int count = 0;
+
+    @Override
+    public UsageDefinition define() {
+        UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+        builder.define("byteCol", TokenType.COLUMN_NAME);
+        builder.define("timeCol", TokenType.COLUMN_NAME);
+        builder.define("outputSizeCol", TokenType.TEXT);
+        builder.define("outputTimeCol", TokenType.TEXT);
+        return builder.build();
+    }
+
+    @Override
+    public void initialize(Arguments args) throws DirectiveParseException {
+        byteCol = ((ColumnName) args.value("byteCol")).value();
+        timeCol = ((ColumnName) args.value("timeCol")).value();
+        outputSizeCol = ((Text) args.value("outputSizeCol")).value();
+        outputTimeCol = ((Text) args.value("outputTimeCol")).value();
+    }
+
+    @Override
+    public List<Row> execute(List<Row> rows, ExecutorContext ctx) throws DirectiveExecutionException {
+        try {
+            for (Row row : rows) {
+                if (row.find(byteCol) != -1 && row.find(timeCol) != -1) {
+                    String byteVal = row.getValue(byteCol).toString();
+                    String timeVal = row.getValue(timeCol).toString();
+
+                    // Use ByteSize and TimeDuration classes for parsing
+                    ByteSize byteSize = new ByteSize(byteVal);
+                    TimeDuration duration = new TimeDuration(timeVal);
+
+                    totalBytes += byteSize.getBytes();
+                    totalTimeMs += duration.getTime();
+                    count++;
+                }
+            }
+
+            if (count == 0) {
+                return new ArrayList<>(); // Return an empty list if no valid rows were processed
+            }
+
+            List<Row> results = new ArrayList<>();
+            Row result = new Row();
+
+            // Convert bytes to MB and milliseconds to seconds
+            result.add(outputSizeCol, totalBytes / (1024.0 * 1024.0)); // Convert to MB
+            result.add(outputTimeCol, totalTimeMs / 1000.0); // Convert to seconds
+
+            results.add(result);
+            return results;
+
+        } catch (Exception e) {
+            throw new DirectiveExecutionException(
+                    String.format("Error aggregating stats: %s", e.getMessage()));
+        }
+    }
+
+    // @Override
+    public Schema getOutputSchema(Schema inputSchema) {
+        List<Schema.Field> fields = new ArrayList<>();
+        fields.add(Schema.Field.of(outputSizeCol, Schema.of(Schema.Type.DOUBLE)));
+        fields.add(Schema.Field.of(outputTimeCol, Schema.of(Schema.Type.DOUBLE)));
+        return Schema.recordOf("aggregate-stats", fields);
+    }
+
+    @Override
+    public void destroy() {
+        // Reset all accumulated values
+        totalBytes = 0.0;
+        totalTimeMs = 0.0;
+        count = 0;
+
+        // Clear column references
+        byteCol = null;
+        timeCol = null;
+        outputSizeCol = null;
+        outputTimeCol = null;
+    }
+}
