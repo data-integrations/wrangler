@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2025 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package io.cdap.wrangler.api.parser;
 
 import io.cdap.wrangler.api.Optional;
@@ -23,73 +22,78 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class {@link UsageDefinition} provides a way for users to registers the argument for UDDs.
- *
- * {@link UsageDefinition} is a collection of {@link TokenDefinition} and the name of the directive
- * itself. Each token specification has an associated ordinal that can be used to position the argument
+ * Provides a way to register arguments for user-defined directives (UDDs).
+ * <p>
+ * A {@code UsageDefinition} is a collection of {@link TokenDefinition} objects and the name
+ * of the directive itself. Each token has an associated ordinal that positions the argument
  * within the directive.
- *
- * Following is a example of how this class can be used.
- * <code>
- *   UsageDefinition.Builder builder = UsageDefinition.builder();
- *   builder.add("col1", TypeToken.COLUMN_NAME); // By default, this field is required.
- *   builder.add("col2", TypeToken.COLUMN_NAME, false); // This is a optional field.
- *   builder.add("expression", TypeToken.EXPRESSION);
- *   UsageDefinition definition = builder.build();
- * </code>
- *
- * NOTE: No constraints checks are included in this implementation.
+ * </p>
+ * <p>
+ * Example usage:
+ * <pre>
+ * UsageDefinition.Builder builder = UsageDefinition.builder("directive");
+ * builder.define("col1", TokenType.COLUMN_NAME); // Required by default
+ * builder.define("col2", TokenType.COLUMN_NAME, false); // Optional
+ * builder.define("expression", TokenType.EXPRESSION);
+ * UsageDefinition definition = builder.build();
+ * </pre>
+ * </p>
+ * <p>
+ * Note: This implementation does not include constraint checks.
+ * </p>
  *
  * @see TokenDefinition
  */
 public final class UsageDefinition implements Serializable {
-  // transient so it doesn't show up when serialized using gson in service endpoint responses
+  // Transient to exclude from serialization in service endpoint responses
   private final transient int optionalCnt;
   private final String directive;
   private final List<TokenDefinition> tokens;
+  private final int byteSize;
+  private final int timeDuration;
 
   private UsageDefinition(String directive, int optionalCnt, List<TokenDefinition> tokens) {
     this.directive = directive;
     this.tokens = tokens;
     this.optionalCnt = optionalCnt;
+    this.byteSize = 0;
+    this.timeDuration = 0;
   }
 
   /**
-   * Returns the name of the directive for which the this <code>UsageDefinition</code>
-   * object is created.
+   * Returns the name of the directive for which this {@code UsageDefinition} is created.
    *
-   * @return name of the directive.
+   * @return the directive name
    */
   public String getDirectiveName() {
     return directive;
   }
 
   /**
-   * This method returns the list of <code>TokenDefinition</code> that should be
-   * used for parsing the directive into <code>Arguments</code>.
+   * Returns the list of {@code TokenDefinition} objects used to parse the directive into arguments.
    *
-   * @return List of <code>TokenDefinition</code>.
+   * @return the list of token definitions
    */
   public List<TokenDefinition> getTokens() {
     return tokens;
   }
 
   /**
-   * Returns the count of <code>TokenDefinition</code> that have been specified
-   * as optional in the <code>UsageDefinition</code>.
+   * Returns the count of optional {@code TokenDefinition} objects in this {@code UsageDefinition}.
    *
-   * @return number of tokens in the usage that are optional.
+   * @return the number of optional tokens
    */
   public int getOptionalTokensCount() {
     return optionalCnt;
   }
 
   /**
-   * This method converts the <code>UsageDefinition</code> into a usage string
-   * for this directive. It inspects all the tokens to generate a standard syntax
-   * for the usage of the directive.
+   * Converts this {@code UsageDefinition} into a usage string for the directive.
+   * <p>
+   * Inspects all tokens to generate a standard syntax for the directive's usage.
+   * </p>
    *
-   * @return a usage representation of this object.
+   * @return a string representing the usage
    */
   @Override
   public String toString() {
@@ -143,24 +147,20 @@ public final class UsageDefinition implements Serializable {
   }
 
   /**
-   * This is a static method for creating a builder for the <code>UsageDefinition</code>
-   * object. In order to create a <code>UsageDefinition</code>, a builder has to created.
+   * Creates a builder for constructing a {@code UsageDefinition}.
    *
-   * <p>This builder is provided as user API for constructing the usage specification
-   * for a directive.</p>
-   *
-   * @param directive name of the directive for which the builder is created for.
-   * @return A <code>UsageDefinition.Builder</code> object that can be used to construct
-   * <code>UsageDefinition</code> object.
+   * @param directive the name of the directive
+   * @return a {@code Builder} for the directive
    */
-  public static UsageDefinition.Builder builder(String directive) {
-    return new UsageDefinition.Builder(directive);
+  public static Builder builder(String directive) {
+    return new Builder(directive);
   }
 
   /**
-   * This inner builder class provides a way to create <code>UsageDefinition</code>
-   * object. It exposes different methods that allow users to configure the <code>TokenDefinition</code>
-   * for each token used within the usage of a directive.
+   * Builder class for creating a {@code UsageDefinition}.
+   * <p>
+   * Provides methods to configure {@code TokenDefinition} objects for tokens used in a directive.
+   * </p>
    */
   public static final class Builder {
     private final String directive;
@@ -168,7 +168,7 @@ public final class UsageDefinition implements Serializable {
     private int currentOrdinal;
     private int optionalCnt;
 
-    public Builder(String directive) {
+    private Builder(String directive) {
       this.directive = directive;
       this.currentOrdinal = 0;
       this.tokens = new ArrayList<>();
@@ -176,11 +176,10 @@ public final class UsageDefinition implements Serializable {
     }
 
     /**
-     * This method provides a way to set the name and the type of token, while
-     * defaulting the label to 'null' and setting the optional to FALSE.
+     * Defines a required token with a name and type, using a null label.
      *
-     * @param name of the token in the definition of a directive.
-     * @param type of the token to be extracted.
+     * @param name the token name
+     * @param type the token type
      */
     public void define(String name, TokenType type) {
       TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, Optional.FALSE);
@@ -189,12 +188,11 @@ public final class UsageDefinition implements Serializable {
     }
 
     /**
-     * Allows users to define a token with a name, type of the token and additional optional
-     * for the label that is used during creation of the usage for the directive.
+     * Defines a required token with a name, type, and usage label.
      *
-     * @param name of the token in the definition of a directive.
-     * @param type of the token to be extracted.
-     * @param label label that modifies the usage for this field.
+     * @param name the token name
+     * @param type the token type
+     * @param label the label for usage description
      */
     public void define(String name, TokenType type, String label) {
       TokenDefinition spec = new TokenDefinition(name, type, label, currentOrdinal, Optional.FALSE);
@@ -203,12 +201,11 @@ public final class UsageDefinition implements Serializable {
     }
 
     /**
-     * Method allows users to specify a field as optional in combination to the
-     * name of the token and the type of token.
+     * Defines a token with a name, type, and optional status.
      *
-     * @param name of the token in the definition of a directive.
-     * @param type of the token to be extracted.
-     * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
+     * @param name the token name
+     * @param type the token type
+     * @param optional true if the token is optional, false otherwise
      */
     public void define(String name, TokenType type, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, optional);
@@ -218,14 +215,12 @@ public final class UsageDefinition implements Serializable {
     }
 
     /**
-     * Method allows users to specify a field as optional in combination to the
-     * name of the token, the type of token and also the ability to specify a label
-     * for the usage.
+     * Defines a token with a name, type, usage label, and optional status.
      *
-     * @param name of the token in the definition of a directive.
-     * @param type of the token to be extracted.
-     * @param label label that modifies the usage for this field.
-     * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
+     * @param name the token name
+     * @param type the token type
+     * @param label the label for usage description
+     * @param optional true if the token is optional, false otherwise
      */
     public void define(String name, TokenType type, String label, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, label, currentOrdinal, optional);
@@ -235,7 +230,9 @@ public final class UsageDefinition implements Serializable {
     }
 
     /**
-     * @return a instance of <code>UsageDefinition</code> object.
+     * Builds the {@code UsageDefinition}.
+     *
+     * @return the constructed {@code UsageDefinition}
      */
     public UsageDefinition build() {
       return new UsageDefinition(directive, optionalCnt, tokens);

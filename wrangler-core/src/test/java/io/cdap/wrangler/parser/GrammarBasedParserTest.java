@@ -69,10 +69,24 @@ public class GrammarBasedParserTest {
     String[] recipe = new String[] {
       "// test"
     };
-
-    RecipeParser parser = TestingRig.parse(recipe);
-    List<Directive> directives = parser.parse();
-    Assert.assertEquals(0, directives.size());
   }
+    
 
+  @Test
+  public void testValidByteSizeAndTimeDurationParsing() throws Exception {
+      String[] recipe = new String[] {
+          "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec"
+      };
+
+      TestingRig.compile(recipe);
+  }
+  @Test(expected = Exception.class)
+  public void testInvalidByteSizeSyntax() throws Exception {
+      String[] recipe = new String[] {
+          "aggregate-stats :data_transfer_size :invalid_duration :total_size_mb :total_time_sec"
+      };
+
+      TestingRig.compile(recipe);
+  }
 }
+

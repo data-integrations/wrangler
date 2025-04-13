@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -140,8 +142,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | STRING | TIME_DURATION | BYTE_SIZE
  ;
+
+ byteSize: BYTE_SIZE;
+
+timeDuration: TIME_DURATION;
 
 ecommand
  : '!' Identifier
@@ -194,6 +200,10 @@ stringList
 identifierList
  : Identifier (',' Identifier)*
  ;
+
+ byteSizeArg : BYTE_SIZE ;
+
+timeDurationArg : TIME_DURATION ;
 
 
 /*
@@ -311,3 +321,26 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+
+ BYTE_SIZE
+    : (Digit+) BYTE_UNIT
+    ;
+
+TIME_DURATION
+    : (Digit+) TIME_UNIT
+    ;
+
+fragment BYTE_UNIT 
+    : 'B' 
+    | 'KB' | 'MB' | 'GB' | 'TB'
+    ;
+
+fragment TIME_UNIT 
+    : 'ns'  
+    | 'ms'  
+    | 's'   
+    | 'm'   
+    | 'h'   
+    | 'd'   
+    ;
