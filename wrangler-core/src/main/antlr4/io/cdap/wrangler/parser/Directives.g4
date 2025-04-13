@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg              
+    | timeDurationArg               
   )*?
   ;
 
@@ -311,3 +313,18 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+fragment DIGITS : Digit+ ;
+
+// Lexer rules
+ByteSize: DIGITS BYTE_UNIT;
+fragment BYTE_UNIT: ('B' | 'KB' | 'MB' | 'GB' | 'TB');
+
+TimeDuration: DIGITS TIME_UNIT;
+fragment TIME_UNIT: ('ms' | 's' | 'min' | 'h');
+
+// Parser rules (these generate visitor methods)
+byteSizeArg: ByteSize;
+timeDurationArg: TimeDuration;
+
+
