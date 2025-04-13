@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * Token implementation to handle byte size values like "10KB", "5MB", etc.
  */
 public class ByteSize implements Token {
-  private static final Pattern BYTE_PATTERN = Pattern.compile("(?i)(\\d+)(B|KB|MB|GB|TB)");
+  private static final Pattern BYTE_PATTERN = Pattern.compile("(?i)(\\d+)(B|KB|MB|GB|TB|PB|EB)");
 
   private final String originalValue;
   private final long valueInBytes;
