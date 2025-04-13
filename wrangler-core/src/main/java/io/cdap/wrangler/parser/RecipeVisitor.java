@@ -20,20 +20,7 @@ import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
-import io.cdap.wrangler.api.parser.Bool;
-import io.cdap.wrangler.api.parser.BoolList;
-import io.cdap.wrangler.api.parser.ColumnName;
-import io.cdap.wrangler.api.parser.ColumnNameList;
-import io.cdap.wrangler.api.parser.DirectiveName;
-import io.cdap.wrangler.api.parser.Expression;
-import io.cdap.wrangler.api.parser.Identifier;
-import io.cdap.wrangler.api.parser.Numeric;
-import io.cdap.wrangler.api.parser.NumericList;
-import io.cdap.wrangler.api.parser.Properties;
-import io.cdap.wrangler.api.parser.Ranges;
-import io.cdap.wrangler.api.parser.Text;
-import io.cdap.wrangler.api.parser.TextList;
-import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -299,6 +286,18 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     }
     builder.addToken(new BoolList(booleans));
     return builder;
+  }
+  /** methods to extract the newly created bytesize and time duration parsing **/
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    builder.addToken(new ByteSize(ctx.getText()));
+    return super.visitByteSizeArg(ctx);
+  }
+
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    builder.addToken(new TimeDuration(ctx.getText()));
+    return super.visitTimeDurationArg(ctx);
   }
 
   /**

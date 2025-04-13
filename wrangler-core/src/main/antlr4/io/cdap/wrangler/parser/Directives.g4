@@ -139,8 +139,9 @@ numberRange
  : Number ':' Number '=' value
  ;
 
+// all the value rules
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -268,6 +269,25 @@ Macro
 Column
  : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
  ;
+
+//added lexer rules for byte size and time duration
+
+BYTE_SIZE
+  : Int ('.' Digit+)? BYTE_UNIT
+  ;
+
+TIME_DURATION
+  : Int ('.' Digit+)? TIME_UNIT
+  ;
+
+fragment BYTE_UNIT
+  : [KkMmGgTt][Bb]
+  ;
+
+fragment TIME_UNIT
+  : 'ms' | 's' | 'm' | 'h'
+  ;
+
 
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
