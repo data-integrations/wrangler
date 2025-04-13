@@ -78,7 +78,7 @@ public class SplitEmailTest {
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("email", new Integer(1)) // Injecting bad type.
+      new Row("email", Integer.valueOf(1)) // Injecting bad type.
     );
 
     TestingRig.execute(directives, rows);

@@ -29,9 +29,10 @@ import java.io.Serializable;
  * For example :
  * <code>
  *   TokenDefinition token = new TokenDefintion("column", TokenType.COLUMN_NAME, null, 0, Optional.FALSE);
+ *   TokenDefinition token = new TokenDefinition("column", TokenType.COLUMN_NAME, null, 0, false);
  * </code>
  *
- * <p>The class <code>TokenDefinition</code> includes methods for retrieveing different members of
+ * <p>The class <code>TokenDefinition</code> includes methods for retrieving different members of
  * like name of the token, type of the token, label associated with token, whether it's optional or not
  * and the ordinal number of the token in the <code>TokenGroup</code>.</p>
  *
@@ -91,4 +92,26 @@ public final class TokenDefinition implements Serializable {
     return type;
   }
 
-}
+  /**
+   * Returns a string representation of this token definition.
+   *
+   * @return String describing the token, with examples for BYTE_SIZE and TIME_DURATION.
+   */
+  @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("TokenDefinition{name='");
+      sb.append(name).append("', type=").append(type);
+      if (type == TokenType.BYTE_SIZE) {
+        sb.append(" [e.g., 10kb]");
+      } else if (type == TokenType.TIME_DURATION) {
+        sb.append(" [e.g., 150ms]");
+      }
+      if (label != null) {
+        sb.append(", label='").append(label).append("'");
+      }
+      sb.append(", ordinal=").append(ordinal);
+      sb.append(", optional=").append(optional).append("}");
+      return sb.toString();
+    }
+
+  }

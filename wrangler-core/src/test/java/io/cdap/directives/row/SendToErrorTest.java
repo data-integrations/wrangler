@@ -137,9 +137,9 @@ public class SendToErrorTest {
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("field_calories_cnt", new Integer(10)),
-      new Row("field_calories_cnt", new Integer(0)),
-      new Row("field_calories_cnt", new Integer(-10))
+      new Row("field_calories_cnt", Integer.valueOf(10)),
+      new Row("field_calories_cnt", Integer.valueOf(0)),
+      new Row("field_calories_cnt", Integer.valueOf(-10))
     );
 
     RecipePipeline pipeline = TestingRig.execute(directives);
@@ -157,9 +157,9 @@ public class SendToErrorTest {
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("field_calories_cnt", new Integer(10)),
-      new Row("field_calories_cnt", new Integer(0)),
-      new Row("field_calories_cnt", new Integer(-10))
+      new Row("field_calories_cnt", Integer.valueOf(10)),
+      new Row("field_calories_cnt", Integer.valueOf(0)),
+      new Row("field_calories_cnt", Integer.valueOf(-10))
     );
 
     RecipePipeline pipeline = TestingRig.execute(directives);
@@ -177,9 +177,9 @@ public class SendToErrorTest {
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("field_calories_cnt", new Integer(10)),
-      new Row("field_calories_cnt", new Integer(0)),
-      new Row("field_calories_cnt", new Integer(-10))
+      new Row("field_calories_cnt", Integer.valueOf(10)),
+      new Row("field_calories_cnt", Integer.valueOf(0)),
+      new Row("field_calories_cnt", Integer.valueOf(-10))
     );
 
     RecipePipeline pipeline = TestingRig.execute(directives);
@@ -198,9 +198,9 @@ public class SendToErrorTest {
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("field_calories_cnt", new Integer(10)),
-      new Row("field_calories_cnt", new Integer(0)),
-      new Row("field_calories_cnt", new Integer(-10))
+      new Row("field_calories_cnt", Integer.valueOf(10)),
+      new Row("field_calories_cnt", Integer.valueOf(0)),
+      new Row("field_calories_cnt", Integer.valueOf(-10))
     );
 
     RecipePipeline pipeline = TestingRig.execute(directives);
@@ -219,9 +219,9 @@ public class SendToErrorTest {
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("field_calories_cnt", new Integer(10)),
-      new Row("field_calories_cnt", new Integer(0)),
-      new Row("field_calories_cnt", new Integer(-10))
+      new Row("field_calories_cnt", Integer.valueOf(10)),
+      new Row("field_calories_cnt", Integer.valueOf(0)),
+      new Row("field_calories_cnt", Integer.valueOf(-10))
     );
 
     RecipePipeline pipeline = TestingRig.execute(directives);

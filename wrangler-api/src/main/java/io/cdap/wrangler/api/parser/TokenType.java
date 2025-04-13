@@ -74,7 +74,20 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of {@code Bool} type.
    * This type is associated with the token that either represents string 'true' or 'false'.
    */
-  BOOLEAN,
+
+  BOOLEAN, 
+
+  /**
+   * Represents the enumerated type for the object of {@code ByteSize} type.
+   * This type is associated with a byte size value, e.g., '10MB' or '5kb'.
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for the object of {@code TimeDuration} type.
+   * This type is associated with a time duration value, e.g., '5s' or '10h'.
+   */
+  TIME_DURATION,
 
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.

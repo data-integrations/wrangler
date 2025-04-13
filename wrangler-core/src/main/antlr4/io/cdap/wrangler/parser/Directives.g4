@@ -51,21 +51,23 @@ statements
 
 directive
  : command
-  (   codeblock
-    | identifier
-    | macro
-    | text
-    | number
-    | bool
-    | column
-    | colList
-    | numberList
-    | boolList
-    | stringList
-    | numberRanges
-    | properties
-  )*?
-  ;
+  ( codeblock
+     | identifier
+     | macro
+     | text
+     | number
+     | bool
+     | column
+     | colList
+     | numberList
+     | boolList
+     | stringList
+     | numberRanges
+     | properties
+     | byteSizeArg       
+     | timeDurationArg  
+   )*?
+ ;
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
@@ -195,6 +197,13 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -311,3 +320,21 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+fragment BYTE_UNIT
+  : 'B' | 'KB' | 'MB' | 'GB' | 'TB'
+  | 'b' | 'kb' | 'mb' | 'gb' | 'tb'
+  ;
+
+fragment TIME_UNIT
+  : 'ns' | 'ms' | 's' | 'm' | 'h' | 'd'
+  | 'NS' | 'MS' | 'S' | 'M' | 'H' | 'D'
+  ;
+
+BYTE_SIZE
+  : Number BYTE_UNIT
+  ;
+
+TIME_DURATION
+  : Number TIME_UNIT
+  ;
