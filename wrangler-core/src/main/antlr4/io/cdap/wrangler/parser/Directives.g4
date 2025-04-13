@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -31,8 +31,8 @@ options {
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
@@ -193,6 +195,14 @@ stringList
 
 identifierList
  : Identifier (',' Identifier)*
+ ;
+
+byteSize
+ : ByteSize
+ ;
+
+timeDuration
+ : TimeDuration
  ;
 
 
@@ -253,8 +263,37 @@ Bool
  | 'false'
  ;
 
+ByteSize
+ : Int ByteUnit
+ | Int '.' Digit+ ByteUnit
+ ;
+
+TimeDuration
+ : Int TimeUnit
+ | Int '.' Digit+ TimeUnit
+ ;
+
 Number
  : Int ('.' Digit*)?
+ ;
+
+fragment ByteUnit
+ : [bB] // bytes
+ | [kK] [bB] // kilobytes
+ | [mM] [bB] // megabytes
+ | [gG] [bB] // gigabytes
+ | [tT] [bB] // terabytes
+ | [pP] [bB] // petabytes
+ ;
+
+fragment TimeUnit
+ : [nN] [sS] // nanoseconds
+ | [uU] [sS] // microseconds
+ | [mM] [sS] // milliseconds
+ | [sS]      // seconds
+ | [mM]      // minutes
+ | [hH]      // hours
+ | [dD]      // days
  ;
 
 Identifier

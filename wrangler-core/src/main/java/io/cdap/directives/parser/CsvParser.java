@@ -1,17 +1,17 @@
 /*
- *  Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package io.cdap.directives.parser;
@@ -21,7 +21,6 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRowException;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -95,7 +94,7 @@ public class CsvParser implements Directive, Lineage {
         String unescapedStr = StringEscapeUtils.unescapeJava(delimiterArg.value());
         if (unescapedStr == null) {
           throw new DirectiveParseException(
-            NAME, String.format("Invalid delimiter for CSV Parser '%s'", delimiterArg.value()));
+                  NAME, String.format("Invalid delimiter for CSV Parser '%s'", delimiterArg.value()));
         }
         delimiter = unescapedStr.charAt(0);
       }
@@ -104,9 +103,9 @@ public class CsvParser implements Directive, Lineage {
 
     this.format = CSVFormat.DEFAULT.withDelimiter(delimiter);
     this.format.withIgnoreEmptyLines(true)
-      .withAllowMissingColumnNames(true)
-      .withIgnoreSurroundingSpaces(true)
-      .withRecordSeparator('\n');
+            .withAllowMissingColumnNames(true)
+            .withIgnoreSurroundingSpaces(true)
+            .withRecordSeparator('\n');
 
     this.hasHeader = false;
     if (args.contains("header")) {
@@ -129,8 +128,8 @@ public class CsvParser implements Directive, Lineage {
    */
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException {
-
+          throws Exception {
+    // Adjusted to match the expected signature of the Executor interface
     for (Row row : rows) {
       int idx = row.find(columnArg.value());
       if (idx == -1) {
@@ -157,8 +156,7 @@ public class CsvParser implements Directive, Lineage {
           }
         }
       } catch (IOException e) {
-        // When there is error parsing data, the data is written to error.
-        throw new ErrorRowException(NAME, e.getMessage(), 1);
+        throw new RuntimeException("Error parsing CSV", e);
       }
     }
     return rows;
@@ -205,8 +203,8 @@ public class CsvParser implements Directive, Lineage {
   @Override
   public Mutation lineage() {
     return Mutation.builder()
-      .readable("Parsed column '%s' as CSV with delimiter '%s'", columnArg.value(), delimiterArg.value())
-      .all(Many.columns(columnArg), Many.columns(columnArg))
-      .build();
+            .readable("Parsed column '%s' as CSV with delimiter '%s'", columnArg.value(), delimiterArg.value())
+            .all(Many.columns(columnArg), Many.columns(columnArg))
+            .build();
   }
 }

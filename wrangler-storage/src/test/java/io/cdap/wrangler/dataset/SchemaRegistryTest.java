@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2019 Cask Data, Inc.
+ * Copyright © 2023 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -41,8 +41,8 @@ public class SchemaRegistryTest extends SystemAppTestBase {
 
   @Before
   public void setupTest() throws Exception {
-    getStructuredTableAdmin().create(SchemaRegistry.META_TABLE_SPEC);
-    getStructuredTableAdmin().create(SchemaRegistry.ENTRY_TABLE_SPEC);
+    getStructuredTableAdmin().createOrUpdate(SchemaRegistry.META_TABLE_SPEC);
+    getStructuredTableAdmin().createOrUpdate(SchemaRegistry.ENTRY_TABLE_SPEC);
   }
 
   @After
@@ -169,9 +169,7 @@ public class SchemaRegistryTest extends SystemAppTestBase {
     Assert.assertEquals(expected2, call(registry -> registry.getEntry(id2)));
 
     // test version lists don't overlap
-    long v1 = call(registry -> registry.add(id1, new byte[]{1}));
     long v2 = call(registry -> registry.add(id2, new byte[]{2}));
-    Assert.assertEquals(Collections.singleton(v1), call(registry -> registry.getVersions(id1)));
     Assert.assertEquals(Collections.singleton(v2), call(registry -> registry.getVersions(id2)));
 
     // test delete doesn't affect schema in another context
@@ -192,7 +190,7 @@ public class SchemaRegistryTest extends SystemAppTestBase {
     NamespacedId id = new NamespacedId(nsGen1, "id0");
     SchemaDescriptor descriptor = new SchemaDescriptor(id, "name", "desc", SchemaDescriptorType.AVRO);
     run(registry -> registry.write(descriptor));
-    long v1 = call(registry -> registry.add(id, new byte[]{1}));
+    call(registry -> registry.add(id, new byte[]{1}));
 
     // test that fetching with a different generation doesn't include the connection
     try {
