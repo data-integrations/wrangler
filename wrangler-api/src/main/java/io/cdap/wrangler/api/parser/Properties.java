@@ -27,15 +27,15 @@ import java.util.Map;
  */
 @PublicEvolving
 public class Properties implements Token {
-  private Map<String, Token> values;
+  private Map<String, Token> properties;
 
-  public Properties(Map<String, Token> values) {
-    this.values = values;
+  public Properties(Map<String, Token> properties) {
+    this.properties = properties;
   }
 
   @Override
-  public Map<String, Token> value() {
-    return values;
+  public String value() {
+    return properties.toString();
   }
 
   @Override
@@ -46,9 +46,12 @@ public class Properties implements Token {
   @Override
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
-    for (Map.Entry<String, Token> entry : values.entrySet()) {
-      object.add(entry.getKey(), entry.getValue().toJson());
+    object.addProperty("type", TokenType.PROPERTIES.name());
+    JsonObject props = new JsonObject();
+    for (Map.Entry<String, Token> entry : properties.entrySet()) {
+      props.add(entry.getKey(), entry.getValue().toJson());
     }
+    object.add("value", props);
     return object;
   }
 }

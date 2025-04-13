@@ -19,11 +19,11 @@ package io.cdap.wrangler.api;
 import io.cdap.cdap.api.data.schema.Schema;
 
 /**
- * Interface to pass contextual information related to getting or generating the output schema of a {@link Executor}
+ * Context for resolving schemas during directive execution.
  */
 public interface SchemaResolutionContext {
   /**
-   * @return {@link Schema} of the input data before transformation
+   * Gets the input schema for the current directive execution.
    */
   Schema getInputSchema();
 }

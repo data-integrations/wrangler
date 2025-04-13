@@ -48,46 +48,22 @@ import java.util.List;
  */
 @PublicEvolving
 public class BoolList implements Token {
-  /**
-   * The {@code List<Boolean>} object that represents the value held by the token.
-   */
   private List<Boolean> values;
 
-  /**
-   * Allocates a {@code List<Boolean>} object representing the {@code value} argument.
-   * @param values
-   */
   public BoolList(List<Boolean> values) {
     this.values = values;
   }
 
-  /**
-   * Returns the value of this {@code BoolList} object as a list of boolean
-   * primitive.
-   *
-   * @return  the list of primitive {@code boolean} {@code values} of this object.
-   */
   @Override
-  public List<Boolean> value() {
-    return values;
+  public String value() {
+    return values.toString();
   }
 
-  /**
-   * Returns the type of this {@code BoolList} object as a {@code TokenType}
-   * enum.
-   *
-   * @return the enumerated {@code TokenType} of this object.
-   */
   @Override
   public TokenType type() {
     return TokenType.BOOLEAN_LIST;
   }
 
-  /**
-   * Returns the members of this {@code BoolList} object as a {@code JsonElement}.
-   *
-   * @return Json representation of this {@code BoolList} object as {@code JsonElement}
-   */
   @Override
   public JsonElement toJson() {
     JsonObject object = new JsonObject();

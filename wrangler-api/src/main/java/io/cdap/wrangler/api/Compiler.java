@@ -22,40 +22,45 @@ import org.apache.twill.filesystem.Location;
 import java.nio.file.Path;
 
 /**
- * This <code>Compiler</code> interface provides a way to implement your
- * own version of compiler for directive or recipe.
+ * Interface for implementing directive or recipe compilers.
+ * 
+ * <p>Provides methods to compile recipes from different source formats including
+ * strings, HDFS locations, and filesystem paths. The compiler processes the recipe
+ * and produces executable directives.</p>
  *
- * <p>This interface contains methods that provides variants of the source
- * from which the recipe are read. It support reading from string, HDFS location
- * and <code>Path</code>.</p>
- *
- * <p>Each of the methods would return <code>CompileStatus</code> objects that
- * contains the compiled directives in the form of <code>Executor</code> or
- * iterator of <code>SyntaxError</code> in case of failure to compile.</p>
+ * <p>Compilation results are returned as {@link CompileStatus} objects containing either:
+ * <ul>
+ *   <li>Successfully compiled directives as {@link Executor} instances</li>
+ *   <li>Compilation errors as an iterator of {@link io.cdap.wrangler.api.parser.SyntaxError}</li>
+ * </ul>
+ * </p>
  */
 @PublicEvolving
 public interface Compiler {
   /**
-   * Compiles the recipe that is supplied in a <code>String</code> format.
+   * Compiles a recipe from a string.
    *
-   * @param recipe representing the <code>String</code> form of recipe.
-   * @return <code>CompileStatus</code> status of compilation.
+   * @param recipe The recipe contents to compile
+   * @return CompileStatus containing either compiled directives or syntax errors
+   * @throws CompileException if compilation fails due to system errors
    */
   CompileStatus compile(String recipe) throws CompileException;
 
   /**
-   * Compiles the recipe that is supplied in a <code>Location</code> on HDFS.
+   * Compiles a recipe from an HDFS location.
    *
-   * @param location Location to the recipe being compiled.
-   * @return <code>CompileStatus</code> status of compilation.
+   * @param location HDFS location containing the recipe to compile
+   * @return CompileStatus containing either compiled directives or syntax errors
+   * @throws CompileException if compilation fails due to IO or system errors
    */
   CompileStatus compile(Location location) throws CompileException;
 
   /**
-   * Compiles the recipe that is supplied in a <code>Path</code> on Filesystem.
+   * Compiles a recipe from a filesystem path.
    *
-   * @param path <code>Path</code> to the recipe being compiled.
-   * @return <code>CompileStatus</code> status of compilation.
+   * @param path Path to the recipe file to compile
+   * @return CompileStatus containing either compiled directives or syntax errors
+   * @throws CompileException if compilation fails due to IO or system errors 
    */
   CompileStatus compile(Path path) throws CompileException;
 }

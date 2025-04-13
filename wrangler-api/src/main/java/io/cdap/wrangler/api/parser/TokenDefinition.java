@@ -16,79 +16,92 @@
 
 package io.cdap.wrangler.api.parser;
 
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
-import java.io.Serializable;
-
 /**
- * The <code>TokenDefinition</code> class represents a definition of token as specified
- * by the user while defining a directive usage. All definitions of a token are represented
- * by a instance of this class.
- *
- * The definition are constant (immutable) and they cannot be changed once defined.
- * For example :
- * <code>
- *   TokenDefinition token = new TokenDefintion("column", TokenType.COLUMN_NAME, null, 0, Optional.FALSE);
- * </code>
- *
- * <p>The class <code>TokenDefinition</code> includes methods for retrieveing different members of
- * like name of the token, type of the token, label associated with token, whether it's optional or not
- * and the ordinal number of the token in the <code>TokenGroup</code>.</p>
- *
- * <p>As this class is immutable, the constructor requires all the member variables to be presnted
- * for an instance of this object to be created.</p>
+ * Defines a token's name, type and whether it's optional.
  */
-@PublicEvolving
-public final class TokenDefinition implements Serializable {
-  private final int ordinal;
-  private final boolean optional;
+public class TokenDefinition {
   private final String name;
   private final TokenType type;
-  private final String label;
+  private final boolean optional;
 
-  public TokenDefinition(String name, TokenType type, String label, int ordinal, boolean optional) {
+  public TokenDefinition(String name, TokenType type) {
+    this(name, type, false);
+  }
+
+  public TokenDefinition(String name, TokenType type, boolean optional) {
     this.name = name;
     this.type = type;
-    this.label = label;
-    this.ordinal = ordinal;
     this.optional = optional;
   }
 
-  /**
-   * @return Label associated with the token. Label provides a way to override the usage description
-   * for this <code>TokenDefinition</code>. If a label is not provided, then this return null.
-   */
-  public String label() {
-    return label;
-  }
-
-  /**
-   * @return Returns the oridinal number of this <code>TokenDefinition</code> within
-   * the <code>TokenGroup</code>,
-   */
-  public int ordinal() {
-    return ordinal;
-  }
-
-  /**
-   * @return true, if this <code>TokenDefinition</code> is optional, false otherwise.
-   */
-  public boolean optional() {
-    return optional;
-  }
-
-  /**
-   * @return Name of this <code>TokenDefinition</code>
-   */
-  public String name() {
+  public String getName() {
     return name;
   }
 
-  /**
-   * @return Returns the type of this <code>TokenDefinition</code>.
-   */
-  public TokenType type() {
+  public TokenType getType() {
     return type;
   }
 
+  public boolean isOptional() {
+    return optional;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    
+    switch (type) {
+      case COLUMN_NAME:
+        if (optional) {
+          builder.append("[:");
+          builder.append(name);
+          builder.append("]");
+        } else {
+          builder.append(":");
+          builder.append(name);
+        }
+        break;
+      case COLUMN_NAME_LIST:
+        builder.append(":");
+        builder.append(name);
+        builder.append(" [,:");
+        builder.append(name);
+        builder.append("  ]*");
+        break;
+      case EXPRESSION:
+        builder.append("exp:{<");
+        builder.append(name);
+        builder.append(">}");
+        if (optional) {
+          builder.insert(0, "[");
+          builder.append("]");
+        }
+        break;
+      case TEXT:
+        if (optional) {
+          builder.append("[' ");  // Add space after quote
+          builder.append(name);
+          builder.append("']");
+        } else {
+          builder.append("'");
+          builder.append(name);
+          builder.append("'");
+        }
+        break;
+      case BOOLEAN:
+        if (optional) {
+          builder.append("[");
+          builder.append(name);
+          builder.append(" (true/false)]");
+        } else {
+          builder.append(name);
+          builder.append(" (true/false)");
+        }
+        break;
+      default:
+        builder.append(name);
+    }
+    
+    return builder.toString();
+  }
 }

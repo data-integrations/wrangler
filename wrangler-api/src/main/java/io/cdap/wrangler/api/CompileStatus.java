@@ -22,29 +22,55 @@ import java.util.Collections;
 import java.util.Iterator;
 
 /**
- * This class <code>CompileStatus</code> contains the status of compilation.
- * If there are errors - syntax or semnatic it records the details of the errors
- * as iterator over <code>SyntaxError</code>. If the compilation is successfull,
- * it contains the <code>ExecutableObject</code>.
+ * This class {@code CompileStatus} contains the status of compilation.
+ * If there are errors - syntax or semantic, it records the details of the errors
+ * as an iterator over {@code SyntaxError}. If the compilation is successful,
+ * it contains the {@code RecipeSymbol} with compiled directives.
  */
 public final class CompileStatus {
+  /** The compiled recipe symbols if compilation was successful. */
   private RecipeSymbol symbols = null;
+  
+  /** Whether compilation encountered any errors. */
   private boolean hasError = false;
+  
+  /** Iterator over any syntax errors encountered during compilation. */
   private Iterator<SyntaxError> errors = null;
 
+  /**
+   * Creates a successful compilation status with recipe symbols.
+   *
+   * @param symbols The compiled recipe symbols
+   */
   public CompileStatus(RecipeSymbol symbols) {
     this.symbols = symbols;
   }
 
+  /**
+   * Creates a compilation status for failed compilation with errors.
+   *
+   * @param hasError Whether compilation had errors
+   * @param errors Iterator over the syntax errors encountered
+   */
   public CompileStatus(boolean hasError, Iterator<SyntaxError> errors) {
     this.hasError = hasError;
     this.errors = errors;
   }
 
+  /**
+   * Checks if compilation was successful.
+   *
+   * @return true if compilation succeeded, false if there were errors
+   */
   public boolean isSuccess() {
     return !hasError;
   }
 
+  /**
+   * Gets any syntax errors from compilation.
+   *
+   * @return Iterator over syntax errors if compilation failed, empty iterator if successful
+   */
   public Iterator<SyntaxError> getErrors() {
     if (!hasError) {
       return Collections.emptyIterator();
@@ -52,6 +78,11 @@ public final class CompileStatus {
     return errors;
   }
 
+  /**
+   * Gets the compiled recipe symbols.
+   *
+   * @return RecipeSymbol containing compiled directives if successful, null if failed
+   */
   public RecipeSymbol getSymbols() {
     return symbols;
   }

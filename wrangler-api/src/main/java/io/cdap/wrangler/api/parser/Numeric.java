@@ -18,7 +18,6 @@ package io.cdap.wrangler.api.parser;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 /**
@@ -26,15 +25,15 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
  */
 @PublicEvolving
 public class Numeric implements Token {
-  private final LazyNumber value;
+  private Number value;
 
-  public Numeric(LazyNumber value) {
+  public Numeric(Number value) {
     this.value = value;
   }
 
   @Override
-  public LazyNumber value() {
-    return value;
+  public String value() {
+    return value.toString();
   }
 
   @Override
@@ -46,7 +45,7 @@ public class Numeric implements Token {
   public JsonElement toJson() {
     JsonObject object = new JsonObject();
     object.addProperty("type", TokenType.NUMERIC.name());
-    object.addProperty("value", value);
+    object.addProperty("value", value.toString());
     return object;
   }
 }

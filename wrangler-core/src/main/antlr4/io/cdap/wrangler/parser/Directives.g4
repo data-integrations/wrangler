@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
@@ -165,6 +167,14 @@ number
 
 bool
  : Bool
+ ;
+
+byteSize
+ : ByteSize
+ ;
+
+timeDuration
+ : TimeDuration
  ;
 
 condition
@@ -194,7 +204,6 @@ stringList
 identifierList
  : Identifier (',' Identifier)*
  ;
-
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -247,6 +256,21 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+ByteSize
+ : Number ByteUnit
+ ;
+
+TimeDuration
+ : Number TimeUnit
+ ;
+
+fragment ByteUnit
+ : 'B' | 'KB' | 'MB' | 'GB' | 'TB'
+ ;
+
+fragment TimeUnit
+ : 'ms' | 's' | 'm' | 'h'
+ ;
 
 Bool
  : 'true'
@@ -293,7 +317,7 @@ UnicodeEscape
    ;
 
 fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip

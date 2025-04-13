@@ -16,141 +16,112 @@
 
 package io.cdap.wrangler.api.parser;
 
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
-import java.io.Serializable;
-
 /**
- * The TokenType class provides the enumerated types for different types of
- * tokens that are supported by the grammar.
- *
- * Each of the enumerated types specified in this class also has associated
- * object representing it. e.g. {@code DIRECTIVE_NAME} is represented by the
- * object {@code DirectiveName}.
- *
- * @see Bool
- * @see BoolList
- * @see ColumnName
- * @see ColumnNameList
- * @see DirectiveName
- * @see Numeric
- * @see NumericList
- * @see Properties
- * @see Ranges
- * @see Expression
- * @see Text
- * @see TextList
+ * Defines the possible types of tokens that can appear in directives.
  */
-@PublicEvolving
-public enum TokenType implements Serializable {
+public enum TokenType {
   /**
-   * Represents the enumerated type for the object {@code DirectiveName} type.
-   * This type is associated with the token that is recognized as a directive
-   * name within the recipe.
-   */
-  DIRECTIVE_NAME,
-
-  /**
-   * Represents the enumerated type for the object of {@code ColumnName} type.
-   * This type is associated with token that represents the column as defined
-   * by the grammar as :<column-name>.
-   */
-  COLUMN_NAME,
-
-  /**
-   * Represents the enumerated type for the object of {@code Text} type.
-   * This type is associated with the token that is either enclosed within a single quote(')
-   * or a double quote (") as string.
+   * A text value token.
+   *
+   * <p>Used for basic string literals.
    */
   TEXT,
 
   /**
-   * Represents the enumerated type for the object of {@code Numeric} type.
-   * This type is associated with the token that is either a integer or real number.
+   * A directive name token.
+   *
+   * <p>Used as the first token in a directive to identify the operation.
    */
-  NUMERIC,
+  DIRECTIVE_NAME,
 
   /**
-   * Represents the enumerated type for the object of {@code Bool} type.
-   * This type is associated with the token that either represents string 'true' or 'false'.
+   * A column name token.
+   *
+   * <p>Used to reference data columns.
    */
-  BOOLEAN,
+  COLUMN_NAME,
 
   /**
-   * Represents the enumerated type for the object of type {@code BoolList} type.
-   * This type is associated with the rule that is a collection of {@code Boolean} values
-   * separated by comman(,). E.g.
-   * <code>
-   *   ColumnName[,ColumnName]*
-   * </code>
+   * A list of column names.
+   *
+   * <p>Used to reference multiple columns at once.
    */
   COLUMN_NAME_LIST,
 
   /**
-   * Represents the enumerated type for the object of type {@code TextList} type.
-   * This type is associated with the comma separated text represented were each text
-   * is enclosed within a single quote (') or double quote (") and each text is separated
-   * by comma (,). E.g.
-   * <code>
-   *   Text[,Text]*
-   * </code>
-   */
-  TEXT_LIST,
-
-  /**
-   * Represents the enumerated type for the object of type {@code NumericList} type.
-   * This type is associated with the collection of {@code Numeric} values separated by
-   * comma(,). E.g.
-   * <code>
-   *   Numeric[,Numeric]*
-   * </code>
+   * A key-value property mapping.
    *
-   */
-  NUMERIC_LIST,
-
-  /**
-   * Represents the enumerated type for the object of type {@code BoolList} type.
-   * This type is associated with the collection of {@code Bool} values separated by
-   * comma(,). E.g.
-   * <code>
-   *   Boolean[,Boolean]*
-   * </code>
-   */
-  BOOLEAN_LIST,
-
-  /**
-   * Represents the enumerated type for the object of type {@code Expression} type.
-   * This type is associated with code block that either represents a condition or
-   * an expression. E.g.
-   * <code>
-   *   exp:{ <expression || condition> }
-   * </code>
-   */
-  EXPRESSION,
-
-  /**
-   * Represents the enumerated type for the object of type {@code Properties} type.
-   * This type is associated with a collection of key and value pairs all separated
-   * by a comma(,). E.g.
-   * <code>
-   *   prop:{ <key>=<value>[,<key>=<value>]*}
-   * </code>
+   * <p>Used for configuration options.
    */
   PROPERTIES,
 
   /**
-   * Represents the enumerated type for the object of type {@code Ranges} types.
-   * This type is associated with a collection of range represented in the form shown
-   * below
-   * <code>
-   *   <start>:<end>=value[,<start>:<end>=value]*
-   * </code>
+   * A regular expression pattern.
+   *
+   * <p>Used for string matching and manipulation.
+   */
+  EXPRESSION,
+
+  /**
+   * A numeric value token.
+   *
+   * <p>Used for numbers and numeric calculations.
+   */
+  NUMERIC,
+
+  /**
+   * A list of numeric values.
+   *
+   * <p>Used for working with sets of numbers.
+   */
+  NUMERIC_LIST,
+
+  /**
+   * A list of text values.
+   *
+   * <p>Used for working with sets of strings.
+   */
+  TEXT_LIST,
+
+  /**
+   * A boolean value token.
+   *
+   * <p>Used for true/false conditions.
+   */
+  BOOLEAN,
+
+  /**
+   * A list of boolean values.
+   *
+   * <p>Used for sets of conditions.
+   */
+  BOOLEAN_LIST,
+
+  /**
+   * A duration value token.
+   *
+   * <p>Used for time intervals.
+   */
+  TIME_DURATION,
+
+  /**
+   * A byte size value token.
+   *
+   * <p>Used for data sizes.
+   */
+  BYTE_SIZE,
+
+  /**
+   * A list of number ranges.
+   *
+   * <p>Used for numeric intervals.
    */
   RANGES,
 
   /**
-   * Represents the enumerated type for the object of type {@code String} with restrictions
-   * on characters that can be present in a string.
+   * A generic identifier token.
+   *
+   * <p>Used for variable names.
    */
   IDENTIFIER
 }

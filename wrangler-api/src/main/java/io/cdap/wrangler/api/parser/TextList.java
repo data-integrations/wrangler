@@ -16,45 +16,57 @@
 
 package io.cdap.wrangler.api.parser;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
 import java.util.List;
 
 /**
- * Class description here.
+ * Token representing a list of text values.
  */
-@PublicEvolving
-public class TextList implements Token {
-  private List<String> values;
+public class TextList {
+  /** The list of text values. */
+  private final List<String> values;
 
-  public TextList(List<String> values) {
+  /**
+   * Creates a new text list token.
+   *
+   * @param values List of text values
+   */
+  public TextList(final List<String> values) {
     this.values = values;
   }
 
-  @Override
-  public List<String> value() {
+  /**
+   * Gets the text values.
+   *
+   * @return List of text values
+   */
+  public final List<String> value() {
     return values;
   }
 
-  @Override
-  public TokenType type() {
+  /**
+   * Gets the token type.
+   *
+   * @return Always TokenType.TEXT_LIST
+   */
+  public final TokenType type() {
     return TokenType.TEXT_LIST;
   }
 
-
-  @Override
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("type", TokenType.TEXT_LIST.name());
-    JsonArray array = new JsonArray();
-    for (String value : values) {
-      array.add(new JsonPrimitive(value));
+  /**
+   * Gets JSON representation.
+   *
+   * @return JSON string for this token
+   */
+  public final String toJson() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(String.format("{\"%s\":[", type().name().toLowerCase()));
+    for (int i = 0; i < values.size(); i++) {
+      sb.append(String.format("\"%s\"", values.get(i)));
+      if (i != values.size() - 1) {
+        sb.append(",");
+      }
     }
-    object.add("value", array);
-    return object;
+    sb.append("]}");
+    return sb.toString();
   }
 }

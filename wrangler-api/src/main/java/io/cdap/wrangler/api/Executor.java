@@ -23,78 +23,86 @@ import java.io.Serializable;
 import javax.annotation.Nullable;
 
 /**
- * A interface defining the wrangle Executor in the wrangling {@link RecipePipeline}.
+ * Interface defining the execution step in a {@link RecipePipeline}.
+ * Executors process data by applying transformations specified in directives.
  *
- * @param <I> type of input object
- * @param <O> type of output object
+ * @param <I> Type of input data to be processed
+ * @param <O> Type of output data after processing
  */
 @PublicEvolving
 public interface Executor<I, O> extends Serializable {
   /**
-   * This method provides a way for the custom directive writer the ability to access
-   * the arguments passed by the users.
+   * Initializes the executor with parsed arguments from the directive.
+   * This method is called once during initialization before any data processing begins.
    *
-   * <p>This method is invoked only once during the initialization phase of the {@code Executor}
-   * object. The arguments are constructed based on the definition as provided by the user in
-   * the method above {@code define}.</p>
+   * <p>Arguments are constructed based on the definition provided in the {@code define} method.
+   * The method should validate arguments and store them for use during execution.</p>
    *
-   * <p>
-   *   Following is an example of how {@code initialize} could be used to accept the
-   *   arguments that are tokenized and parsed by the framework.
-   *   <code>
-   *     public void initialize(Arguments args) throws DirectiveParseException {
-   *       ColumnName column = args.value("column");
-   *       if (args.contains("number") {
-   *        Numeric number = args.value("number");
-   *       }
-   *       Text text = args.value("text");
-   *       Bool bool = args.value("boolean");
-   *       Expression expression = args.value("expression");
-   *     }
-   *   </code>
-   * </p>
+   * <p>Example usage:</p>
+   * <pre>{@code
+   * public void initialize(Arguments args) throws DirectiveParseException {
+   *   ColumnName column = args.value("column");
+   *   if (args.contains("number")) {
+   *     Numeric number = args.value("number");
+   *   }
+   *   Text text = args.value("text");
+   *   Bool bool = args.value("boolean");
+   *   Expression expression = args.value("expression");
+   * }
+   * }</pre>
    *
-   * @param args Tokenized and parsed arguments.
-   * @throws DirectiveParseException thrown by the user in case of any issues with validation or
-   * ensuring the argument values are as expected.
+   * @param args Parsed and validated arguments for this directive
+   * @throws DirectiveParseException if argument validation fails or values are invalid
    */
   void initialize(Arguments args) throws DirectiveParseException;
 
   /**
-   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   * Executes the directive's transformation on input data.
    *
-   * @param rows List of input {@link Row} to be wrangled by this step.
-   * @param context {@link ExecutorContext} passed to each step.
-   * @return Wrangled List of {@link Row}.
+   * <p>This method implements the actual data processing logic defined by the directive.
+   * It may transform, filter, or aggregate the input data to produce the output.</p>
+   *
+   * @param rows Input data to be transformed
+   * @param context Execution context providing runtime information and services
+   * @return Transformed output data
+   * @throws DirectiveExecutionException if there is an error during execution
+   * @throws ErrorRowException if specific rows cannot be processed
+   * @throws ReportErrorAndProceed if there are non-fatal errors that should be reported
    */
   O execute(I rows, ExecutorContext context)
     throws DirectiveExecutionException, ErrorRowException, ReportErrorAndProceed;
 
   /**
-   * This method provides a way for the directive to de-initialize or destroy the
-   * resources that were acquired during the initialization phase. This method is
-   * called from the <code>Transform#destroy()</code> when the directive is invoked
-   * within a plugin or when during <code>Service#destroy()</code> when invoked in the
-   * service.
+   * Performs cleanup when this executor is being shut down.
+   * 
+   * <p>This method is called during:</p>
+   * <ul>
+   *   <li>{@code Transform#destroy()} when the directive is used in a plugin</li>
+   *   <li>{@code Service#destroy()} when used in a service</li>
+   * </ul>
    *
-   * This method is specifically designed not to thrown any exceptions. So, if the
-   * the user code is throws any exception, the system will be unable to react or
-   * correct at this phase of invocation.
+   * <p>Implementations should release any resources acquired during initialization.
+   * This method must not throw exceptions as they cannot be handled properly during
+   * shutdown.</p>
    */
   void destroy();
 
   /**
-   * This method is used to get the updated schema of the data after the directive's transformation has been applied.
+   * Gets the output schema after this directive's transformation is applied.
    *
-   * @param schemaResolutionContext context containing necessary information for getting output schema
-   * @return output {@link Schema} of the transformed data
-   * @implNote By default, returns a null and the schema is inferred from the data when necessary.
-   * <p>For consistent handling, override for directives that perform column renames,
-   * column data type changes or column additions with specific schemas.</p>
+   * <p>This method helps pipeline planning by describing how the directive modifies
+   * the structure of the data. Override this method if your directive:</p>
+   * <ul>
+   *   <li>Renames columns</li>
+   *   <li>Changes column data types</li>
+   *   <li>Adds new columns with specific schemas</li>
+   * </ul>
+   *
+   * @param schemaResolutionContext Context containing schema resolution information
+   * @return Schema of the transformed data, or null if schema should be inferred
    */
   @Nullable
   default Schema getOutputSchema(SchemaResolutionContext schemaResolutionContext) {
-    // no op
     return null;
   }
 }

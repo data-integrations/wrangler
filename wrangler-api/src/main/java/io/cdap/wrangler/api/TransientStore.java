@@ -16,49 +16,33 @@
 
 package io.cdap.wrangler.api;
 
-import java.io.Serializable;
-import java.util.Set;
-
 /**
- * {@link TransientStore} is an interface that holds volatile information that's
- * present across all the steps associated with the directives that are processing
- * a single record.
+ * Interface for storing transient variables during directive execution.
  */
-public interface TransientStore extends Serializable {
+public interface TransientStore {
   /**
-   * Resets the state of this store.
+   * Gets a value from the store.
+   *
+   * @param scope The scope to get value from
+   * @param name The name of the value
+   * @return The stored value, or null if not found
    */
-  void reset(TransientVariableScope scope);
+  Object get(TransientVariableScope scope, String name);
 
   /**
-   * A value associated with the variable in the transient store.
+   * Sets a value in the store.
    *
-   * @param name of the variable to be retrieved.
-   * @param <T> type of the value to be returned.
-   * @return instance of object of type T.
-   */
-  <T> T get(String name);
-
-  /**
-   * Sets the value of the object for variable named 'name'.
-   *
-   * @param name of the variable for which the value needs to be set.
-   * @param value of the variable.
+   * @param scope The scope to store value in
+   * @param name The name to store value under
+   * @param value The value to store
    */
   void set(TransientVariableScope scope, String name, Object value);
 
   /**
-   * Increments a value of the variable.
+   * Removes a value from the store.
    *
-   * @param name of the variable.
-   * @param value associated with the variable.
+   * @param scope The scope to remove value from
+   * @param name The name of value to remove
    */
-  void increment(TransientVariableScope scope, String name, long value);
-
-  /**
-   * Set of all the variables.
-   *
-   * @return list of all the variables.
-   */
-  Set<String> getVariables();
+  void remove(TransientVariableScope scope, String name);
 }

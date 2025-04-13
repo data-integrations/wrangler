@@ -17,43 +17,29 @@
 package io.cdap.wrangler.api.parser;
 
 import com.google.gson.JsonElement;
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
-import java.io.Serializable;
 
 /**
- * The Token class represents the object that contains the value and type of
- * the token as parsed by the parser of the grammar defined for recipe.
- *
- * <p>This class provides methods for retrieving the wrapped value of token parsed
- * as well the type of token the implementation of this interface represents.</p>
- *
- * <p>It also provides method for providing the {@code JsonElement} of implementation
- * of this interface.</p>
+ * A token recognized during parsing, containing both the value and its type.
  */
-@PublicEvolving
-public interface Token extends Serializable {
+public interface Token {
   /**
-   * Returns the {@code value} of the object wrapped by the
-   * implementation of this interface.
+   * Gets the raw string value.
    *
-   * @return {@code value} wrapped by the implementation of this interface.
+   * @return Token value
    */
-  Object value();
+  String value();
 
   /**
-   * Returns the {@code TokenType} of the object represented by the
-   * implementation of this interface.
+   * Gets the token type.
    *
-   * @return {@code TokenType} of the implementation object.
+   * @return Token type
    */
   TokenType type();
 
   /**
-   * The class implementing this interface will return the {@code JsonElement}
-   * instance including the values of the object.
+   * Converts the token to JSON representation.
    *
-   * @return {@code JsonElement} object containing members of  implementing class.
+   * @return JSON representation of the token
    */
   JsonElement toJson();
 }

@@ -17,31 +17,46 @@
 package io.cdap.wrangler.api;
 
 import io.cdap.wrangler.api.annotations.Public;
-import java.util.Collections;
-import java.util.List;
 
 /**
- * Specifies the structure for Error records.
+ * Specifies the structure for Error records that contain the original row data.
+ * This class extends ErrorRecordBase to add row-specific error handling.
  */
 @Public
 public final class ErrorRecord extends ErrorRecordBase {
-  // Actual row that is errored.
+  /** The original row that encountered an error. */
   private final Row row;
 
+  /**
+   * Creates a new error record with the specified parameters.
+   *
+   * @param row The row that encountered an error
+   * @param message The error message
+   * @param code The error code
+   * @param showInWrangler Whether to show this error in the Wrangler UI
+   */
   public ErrorRecord(Row row, String message, int code, boolean showInWrangler) {
     super(message, code, showInWrangler);
     this.row = row;
   }
 
+  /**
+   * Creates a new error record that is not shown in the Wrangler UI.
+   *
+   * @param row The row that encountered an error
+   * @param message The error message
+   * @param code The error code
+   */
   public ErrorRecord(Row row, String message, int code) {
     this(row, message, code, false);
   }
 
   /**
-   * @return original {@link Row} that errored.
+   * Gets the original row that encountered an error.
+   *
+   * @return The row that errored
    */
   public Row getRow() {
     return row;
   }
-
 }

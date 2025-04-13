@@ -21,99 +21,74 @@ import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.TokenType;
 
 /**
- * This class {@code Arguments} represents the wrapped tokens that
- * are tokenized and parsed arguments provided to the {@code Executor}.
+ * Represents parsed and tokenized arguments provided to an {@link Executor}.
+ * This interface provides methods for accessing argument values, checking argument 
+ * existence and types, and retrieving source position information.
  *
- * This class <code>Arguments</code> includes methods for retrieving
- * the value of the token provided the name for the token, number of
- * tokens, support for checking if the named argument exists, type of
- * token as specified by <code>TokenType</code> and helper method for
- * constructing <code>JsonElement</code> object.
+ * <p>Arguments are defined in {@link io.cdap.wrangler.api.parser.UsageDefinition} 
+ * and correspond to the tokens parsed from directive inputs.</p>
  *
  * @see io.cdap.wrangler.api.parser.UsageDefinition
  */
 public interface Arguments {
   /**
-   * This method returns the token {@code value} based on the {@code name}
-   * specified in the argument. This method will attempt to convert the token
-   * into the expected return type <code>T</code>.
+   * Gets a token value by name and converts it to the expected type.
    *
-   * <p>If the <code>name</code> doesn't exist in this object, then this
-   * method is expected to return <code>null</code></p>
-   *
-   * @param name of the token to be retrieved.
-   * @param <T> type the token need to casted to.
-   * @return object that extends <code>Token</code>.
+   * @param name Name of the token to retrieve as defined in UsageDefinition
+   * @param <T> Expected token type that extends Token
+   * @return The token value cast to type T, or null if the named token doesn't exist
+   * @throws ClassCastException if the token cannot be cast to type T
    */
   <T extends Token> T value(String name);
 
   /**
-   * Returns the number of tokens that are mapped to arguments.
+   * Gets the number of actual tokens parsed from the directive input.
+   * Optional tokens that were not provided are not included in this count.
    *
-   * <p>The optional arguments specified during the <code>UsageDefinition</code>
-   * are not included in the size if they are not present in the tokens parsed.</p>
-   *
-   * @return number of tokens parsed, excluding optional tokens if not present.
+   * @return Number of non-optional tokens successfully parsed
    */
   int size();
 
   /**
-   * This method checks if there exists a token named <code>name</code> registered
-   * with this object.
+   * Checks if a named token exists in the parsed arguments.
    *
-   * The <code>name</code> is expected to the same as specified in the <code>UsageDefinition</code>.
-   * There are two reason why the <code>name</code> might not exists in this object :
-   *
+   * <p>A token may not exist either because:</p>
    * <ul>
-   *   <li>When an token is defined to be optional, the user might not have specified the
-   *   token, hence the token would not exist in the argument.</li>
-   *   <li>User has specified invalid <code>name</code>.</li>
+   *   <li>It was defined as optional in UsageDefinition and not provided</li>
+   *   <li>The provided name does not match any defined token</li>
    * </ul>
    *
-   * @param name associated with the token.
-   * @return true if argument with name <code>name</code> exists, false otherwise.
+   * @param name Name of the token to check for
+   * @return true if a token with the given name exists, false otherwise
    */
   boolean contains(String name);
 
   /**
-   * Each token is defined as one of the types defined in the class {@link TokenType}.
-   * When the directive is parsed into token, the type of the token is passed through.
+   * Gets the TokenType of a named argument.
    *
-   * @param name associated with the token.
-   * @return <code>TokenType</code> associated with argument <code>name</code>, else null.
+   * @param name Name of the token whose type to retrieve
+   * @return The TokenType of the named token, or null if the token doesn't exist
    */
   TokenType type(String name);
 
   /**
-   * Returns the source line number these arguments were parsed from.
+   * Gets the source line number where these arguments were parsed from.
    *
-   * @return the source line number.
+   * @return The 1-based line number in the source
    */
   int line();
 
   /**
-   * Returns the source column number these arguments were parsed from.
-   * <p>It takes the start position of the directive as the column number.</p>
+   * Gets the source column number where the directive containing these arguments starts.
    *
-   * @return the start of the column number for the start of the directive
-   * these arguments contain.
+   * @return The 1-based column number marking the start of the directive
    */
   int column();
 
   /**
-   * This method returns the original source line of the directive as specified
-   * the user. It returns the <code>String</code> representation of the directive.
+   * Converts the arguments to a JSON representation.
    *
-   * @return <code>String</code> object representing the original directive
-   * as specified by the user.
-   */
-  String source();
-
-  /**
-   * Returns <code>JsonElement</code> representation of this object.
-   *
-   * @return an instance of <code>JsonElement</code>object representing all the
-   * named tokens held within this object.
+   * @return JsonElement containing the arguments' data
    */
   JsonElement toJson();
 }

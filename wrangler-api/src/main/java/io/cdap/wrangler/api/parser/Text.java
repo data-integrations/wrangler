@@ -16,36 +16,46 @@
 
 package io.cdap.wrangler.api.parser;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
 /**
- * Class description here.
+ * Token representing a text value.
  */
-@PublicEvolving
-public class Text implements Token {
-  private String value;
+public class Text {
+  /** The text value. */
+  private final String value;
 
-  public Text(String value) {
+  /**
+   * Creates a new text token.
+   *
+   * @param value The text value
+   */
+  public Text(final String value) {
     this.value = value;
   }
 
-  @Override
-  public String value() {
+  /**
+   * Gets the text value.
+   *
+   * @return The text value
+   */
+  public final String value() {
     return value;
   }
 
-  @Override
-  public TokenType type() {
+  /**
+   * Gets the token type.
+   *
+   * @return Always TokenType.TEXT
+   */
+  public final TokenType type() {
     return TokenType.TEXT;
   }
 
-  @Override
-  public JsonElement toJson() {
-    JsonObject object = new JsonObject();
-    object.addProperty("type", TokenType.TEXT.name());
-    object.addProperty("value", value);
-    return object;
+  /**
+   * Gets JSON representation.
+   *
+   * @return JSON string for this token
+   */
+  public final String toJson() {
+    return String.format("{\"%s\":\"%s\"}", type().name().toLowerCase(), value);
   }
 }

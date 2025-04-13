@@ -25,59 +25,91 @@ import java.net.URL;
 import java.util.Map;
 
 /**
- * Pipeline Context for passing contextual information to the pipeline being executed.
+ * Pipeline execution context that provides access to runtime environment,
+ * metrics, and configuration properties. This context is passed to directives
+ * during their execution phase.
  */
 @PublicEvolving
 public interface ExecutorContext extends LookupProvider, Serializable {
   /**
-   * Specifies the environment in which wrangler is running.
+   * Defines the runtime environment in which the wrangler is executing.
+   * This affects available features and execution behavior.
    */
   enum Environment {
+    /** Running as a service with interactive capabilities. */
     SERVICE,
+    /** Running as a data pipeline transform. */
     TRANSFORM,
+    /** Running as an independent microservice. */
     MICROSERVICE,
+    /** Running in test mode with mock capabilities. */
     TESTING
-  };
+  }
 
   /**
-   * @return Environment this context is prepared for.
+   * Gets the runtime environment for this context.
+   *
+   * @return The {@link Environment} this context is configured for
    */
   Environment getEnvironment();
 
   /**
-   * @return namespace that the program is being executed in
+   * Gets the namespace in which the program is executing.
+   * The namespace provides isolation between different executions.
+   *
+   * @return Name of the current namespace
    */
   String getNamespace();
 
   /**
-   * @return Measurements handler.
+   * Gets the metrics collection interface.
+   * Use this to record performance and operational metrics.
+   *
+   * @return StageMetrics instance for recording measurements
    */
   StageMetrics getMetrics();
 
   /**
-   * @return Context name.
+   * Gets the unique name of this context.
+   * This name can be used for logging and metrics.
+   *
+   * @return Unique identifier for this context
    */
   String getContextName();
 
   /**
-   * @return Properties associated with run and pipeline.
+   * Gets configuration properties for this execution.
+   * These properties are set during pipeline or service configuration.
+   *
+   * @return Map of configuration properties
    */
   Map<String, String> getProperties();
 
   /**
-   * Returns a valid service url.
+   * Gets the URL for a specified service.
+   * This allows directives to interact with other CDAP services.
    *
-   * @param applicationId id of the application to which a service url.
-   * @param serviceId id of the service within application.
-   * @return URL if service exists, else null.
+   * @param applicationId ID of the application containing the service
+   * @param serviceId ID of the service to locate
+   * @return URL of the service if it exists, null otherwise
    */
   URL getService(String applicationId, String serviceId);
 
   /**
-   * @return A transient store.
+   * Gets the temporary storage interface.
+   * Use this to store data that needs to persist across directive executions
+   * but does not need long-term storage.
+   *
+   * @return TransientStore instance for temporary data storage
    */
   TransientStore getTransientStore();
 
+  /**
+   * Checks if schema management features are enabled.
+   * When enabled, directives can modify and validate data schemas.
+   *
+   * @return true if schema management is enabled, false otherwise
+   */
   default boolean isSchemaManagementEnabled() {
     return false;
   }

@@ -19,21 +19,30 @@ package io.cdap.wrangler.api;
 import java.math.BigDecimal;
 
 /**
- * This class holds a number value that is lazily converted to a specific number type
+ * This class holds a number value that is lazily converted to a specific number type.
+ * The value is stored as a string and only converted to a number when requested.
+ * This class is immutable and thread-safe.
  */
 public final class LazyNumber extends Number {
-  private final String value;
+  /**
+   * The string representation of the number.
+   */
+  private String value;
 
+  /**
+   * Constructs a new LazyNumber instance.
+   * @param value The string representation of the number
+   */
   public LazyNumber(String value) {
     this.value = value;
   }
 
   /**
-   * Returns the value of the specified number as an <code>int</code>.
+   * Returns the value of the specified number as an {@code int}.
    * This may involve rounding or truncation.
    *
-   * @return  the numeric value represented by this object after conversion
-   *          to type <code>int</code>.
+   * @return the numeric value represented by this object after conversion
+   *         to type {@code int}
    */
   @Override
   public int intValue() {
@@ -49,11 +58,11 @@ public final class LazyNumber extends Number {
   }
 
   /**
-   * Returns the value of the specified number as a <code>long</code>.
+   * Returns the value of the specified number as a {@code long}.
    * This may involve rounding or truncation.
    *
-   * @return  the numeric value represented by this object after conversion
-   *          to type <code>long</code>.
+   * @return the numeric value represented by this object after conversion
+   *         to type {@code long}
    */
   @Override
   public long longValue() {
@@ -65,29 +74,42 @@ public final class LazyNumber extends Number {
   }
 
   /**
-   * Returns the value of the specified number as a <code>float</code>.
+   * Returns the value of the specified number as a {@code float}.
    * This may involve rounding.
    *
-   * @return  the numeric value represented by this object after conversion
-   *          to type <code>float</code>.
+   * @return the numeric value represented by this object after conversion
+   *         to type {@code float}
    */
   @Override
   public float floatValue() {
-    return Float.parseFloat(value);
+    try {
+      return Float.parseFloat(value);
+    } catch (NumberFormatException e) {
+      return new BigDecimal(value).floatValue();
+    }
   }
 
   /**
-   * Returns the value of the specified number as a <code>double</code>.
+   * Returns the value of the specified number as a {@code double}.
    * This may involve rounding.
    *
-   * @return  the numeric value represented by this object after conversion
-   *          to type <code>double</code>.
+   * @return the numeric value represented by this object after conversion
+   *         to type {@code double}
    */
   @Override
   public double doubleValue() {
-    return Double.parseDouble(value);
+    try {
+      return Double.parseDouble(value);
+    } catch (NumberFormatException e) {
+      return new BigDecimal(value).doubleValue();
+    }
   }
 
+  /**
+   * Returns the string representation of this number.
+   *
+   * @return the string representation of this number
+   */
   @Override
   public String toString() {
     return value;

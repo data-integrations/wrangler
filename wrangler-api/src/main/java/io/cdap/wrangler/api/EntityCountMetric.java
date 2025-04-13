@@ -20,24 +20,27 @@ package io.cdap.wrangler.api;
  * Represents generic metadata information for a count metric that is emitted in Wrangler. The entity's type and name
  * will be automatically mapped to corresponding metric tags.
  */
-public class EntityCountMetric {
-  /**
-   * Metric name
-   */
+public final class EntityCountMetric {
+  /** The name of the metric. */
   private final String name;
-  /**
-   * Value by which to increment the count
-   */
+  
+  /** The count value to increment by. */
   private final long count;
-  /**
-   * System app entity type
-   */
+  
+  /** The type of system application entity. */
   private final String appEntityType;
-  /**
-   * System app entity type name
-   */
+  
+  /** The name of the system application entity type. */
   private final String appEntityTypeName;
 
+  /**
+   * Creates a new entity count metric.
+   *
+   * @param name The name of the metric
+   * @param appEntityType The type of system application entity
+   * @param appEntityTypeName The name of the system application entity type
+   * @param count The count value to increment by
+   */
   public EntityCountMetric(String name, String appEntityType, String appEntityTypeName, long count) {
     this.name = name;
     this.appEntityType = appEntityType;
@@ -45,18 +48,38 @@ public class EntityCountMetric {
     this.count = count;
   }
 
+  /**
+   * Gets the name of the metric.
+   *
+   * @return The metric name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Gets the type of system application entity.
+   *
+   * @return The entity type
+   */
   public String getAppEntityType() {
     return appEntityType;
   }
 
+  /**
+   * Gets the name of the system application entity type.
+   *
+   * @return The entity type name
+   */
   public String getAppEntityTypeName() {
     return appEntityTypeName;
   }
 
+  /**
+   * Gets the count value.
+   *
+   * @return The count value
+   */
   public long getCount() {
     return count;
   }
