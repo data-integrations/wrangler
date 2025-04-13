@@ -126,6 +126,10 @@ public final class UsageDefinition implements Serializable {
           sb.append("prop:{key:value,[key:value]*");
         } else if (token.type().equals(TokenType.RANGES)) {
           sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
+        } else if (token.type().equals(TokenType.BYTE_SIZE)) {
+          sb.append(":").append(token.name());
+        } else if (token.type().equals(TokenType.TIME_DURATION)) {
+          sb.append(":").append(token.name());
         }
       }
 
@@ -182,10 +186,11 @@ public final class UsageDefinition implements Serializable {
      * @param name of the token in the definition of a directive.
      * @param type of the token to be extracted.
      */
-    public void define(String name, TokenType type) {
+    public Builder define(String name, TokenType type) {
       TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, Optional.FALSE);
       currentOrdinal++;
       tokens.add(spec);
+      return this;
     }
 
     /**
@@ -196,10 +201,11 @@ public final class UsageDefinition implements Serializable {
      * @param type of the token to be extracted.
      * @param label label that modifies the usage for this field.
      */
-    public void define(String name, TokenType type, String label) {
+    public Builder define(String name, TokenType type, String label) {
       TokenDefinition spec = new TokenDefinition(name, type, label, currentOrdinal, Optional.FALSE);
       currentOrdinal++;
       tokens.add(spec);
+      return this;
     }
 
     /**
@@ -210,11 +216,12 @@ public final class UsageDefinition implements Serializable {
      * @param type of the token to be extracted.
      * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
      */
-    public void define(String name, TokenType type, boolean optional) {
+    public Builder define(String name, TokenType type, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, optional);
       optionalCnt = optional ? optionalCnt + 1 : optionalCnt;
       currentOrdinal++;
       tokens.add(spec);
+      return this;
     }
 
     /**
@@ -227,11 +234,12 @@ public final class UsageDefinition implements Serializable {
      * @param label label that modifies the usage for this field.
      * @param optional <code>Optional#TRUE</code> if token is optional, else <code>Optional#FALSE</code>.
      */
-    public void define(String name, TokenType type, String label, boolean optional) {
+    public Builder define(String name, TokenType type, String label, boolean optional) {
       TokenDefinition spec = new TokenDefinition(name, type, label, currentOrdinal, optional);
       optionalCnt = optional ? optionalCnt + 1 : optionalCnt;
       currentOrdinal++;
       tokens.add(spec);
+      return this;
     }
 
     /**

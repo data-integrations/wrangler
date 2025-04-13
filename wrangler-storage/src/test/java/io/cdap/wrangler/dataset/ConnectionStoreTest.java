@@ -26,26 +26,79 @@ import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionMeta;
 import io.cdap.wrangler.proto.connection.ConnectionType;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.StatusDetails;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for the {@link ConnectionStore}.
  */
 public class ConnectionStoreTest extends SystemAppTestBase {
 
+  private KubernetesClient kubernetesClient;
+  private String namespace;
+
   @Before
   public void setupTest() throws Exception {
-    getStructuredTableAdmin().create(ConnectionStore.TABLE_SPEC);
+    namespace = "test-ns-" + UUID.randomUUID().toString().substring(0, 8);
+    
+    try {
+      // Initialize Kubernetes client
+      kubernetesClient = new KubernetesClientBuilder().build();
+      
+      // Create namespace
+      kubernetesClient.namespaces().resource(
+        new NamespaceBuilder()
+          .withNewMetadata()
+          .withName(namespace)
+          .endMetadata()
+          .build()
+      ).create();
+
+      kubernetesClient.namespaces().withName(namespace)
+        .waitUntilCondition(Objects::nonNull, 30, TimeUnit.SECONDS);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to initialize Kubernetes resources", e);
+    }
+
+    try {
+      getStructuredTableAdmin().create(ConnectionStore.TABLE_SPEC);
+    } catch (Exception e) {
+      // cleanupKubernetesResources();
+      throw e;
+    }
   }
 
   @After
   public void cleanupTest() throws Exception {
-    getStructuredTableAdmin().drop(ConnectionStore.TABLE_SPEC.getTableId());
+    if (kubernetesClient != null && namespace != null) {
+      try {
+        List<StatusDetails> deleteResult = kubernetesClient.namespaces().withName(namespace).delete();
+        if (deleteResult.isEmpty()) {
+            // Remove finalizers if namespace is stuck in Terminating state
+            kubernetesClient.namespaces().withName(namespace)
+              .edit(n -> new NamespaceBuilder(n)
+                .editMetadata()
+                .removeFromFinalizers("kubernetes")
+                .endMetadata()
+                .build());
+            kubernetesClient.namespaces().withName(namespace).delete();
+        }
+        kubernetesClient.namespaces().withName(namespace).waitUntilCondition(Objects::isNull, 30, TimeUnit.SECONDS);
+      } catch (Exception e) {
+        System.err.println("Failed to delete namespace: " + e.getMessage());
+      }
+    }
   }
 
   @Test
@@ -53,7 +106,7 @@ public class ConnectionStoreTest extends SystemAppTestBase {
     getTransactionRunner().run(context -> {
       ConnectionStore connectionStore = ConnectionStore.get(context);
 
-      NamespacedId id = new NamespacedId(new Namespace("c0", 10L), "id");
+      NamespacedId id = new NamespacedId(new Namespace(namespace, 10L), "id");
       try {
         connectionStore.get(id);
         Assert.fail("Getting a non-existent connection did not throw an exception.");
@@ -75,11 +128,11 @@ public class ConnectionStoreTest extends SystemAppTestBase {
     getTransactionRunner().run(context -> {
       ConnectionStore connectionStore = ConnectionStore.get(context);
 
-      Namespace namespace = new Namespace("c0", 10L);
+      Namespace namespace1 = new Namespace(namespace, 10L);
       ConnectionMeta meta = ConnectionMeta.builder().setName("name").setType(ConnectionType.FILE).build();
-      connectionStore.create(namespace, meta);
+      connectionStore.create(namespace1, meta);
       try {
-        connectionStore.create(namespace, meta);
+        connectionStore.create(namespace1, meta);
         Assert.fail("Creating a duplicate connection did not throw an exception.");
       } catch (ConnectionAlreadyExistsException e) {
         // expected
@@ -89,7 +142,7 @@ public class ConnectionStoreTest extends SystemAppTestBase {
 
   @Test
   public void testCRUD() {
-    Namespace ns = new Namespace("n0", 10L);
+    Namespace ns = new Namespace(namespace, 10L);
     Assert.assertTrue(run(connectionStore -> connectionStore.list(ns, x -> true)).isEmpty());
 
     // test creation
@@ -140,8 +193,8 @@ public class ConnectionStoreTest extends SystemAppTestBase {
 
   @Test
   public void testNamespaceIsolation() {
-    Namespace ns1 = new Namespace("ns1", 10L);
-    Namespace ns2 = new Namespace("ns2", 10L);
+    Namespace ns1 = new Namespace(namespace, 10L);
+    Namespace ns2 = new Namespace(namespace, 10L);
 
     // test creation in different namespaces
     ConnectionMeta expected1 = ConnectionMeta.builder()
@@ -190,8 +243,8 @@ public class ConnectionStoreTest extends SystemAppTestBase {
 
   @Test
   public void testNamespaceGenerations() {
-    Namespace nsGen1 = new Namespace("ns1", 1L);
-    Namespace nsGen2 = new Namespace("ns1", 2L);
+    Namespace nsGen1 = new Namespace(namespace, 1L);
+    Namespace nsGen2 = new Namespace(namespace, 2L);
 
 
     // test creation in different namespaces
@@ -216,7 +269,7 @@ public class ConnectionStoreTest extends SystemAppTestBase {
 
   @Test
   public void testPreconfiguredConnections() {
-    Namespace nsGen1 = new Namespace("ns1", 1L);
+    Namespace nsGen1 = new Namespace(namespace, 1L);
 
     ConnectionMeta preconfiguredMeta = ConnectionMeta.builder()
       .setName("Built-in connection")

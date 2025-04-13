@@ -31,6 +31,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.MessageDigest;
@@ -49,120 +52,141 @@ import static org.junit.Assert.assertTrue;
  */
 public class ValidateStandardTest {
 
-  private static Map<String, Standard> getSpecsInArchive()
-    throws IOException, NoSuchAlgorithmException {
-    Map<String, Standard> schemas = new HashMap<>();
-    CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
-    if (src != null) {
-      File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
+    private static Map<String, Standard> getSpecsInArchive()
+        throws IOException, NoSuchAlgorithmException, URISyntaxException {
+        Map<String, Standard> schemas = new HashMap<>();
+        CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
+        if (src != null) {
+            URI locationUri = src.getLocation().toURI();
+            Path basePath = Paths.get(locationUri).normalize();
+            Path schemasPath = basePath.resolve(ValidateStandard.SCHEMAS_RESOURCE_PATH);
 
-      if (!schemasRoot.isDirectory()) {
-        throw new IOException(
-          String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
-      }
+            File schemasRoot = schemasPath.toFile();
 
-      for (File f : schemasRoot.listFiles()) {
-        if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
-          continue;
+            if (!schemasRoot.isDirectory()) {
+                throw new IOException(
+                    String.format("Schemas root %s was not a directory", schemasRoot.getAbsolutePath()));
+            }
+
+            for (File f : schemasRoot.listFiles()) {
+                if (f.isDirectory() || 
+                    !f.getName().endsWith(".json") || 
+                    f.getName().equals("manifest.json")) {
+                    continue;
+                }
+
+                try (InputStream is = new FileInputStream(f)) {
+                    String hash = calcHash(is);
+                    schemas.put(
+                        FilenameUtils.getBaseName(f.getName()),
+                        new Standard(hash, FilenameUtils.getExtension(f.getName()))
+                    );
+                }
+            }
         }
-
-        String hash = calcHash(new FileInputStream(f));
-        schemas.put(
-          FilenameUtils.getBaseName(f.getName()),
-          new Standard(hash, FilenameUtils.getExtension(f.getName())));
-      }
+        return schemas;
     }
 
-    return schemas;
-  }
+    private static String calcHash(InputStream is) throws IOException, NoSuchAlgorithmException {
+        byte[] bytes = IOUtils.toByteArray(is);
+        MessageDigest d = MessageDigest.getInstance("SHA-256");
+        byte[] hash = d.digest(bytes);
 
-  private static String calcHash(InputStream is) throws IOException, NoSuchAlgorithmException {
-    byte[] bytes = IOUtils.toByteArray(is);
-    MessageDigest d = MessageDigest.getInstance("SHA-256");
-    byte[] hash = d.digest(bytes);
-
-    Formatter f = new Formatter();
-    for (byte b : hash) {
-      f.format("%02x", b);
-    }
-    return f.toString();
-  }
-
-  private static InputStream readResource(String name) throws IOException {
-    InputStream resourceStream = ValidateStandard.class.getClassLoader().getResourceAsStream(name);
-
-    if (resourceStream == null) {
-      throw new IOException(String.format("Can't read/find resource %s", name));
+        try (Formatter f = new Formatter()) {
+            for (byte b : hash) {
+                f.format("%02x", b);
+            }
+            return f.toString();
+        }
     }
 
-    return resourceStream;
-  }
-
-  @Test
-  public void testValidation() throws Exception {
-    JsonObject badJson =
-      new Gson()
-        .fromJson("{\"resourceType\": \"Patient\", \"active\": \"meow\"}", JsonObject.class);
-    JsonObject goodJson =
-      new Gson()
-        .fromJson(
-          "{\"resourceType\": \"Patient\", \"active\": true, \"gender\": \"female\"}",
-          JsonObject.class);
-
-    String[] directives = new String[]{
-      "validate-standard :col1 hl7-fhir-r4",
-    };
-
-    List<Row> rows = Arrays.asList(
-      new Row("col1", badJson),
-      new Row("col1", goodJson)
-    );
-
-    List<Row> actual = TestingRig.execute(directives, rows);
-
-    assertEquals(1, actual.size());
-    assertEquals(goodJson, actual.get(0).getValue(0));
-  }
-
-  /**
-   * This test verifies that the manifest in the resources matches up with both the actual schemas in the resources as
-   * well as the implementations provided to handle those schemas.
-   */
-  @Test
-  public void verifyManifest() throws Exception {
-    InputStream manifestStream = readResource(ValidateStandard.MANIFEST_PATH);
-    Manifest manifest =
-      new Gson().getAdapter(Manifest.class).fromJson(new InputStreamReader(manifestStream));
-
-    Map<String, Standard> declaredSpecs = manifest.getStandards();
-    Map<String, Standard> actualSpecs = getSpecsInArchive();
-
-    assertEquals(
-      "Manifest contains different number of specs than there are in the artifact",
-      declaredSpecs.size(),
-      actualSpecs.size());
-
-    for (String spec : declaredSpecs.keySet()) {
-      assertTrue(
-        String.format("Manifest had spec %s but the artifact did not", spec),
-        actualSpecs.containsKey(spec));
-
-      Standard declared = declaredSpecs.get(spec);
-      Standard actual = actualSpecs.get(spec);
-
-      assertEquals(
-        String.format(
-          "Declared standard %s did not match actual %s",
-          declared.toString(), actual.toString()),
-        declared,
-        actual);
-
-      assertTrue(
-        String.format(
-          "Standard %s does not have a handler/factory registered in %s",
-          spec, ValidateStandard.class.getName()),
-        ValidateStandard.FORMAT_TO_FACTORY.containsKey(actual.getFormat()));
+    private static InputStream readResource(String name) throws IOException {
+        InputStream resourceStream = ValidateStandard.class.getClassLoader().getResourceAsStream(name);
+        if (resourceStream == null) {
+            throw new IOException(String.format("Can't read/find resource %s", name));
+        }
+        return resourceStream;
     }
-  }
+
+    @Test
+    public void testValidation() throws Exception {
+        JsonObject badJson = new Gson()
+            .fromJson("{\"resourceType\": \"Patient\", \"active\": \"meow\"}", JsonObject.class);
+        JsonObject goodJson = new Gson()
+            .fromJson(
+                "{\"resourceType\": \"Patient\", \"active\": true, \"gender\": \"female\"}",
+                JsonObject.class);
+
+        String[] directives = new String[]{
+            "validate-standard :col1 hl7-fhir-r4",
+        };
+
+        List<Row> rows = Arrays.asList(
+            new Row("col1", badJson),
+            new Row("col1", goodJson)
+        );
+
+        List<Row> actual = TestingRig.execute(directives, rows);
+
+        assertEquals(1, actual.size());
+        assertEquals(goodJson, actual.get(0).getValue(0));
+    }
+
+    @Test
+    public void verifyManifest() throws Exception {
+        // Load manifest
+        InputStream manifestStream = readResource(ValidateStandard.MANIFEST_PATH);
+        Manifest manifest = new Gson().getAdapter(Manifest.class)
+            .fromJson(new InputStreamReader(manifestStream));
+
+        // Get actual specs from JAR
+        Map<String, Standard> declaredSpecs = manifest.getStandards();
+        Map<String, Standard> actualSpecs = getSpecsInArchive();
+
+        // Verify spec counts match
+        assertEquals(
+            "Manifest contains different number of specs than there are in the artifact",
+            declaredSpecs.size(),
+            actualSpecs.size());
+
+        // Verify each spec matches
+        for (Map.Entry<String, Standard> entry : declaredSpecs.entrySet()) {
+            String specName = entry.getKey();
+            Standard declared = entry.getValue();
+            
+            assertTrue(
+                "Manifest had spec " + specName + " but artifact did not",
+                actualSpecs.containsKey(specName));
+
+            Standard actual = actualSpecs.get(specName);
+            
+            System.out.println("Verifying: " + specName);
+            System.out.println("Declared hash: " + declared.getHash());
+            System.out.println("Actual hash:   " + actual.getHash());
+
+            assertEquals(
+                "Hash mismatch for " + specName,
+                declared.getHash(),
+                actual.getHash());
+                
+            assertEquals(
+                "Format mismatch for " + specName,
+                declared.getFormat(),
+                actual.getFormat());
+
+            assertTrue(
+                "No handler registered for " + specName,
+                ValidateStandard.FORMAT_TO_FACTORY.containsKey(actual.getFormat()));
+        }
+    }
+
+    @Test
+    public void printCurrentHashes() throws Exception {
+        System.out.println("\nCurrent Schema Hashes:");
+        Map<String, Standard> specs = getSpecsInArchive();
+        specs.forEach((name, standard) -> 
+            System.out.printf("  \"%s\": {\n    \"hash\": \"%s\",\n    \"format\": \"%s\"\n  },\n", 
+                            name, standard.getHash(), standard.getFormat()));
+    }
+
 }

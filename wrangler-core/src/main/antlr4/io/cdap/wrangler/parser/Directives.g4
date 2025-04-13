@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -194,6 +194,16 @@ stringList
 identifierList
  : Identifier (',' Identifier)*
  ;
+
+// BYTE SIZE Token - matches values like 10KB , 1.5MB
+BYTE_SIZE
+: [0-9]+('.'[0-9]+)? BYTE_UNIT;
+fragment BYTE_UNIT: ('B' | 'KB' | 'MB' | 'GB' | 'TB');
+
+// TIME DURATION Token - matches values like 150ms,2.5s 
+TIME_DURATION
+: [0-9]+('.'[0-9]+)? TIME_UNIT;
+fragment TIME_UNIT: ('ns' | 'us'| 'ms'| 's'| 'm' | 'h');
 
 
 /*

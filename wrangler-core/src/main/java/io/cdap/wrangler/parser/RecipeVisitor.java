@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +34,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -64,6 +66,7 @@ import java.util.Map;
  * that is returned by this function.</p>
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Builder> {
+  private final ThreadLocal<RecipeSymbol.Builder> current = new ThreadLocal<>();
   private RecipeSymbol.Builder builder = new RecipeSymbol.Builder();
 
   /**
@@ -316,6 +319,33 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new TextList(strs));
     return builder;
   }
+
+  /**
+ * This visitor method inspects the type of token matched by the value rule and creates the appropriate
+ * token object (e.g., <code>ByteSize</code>, <code>TimeDuration</code>, etc.) 
+ * to be added to the <code>TokenGroup</code>.
+ */
+@Override
+public RecipeSymbol.Builder visitValue(DirectivesParser.ValueContext ctx) {
+  Token token;
+
+  if (ctx.BYTE_SIZE() != null) {
+    token = new ByteSize(ctx.BYTE_SIZE().getText());
+  } else if (ctx.TIME_DURATION() != null) {
+    token = new TimeDuration(ctx.TIME_DURATION().getText());
+  } else if (ctx.String() != null) {
+    String value = ctx.String().getText();
+    token = new Text(value.substring(1, value.length() - 1));
+  } else if (ctx.Bool() != null) {
+    token = new Bool(Boolean.valueOf(ctx.Bool().getText()));
+  } else if (ctx.Number() != null) {
+    token = new Numeric(new LazyNumber(ctx.Number().getText()));
+  } else {
+    throw new IllegalArgumentException("Unknown value type in visitValue: " + ctx.getText());
+  }
+  builder.addToken(token);
+  return builder;
+}
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
