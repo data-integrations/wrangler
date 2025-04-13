@@ -1,0 +1,9 @@
+1. Provide the final test code for byte and time handling in a data aggregation directive.
+2. Investigate why the time duration parsing might result in a negative value.
+3. Generate final test cases for byte size parsing and time duration parsing, ensuring accurate results.
+4. Investigate and fix issues with random number generation for large-scale byte size and time duration tests.
+5. Improve the readability of the documentation for parsing byte sizes.
+6. Provide documentation for the `parse-as-bytesize` directive in markdown format.
+7. Update and optimize the documentation for the `parse-as-timeduration` directive based on the provided code.
+8. Ensure that tests for large-scale byte size and time duration calculations are correct and provide feedback.
+9. Improve the general structure and formatting of the documentation for better clarity and consistency.
