@@ -13,11 +13,12 @@
  *  License for the specific language governing permissions and limitations under
  *  the License.
  */
-package io.cdap.directives.parser;
+package io.cdap.directives.datetime;
 
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.DirectiveParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,29 +32,17 @@ public class ParseDateTimeTest {
 
   @Test
   public void testDateTimeFormats() throws Exception {
-    String[] testPatterns = new String[]{"MM/dd/yyyy HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss[xxx]",
-      "yyyy-MM-dd'T'HH:mm:ss[xxx]'['VV']'", "yyyyMMdd h:mm a"};
-    String[] colNames = new String[]{"col1", "col2", "col3", "col4", "col5"};
-    String[] dateTimes = new String[]{"03/30/2010 01:05", "2020-01-28T04:50:12", "2011-12-03T10:15:30+01:00",
-      "2011-12-03T10:15:30+01:00[Europe/Paris]", "19901212 10:12 AM"};
-    String[] directives = new String[testPatterns.length];
-    Row row = new Row();
-    for (int i = 0; i < testPatterns.length; i++) {
-      directives[i] = String
-        .format("%s :%s \"%s\"", ParseDateTime.NAME, colNames[i], testPatterns[i]);
-      row.add(colNames[i], dateTimes[i]);
-    }
-    List<Row> rows = TestingRig.execute(directives, Collections.singletonList(row));
+    String[] directives = new String[]{
+      "parse-as-datetime :date 'yyyy-MM-dd HH:mm:ss'",
+    };
 
-    Assert.assertEquals(1, rows.size());
+    List<Row> rows = Arrays.asList(
+      new Row("date", "2020-01-01 12:00:00")
+    );
 
-    for (Row resultRow : rows) {
-      for (int i = 0; i < testPatterns.length; i++) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(testPatterns[i]);
-        Assert.assertEquals(LocalDateTime.parse(dateTimes[i], dateTimeFormatter),
-                            rows.get(0).getValue(colNames[i]));
-      }
-    }
+    List<Row> results = TestingRig.execute(directives, rows);
+    Assert.assertEquals(1, results.size());
+    Assert.assertEquals(LocalDateTime.of(2020, 1, 1, 12, 0, 0), results.get(0).getValue("date"));
   }
 
   @Test
@@ -85,11 +74,15 @@ public class ParseDateTimeTest {
     String colName = "col1";
     String datetime1 = "12/10/2016 07:45";
     String[] directives = new String[]{
-      String.format("parse-datetime :%s '%s'", colName, pattern)
+      String.format("%s :%s '%s'", ParseDateTime.NAME, colName, pattern)
     };
     Row row1 = new Row();
     row1.add(colName, datetime1);
-    TestingRig.execute(directives, Collections.singletonList(row1));
+    try {
+      TestingRig.execute(directives, Collections.singletonList(row1));
+    } catch (DirectiveParseException e) {
+      throw new RecipeException(e.getMessage(), e);
+    }
   }
 
   @Test

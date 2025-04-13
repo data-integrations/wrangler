@@ -17,10 +17,15 @@
 package io.cdap.wrangler.api.directive;
 
 import io.cdap.wrangler.api.Arguments;
+import io.cdap.wrangler.api.Categories;
+import io.cdap.wrangler.api.Description;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveContext;
+import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.Name;
+import io.cdap.wrangler.api.Optional;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
@@ -39,6 +44,9 @@ import java.util.List;
  * 3. Target column for total size
  * 4. Target column for total time
  */
+@Name("aggregate-stats")
+@Description("Aggregates byte sizes and time durations from specified columns.")
+@Categories(categories = {"statistics", "aggregation"})
 public class AggregateStats implements Directive {
     private ColumnName sourceSizeColumn;
     private ColumnName sourceTimeColumn;

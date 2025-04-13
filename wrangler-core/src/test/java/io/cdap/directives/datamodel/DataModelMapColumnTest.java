@@ -94,7 +94,7 @@ public class DataModelMapColumnTest {
   private static final String SCHEMA = "{\n" +
     "    \"type\": \"record\",\n" +
     "    \"name\": \"TEST_DATA_MODEL\",\n" +
-    "    \"namespace\": \"google.com.datamodels\",\n" +
+    "    \"namespace\": \"io.cdap.wrangler.datamodel\",\n" +
     "    \"_revision\": \"1\",    \n" +
     "    \"fields\": [\n" +
     "        {\n" +
@@ -103,11 +103,11 @@ public class DataModelMapColumnTest {
     "                \"null\", {\n" +
     "                \"type\": \"record\",\n" +
     "                \"name\": \"TEST_MODEL\",\n" +
-    "                \"namespace\": \"google.com.datamodels.Model\",\n" +
+    "                \"namespace\": \"io.cdap.wrangler.datamodel.Model\",\n" +
     "                \"fields\": [\n" +
     "                    {\n" +
     "                        \"name\": \"int_field\",\n" +
-    "                        \"type\": [\"int\"]\n" +
+    "                        \"type\": [\"null\", \"int\"]\n" +
     "                    }\n" +
     "                ]}\n" +
     "            ]\n" +
@@ -139,11 +139,14 @@ public class DataModelMapColumnTest {
     // Mock AvroSchemaGlossary
     AvroSchemaGlossary mockGlossary = Mockito.mock(AvroSchemaGlossary.class);
     Mockito.when(mockGlossary.configure()).thenReturn(true);
-    Mockito.when(mockGlossary.get(Mockito.anyString(), Mockito.anyLong())).thenReturn(schema);
+    Mockito.when(mockGlossary.get("TEST_DATA_MODEL", 1L)).thenReturn(schema);
     
     // Mock DataModelGlossary
     PowerMockito.when(DataModelGlossary.initialize(Mockito.anyString())).thenReturn(true);
     PowerMockito.when(DataModelGlossary.getGlossary()).thenReturn(mockGlossary);
+    
+    // Set up the glossary for testing
+    DataModelMapColumn.setGlossary("http://test-url.com", mockGlossary);
     
     // Mock ColumnConverter static methods
     PowerMockito.doAnswer(invocation -> {
@@ -342,13 +345,6 @@ public class DataModelMapColumnTest {
 
   @Test(expected = RecipeException.class)
   public void testInitialize_unknownDataModel_directiveException() throws Exception {
-    AvroSchemaGlossary mockGlossary = Mockito.mock(AvroSchemaGlossary.class);
-    Mockito.when(mockGlossary.configure()).thenReturn(true);
-    Mockito.when(mockGlossary.get(Mockito.anyString(), Mockito.anyLong())).thenReturn(null);
-
-    PowerMockito.when(DataModelGlossary.getGlossary()).thenReturn(mockGlossary);
-    DataModelMapColumn.setGlossary("http://test-url.com", mockGlossary);
-
     String[] directives = new String[]{
       "data-model-map-column 'http://test-url.com' 'UNKNOWN_DATA_MODEL' 1 'TEST_MODEL' 'int_field' :dummy_col_1",
     };
@@ -361,11 +357,7 @@ public class DataModelMapColumnTest {
         .add("dummy_col_5", "5")
     );
 
-    try {
-      TestingRig.execute(directives, rows);
-    } catch (DirectiveParseException e) {
-      throw new RecipeException(e.getMessage(), e);
-    }
+    TestingRig.execute(directives, rows);
   }
 
   @Test
@@ -382,29 +374,12 @@ public class DataModelMapColumnTest {
         .add("dummy_col_5", "5")
     );
 
-    // Create schema parser
-    Schema.Parser schemaParser = new Schema.Parser().setValidate(false);
-    Schema schema = schemaParser.parse(SCHEMA);
-
-    // Mock AvroSchemaGlossary
-    AvroSchemaGlossary mockGlossary = Mockito.mock(AvroSchemaGlossary.class);
-    Mockito.when(mockGlossary.configure()).thenReturn(true);
-    Mockito.when(mockGlossary.get(Mockito.anyString(), Mockito.anyLong())).thenReturn(schema);
+    List<Row> results = TestingRig.execute(directives, rows);
+    Assert.assertEquals(1, results.size());
     
-    // Mock DataModelGlossary
-    Mockito.when(DataModelGlossary.initialize(Mockito.anyString())).thenReturn(true);
-    Mockito.when(DataModelGlossary.getGlossary()).thenReturn(mockGlossary);
-
-    try {
-      List<Row> results = TestingRig.execute(directives, rows);
-      Assert.assertEquals(1, results.size());
-      
-      Row result = results.get(0);
-      int columnIndex = result.find("int_field");
-      Assert.assertNotEquals(-1, columnIndex);
-      Assert.assertEquals(1, result.getValue(columnIndex));
-    } catch (RecipeException e) {
-      Assert.fail("Test failed with RecipeException: " + e.getMessage());
-    }
+    Row result = results.get(0);
+    int columnIndex = result.find("int_field");
+    Assert.assertNotEquals(-1, columnIndex);
+    Assert.assertEquals(1, result.getValue(columnIndex));
   }
 }
