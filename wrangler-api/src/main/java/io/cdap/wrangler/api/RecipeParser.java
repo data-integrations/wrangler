@@ -16,19 +16,24 @@
 
 package io.cdap.wrangler.api;
 
-import io.cdap.wrangler.api.annotations.PublicEvolving;
+import io.cdap.wrangler.parser.DirectivesParser;
+import io.cdap.wrangler.parser.RecipeVisitor;
+import io.cdap.wrangler.parser.DirectivesParser.RecipeContext;
 
-import java.util.List;
+import org.antlr.runtime.CharStream;
+import org.antlr.runtime.CommonTokenStream;
 
-/**
- * A specification for how {@link RecipePipeline} will process.
- */
-@PublicEvolving
-public interface RecipeParser {
-  /**
-   * Generates a configured set of {@link Executor} to be executed.
-   *
-   * @return List of {@link Executor}.
-   */
-  List<Directive> parse() throws RecipeException;
+
+public class RecipeParser {
+
+  public static TokenGroup parse(CharStream input) {
+      CommonTokenStream tokens = new CommonTokenStream();
+      DirectivesParser parser = new DirectivesParser(tokens);
+      RecipeContext tree = parser.recipe(); // Start parsing at the `recipe` rule
+
+      RecipeVisitor visitor = new RecipeVisitor();
+      visitor.visit(tree);
+
+      return visitor.getTokenGroup();
+  }
 }

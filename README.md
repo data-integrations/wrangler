@@ -216,3 +216,26 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+
+
+# **Enhancements to Wrangler: Byte Size and Time Duration Parsing with Aggregation Directive**
+
+## **Overview**
+This update introduces support for parsing byte size and time duration tokens in Wrangler, along with a new aggregation directive to process and compute aggregated values for these tokens. These enhancements extend the capabilities of the Wrangler parsing engine and directive execution framework, providing greater flexibility and functionality for users working with recipes that involve byte and time data.
+
+---
+
+## **Key Features**
+### **1. Byte Size and Time Duration Tokens**
+- Added support for tokens like `10KB`, `1.5MB`, `5ms`, and `2.1s`.
+- Implemented new Java classes:
+  - **`ByteSize`**: Parses byte size values and provides methods for converting them into canonical units (e.g., bytes).
+  - **`TimeDuration`**: Parses time duration values and converts them into canonical units (e.g., milliseconds).
+- Enhanced lexer and parser rules in `Directives.g4` to recognize these tokens.
+
+### **2. New Aggregation Directive: `AggregateBytesAndTime`**
+- **Directive Name**: `aggregate-bytes-time`
+- **Usage Definition**:
+  ```plaintext
+  aggregate-bytes-time :sourceSizeColumn :sourceTimeColumn :targetSizeColumn :targetTimeColumn [--sizeUnit=MB] [--timeUnit=s] [--aggregationType=total|average];

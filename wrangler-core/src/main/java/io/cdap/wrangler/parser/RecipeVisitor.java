@@ -19,9 +19,12 @@ package io.cdap.wrangler.parser;
 import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.SourceInfo;
+import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.Triplet;
+import io.cdap.wrangler.api.RecipeSymbol.Builder;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +36,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -65,6 +69,44 @@ import java.util.Map;
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Builder> {
   private RecipeSymbol.Builder builder = new RecipeSymbol.Builder();
+  private final TokenGroup tokenGroup;
+
+  public RecipeVisitor() {
+    this.tokenGroup = new TokenGroup();
+  }
+
+  @Override
+    public Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+        String text = ctx.getText(); // Get the token text, e.g., "10KB"
+        ByteSize byteSize = new ByteSize(text); // Parse it into a ByteSize instance
+        tokenGroup.add(byteSize); // Add it to the TokenGroup
+        return tokenGroup;
+    }
+
+  @Override
+  public Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+      String text = ctx.getText(); // Get the token text, e.g., "150ms"
+      TimeDuration timeDuration = new TimeDuration(text); // Parse it into a TimeDuration instance
+      tokenGroup.add(timeDuration); // Add it to the TokenGroup
+      return tokenGroup;
+  }
+
+  @Override
+  public Builder visitValue(DirectivesParser.ValueContext ctx) {
+      // Modify if applicable to support BYTE_SIZE and TIME_DURATION
+      if (ctx.BYTE_SIZE() != null) {
+          return visitByteSizeArg(ctx.byteSizeArg());
+      }
+      if (ctx.TIME_DURATION() != null) {
+          return visitTimeDurationArg(ctx.timeDurationArg());
+      }
+      // Existing handling logic for other value types
+      return super.visitValue(ctx);
+  }
+
+  public TokenGroup getTokenGroup() {
+      return tokenGroup;
+  }
 
   /**
    * Returns a <code>RecipeSymbol</code> for the recipe being parsed. This
