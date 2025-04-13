@@ -84,6 +84,21 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   @Override
   public RecipeSymbol.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
     builder.createTokenGroup(getOriginalSource(ctx));
+// Add ByteSize and TimeDuration token types
+    for(ParserTree child: ctx.children){
+      if(child instanceof TerminalNode){
+        Token token = ((TerminalNode) child).getSymbol();
+        switch(token.getType()){
+          case DirectivesParser.BYTE_SIZE:
+            builder.addToken(new ByteSize(token.getText()));break;
+          case DirectivesParser.TIME_DURATION:
+            builder.addToken(new TimeDuration(token.getText()));break;
+          default:
+            builder.addToken(new Text(token.getText()));
+            break;
+        }
+      }
+    }
     return super.visitDirective(ctx);
   }
 
