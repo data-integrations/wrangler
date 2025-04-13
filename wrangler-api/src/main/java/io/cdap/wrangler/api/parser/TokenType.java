@@ -48,6 +48,8 @@ public enum TokenType implements Serializable {
    * This type is associated with the token that is recognized as a directive
    * name within the recipe.
    */
+  BYTE_SIZE, 
+  TIME_DURATION,
   DIRECTIVE_NAME,
 
   /**
