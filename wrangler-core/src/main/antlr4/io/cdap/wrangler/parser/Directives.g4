@@ -311,3 +311,11 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+// Byte units
+BYTE_UNIT: ('B' | 'KB' | 'MB' | 'GB' | 'TB');
+BYTE_SIZE: DIGITS ('.' DIGITS)? BYTE_UNIT;
+
+// Time units
+TIME_UNIT: ('ns' | 'ms' | 's' | 'm' | 'h');
+TIME_DURATION: DIGITS ('.' DIGITS)? TIME_UNIT;
