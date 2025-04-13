@@ -203,9 +203,10 @@ Now Wrangler can natively understand and parse data sizes (like 10MB) and time d
 
 ### ✨New Directive:
 
+aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
 ```wrangler
 
-aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
 
 
 ## License and Trademarks
