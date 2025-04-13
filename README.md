@@ -203,15 +203,12 @@ Now Wrangler can natively understand and parse data sizes (like 10MB) and time d
 
 ### ✨New Directive:
 
+```
 aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
 
-```wrangler
-
-
+```
 
 ## License and Trademarks
-
-
 
 Copyright © 2016-2019 Cask Data, Inc.
 
@@ -229,4 +226,7 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+```
+
 ```
