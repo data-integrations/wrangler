@@ -214,5 +214,17 @@ public class RecipeCompilerTest {
     CompileStatus compile = TestingRig.compile(recipe);
     Set<String> loadableDirectives = compile.getSymbols().getLoadableDirectives();
     Assert.assertEquals(4, loadableDirectives.size());
+
+    @Test
+    public void testByteSizeAndTimeDurationParsing() throws Exception {
+      String[] recipe = new String[] {
+        "aggregate-stats :col1 BYTE_SIZE=128MB;",
+        "aggregate-stats :col2 TIME_DURATION=30s;"
+      };
+    
+      CompileStatus status = TestingRig.compile(recipe);
+      Assert.assertTrue("Compilation should succeed for BYTE_SIZE and TIME_DURATION", status.isSuccess());
+    }
+    
   }
 }

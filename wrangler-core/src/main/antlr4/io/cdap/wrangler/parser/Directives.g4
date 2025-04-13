@@ -143,6 +143,14 @@ value
  : String | Number | Column | Bool
  ;
 
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
+
 ecommand
  : '!' Identifier
  ;
@@ -246,6 +254,13 @@ Pipe     : '|';
 BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
+BYTE_SIZE
+ : [0-9]+ ( 'KB' | 'MB' | 'GB' )
+ ;
+
+TIME_DURATION
+ : [0-9]+ ( 'ms' | 's' | 'min' | 'h' )
+ ;
 
 
 Bool
