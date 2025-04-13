@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
@@ -310,4 +310,28 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+ByteSize
+ : Number (BYTE_UNIT | BYTE_UNIT_SHORT)
+ ;
+
+TimeDuration
+ : Number (TIME_UNIT | TIME_UNIT_SHORT)
+ ;
+
+fragment BYTE_UNIT
+ : 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB'
+ ;
+
+fragment BYTE_UNIT_SHORT
+ : 'K' | 'M' | 'G' | 'T' | 'P'
+ ;
+
+fragment TIME_UNIT
+ : 'ns' | 'us' | 'ms' | 's' | 'm' | 'h' | 'd'
+ ;
+
+fragment TIME_UNIT_SHORT
+ : 'µs'
  ;
