@@ -27,15 +27,11 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Pair;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
-import io.cdap.wrangler.api.lineage.Lineage;
-import io.cdap.wrangler.api.lineage.Many;
-import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -77,7 +73,7 @@ public class FlattenRecord implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    List<String> cols = ((ColumnNameList) args.value("columns")).value();
+    List<String> cols = ((ColumnNameList) args.value("columns", "MB")).value();
     columns = new String[cols.size()];
     columns = cols.toArray(columns);
   }

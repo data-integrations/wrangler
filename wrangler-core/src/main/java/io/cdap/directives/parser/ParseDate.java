@@ -66,9 +66,9 @@ public class ParseDate implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
     if (args.contains("timezone")) {
-      this.timezone = TimeZone.getTimeZone(((Text) args.value("timezone")).value());
+      this.timezone = TimeZone.getTimeZone(((Text) args.value("timezone", "MB")).value());
     } else {
       this.timezone = TimeZone.getTimeZone("UTC");
     }

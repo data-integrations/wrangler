@@ -65,10 +65,10 @@ public class IndexSplit implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.col = ((ColumnName) args.value("source")).value();
-    this.start = ((Numeric) args.value("start")).value().intValue();
-    this.end = ((Numeric) args.value("end")).value().intValue();
-    this.dest = ((ColumnName) args.value("destination")).value();
+    this.col = ((ColumnName) args.value("source", "MB")).value();
+    this.start = ((Numeric) args.value("start", "MB")).value().intValue();
+    this.end = ((Numeric) args.value("end", "MB")).value().intValue();
+    this.dest = ((ColumnName) args.value("destination", "MB")).value();
     this.start = this.start - 1;
     this.end = this.end - 1;
   }

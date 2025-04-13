@@ -66,8 +66,8 @@ public class TableLookup implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.table = ((Text) args.value("table")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.table = ((Text) args.value("table", "MB")).value();
     this.initialized = false;
   }
 

@@ -62,7 +62,7 @@ public class ChangeColCaseNames implements Directive, Lineage {
   public void initialize(Arguments args) throws DirectiveParseException {
     toLower = true;
     if (args.contains("case")) {
-      Identifier identifier = args.value("case");
+      Identifier identifier = args.value("case", "MB");
       String casing = identifier.value();
       if (casing.equalsIgnoreCase("upper") || casing.equalsIgnoreCase("uppercase")) {
         toLower = false;

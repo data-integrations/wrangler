@@ -74,9 +74,9 @@ public class RecordConditionFilter implements Directive, Lineage {
   public void initialize(Arguments args) throws DirectiveParseException {
     isTrue = true;
     if (args.contains("type")) {
-      isTrue = ((Bool) args.value("type")).value();
+      isTrue = ((Bool) args.value("type", "MB")).value();
     }
-    String condition = ((Expression) args.value("condition")).value();
+    String condition = ((Expression) args.value("condition", "MB")).value();
     try {
       el = EL.compile(condition);
     } catch (ELException e) {

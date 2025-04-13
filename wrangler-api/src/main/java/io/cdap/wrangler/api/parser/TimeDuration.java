@@ -12,18 +12,22 @@ public class TimeDuration implements Token {
         this.milliseconds = parseTimeDuration(value);
     }
 
+    public static TimeDuration parse(String value) {
+        return new TimeDuration(value);
+    }
+
     private long parseTimeDuration(String value) {
         value = value.trim().toLowerCase();
-        if (value.endsWith("ms")) {
-            return Long.parseLong(value.replace("ms", "").trim());
-        } else if (value.endsWith("s")) {
-            return Long.parseLong(value.replace("s", "").trim()) * 1000;
-        } else if (value.endsWith("m")) {
-            return Long.parseLong(value.replace("m", "").trim()) * 1000 * 60;
-        } else if (value.endsWith("h")) {
-            return Long.parseLong(value.replace("h", "").trim()) * 1000 * 60 * 60;
-        } else if (value.endsWith("d")) {
-            return Long.parseLong(value.replace("d", "").trim()) * 1000L * 60 * 60 * 24;
+        if (value.endsWith("ms") || value.endsWith("milliseconds")) {
+            return (long) Double.parseDouble(value.replace("ms", "").replace("milliseconds", "").trim());
+        } else if (value.endsWith("s") || value.endsWith("seconds")) {
+            return (long) (Double.parseDouble(value.replace("s", "").replace("seconds", "").trim()) * 1000);
+        } else if (value.endsWith("m") || value.endsWith("minutes")) {
+            return (long) (Double.parseDouble(value.replace("m", "").replace("minutes", "").trim()) * 1000 * 60);
+        } else if (value.endsWith("h") || value.endsWith("hours")) {
+            return (long) (Double.parseDouble(value.replace("h", "").replace("hours", "").trim()) * 1000 * 60 * 60);
+        } else if (value.endsWith("d") || value.endsWith("days")) {
+            return (long) (Double.parseDouble(value.replace("d", "").replace("days", "").trim()) * 1000L * 60 * 60 * 24);
         } else {
             throw new IllegalArgumentException("Invalid time duration format: " + value);
         }

@@ -12,18 +12,22 @@ public class ByteSize implements Token {
         this.bytes = parseByteSize(value);
     }
 
+    public static ByteSize parse(String value) {
+        return new ByteSize(value);
+    }
+
     private long parseByteSize(String value) {
         value = value.trim().toUpperCase();
         if (value.endsWith("KB")) {
-            return Long.parseLong(value.replace("KB", "").trim()) * 1024;
+            return (long) (Double.parseDouble(value.replace("KB", "").trim()) * 1024);
         } else if (value.endsWith("MB")) {
-            return Long.parseLong(value.replace("MB", "").trim()) * 1024 * 1024;
+            return (long) (Double.parseDouble(value.replace("MB", "").trim()) * 1024 * 1024);
         } else if (value.endsWith("GB")) {
-            return Long.parseLong(value.replace("GB", "").trim()) * 1024 * 1024 * 1024;
+            return (long) (Double.parseDouble(value.replace("GB", "").trim()) * 1024 * 1024 * 1024);
         } else if (value.endsWith("TB")) {
-            return Long.parseLong(value.replace("TB", "").trim()) * 1024L * 1024 * 1024 * 1024;
+            return (long) (Double.parseDouble(value.replace("TB", "").trim()) * 1024L * 1024 * 1024 * 1024);
         } else if (value.endsWith("B")) {
-            return Long.parseLong(value.replace("B", "").trim());
+            return (long) Double.parseDouble(value.replace("B", "").trim());
         } else {
             throw new IllegalArgumentException("Invalid byte size format: " + value);
         }

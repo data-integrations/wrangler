@@ -92,7 +92,7 @@ public class DataModelMapColumn implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    String dataModelUrl = ((Text) args.value(DATA_MODEL_URL)).value();
+    String dataModelUrl = ((Text) args.value(DATA_MODEL_URL, "MB")).value();
     if (!glossaryCache.containsKey(dataModelUrl)) {
       AvroSchemaGlossary glossary = new AvroSchemaGlossary(new HTTPSchemaLoader(dataModelUrl, "manifest.json"));
       if (!glossary.configure()) {
@@ -101,15 +101,15 @@ public class DataModelMapColumn implements Directive, Lineage {
       glossaryCache.put(dataModelUrl, glossary);
     }
 
-    String dataModelName = ((Text) args.value(DATA_MODEL)).value();
-    long revision = ((Numeric) args.value(DATA_MODEL_REVISION)).value().longValue();
+    String dataModelName = ((Text) args.value(DATA_MODEL, "MB")).value();
+    long revision = ((Numeric) args.value(DATA_MODEL_REVISION, "MB")).value().longValue();
     Schema dataModel = glossaryCache.get(dataModelUrl).get(dataModelName, revision);
     if (dataModel == null) {
       throw new DirectiveParseException(NAME, String
         .format("Unable to find data model %s revision %d.", dataModelName, revision));
     }
 
-    String modelName = ((Text) args.value(MODEL)).value();
+    String modelName = ((Text) args.value(MODEL, "MB")).value();
     Schema.Field modelField = dataModel.getField(modelName);
     if (modelField == null) {
       throw new DirectiveParseException(NAME, String
@@ -128,7 +128,7 @@ public class DataModelMapColumn implements Directive, Lineage {
       throw new DirectiveParseException(NAME, String.format("Model %s has no schema.", subSchema.getName()));
     }
 
-    String targetName = ((Text) args.value(TARGET_FIELD)).value();
+    String targetName = ((Text) args.value(TARGET_FIELD, "MB")).value();
     Schema.Field targetField = model.getField(targetName);
     if (targetField == null) {
       throw new DirectiveParseException(NAME, String
@@ -146,7 +146,7 @@ public class DataModelMapColumn implements Directive, Lineage {
     }
     targetFieldName = targetField.name();
     targetFieldTypeName = type.getName();
-    column = ((ColumnName) args.value(COLUMN)).value();
+    column = ((ColumnName) args.value(COLUMN, "MB")).value();
   }
   
   @Override

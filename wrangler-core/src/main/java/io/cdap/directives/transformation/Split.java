@@ -65,10 +65,10 @@ public class Split implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.col = ((ColumnName) args.value("source")).value();
-    this.delimiter = ((Text) args.value("delimiter")).value();
-    this.firstColumnName = ((ColumnName) args.value("column1")).value();
-    this.secondColumnName = ((ColumnName) args.value("column2")).value();
+    this.col = ((ColumnName) args.value("source", "MB")).value();
+    this.delimiter = ((Text) args.value("delimiter", "MB")).value();
+    this.firstColumnName = ((ColumnName) args.value("column1", "MB")).value();
+    this.secondColumnName = ((ColumnName) args.value("column2", "MB")).value();
   }
 
   @Override

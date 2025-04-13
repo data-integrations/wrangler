@@ -85,11 +85,11 @@ public class CsvParser implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    columnArg = args.value("col");
+    columnArg = args.value("col", "MB");
 
     char delimiter = ',';
     if (args.contains("delimiter")) {
-      delimiterArg = args.value("delimiter");
+      delimiterArg = args.value("delimiter", "MB");
       delimiter = delimiterArg.value().charAt(0);
       if (delimiterArg.value().startsWith("\\")) {
         String unescapedStr = StringEscapeUtils.unescapeJava(delimiterArg.value());
@@ -110,7 +110,7 @@ public class CsvParser implements Directive, Lineage {
 
     this.hasHeader = false;
     if (args.contains("header")) {
-      headerArg = args.value("header");
+      headerArg = args.value("header", "MB");
       this.hasHeader = headerArg.value();
     }
   }

@@ -84,8 +84,8 @@ public class Encode implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    String value = ((Text) args.value("method")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    String value = ((Text) args.value("method", "MB")).value();
     value = value.toUpperCase();
     if (!value.equals("BASE64") && !value.equals("BASE32") && !value.equals("HEX")) {
       throw new DirectiveParseException(

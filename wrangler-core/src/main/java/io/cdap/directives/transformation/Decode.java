@@ -85,8 +85,8 @@ public class Decode implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    String type = ((Text) args.value("method")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    String type = ((Text) args.value("method", "MB")).value();
     type = type.toUpperCase();
     if (!type.equals("BASE64") && !type.equals("BASE32") && !type.equals("HEX")) {
       throw new DirectiveParseException(

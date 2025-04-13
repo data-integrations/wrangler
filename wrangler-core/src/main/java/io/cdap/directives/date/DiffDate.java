@@ -65,9 +65,9 @@ public class DiffDate implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column1 = ((ColumnName) args.value("column1")).value();
-    this.column2 = ((ColumnName) args.value("column2")).value();
-    this.destCol = ((ColumnName) args.value("destination")).value();
+    this.column1 = ((ColumnName) args.value("column1", "MB")).value();
+    this.column2 = ((ColumnName) args.value("column2", "MB")).value();
+    this.destCol = ((ColumnName) args.value("destination", "MB")).value();
   }
 
   @Override

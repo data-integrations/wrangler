@@ -63,10 +63,10 @@ public class SetRecordDelimiter implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    column = ((ColumnName) args.value("column")).value();
-    delimiter = ((Text) args.value("delimiter")).value();
+    column = ((ColumnName) args.value("column", "MB")).value();
+    delimiter = ((Text) args.value("delimiter", "MB")).value();
     if (args.contains("limit")) {
-      Numeric numeric = args.value("limit");
+      Numeric numeric = args.value("limit", "MB");
       limit = numeric.value().intValue();
     } else {
       limit = Integer.MAX_VALUE;

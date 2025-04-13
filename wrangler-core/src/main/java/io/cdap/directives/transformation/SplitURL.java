@@ -64,7 +64,7 @@ public class SplitURL implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
     this.protocolCol = column + "_protocol";
     this.authCol = column + "_authority";
     this.hostCol = column + "_host";

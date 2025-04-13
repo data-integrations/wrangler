@@ -122,8 +122,8 @@ public class MessageHash implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    Text algorithm = args.value("algorithm");
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    Text algorithm = args.value("algorithm", "MB");
     if (!MessageHash.isValid(algorithm.value())) {
       throw new DirectiveParseException(
         NAME, String.format("Algorithm '%s' specified at line %d is not supported.", algorithm, args.line()));
@@ -137,7 +137,7 @@ public class MessageHash implements Directive, Lineage {
 
     this.encode = false;
     if (args.contains("encode")) {
-      this.encode = ((Bool) args.value("encode")).value();
+      this.encode = ((Bool) args.value("encode", "MB")).value();
     }
   }
 

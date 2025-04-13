@@ -63,7 +63,7 @@ public class Flatten implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    List<String> cols = ((ColumnNameList) args.value("column")).value();
+    List<String> cols = ((ColumnNameList) args.value("column", "MB")).value();
     columns = new String[cols.size()];
     columns = cols.toArray(columns);
     locations = new int[columns.length];

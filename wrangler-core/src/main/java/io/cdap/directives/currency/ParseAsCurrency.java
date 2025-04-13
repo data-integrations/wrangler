@@ -69,11 +69,11 @@ public class ParseAsCurrency implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.source = ((ColumnName) args.value("source")).value();
-    this.destination = ((ColumnName) args.value("destination")).value();
+    this.source = ((ColumnName) args.value("source", "MB")).value();
+    this.destination = ((ColumnName) args.value("destination", "MB")).value();
 
     if (args.contains("locale")) {
-      this.locale = ((Text) args.value("locale")).value();
+      this.locale = ((Text) args.value("locale", "MB")).value();
     } else {
       this.locale = "en_US";
     }

@@ -121,8 +121,8 @@ public class ValidateStandard implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    column = ((ColumnName) args.value(COLUMN)).value();
-    String spec = ((Identifier) args.value(STANDARD_SPEC)).value();
+    column = ((ColumnName) args.value(COLUMN, "MB")).value();
+    String spec = ((Identifier) args.value(STANDARD_SPEC, "MB")).value();
 
     if (spec.equals("")) {
       throw new DirectiveParseException("No standard specified to validate against");

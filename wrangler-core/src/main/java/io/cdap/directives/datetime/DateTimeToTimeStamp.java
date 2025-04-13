@@ -64,13 +64,13 @@ public class DateTimeToTimeStamp implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value(COLUMN)).value();
-    if (args.value(ZONE) == null) {
+    this.column = ((ColumnName) args.value(COLUMN, "MB")).value();
+    if (args.value(ZONE, "MB") == null) {
       this.zoneId = ZoneId.of("UTC");
       this.zone = this.zoneId.toString();
       return;
     }
-    this.zone = args.value(ZONE).value().toString();
+    this.zone = args.value(ZONE, "MB").value().toString();
     try {
       this.zoneId = ZoneId.of(this.zone);
     } catch (IllegalArgumentException | ZoneRulesException exception) {

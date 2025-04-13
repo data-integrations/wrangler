@@ -36,6 +36,18 @@ public final class Row implements Serializable {
   // Values held by the row.
   private List<Object> values = new ArrayList<>();
 
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < columns.size(); i++) {
+      sb.append(columns.get(i)).append("=").append(values.get(i));
+      if (i < columns.size() - 1) {
+        sb.append(", ");
+      }
+    }
+    return sb.toString();
+  }
+
   public Row() {
   }
 

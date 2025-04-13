@@ -75,9 +75,9 @@ public class JsPath implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.src = ((ColumnName) args.value("source")).value();
-    this.dest = ((ColumnName) args.value("destination")).value();
-    this.path = ((Text) args.value("json-path")).value();
+    this.src = ((ColumnName) args.value("source", "MB")).value();
+    this.dest = ((ColumnName) args.value("destination", "MB")).value();
+    this.path = ((Text) args.value("json-path", "MB")).value();
     this.parser = JsonPath.using(GSON_CONFIGURATION);
   }
 

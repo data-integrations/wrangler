@@ -127,9 +127,9 @@ public class MapArgumentsTest {
     Assert.assertEquals(2, arguments.size());
     Assert.assertTrue(arguments.contains("body"));
     Assert.assertTrue(arguments.contains("infoTypes"));
-    ColumnName columnName = arguments.value("body");
+    ColumnName columnName = arguments.value("body", "MB");
     Assert.assertEquals("body", columnName.value());
-    List<String> infoTypes = ((TextList) arguments.value("infoTypes")).value();
+    List<String> infoTypes = ((TextList) arguments.value("infoTypes", "MB")).value();
     Assert.assertEquals(2, infoTypes.size());
     Assert.assertEquals("ALL_BASIC", infoTypes.get(0));
     Assert.assertEquals("AGE", infoTypes.get(1));

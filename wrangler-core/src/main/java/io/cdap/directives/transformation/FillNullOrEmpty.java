@@ -58,8 +58,8 @@ public class FillNullOrEmpty implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.value = ((Text) args.value("value")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.value = ((Text) args.value("value", "MB")).value();
     if (value != null && value.isEmpty()) {
       throw new DirectiveParseException(NAME, "Fixed value cannot be an empty string");
     }
