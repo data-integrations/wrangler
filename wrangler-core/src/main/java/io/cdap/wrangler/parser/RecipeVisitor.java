@@ -34,6 +34,8 @@ import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
 import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -219,6 +221,32 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
+   * A Directive can consist of a byte size field such as "100MB".
+   * This visitor method extracts the byte size value into a token type <code>ByteSize</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitByteSize(DirectivesParser.ByteSizeContext ctx) {
+    String value = ctx.getText();
+    builder.addToken(new ByteSize(value));
+    return builder;
+  }
+
+  /**
+   * A Directive can consist of a time duration field such as "5s" or "2h".
+   * This visitor method extracts the time duration value into a token type <code>TimeDuration</code>.
+   */
+  @Override
+public RecipeSymbol.Builder visitTimeDuration(DirectivesParser.TimeDurationContext ctx) {
+  String raw = ctx.getText(); // e.g., "5s", "2h"
+  long value = Long.parseLong(raw.replaceAll("[^0-9]", ""));
+  String unit = raw.replaceAll("[0-9]", "");
+  builder.addToken(new TimeDuration(value, unit));
+  return builder;
+}
+
+
+
+  /**
    * A Directive can consist of Bool field. The Bool field is represented as
    * either true or false. This visitor method extract the bool value into a
    * token type <code>Bool</code>.
@@ -316,7 +344,10 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new TextList(strs));
     return builder;
   }
-
+/**
+ * Extracts the original source information (line number, column, raw text)
+ * from the given parser context.
+ */
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
     int b = ctx.getStop().getStopIndex();
