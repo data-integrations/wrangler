@@ -26,21 +26,21 @@ import java.util.regex.Pattern;
  * Internally stores everything in nanoseconds.
  */
 public class TimeDuration implements Token {
-  private static final Pattern TIME_PATTERN = Pattern.compile("(?i)(\\d+)(ns|us|ms|s|m|h|d)");
+  private static final Pattern TIME_PATTERN = Pattern.compile("(?i)(\\d+(?:\\.\\d+)?)(ns|us|ms|s|m|h|d)");
 
-  private final long valueInNanoseconds;
+  private final double valueInNanoseconds;
 
   public TimeDuration(String value) {
     this.valueInNanoseconds = parse(value);
   }
 
-  public static long parse(String value) {
+  public static double parse(String value) {
     Matcher matcher = TIME_PATTERN.matcher(value.trim());
     if (!matcher.matches()) {
       throw new IllegalArgumentException("Invalid time duration: " + value);
     }
 
-    long number = Long.parseLong(matcher.group(1));
+    double number = Double.parseDouble(matcher.group(1));
     String unit = matcher.group(2).toLowerCase();
 
     switch (unit) {
@@ -63,7 +63,7 @@ public class TimeDuration implements Token {
     }
   }
 
-  public long getNanoseconds() {
+  public double getNanoseconds() {
     return valueInNanoseconds;
   }
 

@@ -26,23 +26,23 @@ import java.util.regex.Pattern;
  * Token implementation to handle byte size values like "10KB", "5MB", etc.
  */
 public class ByteSize implements Token {
-  private static final Pattern BYTE_PATTERN = Pattern.compile("(?i)(\\d+)(B|KB|MB|GB|TB|PB|EB)");
+  private static final Pattern BYTE_PATTERN = Pattern.compile("(?i)(\\d+(?:\\.\\d+)?)(B|KB|MB|GB|TB|PB|EB)");
 
   private final String originalValue;
-  private final long valueInBytes;
+  private final double valueInBytes;
 
   public ByteSize(String value) {
     this.originalValue = value;
     this.valueInBytes = parse(value);
   }
 
-  private long parse(String value) {
+  private double parse(String value) {
     Matcher matcher = BYTE_PATTERN.matcher(value.trim());
     if (!matcher.matches()) {
       throw new IllegalArgumentException("Invalid byte size value: " + value);
     }
 
-    long number = Long.parseLong(matcher.group(1));
+    double number = Double.parseDouble(matcher.group(1));
     String unit = matcher.group(2).toUpperCase();
 
     switch (unit) {
@@ -65,7 +65,7 @@ public class ByteSize implements Token {
     }
   }
 
-  public long getBytes() {
+  public double getBytes() {
     return valueInBytes;
   }
 

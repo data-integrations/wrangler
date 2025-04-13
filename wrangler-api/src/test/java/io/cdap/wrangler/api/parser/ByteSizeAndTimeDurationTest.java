@@ -24,16 +24,16 @@ public class ByteSizeAndTimeDurationTest {
     @Test
     public void testByteSizeParsing() {
         ByteSize byteSize1 = new ByteSize("10KB");
-        assertEquals(10 * 1024, byteSize1.getBytes());
+        assertEquals(10 * 1024, byteSize1.getBytes(),0.001);
 
-        ByteSize byteSize2 = new ByteSize("2MB");
-        assertEquals(2 * 1024 * 1024, byteSize2.getBytes());
+        ByteSize byteSize2 = new ByteSize("2.8MB");
+        assertEquals(2.8 * 1024 * 1024, byteSize2.getBytes(),0.001);
 
         ByteSize byteSize3 = new ByteSize("5GB");
-        assertEquals(5L * 1024 * 1024 * 1024, byteSize3.getBytes());
+        assertEquals(5L * 1024 * 1024 * 1024, byteSize3.getBytes(),0.001);
         
         ByteSize byteSize4 = new ByteSize("1TB");
-        assertEquals(1L * 1024 * 1024 * 1024 * 1024, byteSize4.getBytes());
+        assertEquals(1L * 1024 * 1024 * 1024 * 1024, byteSize4.getBytes(),0.001);
 
     //  ByteSize byteSize5 = new ByteSize("10PB");
     //  assertEquals(10L * 1024 * 1024 * 1024 * 1024 * 1024, byteSize5.getBytes());
@@ -49,12 +49,21 @@ public class ByteSizeAndTimeDurationTest {
         new ByteSize("-5KB");  // Negative byte size should throw exception
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testTimeDurationParsingInvalid() {
+        new TimeDuration("5XYZ");  // Invalid unit should throw exception
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testTimeDurationNegativeValue() {
+        new TimeDuration("-5KB");  // Negative byte size should throw exception
+    }
     @Test
     public void testTimeDurationParsing() {
-        assertEquals(100000000, TimeDuration.parse("100ms"));
-        assertEquals(5000000000L, TimeDuration.parse("5s"));
-        assertEquals(7200000000000L, TimeDuration.parse("2h"));
-        assertEquals(86400000000000L, TimeDuration.parse("1d"));
+        assertEquals(100000000, TimeDuration.parse("100ms"),0.001);
+        assertEquals(5200000000L, TimeDuration.parse("5.2s"),0.001);
+        assertEquals(7200000000000L, TimeDuration.parse("2h"),0.001);
+        assertEquals(86400000000000L, TimeDuration.parse("1d"),0.001);
     }
 
 
