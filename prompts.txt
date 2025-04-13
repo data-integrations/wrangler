@@ -1,0 +1,35 @@
+DeepSeek:
+    - Take this pdf of the requirements of a java project and break it to workable
+    chunks, also make some tangible checkpoints so I can cross verify everything.
+
+Claude:
+    - I modularised the objective into three phrases (the bulk execution(just threw everything to llm and made the base lol),
+    iterating (iterated on individual files by giving more context and focused on a single atomic goal), erorr correcting(self explanatory))
+
+    - The bulk execution 
+    - I gave claude the requirements of the project and the pdf and the whole codebase so that it makes a base and made the mode agent
+    - Claude analyzed the wrangler codebase and helped implement the size/time parsing feature
+    The outcome was great it made quite a good base 
+
+    - The iteration of many times
+    - Took the individual files and made it more human readable like i read in a class, that declare magic numbers like 100 to a
+    - variable on the top
+    - Checked the files structures as a whole and reread the code with it many times and merged the good prs of others into my project
+
+    - Error correction
+    - Build the project and corrected the tests failing many times by specific back and forth
+
+
+    
+    
+
+
+
+
+
+    
+
+
+
+
+

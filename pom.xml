@@ -227,6 +227,8 @@
               <configuration>
                 <excludes>
                   <exclude>cov-int/**</exclude>
+                  <exclude>*.txt</exclude>
+                  <exclude>*.pdf</exclude>
                   <exclude>*.md</exclude>
                   <exclude>**/*.md</exclude>
                   <exclude>**/*.json</exclude>
