@@ -137,9 +137,6 @@ public enum TokenType implements Serializable {
    * </code>
    */
   PROPERTIES,
-  BYTE_SIZE,
-TIME_DURATION,
-
 
   /**
    * Represents the enumerated type for the object of type {@code Ranges} types.
@@ -156,5 +153,4 @@ TIME_DURATION,
    * on characters that can be present in a string.
    */
   IDENTIFIER
-
 }
