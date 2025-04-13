@@ -83,7 +83,7 @@
     <aws.sdk.version>1.11.133</aws.sdk.version>
     <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
     <bouncycastle.version>1.56</bouncycastle.version>
-    <cdap.version>6.11.0-SNAPSHOT</cdap.version>
+    <cdap.version>6.11.0</cdap.version>
     <chlorine.version>1.1.5</chlorine.version>
     <commons.validator.version>1.6</commons.validator.version>
     <commons-io.version>2.5</commons-io.version>
