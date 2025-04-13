@@ -38,6 +38,17 @@ public class DirectiveClass {
     this.artifactId = artifactId;
   }
 
+  @Override
+public Token visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    return new ByteSize(ctx.getText());
+}
+
+@Override
+public Token visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    return new TimeDuration(ctx.getText());
+}
+
+
   public String getName() {
     return name;
   }
