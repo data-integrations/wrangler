@@ -61,4 +61,6 @@ public interface TransientStore extends Serializable {
    * @return list of all the variables.
    */
   Set<String> getVariables();
+
+  boolean containsKey(String string);
 }

@@ -21,6 +21,9 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.api.parser.SimpleToken;
+import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.TokenType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -75,4 +78,29 @@ public class GrammarBasedParserTest {
     Assert.assertEquals(0, directives.size());
   }
 
+  @Test
+public void testValidByteSizeToken() {
+    Token token = new SimpleToken(TokenType.BYTE_SIZE, "10KB");
+    Assert.assertEquals(TokenType.BYTE_SIZE, token.type());
+    Assert.assertEquals("10KB", token.value());
+}
+
+@Test
+public void testValidTimeDurationToken() {
+    Token token = new SimpleToken(TokenType.TIME_DURATION, "5ms");
+    Assert.assertEquals(TokenType.TIME_DURATION, token.type());
+    Assert.assertEquals("5ms", token.value());
+}
+
+@Test(expected = IllegalArgumentException.class)
+public void testInvalidByteSizeToken() {
+    // Simulate invalid token handling logic (if applicable)
+    new SimpleToken(TokenType.BYTE_SIZE, "10XYZ");
+}
+
+@Test(expected = IllegalArgumentException.class)
+public void testInvalidTimeDurationToken() {
+    // Simulate invalid token handling logic (if applicable)
+    new SimpleToken(TokenType.TIME_DURATION, "abc");
+}
 }

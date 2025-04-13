@@ -108,6 +108,12 @@ public class SetTransientVariableTest {
           public Set<String> getVariables() {
             return s.keySet();
           }
+
+          @Override
+          public boolean containsKey(String string) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'containsKey'");
+          }
         };
       }
 

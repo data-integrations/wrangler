@@ -114,4 +114,10 @@ public class DefaultTransientStore implements TransientStore {
       local.put(name, value);
     }
   }
+
+  @Override
+  public boolean containsKey(String string) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'containsKey'");
+  }
 }
