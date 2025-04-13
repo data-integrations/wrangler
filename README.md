@@ -175,6 +175,64 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
+## Byte Size and Time Duration Parsers
+
+### Overview
+This enhancement adds native support for parsing and aggregating byte sizes and time durations in Wrangler directives.
+
+### Supported Formats
+
+#### Byte Sizes
+- Supports: B, KB, MB, GB, TB
+- Examples: 
+  - "100KB" (100 kilobytes)
+  - "2.5MB" (2.5 megabytes)
+  - "1GB" (1 gigabyte)
+
+#### Time Durations
+- Supports: ms, s, m, h
+- Examples:
+  - "500ms" (500 milliseconds)
+  - "1.5s" (1.5 seconds)
+  - "2h" (2 hours)
+
+### Using the Aggregate Stats Directive
+
+#### Basic Usage
+```text
+aggregate-stats :data_size :response_time total_mb total_sec
+```
+
+#### Parameters
+1. First parameter: Column containing byte sizes
+2. Second parameter: Column containing time durations
+3. Third parameter: Output column for total size (in MB)
+4. Fourth parameter: Output column for total time (in seconds)
+
+#### Example
+
+Input Data:
+| data_size | response_time |
+|-----------|---------------|
+| 100KB     | 500ms        |
+| 2MB       | 1.5s         |
+| 500KB     | 750ms        |
+
+Command:
+```text
+aggregate-stats :data_size :response_time total_mb total_sec
+```
+
+Output:
+| total_mb | total_sec |
+|----------|-----------|
+| 2.5977   | 2.75     |
+
+### Notes
+- All byte sizes are converted to megabytes (MB) in the output
+- All time durations are converted to seconds in the output
+- Null values are ignored in calculations
+- Invalid formats will raise appropriate error messages
 
 ## Contact
 
