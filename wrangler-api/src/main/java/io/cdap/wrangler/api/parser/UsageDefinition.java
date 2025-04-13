@@ -182,8 +182,9 @@ public final class UsageDefinition implements Serializable {
      * @param name of the token in the definition of a directive.
      * @param type of the token to be extracted.
      */
-    public void define(String name, TokenType type) {
-      TokenDefinition spec = new TokenDefinition(name, type, null, currentOrdinal, Optional.FALSE);
+    public void define(String name, Class<ColumnName> type) {
+      TokenType class1 = null;
+      TokenDefinition spec = new TokenDefinition(name, class1, null, currentOrdinal, Optional.FALSE);
       currentOrdinal++;
       tokens.add(spec);
     }
@@ -239,6 +240,11 @@ public final class UsageDefinition implements Serializable {
      */
     public UsageDefinition build() {
       return new UsageDefinition(directive, optionalCnt, tokens);
+    }
+
+    public void define(String string, TokenType columnName) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'define'");
     }
   }
 }

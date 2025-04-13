@@ -311,3 +311,13 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+// Lexer tokens
+fragment BYTE_UNIT : 'B' | 'KB' | 'MB' | 'GB' | 'TB';
+BYTE_SIZE : [0-9]+('.'[0-9]+)? BYTE_UNIT;
+
+fragment TIME_UNIT : 'ms' | 's' | 'sec' | 'seconds' | 'm' | 'min' | 'minutes';
+TIME_DURATION : [0-9]+('.'[0-9]+)? TIME_UNIT;
+
+// Parser rules
+byteSizeArg : BYTE_SIZE ;
+timeDurationArg : TIME_DURATION ;
