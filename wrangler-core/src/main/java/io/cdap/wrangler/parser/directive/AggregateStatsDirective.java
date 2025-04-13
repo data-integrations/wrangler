@@ -107,7 +107,8 @@ public class AggregateStatsDirective implements Directive {
     Row newRow = new Row();
     newRow.add(targetSizeColumn, totalSizeMB);
     newRow.add(targetTimeColumn, totalTimeSec);
-    return List.of(newRow);
+    return Collections.singletonList(newRow);
+
   }
 
   private long calculateMedian(List<Long> values) {
