@@ -61,6 +61,32 @@ Videos and Screencasts are best way to learn, so we have compiled simple, short 
   * [Parsing CSV Files and Extracting Column Values](wrangler-demos/parsing-csv-extracting-column-values.md)
   * [Parsing HL7 CCDA XML Files](wrangler-demos/parsing-hl7-ccda-xml-files.md)
 
+## Byte Size and Time Duration Parsers
+
+### Overview
+
+This enhancement adds support for parsing byte size (e.g., "10KB", "1.5MB") and time duration (e.g., "100ms", "2s") units in CDAP Wrangler recipes. A new `aggregate-stats` directive computes aggregates over these units, enabling users to sum byte sizes and time durations with optional output unit conversion.
+
+### Features
+
+- **Byte Size Parser**:
+  - Token Type: `BYTE_SIZE`
+  - Supported Units: B (bytes), KB (kilobytes), MB (megabytes), GB (gigabytes), TB (terabytes)
+  - Syntax: `<number><unit>` (e.g., "10KB", "1.5MB")
+  - Canonical Unit: Bytes (`long`)
+
+- **Time Duration Parser**:
+  - Token Type: `TIME_DURATION`
+  - Supported Units: ns (nanoseconds), ms (milliseconds), s (seconds), m (minutes), h (hours)
+  - Syntax: `<number><unit>` (e.g., "100ms", "2.1s")
+  - Canonical Unit: Nanoseconds (`long`)
+
+- **Aggregate Stats Directive**:
+  - Name: `aggregate-stats`
+  - Syntax: `aggregate-stats :source_size_col :source_time_col target_size_col target_time_col [size_unit] [time_unit]`
+  - Description: Aggregates values from byte size and time duration columns, outputting totals to target columns. Optional `size_unit` (e.g., MB, GB) and `time_unit` (e.g., seconds, minutes) specify output units (defaults: MB, seconds).
+  - Example:
+
 ## Available Directives
 
 These directives are currently available:
