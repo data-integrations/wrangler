@@ -21,22 +21,32 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 import java.io.Serializable;
 
 /**
- * The <code>TokenDefinition</code> class represents a definition of token as specified
- * by the user while defining a directive usage. All definitions of a token are represented
+ * The <code>TokenDefinition</code> class represents a definition of token as
+ * specified
+ * by the user while defining a directive usage. All definitions of a token are
+ * represented
  * by a instance of this class.
  *
- * The definition are constant (immutable) and they cannot be changed once defined.
+ * The definition are constant (immutable) and they cannot be changed once
+ * defined.
  * For example :
  * <code>
  *   TokenDefinition token = new TokenDefintion("column", TokenType.COLUMN_NAME, null, 0, Optional.FALSE);
  * </code>
  *
- * <p>The class <code>TokenDefinition</code> includes methods for retrieveing different members of
- * like name of the token, type of the token, label associated with token, whether it's optional or not
- * and the ordinal number of the token in the <code>TokenGroup</code>.</p>
+ * <p>
+ * The class <code>TokenDefinition</code> includes methods for retrieveing
+ * different members of
+ * like name of the token, type of the token, label associated with token,
+ * whether it's optional or not
+ * and the ordinal number of the token in the <code>TokenGroup</code>.
+ * </p>
  *
- * <p>As this class is immutable, the constructor requires all the member variables to be presnted
- * for an instance of this object to be created.</p>
+ * <p>
+ * As this class is immutable, the constructor requires all the member variables
+ * to be presnted
+ * for an instance of this object to be created.
+ * </p>
  */
 @PublicEvolving
 public final class TokenDefinition implements Serializable {
@@ -55,23 +65,27 @@ public final class TokenDefinition implements Serializable {
   }
 
   /**
-   * @return Label associated with the token. Label provides a way to override the usage description
-   * for this <code>TokenDefinition</code>. If a label is not provided, then this return null.
+   * @return Label associated with the token. Label provides a way to override the
+   *         usage description
+   *         for this <code>TokenDefinition</code>. If a label is not provided,
+   *         then this return null.
    */
   public String label() {
     return label;
   }
 
   /**
-   * @return Returns the oridinal number of this <code>TokenDefinition</code> within
-   * the <code>TokenGroup</code>,
+   * @return Returns the oridinal number of this <code>TokenDefinition</code>
+   *         within
+   *         the <code>TokenGroup</code>,
    */
   public int ordinal() {
     return ordinal;
   }
 
   /**
-   * @return true, if this <code>TokenDefinition</code> is optional, false otherwise.
+   * @return true, if this <code>TokenDefinition</code> is optional, false
+   *         otherwise.
    */
   public boolean optional() {
     return optional;

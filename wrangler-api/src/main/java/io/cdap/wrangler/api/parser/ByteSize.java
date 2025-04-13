@@ -27,7 +27,7 @@ public class ByteSize implements Token {
     private long bytes;
 
     // Regular expression pattern to match byte sizes with optional units (KB, MB, GB, TB)
-    private static final Pattern BYTE_SIZE_PATTERN = Pattern.compile("^(\\d+)(KB|MB|GB|TB)?$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern BYTE_SIZE_PATTERN = Pattern.compile("^\\s*(\\d+)\\s*(KB|MB|GB|TB)?\\s*$", Pattern.CASE_INSENSITIVE);
 
     /**
      * Constructor to initialize the ByteSize object by parsing the input token string.
