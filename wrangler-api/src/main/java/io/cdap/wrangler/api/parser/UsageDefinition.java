@@ -20,42 +20,42 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.cdap.wrangler.api.Optional;
+import io.cdap.wrangler.api.Optional; // Corrected import order
 
- /**
-  * This class {@link UsageDefinition} provides a way for users to registers the argument for UDDs.
-  *
-  * {@link UsageDefinition} is a collection of {@link TokenDefinition} and the name of the directive
-  * itself. Each token specification has an associated ordinal that can be used to position the argument
-  * within the directive.
-  *
-  * Following is a example of how this class can be used.
-  * <code>
-  *   UsageDefinition.Builder builder = UsageDefinition.builder();
-  *   builder.add("col1", TypeToken.COLUMN_NAME); // By default, this field is required.
-  *   builder.add("col2", TypeToken.COLUMN_NAME, false); // This is a optional field.
-  *   builder.add("expression", TypeToken.EXPRESSION);
-  *   UsageDefinition definition = builder.build();
-  * </code>
-  *
-  * NOTE: No constraints checks are included in this implementation.
-  *
-  * @see TokenDefinition
-  */
- public final class UsageDefinition implements Serializable {
+/**
+ * This class {@link UsageDefinition} provides a way for users to register the argument for UDDs.
+ *
+ * {@link UsageDefinition} is a collection of {@link TokenDefinition} and the name of the directive
+ * itself. Each token specification has an associated ordinal that can be used to position the argument
+ * within the directive.
+ *
+ * Following is an example of how this class can be used.
+ * <code>
+ *   UsageDefinition.Builder builder = UsageDefinition.builder();
+ *   builder.add("col1", TypeToken.COLUMN_NAME); // By default, this field is required.
+ *   builder.add("col2", TypeToken.COLUMN_NAME, false); // This is an optional field.
+ *   builder.add("expression", TypeToken.EXPRESSION);
+ *   UsageDefinition definition = builder.build();
+ * </code>
+ *
+ * NOTE: No constraints checks are included in this implementation.
+ *
+ * @see TokenDefinition
+ */
+public final class UsageDefinition implements Serializable {
    // transient so it doesn't show up when serialized using gson in service endpoint responses
    private final transient int optionalCnt;
    private final String directive;
    private final List<TokenDefinition> tokens;
- 
+
    private UsageDefinition(String directive, int optionalCnt, List<TokenDefinition> tokens) {
      this.directive = directive;
      this.tokens = tokens;
      this.optionalCnt = optionalCnt;
    }
- 
+
    /**
-    * Returns the name of the directive for which the this <code>UsageDefinition</code>
+    * Returns the name of the directive for which this <code>UsageDefinition</code>
     * object is created.
     *
     * @return name of the directive.
@@ -63,17 +63,17 @@ import io.cdap.wrangler.api.Optional;
    public String getDirectiveName() {
      return directive;
    }
- 
+
    /**
     * This method returns the list of <code>TokenDefinition</code> that should be
-    * used for parsing the directive into <code>Arguments</code>.
+    * used for parsing the directive into <code>Arguments</code>..
     *
     * @return List of <code>TokenDefinition</code>.
     */
    public List<TokenDefinition> getTokens() {
      return tokens;
    }
- 
+
    /**
     * Returns the count of <code>TokenDefinition</code> that have been specified
     * as optional in the <code>UsageDefinition</code>.
@@ -83,7 +83,7 @@ import io.cdap.wrangler.api.Optional;
    public int getOptionalTokensCount() {
      return optionalCnt;
    }
- 
+
    /**
     * This method converts the <code>UsageDefinition</code> into a usage string
     * for this directive. It inspects all the tokens to generate a standard syntax
@@ -95,13 +95,13 @@ import io.cdap.wrangler.api.Optional;
    public String toString() {
      StringBuilder sb = new StringBuilder();
      sb.append(directive).append(" ");
- 
+
      int count = tokens.size();
      for (TokenDefinition token : tokens) {
        if (token.optional()) {
          sb.append(" [");
        }
- 
+
        if (token.label() != null) {
          sb.append(token.label());
        } else {
@@ -132,9 +132,9 @@ import io.cdap.wrangler.api.Optional;
            sb.append(":").append(token.name());
          }
        }
- 
+
        count--;
- 
+
        if (token.optional()) {
          sb.append("]");
        } else {
@@ -145,12 +145,12 @@ import io.cdap.wrangler.api.Optional;
      }
      return sb.toString();
    }
- 
+
    /**
     * This is a static method for creating a builder for the <code>UsageDefinition</code>
-    * object. In order to create a <code>UsageDefinition</code>, a builder has to created.
+    * object. In order to create a <code>UsageDefinition</code>, a builder has to be created.
     *
-    * <p>This builder is provided as user API for constructing the usage specification
+    * <p>This builder is provided as a user API for constructing the usage specification
     * for a directive.</p>
     *
     * @param directive name of the directive for which the builder is created for.
@@ -160,7 +160,7 @@ import io.cdap.wrangler.api.Optional;
    public static UsageDefinition.Builder builder(String directive) {
      return new UsageDefinition.Builder(directive);
    }
- 
+
    /**
     * This inner builder class provides a way to create <code>UsageDefinition</code>
     * object. It exposes different methods that allow users to configure the <code>TokenDefinition</code>
@@ -171,14 +171,14 @@ import io.cdap.wrangler.api.Optional;
      private final List<TokenDefinition> tokens;
      private int currentOrdinal;
      private int optionalCnt;
- 
+
      public Builder(String directive) {
        this.directive = directive;
        this.currentOrdinal = 0;
        this.tokens = new ArrayList<>();
        this.optionalCnt = 0;
      }
- 
+
      /**
       * This method provides a way to set the name and the type of token, while
       * defaulting the label to 'null' and setting the optional to FALSE.
@@ -191,7 +191,7 @@ import io.cdap.wrangler.api.Optional;
        currentOrdinal++;
        tokens.add(spec);
      }
- 
+
      /**
       * Allows users to define a token with a name, type of the token and additional optional
       * for the label that is used during creation of the usage for the directive.
@@ -205,9 +205,9 @@ import io.cdap.wrangler.api.Optional;
        currentOrdinal++;
        tokens.add(spec);
      }
- 
+
      /**
-      * Method allows users to specify a field as optional in combination to the
+      * Method allows users to specify a field as optional in combination with the
       * name of the token and the type of token.
       *
       * @param name of the token in the definition of a directive.
@@ -220,9 +220,9 @@ import io.cdap.wrangler.api.Optional;
        currentOrdinal++;
        tokens.add(spec);
      }
- 
+
      /**
-      * Method allows users to specify a field as optional in combination to the
+      * Method allows users to specify a field as optional in combination with the
       * name of the token, the type of token and also the ability to specify a label
       * for the usage.
       *
@@ -237,12 +237,12 @@ import io.cdap.wrangler.api.Optional;
        currentOrdinal++;
        tokens.add(spec);
      }
- 
+
      /**
-      * @return a instance of <code>UsageDefinition</code> object.
+      * @return an instance of <code>UsageDefinition</code> object.
       */
      public UsageDefinition build() {
        return new UsageDefinition(directive, optionalCnt, tokens);
      }
    }
- }
+}

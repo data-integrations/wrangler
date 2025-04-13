@@ -167,5 +167,5 @@
     * This type is associated with a token representing a time duration (e.g., "150ms", "2h").
     */
    TIME_DURATION
- 
-   }
+ }
+

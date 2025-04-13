@@ -98,8 +98,6 @@
                  throw new IllegalArgumentException(
                     "Invalid time duration format or unsupported unit in string: " + durationString
                     );
-
-
              }
  
              if (numericPart.isEmpty()) {
@@ -164,3 +162,4 @@
          return value + "ms";
      }
  }
+
