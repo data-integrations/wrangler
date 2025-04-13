@@ -315,7 +315,7 @@ OctalEscape
    |   '\\' ('0'..'7') ('0'..'7')
    |   '\\' ('0'..'7')
    ;
-
+   
 fragment
 UnicodeEscape
    :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
