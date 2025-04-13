@@ -1,0 +1,20 @@
+1. How to extend ANTLR grammar to support new token types?
+2. What’s the correct regex to define tokens like 10KB or 1.5MB in ANTLR?
+3. Java class to parse "10KB" and convert to bytes
+4. Java class to parse "2.5h" and convert to milliseconds
+5. How to add custom token types to a parser using ANTLR and Java?
+6. How to implement ByteSize and TimeDuration conversion methods in Java?
+7. What is the best way to modify RecipeVisitor in Wrangler to support new token types?
+8. Wrangler directive to aggregate ByteSize and TimeDuration values
+9. How to implement aggregation logic (sum, average, median) in Wrangler directives?
+10. Java code to calculate percentiles (p95, p99) from a list of doubles
+11. How to write JUnit tests for custom token classes like ByteSize and TimeDuration?
+12. TestingRig usage in Wrangler for writing directive tests
+13. Maven command to regenerate ANTLR parser files
+14. How to create a directive that outputs sum in a specific unit (MB/seconds)?
+15. Example of TestingRig assertions for sum, average in directive tests
+16. Best way to structure a README.md for a Java-based ANTLR parsing project
+17. How to validate ANTLR grammar changes using Maven build?
+18. Fixing Maven build failure: Unknown lifecycle phase "build"
+19. How to write a complete README with setup, grammar, tests, and directive usage?
+20. Complete README for Wrangler enhancement including ByteSize, TimeDuration, and aggregate-stats
