@@ -130,8 +130,12 @@ public class ParseLog implements Directive, Lineage {
 
     public void setValue(String name, String value) {
       String key = name.toLowerCase();
-      if (key.contains("original") || key.contains("bytesclf") || key.contains("cookie")) {
+      if (key.contains("original") || key.contains("cookie")) {
         return;
+      }
+      // Handle the new BYTESCLF format
+      if (key.contains("bytesclf")) {
+        key = key.replace("bytesclf", "bytes");
       }
       key = key.replaceAll("[^a-zA-Z0-9_]", "_");
       row.addOrSet(key, value);

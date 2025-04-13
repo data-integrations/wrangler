@@ -77,7 +77,17 @@ public class ConvertString {
     if (!StringUtils.isEmpty(repeatStr)) {
       removeRepeatCharPattern = Pattern.compile("(" + repeatStr + ")+");
     }
-    removeWhiteSpacesPattern = Pattern.compile("([\\s\\u0085\\p{Z}])\\1+");
+    // Build a pattern that matches any of the whitespace characters
+    StringBuilder patternBuilder = new StringBuilder("([");
+    for (String ws : WHITESPACE_CHARS) {
+      if (ws.length() == 1) {
+        patternBuilder.append(Pattern.quote(ws));
+      } else {
+        patternBuilder.append("\\u").append(String.format("%04X", (int) ws.charAt(0)));
+      }
+    }
+    patternBuilder.append("])\\1+");
+    removeWhiteSpacesPattern = Pattern.compile(patternBuilder.toString());
   }
 
   /**
