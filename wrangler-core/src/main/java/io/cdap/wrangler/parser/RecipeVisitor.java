@@ -36,6 +36,7 @@ import io.cdap.wrangler.api.parser.TextList;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -83,8 +84,18 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
    */
   @Override
   public RecipeSymbol.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
-    builder.createTokenGroup(getOriginalSource(ctx));
-    return super.visitDirective(ctx);
+      try {
+          builder.createTokenGroup(getOriginalSource(ctx));
+          return super.visitDirective(ctx);
+      } catch (ParseCancellationException e) {
+          // Convert to a syntax error that can be collected by the error listener
+          throw new RuntimeException(new SyntaxError(
+              ctx.getStart().getLine(),
+              ctx.getStart().getCharPositionInLine(),
+              e.getMessage(),
+              ctx.getText()
+          ));
+      }
   }
 
   /**
@@ -315,6 +326,32 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     }
     builder.addToken(new TextList(strs));
     return builder;
+  }
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+      String text = ctx.getText();
+      try {
+          builder.addToken(new ByteSize(text));
+      } catch (IllegalArgumentException e) {
+          // Convert to a parsing error that can be caught by the compiler
+          throw new ParseCancellationException(
+              "Invalid byte size format at line " + ctx.getStart().getLine() + 
+              ": " + text + ". Valid formats: 10KB, 1.5MB, 2GIB");
+      }
+      return builder;
+  }
+
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+      String text = ctx.getText();
+      try {
+          builder.addToken(new TimeDuration(text));
+      } catch (IllegalArgumentException e) {
+          throw new ParseCancellationException(
+              "Invalid time duration format at line " + ctx.getStart().getLine() + 
+              ": " + text + ". Valid formats: 100ms, 1.5s, 2h");
+      }
+      return builder;
   }
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {

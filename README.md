@@ -216,3 +216,21 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+## Byte Size and Time Duration Support
+
+Wrangler now supports parsing byte sizes and time durations with units:
+
+### Byte Sizes
+Supported units: B, KB, MB, GB, TB, PB (decimal) and KIB, MIB, GIB, TIB, PIB (binary)
+Examples: "1KB", "1.5MB", "2GIB"
+
+### Time Durations
+Supported units: NS (nanoseconds), US (microseconds), MS (milliseconds), S (seconds), M (minutes), H (hours), D (days)
+Examples: "100MS", "1.5S", "2H"
+
+### Aggregate Stats Directive
+The new `aggregate-stats` directive calculates aggregates for size and time columns:
+
+```wrangler
+aggregate-stats :size_column :time_column :output_size_column :output_time_column [size_unit] [time_unit] [aggregation_type]
