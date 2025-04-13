@@ -20,6 +20,7 @@ import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.wrangler.api.*;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.annotations.Usage;
@@ -29,8 +30,7 @@ import java.util.ArrayList;
 
 @Plugin(type = Directive.TYPE)
 @Name("aggregate-stats")
-// @Usage("aggregate-stats :byteCol :timeCol :outByteCol :outTimeCol
-// [aggregationType] byteUnit timeUnit")
+// @Usage("aggregate-stats :byteCol :timeCol :outByteCol :outTimeCol;")
 @Description("Aggregates byte size and time duration columns across all rows into a single summary row.")
 
 public class ByteAndTimeConversion implements Directive {
@@ -50,9 +50,6 @@ public class ByteAndTimeConversion implements Directive {
         builder.define("timeColumn", TokenType.COLUMN_NAME);
         builder.define("targetByteColumn", TokenType.COLUMN_NAME);
         builder.define("targetTimeColumn", TokenType.COLUMN_NAME);
-        // builder.define("aggregationType", TokenType.TEXT, "total");
-        // builder.define("outputSizeUnit", TokenType.TEXT, "MB");
-        // builder.define("outputTimeUnit", TokenType.TEXT, "minutes");
 
         return builder.build();
     }
@@ -63,28 +60,25 @@ public class ByteAndTimeConversion implements Directive {
         timeColumn = ((ColumnName) arguments.value("timeColumn")).value();
         targetByteColumn = ((ColumnName) arguments.value("targetByteColumn")).value();
         targetTimeColumn = ((ColumnName) arguments.value("targetTimeColumn")).value();
-        // aggregationType = arguments.value("aggregationType").value().toString();
-        // outputSizeUnit = arguments.value("outputSizeUnit").value().toString();
-        // outputTimeUnit = arguments.value("outputTimeUnit").value().toString();
         aggregationType = "total";
         outputSizeUnit = "MB";
-        outputTimeUnit = "minutes";
+        outputTimeUnit = "seconds";
     }
 
     @Override
     public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
         TransientStore store = context.getTransientStore();
-
         long totalBytes = 0;
         long totalMillis = 0;
 
         for (Row row : rows) {
-            Object sizeObj = row.getValue(byteColumn);
-            Object timeObj = row.getValue(timeColumn);
+            String sizeObj = (String) row.getValue(byteColumn);
+            String timeObj = (String) row.getValue(timeColumn);
 
             if (sizeObj instanceof String) {
                 try {
                     totalBytes += Byteparser((String) sizeObj);
+
                 } catch (Exception e) {
                     throw new DirectiveExecutionException("Failed to parse size: " + sizeObj, e);
                 }
@@ -127,18 +121,26 @@ public class ByteAndTimeConversion implements Directive {
 
     private long Byteparser(String input) {
         input = input.trim().toUpperCase();
-        if (input.endsWith("KB"))
-            return Long.parseLong(input.replace("KB", "").trim()) * 1024;
-        if (input.endsWith("MB"))
-            return Long.parseLong(input.replace("MB", "").trim()) * 1024 * 1024;
-        if (input.endsWith("GB"))
-            return Long.parseLong(input.replace("GB", "").trim()) * 1024 * 1024 * 1024;
-        if (input.endsWith("B"))
-            return Long.parseLong(input.replace("B", "").trim());
+        double value;
+
+        if (input.endsWith("KB")) {
+            value = Double.parseDouble(input.substring(0, input.length() - 2).trim());
+            return (long) (value * 1024);
+        } else if (input.endsWith("MB")) {
+            value = Double.parseDouble(input.substring(0, input.length() - 2).trim());
+            return (long) (value * 1024 * 1024);
+        } else if (input.endsWith("GB")) {
+            value = Double.parseDouble(input.substring(0, input.length() - 2).trim());
+            return (long) (value * 1024 * 1024 * 1024);
+        } else if (input.endsWith("B")) {
+            value = Double.parseDouble(input.substring(0, input.length() - 1).trim());
+            return (long) value;
+        }
+
         throw new IllegalArgumentException("Invalid byte size format: " + input);
     }
 
-    private String Byteformat(long bytes, String unit) {
+    private String Byteformat(double bytes, String unit) {
         switch (unit.toUpperCase()) {
             case "B":
                 return bytes + "B";
@@ -155,18 +157,23 @@ public class ByteAndTimeConversion implements Directive {
 
     private long TimeParser(String input) {
         input = input.trim().toLowerCase();
+        double value;
 
         if (input.endsWith("ms")) {
-            return Long.parseLong(input.replace("ms", "").trim());
+            value = Double.parseDouble(input.substring(0, input.length() - 2).trim());
+            return (long) value;
         } else if (input.endsWith("s")) {
-            return Long.parseLong(input.replace("s", "").trim()) * 1000;
+            value = Double.parseDouble(input.substring(0, input.length() - 1).trim());
+            return (long) (value * 1000);
         } else if (input.endsWith("m")) {
-            return Long.parseLong(input.replace("m", "").trim()) * 60 * 1000;
+            value = Double.parseDouble(input.substring(0, input.length() - 1).trim());
+            return (long) (value * 60 * 1000);
         } else if (input.endsWith("h")) {
-            return Long.parseLong(input.replace("h", "").trim()) * 60 * 60 * 1000;
-        } else {
-            throw new IllegalArgumentException("Invalid time duration format: " + input);
+            value = Double.parseDouble(input.substring(0, input.length() - 1).trim());
+            return (long) (value * 60 * 60 * 1000);
         }
+
+        throw new IllegalArgumentException("Invalid time duration format: " + input);
     }
 
     private String Timeformat(long millis, String unit) {

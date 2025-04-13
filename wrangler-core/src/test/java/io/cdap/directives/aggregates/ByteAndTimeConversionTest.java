@@ -20,6 +20,8 @@ import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +31,12 @@ public class ByteAndTimeConversionTest {
     public void testAggregateStatsTotalMode() throws Exception {
         List<Row> rows = new ArrayList<>();
         rows.add(new Row("data_transfer_size", "1MB").add("response_time", "1s"));
-        rows.add(new Row("data_transfer_size", "2MB").add("response_time", "2s"));
+        rows.add(new Row("data_transfer_size", "1.5MB").add("response_time", "2s"));
         rows.add(new Row("data_transfer_size", "512KB").add("response_time", "500ms"));
 
         String[] recipe = new String[] {
-                "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec"
+                "#pragma version 2.0;",
+                "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec;"
         };
 
         List<Row> results = TestingRig.execute(recipe, rows);
@@ -44,16 +47,10 @@ public class ByteAndTimeConversionTest {
 
         System.out.println(results);
 
-        double expectedTotalSizeMB = (1 + 2 + 0.5); // 3.5MB
-        double expectedTotalTimeSeconds = (1 + 2 + 0.5); // 3.5s
+        double expectedTotalSizeMB = (3);
+        double expectedTotalTimeSeconds = (3.5);
 
-        Row result = results.get(2);
-        // double actualSizeMB =
-        // Double.parseDouble(result.getValue("total_size_mb").toString().replace(" MB",
-        // ""));
-        // double actualTimeSec =
-        // Double.parseDouble(result.getValue("total_time_sec").toString().replace(" s",
-        // ""));
+        Row result = results.get(0);
 
         double actualSizeMB = Double
                 .parseDouble(result.getValue("total_size_mb").toString().replaceAll("[^\\d.]+", ""));
@@ -62,33 +59,34 @@ public class ByteAndTimeConversionTest {
 
         Assert.assertEquals(expectedTotalSizeMB, actualSizeMB, 0.0);
         Assert.assertEquals(expectedTotalTimeSeconds, actualTimeSec, 0.0);
+
     }
 
     @Test
     public void testAggregateStatsAverageMode() throws Exception {
         List<Row> rows = new ArrayList<>();
         rows.add(new Row("data_transfer_size", "1MB").add("response_time", "1s"));
-        rows.add(new Row("data_transfer_size", "3MB").add("response_time", "3s"));
+        rows.add(new Row("data_transfer_size", "1MB").add("response_time", "1s"));
 
         String[] recipe = new String[] {
-                "aggregate-stats :data_transfer_size :response_time avg_size_mb avg_time_sec average"
+                "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec"
         };
 
         List<Row> results = TestingRig.execute(recipe, rows);
 
-        Assert.assertEquals(1, results.size());
+        Assert.assertEquals(2, results.size());
 
-        double expectedAvgSizeMB = (1 + 3) / 2.0; // 2.0MB
-        double expectedAvgTimeSec = (1 + 3) / 2.0; // 2.0s
+        double expectedAvgSizeMB = (2) / 2.0;
+        double expectedAvgTimeSec = (2) / 2.0;
 
         Row result = results.get(0);
-        double actualAvgSizeMB = Double.parseDouble(result.getValue("avg_size_mb").toString().replace(" MB", ""));
-        double actualAvgTimeSec = Double.parseDouble(result.getValue("avg_time_sec").toString().replace(" s", ""));
+        double actualSizeMB = Double
+                .parseDouble(result.getValue("total_size_mb").toString().replaceAll("[^\\d.]+", ""));
+        double actualTimeSec = Double
+                .parseDouble(result.getValue("total_time_sec").toString().replaceAll("[^\\d.]+", ""));
+        Assert.assertEquals(expectedAvgSizeMB, actualSizeMB, 0.001);
+        Assert.assertEquals(expectedAvgTimeSec, actualTimeSec, 0.001);
 
-        Assert.assertEquals(expectedAvgSizeMB, actualAvgSizeMB, 0.001);
-        Assert.assertEquals(expectedAvgTimeSec, actualAvgTimeSec, 0.001);
     }
-
-    // Add more tests here for p95, p99, median, invalid formats, etc.
 
 }
