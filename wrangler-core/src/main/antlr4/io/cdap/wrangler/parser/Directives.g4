@@ -140,8 +140,14 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+  : String #stringArg
+  | Number #numberArg
+  | Column #columnArg
+  | Bool   #boolArg
+  | BYTE_SIZE #byteSizeArg
+  | TIME_DURATION #timeDurationArg
+  ;
+
 
 ecommand
  : '!' Identifier
@@ -195,6 +201,14 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+BYTE_SIZE : 
+[0-9]+ ('.' [0-9]+)? BYTE_UNIT 
+;
+
+
+TIME_DURATION : 
+[0-9]+ ('.' [0-9]+)? TIME_UNIT 
+;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -286,6 +300,14 @@ OctalEscape
    |   '\\' ('0'..'7') ('0'..'7')
    |   '\\' ('0'..'7')
    ;
+
+fragment BYTE_UNIT : 
+('B' | 'KB' | 'MB' | 'GB' | 'TB') 
+;
+
+fragment TIME_UNIT : 
+('ms' | 's' | 'm' | 'h') 
+;
 
 fragment
 UnicodeEscape

@@ -76,6 +76,8 @@
   </issueManagement>
 
   <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <antlr4.version>4.7</antlr4.version>
     <antlr4-maven-plugin.version>4.7</antlr4-maven-plugin.version>
