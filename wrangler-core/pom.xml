@@ -34,6 +34,19 @@
 
   <dependencies>
 
+     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.cdap.wrangler</groupId>
+      <artifactId>wrangler-api</artifactId>
+      <version>4.12.0-SNAPSHOT</version>
+    </dependency>
+    
     <!-- Internal -->
 
     <dependency>
