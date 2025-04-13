@@ -216,3 +216,25 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+
+# CDAP Wrangler Enhanced with Byte Size and Time Duration Parsers
+
+This fork of CDAP Wrangler includes enhancements for parsing byte size and time duration literals in recipes. It also introduces a new directive, `aggregate-stats`, for aggregating these values.
+
+## New Features
+
+- **Byte Size Literals:**  
+  Examples: `10KB`, `1.5MB`  
+  Parsed and stored as bytes (using binary units: 1KB = 1024 bytes).
+
+- **Time Duration Literals:**  
+  Examples: `150ms`, `2.5s`  
+  Parsed and stored as nanoseconds internally (with conversion to other units as needed).
+
+- **AggregateStats Directive:**  
+  Aggregates values from two input columns and outputs:
+  - Total size in megabytes (MB)
+  - Total time in seconds (s)
+
+  **Usage Example:**

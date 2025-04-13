@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 grammar Directives;
 
 options {
@@ -24,23 +23,20 @@ options {
 /*
  * Copyright © 2017-2019 Cask Data, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * Licensed under the Apache License, Version 2.0 (the \"License\"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * distributed under the License is distributed on an \"AS IS\" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
 }
 
-/**
- * Parser Grammar for recognizing tokens and constructs of the directives language.
- */
 recipe
  : statements EOF
  ;
@@ -64,6 +60,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -86,10 +84,6 @@ elseStat
 expression
   : '(' (~'(' | expression)* ')'
   ;
-
-forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
- ;
 
 macro
  : Dollar OBrace (~OBrace | macro | Macro)*? CBrace
@@ -117,10 +111,6 @@ identifier
 
 properties
  : 'prop' ':' OBrace (propertyList)+  CBrace
- | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
  ;
 
 propertyList
@@ -140,15 +130,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
-
-ecommand
- : '!' Identifier
- ;
-
-config
- : Identifier
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 column
@@ -195,58 +177,15 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
-/*
- * Following are the Lexer Rules used for tokenizing the recipe.
- */
 OBrace   : '{';
 CBrace   : '}';
-SColon   : ';';
-Or       : '||';
-And      : '&&';
-Equals   : '==';
-NEquals  : '!=';
-GTEquals : '>=';
-LTEquals : '<=';
-Match    : '=~';
-NotMatch : '!~';
-QuestionColon : '?:';
-StartsWith : '=^';
-NotStartsWith : '!^';
-EndsWith : '=$';
-NotEndsWith : '!$';
-PlusEqual : '+=';
-SubEqual : '-=';
-MulEqual : '*=';
-DivEqual : '/=';
-PerEqual : '%=';
-AndEqual : '&=';
-OrEqual  : '|=';
-XOREqual : '^=';
-Pow      : '^';
-External : '!';
-GT       : '>';
-LT       : '<';
-Add      : '+';
-Subtract : '-';
-Multiply : '*';
-Divide   : '/';
-Modulus  : '%';
-OBracket : '[';
-CBracket : ']';
-OParen   : '(';
-CParen   : ')';
-Assign   : '=';
-Comma    : ',';
-QMark    : '?';
-Colon    : ':';
-Dot      : '.';
-At       : '@';
-Pipe     : '|';
-BackSlash: '\\';
 Dollar   : '$';
-Tilde    : '~';
+BYTE_SIZE : INT ('.' INT)? BYTE_UNIT;
+TIME_DURATION : INT ('.' INT)? TIME_UNIT;
 
+fragment INT : [0-9]+;
+fragment BYTE_UNIT : ('B' | 'KB' | 'MB' | 'GB' | 'TB');
+fragment TIME_UNIT : ('ns' | 'us' | 'ms' | 's' | 'm' | 'h');
 
 Bool
  : 'true'
@@ -275,7 +214,7 @@ String
  ;
 
 EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+   :   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
    |   UnicodeEscape
    |   OctalEscape
    ;
@@ -311,3 +250,6 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+byteSizeArg : BYTE_SIZE ;
+timeDurationArg : TIME_DURATION ;

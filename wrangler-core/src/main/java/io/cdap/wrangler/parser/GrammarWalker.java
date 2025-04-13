@@ -15,7 +15,7 @@
  */
 
 package io.cdap.wrangler.parser;
-
+import io.cdap.wrangler.api.Token;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
@@ -24,7 +24,8 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.parser.DirectiveName;
 import io.cdap.wrangler.api.parser.SyntaxError;
-
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import java.util.Iterator;
 
 /**
@@ -96,4 +97,21 @@ public class GrammarWalker {
       visitor.visit(root, tokenGroup);;
     }
   }
+
+@Override
+public Token visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    // Extract the raw text from the parse tree (e.g., "10KB")
+    String text = ctx.getText();
+    // Create a new ByteSize token (from the API, ensure proper import)
+    ByteSize byteSizeToken = new ByteSize(text);
+    // If you build a token group here, add this token into it.
+    return byteSizeToken;
+}
+@Override
+public Token visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    String text = ctx.getText();
+    TimeDuration timeToken = new TimeDuration(text);
+    return timeToken;
+}
+
 }
