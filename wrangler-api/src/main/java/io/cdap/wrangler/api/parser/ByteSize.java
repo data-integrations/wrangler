@@ -22,6 +22,9 @@ import com.google.gson.JsonPrimitive;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ *  Byte size conversion new token implements token
+ */
 public class ByteSize implements Token {
     private final long bytes;
 

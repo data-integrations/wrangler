@@ -22,6 +22,9 @@ import com.google.gson.JsonPrimitive;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Time duration conversion implements token
+ */
 public class TimeDuration implements Token {
     private final long milliseconds;
 

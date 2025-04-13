@@ -19,6 +19,9 @@ package io.cdap.wrangler.grammar.token;
 import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.Token;
 
+/**
+ * ByteSizeToken
+ */
 public class ByteSizeToken extends ByteSize implements Token {
     public ByteSizeToken(String value) {
         super(value);

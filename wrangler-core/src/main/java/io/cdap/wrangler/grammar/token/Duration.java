@@ -19,6 +19,9 @@ package io.cdap.wrangler.grammar.token;
 import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 
+/**
+ * Duration
+ */
 public class Duration extends TimeDuration implements Token {
     public Duration(String value) {
         super(value);

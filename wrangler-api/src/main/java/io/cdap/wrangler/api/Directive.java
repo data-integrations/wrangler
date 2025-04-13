@@ -69,6 +69,10 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
    * </code>
    */
   String TYPE = "directive";
+
+  /**
+   * Added type of tokens
+   */
   enum Type {
     TRANSFORM,
     VALIDATE,

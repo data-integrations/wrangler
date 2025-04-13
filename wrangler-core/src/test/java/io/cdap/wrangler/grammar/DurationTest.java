@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package io.cdap.wrangler.api.annotations;
+package io.cdap.wrangler.grammar;
 
+import io.cdap.wrangler.grammar.token.Duration;
+import org.junit.Assert;
+import org.junit.Test;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class DurationTest {
 
-/**
- * Description
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Description {
-    String value();
+    @Test
+    public void testDurationParsing() {
+        Duration d = new Duration("5s");
+        Assert.assertEquals(5000, d.getMilliseconds());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidDuration() {
+        new Duration("what?");
+    }
 }
-

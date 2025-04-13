@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package io.cdap.wrangler.api.annotations;
+package io.cdap.wrangler.grammar;
 
+import io.cdap.wrangler.api.parser.ByteSize;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * Description
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Description {
-    String value();
+public class ByteSizeTest {
+
+    @Test
+    public void testByteSizeParsing() {
+        ByteSize size = new ByteSize("10MB");
+        Assert.assertEquals(10 * 1024 * 1024, size.getBytes());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidByteSize() {
+        new ByteSize("10XYZ");
+    }
 }
-
