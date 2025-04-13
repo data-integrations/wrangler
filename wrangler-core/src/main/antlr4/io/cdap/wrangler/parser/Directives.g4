@@ -140,7 +140,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String                                            #stringValue
+ | Number                                            #numberValue
+ | BYTE_SIZE                                         #byteSizeValue
+ | TIME_DURATION                                     #timeDurationValue
+ | Bool                                              #booleanValue
+ | Column                                            #columnValue
  ;
 
 ecommand
@@ -255,6 +260,22 @@ Bool
 
 Number
  : Int ('.' Digit*)?
+ ;
+
+BYTE_SIZE
+ : Number BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Number TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [kKmMgGtTpP][bB]
+ ;
+
+fragment TIME_UNIT
+ : ('ms'|'s'|'m'|'h'|'d')
  ;
 
 Identifier
