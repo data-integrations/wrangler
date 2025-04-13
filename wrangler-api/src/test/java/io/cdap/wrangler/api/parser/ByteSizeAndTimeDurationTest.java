@@ -35,8 +35,8 @@ public class ByteSizeAndTimeDurationTest {
         ByteSize byteSize4 = new ByteSize("1TB");
         assertEquals(1L * 1024 * 1024 * 1024 * 1024, byteSize4.getBytes(),0.001);
 
-    //  ByteSize byteSize5 = new ByteSize("10PB");
-    //  assertEquals(10L * 1024 * 1024 * 1024 * 1024 * 1024, byteSize5.getBytes());
+        ByteSize byteSize5 = new ByteSize("10PB");
+        assertEquals(10L * 1024 * 1024 * 1024 * 1024 * 1024, byteSize5.getBytes(),0.001);
     }
 
     @Test(expected = IllegalArgumentException.class)

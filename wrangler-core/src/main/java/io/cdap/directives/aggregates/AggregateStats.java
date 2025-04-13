@@ -16,7 +16,11 @@
 
  package io.cdap.directives.aggregates;
 
- import io.cdap.cdap.api.data.schema.Schema;
+ import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import io.cdap.cdap.api.data.schema.Schema;
  import io.cdap.wrangler.api.*;
  import io.cdap.wrangler.api.annotations.Categories;
  import io.cdap.wrangler.api.parser.ByteSize;
@@ -26,7 +30,6 @@
  import io.cdap.wrangler.api.parser.TokenType;
  import io.cdap.wrangler.api.parser.UsageDefinition;
  
- import java.util.*;
  
  /**
   * Directive for aggregating statistics.
@@ -87,7 +90,7 @@
  
            ByteSize byteSize = new ByteSize(byteVal);
            TimeDuration duration = new TimeDuration(timeVal);
- 
+          
            byteValues.add(byteSize.getBytes() / (1024.0 * 1024.0)); // Convert to MB
            timeValues.add(duration.getNanoseconds() / 1_000_000_000.0); // Convert to seconds
          }
