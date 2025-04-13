@@ -54,7 +54,6 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>${protobuf.version}</version>
     </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
@@ -319,6 +318,7 @@
         <filtering>true</filtering>
       </resource>
     </resources>
+    <sourceDirectory>target/generated-sources/antlr4</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.antlr</groupId>
