@@ -35,17 +35,20 @@
   <dependencies>
 
     <!-- Internal -->
-
+        
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.cdap.wrangler</groupId>
-      <artifactId>wrangler-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+   <dependency>
+  <groupId>io.cdap.wrangler</groupId>
+  <artifactId>wrangler-api</artifactId>
+  <version>${project.version}</version>
+  <scope>compile</scope>
+</dependency>
+
+
     <dependency>
       <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-proto</artifactId>
@@ -98,6 +101,12 @@
       <artifactId>powermock-module-junit4</artifactId>
       <version>2.0.2</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.2</version>
+        <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
@@ -320,6 +329,17 @@
       </resource>
     </resources>
     <plugins>
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version> <!-- use at least 2.22.0+ -->
+        <configuration>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+          <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+        </configuration>
+      </plugin>
+    
       <plugin>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-maven-plugin</artifactId>
