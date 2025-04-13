@@ -140,8 +140,19 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION    // Added BYTE_SIZE and TIME_DURATION
+ ;                                                              // arguments which tells parser that 
+                                                               // now both are valid inputs wherever 
+                                                               // value is accepted
+                                                              
+byteSizeArg: BYTE_SIZE;                              //Added this parser rules to accept tokens
+timeDurationArg: TIME_DURATION;
+
+
+aggregateStatsDirective                             // new rule 
+  : 'aggregate-stats' columnName (',' byteSizeArg | ',' timeDurationArg)?
+  ;
+
 
 ecommand
  : '!' Identifier
@@ -215,37 +226,37 @@ StartsWith : '=^';
 NotStartsWith : '!^';
 EndsWith : '=$';
 NotEndsWith : '!$';
-PlusEqual : '+=';
-SubEqual : '-=';
-MulEqual : '*=';
-DivEqual : '/=';
-PerEqual : '%=';
-AndEqual : '&=';
-OrEqual  : '|=';
-XOREqual : '^=';
-Pow      : '^';
-External : '!';
-GT       : '>';
-LT       : '<';
-Add      : '+';
-Subtract : '-';
-Multiply : '*';
-Divide   : '/';
-Modulus  : '%';
-OBracket : '[';
-CBracket : ']';
-OParen   : '(';
-CParen   : ')';
-Assign   : '=';
-Comma    : ',';
-QMark    : '?';
-Colon    : ':';
-Dot      : '.';
-At       : '@';
-Pipe     : '|';
-BackSlash: '\\';
-Dollar   : '$';
-Tilde    : '~';
+PlusEqual : '+=' ;
+SubEqual : '-=' ;
+MulEqual : '*=' ;
+DivEqual : '/=' ;
+PerEqual : '%=' ;
+AndEqual : '&=' ;
+OrEqual  : '|=' ;
+XOREqual : '^=' ;
+Pow      : '^' ;
+External : '!' ;
+GT       : '>' ;
+LT       : '<' ;
+Add      : '+' ;
+Subtract : '-' ;
+Multiply : '*' ;
+Divide   : '/' ;
+Modulus  : '%' ;
+OBracket : '[' ;
+CBracket : ']' ;
+OParen   : '(' ;
+CParen   : ')' ;
+Assign   : '=' ;
+Comma    : ',' ;
+QMark    : '?' ;
+Colon    : ':' ;
+Dot      : '.' ;
+At       : '@' ;
+Pipe     : '|' ;
+BackSlash: '\\' ;
+Dollar   : '$' ;
+Tilde    : '~' ;
 
 
 Bool
@@ -270,8 +281,8 @@ Column
  ;
 
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
+ : '\'' ( EscapeSequence | ~('\''))* '\''
+ | '"'  ( EscapeSequence | ~('"'))* '"'
  ;
 
 EscapeSequence
@@ -293,7 +304,7 @@ UnicodeEscape
    ;
 
 fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
@@ -302,6 +313,30 @@ Comment
 Space
  : [ \t\r\n\u000C]+ -> skip
  ;
+
+// -----------------------------------------------
+// Below are the Token Additions for BYTE_SIZE and TIME_DURATION
+
+BYTE_SIZE
+ : Digit+ BYTE_UNIT            // Use Digit+ as a fragment to represent a single numeric digit
+ ;                             // it allows for reuse and avoids duplication
+
+TIME_DURATION
+ : Digit+ TIME_UNIT
+ ;
+
+// Below are the helper fragments, these are not token themselves but are a part of tokens.
+// they help in reusability, readability and maintainibility.
+
+fragment BYTE_UNIT       // BYTE_UNIT represents common byte size suffixes.
+ : [KMG]?B               // e.g., KB, MB, GB, B
+ ;
+
+fragment TIME_UNIT      // TIME_UNIT represents common time units
+ : 'ms' | 's'           // e.g., milliseconds or seconds
+ ;
+
+// ---------------------------------------------------
 
 fragment Int
  : '-'? [1-9] Digit* [L]*

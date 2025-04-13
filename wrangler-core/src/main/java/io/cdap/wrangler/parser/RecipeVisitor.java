@@ -81,11 +81,31 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
    * A Recipe is made up of Directives and Directives is made up of each individual
    * Directive. This method is invoked on every visit to a new directive in the recipe.
    */
+  // @Override
+  // public RecipeSymbol.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
+  //   builder.createTokenGroup(getOriginalSource(ctx));
+  //   return super.visitDirective(ctx);
+  // }
+
+  /** below is the updated token according to bytesizearg and timedurationarg */
   @Override
-  public RecipeSymbol.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
-    builder.createTokenGroup(getOriginalSource(ctx));
-    return super.visitDirective(ctx);
+public Token visitDirective(WranglerParser.DirectiveContext ctx) {
+  String directiveName = ctx.directiveName().getText();
+
+  TokenGroup group = new TokenGroup();
+  group.addToken(new DirectiveName(directiveName));
+
+  // Visiting arguments and adding them to the token group
+  if (ctx.arguments() != null) {
+    for (ParseTree arg : ctx.arguments().children) {
+      Token token = arg.accept(this); // this will call visitByteSizeArg, visitTimeDurationArg, etc.
+      group.addToken(token);
+    }
   }
+
+  return group;
+}
+
 
   /**
    * A Directive can include identifiers, this method extracts that token that is being
@@ -300,6 +320,20 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new BoolList(booleans));
     return builder;
   }
+
+  @Override
+public Token visitByteSizeArg(WranglerParser.ByteSizeArgContext ctx) {
+  String text = ctx.getText(); // e.g., "10KB"
+  return new ByteSize(text);
+}
+
+
+@Override
+public Token visitTimeDurationArg(WranglerParser.TimeDurationArgContext ctx) {
+  String text = ctx.getText(); // e.g., "150ms"
+  return new TimeDuration(text);
+}
+
 
   /**
    * This visitor methods extracts the list of strings specified. It creates a token

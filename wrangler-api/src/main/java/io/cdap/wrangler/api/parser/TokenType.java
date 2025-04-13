@@ -104,7 +104,6 @@ public enum TokenType implements Serializable {
    * <code>
    *   Numeric[,Numeric]*
    * </code>
-   *
    */
   NUMERIC_LIST,
 
@@ -143,10 +142,22 @@ public enum TokenType implements Serializable {
    * This type is associated with a collection of range represented in the form shown
    * below
    * <code>
-   *   <start>:<end>=value[,<start>:<end>=value]*
+   *   <start>:<end>=value[,<start>:<en>=value]*
    * </code>
    */
   RANGES,
+
+  /**
+   * Represents the enumerated type for the object of {@code ByteSize} type.
+   * This type parses size values like "10KB", "5MB", etc.
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for the object of {@code TimeDuration} type.
+   * This type parses time durations like "150ms", "2s", etc.
+   */
+  TIME_DURATION,
 
   /**
    * Represents the enumerated type for the object of type {@code String} with restrictions
