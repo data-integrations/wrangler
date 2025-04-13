@@ -14,6 +14,7 @@
   ~ License for the specific language governing permissions and limitations under
   ~ the License.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>wrangler</artifactId>
@@ -33,8 +34,6 @@
   </repositories>
 
   <dependencies>
-
-    <!-- Internal -->
 
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -68,8 +67,6 @@
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
-
-    <!-- Test -->
 
     <dependency>
       <groupId>io.cdap.cdap</groupId>
@@ -105,8 +102,6 @@
       <version>2.0.2</version>
       <scope>test</scope>
     </dependency>
-
-    <!-- External -->
 
     <dependency>
       <groupId>com.github.everit-org.json-schema</groupId>
@@ -202,8 +197,6 @@
       <version>${reflections.version}</version>
     </dependency>
 
-    <!-- Apache -->
-
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
@@ -256,14 +249,11 @@
       <version>${commons-math3.version}</version>
     </dependency>
 
-    <!-- UHN -->
-
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-base</artifactId>
       <version>${hl7.version}</version>
     </dependency>
-    <!-- These are structure JARs for HL7 v2.1 and 2.5.1 (as an example) -->
     <dependency>
       <groupId>ca.uhn.hapi</groupId>
       <artifactId>hapi-structures-v21</artifactId>
@@ -334,6 +324,16 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.14.1</version>
+        <configuration>
+          <argLine>
+            --add-opens java.base/java.lang=ALL-UNNAMED
+          </argLine>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

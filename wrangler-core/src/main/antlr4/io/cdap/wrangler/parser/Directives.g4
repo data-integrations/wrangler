@@ -64,8 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
-    | byteSize
-    | timeDuration
+    | BYTE_SIZE
+    | TIME_DURATION
   )*?
   ;
 
@@ -314,8 +314,10 @@ fragment Digit
  : [0-9]
  ;
 
-fragment BYTE_UNIT : 'KB' | 'MB' | 'GB' | 'KiB' | 'MiB' | 'GiB' | 'B' | 'kb' | 'mb' | 'gb';
-fragment TIME_UNIT : 'ms' | 's' | 'seconds' | 'minutes';
+BYTE_SIZE
+ : [0-9]+ ('.' [0-9]+)? ( 'KB' | 'MB' | 'GB' | 'KiB' | 'MiB' | 'GiB' | 'B' | 'kb' | 'mb' | 'gb' )
+ ;
 
-byteSize : INT (BYTE_UNIT)?;
-timeDuration : INT TIME_UNIT;
+TIME_DURATION
+ : [0-9]+ ('.' [0-9]+)? ( 'ms' | 's' | 'seconds' | 'minutes' )
+ ;
