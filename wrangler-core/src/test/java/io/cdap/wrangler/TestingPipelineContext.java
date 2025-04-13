@@ -126,4 +126,11 @@ public class TestingPipelineContext implements ExecutorContext {
   public boolean isSchemaManagementEnabled() {
     return schemaManagementEnabled;
   }
+
+  
+  @Override
+  public boolean isFinalBatch() {
+    return true;
+  }
+
 }

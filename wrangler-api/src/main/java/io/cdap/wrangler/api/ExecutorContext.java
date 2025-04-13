@@ -81,4 +81,13 @@ public interface ExecutorContext extends LookupProvider, Serializable {
   default boolean isSchemaManagementEnabled() {
     return false;
   }
+
+  /**
+   * Returns whether this is the final batch of rows being processed.
+   * @return true if this is the final batch, false otherwise
+   */
+  default boolean isFinalBatch() {
+    return true;
+  }
+
 }

@@ -39,6 +39,37 @@ public interface TransientStore extends Serializable {
    */
   <T> T get(String name);
 
+   /**
+   * A value associated with the variable in the transient store, with scope.
+   *
+   * @param scope the scope of the variable
+   * @param name of the variable to be retrieved
+   * @param <T> type of the value to be returned
+   * @return instance of object of type T
+   */
+  default <T> T get(TransientVariableScope scope, String name) {
+    return get(name);
+  }
+
+  /**
+   * A value associated with the variable in the transient store, with scope and specified class.
+   *
+   * @param scope the scope of the variable
+   * @param name of the variable to be retrieved
+   * @param classz the class of the return type
+   * @param <T> type of the value to be returned
+   * @return instance of object of type T
+   */
+  default <T> T get(TransientVariableScope scope, String name, Class<T> classz) {
+    T value = get(scope, name);
+    if (value != null && !classz.isAssignableFrom(value.getClass())) {
+      throw new ClassCastException(
+        String.format("Cannot cast from %s to %s", value.getClass().getName(), classz.getName())
+      );
+    }
+    return value;
+  }
+
   /**
    * Sets the value of the object for variable named 'name'.
    *
