@@ -40,6 +40,12 @@ public interface Token extends Serializable {
    * @return {@code value} wrapped by the implementation of this interface.
    */
   Object value();
+  public enum Type {
+  ...
+  BYTE_SIZE,
+  TIME_DURATION
+}
+
 
   /**
    * Returns the {@code TokenType} of the object represented by the
