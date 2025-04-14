@@ -1,0 +1,33 @@
+# AI Prompts Used in Wrangler Project
+
+## 1. Initial Setup and Understanding
+- "I need to implement a new directive called aggregate-stats that will track total bytes and time across rows"
+- "Can you help me understand the structure of the wrangler project and where to add new directives?"
+
+## 2. Grammar and Parser
+- "I need to add a new directive called aggregate-stats to the Directives.g4 file"
+- "What is the correct syntax for adding a new directive to the grammar file?"
+
+## 3. API Implementation
+- "I need to create a TransientStore interface in wrangler-api"
+- "What methods should be included in the TransientStore interface?"
+- "I need to implement DefaultTransientStore in wrangler-core"
+
+## 4. Core Implementation
+- "I need to implement SizeTimeAggregator class"
+- "How should I handle byte size and time duration calculations?"
+- "I need to implement AggregateStatsDirective class"
+- "How should I integrate with the TransientStore?"
+
+## 5. Testing
+- "I need to create unit tests for AggregateStatsDirective"
+- "How should I test the aggregation functionality?"
+- "How do I mock the TransientStore in tests?"
+
+## 6. Build and Integration
+- "How do I fix the import error for TestingRig?"
+- "What dependencies need to be added to pom.xml?"
+
+## 7. Error Handling
+- "How should I handle invalid input in the aggregate-stats directive?"
+- "What are the best practices for error handling in wrangler directives?" 

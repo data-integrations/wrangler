@@ -1,0 +1,52 @@
+# AI Prompts Used in Development
+
+## Project Setup and Structure
+1. "Create a Spring Boot application for data ingestion between ClickHouse and Flat File with JWT authentication"
+2. "Design the project structure with appropriate packages and classes"
+3. "Set up ClickHouse configuration and connection management"
+
+## Core Implementation
+1. "Implement the DataIngestionService with methods for export and import operations"
+2. "Create the DataIngestionController with REST endpoints for data operations"
+3. "Implement JWT authentication and security configuration"
+4. "Add multi-table join support in the data export functionality"
+5. "Implement data preview functionality for both single and joined tables"
+
+## Web Interface
+1. "Create an HTML template for the data ingestion interface with Bootstrap styling"
+2. "Add support for file upload with progress tracking"
+3. "Implement data preview modal with table display"
+4. "Add error handling and success messages in the UI"
+
+## Testing
+1. "Create test configuration for ClickHouse connection"
+2. "Implement test cases for DataIngestionService"
+3. "Create controller tests with MockMvc"
+4. "Add test cases for error handling and edge cases"
+
+## Documentation
+1. "Create a comprehensive README.md with setup and usage instructions"
+2. "Document the API endpoints and their usage"
+3. "Add troubleshooting guide for common issues"
+
+## Code Review and Improvements
+1. "Review the code for best practices and potential improvements"
+2. "Suggest optimizations for data handling and performance"
+3. "Check for security vulnerabilities and suggest fixes"
+
+## Specific Implementation Details
+1. "How to handle large file uploads in Spring Boot"
+2. "Best practices for JWT token management"
+3. "Implementing progress tracking for file uploads"
+4. "Creating dynamic join conditions in SQL queries"
+5. "Handling ClickHouse-specific data types and conversions"
+
+## Error Handling
+1. "Implement proper exception handling for database operations"
+2. "Add user-friendly error messages in the UI"
+3. "Create logging strategy for debugging and monitoring"
+
+## Performance Optimization
+1. "Optimize SQL queries for large datasets"
+2. "Implement batch processing for file imports"
+3. "Add caching for frequently accessed data" 

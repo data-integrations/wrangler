@@ -64,8 +64,6 @@ directive
     | stringList
     | numberRanges
     | properties
-    | byteSize
-    | timeDuration
   )*?
   ;
 
@@ -197,13 +195,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-byteSize
- : BYTE_SIZE
- ;
-
-timeDuration
- : TIME_DURATION
- ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
