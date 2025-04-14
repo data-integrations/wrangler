@@ -31,6 +31,21 @@ More [here](wrangler-docs/upcoming-features.md) on upcoming features.
   * A new capability that allows CDAP Administrators to **restrict the directives** that are accessible to their users.
 More information on configuring can be found [here](wrangler-docs/exclusion-and-aliasing.md)
 
+## Enhancements
+
+### ByteSize and TimeDuration Parsers
+New token types have been added to support parsing of byte sizes and time durations:
+- **BYTE_SIZE**: Examples include "10KB", "1.5MB", "2GB".
+- **TIME_DURATION**: Examples include "200ms", "1.2s", "5seconds".
+
+### New Directive: aggregate-stats
+A new directive has been introduced to calculate aggregate statistics for byte sizes and time durations.
+
+**Usage:**
+```plaintext
+aggregate-stats :size_column :time_column total_size_mb total_time_sec
+```
+
 ## Demo Videos and Recipes
 
 Videos and Screencasts are best way to learn, so we have compiled simple, short screencasts that shows some of the features of Data Prep. Additional videos can be found [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl4n7zU4TWmIr)
@@ -216,3 +231,11 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+## Prompts
+
+Here are some useful prompts related to the new features:
+
+- **How to parse 10MB string in Java?**
+- **How to write custom directive in Wrangler?**
+- **ANTLR rule for matching units like KB and ms?**
