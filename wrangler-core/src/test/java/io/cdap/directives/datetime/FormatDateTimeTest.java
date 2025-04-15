@@ -19,13 +19,22 @@ import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class FormatDateTimeTest {
+
+  @Before
+  public void setUp() {
+    Locale.setDefault(Locale.US);
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+  }
 
   @Test
   public void testDateTimeFormats() throws Exception {
@@ -46,7 +55,7 @@ public class FormatDateTimeTest {
     Assert.assertEquals(1, rows.size());
     for (Row resultRow : rows) {
       for (int i = 0; i < testPatterns.length; i++) {
-        Assert.assertEquals(dateTimes[i], rows.get(0).getValue(colNames[i]));
+        Assert.assertEquals(dateTimes[i], rows.get(0).getValue(colNames[i]).toString().toUpperCase());
       }
     }
   }

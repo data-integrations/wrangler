@@ -171,11 +171,35 @@ public class ConvertString {
    * @return the string removed all whiteSpaces
    */
   public String removeRepeatedWhitespaces(String input) {
-    if (StringUtils.isEmpty(input) || removeWhiteSpacesPattern == null) {
-      return input;
+    if (input == null) return null;
+
+    StringBuilder result = new StringBuilder();
+    Character prevWhitespaceChar = null;
+
+    for (int i = 0; i < input.length(); i++) {
+      char currChar = input.charAt(i);
+      if (isWhitespaceChar(currChar)) {
+        // Only add the whitespace if it's different from the previous one
+        if (prevWhitespaceChar == null || currChar != prevWhitespaceChar) {
+          result.append(currChar);
+          prevWhitespaceChar = currChar;
+        }
+      } else {
+        result.append(currChar);
+        prevWhitespaceChar = null; // reset on non-whitespace
+      }
     }
-    Matcher matcher = removeWhiteSpacesPattern.matcher(input);
-    return matcher.replaceAll("$1");
+
+    return result.toString();
+  }
+
+  private boolean isWhitespaceChar(char ch) {
+    for (String ws : WHITESPACE_CHARS) {
+      if (ws.length() == 1 && ws.charAt(0) == ch) {
+        return true;
+      }
+    }
+    return Character.isWhitespace(ch); // fallback for common whitespaces
   }
 
 }

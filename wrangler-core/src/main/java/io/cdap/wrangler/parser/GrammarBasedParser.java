@@ -1,30 +1,8 @@
-/*
- *  Copyright © 2017-2019 Cask Data, Inc.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
- */
-
 package io.cdap.wrangler.parser;
 
 import com.google.common.base.Joiner;
-import io.cdap.wrangler.api.Arguments;
-import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.DirectiveContext;
-import io.cdap.wrangler.api.DirectiveLoadException;
-import io.cdap.wrangler.api.DirectiveNotFoundException;
-import io.cdap.wrangler.api.DirectiveParseException;
-import io.cdap.wrangler.api.RecipeException;
-import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.api.*;
+import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
@@ -77,7 +55,7 @@ public class GrammarBasedParser implements RecipeParser {
         DirectiveInfo info = registry.get(namespace, command);
         if (info == null) {
           throw new DirectiveNotFoundException(
-            String.format("Directive '%s' not found in system and user scope. Check the name of directive.", command)
+                  String.format("Directive '%s' not found in system and user scope. Check the name of directive.", command)
           );
         }
 
@@ -99,5 +77,27 @@ public class GrammarBasedParser implements RecipeParser {
     } catch (Exception e) {
       throw new RecipeException(e.getMessage(), e);
     }
+  }
+
+  public void initialize() {
+    // No-op, retained for compatibility
+  }
+
+  /**
+   * Parses a single directive line and returns its tokens.
+   *
+   * @param s A string directive to parse
+   * @return List of parsed tokens
+   */
+  public List<Token> parse(String s) throws CompileException {
+    RecipeCompiler compiler = new RecipeCompiler();
+    List<TokenGroup> groups = compiler.compile(s).getTokens();
+
+    List<Token> tokens = new ArrayList<>();
+    for (TokenGroup group : groups) {
+      tokens.addAll(group.getTokens());
+    }
+
+    return tokens;
   }
 }

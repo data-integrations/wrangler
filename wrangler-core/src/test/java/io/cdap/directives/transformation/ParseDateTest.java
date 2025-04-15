@@ -184,7 +184,7 @@ public class ParseDateTest {
     rows = TestingRig.execute(directives, rows);
 
     Assert.assertTrue(rows.size() == 6);
-    // TODO CDAP-14243 - add more tests once the issue with parser is fixed
+
   }
 
   @Test
