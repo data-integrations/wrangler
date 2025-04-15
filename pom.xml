@@ -146,7 +146,43 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Development Snapshot Repository</name>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </repository>
   </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>apache.snapshots</id>
+      <name>Apache Development Snapshot Repository</name>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </pluginRepository>
+
+  </pluginRepositories>
 
   <dependencyManagement>
     <dependencies>
@@ -183,6 +219,14 @@
           <configuration>
             <source>1.8</source>
             <target>1.8</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M9</version>
+          <configuration>
+            <argLine>-Duser.timezone=UTC</argLine>
           </configuration>
         </plugin>
         <plugin>
@@ -238,6 +282,14 @@
               </configuration>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M9</version>
+          <configuration>
+            <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -297,268 +349,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.14.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.rat</groupId>
-        <artifactId>apache-rat-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-      </plugin>
     </plugins>
   </build>
-
-   <!-- Profile for release. Includes signing of jars. -->
-  <profiles>
-    <profile>
-      <id>release</id>
-      <build>
-        <plugins>
-          <!-- Source JAR -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <version>2.2.1</version>
-            <configuration>
-              <excludeResources>true</excludeResources>
-            </configuration>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>jar-no-fork</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-
-          <!-- Javadoc jar -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9.1</version>
-            <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
-              <failOnError>false</failOnError>
-              <links>
-                <link>http://download.oracle.com/javase/${jee.version}/docs/api/</link>
-              </links>
-              <doctitle>${project.name} ${project.version}</doctitle>
-              <bottom>
-                <![CDATA[Copyright &#169; {currentYear} <a href="http://cdap.io" target="_blank">CDAP</a> Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a>.]]>
-              </bottom>
-            </configuration>
-            <executions>
-              <execution>
-                <id>attach-javadoc</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.5</version>
-            <configuration>
-              <passphrase>${gpg.passphrase}</passphrase>
-              <useAgent>${gpg.useagent}</useAgent>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-release-plugin</artifactId>
-            <version>2.5.3</version>
-            <configuration>
-              <tag>v${releaseVersion}</tag>
-              <tagNameFormat>v@{project.version}</tagNameFormat>
-              <autoVersionSubmodules>true</autoVersionSubmodules>
-              <!-- releaseProfiles configuration will actually force a Maven profile
-                – the `releases` profile – to become active during the Release process. -->
-              <releaseProfiles>releases</releaseProfiles>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.2</version>
-            <extensions>true</extensions>
-            <configuration>
-              <nexusUrl>https://oss.sonatype.org</nexusUrl>
-              <serverId>sonatype.release</serverId>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>cloudBuild</id>
-      <activation>
-        <property><name>cloudBuild</name></property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <useFile>false</useFile>
-              <redirectTestOutputToFile>false</redirectTestOutputToFile>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>e2e-tests</id>
-      <properties>
-        <testSourceLocation>src/e2e-test/java</testSourceLocation>
-        <TEST_RUNNER>TestRunner.java</TEST_RUNNER>
-      </properties>
-      <build>
-        <testResources>
-          <testResource>
-            <directory>src/e2e-test/resources</directory>
-          </testResource>
-        </testResources>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.18.1</version>
-            <configuration>
-              <skipTests>true</skipTests>
-            </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>3.0.0</version>
-            <dependencies>
-              <dependency>
-                <groupId>org.apache.maven.surefire</groupId>
-                <artifactId>surefire-junit47</artifactId>
-                <version>3.0.0</version>
-              </dependency>
-            </dependencies>
-            <configuration>
-              <includes>
-                <include>${TEST_RUNNER}</include>
-              </includes>
-              <!--Start configuration to run TestRunners in parallel-->
-              <parallel>classes</parallel> <!--Running TestRunner classes in parallel-->
-              <threadCount>2</threadCount> <!--Number of classes to run in parallel-->
-              <forkCount>2</forkCount> <!--Number of JVM processes -->
-              <reuseForks>true</reuseForks>
-              <!--End configuration to run TestRunners in parallel-->
-              <environmentVariables>
-                <GOOGLE_APPLICATION_CREDENTIALS>
-                  ${GOOGLE_APPLICATION_CREDENTIALS}
-                </GOOGLE_APPLICATION_CREDENTIALS>
-                <SERVICE_ACCOUNT_TYPE>
-                  ${SERVICE_ACCOUNT_TYPE}
-                </SERVICE_ACCOUNT_TYPE>
-                <SERVICE_ACCOUNT_FILE_PATH>
-                  ${SERVICE_ACCOUNT_FILE_PATH}
-                </SERVICE_ACCOUNT_FILE_PATH>
-                <SERVICE_ACCOUNT_JSON>
-                  ${SERVICE_ACCOUNT_JSON}
-                </SERVICE_ACCOUNT_JSON>
-              </environmentVariables>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-<!--                  <goal>verify</goal>-->
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>net.masterthought</groupId>
-            <artifactId>maven-cucumber-reporting</artifactId>
-            <version>5.5.0</version>
-
-            <executions>
-              <execution>
-                <id>execution</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>generate</goal>
-                </goals>
-                <configuration>
-                  <projectName>Cucumber Reports</projectName> <!-- Replace with project name -->
-                  <outputDirectory>target/cucumber-reports/advanced-reports</outputDirectory>
-                  <buildNumber>1</buildNumber>
-                  <skip>false</skip>
-                  <inputDirectory>${project.build.directory}/cucumber-reports</inputDirectory>
-                  <jsonFiles> <!-- supports wildcard or name pattern -->
-                    <param>**/*.json</param>
-                  </jsonFiles> <!-- optional, defaults to outputDirectory if not specified -->
-                  <classificationDirectory>${project.build.directory}/cucumber-reports</classificationDirectory>
-                  <checkBuildResult>true</checkBuildResult>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-      <dependencyManagement>
-        <dependencies>
-          <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-          </dependency>
-        </dependencies>
-      </dependencyManagement>
-
-      <dependencies>
-        <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-          <version>1.7.15</version>
-        </dependency>
-
-        <dependency>
-          <groupId>io.cdap.tests.e2e</groupId>
-          <artifactId>cdap-e2e-framework</artifactId>
-          <version>0.5.0-SNAPSHOT</version>
-          <scope>test</scope>
-        </dependency>
-
-        <dependency>
-          <groupId>ch.qos.logback</groupId>
-          <artifactId>logback-classic</artifactId>
-          <version>1.2.8</version>
-          <scope>runtime</scope>
-        </dependency>
-      </dependencies>
-
-    </profile>
-  </profiles>
 </project>

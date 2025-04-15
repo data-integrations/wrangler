@@ -149,7 +149,11 @@ public final class RecipeSymbol {
     return output;
   }
 
-  /**
+    public List<TokenGroup> getTokens() {
+      return tokens;
+    }
+
+    /**
    * This inner class provides a builder pattern for building
    * the <code>RecipeSymbol</code> object. In order to create the
    * this builder, one has to use the static method defined in

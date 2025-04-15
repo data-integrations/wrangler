@@ -20,6 +20,7 @@ import io.cdap.wrangler.api.parser.SyntaxError;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * This class <code>CompileStatus</code> contains the status of compilation.
@@ -55,4 +56,8 @@ public final class CompileStatus {
   public RecipeSymbol getSymbols() {
     return symbols;
   }
+
+    public List<TokenGroup> getTokens() {
+      return symbols.getTokens();
+    }
 }

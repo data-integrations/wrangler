@@ -19,6 +19,7 @@ package io.cdap.wrangler.api;
 import io.cdap.wrangler.api.parser.Token;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -58,4 +59,8 @@ public final class TokenGroup {
   public SourceInfo getSourceInfo() {
     return info;
   }
+
+    public Collection<? extends Token> getTokens() {
+      return tokens;
+    }
 }

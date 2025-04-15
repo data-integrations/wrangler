@@ -100,6 +100,10 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
+            <Import-Package>
+              *,
+              io.cdap.wrangler.api.parser;version="[${project.version},${project.version}]"
+            </Import-Package>
             <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Directory>lib</Embed-Directory>

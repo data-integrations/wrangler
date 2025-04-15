@@ -41,11 +41,23 @@ public class RecipeException extends Exception {
     this(message, throwable, UNKNOWN_INDEX, UNKNOWN_INDEX);
   }
 
+  public RecipeException(String format) {
+    this(format, null, UNKNOWN_INDEX, UNKNOWN_INDEX);
+  }
+
   public int getRowIndex() {
     return rowIndex;
   }
 
   public int getDirectiveIndex() {
     return directiveIndex;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder(super.toString());
+    sb.append(" [Row Index: ").append(rowIndex)
+            .append(", Directive Index: ").append(directiveIndex).append("]");
+    return sb.toString();
   }
 }

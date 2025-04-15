@@ -155,4 +155,5 @@ public class Decode implements Directive, Lineage {
       .relation(column, column)
       .build();
   }
+
 }

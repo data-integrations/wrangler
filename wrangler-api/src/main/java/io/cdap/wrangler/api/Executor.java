@@ -58,7 +58,7 @@ public interface Executor<I, O> extends Serializable {
    * @throws DirectiveParseException thrown by the user in case of any issues with validation or
    * ensuring the argument values are as expected.
    */
-  void initialize(Arguments args) throws DirectiveParseException;
+  void initialize(Arguments args) throws DirectiveParseException, RecipeException;
 
   /**
    * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
