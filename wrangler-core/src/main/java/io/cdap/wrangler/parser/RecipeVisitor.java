@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -34,6 +35,7 @@ import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
 import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -226,6 +228,32 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   @Override
   public RecipeSymbol.Builder visitBool(DirectivesParser.BoolContext ctx) {
     builder.addToken(new Bool(Boolean.valueOf(ctx.Bool().getText())));
+    return builder;
+  }
+
+  /**
+   * A Directive can consist of a ByteSize field. The ByteSize field is
+   * represented as
+   * a number followed by a byte unit (e.g., "10KB", "5MB"). This visitor method
+   * extracts
+   * the byte size value into a token type <code>ByteSize</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitByteSize(DirectivesParser.ByteSizeContext ctx) {
+    builder.addToken(new ByteSize(ctx.BYTE_SIZE().getText()));
+    return builder;
+  }
+
+  /**
+   * A Directive can consist of a TimeDuration field. The TimeDuration field is
+   * represented as
+   * a number followed by a time unit (e.g., "5s", "10m", "2h"). This visitor
+   * method extracts
+   * the time duration value into a token type <code>TimeDuration</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitTimeDuration(DirectivesParser.TimeDurationContext ctx) {
+    builder.addToken(new TimeDuration(ctx.TIME_DURATION().getText()));
     return builder;
   }
 
