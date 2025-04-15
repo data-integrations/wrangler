@@ -156,8 +156,14 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
  ;
+
 
 ecommand
  : '!' Identifier
@@ -331,16 +337,6 @@ fragment Int
  : '-'? [1-9] Digit* [L]*
  | '0'
  ;
-
-value
- : String
- | Number
- | Column
- | Bool
- | BYTE_SIZE
- | TIME_DURATION
- ;
-
 
 fragment Digit
  : [0-9]
