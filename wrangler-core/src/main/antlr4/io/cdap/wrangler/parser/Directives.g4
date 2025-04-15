@@ -257,6 +257,22 @@ Number
  : Int ('.' Digit*)?
  ;
 
+BYTE_SIZE
+ : Int ('.' Digit*)? BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Int ('.' Digit*)? TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'KiB' | 'MiB' | 'GiB')
+ ;
+
+fragment TIME_UNIT
+ : ('ns' | 'us' | 'ms' | 's' | 'm' | 'h' | 'd')
+ ;
+
 Identifier
  : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
  ;
