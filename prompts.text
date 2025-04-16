@@ -10,6 +10,7 @@ Also, include helpful fragments like BYTE_UNIT, TIME_UNIT. Finally, show how to 
 (or create byteSizeArg, timeDurationArg if needed) so the new tokens are accepted as directive arguments.
 
 
+
 Prompt 2: Create ByteSize and TimeDuration Token Classes
 I am working on a Java project where tokens represent directive arguments. Help me create two new token classes:
 
@@ -26,7 +27,7 @@ Internally store the value in canonical units (bytes for ByteSize, milliseconds 
 Provide getter methods like getBytes() and getMilliseconds()
 
 
- Prompt 3: Update Token Types and Directive Argument Support
+Prompt 3: Update Token Types and Directive Argument Support
 I am extending a token parsing framework in Java for a data transformation tool. Guide me to:
 
 Add two new token types: BYTE_SIZE and TIME_DURATION in the token registry or enum used (if any).
