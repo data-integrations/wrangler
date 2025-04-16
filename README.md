@@ -28,7 +28,7 @@ This enhancement introduces native support for byte size and time duration units
    - A new directive called `aggregate-stats` has been added to allow aggregation of byte sizes and time durations across rows, including unit conversions (e.g., converting total bytes to MB or total time to seconds).
    - This directive supports various aggregation types such as total, average, median, p95, and p99.
 
-###Installation and Build
+### Installation and Build
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/ayushmaan2207/wrangler.git
