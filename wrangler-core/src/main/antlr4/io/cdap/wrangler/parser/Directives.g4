@@ -65,27 +65,27 @@ directive
     | numberRanges
     | properties
   )*?
-  ;
+ ;
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
-  ;
+ ;
 
 ifStat
   : 'if' expression '{' statements
-  ;
+ ;
 
 elseIfStat
   : '}' 'else' 'if' expression '{' statements
-  ;
+ ;
 
 elseStat
   : '}' 'else' '{' statements
-  ;
+ ;
 
 expression
   : '(' (~'(' | expression)* ')'
-  ;
+ ;
 
 forStatement
  : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
@@ -140,7 +140,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE       // Accepts values like "10KB", "1.5MB"
+ | TIME_DURATION   // Accepts values like "150ms", "2.1s"
  ;
 
 ecommand
@@ -195,7 +200,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
@@ -247,7 +251,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -280,20 +283,19 @@ EscapeSequence
    |   OctalEscape
    ;
 
-fragment
-OctalEscape
+fragment OctalEscape
    :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
    |   '\\' ('0'..'7') ('0'..'7')
    |   '\\' ('0'..'7')
    ;
 
-fragment
-UnicodeEscape
+fragment UnicodeEscape
    :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
    ;
 
-fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+fragment HexDigit
+   : ('0'..'9'|'a'..'f'|'A'..'F')
+ ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
@@ -303,6 +305,23 @@ Space
  : [ \t\r\n\u000C]+ -> skip
  ;
 
+// New lexer rules for parsing byte sizes and time durations
+
+BYTE_SIZE 
+ : [0-9]+ ('.' [0-9]+)? BYTE_UNIT
+ ;
+fragment BYTE_UNIT 
+ : (('K'|'k'|'M'|'m'|'G'|'g'|'T'|'t')? ('B'|'b'))
+ ;
+
+TIME_DURATION 
+ : [0-9]+ ('.' [0-9]+)? TIME_UNIT
+ ;
+fragment TIME_UNIT 
+ : ('ms'|'MS'|'s'|'S')
+ ;
+
+// Existing fragments for numbers
 fragment Int
  : '-'? [1-9] Digit* [L]*
  | '0'
