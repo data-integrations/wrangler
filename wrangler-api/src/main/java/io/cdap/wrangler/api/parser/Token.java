@@ -32,6 +32,7 @@ import java.io.Serializable;
  * of this interface.</p>
  */
 @PublicEvolving
+
 public interface Token extends Serializable {
   /**
    * Returns the {@code value} of the object wrapped by the
@@ -57,3 +58,4 @@ public interface Token extends Serializable {
    */
   JsonElement toJson();
 }
+// [blank line here]
