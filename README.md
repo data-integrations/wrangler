@@ -89,6 +89,7 @@ These directives are currently available:
 | [Write JSON Object](wrangler-docs/directives/write-as-json-object.md)           | Composes a JSON object based on the fields specified.            |
 | [Format as Currency](wrangler-docs/directives/format-as-currency.md)            | Formats a number as currency as specified by locale.             |
 | **Transformations**                                                    |                                                                  |
+| [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md) | Analyzes byte size and time duration values, generating statistics |
 | [Changing Case](wrangler-docs/directives/changing-case.md)                      | Changes the case of column values                                |
 | [Cut Character](wrangler-docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
 | [Set Column](wrangler-docs/directives/set-column.md)                            | Sets the column value to the result of an expression execution   |
@@ -175,6 +176,28 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
+## Byte Size and Time Duration Support
+
+The Wrangler library provides support for parsing and aggregating byte size and time duration values. This feature allows you to work with human-readable size and duration values directly in your recipes.
+
+### Byte Size Units
+
+The following byte size units are supported:
+
+-   B: Bytes
+-   KB: Kilobytes (1024 bytes)
+-   MB: Megabytes (1024 \* 1024 bytes)
+-   GB: Gigabytes (1024 _ 1024 _ 1024 bytes)
+-   TB: Terabytes (1024 _ 1024 _ 1024 \* 1024 bytes)
+
+### Time Duration Units
+
+The following time duration units are supported:
+
+-   ms: Milliseconds
+-   s: Seconds
+-   m: Minutes
+-   h: Hours
 
 ## Contact
 

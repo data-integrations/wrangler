@@ -1,0 +1,120 @@
+Prompt 1
+I am modifying an ANTLR grammar for a Java project. Help me write lexer and parser rules in Directives.g4 for 
+two new tokens:
+
+BYTE_SIZE → matches values like "10KB", "2.5MB", "1GB".
+
+TIME_DURATION → matches values like "5ms", "3.2s", "1min".
+
+Also, include helpful fragments like BYTE_UNIT, TIME_UNIT. Finally, show how to update the value parser rule 
+(or create byteSizeArg, timeDurationArg if needed) so the new tokens are accepted as directive arguments.
+
+
+Prompt 2: Create ByteSize and TimeDuration Token Classes
+I am working on a Java project where tokens represent directive arguments. Help me create two new token classes:
+
+ByteSize.java and TimeDuration.java
+
+Each class should:
+
+Extend io.cdap.wrangler.api.parser.Token
+
+Parse strings like "10KB", "2.5MB", "1GB" (for ByteSize) and "500ms", "1.2s", "3min" (for TimeDuration)
+
+Internally store the value in canonical units (bytes for ByteSize, milliseconds or nanoseconds for TimeDuration)
+
+Provide getter methods like getBytes() and getMilliseconds()
+
+
+ Prompt 3: Update Token Types and Directive Argument Support
+I am extending a token parsing framework in Java for a data transformation tool. Guide me to:
+
+Add two new token types: BYTE_SIZE and TIME_DURATION in the token registry or enum used (if any).
+
+Update the logic that defines valid argument types in directives, 
+so that BYTE_SIZE and TIME_DURATION can be accepted where appropriate.
+
+Mention any necessary updates in registration/configuration files or classes if applicable.
+
+
+
+Prompt 4: Add Visitor Methods for New Parser Rules
+In my ANTLR-based Java parser for a directive language, 
+I’ve added two new parser rules: byteSizeArg and timeDurationArg. Help me:
+
+Implement visitor methods visitByteSizeArg and visitTimeDurationArg in the appropriate visitor or parser class.
+
+These methods should return instances of ByteSize and TimeDuration tokens respectively using ctx.getText().
+
+Ensure these token instances are added to the TokenGroup for the directive being parsed.
+
+Prompt 5: Implement New AggregateStats Directive
+I’m creating a new directive class called AggregateStats in a Java-based data transformation engine. Guide me to:
+
+Implement the Directive interface
+
+Accept at least 4 arguments:
+
+Source column (byte sizes)
+
+Source column (time durations)
+
+Target column for total size
+
+Target column for total/average time
+
+Optionally accept:
+
+Aggregation type (total, avg)
+
+Output unit (MB, GB, seconds, minutes)
+
+In initialize, store the argument values
+
+In execute, use ExecutorContext.getStore() to:
+
+Accumulate byte size and time duration values (convert to canonical units)
+
+In finalize, return a single Row with converted results (e.g., MB, seconds)
+
+
+Prompt 6: Write Unit Tests for ByteSize and TimeDuration
+Help me write JUnit tests for one Java class: ByteSize and TimeDuration.
+ These class parse strings like "10KB" and "500ms" respectively.
+
+Test valid cases: "10KB", "1.5MB", "1GB" for ByteSize and "500ms", "2s", "1min" for TimeDuration.
+
+Verify that getBytes() or getMilliseconds() return the correct canonical values.
+
+Include a few invalid input tests and assert that they throw proper exceptions.
+
+
+Prompt 7: Write Parser Tests for New Grammar
+I’ve added BYTE_SIZE and TIME_DURATION tokens to an ANTLR grammar. Help me write parser tests in Java to:
+
+Validate that inputs like "10KB", "1.5MB", "5ms", "3min" are accepted in directive recipes.
+
+Use test classes like GrammarBasedParserTest.java or RecipeCompilerTest.java.
+
+Also test invalid values (e.g., "10KBB", "1..5MB", "ms5") and ensure they are rejected.
+
+
+
+Prompt 8: Write Integration Test for AggregateStats Directive
+I’ve created an AggregateStats directive that aggregates byte size and time duration columns. Help me write an integration test using TestingRig to:
+
+Create input data: List<Row> with columns like data_transfer_size and response_time using values like "1MB", "500KB", "2s", "500ms".
+
+Define recipe like:
+
+java
+Copy
+Edit
+String[] recipe = new String[] {
+  "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec"
+};
+Execute with TestingRig.execute(recipe, rows)
+
+Assert that the resulting row contains correct aggregated values (in MB and seconds)
+
+Use a delta tolerance (e.g., 0.001) for comparing float values
