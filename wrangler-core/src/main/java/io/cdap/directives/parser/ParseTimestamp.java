@@ -8,8 +8,8 @@
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  *  License for the specific language governing permissions and limitations under
  *  the License.
  */
@@ -32,6 +32,7 @@ import io.cdap.wrangler.api.lineage.Lineage;
 import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 
@@ -62,7 +63,7 @@ public class ParseTimestamp implements Directive, Lineage {
   public UsageDefinition define() {
     UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
     builder.define("column", TokenType.COLUMN_NAME);
-    builder.define("timeunit", TokenType.TEXT, Optional.TRUE);
+    builder.define("timeunit", TokenType.TIME_DURATION, Optional.TRUE);
     return builder.build();
   }
 
@@ -72,8 +73,21 @@ public class ParseTimestamp implements Directive, Lineage {
     this.timeUnit = TimeUnit.MILLISECONDS;
 
     if (args.contains("timeunit")) {
-      String unitValue = ((Text) args.value("timeunit")).value();
-      this.timeUnit = getTimeUnit(unitValue);
+      String value = ((TimeDuration) args.value("timeunit")).value();
+      String unitValue = value.replaceAll("[0-9.]", ""); // Extract just the unit part
+      try {
+        TimeUnit unit = TimeUnit.valueOf(unitValue.toUpperCase());
+        if (!SUPPORTED_TIME_UNITS.contains(unit)) {
+          throw new DirectiveParseException(
+            NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
+                            unitValue, SUPPORTED_TIME_UNITS));
+        }
+        this.timeUnit = unit;
+      } catch (IllegalArgumentException e) {
+        throw new DirectiveParseException(
+          NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
+                          unitValue, SUPPORTED_TIME_UNITS), e);
+      }
     }
   }
 
@@ -103,24 +117,36 @@ public class ParseTimestamp implements Directive, Lineage {
     return rows;
   }
 
-  private static TimeUnit getTimeUnit(String unitValue) throws DirectiveParseException {
-    TimeUnit unit;
-
+  private long getLongValue(Object object) throws ErrorRowException {
+    String errorMsg = String.format("Invalid type '%s' of column '%s'. Must be of type 'Long' or 'String'.",
+                                  object.getClass().getSimpleName(), column);
     try {
-      unit = TimeUnit.valueOf(unitValue.toUpperCase());
-    } catch (IllegalArgumentException e) {
-      throw new DirectiveParseException(
-        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
-                            unitValue, SUPPORTED_TIME_UNITS), e);
+      if (object instanceof Long) {
+        return (long) object;
+      } else if (object instanceof String) {
+        return Long.parseLong((String) object);
+      }
+    } catch (Exception e) {
+      errorMsg = String.format("Invalid value for column '%s'. Must be of type 'Long' or 'String' " +
+                             "representing long.", column);
     }
+    throw new ErrorRowException(NAME, errorMsg, 2);
+  }
 
-    if (!SUPPORTED_TIME_UNITS.contains(unit)) {
-      throw new DirectiveParseException(
-        NAME, String.format("Time unit '%s' is not a supported time unit. Supported time units are %s",
-                            unitValue, SUPPORTED_TIME_UNITS));
+  private ZonedDateTime getZonedDateTime(long ts, TimeUnit unit, ZoneId zoneId) {
+    switch (unit) {
+      case SECONDS:
+        return Instant.ofEpochSecond(ts).atZone(zoneId);
+      case MILLISECONDS:
+        return Instant.ofEpochMilli(ts).atZone(zoneId);
+      case MICROSECONDS:
+        long epochSeconds = ts / 1_000_000;
+        long nanos = (ts % 1_000_000) * 1_000;
+        return Instant.ofEpochSecond(epochSeconds, nanos).atZone(zoneId);
+      default:
+        // This shouldn't happen since we validate in initialize()
+        throw new IllegalStateException("Unsupported time unit: " + unit);
     }
-
-    return unit;
   }
 
   @Override
@@ -129,32 +155,5 @@ public class ParseTimestamp implements Directive, Lineage {
       .readable("Parsed column '%s' as a timestamp using time unit as '%s'", column, timeUnit)
       .relation(column, column)
       .build();
-  }
-
-  private long getLongValue(Object object) throws ErrorRowException {
-    String errorMsg = String.format("Invalid type '%s' of column '%s'. Must be of type 'Long' or 'String'.",
-                                    object.getClass().getSimpleName(), column);
-    try {
-      if (object instanceof Long) {
-        return (long) object;
-      } else if (object instanceof String) {
-        return Long.parseLong((String) object);
-      }
-    } catch (Exception e) {
-      // Exception while casting the object, do not handle it here, so that ErrorRowException is thrown.
-      errorMsg = String.format("Invalid value for column '%s'. Must be of type 'Long' or 'String' " +
-                                 "representing long.", column);
-    }
-
-    throw new ErrorRowException(NAME, errorMsg, 2);
-  }
-
-  private ZonedDateTime getZonedDateTime(long ts, TimeUnit unit, ZoneId zoneId) {
-    long mod = unit.convert(1, TimeUnit.SECONDS);
-    int fraction = (int) (ts % mod);
-    long tsInSeconds = unit.toSeconds(ts);
-    // create an Instant with time in seconds and fraction which will be stored as nano seconds.
-    Instant instant = Instant.ofEpochSecond(tsInSeconds, unit.toNanos(fraction));
-    return ZonedDateTime.ofInstant(instant, zoneId);
   }
 }

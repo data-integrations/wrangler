@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize     // New rule for byte size
+    | timeDuration // New rule for time duration
   )*?
   ;
 
@@ -195,6 +197,13 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+byteSize
+ : ByteSize
+ ;
+
+timeDuration
+ : TimeDuration
+ ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -247,7 +256,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -255,6 +263,29 @@ Bool
 
 Number
  : Int ('.' Digit*)?
+ ;
+
+ByteSize
+ : Int ('.' Digit*)? ByteUnit
+ ;
+
+TimeDuration
+ : Int ('.' Digit*)? TimeUnit
+ ;
+
+fragment ByteUnit
+ : [kK][bB]    // KB
+ | [mM][bB]    // MB
+ | [gG][bB]    // GB
+ | [tT][bB]    // TB
+ ;
+
+fragment TimeUnit
+ : 'ms'        // milliseconds
+ | 's'         // seconds 
+ | 'm'         // minutes
+ | 'h'         // hours
+ | 'd'         // days
  ;
 
 Identifier
