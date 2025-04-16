@@ -280,9 +280,12 @@ EscapeSequence
    |   OctalEscape
    ;
 
-BYTE_SIZE : NUMBER (DOT NUMBER)? BYTE_UNIT ;
+BYTE_SIZE
+  : Number ('.' Number)? BYTE_UNIT ;
 
-TIME_DURATION : NUMBER (DOT NUMBER)? TIME_UNIT ;
+TIME_DURATION
+  : Number ('.' Number)? TIME_UNIT ;
+
 
 fragment
 OctalEscape

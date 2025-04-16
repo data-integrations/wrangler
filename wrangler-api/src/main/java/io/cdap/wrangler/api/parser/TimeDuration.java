@@ -16,6 +16,8 @@
 
 package io.cdap.wrangler.api.parser;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,8 +26,11 @@ import java.util.regex.Pattern;
  * A token class representing time durations with various units (ns, ms, s, min, h, d).
  * Examples: "150ms", "2.5s", "10min"
  */
-public class TimeDuration extends Token {
-  private static final Pattern PATTERN = Pattern.compile("^(\\d+(?:\\.\\d+)?)\\s*(ns|ms|s|min|h|hr|d|day)$", Pattern.CASE_INSENSITIVE);
+public class TimeDuration implements Token {
+  private static final Pattern PATTERN = Pattern.compile(
+    "^(\\d+(?:\\.\\d+)?)\\s*(ns|ms|s|min|h|hr|d|day)$", 
+    Pattern.CASE_INSENSITIVE
+  );
   
   private final double value;
   private final String unit;
@@ -35,27 +40,13 @@ public class TimeDuration extends Token {
    * Constructor to parse a time duration string.
    *
    * @param timeDuration The string representation of a time duration (e.g., "150ms", "2.5s").
-   * @throws TokenException If the string cannot be parsed as a valid time duration.
    */
-  public TimeDuration(String timeDuration) throws TokenException {
-    super(timeDuration);
+  public TimeDuration(String timeDuration) {
+    Matcher matcher = PATTERN.matcher(timeDuration.trim());
     
-    if (timeDuration == null || timeDuration.isEmpty()) {
-      throw new TokenException("Time duration cannot be null or empty");
-    }
-    
-    try {
-      Matcher matcher = PATTERN.matcher(timeDuration.trim());
-      if (!matcher.matches()) {
-        throw new TokenException(String.format("Invalid time duration format: '%s'. Expected format: '150ms', '2.5s', etc.", timeDuration));
-      }
-      
-      this.value = Double.parseDouble(matcher.group(1));
-      this.unit = matcher.group(2).toLowerCase(Locale.ENGLISH);
-      this.nanoseconds = convertToNanoseconds(this.value, this.unit);
-    } catch (NumberFormatException e) {
-      throw new TokenException(String.format("Failed to parse numeric part of time duration: '%s'", timeDuration), e);
-    }
+    this.value = Double.parseDouble(matcher.group(1));
+    this.unit = matcher.group(2).toLowerCase(Locale.ENGLISH);
+    this.nanoseconds = convertToNanoseconds(this.value, this.unit);
   }
   
   /**
@@ -63,7 +54,7 @@ public class TimeDuration extends Token {
    *
    * @return The numeric value.
    */
-  public double getValue() {
+  public Double value() {
     return value;
   }
   
@@ -136,9 +127,8 @@ public class TimeDuration extends Token {
    * @param value The numeric value.
    * @param unit The unit (e.g., "ns", "ms", "s", etc.).
    * @return The equivalent duration in nanoseconds.
-   * @throws TokenException If the unit is not recognized.
    */
-  private long convertToNanoseconds(double value, String unit) throws TokenException {
+  private long convertToNanoseconds(double value, String unit) {
     switch (unit) {
       case "ns":
         return (long) value;
@@ -154,13 +144,20 @@ public class TimeDuration extends Token {
       case "d":
       case "day":
         return (long) (value * 24 * 3600 * 1_000_000_000);
-      default:
-        throw new TokenException(String.format("Unrecognized time duration unit: '%s'", unit));
     }
+    return (long) value;
   }
   
   @Override
-  public TokenType getType() {
+  public TokenType type() {
     return TokenType.TIME_DURATION;
+  }
+
+  @Override
+  public JsonElement toJson() {
+    JsonObject object = new JsonObject();
+    object.addProperty("type", TokenType.TIME_DURATION.name());
+    object.addProperty("value", value);
+    return object;
   }
 }

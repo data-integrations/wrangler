@@ -16,6 +16,8 @@
 
 package io.cdap.wrangler.api.parser;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,8 +26,11 @@ import java.util.regex.Pattern;
  * A token class representing byte sizes with various units (B, KB, MB, GB, TB).
  * Examples: "10KB", "1.5MB", "2GB"
  */
-public class ByteSize extends Token {
-  private static final Pattern PATTERN = Pattern.compile("^(\\d+(?:\\.\\d+)?)\\s*((?:k|m|g|t)?b)$", Pattern.CASE_INSENSITIVE);
+public class ByteSize implements Token {
+  private static final Pattern PATTERN = Pattern.compile(
+    "^(\\d+(?:\\.\\d+)?)\\s*((?:k|m|g|t)?b)$", 
+    Pattern.CASE_INSENSITIVE
+  );
   
   private final double value;
   private final String unit;
@@ -35,27 +40,13 @@ public class ByteSize extends Token {
    * Constructor to parse a byte size string.
    *
    * @param byteSize The string representation of a byte size (e.g., "10KB", "1.5MB").
-   * @throws TokenException If the string cannot be parsed as a valid byte size.
    */
-  public ByteSize(String byteSize) throws TokenException {
-    super(byteSize);
+  public ByteSize(String byteSize) {
+    Matcher matcher = PATTERN.matcher(byteSize.trim());
     
-    if (byteSize == null || byteSize.isEmpty()) {
-      throw new TokenException("Byte size cannot be null or empty");
-    }
-    
-    try {
-      Matcher matcher = PATTERN.matcher(byteSize.trim());
-      if (!matcher.matches()) {
-        throw new TokenException(String.format("Invalid byte size format: '%s'. Expected format: '10KB', '1.5MB', etc.", byteSize));
-      }
-      
-      this.value = Double.parseDouble(matcher.group(1));
-      this.unit = matcher.group(2).toLowerCase(Locale.ENGLISH);
-      this.bytes = convertToBytes(this.value, this.unit);
-    } catch (NumberFormatException e) {
-      throw new TokenException(String.format("Failed to parse numeric part of byte size: '%s'", byteSize), e);
-    }
+    this.value = Double.parseDouble(matcher.group(1));
+    this.unit = matcher.group(2).toLowerCase(Locale.ENGLISH);
+    this.bytes = convertToBytes(this.value, this.unit);
   }
   
   /**
@@ -63,7 +54,7 @@ public class ByteSize extends Token {
    *
    * @return The numeric value.
    */
-  public double getValue() {
+  public Double value() {
     return value;
   }
   
@@ -127,9 +118,8 @@ public class ByteSize extends Token {
    * @param value The numeric value.
    * @param unit The unit (e.g., "b", "kb", "mb", etc.).
    * @return The equivalent size in bytes.
-   * @throws TokenException If the unit is not recognized.
    */
-  private long convertToBytes(double value, String unit) throws TokenException {
+  private long convertToBytes(double value, String unit) {
     if (unit.equals("b")) {
       return (long) value;
     } else if (unit.equals("kb")) {
@@ -140,13 +130,20 @@ public class ByteSize extends Token {
       return (long) (value * 1024 * 1024 * 1024);
     } else if (unit.equals("tb")) {
       return (long) (value * 1024 * 1024 * 1024 * 1024);
-    } else {
-      throw new TokenException(String.format("Unrecognized byte size unit: '%s'", unit));
     }
+    return (long) value;
   }
   
   @Override
-  public TokenType getType() {
+  public TokenType type() {
     return TokenType.BYTE_SIZE;
+  }
+
+  @Override
+  public JsonElement toJson() {
+    JsonObject object = new JsonObject();
+    object.addProperty("type", TokenType.BYTE_SIZE.name());
+    object.addProperty("value", value);
+    return object;
   }
 }
