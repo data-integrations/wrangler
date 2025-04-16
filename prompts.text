@@ -108,8 +108,7 @@ Create input data: List<Row> with columns like data_transfer_size and response_t
 Define recipe like:
 
 java
-Copy
-Edit
+
 String[] recipe = new String[] {
   "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec"
 };

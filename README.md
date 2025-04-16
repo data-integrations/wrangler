@@ -237,5 +237,6 @@ and limitations under the License.
 
 Cask is a trademark of Cask Data, Inc. All rights reserved.
 
+
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
