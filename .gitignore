@@ -51,3 +51,5 @@ release.properties
 
 # Remove dev directory.
 dev
+
+/node_modules
