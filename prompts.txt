@@ -1,0 +1,35 @@
+# AI Prompts Used in Project Development
+
+The following prompts were used with AI coding assistance tools during the development of this project:
+
+1. Initial Project Setup:
+   "Help me build a bidirectional data ingestion tool between ClickHouse and flat files using Java Spring Boot for backend and Next.js for frontend. The tool should support JWT token-based authentication for ClickHouse as a source and allow users to select specific columns for ingestion."
+
+2. Backend Model Creation:
+   "Create model classes in Java for a data ingestion tool that will handle ClickHouse and flat file configurations, table information, and ingestion requests/responses."
+
+3. ClickHouse Integration:
+   "Write a utility class in Java that handles connection to ClickHouse using JWT token authentication and can fetch table schema information and execute queries."
+
+4. Flat File Processing:
+   "Create Java utility classes for handling CSV file operations including reading files, extracting schemas, and writing data to flat files."
+
+5. Service Layer Implementation:
+   "Develop service classes in Java Spring Boot that handle the core functionality of ingesting data bidirectionally between ClickHouse and flat files, including schema discovery and data transformation."
+
+6. API Endpoints:
+   "Design RESTful API endpoints for a Spring Boot application that allow users to test connections, upload files, fetch table schemas, preview data, and perform data ingestion."
+
+7. Frontend UI Components:
+   "Create React components for a data ingestion tool including forms for ClickHouse and flat file configuration, table and column selection interface, data preview, and ingestion results display."
+
+8. Frontend State Management:
+   "Implement state management in a Next.js application for a multi-step data ingestion process that includes source/target selection, configuration, schema selection, preview, and results."
+
+9. API Integration on Frontend:
+   "Create an API client in TypeScript for communicating with a Spring Boot backend that handles data ingestion operations between ClickHouse and flat files."
+
+10. Multi-Table JOIN Implementation:
+    "Implement functionality to join multiple ClickHouse tables based on user-specified JOIN conditions and include this in the data ingestion process."
+
+These prompts were iteratively refined based on the responses and additional requirements throughout the development process. 
