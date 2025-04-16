@@ -16,13 +16,13 @@
 
 package io.cdap.wrangler.expression;
 
-import io.cdap.wrangler.api.ExecutorContext;
-import io.cdap.wrangler.api.Row;
-import org.apache.commons.jexl3.JexlContext;
-
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
+
+import org.apache.commons.jexl3.JexlContext;
+
+import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.Row;
 
 /**
  * Manages variables which can be referenced in a JEXL expression.
@@ -91,7 +91,6 @@ public class ELContext implements JexlContext {
     set("this", row);
   }
 
-  @Nullable
   private void init(ExecutorContext context) {
     if (context != null) {
       // Adds the transient store variables.

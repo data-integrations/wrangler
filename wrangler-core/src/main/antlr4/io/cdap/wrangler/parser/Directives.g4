@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -195,6 +197,37 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+// Add new lexer rules for byte size and time duration
+BYTE_SIZE
+ : Number BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Number TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [KkMmGgTtPpEe]?[Bb]
+ ;
+
+fragment TIME_UNIT
+ : [Nn][Ss]  // nanoseconds
+ | [Uu][Ss]  // microseconds
+ | [Mm][Ss]  // milliseconds
+ | [Ss]      // seconds
+ | [Mm]      // minutes
+ | [Hh]      // hours
+ | [Dd]      // days
+ ;
+
+// Add new parser rules for byte size and time duration arguments
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
