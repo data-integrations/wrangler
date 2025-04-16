@@ -309,6 +309,18 @@
       <artifactId>cdap-system-app-api</artifactId>
       <version>${cdap.version}</version>
     </dependency>
+  
+    <dependency>
+      <groupId>io.cdap.wrangler</groupId>
+      <artifactId>wrangler-core</artifactId>
+      <version>4.11.0</version>
+    </dependency>
+  
+    <dependency>
+      <groupId>io.cdap.wrangler</groupId>
+      <artifactId>wrangler-core</artifactId>
+      <version>4.11.0</version>
+    </dependency>
   </dependencies>
 
 

@@ -140,8 +140,13 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+    : STRING              #stringValue
+    | NUMBER             #numberValue
+    | BOOLEAN            #booleanValue
+    | NULL               #nullValue
+    | BYTE_SIZE          #byteSizeValue
+    | TIME_DURATION      #timeDurationValue
+    ;
 
 ecommand
  : '!' Identifier
@@ -193,6 +198,14 @@ stringList
 
 identifierList
  : Identifier (',' Identifier)*
+ ;
+
+BYTE_SIZE
+ : NUMBER BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : NUMBER TIME_UNIT
  ;
 
 
@@ -310,4 +323,11 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+fragment BYTE_UNIT
+ : ('B'|'KB'|'MB'|'GB'|'TB'|'KIB'|'MIB'|'GIB'|'TIB')
+ ;
+
+fragment TIME_UNIT
+ : ('NS'|'MS'|'S'|'M'|'H'|'D')
  ;
