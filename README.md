@@ -31,7 +31,7 @@ This enhancement introduces native support for byte size and time duration units
 ###Installation and Build
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-handle/wrangler.git
+   git clone https://github.com/ayushmaan2207/wrangler.git
    cd wrangler
    ```
 2. **Build the project using Maveny**:
