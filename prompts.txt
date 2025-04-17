@@ -85,12 +85,14 @@ In finalize, return a single Row with converted results (e.g., MB, seconds)
 
 
 Prompt 6: Write Unit Tests for ByteSize and TimeDuration
-Help me write JUnit tests for one Java class: ByteSize and TimeDuration.
- These class parse strings like "10KB" and "500ms" respectively.
 
-Test valid cases: "10KB", "1.5MB", "1GB" for ByteSize and "500ms", "2s", "1min" for TimeDuration.
+I need to write JUnit tests for one Java class: ByteSize and TimeDuration.
+ 
+1. These class parse strings like "10KB" and "500ms" respectively.
 
-Verify that getBytes() or getMilliseconds() return the correct canonical values.
+2. Test valid cases: "10KB", "1.5MB", "1GB" for ByteSize and "500ms", "2s", "1min" for TimeDuration.
+
+3. Verify that getBytes() or getMilliseconds() return the correct canonical values.
 
 Include a few invalid input tests and assert that they throw proper exceptions.
 
@@ -98,6 +100,7 @@ Include a few invalid input tests and assert that they throw proper exceptions.
 
 
 Prompt 7: Write Parser Tests for New Grammar
+
 I’ve added BYTE_SIZE and TIME_DURATION tokens to an ANTLR grammar. Help me write parser tests in Java to:
 
 Validate that inputs like "10KB", "1.5MB", "5ms", "3min" are accepted in directive recipes.
@@ -110,6 +113,7 @@ Also test invalid values (e.g., "10KBB", "1..5MB", "ms5") and ensure they are re
 
 
 Prompt 8: Write Integration Test for AggregateStats Directive
+
 I’ve created an AggregateStats directive that aggregates byte size and time duration columns. Help me write an integration test using TestingRig to:
 
 Create input data: List<Row> with columns like data_transfer_size and response_time using values like "1MB", "500KB", "2s", "500ms".
