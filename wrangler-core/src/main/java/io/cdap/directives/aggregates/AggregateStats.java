@@ -101,7 +101,7 @@
                      TimeDuration duration = new TimeDuration(timeVal);
  
                      totalBytes += byteSize.getBytes();
-                     totalTimeMs += duration.getValue();
+                     totalTimeMs += duration.getMilliseconds();
                      count++;
                  }
              }
