@@ -39,19 +39,25 @@
      double duration = Double.parseDouble(number);
      
      switch (unit) {
-       case "ms":
+      case "ms":
          return (long) duration;
-       case "s":
+      case "s":
          return (long) (duration * 1000);
-       case "m":
+      case "m":
+      case "min":
          return (long) (duration * 60 * 1000);
-       case "h":
+      case "h":
          return (long) (duration * 60 * 60 * 1000);
-       case "d":
+      case "d":
          return (long) (duration * 24 * 60 * 60 * 1000);
-       default:
-         return (long) duration; // Default to milliseconds
-     }
+      case "us":
+         return (long) (duration / 1000.0); // Convert microseconds to milliseconds
+      case "ns":
+         return (long) (duration / 1000000.0); // Convert nanoseconds to milliseconds
+      default:
+         return (long) duration; // Default case
+}
+
    }
  
    @Override
