@@ -16,7 +16,6 @@
 
 package io.cdap.wrangler;
 
-import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.etl.api.Lookup;
 import io.cdap.cdap.etl.api.StageMetrics;
 import io.cdap.directives.aggregates.DefaultTransientStore;
@@ -24,25 +23,32 @@ import io.cdap.wrangler.api.Executor;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.proto.Contexts;
-import org.apache.commons.collections.map.HashedMap;
+import org.mockito.Mockito;
 
 import java.net.URL;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * This class {@link TestingPipelineContext} is a runtime context that is provided for each
  * {@link Executor} execution.
  */
-class TestingPipelineContext implements ExecutorContext {
-  private StageMetrics metrics;
-  private String name;
-  private TransientStore store;
-  private Map<String, String> properties;
+public class TestingPipelineContext implements ExecutorContext {
+  private final StageMetrics metrics;
+  private final String name;
+  private final TransientStore store;
+  private final Map<String, String> properties;
+  private boolean schemaManagementEnabled;
 
-  TestingPipelineContext() {
-    properties = new HashedMap();
+  public TestingPipelineContext() {
+    name = "testing";
     store = new DefaultTransientStore();
+    properties = new HashMap<>();
+
+    metrics = Mockito.mock(StageMetrics.class);
+    Mockito.doNothing().when(metrics).count(Mockito.anyString(), Mockito.anyInt());
+
+    schemaManagementEnabled = false;
   }
 
   /**
@@ -63,37 +69,7 @@ class TestingPipelineContext implements ExecutorContext {
    */
   @Override
   public StageMetrics getMetrics() {
-    return new StageMetrics() {
-      @Override
-      public void count(String s, int i) {
-
-      }
-
-      @Override
-      public void gauge(String s, long l) {
-
-      }
-
-      @Override
-      public void pipelineCount(String s, int i) {
-
-      }
-
-      @Override
-      public void pipelineGauge(String s, long l) {
-
-      }
-
-      @Override
-      public Metrics child(Map<String, String> tags) {
-        return this;
-      }
-
-      @Override
-      public Map<String, String> getTags() {
-        return Collections.emptyMap();
-      }
-    };
+    return metrics;
   }
 
   /**
@@ -101,7 +77,7 @@ class TestingPipelineContext implements ExecutorContext {
    */
   @Override
   public String getContextName() {
-    return "testing";
+    return name;
   }
 
   /**
@@ -129,6 +105,11 @@ class TestingPipelineContext implements ExecutorContext {
     return store;
   }
 
+  public TestingPipelineContext setSchemaManagementEnabled() {
+    this.schemaManagementEnabled = true;
+    return this;
+  }
+
   /**
    * Provides a handle to dataset for lookup.
    *
@@ -139,5 +120,10 @@ class TestingPipelineContext implements ExecutorContext {
   @Override
   public <T> Lookup<T> provide(String s, Map<String, String> map) {
     return null;
+  }
+
+  @Override
+  public boolean isSchemaManagementEnabled() {
+    return schemaManagementEnabled;
   }
 }

@@ -16,13 +16,16 @@
 
 package io.cdap.directives.column;
 
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,7 +39,7 @@ public class RenameTest {
       "rename C2 C4",
     };
 
-    List<Row> rows = Arrays.asList(
+    List<Row> rows = Collections.singletonList(
       new Row("C1", "A").add("C2", "B").add("C3", "C").add("C4", "D").add("C5", "E")
     );
 
@@ -49,7 +52,7 @@ public class RenameTest {
       "rename C1 c4",
     };
 
-    List<Row> rows = Arrays.asList(
+    List<Row> rows = Collections.singletonList(
       new Row("C1", "A").add("C2", "B").add("C3", "C").add("C4", "D").add("C5", "E")
     );
 
@@ -62,7 +65,7 @@ public class RenameTest {
       "rename C1 c1",
     };
 
-    List<Row> rows = Arrays.asList(
+    List<Row> rows = Collections.singletonList(
       new Row("C1", "A").add("C2", "B").add("C3", "C").add("C4", "D").add("C5", "E")
     );
 
@@ -99,5 +102,34 @@ public class RenameTest {
     Assert.assertEquals(new Row("body", "D").add("body_1", "E").add("body_2", "F").add("BODY_3", "G"), result.get(1));
     Assert.assertEquals(new Row("body", "H").add("body_1", "I").add("body_2", "J"), result.get(2));
     Assert.assertEquals(new Row("body", "K").add("body_1", "L").add("body_2", "M").add("BODY_3", "N"), result.get(3));
+  }
+
+  @Test
+  public void testGetOutputSchemaForRenamedColumns() throws Exception {
+    String[] directives = new String[] {
+      "rename :col_B :col_C",
+    };
+    List<Row> rows = Collections.singletonList(
+      new Row("col_A", 1).add("col_B", new BigDecimal("143235.016"))
+    );
+    Schema inputSchema = Schema.recordOf(
+      "inputSchema",
+      Schema.Field.of("col_A", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("col_B", Schema.decimalOf(10, 3))
+    );
+    Schema expectedSchema = Schema.recordOf(
+      "expectedSchema",
+      Schema.Field.of("col_A", Schema.of(Schema.Type.INT)),
+      Schema.Field.of("col_C", Schema.decimalOf(10, 3))
+    );
+
+    Schema outputSchema = TestingRig.executeAndGetSchema(directives, rows, inputSchema);
+
+    Assert.assertEquals(outputSchema.getFields().size(), expectedSchema.getFields().size());
+    for (Schema.Field expectedField : expectedSchema.getFields()) {
+      Assert.assertEquals(
+        outputSchema.getField(expectedField.getName()).getSchema().getType(), expectedField.getSchema().getType()
+      );
+    }
   }
 }
