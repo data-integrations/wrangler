@@ -56,6 +56,8 @@ public enum TokenType implements Serializable {
    * by the grammar as :<column-name>.
    */
   COLUMN_NAME,
+  BYTE_SIZE,
+  TIME_DURATION,
 
   /**
    * Represents the enumerated type for the object of {@code Text} type.
