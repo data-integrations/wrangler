@@ -1,3 +1,75 @@
+#My part which I have done  
+## Byte Size and Time Duration Parsers
+
+This enhancement introduces native support for parsing byte size and time duration units within CDAP Wrangler. It allows users to seamlessly perform operations like aggregating byte sizes or time durations with built-in conversions between units.
+
+### Features:
+- **Byte Size Units**: Supports parsing and converting common byte size units such as KB, MB, GB, etc.
+- **Time Duration Units**: Supports parsing and converting time durations with units like ms (milliseconds), s (seconds), min (minutes), etc.
+  
+### New Parsers:
+1. **Byte Size Parsing**:
+   - Byte sizes can be written with the respective unit, e.g., `10KB`, `150MB`, `1.5GB`.
+   - The supported units are: `B` (Bytes), `KB` (Kilobytes), `MB` (Megabytes), `GB` (Gigabytes), and others.
+   - The parser converts all byte sizes into bytes in canonical form for easy aggregation and operations.
+
+2. **Time Duration Parsing**:
+   - Time durations can be written with the respective unit, e.g., `150ms`, `2.5s`, `5min`.
+   - Supported time units include: `ms` (milliseconds), `s` (seconds), `min` (minutes), `h` (hours), and others.
+   - The parser converts all time durations into nanoseconds in canonical form for easier aggregation and calculations.
+
+### Example Usage
+
+You can now use these new parsers in your `aggregate-stats` directive for aggregating byte sizes and time durations.
+
+#### Sample Recipe:
+
+```java
+String[] recipe = new String[] {
+    "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec"
+};
+data_transfer_size: Column representing data sizes (e.g., in KB, MB).
+
+response_time: Column representing time durations (e.g., in ms, s).
+
+total_size_mb: Target column for the aggregated size in MB.
+
+total_time_sec: Target column for the aggregated time in seconds.
+
+This will calculate the total data transfer size in MB and total response time in seconds, performing the necessary unit conversions automatically.
+
+Aggregation Example:
+Given the following data:
+
+data_transfer_size	response_time
+10KB	100ms
+2MB	500ms
+1.5MB	200ms
+After running the aggregate-stats directive, the result might look like:
+
+total_size_mb	total_time_sec
+3.01	0.800
+Conversions:
+Size: The byte size values are converted to bytes and then aggregated. The result is converted to the requested unit (e.g., MB, GB) as needed.
+
+Time: The time values are converted to nanoseconds and aggregated. The final result is converted to the requested time unit (e.g., seconds, minutes).
+
+Example Unit Tests
+The new classes, ByteSize and TimeDuration, come with unit tests to ensure that the parsing and conversion works as expected:
+
+ByteSize Tests: Validates that byte size strings like "10KB", "1.5MB", and "500GB" are correctly parsed and converted to bytes.
+
+TimeDuration Tests: Ensures that time duration strings like "200ms", "2s", and "5min" are correctly parsed and converted to nanoseconds.
+
+Directives and Aggregation:
+The aggregate-stats directive supports aggregation over byte sizes and time durations. It allows you to:
+
+Calculate total sizes or times.
+
+Optionally specify the unit for the output (e.g., MB, GB, seconds, minutes).
+
+Support additional aggregation types like average, median, or percentiles if implemented.
+
 # Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)

@@ -309,6 +309,12 @@
       <artifactId>cdap-system-app-api</artifactId>
       <version>${cdap.version}</version>
     </dependency>
+    <dependency>
+  <groupId>junit</groupId>
+  <artifactId>junit</artifactId>
+  <version>4.13.2</version>
+  <scope>test</scope>
+</dependency>
   </dependencies>
 
 
