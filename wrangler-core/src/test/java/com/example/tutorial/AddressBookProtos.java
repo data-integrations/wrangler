@@ -616,6 +616,7 @@ public final class AddressBookProtos {
           return this;
         }
 
+        @Override
         public com.google.protobuf.Descriptors.Descriptor
             getDescriptorForType() {
           return com.example.tutorial.AddressBookProtos.internal_static_tutorial_Person_PhoneNumber_descriptor;
@@ -641,27 +642,33 @@ public final class AddressBookProtos {
           return result;
         }
 
+        @Override
         public Builder clone() {
           return (Builder) super.clone();
         }
+        @Override
         public Builder setField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             Object value) {
           return (Builder) super.setField(field, value);
         }
+        @Override
         public Builder clearField(
             com.google.protobuf.Descriptors.FieldDescriptor field) {
           return (Builder) super.clearField(field);
         }
+        @Override
         public Builder clearOneof(
             com.google.protobuf.Descriptors.OneofDescriptor oneof) {
           return (Builder) super.clearOneof(oneof);
         }
+        @Override
         public Builder setRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             int index, Object value) {
           return (Builder) super.setRepeatedField(field, index, value);
         }
+        @Override
         public Builder addRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             Object value) {
@@ -689,10 +696,12 @@ public final class AddressBookProtos {
           return this;
         }
 
+        @Override
         public final boolean isInitialized() {
           return true;
         }
 
+        @Override
         public Builder mergeFrom(
             com.google.protobuf.CodedInputStream input,
             com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1254,6 +1263,7 @@ public final class AddressBookProtos {
         return result;
       }
 
+      @Override
       public Builder clone() {
         return (Builder) super.clone();
       }
@@ -2184,6 +2194,7 @@ public final class AddressBookProtos {
         return result;
       }
 
+      @Override
       public Builder clone() {
         return (Builder) super.clone();
       }

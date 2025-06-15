@@ -126,7 +126,11 @@ public final class UsageDefinition implements Serializable {
           sb.append("prop:{key:value,[key:value]*");
         } else if (token.type().equals(TokenType.RANGES)) {
           sb.append("start:end=[bool|text|numeric][,start:end=[bool|text|numeric]*");
-        }
+        } else if (token.type().equals(TokenType.BYTE_SIZE)) {
+          sb.append(token.name()).append(" (e.g., 10KB, 1MB)");
+        } else if (token.type().equals(TokenType.TIME_DURATION)) {
+          sb.append(token.name()).append(" (e.g., 100ms, 2s)");
+        }        
       }
 
       count--;
@@ -234,11 +238,28 @@ public final class UsageDefinition implements Serializable {
       tokens.add(spec);
     }
 
+    public void defineByteSize(String name) {
+      TokenDefinition spec = new TokenDefinition(name, TokenType.BYTE_SIZE, null, currentOrdinal, Optional.FALSE);
+      currentOrdinal++;
+      tokens.add(spec);
+    }
+    
+    public void defineTimeDuration(String name) {
+      TokenDefinition spec = new TokenDefinition(name, TokenType.TIME_DURATION, null, currentOrdinal, Optional.FALSE);
+      currentOrdinal++;
+      tokens.add(spec);
+    }    
+
     /**
      * @return a instance of <code>UsageDefinition</code> object.
      */
     public UsageDefinition build() {
       return new UsageDefinition(directive, optionalCnt, tokens);
+    }
+
+    public Object addRequiredArg(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'addRequiredArg'");
     }
   }
 }

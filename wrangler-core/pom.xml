@@ -54,7 +54,7 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>${protobuf.version}</version>
+      <!-- <version>3.11.3</version> -->
     </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
