@@ -16,12 +16,23 @@
 
 package io.cdap.wrangler.parser;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
 import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,16 +44,8 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class <code>RecipeVisitor</code> implements the visitor pattern
@@ -314,6 +317,28 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
       strs.add(text.substring(1, text.length() - 1));
     }
     builder.addToken(new TextList(strs));
+    return builder;
+  }
+
+  /**
+   * A Directive can include byte size values like 1KB, 2MB, etc. This visitor method extracts the
+   * byte size value and creates a token type <code>ByteSize</code> to be added to <code>TokenGroup</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    String value = ctx.BYTE_SIZE().getText();
+    builder.addToken(new ByteSize(value));
+    return builder;
+  }
+
+  /**
+   * A Directive can include time duration values like 1s, 2m, 3h, etc. This visitor method extracts the
+   * time duration value and creates a token type <code>TimeDuration</code> to be added to <code>TokenGroup</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    String value = ctx.TIME_DURATION().getText();
+    builder.addToken(new TimeDuration(value));
     return builder;
   }
 

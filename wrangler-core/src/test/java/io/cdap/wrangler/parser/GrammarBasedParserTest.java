@@ -16,20 +16,38 @@
 
 package io.cdap.wrangler.parser;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import io.cdap.directives.aggregates.AggregateSizeAndTime;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveContext;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.List;
+import io.cdap.wrangler.registry.DirectiveRegistry;
 
 /**
  * Tests {@link GrammarBasedParser}
  */
 public class GrammarBasedParserTest {
+  private GrammarBasedParser parser;
+  private DirectiveRegistry registry;
+  private DirectiveContext context;
+
+  @Before
+  public void setUp() {
+    registry = mock(DirectiveRegistry.class);
+    context = mock(DirectiveContext.class);
+  }
 
   @Test
   public void testBasic() throws Exception {
@@ -73,6 +91,38 @@ public class GrammarBasedParserTest {
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
+  }
+
+  @Test
+  public void testAggregateSizeAndTimeDirective() throws Exception {
+    String recipe = "aggregate-size-time source-size:size source-time:time target-size:total_size target-time:total_time size-unit:KB time-unit:s aggregation:total";
+    parser = new GrammarBasedParser("system", recipe, registry, context);
+    List<Directive> directives = parser.parse();
+    assertEquals(1, directives.size());
+    assertTrue(directives.get(0) instanceof AggregateSizeAndTime);
+  }
+
+  @Test
+  public void testAggregateSizeAndTimeWithDefaults() throws Exception {
+    String recipe = "aggregate-size-time source-size:size source-time:time target-size:total_size target-time:total_time";
+    parser = new GrammarBasedParser("system", recipe, registry, context);
+    List<Directive> directives = parser.parse();
+    assertEquals(1, directives.size());
+    assertTrue(directives.get(0) instanceof AggregateSizeAndTime);
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testInvalidAggregateSizeAndTimeMissingRequired() throws Exception {
+    String recipe = "aggregate-size-time source-size:size target-size:total_size";
+    parser = new GrammarBasedParser("system", recipe, registry, context);
+    parser.parse();
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testInvalidAggregateSizeAndTimeInvalidUnit() throws Exception {
+    String recipe = "aggregate-size-time source-size:size source-time:time target-size:total_size target-time:total_time size-unit:invalid";
+    parser = new GrammarBasedParser("system", recipe, registry, context);
+    parser.parse();
   }
 
 }

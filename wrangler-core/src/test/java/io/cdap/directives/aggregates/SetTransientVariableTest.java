@@ -16,6 +16,16 @@
 
 package io.cdap.directives.aggregates;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import io.cdap.cdap.etl.api.Lookup;
 import io.cdap.cdap.etl.api.StageMetrics;
 import io.cdap.wrangler.TestingRig;
@@ -24,15 +34,6 @@ import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.proto.Contexts;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Tests {@link SetTransientVariable}

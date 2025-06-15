@@ -16,6 +16,10 @@
 
 package io.cdap.functions;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -31,11 +35,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * Collection of useful expression functions made available in the context
@@ -324,7 +323,6 @@ public final class JsonFunctions {
   /**
    * @return Number of elements in the array.
    */
-  @Nullable
   public static int ArrayLength(JsonArray array) {
     if (array != null) {
       return array.size();
