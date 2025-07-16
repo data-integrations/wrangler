@@ -16,10 +16,10 @@ name: Build e2e tests
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, release/* ]
   pull_request:
-      branches: [ develop ]
-      types: [ opened, synchronize, reopened ]
+    branches: [ develop, release/*]
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
 jobs:
@@ -35,7 +35,9 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch'
       || github.event_name == 'push'
-      || github.event_name == 'pull_request'
+      || (contains(github.event.pull_request.labels.*.name, 'build')
+          && (github.event.action != 'labeled' || github.event.label.name == 'build')
+          )
     strategy:
       matrix:
         module: [wrangler-transform]
