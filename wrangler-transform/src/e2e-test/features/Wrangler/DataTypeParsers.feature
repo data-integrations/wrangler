@@ -44,7 +44,7 @@ Feature:  datatype parsers
 
 
   @BQ_SOURCE_DATETIME_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST
-  Scenario: To verify User is able to run a pipeline using parse datetime directive
+  Scenario: To verify user is able to run a pipeline using parse datetime directive
     Given Open Datafusion Project to configure pipeline
     Then Click on the Plus Green Button to import the pipelines
     Then Select the file for importing the pipeline for the plugin "Directive_parse_Datetime"
