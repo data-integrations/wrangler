@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.cdap.wrangler.schema.TransientStoreKeys.INPUT_SCHEMA;
 import static io.cdap.wrangler.schema.TransientStoreKeys.OUTPUT_SCHEMA;
@@ -64,6 +66,7 @@ import static io.cdap.wrangler.schema.TransientStoreKeys.OUTPUT_SCHEMA;
  * Task for remote execution of directives
  */
 public class RemoteExecutionTask implements RunnableTask {
+  private static final Logger LOG = LoggerFactory.getLogger(RemoteExecutionTask.class);
 
   private static final Gson GSON = new GsonBuilder()
           .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
@@ -73,8 +76,17 @@ public class RemoteExecutionTask implements RunnableTask {
   public void run(RunnableTaskContext runnableTaskContext) throws Exception {
     RemoteDirectiveRequest directiveRequest = GSON.fromJson(runnableTaskContext.getParam(),
                                                             RemoteDirectiveRequest.class);
+    LOG.info("Inside run method");
+    LOG.info("directiveRequest: {}", directiveRequest);
+    LOG.info("directiveRequest getData :{}", directiveRequest.getData());
+    LOG.info("directiveRequest getRecipe :{}", directiveRequest.getRecipe());
+    LOG.info("directiveRequest getInputSchema: {}", directiveRequest.getInputSchema());
+    LOG.info("directiveRequest getSystemDirectives:{}", directiveRequest.getSystemDirectives());
+    LOG.info("directiveRequest getPluginNameSpace:{}", directiveRequest.getPluginNameSpace());
+
 
     SystemAppTaskContext systemAppContext = runnableTaskContext.getRunnableTaskSystemAppContext();
+    LOG.info("systemAppContext: {}", systemAppContext);
     String namespace = directiveRequest.getPluginNameSpace();
     Map<String, DirectiveClass> systemDirectives = directiveRequest.getSystemDirectives();
     AtomicBoolean hasUDD = new AtomicBoolean();

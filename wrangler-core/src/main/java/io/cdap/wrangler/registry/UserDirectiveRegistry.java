@@ -46,6 +46,8 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A User Executor Registry in a collection of user defined directives. The
@@ -78,6 +80,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
   private HttpServiceContext manager;
   private ArtifactSummary wranglerArtifact;
   private SystemAppTaskContext systemAppTaskContext;
+  private static final Logger LOG = LoggerFactory.getLogger(UserDirectiveRegistry.class);
 
   /**
    * This constructor should be used when initializing the registry from <tt>Service</tt>.
@@ -92,6 +95,7 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @param manager an instance of {@link ArtifactManager}.
    */
   public UserDirectiveRegistry(HttpServiceContext manager) {
+    LOG.info("inside UDR, manager:{}", manager );
     this.manager = manager;
   }
 
@@ -100,6 +104,8 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
    * @param systemAppTaskContext {@link SystemAppTaskContext}
    */
   public UserDirectiveRegistry(SystemAppTaskContext systemAppTaskContext) {
+    LOG.info("inside UDR, systemAppTaskContext:{}", systemAppTaskContext );
+    LOG.info("inside UDR, systemAppTaskContext.getArtifactManager:{}", systemAppTaskContext.getArtifactManager() );
     this.systemAppTaskContext = systemAppTaskContext;
   }
 
@@ -162,9 +168,14 @@ public final class UserDirectiveRegistry implements DirectiveRegistry {
 
   @Nullable
   private Class<? extends Directive> getDirective(String namespace, String name) throws IOException {
+    LOG.info("Inside getDirective(), context: {}", context);
+    LOG.info("name: {}", name);
+    LOG.info("namespace: {}", namespace);
     if (context != null) {
+      LOG.info("context: {}", context);
       return context.loadPluginClass(name);
     }
+    LOG.info("manager: {}", manager);
     PluginConfigurer configurer = manager != null ?
       manager.createPluginConfigurer(namespace) : systemAppTaskContext.createPluginConfigurer(namespace);
     return configurer.usePluginClass(Directive.TYPE, name, UUID.randomUUID().toString(),
