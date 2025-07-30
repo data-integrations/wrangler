@@ -52,6 +52,7 @@ import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RemoteDirectiveResponse;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
+import io.cdap.wrangler.lineage.LineageOperations;
 import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.DirectiveClass;
 import io.cdap.wrangler.parser.GrammarWalker;
@@ -103,6 +104,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.cdap.wrangler.schema.TransientStoreKeys.INPUT_SCHEMA;
 import static io.cdap.wrangler.schema.TransientStoreKeys.OUTPUT_SCHEMA;
@@ -111,7 +114,7 @@ import static io.cdap.wrangler.schema.TransientStoreKeys.OUTPUT_SCHEMA;
  * V2 endpoints for workspace
  */
 public class WorkspaceHandler extends AbstractDirectiveHandler {
-
+  private static final Logger LOG = LoggerFactory.getLogger(WorkspaceHandler.class);
   private static final Gson GSON =
     new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
   private static final Pattern PRAGMA_PATTERN = Pattern.compile("^\\s*#pragma\\s+load-directives\\s+");
@@ -470,14 +473,16 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     DirectiveExecutionRequest executionRequest =
       GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(),
                     DirectiveExecutionRequest.class);
-
+    LOG.info("DirectiveExecutionRequest: directives: {} limit: {}", executionRequest.getDirectives(), executionRequest.getLimit());
     List<String> directives = new ArrayList<>(executionRequest.getDirectives());
     if (recipeDirectives != null) {
       directives.addAll(recipeDirectives);
     }
 
     WorkspaceDetail detail = wsStore.getWorkspaceDetail(workspaceId);
+    LOG.info("WorkspaceDetail: {}", detail);
     UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
+    LOG.info("UserDirectivesCollector: {}", userDirectivesCollector);
     List<Row> result = executeDirectives(ns.getName(), directives, detail,
                                          userDirectivesCollector);
     DirectiveExecutionResponse response = generateExecutionResponse(result,
@@ -563,6 +568,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       TRANSIENT_STORE.reset(TransientVariableScope.GLOBAL);
       TRANSIENT_STORE.set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
     }
+    LOG.info("SampleSpec: {}",detail.getWorkspace().getSampleSpec());
+
 
     return getContext().isRemoteTaskEnabled() ?
       executeRemotely(namespace, directives, detail, grammarVisitor) :
@@ -604,6 +611,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
     GrammarMigrator migrator = new MigrateToV2(directives);
     String recipe = migrator.migrate();
+    LOG.info("executeRemotely, after migrate, recipe: {}", recipe);
     Map<String, DirectiveClass> systemDirectives = new HashMap<>();
 
     // Gather system directives and call additional visitor.
@@ -622,14 +630,20 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     if (!hasDirectives.get()) {
       return detail.getSample();
     }
-
+    LOG.info("recipe:{}", recipe);
+    LOG.info("systemDirectives:{}", systemDirectives);
+    LOG.info("namespace:{}", namespace);
+    LOG.info("detail.getSampleAsBytes:{}", detail.getSampleAsBytes());
+    LOG.info("TRANSIENT_STORE.get(INPUT_SCHEMA): {}", (Object) TRANSIENT_STORE.get(INPUT_SCHEMA));
     RemoteDirectiveRequest directiveRequest = new RemoteDirectiveRequest(recipe, systemDirectives,
                                                                          namespace, detail.getSampleAsBytes(),
                                                                          TRANSIENT_STORE.get(INPUT_SCHEMA));
+    LOG.info("directiveRequest: {}", directiveRequest);
     RunnableTaskRequest runnableTaskRequest = RunnableTaskRequest.getBuilder(RemoteExecutionTask.class.getName())
       .withParam(GSON.toJson(directiveRequest))
       .withNamespace(namespace)
       .build();
+    LOG.info("runnableTaskRequest: {}", runnableTaskRequest);
     byte[] bytes = getContext().runTask(runnableTaskRequest);
     RemoteDirectiveResponse response;
     if (Feature.WRANGLER_KRYO_SERIALIZATION.isEnabled(getContext())) {
@@ -640,6 +654,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     if (response.getOutputSchema() != null) {
         TRANSIENT_STORE.set(TransientVariableScope.GLOBAL, OUTPUT_SCHEMA, response.getOutputSchema());
     }
+    LOG.info("response: {}", response);
     return response.getRows();
   }
 
