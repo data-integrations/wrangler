@@ -272,8 +272,10 @@
               <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
               <Embed-Transitive>true</Embed-Transitive>
               <Embed-Directory>lib</Embed-Directory>
-              <!-- So that user plugins can depend on Directive.java and other classes, for user-defined directives -->
-              <_exportcontents>io.cdap.wrangler.api.*</_exportcontents>
+              <!-- So that user plugins can depend on Directive.java, EL.java and other classes, for user-defined directives -->
+              <_exportcontents>
+                io.cdap.wrangler.api.*,io.cdap.wrangler.expression.*
+              </_exportcontents>
             </instructions>
           </configuration>
           <executions>
