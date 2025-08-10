@@ -274,6 +274,22 @@ String
  | '"'  ( EscapeSequence | ~('"') )* '"'
  ;
 
+ByteSize
+ : Number BYTE_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : 'B' | 'KB' | 'MB' | 'GB'
+ ;
+
+TimeDuration
+ : Number TIME_UNIT
+ ;
+
+fragment TIME_UNIT
+ : 'MS' | 'S' | 'M' | 'H'
+ ;
+
 EscapeSequence
    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
    |   UnicodeEscape
