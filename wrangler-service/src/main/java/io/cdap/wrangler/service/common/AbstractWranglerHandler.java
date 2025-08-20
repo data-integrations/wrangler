@@ -22,6 +22,7 @@ import io.cdap.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.worker.RemoteExecutionException;
+import io.cdap.cdap.security.spi.authorization.UnauthorizedException;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.dataset.connections.ConnectionNotFoundException;
@@ -215,6 +216,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
     } catch (RemoteExecutionException e) {
       responder.sendJson(getErrorCode(e.getCause().getRemoteExceptionClassName()),
                          new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
+    } catch (UnauthorizedException e) {
+      responder.sendJson(e.getStatusCode(), new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
     } catch (Throwable t) {
       responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR,
                          new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>((t.getMessage())));
