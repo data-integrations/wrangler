@@ -25,6 +25,8 @@ import io.cdap.wrangler.api.DirectiveNotFoundException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
@@ -44,6 +46,28 @@ public class GrammarBasedParser implements RecipeParser {
   private final DirectiveRegistry registry;
   private final String recipe;
   private final DirectiveContext context;
+//Add to GrammarBasedParser class
+private ByteSize parseByteSize(String text) throws DirectiveParseException {
+   try {
+       return new ByteSize(text);
+   } catch (IllegalArgumentException e) {
+       throw new DirectiveParseException(
+           "Invalid byte size format '" + text + "'. Valid formats: 10KB, 1.5MB, 2GIB", 
+           e
+       );
+   }
+}
+
+private TimeDuration parseTimeDuration(String text) throws DirectiveParseException {
+   try {
+       return new TimeDuration(text);
+   } catch (IllegalArgumentException e) {
+       throw new DirectiveParseException(
+           "Invalid time duration format '" + text + "'. Valid formats: 100ms, 1.5s, 2h", 
+           e
+       );
+   }
+}
 
   public GrammarBasedParser(String namespace, String recipe, DirectiveRegistry registry) {
     this(namespace, recipe, registry, new NoOpDirectiveContext());
