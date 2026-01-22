@@ -1,19 +1,3 @@
-/*
- * Copyright © 2017-2019 Cask Data, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
 grammar Directives;
 
 options {
@@ -51,21 +35,66 @@ statements
 
 directive
  : command
-  (   codeblock
-    | identifier
-    | macro
-    | text
-    | number
-    | bool
-    | column
-    | colList
-    | numberList
-    | boolList
-    | stringList
-    | numberRanges
-    | properties
-  )*?
-  ;
+   ( byteSize
+   | timeDuration
+   | aggregateStats
+   | identifier
+   | macro
+   | text
+   | number
+   | bool
+   | column
+   | colList
+   | numberList
+   | boolList
+   | stringList
+   | numberRangesDirective
+   | numberRanges
+   | properties
+   )*?
+   ;
+
+aggregateStats
+ : 'aggregate-stats' column column ( numberRangeDirectiveList )? outputColumnList
+ ;
+
+outputColumnList
+ : column ( ',' column )*
+ ;
+numberRanges
+ : numberRange ( ',' numberRange)*
+ ;
+
+numberRange
+ : Number ':' Number '=' value
+ ;
+
+value
+ : String | Number | Column | Bool | BYTE_SIZE  | TIME_DURATION
+ ;
+numberRangeDirectiveList
+ : numberRangeDirective ( ',' numberRangeDirective )*
+ ;
+
+byteSize
+ : BYTE_SIZE
+ ;
+
+timeDuration
+ : TIME_DURATION
+ ;
+
+numberRangesDirective
+ : numberRangeDirective ( ',' numberRangeDirective )*
+ ;
+
+numberRangeDirective
+ : Number ':' Number '=' valueDirective
+ ;
+
+valueDirective
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
+ ;
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
@@ -131,18 +160,6 @@ property
  : Identifier '=' ( text | number | bool )
  ;
 
-numberRanges
- : numberRange ( ',' numberRange)*
- ;
-
-numberRange
- : Number ':' Number '=' value
- ;
-
-value
- : String | Number | Column | Bool
- ;
-
 ecommand
  : '!' Identifier
  ;
@@ -195,7 +212,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
@@ -247,7 +263,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -258,16 +273,13 @@ Number
  ;
 
 Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
- ;
+ : [a-zA-Z_\-] [a-zA-Z_0-9\-]*;
 
 Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
- ;
+ : [a-zA-Z_] [a-zA-Z_0-9]*;
 
 Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
- ;
+ : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*;
 
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
@@ -279,6 +291,14 @@ EscapeSequence
    |   UnicodeEscape
    |   OctalEscape
    ;
+
+BYTE_SIZE
+  : [0-9]+ ('.' [0-9]+)? ( 'B' | 'KB' | 'MB' | 'GB' | 'TB' )
+  ;
+
+TIME_DURATION
+  : [0-9]+ ('.' [0-9]+)? ( 'ms' | 's' | 'm' | 'h' | 'd' )
+  ;
 
 fragment
 OctalEscape
@@ -293,21 +313,17 @@ UnicodeEscape
    ;
 
 fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F');
 
 Comment
- : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
- ;
+ : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip;
 
 Space
- : [ \t\r\n\u000C]+ -> skip
- ;
+ : [ \t\r\n\u000C]+ -> skip;
 
 fragment Int
  : '-'? [1-9] Digit* [L]*
- | '0'
- ;
+ | '0';
 
 fragment Digit
- : [0-9]
- ;
+ : [0-9];
