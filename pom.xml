@@ -302,6 +302,35 @@
       <id>release</id>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.8.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>sonatype.release</publishingServerId>
+              <autoPublish>false</autoPublish>
+              <ignorePublishedComponents>true</ignorePublishedComponents>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>version-release</id>
+      <distributionManagement>
+        <repository>
+          <id>artifact-registry</id>
+          <url>artifactregistry://us-maven.pkg.dev/oss-exit-gate-prod/cloud-data-fusion--mavencentral</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+
+    <profile>
+      <id>common-artifacts</id>
+      <build>
+        <plugins>
           <!-- Source JAR -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -363,17 +392,6 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.sonatype.central</groupId>
-            <artifactId>central-publishing-maven-plugin</artifactId>
-            <version>0.8.0</version>
-            <extensions>true</extensions>
-            <configuration>
-              <publishingServerId>sonatype.release</publishingServerId>
-              <autoPublish>false</autoPublish>
-              <ignorePublishedComponents>true</ignorePublishedComponents>
-            </configuration>
           </plugin>
         </plugins>
       </build>
