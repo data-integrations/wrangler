@@ -167,7 +167,7 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>5.1.9</version>
           <extensions>true</extensions>
           <configuration>
             <instructions>
@@ -176,6 +176,7 @@
               <Embed-Directory>lib</Embed-Directory>
               <!--Only @Plugin classes in the export packages will be included as plugin-->
               <_exportcontents>io.cdap.wrangler.*</_exportcontents>
+              <Multi-Release>true</Multi-Release>
             </instructions>
           </configuration>
           <executions>
