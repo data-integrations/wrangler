@@ -535,7 +535,7 @@
 
         <dependency>
           <groupId>org.seleniumhq.selenium</groupId>
-          <artifactId>selenium-devtools-v144</artifactId>
+          <artifactId>selenium-http-jdk-client</artifactId>
           <version>${selenium.version}</version>
           <scope>test</scope>
         </dependency>
