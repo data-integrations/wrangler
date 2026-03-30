@@ -402,7 +402,6 @@
       <properties>
         <testSourceLocation>src/e2e-test/java</testSourceLocation>
         <TEST_RUNNER>TestRunner.java</TEST_RUNNER>
-        <selenium.version>4.13.0</selenium.version>
       </properties>
       <build>
         <testResources>
@@ -525,11 +524,22 @@
           <version>1.2.8</version>
           <scope>runtime</scope>
         </dependency>
-
         <dependency>
-          <groupId>org.seleniumhq.selenium</groupId>
-          <artifactId>selenium-java</artifactId>
-          <version>${selenium.version}</version>
+          <groupId>org.openqa.seleniumhq.selenium</groupId>
+          <artifactId>selenium-support</artifactId>
+          <version>4.1.2</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.openqa.seleniumhq.selenium</groupId>
+          <artifactId>selenium-api</artifactId>
+          <version>4.1.2</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.openqa.seleniumhq.selenium</groupId>
+          <artifactId>selenium-remote-driver</artifactId>
+          <version>4.1.2</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
