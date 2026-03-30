@@ -402,7 +402,7 @@
       <properties>
         <testSourceLocation>src/e2e-test/java</testSourceLocation>
         <TEST_RUNNER>TestRunner.java</TEST_RUNNER>
-        <selenium.version>4.28.0</selenium.version>
+        <selenium.version>4.21.0</selenium.version>
       </properties>
       <build>
         <testResources>
