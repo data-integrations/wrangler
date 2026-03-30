@@ -402,6 +402,7 @@
       <properties>
         <testSourceLocation>src/e2e-test/java</testSourceLocation>
         <TEST_RUNNER>TestRunner.java</TEST_RUNNER>
+        <selenium.version>4.28.0</selenium.version>
       </properties>
       <build>
         <testResources>
@@ -523,6 +524,20 @@
           <artifactId>logback-classic</artifactId>
           <version>1.2.8</version>
           <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>org.seleniumhq.selenium</groupId>
+          <artifactId>selenium-java</artifactId>
+          <version>${selenium.version}</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>org.seleniumhq.selenium</groupId>
+          <artifactId>selenium-devtools-v144</artifactId>
+          <version>${selenium.version}</version>
+          <scope>test</scope>
         </dependency>
       </dependencies>
 
