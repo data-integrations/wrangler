@@ -29,7 +29,6 @@
     <app.main.class>io.cdap.wrangler.DataPrep</app.main.class>
     <tika.version>1.14</tika.version>
     <hadoop.version>2.10.2</hadoop.version>
-    <google.cloud.spanner.version>1.51.0</google.cloud.spanner.version>
   </properties>
 
   <dependencies>
@@ -132,22 +131,18 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-storage</artifactId>
-      <version>${google.storage.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-bigquery</artifactId>
-      <version>${google.cloud.bigquery.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-spanner</artifactId>
-      <version>${google.cloud.spanner.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-core</artifactId>
-      <version>${google.cloud.core.version}</version>
     </dependency>
     <dependency>
       <groupId>com.googlecode.juniversalchardet</groupId>
@@ -260,7 +255,7 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>5.1.9</version>
           <extensions>true</extensions>
           <configuration>
             <archive>
@@ -299,7 +294,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>5.1.9</version>
       </plugin>
     </plugins>
 

@@ -82,11 +82,8 @@
     <commons-lang3.version>3.5</commons-lang3.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <geogson.version>1.1.97</geogson.version>
-    <google.cloud.bigquery.version>1.110.1</google.cloud.bigquery.version>
-    <google.cloud.core.version>1.93.4</google.cloud.core.version>
     <google.findbugs.version>2.0.1</google.findbugs.version>
     <google.http.client.version>1.22.0</google.http.client.version>
-    <google.storage.version>1.113.16</google.storage.version>
     <gson.version>2.6.2</gson.version>
     <guava.retrying.version>2.0.0</guava.retrying.version>
     <guava.version>31.0.1-jre</guava.version>
@@ -134,6 +131,13 @@
         <artifactId>protobuf-java</artifactId>
         <version>${protobuf.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>libraries-bom</artifactId>
+        <version>26.32.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -167,7 +171,7 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>5.1.9</version>
           <extensions>true</extensions>
           <configuration>
             <instructions>
