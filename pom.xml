@@ -19,7 +19,7 @@
 
   <groupId>io.cdap.wrangler</groupId>
   <artifactId>wrangler</artifactId>
-  <version>4.11.1</version>
+  <version>4.11.2-SNAPSHOT</version>
   <name>Wrangler</name>
   <packaging>pom</packaging>
   <description>An interactive tool for data cleansing and transformation.</description>
@@ -71,7 +71,7 @@
     <avro.version>1.8.1</avro.version>
     <aws.sdk.version>1.11.133</aws.sdk.version>
     <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
-    <bouncycastle.version>1.56</bouncycastle.version>
+    <bouncycastle.version>1.70</bouncycastle.version>
     <cdap.version>6.11.1</cdap.version>
     <chlorine.version>1.1.5</chlorine.version>
     <commons.validator.version>1.6</commons.validator.version>
@@ -167,7 +167,7 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>5.1.9</version>
           <extensions>true</extensions>
           <configuration>
             <instructions>
