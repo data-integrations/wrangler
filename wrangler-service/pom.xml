@@ -29,7 +29,7 @@
     <app.main.class>io.cdap.wrangler.DataPrep</app.main.class>
     <tika.version>1.14</tika.version>
     <hadoop.version>2.10.2</hadoop.version>
-    <google.cloud.spanner.version>1.63.0</google.cloud.spanner.version>
+    <google.cloud.spanner.version>1.61.0</google.cloud.spanner.version>
   </properties>
 
   <dependencies>
