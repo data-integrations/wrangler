@@ -22,6 +22,8 @@ are manually created.
 
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
+  * **Byte Size and Time Duration Units Parsers** - Native support for parsing and utilizing byte size and time duration units within recipes. This allows users to easily handle units like Kilobytes (KB), Megabytes (MB), milliseconds (ms), or seconds (s) without complex multi-step recipes. Read more about it [below](#byte-size-and-time-duration-units-parsers).
+
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
     * Migrating directives from version 1.0 to version 2.0 [here](wrangler-docs/directive-migration.md)
     * Information about Grammar [here](wrangler-docs/grammar/grammar-info.md)
@@ -157,12 +159,70 @@ These directives are currently available:
 | **Transient Aggregators & Setters**                                    |                                                                  |
 | [Increment Variable](wrangler-docs/directives/increment-variable.md)            | Increments a transient variable with a record of processing.     |
 | [Set Variable](wrangler-docs/directives/set-variable.md)                        | Sets a transient variable with a record of processing.     |
+| **Aggregation**                                                        |                                                                  |
+| [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md)                  | Aggregates byte size and time duration values with unit conversion |
 | **Functions**                                                          |                                                                  |
 | [Data Quality](wrangler-docs/functions/dq-functions.md)                         | Data quality check functions. Checks for date, time, etc.        |
 | [Date Manipulations](wrangler-docs/functions/date-functions.md)                 | Functions that can manipulate date                               |
 | [DDL](wrangler-docs/functions/ddl-functions.md)                                 | Functions that can manipulate definition of data                 |
 | [JSON](wrangler-docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](wrangler-docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
+
+## Byte Size and Time Duration Units Parsers
+
+This enhancement adds native support for parsing and utilizing byte size and time duration units within Wrangler recipes. The new functionality allows users to easily handle units like Kilobytes (KB), Megabytes (MB), milliseconds (ms), or seconds (s) without requiring complex multi-step recipes.
+
+### New Features
+
+1. **New Token Types:**
+   - `BYTE_SIZE`: Parses byte size values (e.g., "10KB", "15MB", "2GB")
+   - `TIME_DURATION`: Parses time duration values (e.g., "150ms", "21s", "5min")
+
+2. **New Directive:**
+   - `aggregate-stats`: Aggregates byte size and time duration values with automatic unit conversion
+
+### Using Byte Size Parser
+
+The ByteSize parser automatically handles common byte units and their conversions:
+
+- Supported units: B (bytes), KB (kilobytes), MB (megabytes), GB (gigabytes), TB (terabytes)
+- Case-insensitive unit recognition (e.g., "kb", "KB", "Kb" are all valid)
+- Supports decimal values (e.g., "5MB")
+
+Example:
+```
+set-column :file_size_kb ByteSize("5MB") / 1024
+```
+
+### Using Time Duration Parser
+
+The TimeDuration parser supports various time units and their conversions:
+
+- Supported units: ns (nanoseconds), μs (microseconds), ms (milliseconds), s (seconds), min (minutes), h (hours), d (days)
+- Case-insensitive unit recognition
+- Supports decimal values (e.g., "2s")
+
+Example:
+```
+set-column :response_time_sec TimeDuration("150ms") / 1000
+```
+
+### Using the aggregate-stats Directive
+
+The aggregate-stats directive performs aggregation operations on byte size and time duration columns:
+
+Basic syntax:
+```
+aggregate-stats :byte_size_column :time_duration_column :total_size_column :total_time_column
+```
+
+Example:
+```
+// Aggregate data transfer size (showing result in MB) and response time (showing result in seconds)
+aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec
+```
+
+This directive aggregates all values from the specified columns, performs appropriate unit conversions, and outputs a single row with the aggregated results.
 
 ## Performance
 

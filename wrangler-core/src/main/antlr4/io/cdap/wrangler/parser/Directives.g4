@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
 
@@ -128,7 +130,7 @@ propertyList
  ;
 
 property
- : Identifier '=' ( text | number | bool )
+ : Identifier '=' ( text | number | bool | byteSize | timeDuration )
  ;
 
 numberRanges
@@ -140,8 +142,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | byteSize | timeDuration
  ;
+
+byteSize: BYTE_SIZE;
+timeDuration: TIME_DURATION;
+
 
 ecommand
  : '!' Identifier
@@ -195,7 +201,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
@@ -247,6 +252,13 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+// Fragments for units
+fragment BYTE_UNIT: [KkMmGgTt][Bb]?;
+fragment TIME_UNIT: [Nn]?[Ss]|[Mm][Ss]|[Hh]|[Dd]|[Mm][Ii][Nn];
+
+// New token rules
+BYTE_SIZE: Number BYTE_UNIT;
+TIME_DURATION: Number TIME_UNIT;
 
 Bool
  : 'true'
