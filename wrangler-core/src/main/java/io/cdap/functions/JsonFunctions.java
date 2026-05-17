@@ -35,7 +35,6 @@ import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * Collection of useful expression functions made available in the context
@@ -324,7 +323,6 @@ public final class JsonFunctions {
   /**
    * @return Number of elements in the array.
    */
-  @Nullable
   public static int ArrayLength(JsonArray array) {
     if (array != null) {
       return array.size();

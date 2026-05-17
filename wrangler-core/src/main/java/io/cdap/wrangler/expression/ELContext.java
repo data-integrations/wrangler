@@ -22,7 +22,6 @@ import org.apache.commons.jexl3.JexlContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 /**
  * Manages variables which can be referenced in a JEXL expression.
@@ -91,7 +90,6 @@ public class ELContext implements JexlContext {
     set("this", row);
   }
 
-  @Nullable
   private void init(ExecutorContext context) {
     if (context != null) {
       // Adds the transient store variables.

@@ -101,9 +101,13 @@ public class ChangeColCaseNames implements Directive, Lineage {
   @Override
   public Schema getOutputSchema(SchemaResolutionContext context) {
     Schema inputSchema = context.getInputSchema();
+    List<Schema.Field> fields = inputSchema.getFields();
+    if (fields == null) {
+      return null;
+    }
     return Schema.recordOf(
       "outputSchema",
-      inputSchema.getFields().stream()
+      fields.stream()
         .map(
           field -> {
             String fieldName = toLower ? field.getName().toLowerCase() : field.getName().toUpperCase();
