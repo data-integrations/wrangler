@@ -215,6 +215,11 @@
       <version>${poi.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.xmlbeans</groupId>
+      <artifactId>xmlbeans</artifactId>
+      <version>${xmlbeans.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${commons-lang3.version}</version>
@@ -247,7 +252,7 @@
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
-      <artifactId>bcprov-jdk15on</artifactId>
+      <artifactId>bcprov-jdk18on</artifactId>
       <version>${bouncycastle.version}</version>
     </dependency>
     <dependency>
