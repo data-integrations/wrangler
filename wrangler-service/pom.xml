@@ -135,6 +135,11 @@
       <version>${google.storage.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.google.oauth-client</groupId>
+      <artifactId>google-oauth-client</artifactId>
+      <version>${google.oauth.client.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-bigquery</artifactId>
       <version>${google.cloud.bigquery.version}</version>
