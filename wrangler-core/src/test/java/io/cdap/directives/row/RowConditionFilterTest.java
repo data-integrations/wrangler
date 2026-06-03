@@ -19,6 +19,8 @@ package io.cdap.directives.row;
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.expression.EL;
+import io.cdap.wrangler.expression.ELContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,17 +32,17 @@ import java.util.List;
  */
 public class RowConditionFilterTest {
 
-  @Test(expected = RecipeException.class)
-  public void testRHSLHSTypeDisconnect() throws Exception {
+  @Test
+  public void testRHSLHSTypeCoercion() throws Exception {
     String[] directives = new String[]{
       "parse-as-csv body ,",
       "drop body",
       "set columns PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
-      "filter-row-if-true Fare < 10" // RHS is double, but it's not converted. Check next test case.
+      "filter-row-if-true Fare < 10" // JEXL 3.3 supports coercion between string and numeric types directly
     };
 
     List<Row> rows = Arrays.asList(
-      new Row("body", "1,0,3,\"Braund, Mr. Owen Harris\",male,22,1,0,A/5 21171,7.25,,S"),
+      new Row("body", "1,0,3,\"Braund, Mr. Owen Harris\",male,22,1,0,A/5 21171,7,,S"),
       new Row("body", "2,1,1,\"Cumings, Mrs. John Bradley (Florence Briggs Thayer)\",female," +
         "38,1,0,PC 17599,71.2833,C85,C")
     );

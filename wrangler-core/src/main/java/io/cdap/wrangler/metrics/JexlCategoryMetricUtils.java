@@ -20,8 +20,7 @@ import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.expression.EL;
 import org.apache.commons.jexl3.parser.ParserTokenManager;
 import org.apache.commons.jexl3.parser.SimpleCharStream;
-
-import java.io.ByteArrayInputStream;
+import org.apache.commons.jexl3.parser.StringProvider;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -57,7 +56,7 @@ public final class JexlCategoryMetricUtils {
 
   private static String parseJexlCategory(String script) {
     ParserTokenManager manager = new ParserTokenManager(
-      new SimpleCharStream(new ByteArrayInputStream(script.getBytes())));
+      new SimpleCharStream(new StringProvider(script)));
     return manager.getNextToken().toString();
   }
 }
