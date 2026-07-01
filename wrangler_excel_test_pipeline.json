@@ -1,0 +1,61 @@
+{
+  "name": "Wrangler-Excel-Validation-Pipeline",
+  "description": "Data Fusion pipeline to validate upgraded parse-as-excel directive with POI 5.2.5 changes.",
+  "artifact": {
+    "name": "cdap-data-pipeline",
+    "version": "6.9.0",
+    "scope": "SYSTEM"
+  },
+  "config": {
+    "stages": [
+      {
+        "name": "GCS-Binary-Excel-Source",
+        "plugin": {
+          "name": "GCSFile",
+          "type": "batchsource",
+          "label": "GCS-Binary-Excel-Source",
+          "properties": {
+            "referenceName": "GcsExcelSource",
+            "project": "auto-detect",
+            "path": "gs://<YOUR_BUCKET_NAME>/path/to/titanic.xlsx",
+            "format": "blob"
+          }
+        }
+      },
+      {
+        "name": "Wrangler-Excel-Parser",
+        "plugin": {
+          "name": "Wrangler",
+          "type": "transform",
+          "label": "Wrangler-Excel-Parser",
+          "properties": {
+            "directives": "parse-as-excel :body '0' true",
+            "field": "body"
+          }
+        }
+      },
+      {
+        "name": "Trash-Sink",
+        "plugin": {
+          "name": "Trash",
+          "type": "batchsink",
+          "label": "Trash-Sink",
+          "properties": {
+            "referenceName": "TrashSink"
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "from": "GCS-Binary-Excel-Source",
+        "to": "Wrangler-Excel-Parser"
+      },
+      {
+        "from": "Wrangler-Excel-Parser",
+        "to": "Trash-Sink"
+      }
+    ],
+    "engine": "spark"
+  }
+}
