@@ -68,7 +68,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <antlr4.version>4.7</antlr4.version>
     <antlr4-maven-plugin.version>4.7</antlr4-maven-plugin.version>
-    <avro.version>1.8.1</avro.version>
+    <avro.version>1.11.4</avro.version>
     <aws.sdk.version>1.12.701</aws.sdk.version>
     <bigquery.connector.hadoop2.version>0.10.2-hadoop2</bigquery.connector.hadoop2.version>
     <bouncycastle.version>1.78.1</bouncycastle.version>
@@ -79,7 +79,7 @@
     <commons-csv.version>1.4</commons-csv.version>
     <commons-jexl.version>3.0</commons-jexl.version>
     <commons-lang.version>2.6</commons-lang.version>
-    <commons-lang3.version>3.5</commons-lang3.version>
+    <commons-lang3.version>3.18.0</commons-lang3.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <geogson.version>1.1.97</geogson.version>
     <google.cloud.bigquery.version>1.110.1</google.cloud.bigquery.version>
@@ -107,7 +107,7 @@
     <log4j.version>2.17.2</log4j.version>
     <javax.ws.rs-api.version>2.0</javax.ws.rs-api.version>
     <poi.version>5.2.5</poi.version>
-    <protobuf.version>3.11.3</protobuf.version>
+    <protobuf.version>3.25.5</protobuf.version>
     <reflections.version>0.9.9</reflections.version>
     <simmetrics.version>4.1.1</simmetrics.version>
     <simplemagic.version>1.11</simplemagic.version>
@@ -515,7 +515,7 @@
           <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <version>31.1-jre</version>
           </dependency>
         </dependencies>
       </dependencyManagement>
