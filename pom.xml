@@ -107,7 +107,7 @@
     <log4j.version>2.17.2</log4j.version>
     <javax.ws.rs-api.version>2.0</javax.ws.rs-api.version>
     <poi.version>5.2.5</poi.version>
-    <protobuf.version>3.11.3</protobuf.version>
+    <protobuf.version>3.25.5</protobuf.version>
     <reflections.version>0.9.9</reflections.version>
     <simmetrics.version>4.1.1</simmetrics.version>
     <simplemagic.version>1.11</simplemagic.version>
@@ -515,7 +515,7 @@
           <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <version>31.1-jre</version>
           </dependency>
         </dependencies>
       </dependencyManagement>
