@@ -16,7 +16,6 @@
 
 package io.cdap.wrangler.service.kafka;
 
-import avro.shaded.com.google.common.collect.Lists;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -26,6 +25,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -48,7 +48,7 @@ public class KafkaServiceTest {
     props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
     Map<String, List<PartitionInfo>> stringListMap = consumer.listTopics();
-    consumer.subscribe(Lists.newArrayList("test"));
+    consumer.subscribe(Collections.singletonList("test"));
     try {
       while (true) {
         ConsumerRecords<String, String> records = consumer.poll(1000);
