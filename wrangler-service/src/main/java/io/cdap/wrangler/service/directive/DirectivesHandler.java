@@ -868,10 +868,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
     respond(request, responder, namespace, ns -> {
       // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
-      DirectiveConfig config = TransactionRunners.run(getContext(), context -> {
-        ConfigStore store = ConfigStore.get(context);
-        return store.getConfig();
-      });
+      DirectiveConfig config = configStore.getConfig();
       Map<String, List<String>> aliases = config.getReverseAlias();
       List<DirectiveUsage> values = new ArrayList<>();
 
@@ -1000,10 +997,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       if (config == null) {
         throw new BadRequestException("Config is empty. Please check if the request is sent as HTTP POST body.");
       }
-      TransactionRunners.run(getContext(), context -> {
-        ConfigStore configStore = ConfigStore.get(context);
-        configStore.updateConfig(config);
-      });
+      configStore.updateConfig(config);
       return new ServiceResponse<Void>("Successfully updated configuration.");
     });
   }
@@ -1018,10 +1012,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("config")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> TransactionRunners.run(getContext(), context -> {
-      ConfigStore configStore = ConfigStore.get(context);
-      return new ServiceResponse<>(configStore.getConfig());
-    }));
+    respond(request, responder, () -> new ServiceResponse<>(configStore.getConfig()));
   }
 
   /**

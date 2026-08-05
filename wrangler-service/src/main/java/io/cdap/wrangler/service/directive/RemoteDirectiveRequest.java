@@ -15,7 +15,9 @@
  */
 package io.cdap.wrangler.service.directive;
 
+import com.google.common.base.Preconditions;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.parser.DirectiveClass;
 
 import java.util.HashMap;
@@ -31,14 +33,17 @@ public class RemoteDirectiveRequest {
   private final String pluginNameSpace;
   private final byte[] data;
   private final Schema inputSchema;
+  private final DirectiveConfig directiveConfig;
 
   RemoteDirectiveRequest(String recipe, Map<String, DirectiveClass> systemDirectives,
-                         String pluginNameSpace, byte[] data, Schema inputSchema) {
+                         String pluginNameSpace, byte[] data, Schema inputSchema, DirectiveConfig directiveConfig) {
     this.recipe = recipe;
     this.systemDirectives = new HashMap<>(systemDirectives);
     this.pluginNameSpace = pluginNameSpace;
     this.data = data;
     this.inputSchema = inputSchema;
+    this.directiveConfig = Preconditions.checkNotNull(directiveConfig,
+                                                      "DirectiveConfig is missing or null in RemoteDirectiveRequest.");
   }
 
   public String getRecipe() {
@@ -59,5 +64,9 @@ public class RemoteDirectiveRequest {
 
   public Schema getInputSchema() {
     return inputSchema;
+  }
+
+  public DirectiveConfig getDirectiveConfig() {
+    return directiveConfig;
   }
 }

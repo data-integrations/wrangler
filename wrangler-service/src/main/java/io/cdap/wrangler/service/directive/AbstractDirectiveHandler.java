@@ -34,6 +34,7 @@ import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientStore;
+import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
 import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.GrammarBasedParser;
@@ -89,10 +90,12 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
 
   protected DirectiveRegistry composite;
   protected boolean schemaManagementEnabled;
+  protected ConfigStore configStore;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
+    configStore = new ConfigStore(context);
     composite = new CompositeDirectiveRegistry(
       SystemDirectiveRegistry.INSTANCE,
       new UserDirectiveRegistry(context)
@@ -118,7 +121,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       String namespace,
       List<String> directives,
       List<Row> sample,
-      GrammarWalker.Visitor<E> grammarVisitor) throws DirectiveParseException, E, RecipeException {
+      GrammarWalker.Visitor<E> grammarVisitor) throws DirectiveParseException, E, RecipeException, IOException {
 
     if (directives.isEmpty()) {
       return sample;
@@ -128,15 +131,16 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     String recipe = migrator.migrate();
 
     // Parse and call grammar visitor
+    DirectiveConfig config = getDirectiveConfig();
     try {
-      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(config));
       walker.walk(recipe, grammarVisitor);
     } catch (CompileException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
 
     RecipeParser parser = new GrammarBasedParser(namespace, recipe, composite,
-                                                 new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+                                                 new ConfigDirectiveContext(config));
     try (RecipePipelineExecutor executor = new RecipePipelineExecutor(parser,
                                                                       new ServicePipelineContext(
                                                                         namespace, ExecutorContext.Environment.SERVICE,
@@ -280,5 +284,9 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
     // for backward compatibility, make the characters except the first one to lower case
     type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
     return type;
+  }
+
+  protected DirectiveConfig getDirectiveConfig() throws IOException {
+    return configStore.getConfig();
   }
 }
