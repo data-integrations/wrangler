@@ -82,7 +82,8 @@ public class RemoteExecutionTask implements RunnableTask {
     // Collect directives.
     try (UserDirectiveRegistry userDirectiveRegistry = new UserDirectiveRegistry(systemAppContext)) {
       List<Directive> directives = new ArrayList<>();
-      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+      DirectiveConfig config = directiveRequest.getDirectiveConfig();
+      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(config));
       walker.walk(directiveRequest.getRecipe(), (command, tokenGroup) -> {
         DirectiveInfo info;
         DirectiveClass directiveClass = systemDirectives.get(command);
