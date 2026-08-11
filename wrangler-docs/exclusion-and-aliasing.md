@@ -28,8 +28,7 @@ Aliasing allows one to create a new name for a root directive.
 
 ## Scope
 
-Both Exclusion and Aliasing are namespace wide - meaning they are applicable
-only within the namespace were the configuration has been applied.
+Currently, Exclusion and Aliasing configuration is supported only in the `system` namespace. Directive exclusions and aliases must be configured by administrators on the `system` namespace endpoint and apply system-wide.
 
 ## Configuration
 
@@ -69,23 +68,22 @@ Is map of aliased directive and the actual directive name to which it's aliased.
 ## Applying Configuration
 
 A service endpoint exists to apply the configuration. In order to apply
-the configuration, use following REST call.
+the configuration, use the following REST call against the `system` namespace:
 
 ```
 curl -s -X POST @<path-to-json>/<filename.json> \
- "http://<hostname>:11015/v3/namespaces/<namepsace>/apps/dataprep/services/service/methods/config"
+ "http://<hostname>:11015/v3/namespaces/system/apps/dataprep/services/service/methods/config"
 ```
 
-And example would be
+An example would be:
 
 ```
 curl -s -X POST --data-binary @/tmp/wrangler-config.json \
- http://localhost:11015/v3/namespaces/default/apps/dataprep/services/service/methods/config \
+ http://localhost:11015/v3/namespaces/system/apps/dataprep/services/service/methods/config \
   | python -mjson.tool
 {
     "message": "Successfully updated configuration.",
     "status": 200
 }
 ```
-
 
