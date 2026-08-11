@@ -80,6 +80,7 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
   public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
     Map<String, DirectiveInfo> registry = new HashMap<>();
     namespaces.add(PACKAGE);
+    namespaces.add("io.cdap.wrangler.directive.column"); 
     for (String namespace : namespaces) {
       try {
         Reflections reflections = new Reflections(namespace);
