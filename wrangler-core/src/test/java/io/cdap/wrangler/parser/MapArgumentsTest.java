@@ -41,7 +41,7 @@ public class MapArgumentsTest {
     Compiler compiler = new RecipeCompiler();
     CompileStatus status = compiler.compile("rename :fname :lname;");
 
-    UsageDefinition.Builder builder = UsageDefinition.builder("rename");
+    UsageDefinition.Builder builder = UsageDefinition.builder("rename", "Aggregate byte and time data");
     builder.define("col1", TokenType.COLUMN_NAME);
     builder.define("col2", TokenType.COLUMN_NAME);
 
@@ -57,7 +57,7 @@ public class MapArgumentsTest {
     Compiler compiler = new RecipeCompiler();
     CompileStatus status = compiler.compile("rename :fname;");
 
-    UsageDefinition.Builder builder = UsageDefinition.builder("rename");
+    UsageDefinition.Builder builder = UsageDefinition.builder("rename", "Aggregate byte and time data");
     builder.define("col1", TokenType.COLUMN_NAME);
     builder.define("col2", TokenType.COLUMN_NAME, Optional.TRUE);
 
@@ -76,7 +76,7 @@ public class MapArgumentsTest {
     CompileStatus status3 = compiler.compile("parse-as-csv :body ' ' true exp: { type == '002' };");
     CompileStatus status4 = compiler.compile("parse-as-csv :body exp: { type == '002' };");
 
-    UsageDefinition.Builder builder = UsageDefinition.builder("rename");
+    UsageDefinition.Builder builder = UsageDefinition.builder("rename", "Aggregate byte and time data");
     builder.define("col1", TokenType.COLUMN_NAME);
     builder.define("col2", TokenType.TEXT, Optional.TRUE);
     builder.define("col3", TokenType.BOOLEAN, Optional.TRUE);
@@ -118,7 +118,7 @@ public class MapArgumentsTest {
     Compiler compiler = new RecipeCompiler();
     CompileStatus status = compiler.compile("remove-sensitive-data :body \"ALL_BASIC\", \"AGE\";");
 
-    UsageDefinition.Builder builder = UsageDefinition.builder("rename");
+    UsageDefinition.Builder builder = UsageDefinition.builder("rename", "Aggregate byte and time data");
     builder.define("body", TokenType.COLUMN_NAME);
     builder.define("infoTypes", TokenType.TEXT_LIST);
 

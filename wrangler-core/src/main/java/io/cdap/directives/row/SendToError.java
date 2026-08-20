@@ -69,7 +69,7 @@ public class SendToError implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("condition", TokenType.EXPRESSION);
     builder.define("metric", TokenType.IDENTIFIER, Optional.TRUE);
     builder.define("message", TokenType.TEXT, Optional.TRUE);

@@ -51,7 +51,7 @@ public class CreateRecord implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("target_column", TokenType.COLUMN_NAME);
     builder.define("columns", TokenType.COLUMN_NAME_LIST);
     return builder.build();

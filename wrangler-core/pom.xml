@@ -72,6 +72,19 @@
     <!-- Test -->
 
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-unit-test</artifactId>
       <version>${cdap.version}</version>
@@ -138,6 +151,7 @@
       <artifactId>commons-validator</artifactId>
       <version>${commons.validator.version}</version>
     </dependency>
+
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
@@ -203,6 +217,9 @@
     </dependency>
 
     <!-- Apache -->
+
+
+
 
     <dependency>
       <groupId>org.apache.poi</groupId>
@@ -313,6 +330,12 @@
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-system-app-api</artifactId>
       <version>${cdap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>RELEASE</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 

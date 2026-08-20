@@ -77,7 +77,7 @@ public class InvokeHttp implements Directive, Lineage {
   @Override
   public UsageDefinition define() {
     //invoke-http <url> <column>[,<column>*] <header>[,<header>*]
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("url", TokenType.TEXT);
     builder.define("column", TokenType.COLUMN_NAME_LIST);
     builder.define("header", TokenType.TEXT, Optional.TRUE);

@@ -67,7 +67,7 @@ public final class SetType implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("type", TokenType.IDENTIFIER);
     builder.define("scale", TokenType.NUMERIC, Optional.TRUE);

@@ -55,7 +55,7 @@ public class IndexSplit implements Directive {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("source", TokenType.COLUMN_NAME);
     builder.define("start", TokenType.NUMERIC);
     builder.define("end", TokenType.NUMERIC);

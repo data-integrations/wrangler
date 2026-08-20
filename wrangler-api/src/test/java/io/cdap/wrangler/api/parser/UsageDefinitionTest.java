@@ -30,7 +30,7 @@ public class UsageDefinitionTest {
 
   @Test
   public void testUsageDefinitionCreation() {
-    UsageDefinition.Builder builder = UsageDefinition.builder("test");
+    UsageDefinition.Builder builder = UsageDefinition.builder("test", "Aggregate byte and time data");
     builder.define("fname", TokenType.COLUMN_NAME);
     builder.define("lname", TokenType.COLUMN_NAME, Optional.TRUE);
     builder.define("condition", TokenType.EXPRESSION, Optional.TRUE);
@@ -42,14 +42,14 @@ public class UsageDefinitionTest {
   public void testUsageStringCreation() {
     List<String> usages = new ArrayList<>();
 
-    UsageDefinition.Builder builder = UsageDefinition.builder("rename");
+    UsageDefinition.Builder builder = UsageDefinition.builder("rename", "Aggregate byte and time data");
     builder.define("source", TokenType.COLUMN_NAME);
     builder.define("destination", TokenType.COLUMN_NAME);
     String usage = builder.build().toString();
     Assert.assertEquals("rename :source :destination", usage);
     usages.add(usage);
 
-    builder = UsageDefinition.builder("parse-as-csv");
+    builder = UsageDefinition.builder("parse-as-csv", "Aggregate byte and time data");
     builder.define("col", TokenType.COLUMN_NAME);
     builder.define("delimiter", TokenType.TEXT, Optional.TRUE);
     builder.define("header", TokenType.BOOLEAN, Optional.TRUE);
@@ -57,14 +57,14 @@ public class UsageDefinitionTest {
     Assert.assertEquals("parse-as-csv :col  ['delimiter'] [header (true/false)]", usage);
     usages.add(usage);
 
-    builder = UsageDefinition.builder("send-to-error");
+    builder = UsageDefinition.builder("send-to-error", "Aggregate byte and time data");
     builder.define("expr", TokenType.EXPRESSION);
     builder.define("metric", TokenType.TEXT, Optional.TRUE);
     usage = builder.build().toString();
     Assert.assertEquals("send-to-error exp:{<expr>}  ['metric']", usage);
     usages.add(usage);
 
-    builder = UsageDefinition.builder("set-columns");
+    builder = UsageDefinition.builder("set-columns", "Aggregate byte and time data");
     builder.define("cols", TokenType.COLUMN_NAME_LIST);
     usage = builder.build().toString();
     Assert.assertEquals("set-columns :cols [,:cols  ]*", usage);

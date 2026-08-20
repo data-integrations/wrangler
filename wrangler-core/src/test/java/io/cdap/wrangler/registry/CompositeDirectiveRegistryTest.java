@@ -58,7 +58,7 @@ public class CompositeDirectiveRegistryTest {
 
     @Override
     public UsageDefinition define() {
-      UsageDefinition.Builder builder = UsageDefinition.builder("my-test");
+      UsageDefinition.Builder builder = UsageDefinition.builder("my-test", "Aggregate byte and time data");
       builder.define("column", TokenType.COLUMN_NAME);
       return builder.build();
     }

@@ -66,7 +66,7 @@ public class JsPath implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("source", TokenType.COLUMN_NAME);
     builder.define("destination", TokenType.COLUMN_NAME);
     builder.define("json-path", TokenType.TEXT);

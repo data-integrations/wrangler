@@ -57,7 +57,7 @@ public final class FixedLengthParser implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("width", TokenType.NUMERIC_LIST);
     builder.define("padding", TokenType.TEXT, Optional.TRUE);

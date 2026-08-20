@@ -56,7 +56,7 @@ public class Fail implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("condition", TokenType.EXPRESSION);
     return builder.build();
   }

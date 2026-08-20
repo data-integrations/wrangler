@@ -75,7 +75,7 @@ public class DataModelMapColumn implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define(DATA_MODEL_URL, TokenType.TEXT);
     builder.define(DATA_MODEL, TokenType.TEXT);
     builder.define(DATA_MODEL_REVISION, TokenType.NUMERIC);

@@ -108,7 +108,7 @@ public class ValidateStandard implements Directive {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define(COLUMN, TokenType.COLUMN_NAME);
     builder.define(
       STANDARD_SPEC,

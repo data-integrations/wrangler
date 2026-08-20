@@ -13,6 +13,21 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+/*
+ * Copyright © 2025 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package io.cdap.wrangler.api.parser;
 
@@ -149,11 +164,12 @@ public final class UsageDefinition implements Serializable {
    * <p>This builder is provided as user API for constructing the usage specification
    * for a directive.</p>
    *
-   * @param directive name of the directive for which the builder is created for.
+   * @param directive                name of the directive for which the builder is created for.
+   * @param aggregateByteAndTimeData
    * @return A <code>UsageDefinition.Builder</code> object that can be used to construct
    * <code>UsageDefinition</code> object.
    */
-  public static UsageDefinition.Builder builder(String directive) {
+  public static UsageDefinition.Builder builder(String directive, String aggregateByteAndTimeData) {
     return new UsageDefinition.Builder(directive);
   }
 
@@ -216,6 +232,8 @@ public final class UsageDefinition implements Serializable {
       currentOrdinal++;
       tokens.add(spec);
     }
+
+
 
     /**
      * Method allows users to specify a field as optional in combination to the

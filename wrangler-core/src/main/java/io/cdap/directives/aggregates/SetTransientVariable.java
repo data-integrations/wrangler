@@ -59,7 +59,7 @@ public class SetTransientVariable implements Directive {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("variable", TokenType.IDENTIFIER);
     builder.define("condition", TokenType.EXPRESSION);
     return builder.build();

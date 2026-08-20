@@ -56,7 +56,7 @@ public class WriteAsJsonObject implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("column", TokenType.COLUMN_NAME);
     builder.define("col", TokenType.COLUMN_NAME_LIST, Optional.TRUE);
     return builder.build();

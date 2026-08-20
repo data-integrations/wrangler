@@ -38,9 +38,6 @@ options {
  */
 }
 
-/**
- * Parser Grammar for recognizing tokens and constructs of the directives language.
- */
 recipe
  : statements EOF
  ;
@@ -64,6 +61,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -140,10 +139,11 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
+
  : '!' Identifier
  ;
 
@@ -165,6 +165,14 @@ number
 
 bool
  : Bool
+ ;
+
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
  ;
 
 condition
@@ -253,6 +261,14 @@ Bool
  | 'false'
  ;
 
+BYTE_SIZE
+ : Number BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Number TIME_UNIT
+ ;
+
 Number
  : Int ('.' Digit*)?
  ;
@@ -293,7 +309,13 @@ UnicodeEscape
    ;
 
 fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+
+fragment
+BYTE_UNIT : 'B' | 'KB' | 'MB' | 'GB' | 'TB';
+
+fragment
+TIME_UNIT : 'ms' | 's' | 'm' | 'h';
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip

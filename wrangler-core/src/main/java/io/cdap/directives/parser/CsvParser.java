@@ -76,7 +76,7 @@ public class CsvParser implements Directive, Lineage {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder("parse-as-csv");
+    UsageDefinition.Builder builder = UsageDefinition.builder("parse-as-csv", "Aggregate byte and time data");
     builder.define("col", TokenType.COLUMN_NAME);
     builder.define("delimiter", TokenType.TEXT, Optional.TRUE);
     builder.define("header", TokenType.BOOLEAN, Optional.TRUE);

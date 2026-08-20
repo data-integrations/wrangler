@@ -58,7 +58,7 @@ public class IncrementTransientVariable implements Directive {
 
   @Override
   public UsageDefinition define() {
-    UsageDefinition.Builder builder = UsageDefinition.builder(NAME);
+    UsageDefinition.Builder builder = UsageDefinition.builder(NAME, "Aggregate byte and time data");
     builder.define("variable", TokenType.IDENTIFIER);
     builder.define("value", TokenType.NUMERIC);
     builder.define("condition", TokenType.EXPRESSION);
