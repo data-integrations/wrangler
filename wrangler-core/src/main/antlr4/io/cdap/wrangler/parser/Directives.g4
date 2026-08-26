@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    |byteSize
+    |timeDuration
   )*?
   ;
 
@@ -311,3 +313,9 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+BYTE_SIZE : [0-9]+ ('KB' | 'MB' | 'GB' | 'TB')?;
+byteSize  : BYTE_SIZE;
+
+TIME_DURATION : [0-9]+ ( 's' | 'm' | 'h' | 'd' ); // Seconds, minutes, hours, days
+timeDuration  : TIME_DURATION;
