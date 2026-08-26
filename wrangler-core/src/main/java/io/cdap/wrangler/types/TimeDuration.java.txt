@@ -1,0 +1,37 @@
+package io.cdap.wrangler.types;
+
+public class TimeDuration {
+    private final double duration;
+    private final String unit;
+
+    public TimeDuration(double duration, String unit) {
+        this.duration = duration;
+        this.unit = unit;
+    }
+
+    public double getDuration() {
+        return duration;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public long toMilliseconds() {
+        switch (unit.toLowerCase()) {
+            case "ms":
+                return (long) duration;
+            case "s":
+            case "sec":
+            case "seconds":
+                return (long) (duration * 1000);
+            default:
+                throw new IllegalArgumentException("Unknown unit: " + unit);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return duration + unit;
+    }
+}

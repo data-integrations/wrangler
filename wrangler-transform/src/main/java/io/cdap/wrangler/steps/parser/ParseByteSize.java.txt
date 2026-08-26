@@ -1,0 +1,46 @@
+package io.cdap.wrangler.steps.parser;
+
+import io.cdap.wrangler.api.Step;
+import io.cdap.wrangler.api.RecipeException;
+import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.annotation.Name;
+import io.cdap.wrangler.api.annotation.Description;
+import io.cdap.wrangler.api.annotation.Plugin;
+import io.cdap.wrangler.api.parser.ByteSizeParser;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * A Wrangler step to parse a human-readable byte size string into a number.
+ */
+@Plugin(type = Step.PLUGIN_TYPE)
+@Name("parse-bytesize")
+@Description("Parses a human-readable byte size string like '5 MB' or '3.2GiB' into bytes")
+public class ParseByteSize implements Step {
+
+    private final String column;
+
+    public ParseByteSize(String column) {
+        this.column = column;
+    }
+
+    @Override
+    public List<Row> execute(Row row, int rowNum) throws RecipeException {
+        Object value = row.getValue(column);
+        if (value == null || !(value instanceof String)) {
+            throw new RecipeException("Column '" + column + "' must contain a valid string to parse.");
+        }
+
+        try {
+            long bytes = ByteSizeParser.parse((String) value);
+            row.setValue(column, bytes);
+        } catch (IllegalArgumentException e) {
+            throw new RecipeException("Failed to parse byte size from column '" + column + "': " + e.getMessage());
+        }
+
+        List<Row> results = new ArrayList<>();
+        results.add(row);
+        return results;
+    }
+}
