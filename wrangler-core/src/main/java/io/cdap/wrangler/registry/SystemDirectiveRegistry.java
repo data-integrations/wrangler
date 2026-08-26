@@ -48,6 +48,24 @@ import javax.annotation.Nullable;
  * @see CompositeDirectiveRegistry
  * @see DirectiveInfo
  */
+import com.google.common.annotations.VisibleForTesting;
+import io.cdap.cdap.api.artifact.ArtifactSummary;
+import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveLoadException;
+import org.reflections.Reflections;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nullable;
+
+/**
+ * This class is implementation of {@link DirectiveRegistry} for maintaining a registry
+ * of system provided directives.
+ */
 public final class SystemDirectiveRegistry implements DirectiveRegistry {
 
   public static final SystemDirectiveRegistry INSTANCE;
@@ -70,16 +88,13 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
     this(new ArrayList<>());
   }
 
-  /**
-   * This constructor uses the user provided <tt>namespace</tt> as starting pointing
-   * for scanning classes that implement the interface {@link Directive}.
-   *
-   * @param namespaces that is used as starting point for scanning classes.
-   * @throws DirectiveLoadException thrown if there are any issue loading the directive.
-   */
   public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
     Map<String, DirectiveInfo> registry = new HashMap<>();
+
+    // 🔥 Add custom directive package for AggregateStats
+    namespaces.add("io.cdap.directives.aggregates");
     namespaces.add(PACKAGE);
+
     for (String namespace : namespaces) {
       try {
         Reflections reflections = new Reflections(namespace);
@@ -92,28 +107,15 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
         throw new DirectiveLoadException(e.getMessage(), e);
       }
     }
+
     this.registry = Collections.unmodifiableMap(registry);
   }
 
-  /**
-   * Given the name of the directive, returns the information related to the directive.
-   *
-   * @param name of the directive to be retrieved from the registry.
-   * @return an instance of {@link DirectiveInfo} if found, else null.
-   */
   @Override
   public DirectiveInfo get(String namespace, String name) {
     return get(name);
   }
 
-  /**
-   * Given the name of the directive, returns the information related to the directive.
-   * This method is specific to system registry as system registry does not need namespace
-   * parameter.
-   *
-   * @param name of the directive to be retrieved from the registry.
-   * @return an instance of {@link DirectiveInfo} if found, else null.
-   */
   public DirectiveInfo get(String name) {
     return registry.get(name);
   }
@@ -129,20 +131,13 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
     return null;
   }
 
-  /**
-   * @return Returns an iterator to iterate through all the <code>DirectiveInfo</code> objects
-   * maintained within the registry.
-   */
   @Override
   public Iterable<DirectiveInfo> list(String namespace) {
     return Collections.unmodifiableCollection(registry.values());
   }
 
-  /**
-   * Closes any resources acquired during initialization or otherwise.
-   */
   @Override
   public void close() {
-    // no-op
+    // No-op.
   }
 }
