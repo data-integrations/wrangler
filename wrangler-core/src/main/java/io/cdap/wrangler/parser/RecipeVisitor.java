@@ -25,6 +25,8 @@ import io.cdap.wrangler.api.parser.BoolList;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Numeric;
@@ -316,6 +318,31 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new TextList(strs));
     return builder;
   }
+
+    /**
+   * A directive can have value tokens. This method determines the type
+   * of the value (ByteSize, TimeDuration, etc.) and adds the appropriate token.
+   */
+  @Override
+  public RecipeSymbol.Builder visitValue(DirectivesParser.ValueContext ctx) {
+    String text = ctx.getText();
+
+    if (ByteSize.getPattern().matcher(text).matches()) {
+      builder.addToken(new ByteSize(text));
+      return builder;
+    }
+
+    if (TimeDuration.getPattern().matcher(text).matches()) {
+      builder.addToken(new TimeDuration(text));
+      return builder;
+    }
+
+    // Fallback to default processing — likely a number or string
+    return super.visitValue(ctx);
+  }
+  
+
+
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();

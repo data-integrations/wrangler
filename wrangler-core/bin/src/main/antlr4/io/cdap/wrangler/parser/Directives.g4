@@ -58,8 +58,6 @@ directive
     | number
     | bool
     | column
-    | byteSizeArg
-    | timeDurationArg
     | colList
     | numberList
     | boolList
@@ -173,14 +171,6 @@ number
 bool
  : Bool
  ;
-
-byteSizeArg
-  : BYTE_SIZE
-  ;
-
-timeDurationArg
-  : TIME_DURATION
-  ;
 
 condition
  : OBrace (~CBrace | condition)* CBrace

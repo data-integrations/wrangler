@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright © 2017-2019 Cask Data, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  ~ use this file except in compliance with the License. You may obtain a copy of
+  ~ the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  ~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing permissions and limitations under
+  ~ the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>wrangler</artifactId>
+    <groupId>io.cdap.wrangler</groupId>
+    <version>4.12.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>wrangler-core</artifactId>
+  <name>Wrangler Core</name>
+
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+
+    <!-- Internal -->
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.wrangler</groupId>
+      <artifactId>wrangler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.wrangler</groupId>
+      <artifactId>wrangler-proto</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>${protobuf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-api</artifactId>
+      <version>${cdap.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-etl-api</artifactId>
+      <version>${cdap.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Test -->
+
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-unit-test</artifactId>
+      <version>${cdap.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hive</groupId>
+          <artifactId>hive-exec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>pl.pragmatists</groupId>
+      <artifactId>JUnitParams</artifactId>
+      <version>1.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>2.0.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
+      <version>2.0.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- External -->
+
+    <dependency>
+      <groupId>com.github.everit-org.json-schema</groupId>
+      <artifactId>org.everit.json.schema</artifactId>
+      <version>1.11.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dataapps.chlorine</groupId>
+      <artifactId>chlorine-finder</artifactId>
+      <version>${chlorine.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.mpkorstanje</groupId>
+      <artifactId>simmetrics-core</artifactId>
+      <version>${simmetrics.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.filosganga</groupId>
+      <artifactId>geogson-core</artifactId>
+      <version>${geogson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>${commons.validator.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>${netty.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.http</groupId>
+      <artifactId>netty-http</artifactId>
+      <version>${netty-http.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.joestelmach</groupId>
+      <artifactId>natty</artifactId>
+      <version>${natty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>nl.basjes.parse.httpdlog</groupId>
+      <artifactId>httpdlog-parser</artifactId>
+      <version>${httpdlog-parser.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>${joda-time.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.rholder</groupId>
+      <artifactId>guava-retrying</artifactId>
+      <version>${guava.retrying.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.esotericsoftware</groupId>
+      <artifactId>kryo</artifactId>
+      <version>4.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4</artifactId>
+      <version>${antlr4.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20180813</version>
+    </dependency>
+    <dependency>
+      <groupId>org.unix4j</groupId>
+      <artifactId>unix4j-command</artifactId>
+      <version>${unix4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <version>${json-path.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>${reflections.version}</version>
+    </dependency>
+
+    <!-- Apache -->
+
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>${poi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>${poi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-jexl3</artifactId>
+      <version>${commons-jexl.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpclient.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>${commons-csv.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>${bouncycastle.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>${commons-math3.version}</version>
+    </dependency>
+
+    <!-- UHN -->
+
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-base</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <!-- These are structure JARs for HL7 v2.1 and 2.5.1 (as an example) -->
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v21</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v22</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v23</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v231</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v24</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v25</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v251</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi</groupId>
+      <artifactId>hapi-structures-v26</artifactId>
+      <version>${hl7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-system-app-api</artifactId>
+      <version>${cdap.version}</version>
+    </dependency>
+  </dependencies>
+
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <version>${antlr4-maven-plugin.version}</version>
+        <configuration>
+          <visitor>true</visitor>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>antlr4</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <doCheck>true</doCheck>
+          <doUpdate>false</doUpdate>
+          <revisionOnScmFailure>false</revisionOnScmFailure>
+          <format>{0,date,yyyy-MM-dd-HH:mm:ss}_{1}</format>
+          <items>
+            <item>timestamp</item>
+            <item>${user.name}</item>
+          </items>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
