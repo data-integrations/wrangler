@@ -1,0 +1,28 @@
+1. Develop a function to convert byte size strings (e.g., '10KB', '5MB') into their byte equivalents.
+2. Implement byte size string parsing in the `AggregateStats` class.
+3. Enhance the `RecipeVisitor` class to process byte size strings for specific directives.
+4. Create tests for the byte size parser to check inputs like '10KB', '5MB', '1GB', and edge cases like '0B' or invalid formats.
+
+5. Build a function to parse time duration strings (e.g., '10s', '5m', '2h') into milliseconds.
+6. Add functionality to parse time duration strings in the `AggregateStats` class.
+7. Update the `RecipeVisitor` class to handle time duration strings for specific directives.
+8. Write tests for the time duration parser to validate inputs like '10s', '5m', '2h', and edge cases like '0ms' or invalid formats.
+
+9. Incorporate the byte size and time duration parsers into Wrangler directives that need these features.
+10. Update the `AggregateStats` class to aggregate data based on parsed byte sizes and time durations.
+11. Modify the `RecipeVisitor` class to process recipes containing byte size and time duration parsing.
+12. Ensure older recipes without byte size or time duration parsing remain compatible.
+
+13. Add test cases in `AggregateStatsTest` to verify byte size and time duration parsing.
+14. Include test cases in `RecipeVisitorTest` to validate recipes with byte size and time duration parsing.
+15. Create integration tests to confirm the complete functionality of byte size and time duration parsing in Wrangler.
+
+16. Update Wrangler documentation with examples of byte size and time duration parsing in recipes.
+17. Add a cheatsheet entry listing supported byte size and time duration formats.
+
+18. Implement error handling for invalid byte size strings in the byte size parser.
+19. Add error handling for invalid time duration strings in the time duration parser.
+20. Log meaningful error messages for invalid byte size or time duration strings in recipes.
+
+21. Refactor the `AggregateStats` class to support future parsers like byte size and time duration.
+22. Redesign the `RecipeVisitor` class to separate parsing logic from recipe traversal.
