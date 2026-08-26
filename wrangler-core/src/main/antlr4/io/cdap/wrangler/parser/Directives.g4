@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize                    
+    | timeDuration
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool  | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -163,9 +165,35 @@ number
  : Number
  ;
 
+ BYTE_SIZE
+ : Number BYTE_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [kK][bB] | [mM][bB] | [gG][bB] | [tT][bB] | [pP][bB]
+ ;
+
+TIME_DURATION
+ : Number TIME_UNIT
+ ;
+
+fragment TIME_UNIT
+ : [mM][sS] | [sS] | [mM] | [hH]
+ ;
+
+
 bool
  : Bool
  ;
+
+ byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
+
 
 condition
  : OBrace (~CBrace | condition)* CBrace
@@ -194,6 +222,14 @@ stringList
 identifierList
  : Identifier (',' Identifier)*
  ;
+
+byteSize
+  : ByteSizeArg
+  ;
+
+timeDuration
+  : TimeDurationArg
+  ;
 
 
 /*
@@ -246,6 +282,15 @@ Pipe     : '|';
 BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
+
+
+ByteSizeArg
+  : [0-9]+ ('.' [0-9]+)? (('K'|'M'|'G'|'T'|'P') 'B')
+  ;
+
+TimeDurationArg
+  : [0-9]+ ('.' [0-9]+)? ('ms' | 's' | 'm' | 'h')
+  ;
 
 
 Bool
