@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +34,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -248,7 +250,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
 
   /**
    * A Directive has name and in the parsing context it's called a command.
-   * This visitor methods extracts the command and creates a toke type <code>DirectiveName</code>
+   * This visitor methods extracts the command and creates a token type <code>DirectiveName</code>
    */
   @Override
   public RecipeSymbol.Builder visitCommand(DirectivesParser.CommandContext ctx) {
@@ -316,6 +318,23 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new TextList(strs));
     return builder;
   }
+//   Visit ByteSize (e.g., "1KB", "500MB")
+  @Override
+  public RecipeSymbol.Builder visitByteSize(DirectivesParser.ByteSizeContext ctx) {
+      String byteSize = ctx.getText(); // Extract the byte size literal (e.g., "1KB")
+      builder.addToken(new ByteSize(byteSize)); // Create a new ByteSize token
+      return builder;
+  }
+
+  // Visit TimeDuration (e.g., "1s", "5m", "2h")
+  @Override
+  public RecipeSymbol.Builder visitTimeDuration(DirectivesParser.TimeDurationContext ctx) {
+      String timeDuration = ctx.getText(); // Extract the time duration literal (e.g., "1s")
+      builder.addToken(new TimeDuration(timeDuration)); // Create a new TimeDuration token
+      return builder;
+  }
+
+
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
