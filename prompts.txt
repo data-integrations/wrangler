@@ -1,0 +1,13 @@
+# Prompts used with ChatGPT for the CDAP Wrangler Intern Assignment
+
+1. "How do I create a custom directive in CDAP Wrangler?"
+2. "Help me write a Java class that implements the Directive interface for Wrangler."
+3. "What is the correct way to update the ANTLR grammar in Directives.g4?"
+4. "How do I create a new TokenType and use it with UsageDefinition?"
+5. "Write a unit test for a directive that sums up size in MB and time in seconds."
+6. "Checkstyle is failing due to missing Javadoc, how do I fix it?"
+7. "How do I fix Maven Surefire Plugin test execution errors with Java 17 and PowerMock?"
+
+# Summary
+I used ChatGPT to guide me through building a new Wrangler directive (`aggregate-stats`),
+updating the grammar, and writing supporting token classes and tests.
